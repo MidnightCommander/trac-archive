@@ -1,0 +1,457 @@
+Index: misc/skins/yadt256.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/yadt256.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/yadt256.ini	(date 1593761221543)
+@@ -47,6 +47,7 @@
+     disabled = color246;color239
+     #inputhistory =
+     #commandhistory =
++    shadow = color239;black
+ 
+ [dialog]
+     _default_ = color252;color239
+Index: misc/skins/default.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/default.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/default.ini	(date 1593593447877)
+@@ -39,6 +39,7 @@
+     header = yellow;blue
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = black;lightgray
+Index: misc/skins/modarin256.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarin256.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarin256.ini	(date 1593760480076)
+@@ -81,6 +81,7 @@
+     disabled = color246;color239
+     #inputhistory =
+     #commandhistory =
++    shadow = color240;color0
+ 
+ [dialog]
+     _default_ = color252;color239
+Index: misc/skins/xoria256.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/xoria256.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/xoria256.ini	(date 1593761170811)
+@@ -82,6 +82,8 @@
+     #commandhistory =
+     #commandlinemark = black;lightgray
+ 
++    shadow = color239;black
++
+ [dialog]
+     _default_ = black;color250
+     dhotnormal = color88;;
+Index: misc/skins/gray-orange-blue256.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/gray-orange-blue256.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/gray-orange-blue256.ini	(date 1593759902557)
+@@ -45,6 +45,7 @@
+     reverse =
+     commandlinemark = ;main1
+     header = main2
++    shadow = black;gray12
+ 
+ [dialog]
+     _default_ = black;bgdarker
+Index: misc/skins/darkfar.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/darkfar.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/darkfar.ini	(date 1593895952429)
+@@ -39,6 +39,7 @@
+     header = yellow;black
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = brightcyan;blue
+Index: misc/skins/gray-green-purple256.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/gray-green-purple256.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/gray-green-purple256.ini	(date 1593759838449)
+@@ -45,6 +45,7 @@
+     reverse =
+     commandlinemark = ;main1
+     header = main2
++    shadow = black;gray12
+ 
+ [dialog]
+     _default_ = black;bgdarker
+Index: misc/skins/modarcon16root-defbg.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarcon16root-defbg.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarcon16root-defbg.ini	(date 1593760162597)
+@@ -81,6 +81,7 @@
+     disabled = color8;color7
+     #inputhistory =
+     #commandhistory =
++    shadow = color7;color0
+ 
+ [dialog]
+     _default_ = color0;color7
+Index: misc/skins/modarcon16.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarcon16.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarcon16.ini	(date 1593760077697)
+@@ -81,6 +81,7 @@
+     disabled = color8;color7
+     #inputhistory =
+     #commandhistory =
++    shadow = color7;color0
+ 
+ [dialog]
+     _default_ = color0;color7
+Index: misc/skins/seasons-winter16M.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/seasons-winter16M.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/seasons-winter16M.ini	(date 1593762066933)
+@@ -65,6 +65,8 @@
+     DialogFocus = #afbad8
+     Input = Main
+     PaleFg = #777
++    ShadowFg = #000
++    ShadowBg = #727176
+     Error = #3c4766
+     ErrorFocus = #586896
+     Top = #6b99d7
+@@ -106,6 +108,7 @@
+     reverse = #000;Bottom
+     commandlinemark = #000;DialogFocus
+     header = HeaderFg
++    shadow = ShadowFg;ShadowBg
+ 
+ [dialog]
+     _default_ = #000;Dialog
+Index: misc/skins/yadt256-defbg.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/yadt256-defbg.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/yadt256-defbg.ini	(date 1593761216407)
+@@ -48,6 +48,7 @@
+     disabled = color246;color239
+     #inputhistory =
+     #commandhistory =
++    shadow = color239;black
+ 
+ [dialog]
+     _default_ = color252;color239
+Index: misc/skins/modarin256root-defbg.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarin256root-defbg.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarin256root-defbg.ini	(date 1593760576524)
+@@ -81,6 +81,7 @@
+     disabled = color246;color239
+     #inputhistory =
+     #commandhistory =
++    shadow = color240;color0
+ 
+ [dialog]
+     _default_ = color252;color239
+Index: misc/skins/seasons-spring16M.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/seasons-spring16M.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/seasons-spring16M.ini	(date 1593761907477)
+@@ -65,6 +65,8 @@
+     DialogFocus = #b3de85
+     Input = Main
+     PaleFg = #777
++    ShadowFg = #000
++    ShadowBg = #797f73
+     Error = #c62b41
+     ErrorFocus = #e16d7e
+     Top = #f699a6
+@@ -106,6 +108,7 @@
+     reverse = #000;Bottom
+     commandlinemark = #000;DialogFocus
+     header = HeaderFg
++    shadow = ShadowFg;ShadowBg
+ 
+ [dialog]
+     _default_ = #000;Dialog
+Index: misc/skins/nicedark.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/nicedark.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/nicedark.ini	(date 1593896452849)
+@@ -39,6 +39,7 @@
+     header = lightgray;black
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = lightgray;black
+Index: misc/skins/julia256.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/julia256.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/julia256.ini	(date 1593896101433)
+@@ -42,6 +42,7 @@
+     header = yellow;color237
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = black;lightgray
+Index: misc/skins/featured.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/featured.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/featured.ini	(date 1593895982253)
+@@ -41,6 +41,7 @@
+     header = yellow;blue
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = black;lightgray
+Index: misc/skins/modarcon16-defbg.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarcon16-defbg.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarcon16-defbg.ini	(date 1593896318581)
+@@ -81,6 +81,7 @@
+     disabled = color8;color7
+     #inputhistory =
+     #commandhistory =
++    shadow = color7;color0
+ 
+ [dialog]
+     _default_ = color0;color7
+Index: misc/skins/sand256.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/sand256.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/sand256.ini	(date 1593960683248)
+@@ -94,6 +94,7 @@
+     reverse = ;rgb452
+     commandlinemark = white;gray
+     header = red;;italic
++    shadow = black;rgb221
+ 
+ [dialog]
+     _default_ = black;rgb553
+Index: misc/skins/modarcon16root.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarcon16root.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarcon16root.ini	(date 1593896347553)
+@@ -81,6 +81,7 @@
+     disabled = color8;color7
+     #inputhistory =
+     #commandhistory =
++    shadow = color7;color0
+ 
+ [dialog]
+     _default_ = color0;color7
+Index: misc/skins/modarin256root.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarin256root.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarin256root.ini	(date 1593960552604)
+@@ -81,6 +81,7 @@
+     disabled = color246;color239
+     #inputhistory =
+     #commandhistory =
++    shadow = color240;color0
+ 
+ [dialog]
+     _default_ = color252;color239
+Index: misc/skins/mc46.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/mc46.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/mc46.ini	(date 1593896108137)
+@@ -39,6 +39,7 @@
+     header = yellow;blue
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = black;lightgray
+Index: misc/skins/seasons-summer16M.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/seasons-summer16M.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/seasons-summer16M.ini	(date 1593962018461)
+@@ -65,6 +65,8 @@
+     DialogFocus = #f864f6
+     Input = #d7ffad
+     PaleFg = #777
++    ShadowFg = #000
++    ShadowBg = #7f7659
+     Error = #d40707
+     ErrorFocus = #db7b7b
+     Top = #46cef3
+@@ -106,6 +108,7 @@
+     reverse = #000;Bottom
+     commandlinemark = #000;DialogFocus
+     header = HeaderFg
++    shadow = ShadowFg;ShadowBg
+ 
+ [dialog]
+     _default_ = #000;Dialog
+Index: misc/skins/seasons-autumn16M.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/seasons-autumn16M.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/seasons-autumn16M.ini	(date 1593961999077)
+@@ -65,6 +65,8 @@
+     DialogFocus = #69880c
+     Input = #b5c400
+     PaleFg = #555
++    ShadowFg = #7f7f55
++    ShadowBg = #4c1002
+     Error = #840000
+     ErrorFocus = #b00
+     Top = #ff9909
+@@ -106,6 +108,7 @@
+     reverse = #000;Bottom
+     commandlinemark = #000;DialogFocus
+     header = HeaderFg
++    shadow = ShadowFg;ShadowBg
+ 
+ [dialog]
+     _default_ = #000;Dialog
+Index: misc/skins/featured-plus.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/featured-plus.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/featured-plus.ini	(date 1593895975677)
+@@ -41,6 +41,7 @@
+     header = yellow;blue
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = black;lightgray
+Index: misc/skins/double-lines.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/double-lines.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/double-lines.ini	(date 1593895968085)
+@@ -39,6 +39,7 @@
+     header = yellow;blue
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = black;lightgray
+Index: misc/skins/modarin256-defbg.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/modarin256-defbg.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/modarin256-defbg.ini	(date 1593960444524)
+@@ -81,6 +81,7 @@
+     disabled = color246;color239
+     #inputhistory =
+     #commandhistory =
++    shadow = color240;color0
+ 
+ [dialog]
+     _default_ = color252;color239
+Index: misc/skins/dark.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/dark.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/dark.ini	(date 1593959525218)
+@@ -39,6 +39,7 @@
+     header = yellow;black
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = brightcyan;blue
+Index: misc/skins/gotar.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- misc/skins/gotar.ini	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ misc/skins/gotar.ini	(date 1593895987953)
+@@ -36,6 +36,7 @@
+     header = brightred;
+     inputhistory =
+     commandhistory =
++    shadow = gray;black
+ 
+ [dialog]
+     _default_ = brightcyan;blue

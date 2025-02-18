@@ -1,0 +1,133 @@
+From 278f6020f20a675926b3a9a6867ce41393dd37a4 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Sat, 23 Jan 2021 21:41:57 -0600
+Subject: WindowTile
+
+---
+ lib/keybind.c           |  1 +
+ lib/keybind.h           |  1 +
+ misc/mc.default.keymap  |  1 +
+ src/editor/editwidget.c | 51 +++++++++++++++++++++++++++++++++++++++++
+ src/keybind-defaults.c  |  1 +
+ 5 files changed, 55 insertions(+)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index 6f63a072a..4d735ed43 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -342,6 +342,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (WindowNext),
+     ADD_KEYMAP_NAME (WindowPrev),
+     ADD_KEYMAP_NAME (WindowCascade),
++    ADD_KEYMAP_NAME (WindowTile),
+ #endif /* USE_INTERNAL_EDIT */
+ 
+     /* viewer */
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 0eae2c8bc..a3828e68d 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -301,6 +301,7 @@ enum
+     CK_WindowNext,
+     CK_WindowPrev,
+     CK_WindowCascade,
++    CK_WindowTile,
+     /* misc commands */
+     CK_SpellCheck,
+     CK_SpellCheckCurrentWord,
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 493d5346e..1cd6ab5b3 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -387,6 +387,7 @@ SpellCheckCurrentWord = ctrl-p
+ # WindowNext =
+ # WindowPrev =
+ WindowCascade = ctrl-alt-c
++WindowTile = ctrl-alt-t
+ # ExtendedKeyMap =
+ 
+ [viewer]
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 26998d406..41d9bc5da 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -357,6 +357,54 @@ edit_window_cascade (const WDialog * h)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static void
++edit_window_tile (const WDialog * h)
++{
++    const WGroup *g = CONST_GROUP (h);
++    const Widget *wid = CONST_WIDGET (h);
++    const size_t offset = 3;    /* skip menu and buttonbar */
++    int cur_y, orig_lines, lines, dlg_num;
++    GList *w;
++
++    dlg_num = g_list_length (g->widgets) - offset;
++
++    cur_y = 1;
++    lines = wid->lines / dlg_num;
++    if (lines < 5)
++        lines = 5;
++    orig_lines = lines;
++
++    for (w = g->widgets; w != NULL; w = g_list_next (w))
++    {
++        if (w == g->current)
++            continue;
++        /* Detect overflow and use space for final window (in series). */
++        if (cur_y + 2 * orig_lines - 1 > wid->lines)
++            lines = wid->lines - cur_y - 1;
++
++        /* Resize and unfullscreen window. */
++        if (edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, 0, lines, wid->cols))
++        {
++            cur_y += orig_lines;
++            /* Overflow - cycle back to the first size and position. */
++            if (cur_y + orig_lines - 1 > wid->lines)
++            {
++                cur_y = 1;
++                lines = orig_lines;
++            }
++        }
++    }
++
++    /* Ensure that the currently edited file is positioned last. */
++    w = g->current;
++    if (cur_y + orig_lines > wid->lines - 1)
++        lines = wid->lines - cur_y - 1;
++    edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, 0, lines, wid->cols);
++    repaint_screen ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static void
+ edit_window_list (const WDialog * h)
+ {
+@@ -527,6 +575,9 @@ edit_dialog_command_execute (WDialog * h, long command)
+     case CK_WindowCascade:
+         edit_window_cascade (h);
+         break;
++    case CK_WindowTile:
++        edit_window_tile (h);
++        break;
+     case CK_WindowNext:
+         group_select_next_widget (g);
+         break;
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index bbc88f49a..dbed20014 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -471,6 +471,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"Sort", "alt-t"},
+     {"Mail", "alt-m"},
+     {"ExternalCommand", "alt-u"},
++    {"WindowTile", "alt-shift-t"},
+     {"WindowCascade", "alt-shift-c"},
+ #ifdef HAVE_ASPELL
+     {"SpellCheckCurrentWord", "ctrl-p"},
+-- 
+2.28.0
+

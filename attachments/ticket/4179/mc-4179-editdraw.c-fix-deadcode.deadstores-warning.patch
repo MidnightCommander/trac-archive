@@ -1,0 +1,45 @@
+From d40f3d89e780f60556c8fd0a0cd24e3a13e435ee Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 18 May 2021 17:54:12 +0000
+Subject: [PATCH] (editdraw.c) fix deadcode.DeadStores warning
+
+editdraw.c:536:5: warning: Value stored to 'color' is never read [deadcode.DeadStores]
+    color = edit_get_syntax_color (edit, b - 1);
+    ^       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Found by Clang-11 analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editdraw.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 521c2e63a..015fa66e9 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -507,7 +507,6 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+     line_s *p = line;
+     off_t q;
+     int col, start_col_real;
+-    int color;
+     int abn_style;
+     int book_mark = 0;
+     char line_stat[LINE_STATE_WIDTH + 1] = "\0";
+@@ -533,7 +532,6 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+             end_col--;
+     }
+ 
+-    color = edit_get_syntax_color (edit, b - 1);
+     q = edit_move_forward3 (edit, b, start_col - edit->start_col, 0);
+     col = (int) edit_move_forward3 (edit, b, 0, q);
+     start_col_real = col + edit->start_col;
+@@ -623,6 +621,8 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                     p->style |= book_mark << 16;
+                 else
+                 {
++                    int color;
++
+                     color = edit_get_syntax_color (edit, q);
+                     p->style |= color << 16;
+                 }

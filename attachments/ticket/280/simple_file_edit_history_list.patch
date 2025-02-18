@@ -1,0 +1,60 @@
+--- panel.c	2011-08-26 10:07:03.179949279 +0200
++++ panel.c.new	2011-08-26 10:13:17.809949356 +0200
+@@ -2695,6 +2695,8 @@
+ static void
+ directory_history_list (WPanel * panel)
+ {
++
++/*
+     char *s;
+ 
+     s = history_show (&panel->dir_history, &panel->widget);
+@@ -2707,6 +2709,48 @@
+             message (D_ERROR, MSG_ERROR, _("Cannot change directory"));
+         g_free (s);
+     }
++
++ */
++    char *fn;
++    FILE *f;
++    char buf[MC_MAXPATHLEN + 100];
++    GList *file_list = NULL;
++    char *s;
++
++    /* open file with positions */
++    fn = g_build_filename (home_dir, MC_USERCONF_DIR, MC_FILEPOS_FILE, NULL);
++    f = fopen (fn, "r");
++    g_free (fn);
++    if (f == NULL)
++        return;
++
++    while (fgets (buf, sizeof (buf), f) != NULL)
++    {
++       	s = strchr(buf, ' ');
++       	if (s)
++       	{
++       		*s = 0;
++       	}
++       	s = g_strdup (buf);
++
++		   file_list = g_list_prepend (file_list, s);
++		   file_list = g_list_first(file_list);
++	 }
++	 fclose(f);
++
++    file_list = g_list_last(file_list);
++    s = history_show (&file_list, &panel->widget);
++
++    if (s != NULL)
++    {
++    		char *s_copy = g_strdup (s);
++     		do_cd(dirname(s_copy), cd_exact);
++     		try_to_select (panel, basename(s));
++     		g_free(s_copy);
++    }
++    file_list = g_list_first (file_list);
++    g_list_foreach (file_list, (GFunc) g_free, NULL);
++    g_list_free (file_list);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

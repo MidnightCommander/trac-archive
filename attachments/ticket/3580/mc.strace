@@ -1,0 +1,1006 @@
+19:04:00.727528 (+     0.000000) execve("/usr/bin/mc", ["mc"], 0x7ffe9e7c93e8 /* 93 vars */) = 0
+19:04:00.727782 (+     0.000203) brk(NULL) = 0x55c56fde6000
+19:04:00.727835 (+     0.000052) access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.727895 (+     0.000059) openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3</etc/ld.so.cache>
+19:04:00.727960 (+     0.000065) newfstatat(3</etc/ld.so.cache>, "", {st_mode=S_IFREG|0644, st_size=71225, ...}, AT_EMPTY_PATH) = 0
+19:04:00.727991 (+     0.000030) mmap(NULL, 71225, PROT_READ, MAP_PRIVATE, 3</etc/ld.so.cache>, 0) = 0x7f7547a10000
+19:04:00.728040 (+     0.000049) close(3</etc/ld.so.cache>) = 0
+19:04:00.728095 (+     0.000054) openat(AT_FDCWD, "/usr/lib64/libslang.so.2", O_RDONLY|O_CLOEXEC) = 3</usr/lib64/libslang.so.2.3.2>
+19:04:00.728118 (+     0.000022) read(3</usr/lib64/libslang.so.2.3.2>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300\363\4\0\0\0\0\0"..., 832) = 832
+19:04:00.728139 (+     0.000021) newfstatat(3</usr/lib64/libslang.so.2.3.2>, "", {st_mode=S_IFREG|0755, st_size=1241952, ...}, AT_EMPTY_PATH) = 0
+19:04:00.728161 (+     0.000022) mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f7547a0e000
+19:04:00.728180 (+     0.000018) mmap(NULL, 2965024, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib64/libslang.so.2.3.2>, 0) = 0x7f754773a000
+19:04:00.728198 (+     0.000018) mmap(0x7f7547787000, 516096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libslang.so.2.3.2>, 0x4d000) = 0x7f7547787000
+19:04:00.728239 (+     0.000041) mmap(0x7f7547805000, 282624, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libslang.so.2.3.2>, 0xcb000) = 0x7f7547805000
+19:04:00.728259 (+     0.000019) mmap(0x7f754784a000, 131072, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libslang.so.2.3.2>, 0x10f000) = 0x7f754784a000
+19:04:00.728296 (+     0.000037) mmap(0x7f754786a000, 1719840, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f754786a000
+19:04:00.728320 (+     0.000023) close(3</usr/lib64/libslang.so.2.3.2>) = 0
+19:04:00.728339 (+     0.000018) openat(AT_FDCWD, "/lib64/libgpm.so.1", O_RDONLY|O_CLOEXEC) = 3</lib64/libgpm.so.1.20.0>
+19:04:00.728361 (+     0.000021) read(3</lib64/libgpm.so.1.20.0>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300#\0\0\0\0\0\0"..., 832) = 832
+19:04:00.728381 (+     0.000019) newfstatat(3</lib64/libgpm.so.1.20.0>, "", {st_mode=S_IFREG|0755, st_size=26888, ...}, AT_EMPTY_PATH) = 0
+19:04:00.728402 (+     0.000021) mmap(NULL, 30240, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libgpm.so.1.20.0>, 0) = 0x7f7547732000
+19:04:00.728421 (+     0.000018) mmap(0x7f7547734000, 12288, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libgpm.so.1.20.0>, 0x2000) = 0x7f7547734000
+19:04:00.728440 (+     0.000019) mmap(0x7f7547737000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libgpm.so.1.20.0>, 0x5000) = 0x7f7547737000
+19:04:00.728458 (+     0.000018) mmap(0x7f7547738000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libgpm.so.1.20.0>, 0x5000) = 0x7f7547738000
+19:04:00.728482 (+     0.000023) close(3</lib64/libgpm.so.1.20.0>) = 0
+19:04:00.728500 (+     0.000018) openat(AT_FDCWD, "/lib64/libe2p.so.2", O_RDONLY|O_CLOEXEC) = 3</lib64/libe2p.so.2.3>
+19:04:00.728522 (+     0.000021) read(3</lib64/libe2p.so.2.3>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0p3\0\0\0\0\0\0"..., 832) = 832
+19:04:00.728541 (+     0.000020) newfstatat(3</lib64/libe2p.so.2.3>, "", {st_mode=S_IFREG|0755, st_size=45128, ...}, AT_EMPTY_PATH) = 0
+19:04:00.728563 (+     0.000021) mmap(NULL, 48128, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libe2p.so.2.3>, 0) = 0x7f7547726000
+19:04:00.728581 (+     0.000017) mprotect(0x7f7547729000, 28672, PROT_NONE) = 0
+19:04:00.728597 (+     0.000016) mmap(0x7f7547729000, 16384, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libe2p.so.2.3>, 0x3000) = 0x7f7547729000
+19:04:00.728616 (+     0.000018) mmap(0x7f754772d000, 8192, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libe2p.so.2.3>, 0x7000) = 0x7f754772d000
+19:04:00.728638 (+     0.000022) mmap(0x7f7547730000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libe2p.so.2.3>, 0x9000) = 0x7f7547730000
+19:04:00.728662 (+     0.000023) close(3</lib64/libe2p.so.2.3>) = 0
+19:04:00.728681 (+     0.000018) openat(AT_FDCWD, "/usr/lib64/libssh2.so.1", O_RDONLY|O_CLOEXEC) = 3</usr/lib64/libssh2.so.1.0.1>
+19:04:00.728702 (+     0.000021) read(3</usr/lib64/libssh2.so.1.0.1>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0000\242\0\0\0\0\0\0"..., 832) = 832
+19:04:00.728722 (+     0.000019) newfstatat(3</usr/lib64/libssh2.so.1.0.1>, "", {st_mode=S_IFREG|0755, st_size=270920, ...}, AT_EMPTY_PATH) = 0
+19:04:00.728744 (+     0.000022) mmap(NULL, 273216, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib64/libssh2.so.1.0.1>, 0) = 0x7f75476e3000
+19:04:00.728762 (+     0.000017) mprotect(0x7f75476ec000, 229376, PROT_NONE) = 0
+19:04:00.728778 (+     0.000015) mmap(0x7f75476ec000, 167936, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libssh2.so.1.0.1>, 0x9000) = 0x7f75476ec000
+19:04:00.728797 (+     0.000018) mmap(0x7f7547715000, 57344, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libssh2.so.1.0.1>, 0x32000) = 0x7f7547715000
+19:04:00.728815 (+     0.000018) mmap(0x7f7547724000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libssh2.so.1.0.1>, 0x40000) = 0x7f7547724000
+19:04:00.728839 (+     0.000023) close(3</usr/lib64/libssh2.so.1.0.1>) = 0
+19:04:00.728857 (+     0.000018) openat(AT_FDCWD, "/lib64/libext2fs.so.2", O_RDONLY|O_CLOEXEC) = 3</lib64/libext2fs.so.2.4>
+19:04:00.728878 (+     0.000021) read(3</lib64/libext2fs.so.2.4>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340\34\1\0\0\0\0\0"..., 832) = 832
+19:04:00.728898 (+     0.000019) newfstatat(3</lib64/libext2fs.so.2.4>, "", {st_mode=S_IFREG|0755, st_size=438088, ...}, AT_EMPTY_PATH) = 0
+19:04:00.728919 (+     0.000021) mmap(NULL, 440816, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libext2fs.so.2.4>, 0) = 0x7f7547677000
+19:04:00.728937 (+     0.000017) mmap(0x7f7547687000, 217088, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libext2fs.so.2.4>, 0x10000) = 0x7f7547687000
+19:04:00.728956 (+     0.000019) mmap(0x7f75476bc000, 147456, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libext2fs.so.2.4>, 0x45000) = 0x7f75476bc000
+19:04:00.728974 (+     0.000018) mmap(0x7f75476e0000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libext2fs.so.2.4>, 0x68000) = 0x7f75476e0000
+19:04:00.729003 (+     0.000053) close(3</lib64/libext2fs.so.2.4>) = 0
+19:04:00.729050 (+     0.000022) openat(AT_FDCWD, "/usr/lib64/libgmodule-2.0.so.0", O_RDONLY|O_CLOEXEC) = 3</usr/lib64/libgmodule-2.0.so.0.6800.3>
+19:04:00.729104 (+     0.000053) read(3</usr/lib64/libgmodule-2.0.so.0.6800.3>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0@\22\0\0\0\0\0\0"..., 832) = 832
+19:04:00.729123 (+     0.000019) newfstatat(3</usr/lib64/libgmodule-2.0.so.0.6800.3>, "", {st_mode=S_IFREG|0755, st_size=18472, ...}, AT_EMPTY_PATH) = 0
+19:04:00.729145 (+     0.000021) mmap(NULL, 20888, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib64/libgmodule-2.0.so.0.6800.3>, 0) = 0x7f7547671000
+19:04:00.729164 (+     0.000019) mmap(0x7f7547672000, 8192, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libgmodule-2.0.so.0.6800.3>, 0x1000) = 0x7f7547672000
+19:04:00.729185 (+     0.000020) mmap(0x7f7547674000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libgmodule-2.0.so.0.6800.3>, 0x3000) = 0x7f7547674000
+19:04:00.729204 (+     0.000019) mmap(0x7f7547675000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libgmodule-2.0.so.0.6800.3>, 0x3000) = 0x7f7547675000
+19:04:00.729228 (+     0.000024) close(3</usr/lib64/libgmodule-2.0.so.0.6800.3>) = 0
+19:04:00.729247 (+     0.000018) openat(AT_FDCWD, "/usr/lib64/libglib-2.0.so.0", O_RDONLY|O_CLOEXEC) = 3</usr/lib64/libglib-2.0.so.0.6800.3>
+19:04:00.729270 (+     0.000023) read(3</usr/lib64/libglib-2.0.so.0.6800.3>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\240\335\1\0\0\0\0\0"..., 832) = 832
+19:04:00.729290 (+     0.000020) newfstatat(3</usr/lib64/libglib-2.0.so.0.6800.3>, "", {st_mode=S_IFREG|0755, st_size=1250152, ...}, AT_EMPTY_PATH) = 0
+19:04:00.729312 (+     0.000021) mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f754766f000
+19:04:00.729329 (+     0.000017) mmap(NULL, 1255656, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib64/libglib-2.0.so.0.6800.3>, 0) = 0x7f754753c000
+19:04:00.729348 (+     0.000018) mmap(0x7f7547559000, 565248, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libglib-2.0.so.0.6800.3>, 0x1d000) = 0x7f7547559000
+19:04:00.729368 (+     0.000019) mmap(0x7f75475e3000, 561152, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libglib-2.0.so.0.6800.3>, 0xa7000) = 0x7f75475e3000
+19:04:00.729387 (+     0.000019) mmap(0x7f754766c000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libglib-2.0.so.0.6800.3>, 0x12f000) = 0x7f754766c000
+19:04:00.729409 (+     0.000021) mmap(0x7f754766e000, 2280, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f754766e000
+19:04:00.729430 (+     0.000021) close(3</usr/lib64/libglib-2.0.so.0.6800.3>) = 0
+19:04:00.729451 (+     0.000020) openat(AT_FDCWD, "/lib64/libutil.so.1", O_RDONLY|O_CLOEXEC) = 3</lib64/libutil-2.33.so>
+19:04:00.729472 (+     0.000021) read(3</lib64/libutil-2.33.so>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\20\22\0\0\0\0\0\0"..., 832) = 832
+19:04:00.729492 (+     0.000019) newfstatat(3</lib64/libutil-2.33.so>, "", {st_mode=S_IFREG|0755, st_size=14448, ...}, AT_EMPTY_PATH) = 0
+19:04:00.729513 (+     0.000021) mmap(NULL, 16656, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libutil-2.33.so>, 0) = 0x7f7547537000
+19:04:00.729533 (+     0.000019) mmap(0x7f7547538000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libutil-2.33.so>, 0x1000) = 0x7f7547538000
+19:04:00.729553 (+     0.000019) mmap(0x7f7547539000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libutil-2.33.so>, 0x2000) = 0x7f7547539000
+19:04:00.729572 (+     0.000019) mmap(0x7f754753a000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libutil-2.33.so>, 0x2000) = 0x7f754753a000
+19:04:00.729595 (+     0.000023) close(3</lib64/libutil-2.33.so>) = 0
+19:04:00.729614 (+     0.000018) openat(AT_FDCWD, "/lib64/libpthread.so.0", O_RDONLY|O_CLOEXEC) = 3</lib64/libpthread-2.33.so>
+19:04:00.729635 (+     0.000021) read(3</lib64/libpthread-2.33.so>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320k\0\0\0\0\0\0"..., 832) = 832
+19:04:00.729654 (+     0.000019) newfstatat(3</lib64/libpthread-2.33.so>, "", {st_mode=S_IFREG|0755, st_size=148080, ...}, AT_EMPTY_PATH) = 0
+19:04:00.729676 (+     0.000021) mmap(NULL, 128048, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libpthread-2.33.so>, 0) = 0x7f7547517000
+19:04:00.729695 (+     0.000018) mmap(0x7f754751d000, 61440, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libpthread-2.33.so>, 0x6000) = 0x7f754751d000
+19:04:00.729715 (+     0.000020) mmap(0x7f754752c000, 20480, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libpthread-2.33.so>, 0x15000) = 0x7f754752c000
+19:04:00.729735 (+     0.000019) mmap(0x7f7547531000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libpthread-2.33.so>, 0x19000) = 0x7f7547531000
+19:04:00.729757 (+     0.000021) mmap(0x7f7547533000, 13360, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f7547533000
+19:04:00.729777 (+     0.000020) close(3</lib64/libpthread-2.33.so>) = 0
+19:04:00.729796 (+     0.000018) openat(AT_FDCWD, "/lib64/libc.so.6", O_RDONLY|O_CLOEXEC) = 3</lib64/libc-2.33.so>
+19:04:00.729818 (+     0.000021) read(3</lib64/libc-2.33.so>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0@9\2\0\0\0\0\0"..., 832) = 832
+19:04:00.729837 (+     0.000019) newfstatat(3</lib64/libc-2.33.so>, "", {st_mode=S_IFREG|0755, st_size=1798224, ...}, AT_EMPTY_PATH) = 0
+19:04:00.729861 (+     0.000024) mmap(NULL, 1811208, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libc-2.33.so>, 0) = 0x7f754735c000
+19:04:00.729880 (+     0.000018) mmap(0x7f754737e000, 1327104, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libc-2.33.so>, 0x22000) = 0x7f754737e000
+19:04:00.729901 (+     0.000020) mmap(0x7f75474c2000, 307200, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libc-2.33.so>, 0x166000) = 0x7f75474c2000
+19:04:00.729920 (+     0.000019) mmap(0x7f754750d000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libc-2.33.so>, 0x1b0000) = 0x7f754750d000
+19:04:00.729942 (+     0.000021) mmap(0x7f7547513000, 13064, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f7547513000
+19:04:00.729963 (+     0.000020) close(3</lib64/libc-2.33.so>) = 0
+19:04:00.729983 (+     0.000020) openat(AT_FDCWD, "/lib64/libdl.so.2", O_RDONLY|O_CLOEXEC) = 3</lib64/libdl-2.33.so>
+19:04:00.730030 (+     0.000047) read(3</lib64/libdl-2.33.so>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0 \21\0\0\0\0\0\0"..., 832) = 832
+19:04:00.730052 (+     0.000022) newfstatat(3</lib64/libdl-2.33.so>, "", {st_mode=S_IFREG|0755, st_size=18408, ...}, AT_EMPTY_PATH) = 0
+19:04:00.730076 (+     0.000038) mmap(NULL, 20720, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libdl-2.33.so>, 0) = 0x7f7547356000
+19:04:00.730112 (+     0.000020) mmap(0x7f7547357000, 8192, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libdl-2.33.so>, 0x1000) = 0x7f7547357000
+19:04:00.730133 (+     0.000021) mmap(0x7f7547359000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libdl-2.33.so>, 0x3000) = 0x7f7547359000
+19:04:00.730191 (+     0.000057) mmap(0x7f754735a000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libdl-2.33.so>, 0x3000) = 0x7f754735a000
+19:04:00.730215 (+     0.000024) close(3</lib64/libdl-2.33.so>) = 0
+19:04:00.730234 (+     0.000019) openat(AT_FDCWD, "/lib64/libm.so.6", O_RDONLY|O_CLOEXEC) = 3</lib64/libm-2.33.so>
+19:04:00.730272 (+     0.000038) read(3</lib64/libm-2.33.so>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\322\0\0\0\0\0\0"..., 832) = 832
+19:04:00.730293 (+     0.000020) newfstatat(3</lib64/libm-2.33.so>, "", {st_mode=S_IFREG|0755, st_size=1255528, ...}, AT_EMPTY_PATH) = 0
+19:04:00.730314 (+     0.000021) mmap(NULL, 1257744, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libm-2.33.so>, 0) = 0x7f7547222000
+19:04:00.730333 (+     0.000018) mmap(0x7f754722f000, 577536, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libm-2.33.so>, 0xd000) = 0x7f754722f000
+19:04:00.730353 (+     0.000019) mmap(0x7f75472bc000, 622592, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libm-2.33.so>, 0x9a000) = 0x7f75472bc000
+19:04:00.730371 (+     0.000018) mmap(0x7f7547354000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libm-2.33.so>, 0x131000) = 0x7f7547354000
+19:04:00.730396 (+     0.000024) close(3</lib64/libm-2.33.so>) = 0
+19:04:00.730415 (+     0.000018) openat(AT_FDCWD, "/lib64/libncurses.so.6", O_RDONLY|O_CLOEXEC) = 3</lib64/libncurses.so.6.2>
+19:04:00.730436 (+     0.000021) read(3</lib64/libncurses.so.6.2>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\20\221\0\0\0\0\0\0"..., 832) = 832
+19:04:00.730455 (+     0.000019) newfstatat(3</lib64/libncurses.so.6.2>, "", {st_mode=S_IFREG|0755, st_size=167752, ...}, AT_EMPTY_PATH) = 0
+19:04:00.730476 (+     0.000021) mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f7547220000
+19:04:00.730494 (+     0.000017) mmap(NULL, 170496, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libncurses.so.6.2>, 0) = 0x7f75471f6000
+19:04:00.730512 (+     0.000017) mprotect(0x7f75471fe000, 131072, PROT_NONE) = 0
+19:04:00.730527 (+     0.000015) mmap(0x7f75471fe000, 102400, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libncurses.so.6.2>, 0x8000) = 0x7f75471fe000
+19:04:00.730546 (+     0.000019) mmap(0x7f7547217000, 24576, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libncurses.so.6.2>, 0x21000) = 0x7f7547217000
+19:04:00.730567 (+     0.000020) mmap(0x7f754721e000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libncurses.so.6.2>, 0x27000) = 0x7f754721e000
+19:04:00.730591 (+     0.000023) close(3</lib64/libncurses.so.6.2>) = 0
+19:04:00.730610 (+     0.000019) openat(AT_FDCWD, "/lib64/libtinfo.so.6", O_RDONLY|O_CLOEXEC) = 3</lib64/libtinfo.so.6.2>
+19:04:00.730632 (+     0.000021) read(3</lib64/libtinfo.so.6.2>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\376\0\0\0\0\0\0"..., 832) = 832
+19:04:00.730651 (+     0.000019) newfstatat(3</lib64/libtinfo.so.6.2>, "", {st_mode=S_IFREG|0755, st_size=238416, ...}, AT_EMPTY_PATH) = 0
+19:04:00.730672 (+     0.000021) mmap(NULL, 242200, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libtinfo.so.6.2>, 0) = 0x7f75471ba000
+19:04:00.730691 (+     0.000018) mmap(0x7f75471c9000, 94208, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libtinfo.so.6.2>, 0xf000) = 0x7f75471c9000
+19:04:00.730711 (+     0.000019) mmap(0x7f75471e0000, 65536, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libtinfo.so.6.2>, 0x26000) = 0x7f75471e0000
+19:04:00.730730 (+     0.000019) mmap(0x7f75471f0000, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libtinfo.so.6.2>, 0x35000) = 0x7f75471f0000
+19:04:00.730751 (+     0.000020) mmap(0x7f75471f5000, 536, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f75471f5000
+19:04:00.730772 (+     0.000020) close(3</lib64/libtinfo.so.6.2>) = 0
+19:04:00.730792 (+     0.000019) openat(AT_FDCWD, "/usr/lib64/libcrypto.so.1.1", O_RDONLY|O_CLOEXEC) = 3</usr/lib64/libcrypto.so.1.1>
+19:04:00.730813 (+     0.000020) read(3</usr/lib64/libcrypto.so.1.1>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0P\7\0\0\0\0\0"..., 832) = 832
+19:04:00.730832 (+     0.000019) newfstatat(3</usr/lib64/libcrypto.so.1.1>, "", {st_mode=S_IFREG|0755, st_size=2860888, ...}, AT_EMPTY_PATH) = 0
+19:04:00.730854 (+     0.000021) mmap(NULL, 2880560, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib64/libcrypto.so.1.1>, 0) = 0x7f7546efa000
+19:04:00.730873 (+     0.000018) mmap(0x7f7546f6e000, 1630208, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libcrypto.so.1.1>, 0x74000) = 0x7f7546f6e000
+19:04:00.730893 (+     0.000020) mmap(0x7f75470fc000, 573440, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libcrypto.so.1.1>, 0x202000) = 0x7f75470fc000
+19:04:00.730912 (+     0.000019) mmap(0x7f7547188000, 184320, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib64/libcrypto.so.1.1>, 0x28d000) = 0x7f7547188000
+19:04:00.730934 (+     0.000021) mmap(0x7f75471b5000, 17456, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f75471b5000
+19:04:00.730955 (+     0.000021) close(3</usr/lib64/libcrypto.so.1.1>) = 0
+19:04:00.730975 (+     0.000020) openat(AT_FDCWD, "/lib64/libz.so.1", O_RDONLY|O_CLOEXEC) = 3</lib64/libz.so.1.2.11>
+19:04:00.730996 (+     0.000020) read(3</lib64/libz.so.1.2.11>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0203\0\0\0\0\0\0"..., 832) = 832
+19:04:00.731047 (+     0.000052) newfstatat(3</lib64/libz.so.1.2.11>, "", {st_mode=S_IFREG|0755, st_size=96496, ...}, AT_EMPTY_PATH) = 0
+19:04:00.731090 (+     0.000041) mmap(NULL, 98704, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libz.so.1.2.11>, 0) = 0x7f7546ee1000
+19:04:00.731126 (+     0.000035) mprotect(0x7f7546ee4000, 81920, PROT_NONE) = 0
+19:04:00.731143 (+     0.000017) mmap(0x7f7546ee4000, 53248, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libz.so.1.2.11>, 0x3000) = 0x7f7546ee4000
+19:04:00.731163 (+     0.000019) mmap(0x7f7546ef1000, 24576, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libz.so.1.2.11>, 0x10000) = 0x7f7546ef1000
+19:04:00.731183 (+     0.000019) mmap(0x7f7546ef8000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libz.so.1.2.11>, 0x16000) = 0x7f7546ef8000
+19:04:00.731206 (+     0.000023) close(3</lib64/libz.so.1.2.11>) = 0
+19:04:00.731228 (+     0.000022) openat(AT_FDCWD, "/lib64/libcom_err.so.2", O_RDONLY|O_CLOEXEC) = 3</lib64/libcom_err.so.2.1>
+19:04:00.731250 (+     0.000021) read(3</lib64/libcom_err.so.2.1>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260\"\0\0\0\0\0\0"..., 832) = 832
+19:04:00.731269 (+     0.000019) newfstatat(3</lib64/libcom_err.so.2.1>, "", {st_mode=S_IFREG|0755, st_size=18544, ...}, AT_EMPTY_PATH) = 0
+19:04:00.731291 (+     0.000021) mmap(NULL, 20968, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libcom_err.so.2.1>, 0) = 0x7f7546edb000
+19:04:00.731310 (+     0.000018) mmap(0x7f7546edd000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libcom_err.so.2.1>, 0x2000) = 0x7f7546edd000
+19:04:00.731329 (+     0.000018) mmap(0x7f7546ede000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libcom_err.so.2.1>, 0x3000) = 0x7f7546ede000
+19:04:00.731347 (+     0.000018) mmap(0x7f7546edf000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libcom_err.so.2.1>, 0x3000) = 0x7f7546edf000
+19:04:00.731370 (+     0.000023) close(3</lib64/libcom_err.so.2.1>) = 0
+19:04:00.731391 (+     0.000020) openat(AT_FDCWD, "/lib64/libpcre.so.1", O_RDONLY|O_CLOEXEC) = 3</lib64/libpcre.so.1.2.13>
+19:04:00.731412 (+     0.000021) read(3</lib64/libpcre.so.1.2.13>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\360!\0\0\0\0\0\0"..., 832) = 832
+19:04:00.731431 (+     0.000019) newfstatat(3</lib64/libpcre.so.1.2.13>, "", {st_mode=S_IFREG|0755, st_size=485432, ...}, AT_EMPTY_PATH) = 0
+19:04:00.731453 (+     0.000021) mmap(NULL, 487912, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libpcre.so.1.2.13>, 0) = 0x7f7546e63000
+19:04:00.731472 (+     0.000019) mprotect(0x7f7546e65000, 475136, PROT_NONE) = 0
+19:04:00.731490 (+     0.000017) mmap(0x7f7546e65000, 348160, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libpcre.so.1.2.13>, 0x2000) = 0x7f7546e65000
+19:04:00.731509 (+     0.000019) mmap(0x7f7546eba000, 122880, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libpcre.so.1.2.13>, 0x57000) = 0x7f7546eba000
+19:04:00.731528 (+     0.000019) mmap(0x7f7546ed9000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libpcre.so.1.2.13>, 0x75000) = 0x7f7546ed9000
+19:04:00.731552 (+     0.000024) close(3</lib64/libpcre.so.1.2.13>) = 0
+19:04:00.731572 (+     0.000019) mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f7546e61000
+19:04:00.731620 (+     0.000047) mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f7546e5f000
+19:04:00.731638 (+     0.000018) arch_prctl(ARCH_SET_FS, 0x7f7546e5fb80) = 0
+19:04:00.731699 (+     0.000060) mprotect(0x7f754750d000, 16384, PROT_READ) = 0
+19:04:00.731741 (+     0.000042) mprotect(0x7f7547531000, 4096, PROT_READ) = 0
+19:04:00.731761 (+     0.000020) mprotect(0x7f7546ed9000, 4096, PROT_READ) = 0
+19:04:00.731780 (+     0.000019) mprotect(0x7f7546edf000, 4096, PROT_READ) = 0
+19:04:00.731797 (+     0.000016) mprotect(0x7f7546ef8000, 4096, PROT_READ) = 0
+19:04:00.731819 (+     0.000021) mprotect(0x7f754735a000, 4096, PROT_READ) = 0
+19:04:00.731921 (+     0.000102) mprotect(0x7f7547188000, 176128, PROT_READ) = 0
+19:04:00.731959 (+     0.000037) mprotect(0x7f75471f0000, 16384, PROT_READ) = 0
+19:04:00.731984 (+     0.000024) mprotect(0x7f754721e000, 4096, PROT_READ) = 0
+19:04:00.732040 (+     0.000056) mprotect(0x7f7547354000, 4096, PROT_READ) = 0
+19:04:00.732084 (+     0.000043) mprotect(0x7f754753a000, 4096, PROT_READ) = 0
+19:04:00.732127 (+     0.000043) mprotect(0x7f754766c000, 4096, PROT_READ) = 0
+19:04:00.732145 (+     0.000017) mprotect(0x7f7547675000, 4096, PROT_READ) = 0
+19:04:00.732172 (+     0.000026) mprotect(0x7f75476e0000, 4096, PROT_READ) = 0
+19:04:00.732198 (+     0.000025) mprotect(0x7f7547724000, 4096, PROT_READ) = 0
+19:04:00.732215 (+     0.000017) mprotect(0x7f7547730000, 4096, PROT_READ) = 0
+19:04:00.732236 (+     0.000020) mprotect(0x7f7547738000, 4096, PROT_READ) = 0
+19:04:00.732348 (+     0.000112) mprotect(0x7f754784a000, 20480, PROT_READ) = 0
+19:04:00.732399 (+     0.000050) mprotect(0x55c56e385000, 20480, PROT_READ) = 0
+19:04:00.732419 (+     0.000019) mprotect(0x7f7547a51000, 8192, PROT_READ) = 0
+19:04:00.732442 (+     0.000023) munmap(0x7f7547a10000, 71225) = 0
+19:04:00.732466 (+     0.000024) set_tid_address(0x7f7546e5fe50) = 91440
+19:04:00.732481 (+     0.000015) set_robust_list(0x7f7546e5fe60, 24) = 0
+19:04:00.732496 (+     0.000015) rt_sigaction(SIGRTMIN, {sa_handler=0x7f754751d680, sa_mask=[], sa_flags=SA_RESTORER|SA_SIGINFO, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:00.732515 (+     0.000018) rt_sigaction(SIGRT_1, {sa_handler=0x7f754751d720, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART|SA_SIGINFO, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:00.732532 (+     0.000017) rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+19:04:00.732551 (+     0.000018) prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+19:04:00.732628 (+     0.000076) brk(NULL) = 0x55c56fde6000
+19:04:00.732643 (+     0.000014) brk(0x55c56fe07000) = 0x55c56fe07000
+19:04:00.732712 (+     0.000069) openat(AT_FDCWD, "/usr/lib/locale/locale-archive", O_RDONLY|O_CLOEXEC) = 3</usr/lib/locale/locale-archive>
+19:04:00.732738 (+     0.000025) newfstatat(3</usr/lib/locale/locale-archive>, "", {st_mode=S_IFREG|0644, st_size=5212704, ...}, AT_EMPTY_PATH) = 0
+19:04:00.732760 (+     0.000022) mmap(NULL, 5212704, PROT_READ, MAP_PRIVATE, 3</usr/lib/locale/locale-archive>, 0) = 0x7f7546966000
+19:04:00.732782 (+     0.000022) close(3</usr/lib/locale/locale-archive>) = 0
+19:04:00.732832 (+     0.000049) openat(AT_FDCWD, "/usr/lib64/gconv/gconv-modules.cache", O_RDONLY) = 3</usr/lib64/gconv/gconv-modules.cache>
+19:04:00.732853 (+     0.000021) newfstatat(3</usr/lib64/gconv/gconv-modules.cache>, "", {st_mode=S_IFREG|0644, st_size=26988, ...}, AT_EMPTY_PATH) = 0
+19:04:00.732874 (+     0.000021) mmap(NULL, 26988, PROT_READ, MAP_SHARED, 3</usr/lib64/gconv/gconv-modules.cache>, 0) = 0x7f7547a1b000
+19:04:00.732894 (+     0.000019) close(3</usr/lib64/gconv/gconv-modules.cache>) = 0
+19:04:00.732913 (+     0.000018) futex(0x7f75475129bc, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.732942 (+     0.000029) openat(AT_FDCWD, "/usr/share/locale/locale.alias", O_RDONLY|O_CLOEXEC) = 3</usr/share/locale/locale.alias>
+19:04:00.732963 (+     0.000021) newfstatat(3</usr/share/locale/locale.alias>, "", {st_mode=S_IFREG|0644, st_size=2998, ...}, AT_EMPTY_PATH) = 0
+19:04:00.732986 (+     0.000022) read(3</usr/share/locale/locale.alias>, "# Locale name alias data base.\n#"..., 4096) = 2998
+19:04:00.733041 (+     0.000055) read(3</usr/share/locale/locale.alias>, "", 4096) = 0
+19:04:00.733061 (+     0.000019) close(3</usr/share/locale/locale.alias>) = 0
+19:04:00.733111 (+     0.000050) openat(AT_FDCWD, "/usr/share/locale/en_US.utf8/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733132 (+     0.000021) openat(AT_FDCWD, "/usr/share/locale/en_US/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733151 (+     0.000018) openat(AT_FDCWD, "/usr/share/locale/en.utf8/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733169 (+     0.000017) openat(AT_FDCWD, "/usr/share/locale/en/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733218 (+     0.000049) readlink("/bin", 0x7fff2e2570d0, 1023) = -1 EINVAL (Invalid argument)
+19:04:00.733237 (+     0.000018) readlink("/bin/bash", 0x7fff2e2570d0, 1023) = -1 EINVAL (Invalid argument)
+19:04:00.733281 (+     0.000044) access("/home/egrep/.config/mc", F_OK) = 0
+19:04:00.733300 (+     0.000019) newfstatat(AT_FDCWD, "/home/egrep/.config/mc", {st_mode=S_IFDIR|0700, st_size=4096, ...}, 0) = 0
+19:04:00.733320 (+     0.000019) access("/home/egrep/.config/mc", F_OK) = 0
+19:04:00.733339 (+     0.000018) access("/home/egrep/.cache/mc", F_OK) = 0
+19:04:00.733356 (+     0.000017) newfstatat(AT_FDCWD, "/home/egrep/.cache/mc", {st_mode=S_IFDIR|0700, st_size=4096, ...}, 0) = 0
+19:04:00.733375 (+     0.000018) access("/home/egrep/.cache/mc", F_OK) = 0
+19:04:00.733395 (+     0.000020) access("/home/egrep/.local/share/mc", F_OK) = 0
+19:04:00.733413 (+     0.000017) newfstatat(AT_FDCWD, "/home/egrep/.local/share/mc", {st_mode=S_IFDIR|0700, st_size=4096, ...}, 0) = 0
+19:04:00.733432 (+     0.000019) access("/home/egrep/.local/share/mc", F_OK) = 0
+19:04:00.733450 (+     0.000017) access("/home/egrep/.local/share/mc/menu", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733468 (+     0.000018) access("/home/egrep/.local/share/mc/mc.ext", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733485 (+     0.000017) access("/home/egrep/.local/share/mc/mcedit/Syntax", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733502 (+     0.000017) access("/home/egrep/.local/share/mc/mcedit/menu", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733520 (+     0.000017) access("/home/egrep/.cache/mc/panels.ini", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733538 (+     0.000017) access("/home/egrep/.cache/mc/history", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733555 (+     0.000017) access("/home/egrep/.cache/mc/filepos", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733572 (+     0.000017) access("/home/egrep/.cache/mc/mcedit/mcedit.clip", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733590 (+     0.000017) access("/home/egrep/.mc", F_OK) = -1 ENOENT (No such file or directory)
+19:04:00.733607 (+     0.000017) newfstatat(AT_FDCWD, "/home/egrep/.mc", 0x7fff2e257870, 0) = -1 ENOENT (No such file or directory)
+19:04:00.733637 (+     0.000030) openat(AT_FDCWD, "/etc/mc/sfs.ini", O_RDONLY) = 3</etc/mc/sfs.ini>
+19:04:00.733660 (+     0.000022) newfstatat(3</etc/mc/sfs.ini>, "", {st_mode=S_IFREG|0644, st_size=871, ...}, AT_EMPTY_PATH) = 0
+19:04:00.733682 (+     0.000022) read(3</etc/mc/sfs.ini>, "#\n# This is config for Single Fi"..., 4096) = 871
+19:04:00.733708 (+     0.000025) read(3</etc/mc/sfs.ini>, "", 4096) = 0
+19:04:00.733726 (+     0.000018) close(3</etc/mc/sfs.ini>) = 0
+19:04:00.733747 (+     0.000020) openat(AT_FDCWD, "/home/egrep/.local/share/mc/extfs.d", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = -1 ENOENT (No such file or directory)
+19:04:00.733770 (+     0.000023) openat(AT_FDCWD, "/usr/lib64/charset.alias", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733796 (+     0.000025) openat(AT_FDCWD, "/usr/share/locale/en_US.utf8/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733814 (+     0.000018) openat(AT_FDCWD, "/usr/share/locale/en_US/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733832 (+     0.000017) openat(AT_FDCWD, "/usr/share/locale/en.utf8/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733849 (+     0.000017) openat(AT_FDCWD, "/usr/share/locale/en/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733871 (+     0.000021) futex(0x7f754766e648, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.733888 (+     0.000017) futex(0x7f754766e648, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.733905 (+     0.000016) openat(AT_FDCWD, "/usr/share/locale/en_US.utf8/LC_MESSAGES/glib20.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733922 (+     0.000017) openat(AT_FDCWD, "/usr/share/locale/en_US/LC_MESSAGES/glib20.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733940 (+     0.000017) openat(AT_FDCWD, "/usr/share/locale/en.utf8/LC_MESSAGES/glib20.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733958 (+     0.000017) openat(AT_FDCWD, "/usr/share/locale/en/LC_MESSAGES/glib20.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.733976 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 3</usr/libexec/mc/extfs.d>
+19:04:00.733997 (+     0.000020) newfstatat(3</usr/libexec/mc/extfs.d>, "", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+19:04:00.734057 (+     0.000060) getdents64(3</usr/libexec/mc/extfs.d>, 0x55c56fdfb2d0 /* 40 entries */, 32768) = 1064
+19:04:00.734100 (+     0.000042) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/patchsetfs", {st_mode=S_IFREG|0755, st_size=2310, ...}, 0) = 0
+19:04:00.734123 (+     0.000022) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/patchsetfs", O_RDONLY) = 4</usr/libexec/mc/extfs.d/patchsetfs>
+19:04:00.734147 (+     0.000023) close(4</usr/libexec/mc/extfs.d/patchsetfs>) = 0
+19:04:00.734168 (+     0.000020) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/deba", {st_mode=S_IFREG|0755, st_size=3074, ...}, 0) = 0
+19:04:00.734189 (+     0.000020) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/deba", O_RDONLY) = 4</usr/libexec/mc/extfs.d/deba>
+19:04:00.734210 (+     0.000020) close(4</usr/libexec/mc/extfs.d/deba>) = 0
+19:04:00.734228 (+     0.000018) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/u7z", {st_mode=S_IFREG|0755, st_size=4823, ...}, 0) = 0
+19:04:00.734248 (+     0.000019) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/u7z", O_RDONLY) = 4</usr/libexec/mc/extfs.d/u7z>
+19:04:00.734268 (+     0.000020) close(4</usr/libexec/mc/extfs.d/u7z>) = 0
+19:04:00.734287 (+     0.000018) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/lslR", {st_mode=S_IFREG|0755, st_size=1438, ...}, 0) = 0
+19:04:00.734306 (+     0.000020) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/lslR", O_RDONLY) = 4</usr/libexec/mc/extfs.d/lslR>
+19:04:00.734327 (+     0.000020) close(4</usr/libexec/mc/extfs.d/lslR>) = 0
+19:04:00.734350 (+     0.000023) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/dpkg+", {st_mode=S_IFREG|0755, st_size=8998, ...}, 0) = 0
+19:04:00.734384 (+     0.000046) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/dpkg+", O_RDONLY) = 4</usr/libexec/mc/extfs.d/dpkg+>
+19:04:00.734418 (+     0.000020) close(4</usr/libexec/mc/extfs.d/dpkg+>) = 0
+19:04:00.734435 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/apt+", {st_mode=S_IFREG|0755, st_size=9726, ...}, 0) = 0
+19:04:00.734454 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/apt+", O_RDONLY) = 4</usr/libexec/mc/extfs.d/apt+>
+19:04:00.734473 (+     0.000019) close(4</usr/libexec/mc/extfs.d/apt+>) = 0
+19:04:00.734491 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/hp48+", {st_mode=S_IFREG|0755, st_size=3661, ...}, 0) = 0
+19:04:00.734509 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/hp48+", O_RDONLY) = 4</usr/libexec/mc/extfs.d/hp48+>
+19:04:00.734529 (+     0.000019) close(4</usr/libexec/mc/extfs.d/hp48+>) = 0
+19:04:00.734546 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uwim", {st_mode=S_IFREG|0755, st_size=5209, ...}, 0) = 0
+19:04:00.734565 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uwim", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uwim>
+19:04:00.734585 (+     0.000020) close(4</usr/libexec/mc/extfs.d/uwim>) = 0
+19:04:00.734602 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/gitfs+", {st_mode=S_IFREG|0755, st_size=782, ...}, 0) = 0
+19:04:00.734621 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/gitfs+", O_RDONLY) = 4</usr/libexec/mc/extfs.d/gitfs+>
+19:04:00.734641 (+     0.000019) close(4</usr/libexec/mc/extfs.d/gitfs+>) = 0
+19:04:00.734658 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/iso9660", {st_mode=S_IFREG|0755, st_size=5953, ...}, 0) = 0
+19:04:00.734677 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/iso9660", O_RDONLY) = 4</usr/libexec/mc/extfs.d/iso9660>
+19:04:00.734696 (+     0.000019) close(4</usr/libexec/mc/extfs.d/iso9660>) = 0
+19:04:00.734713 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/README", {st_mode=S_IFREG|0644, st_size=7540, ...}, 0) = 0
+19:04:00.734732 (+     0.000018) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/bpp", {st_mode=S_IFREG|0755, st_size=1207, ...}, 0) = 0
+19:04:00.734751 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/bpp", O_RDONLY) = 4</usr/libexec/mc/extfs.d/bpp>
+19:04:00.734770 (+     0.000019) close(4</usr/libexec/mc/extfs.d/bpp>) = 0
+19:04:00.734787 (+     0.000016) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uc1541", {st_mode=S_IFREG|0755, st_size=22746, ...}, 0) = 0
+19:04:00.734806 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uc1541", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uc1541>
+19:04:00.734828 (+     0.000022) close(4</usr/libexec/mc/extfs.d/uc1541>) = 0
+19:04:00.734845 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ualz", {st_mode=S_IFREG|0755, st_size=1280, ...}, 0) = 0
+19:04:00.734864 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ualz", O_RDONLY) = 4</usr/libexec/mc/extfs.d/ualz>
+19:04:00.734884 (+     0.000019) close(4</usr/libexec/mc/extfs.d/ualz>) = 0
+19:04:00.734901 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uzoo", {st_mode=S_IFREG|0755, st_size=1601, ...}, 0) = 0
+19:04:00.734920 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uzoo", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uzoo>
+19:04:00.734939 (+     0.000019) close(4</usr/libexec/mc/extfs.d/uzoo>) = 0
+19:04:00.734957 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/patchfs", {st_mode=S_IFREG|0755, st_size=11277, ...}, 0) = 0
+19:04:00.734975 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/patchfs", O_RDONLY) = 4</usr/libexec/mc/extfs.d/patchfs>
+19:04:00.734995 (+     0.000019) close(4</usr/libexec/mc/extfs.d/patchfs>) = 0
+19:04:00.735036 (+     0.000041) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uarc", {st_mode=S_IFREG|0755, st_size=1828, ...}, 0) = 0
+19:04:00.735069 (+     0.000033) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uarc", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uarc>
+19:04:00.735090 (+     0.000020) close(4</usr/libexec/mc/extfs.d/uarc>) = 0
+19:04:00.735107 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uha", {st_mode=S_IFREG|0755, st_size=969, ...}, 0) = 0
+19:04:00.735127 (+     0.000019) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uha", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uha>
+19:04:00.735146 (+     0.000019) close(4</usr/libexec/mc/extfs.d/uha>) = 0
+19:04:00.735163 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/deb", {st_mode=S_IFREG|0755, st_size=5534, ...}, 0) = 0
+19:04:00.735182 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/deb", O_RDONLY) = 4</usr/libexec/mc/extfs.d/deb>
+19:04:00.735202 (+     0.000019) close(4</usr/libexec/mc/extfs.d/deb>) = 0
+19:04:00.735219 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/urar", {st_mode=S_IFREG|0755, st_size=4474, ...}, 0) = 0
+19:04:00.735238 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/urar", O_RDONLY) = 4</usr/libexec/mc/extfs.d/urar>
+19:04:00.735257 (+     0.000019) close(4</usr/libexec/mc/extfs.d/urar>) = 0
+19:04:00.735274 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ulha", {st_mode=S_IFREG|0755, st_size=3870, ...}, 0) = 0
+19:04:00.735293 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ulha", O_RDONLY) = 4</usr/libexec/mc/extfs.d/ulha>
+19:04:00.735312 (+     0.000019) close(4</usr/libexec/mc/extfs.d/ulha>) = 0
+19:04:00.735330 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/rpm", {st_mode=S_IFREG|0755, st_size=14257, ...}, 0) = 0
+19:04:00.735348 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/rpm", O_RDONLY) = 4</usr/libexec/mc/extfs.d/rpm>
+19:04:00.735367 (+     0.000019) close(4</usr/libexec/mc/extfs.d/rpm>) = 0
+19:04:00.735385 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/README.extfs", {st_mode=S_IFREG|0644, st_size=1154, ...}, 0) = 0
+19:04:00.735403 (+     0.000018) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/audio", {st_mode=S_IFREG|0755, st_size=1320, ...}, 0) = 0
+19:04:00.735422 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/audio", O_RDONLY) = 4</usr/libexec/mc/extfs.d/audio>
+19:04:00.735441 (+     0.000019) close(4</usr/libexec/mc/extfs.d/audio>) = 0
+19:04:00.735458 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uarj", {st_mode=S_IFREG|0755, st_size=1655, ...}, 0) = 0
+19:04:00.735477 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uarj", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uarj>
+19:04:00.735496 (+     0.000019) close(4</usr/libexec/mc/extfs.d/uarj>) = 0
+19:04:00.735513 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/mailfs", {st_mode=S_IFREG|0755, st_size=5841, ...}, 0) = 0
+19:04:00.735534 (+     0.000021) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/mailfs", O_RDONLY) = 4</usr/libexec/mc/extfs.d/mailfs>
+19:04:00.735554 (+     0.000019) close(4</usr/libexec/mc/extfs.d/mailfs>) = 0
+19:04:00.735572 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/rpms+", {st_mode=S_IFREG|0755, st_size=1509, ...}, 0) = 0
+19:04:00.735590 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/rpms+", O_RDONLY) = 4</usr/libexec/mc/extfs.d/rpms+>
+19:04:00.735610 (+     0.000019) close(4</usr/libexec/mc/extfs.d/rpms+>) = 0
+19:04:00.735627 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uace", {st_mode=S_IFREG|0755, st_size=1508, ...}, 0) = 0
+19:04:00.735645 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uace", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uace>
+19:04:00.735665 (+     0.000019) close(4</usr/libexec/mc/extfs.d/uace>) = 0
+19:04:00.735682 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/changesetfs", {st_mode=S_IFREG|0755, st_size=2562, ...}, 0) = 0
+19:04:00.735700 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/changesetfs", O_RDONLY) = 4</usr/libexec/mc/extfs.d/changesetfs>
+19:04:00.735720 (+     0.000019) close(4</usr/libexec/mc/extfs.d/changesetfs>) = 0
+19:04:00.735737 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/unar", {st_mode=S_IFREG|0755, st_size=1243, ...}, 0) = 0
+19:04:00.735756 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/unar", O_RDONLY) = 4</usr/libexec/mc/extfs.d/unar>
+19:04:00.735775 (+     0.000019) close(4</usr/libexec/mc/extfs.d/unar>) = 0
+19:04:00.735793 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ulib", {st_mode=S_IFREG|0755, st_size=2825, ...}, 0) = 0
+19:04:00.735811 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ulib", O_RDONLY) = 4</usr/libexec/mc/extfs.d/ulib>
+19:04:00.735831 (+     0.000019) close(4</usr/libexec/mc/extfs.d/ulib>) = 0
+19:04:00.735848 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/trpm", {st_mode=S_IFREG|0755, st_size=7836, ...}, 0) = 0
+19:04:00.735867 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/trpm", O_RDONLY) = 4</usr/libexec/mc/extfs.d/trpm>
+19:04:00.735887 (+     0.000019) close(4</usr/libexec/mc/extfs.d/trpm>) = 0
+19:04:00.735904 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/s3+", {st_mode=S_IFREG|0755, st_size=13082, ...}, 0) = 0
+19:04:00.735923 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/s3+", O_RDONLY) = 4</usr/libexec/mc/extfs.d/s3+>
+19:04:00.735942 (+     0.000019) close(4</usr/libexec/mc/extfs.d/s3+>) = 0
+19:04:00.735959 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ucab", {st_mode=S_IFREG|0755, st_size=734, ...}, 0) = 0
+19:04:00.735978 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/ucab", O_RDONLY) = 4</usr/libexec/mc/extfs.d/ucab>
+19:04:00.735997 (+     0.000019) close(4</usr/libexec/mc/extfs.d/ucab>) = 0
+19:04:00.736039 (+     0.000042) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/a+", {st_mode=S_IFREG|0755, st_size=3206, ...}, 0) = 0
+19:04:00.736072 (+     0.000032) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/a+", O_RDONLY) = 4</usr/libexec/mc/extfs.d/a+>
+19:04:00.736092 (+     0.000019) close(4</usr/libexec/mc/extfs.d/a+>) = 0
+19:04:00.736109 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uar", {st_mode=S_IFREG|0755, st_size=1323, ...}, 0) = 0
+19:04:00.736128 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uar", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uar>
+19:04:00.736147 (+     0.000019) close(4</usr/libexec/mc/extfs.d/uar>) = 0
+19:04:00.736165 (+     0.000017) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/debd", {st_mode=S_IFREG|0755, st_size=10503, ...}, 0) = 0
+19:04:00.736184 (+     0.000018) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/debd", O_RDONLY) = 4</usr/libexec/mc/extfs.d/debd>
+19:04:00.736203 (+     0.000019) close(4</usr/libexec/mc/extfs.d/debd>) = 0
+19:04:00.736222 (+     0.000019) newfstatat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uzip", {st_mode=S_IFREG|0755, st_size=15263, ...}, 0) = 0
+19:04:00.736244 (+     0.000022) openat(AT_FDCWD, "/usr/libexec/mc/extfs.d/uzip", O_RDONLY) = 4</usr/libexec/mc/extfs.d/uzip>
+19:04:00.736264 (+     0.000019) close(4</usr/libexec/mc/extfs.d/uzip>) = 0
+19:04:00.736281 (+     0.000017) getdents64(3</usr/libexec/mc/extfs.d>, 0x55c56fdfb2d0 /* 0 entries */, 32768) = 0
+19:04:00.736300 (+     0.000019) close(3</usr/libexec/mc/extfs.d>) = 0
+19:04:00.736324 (+     0.000023) rt_sigaction(SIGPIPE, {sa_handler=0x55c56e303f00, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:00.736359 (+     0.000035) futex(0x7f75471b7c98, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.736375 (+     0.000016) futex(0x7f75471b7c8c, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.736390 (+     0.000015) futex(0x7f75471b7c84, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.736406 (+     0.000015) futex(0x7f75471b50dc, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.736423 (+     0.000017) futex(0x7f75471b7b44, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.736443 (+     0.000019) futex(0x7f75471b7adc, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.736459 (+     0.000016) futex(0x7f75471b7ad0, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.736713 (+     0.000253) brk(0x55c56fe28000) = 0x55c56fe28000
+19:04:00.737078 (+     0.000365) futex(0x7f75471b7c7c, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.737095 (+     0.000016) futex(0x7f75471b7c38, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.737113 (+     0.000017) futex(0x7f75471b7c30, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:00.737135 (+     0.000022) openat(AT_FDCWD, "/usr/share/mc/mc.charsets", O_RDONLY) = 3</usr/share/mc/mc.charsets>
+19:04:00.737158 (+     0.000023) newfstatat(3</usr/share/mc/mc.charsets>, "", {st_mode=S_IFREG|0644, st_size=227, ...}, AT_EMPTY_PATH) = 0
+19:04:00.737182 (+     0.000023) read(3</usr/share/mc/mc.charsets>, "ASCII\t\t7-bit ASCII\nISO-8859-1\tIS"..., 4096) = 227
+19:04:00.737207 (+     0.000025) read(3</usr/share/mc/mc.charsets>, "", 4096) = 0
+19:04:00.737225 (+     0.000017) close(3</usr/share/mc/mc.charsets>) = 0
+19:04:00.737244 (+     0.000018) openat(AT_FDCWD, "/etc/mc/mc.charsets", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.737264 (+     0.000020) access("/home/egrep/.config/mc/ini", R_OK) = 0
+19:04:00.737283 (+     0.000018) access("/etc/mc/mc.lib", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.737304 (+     0.000021) access("/home/egrep/.config/mc/ini", R_OK) = 0
+19:04:00.737330 (+     0.000025) newfstatat(AT_FDCWD, "/home/egrep/.config/mc/ini", {st_mode=S_IFREG|0644, st_size=3507, ...}, 0) = 0
+19:04:00.737350 (+     0.000020) openat(AT_FDCWD, "/home/egrep/.config/mc/ini", O_RDONLY) = 3</home/egrep/.config/mc/ini>
+19:04:00.737371 (+     0.000021) newfstatat(3</home/egrep/.config/mc/ini>, "", {st_mode=S_IFREG|0644, st_size=3507, ...}, AT_EMPTY_PATH) = 0
+19:04:00.737394 (+     0.000022) read(3</home/egrep/.config/mc/ini>, "[Midnight-Commander]\nverbose=tru"..., 4096) = 3507
+19:04:00.737477 (+     0.000082) read(3</home/egrep/.config/mc/ini>, "", 4096) = 0
+19:04:00.737494 (+     0.000017) close(3</home/egrep/.config/mc/ini>) = 0
+19:04:00.737512 (+     0.000018) access("/home/egrep/.config/mc/panels.ini", R_OK) = 0
+19:04:00.737530 (+     0.000017) access("/home/egrep/.config/mc/panels.ini", R_OK) = 0
+19:04:00.737548 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/.config/mc/panels.ini", {st_mode=S_IFREG|0644, st_size=838, ...}, 0) = 0
+19:04:00.737567 (+     0.000019) openat(AT_FDCWD, "/home/egrep/.config/mc/panels.ini", O_RDONLY) = 3</home/egrep/.config/mc/panels.ini>
+19:04:00.737589 (+     0.000021) newfstatat(3</home/egrep/.config/mc/panels.ini>, "", {st_mode=S_IFREG|0644, st_size=838, ...}, AT_EMPTY_PATH) = 0
+19:04:00.737610 (+     0.000021) read(3</home/egrep/.config/mc/panels.ini>, "[New Left Panel]\ndisplay=listing"..., 4096) = 838
+19:04:00.737644 (+     0.000034) read(3</home/egrep/.config/mc/panels.ini>, "", 4096) = 0
+19:04:00.737662 (+     0.000017) close(3</home/egrep/.config/mc/panels.ini>) = 0
+19:04:00.737741 (+     0.000078) newfstatat(AT_FDCWD, ".", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737763 (+     0.000022) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737785 (+     0.000022) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737804 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737823 (+     0.000019) newfstatat(AT_FDCWD, ".", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737841 (+     0.000017) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737860 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737877 (+     0.000017) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737897 (+     0.000019) getuid() = 1000
+19:04:00.737916 (+     0.000019) newfstatat(AT_FDCWD, "/etc/nsswitch.conf", {st_mode=S_IFREG|0644, st_size=2518, ...}, 0) = 0
+19:04:00.737936 (+     0.000019) newfstatat(AT_FDCWD, "/", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:00.737955 (+     0.000019) openat(AT_FDCWD, "/etc/nsswitch.conf", O_RDONLY|O_CLOEXEC) = 3</etc/nsswitch.conf>
+19:04:00.737978 (+     0.000023) newfstatat(3</etc/nsswitch.conf>, "", {st_mode=S_IFREG|0644, st_size=2518, ...}, AT_EMPTY_PATH) = 0
+19:04:00.738002 (+     0.000025) read(3</etc/nsswitch.conf>, "#\n# /etc/nsswitch.conf\n#\n# An ex"..., 4096) = 2518
+19:04:00.738053 (+     0.000050) read(3</etc/nsswitch.conf>, "", 4096) = 0
+19:04:00.738084 (+     0.000030) newfstatat(3</etc/nsswitch.conf>, "", {st_mode=S_IFREG|0644, st_size=2518, ...}, AT_EMPTY_PATH) = 0
+19:04:00.738106 (+     0.000021) close(3</etc/nsswitch.conf>) = 0
+19:04:00.738127 (+     0.000020) openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3</etc/ld.so.cache>
+19:04:00.738147 (+     0.000020) newfstatat(3</etc/ld.so.cache>, "", {st_mode=S_IFREG|0644, st_size=71225, ...}, AT_EMPTY_PATH) = 0
+19:04:00.738168 (+     0.000020) mmap(NULL, 71225, PROT_READ, MAP_PRIVATE, 3</etc/ld.so.cache>, 0) = 0x7f7546954000
+19:04:00.738187 (+     0.000019) close(3</etc/ld.so.cache>) = 0
+19:04:00.738207 (+     0.000020) openat(AT_FDCWD, "/lib64/libnss_db.so.2", O_RDONLY|O_CLOEXEC) = 3</lib64/libnss_db-2.33.so>
+19:04:00.738228 (+     0.000021) read(3</lib64/libnss_db-2.33.so>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\"\0\0\0\0\0\0"..., 832) = 832
+19:04:00.738248 (+     0.000020) newfstatat(3</lib64/libnss_db-2.33.so>, "", {st_mode=S_IFREG|0755, st_size=30816, ...}, AT_EMPTY_PATH) = 0
+19:04:00.738270 (+     0.000022) mmap(NULL, 33824, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libnss_db-2.33.so>, 0) = 0x7f7547a12000
+19:04:00.738290 (+     0.000019) mmap(0x7f7547a14000, 16384, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libnss_db-2.33.so>, 0x2000) = 0x7f7547a14000
+19:04:00.738313 (+     0.000023) mmap(0x7f7547a18000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libnss_db-2.33.so>, 0x6000) = 0x7f7547a18000
+19:04:00.738333 (+     0.000019) mmap(0x7f7547a19000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libnss_db-2.33.so>, 0x6000) = 0x7f7547a19000
+19:04:00.738357 (+     0.000024) close(3</lib64/libnss_db-2.33.so>) = 0
+19:04:00.738376 (+     0.000018) openat(AT_FDCWD, "/lib64/libnss_files.so.2", O_RDONLY|O_CLOEXEC) = 3</lib64/libnss_files-2.33.so>
+19:04:00.738398 (+     0.000021) read(3</lib64/libnss_files-2.33.so>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320\"\0\0\0\0\0\0"..., 832) = 832
+19:04:00.738418 (+     0.000019) newfstatat(3</lib64/libnss_files-2.33.so>, "", {st_mode=S_IFREG|0755, st_size=43208, ...}, AT_EMPTY_PATH) = 0
+19:04:00.738439 (+     0.000021) mmap(NULL, 46472, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</lib64/libnss_files-2.33.so>, 0) = 0x7f7546948000
+19:04:00.738458 (+     0.000018) mmap(0x7f754694a000, 24576, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libnss_files-2.33.so>, 0x2000) = 0x7f754694a000
+19:04:00.738482 (+     0.000023) mmap(0x7f7546950000, 8192, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libnss_files-2.33.so>, 0x8000) = 0x7f7546950000
+19:04:00.738501 (+     0.000019) mmap(0x7f7546952000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</lib64/libnss_files-2.33.so>, 0x9000) = 0x7f7546952000
+19:04:00.738526 (+     0.000024) close(3</lib64/libnss_files-2.33.so>) = 0
+19:04:00.738560 (+     0.000034) mprotect(0x7f7546952000, 4096, PROT_READ) = 0
+19:04:00.738586 (+     0.000025) mprotect(0x7f7547a19000, 4096, PROT_READ) = 0
+19:04:00.738605 (+     0.000019) munmap(0x7f7546954000, 71225) = 0
+19:04:00.738646 (+     0.000040) openat(AT_FDCWD, "/var/db/passwd.db", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+19:04:00.738685 (+     0.000038) openat(AT_FDCWD, "/etc/passwd", O_RDONLY|O_CLOEXEC) = 3</etc/passwd>
+19:04:00.738707 (+     0.000021) newfstatat(3</etc/passwd>, "", {st_mode=S_IFREG|0644, st_size=1679, ...}, AT_EMPTY_PATH) = 0
+19:04:00.738730 (+     0.000023) lseek(3</etc/passwd>, 0, SEEK_SET) = 0
+19:04:00.738748 (+     0.000018) read(3</etc/passwd>, "root:x:0:0:System user; root:/ro"..., 4096) = 1679
+19:04:00.738773 (+     0.000024) close(3</etc/passwd>) = 0
+19:04:00.738793 (+     0.000020) mkdir("/tmp/mc-egrep", 0700) = -1 EEXIST (File exists)
+19:04:00.738814 (+     0.000020) newfstatat(AT_FDCWD, "/tmp/mc-egrep", {st_mode=S_IFDIR|0700, st_size=40, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:00.738833 (+     0.000019) getuid() = 1000
+19:04:00.738866 (+     0.000032) close(-1) = -1 EBADF (Bad file descriptor)
+19:04:00.738882 (+     0.000015) close(-1) = -1 EBADF (Bad file descriptor)
+19:04:00.738898 (+     0.000015) pipe([3<pipe:[265934]>, 4<pipe:[265934]>]) = 0
+19:04:00.738923 (+     0.000025) pipe([5<pipe:[265935]>, 6<pipe:[265935]>]) = 0
+19:04:00.738948 (+     0.000024) clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7f7546e5fe50) = 91441
+19:04:00.739099 (+     0.000151) close(3<pipe:[265934]>) = 0
+19:04:00.739118 (+     0.000019) close(6<pipe:[265935]>) = 0
+19:04:00.739140 (+     0.000021) read(5<pipe:[265935]>, "\0", 1) = 1
+19:04:00.739527 (+     0.000387) close(4<pipe:[265934]>) = 0
+19:04:00.739547 (+     0.000019) --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=91441, si_uid=1000, si_status=3, si_utime=0, si_stime=0} ---
+19:04:00.739558 (+     0.000011) close(5<pipe:[265935]>) = 0
+19:04:00.739578 (+     0.000032) wait4(91441, [{WIFEXITED(s) && WEXITSTATUS(s) == 3}], 0, NULL) = 91441
+19:04:00.739616 (+     0.000025) ioctl(1</dev/pts/0>, TCGETS, {B38400 opost isig icanon echo ...}) = 0
+19:04:00.739641 (+     0.000024) rt_sigaction(SIGCHLD, {sa_handler=0x55c56e327260, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:00.739659 (+     0.000017) rt_sigaction(SIGTSTP, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+19:04:00.739702 (+     0.000043) getuid() = 1000
+19:04:00.739718 (+     0.000015) geteuid() = 1000
+19:04:00.739733 (+     0.000015) getgid() = 1000
+19:04:00.739748 (+     0.000014) getegid() = 1000
+19:04:00.739776 (+     0.000027) openat(AT_FDCWD, "/home/egrep/.terminfo/x/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739796 (+     0.000020) openat(AT_FDCWD, "/home/egrep/.terminfo/78/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739814 (+     0.000018) openat(AT_FDCWD, "/usr/local/etc/terminfo/x/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739833 (+     0.000018) openat(AT_FDCWD, "/usr/local/etc/terminfo/78/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739851 (+     0.000017) openat(AT_FDCWD, "/usr/local/share/terminfo/x/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739868 (+     0.000017) openat(AT_FDCWD, "/usr/local/share/terminfo/78/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739888 (+     0.000019) openat(AT_FDCWD, "/usr/local/lib/terminfo/x/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739906 (+     0.000017) openat(AT_FDCWD, "/usr/local/lib/terminfo/78/xterm-256color", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:00.739923 (+     0.000017) openat(AT_FDCWD, "/etc/terminfo/x/xterm-256color", O_RDONLY) = 3</etc/terminfo/x/xterm-256color>
+19:04:00.739946 (+     0.000022) newfstatat(3</etc/terminfo/x/xterm-256color>, "", {st_mode=S_IFREG|0644, st_size=3810, ...}, AT_EMPTY_PATH) = 0
+19:04:00.739971 (+     0.000024) read(3</etc/terminfo/x/xterm-256color>, "\36\2%\0&\0\17\0\235\0010\6xterm-256color|xterm"..., 4096) = 3810
+19:04:00.739994 (+     0.000022) close(3</etc/terminfo/x/xterm-256color>) = 0
+19:04:00.740045 (+     0.000051) ioctl(1</dev/pts/0>, TIOCGWINSZ, {ws_row=50, ws_col=106, ws_xpixel=958, ws_ypixel=1053}) = 0
+19:04:00.740098 (+     0.000052) ioctl(0</dev/pts/0>, TCGETS, {B38400 opost isig icanon echo ...}) = 0
+19:04:00.740128 (+     0.000029) rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+19:04:00.740148 (+     0.000020) openat(AT_FDCWD, "/dev/tty", O_RDWR) = 3</dev/tty>
+19:04:00.740171 (+     0.000022) fcntl(3</dev/tty>, F_GETFD) = 0
+19:04:00.740189 (+     0.000018) fcntl(3</dev/tty>, F_SETFD, FD_CLOEXEC) = 0
+19:04:00.740207 (+     0.000018) ioctl(3</dev/tty>, TCGETS, {B38400 opost isig icanon echo ...}) = 0
+19:04:00.740226 (+     0.000018) ioctl(3</dev/tty>, TCGETS, {B38400 opost isig icanon echo ...}) = 0
+19:04:00.740245 (+     0.000019) ioctl(3</dev/tty>, SNDCTL_TMR_STOP or TCSETSW, {B38400 -opost isig -icanon -echo ...}) = 0
+19:04:00.740266 (+     0.000020) rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+19:04:00.740282 (+     0.000015) ioctl(3</dev/tty>, TCGETS, {B38400 -opost isig -icanon -echo ...}) = 0
+19:04:00.740301 (+     0.000019) ioctl(3</dev/tty>, SNDCTL_TMR_START or TCSETS, {B38400 -opost isig -icanon -echo ...}) = 0
+19:04:00.740323 (+     0.000022) rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+19:04:00.740353 (+     0.000030) brk(0x55c56fe49000) = 0x55c56fe49000
+19:04:00.740414 (+     0.000059) brk(0x55c56fe6a000) = 0x55c56fe6a000
+19:04:00.740475 (+     0.000060) brk(0x55c56fe8b000) = 0x55c56fe8b000
+19:04:00.740498 (+     0.000022) rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+19:04:00.740528 (+     0.000030) rt_sigaction(SIGINT, {sa_handler=0x55c56e2eb2d0, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:00.740546 (+     0.000018) rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+19:04:00.740777 (+     0.000231) write(1</dev/pts/0>, "\33[?1049h\33[22;0;0t\33[1;50r\33[4l\33[50"..., 87) = 87
+19:04:00.740853 (+     0.000077) rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+19:04:00.740882 (+     0.000029) rt_sigaction(SIGWINCH, {sa_handler=0x55c56e2ea3f0, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7f75475292e0}, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+19:04:00.740909 (+     0.000025) pipe2([4<pipe:[265936]>, 5<pipe:[265936]>], O_CLOEXEC) = 0
+19:04:00.740938 (+     0.000028) fcntl(4<pipe:[265936]>, F_GETFL) = 0 (flags O_RDONLY)
+19:04:00.740957 (+     0.000019) fcntl(4<pipe:[265936]>, F_SETFL, O_RDONLY|O_NONBLOCK) = 0
+19:04:00.740976 (+     0.000019) fcntl(5<pipe:[265936]>, F_GETFL) = 0x1 (flags O_WRONLY)
+19:04:00.740995 (+     0.000018) fcntl(5<pipe:[265936]>, F_SETFL, O_WRONLY|O_NONBLOCK) = 0
+19:04:00.741022 (+     0.000028) access("/usr/share/mc/mc.lib", R_OK) = 0
+19:04:00.741075 (+     0.000051) newfstatat(AT_FDCWD, "/usr/share/mc/mc.lib", {st_mode=S_IFREG|0644, st_size=2528, ...}, 0) = 0
+19:04:00.741095 (+     0.000020) openat(AT_FDCWD, "/usr/share/mc/mc.lib", O_RDONLY) = 6</usr/share/mc/mc.lib>
+19:04:00.741117 (+     0.000022) newfstatat(6</usr/share/mc/mc.lib>, "", {st_mode=S_IFREG|0644, st_size=2528, ...}, AT_EMPTY_PATH) = 0
+19:04:00.741139 (+     0.000021) read(6</usr/share/mc/mc.lib>, "[External editor or viewer param"..., 4096) = 2528
+19:04:00.741229 (+     0.000089) read(6</usr/share/mc/mc.lib>, "", 4096) = 0
+19:04:00.741249 (+     0.000019) close(6</usr/share/mc/mc.lib>) = 0
+19:04:00.741551 (+     0.000306) access("/usr/share/mc/mc.keymap", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.741587 (+     0.000033) access("/etc/mc/mc.keymap", R_OK) = 0
+19:04:00.741617 (+     0.000028) access("/etc/mc/mc.keymap", R_OK) = 0
+19:04:00.741638 (+     0.000020) newfstatat(AT_FDCWD, "/etc/mc/mc.keymap", {st_mode=S_IFREG|0644, st_size=9457, ...}, 0) = 0
+19:04:00.741659 (+     0.000021) openat(AT_FDCWD, "/etc/mc/mc.keymap", O_RDONLY) = 6</etc/mc/mc.default.keymap>
+19:04:00.741683 (+     0.000023) newfstatat(6</etc/mc/mc.default.keymap>, "", {st_mode=S_IFREG|0644, st_size=9457, ...}, AT_EMPTY_PATH) = 0
+19:04:00.741706 (+     0.000022) read(6</etc/mc/mc.default.keymap>, "[filemanager]\nChangePanel = tab;"..., 4096) = 4096
+19:04:00.741773 (+     0.000067) brk(0x55c56feac000) = 0x55c56feac000
+19:04:00.741817 (+     0.000043) read(6</etc/mc/mc.default.keymap>, "rl-v\nEnter = enter\nSearch = ctrl"..., 4096) = 4096
+19:04:00.741903 (+     0.000086) read(6</etc/mc/mc.default.keymap>, "ell = ctrl-o\nRuler = alt-r\nHisto"..., 4096) = 1265
+19:04:00.741949 (+     0.000045) read(6</etc/mc/mc.default.keymap>, "", 4096) = 0
+19:04:00.741967 (+     0.000017) close(6</etc/mc/mc.default.keymap>) = 0
+19:04:00.742186 (+     0.000219) access("/home/egrep/.config/mc/mc.keymap", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.742219 (+     0.000032) sysinfo({uptime=17292, loads=[77600, 68416, 45024], totalram=16656769024, freeram=11455594496, sharedram=483770368, bufferram=450990080, totalswap=17179865088, freeswap=17179865088, procs=829, totalhigh=0, freehigh=0, mem_unit=1}) = 0
+19:04:00.742796 (+     0.000576) access("/home/egrep/.local/share/mc/skins/default", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.742817 (+     0.000021) access("/home/egrep/.local/share/mc/skins/default.ini", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.742835 (+     0.000018) access("/etc/mc/skins/default", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.742854 (+     0.000018) access("/etc/mc/skins/default.ini", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.742871 (+     0.000017) access("/usr/share/mc/skins/default", R_OK) = -1 ENOENT (No such file or directory)
+19:04:00.742889 (+     0.000017) access("/usr/share/mc/skins/default.ini", R_OK) = 0
+19:04:00.742906 (+     0.000017) access("/usr/share/mc/skins/default.ini", R_OK) = 0
+19:04:00.742924 (+     0.000018) newfstatat(AT_FDCWD, "/usr/share/mc/skins/default.ini", {st_mode=S_IFREG|0644, st_size=2944, ...}, 0) = 0
+19:04:00.742944 (+     0.000020) openat(AT_FDCWD, "/usr/share/mc/skins/default.ini", O_RDONLY) = 6</usr/share/mc/skins/default.ini>
+19:04:00.742966 (+     0.000021) newfstatat(6</usr/share/mc/skins/default.ini>, "", {st_mode=S_IFREG|0644, st_size=2944, ...}, AT_EMPTY_PATH) = 0
+19:04:00.742988 (+     0.000021) read(6</usr/share/mc/skins/default.ini>, "[skin]\n    description = Standar"..., 4096) = 2944
+19:04:00.743083 (+     0.000095) read(6</usr/share/mc/skins/default.ini>, "", 4096) = 0
+19:04:00.743102 (+     0.000018) close(6</usr/share/mc/skins/default.ini>) = 0
+19:04:00.743402 (+     0.000300) ioctl(1</dev/pts/0>, TCGETS, {B38400 -opost isig -icanon -echo ...}) = 0
+19:04:00.743425 (+     0.000022) openat(AT_FDCWD, "/dev/ptmx", O_RDWR) = 6</dev/ptmx>
+19:04:00.743465 (+     0.000040) ioctl(6</dev/ptmx>, TIOCGPTN, [2]) = 0
+19:04:00.743485 (+     0.000019) ioctl(6</dev/ptmx>, TIOCSPTLCK, [0]) = 0
+19:04:00.743523 (+     0.000038) ioctl(6</dev/ptmx>, TIOCGPTPEER, 0x102) = 7
+19:04:00.743563 (+     0.000039) pipe([8<pipe:[265937]>, 9<pipe:[265937]>]) = 0
+19:04:00.743591 (+     0.000028) pipe([10<pipe:[265938]>, 11<pipe:[265938]>]) = 0
+19:04:00.743630 (+     0.000038) clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7f7546e5fe50) = 91442
+19:04:00.743757 (+     0.000126) write(6</dev/ptmx>, " mc_print_command_buffer () { pr"..., 265) = 265
+19:04:00.743785 (+     0.000028) rt_sigaction(SIGINT, {sa_handler=0x55c56e2eb2d0, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:00.743822 (+     0.000039) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=10, tv_nsec=0}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=999998763})
+19:04:00.743868 (+     0.000043) read(6</dev/ptmx>, " mc_print_command_buffer () { pr"..., 128) = 128
+19:04:00.743892 (+     0.000023) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=999998000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=999997372})
+19:04:00.743918 (+     0.000026) read(6</dev/ptmx>, "+\":\"echo $BASH_VERSINFO:$READLIN"..., 128) = 128
+19:04:00.743939 (+     0.000020) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=999997000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=999996503})
+19:04:00.743964 (+     0.000025) read(6</dev/ptmx>, "'\\u@\\h:\\w\\$ '\r\n", 128) = 15
+19:04:00.743984 (+     0.000019) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=999996000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=753157373})
+19:04:00.990879 (+     0.246899) read(6</dev/ptmx>, "\33[?2004h\33[0;33m<19:04:00>\33[0m\2 \33"..., 128) = 94
+19:04:00.990919 (+     0.000037) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=753157000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=753070765})
+19:04:00.991048 (+     0.000128) read(6</dev/ptmx>, " mc_print_command_buffer () { pr"..., 128) = 69
+19:04:00.991085 (+     0.000035) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=753070000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=752097957})
+19:04:00.992087 (+     0.001002) read(6</dev/ptmx>, " ", 128) = 1
+19:04:00.992112 (+     0.000024) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=752097000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=752018872})
+19:04:00.992229 (+     0.000118) read(6</dev/ptmx>, " bind -x '\"\\e_\":\"mc_print_comman"..., 128) = 42
+19:04:00.992257 (+     0.000026) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=752018000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=747594592})
+19:04:00.996727 (+     0.004471) read(6</dev/ptmx>, " bind -x '\"\\e+\":\"echo $BASH_VERS"..., 128) = 59
+19:04:00.996757 (+     0.000027) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=747594000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=744736713})
+19:04:00.999658 (+     0.002903) read(6</dev/ptmx>, " PROMPT_COMMAND=${PROMPT_COMMAND"..., 128) = 49
+19:04:00.999692 (+     0.000031) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=744736000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=741637012})
+19:04:01.002835 (+     0.003145) read(6</dev/ptmx>, "}'pwd>&9;kill -STOP $$'", 128) = 23
+19:04:01.002865 (+     0.000027) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=741637000}, NULL) = 1 (in [6], left {tv_sec=9, tv_nsec=738295821})
+19:04:01.006383 (+     0.003521) read(6</dev/ptmx>, "PS1='\\u@\\h:\\w\\$ '", 128) = 17
+19:04:01.006421 (+     0.000034) pselect6(9, [6</dev/ptmx> 8<pipe:[265937]>], NULL, NULL, {tv_sec=9, tv_nsec=738295000}, NULL) = 0 (Timeout)
+19:04:10.754175 (+     9.747762) rt_sigaction(SIGINT, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:10.754378 (+     0.000209) pselect6(11, [10<pipe:[265938]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:10.754619 (+     0.000228) write(6</dev/ptmx>, "\33_", 2) = 2
+19:04:10.754793 (+     0.000173) pselect6(11, [10<pipe:[265938]>], NULL, NULL, {tv_sec=1, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.756649 (+     1.001865) newfstatat(1</dev/pts/0>, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0), ...}, AT_EMPTY_PATH) = 0
+19:04:11.756869 (+     0.000212) write(1</dev/pts/0>, "\33[?1001s\33[?1002h\33[?1006h", 24) = 24
+19:04:11.757026 (+     0.000160) write(1</dev/pts/0>, "\33[?2004h", 8) = 8
+19:04:11.757186 (+     0.000155) geteuid() = 1000
+19:04:11.757239 (+     0.000049) access("/home/egrep/.config/mc/filehighlight.ini", R_OK) = -1 ENOENT (No such file or directory)
+19:04:11.757292 (+     0.000052) access("/etc/mc/filehighlight.ini", R_OK) = 0
+19:04:11.757314 (+     0.000021) access("/etc/mc/filehighlight.ini", R_OK) = 0
+19:04:11.757339 (+     0.000025) newfstatat(AT_FDCWD, "/etc/mc/filehighlight.ini", {st_mode=S_IFREG|0644, st_size=1271, ...}, 0) = 0
+19:04:11.757363 (+     0.000024) openat(AT_FDCWD, "/etc/mc/filehighlight.ini", O_RDONLY) = 12</etc/mc/filehighlight.ini>
+19:04:11.757394 (+     0.000031) newfstatat(12</etc/mc/filehighlight.ini>, "", {st_mode=S_IFREG|0644, st_size=1271, ...}, AT_EMPTY_PATH) = 0
+19:04:11.757419 (+     0.000024) read(12</etc/mc/filehighlight.ini>, "[executable]\n    type=FILE_EXE\n\n"..., 4096) = 1271
+19:04:11.757476 (+     0.000056) read(12</etc/mc/filehighlight.ini>, "", 4096) = 0
+19:04:11.757494 (+     0.000017) close(12</etc/mc/filehighlight.ini>) = 0
+19:04:11.757683 (+     0.000189) chdir("/home/egrep/work/lenovo-legion-y520-15ikbn") = 0
+19:04:11.757721 (+     0.000038) openat(AT_FDCWD, "/etc/localtime", O_RDONLY|O_CLOEXEC) = 12</etc/localtime>
+19:04:11.757744 (+     0.000022) newfstatat(12</etc/localtime>, "", {st_mode=S_IFREG|0644, st_size=2088, ...}, AT_EMPTY_PATH) = 0
+19:04:11.757765 (+     0.000021) newfstatat(12</etc/localtime>, "", {st_mode=S_IFREG|0644, st_size=2088, ...}, AT_EMPTY_PATH) = 0
+19:04:11.757789 (+     0.000024) read(12</etc/localtime>, "TZif2\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\r\0\0\0\r\0\0\0\0"..., 4096) = 2088
+19:04:11.757810 (+     0.000020) lseek(12</etc/localtime>, -1301, SEEK_CUR) = 787
+19:04:11.757828 (+     0.000017) read(12</etc/localtime>, "TZif2\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\r\0\0\0\r\0\0\0\0"..., 4096) = 1301
+19:04:11.757848 (+     0.000020) close(12</etc/localtime>) = 0
+19:04:11.757886 (+     0.000038) newfstatat(AT_FDCWD, ".", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.757906 (+     0.000020) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.757929 (+     0.000022) getcwd("/home/egrep/work/lenovo-legion-y520-15ikbn", 4096) = 43
+19:04:11.757948 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.757967 (+     0.000019) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.757987 (+     0.000019) chdir("/home/egrep/work/lenovo-legion-y520-15ikbn") = 0
+19:04:11.758041 (+     0.000054) newfstatat(AT_FDCWD, "/home/egrep/work", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.758077 (+     0.000035) openat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 12</home/egrep/work/lenovo-legion-y520-15ikbn>
+19:04:11.758100 (+     0.000022) newfstatat(12</home/egrep/work/lenovo-legion-y520-15ikbn>, "", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+19:04:11.758122 (+     0.000022) brk(0x55c56fed1000) = 0x55c56fed1000
+19:04:11.758143 (+     0.000020) getdents64(12</home/egrep/work/lenovo-legion-y520-15ikbn>, 0x55c56fea8030 /* 12 entries */, 32768) = 328
+19:04:11.758171 (+     0.000028) lseek(12</home/egrep/work/lenovo-legion-y520-15ikbn>, 0, SEEK_SET) = 0
+19:04:11.758190 (+     0.000018) getdents64(12</home/egrep/work/lenovo-legion-y520-15ikbn>, 0x55c56fea8030 /* 12 entries */, 32768) = 328
+19:04:11.758217 (+     0.000026) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/.gitignore", {st_mode=S_IFREG|0644, st_size=11, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758240 (+     0.000023) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/LICENSE", {st_mode=S_IFREG|0644, st_size=1211, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758262 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/mc.strace", {st_mode=S_IFREG|0644, st_size=133099, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758284 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/TODO", {st_mode=S_IFREG|0644, st_size=198, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758308 (+     0.000024) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/README.md", {st_mode=S_IFREG|0644, st_size=1265, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758330 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/sync.sh", {st_mode=S_IFREG|0755, st_size=1093, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758351 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/var", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758373 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/.git", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758394 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/usr", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758416 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/lenovo-legion-y520-15ikbn/etc", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.758435 (+     0.000019) getdents64(12</home/egrep/work/lenovo-legion-y520-15ikbn>, 0x55c56fea8030 /* 0 entries */, 32768) = 0
+19:04:11.758465 (+     0.000029) pselect6(5, [4<pipe:[265936]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 1 (in [4], left {tv_sec=0, tv_nsec=0})
+19:04:11.758495 (+     0.000030) read(4<pipe:[265936]>, "\0", 16) = 1
+19:04:11.758517 (+     0.000021) read(4<pipe:[265936]>, 0x7fff2e257720, 16) = -1 EAGAIN (Resource temporarily unavailable)
+19:04:11.758538 (+     0.000020) ioctl(1</dev/pts/0>, TIOCGWINSZ, {ws_row=50, ws_col=106, ws_xpixel=958, ws_ypixel=1053}) = 0
+19:04:11.758564 (+     0.000025) rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+19:04:11.758688 (+     0.000124) rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+19:04:11.758754 (+     0.000065) write(1</dev/pts/0>, "\33[?1049h\33[22;0;0t\33[1;50r\33[4l\33[?1"..., 78) = 78
+19:04:11.758794 (+     0.000041) close(12</home/egrep/work/lenovo-legion-y520-15ikbn>) = 0
+19:04:11.758840 (+     0.000045) chdir("/home/egrep/work/dotfiles") = 0
+19:04:11.758892 (+     0.000051) newfstatat(AT_FDCWD, ".", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.758924 (+     0.000032) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.758945 (+     0.000020) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.758964 (+     0.000019) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.758985 (+     0.000021) chdir("/home/egrep/work/dotfiles") = 0
+19:04:11.759009 (+     0.000023) newfstatat(AT_FDCWD, "/home/egrep/work", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+19:04:11.759029 (+     0.000019) openat(AT_FDCWD, "/home/egrep/work/dotfiles", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 12</home/egrep/work/dotfiles>
+19:04:11.759050 (+     0.000020) newfstatat(12</home/egrep/work/dotfiles>, "", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+19:04:11.759072 (+     0.000022) getdents64(12</home/egrep/work/dotfiles>, 0x55c56feb06c0 /* 25 entries */, 32768) = 792
+19:04:11.759100 (+     0.000027) lseek(12</home/egrep/work/dotfiles>, 0, SEEK_SET) = 0
+19:04:11.759118 (+     0.000018) getdents64(12</home/egrep/work/dotfiles>, 0x55c56feb06c0 /* 25 entries */, 32768) = 792
+19:04:11.759146 (+     0.000028) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.globalrc", {st_mode=S_IFREG|0644, st_size=23102, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759169 (+     0.000022) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.gitattributes", {st_mode=S_IFREG|0644, st_size=129, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759190 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.gnupg", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759212 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/README.org", {st_mode=S_IFREG|0644, st_size=3298, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759236 (+     0.000024) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.bashrc", {st_mode=S_IFREG|0644, st_size=2038, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759258 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.dir-locals.el", {st_mode=S_IFREG|0644, st_size=304, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759280 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.bash_profile", {st_mode=S_IFREG|0644, st_size=2047, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759301 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.inputrc", {st_mode=S_IFREG|0644, st_size=3003, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759322 (+     0.000020) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/mc-norc.strace", {st_mode=S_IFREG|0644, st_size=122896, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759343 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/LICENSE", {st_mode=S_IFREG|0644, st_size=35147, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759363 (+     0.000020) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/mc.strace", {st_mode=S_IFREG|0644, st_size=78925, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759384 (+     0.000020) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.sbclrc", {st_mode=S_IFREG|0644, st_size=282, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759405 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.bash_logout", {st_mode=S_IFREG|0644, st_size=928, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759427 (+     0.000021) pselect6(5, [4<pipe:[265936]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.759455 (+     0.000027) write(1</dev/pts/0>, "\33[2;105H\33[1K \33[37m\33[44m|\33[2;106H", 32) = 32
+19:04:11.759496 (+     0.000040) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.config", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759534 (+     0.000037) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/-y", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759574 (+     0.000040) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.ghc", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759597 (+     0.000022) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/mc-empty-vars.strace", {st_mode=S_IFREG|0644, st_size=124107, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759631 (+     0.000034) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/bin", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759653 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.lein", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759675 (+     0.000022) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.git", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759697 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/src", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759718 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/mc-norc-ps1.strace", {st_mode=S_IFREG|0644, st_size=123677, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759739 (+     0.000021) newfstatat(AT_FDCWD, "/home/egrep/work/dotfiles/.docker", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+19:04:11.759759 (+     0.000019) getdents64(12</home/egrep/work/dotfiles>, 0x55c56feb06c0 /* 0 entries */, 32768) = 0
+19:04:11.759783 (+     0.000023) pselect6(5, [4<pipe:[265936]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.759807 (+     0.000023) write(1</dev/pts/0>, "\10\33[39m\33[49m\33[1K \33[37m\33[44m\342\224\220\33[2"..., 37) = 37
+19:04:11.759846 (+     0.000039) close(12</home/egrep/work/dotfiles>) = 0
+19:04:11.759908 (+     0.000062) uname({sysname="Linux", nodename="saturn", ...}) = 0
+19:04:11.759927 (+     0.000018) getuid() = 1000
+19:04:11.759943 (+     0.000016) newfstatat(AT_FDCWD, "/etc/nsswitch.conf", {st_mode=S_IFREG|0644, st_size=2518, ...}, 0) = 0
+19:04:11.759966 (+     0.000023) openat(AT_FDCWD, "/var/db/passwd.db", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+19:04:11.759991 (+     0.000024) openat(AT_FDCWD, "/etc/passwd", O_RDONLY|O_CLOEXEC) = 12</etc/passwd>
+19:04:11.760017 (+     0.000026) newfstatat(12</etc/passwd>, "", {st_mode=S_IFREG|0644, st_size=1679, ...}, AT_EMPTY_PATH) = 0
+19:04:11.760054 (+     0.000037) lseek(12</etc/passwd>, 0, SEEK_SET) = 0
+19:04:11.760073 (+     0.000019) read(12</etc/passwd>, "root:x:0:0:System user; root:/ro"..., 4096) = 1679
+19:04:11.760098 (+     0.000024) close(12</etc/passwd>) = 0
+19:04:11.760122 (+     0.000024) write(1</dev/pts/0>, "\33]0;mc [egrep@saturn]:~/work/dot"..., 40) = 40
+19:04:11.760166 (+     0.000043) access("/home/egrep/.local/share/mc/history", R_OK) = 0
+19:04:11.760203 (+     0.000036) newfstatat(AT_FDCWD, "/home/egrep/.local/share/mc/history", {st_mode=S_IFREG|0600, st_size=313, ...}, 0) = 0
+19:04:11.760241 (+     0.000038) openat(AT_FDCWD, "/home/egrep/.local/share/mc/history", O_RDONLY) = 12</home/egrep/.local/share/mc/history>
+19:04:11.760265 (+     0.000024) newfstatat(12</home/egrep/.local/share/mc/history>, "", {st_mode=S_IFREG|0600, st_size=313, ...}, AT_EMPTY_PATH) = 0
+19:04:11.760305 (+     0.000040) read(12</home/egrep/.local/share/mc/history>, "[cmdline]\n0=31\n1=\n\n[Dir Hist New"..., 4096) = 313
+19:04:11.760338 (+     0.000032) read(12</home/egrep/.local/share/mc/history>, "", 4096) = 0
+19:04:11.760362 (+     0.000023) close(12</home/egrep/.local/share/mc/history>) = 0
+19:04:11.760396 (+     0.000033) chdir("/home/egrep/work/dotfiles") = 0
+19:04:11.760421 (+     0.000024) uname({sysname="Linux", nodename="saturn", ...}) = 0
+19:04:11.760441 (+     0.000021) getuid() = 1000
+19:04:11.760461 (+     0.000019) newfstatat(AT_FDCWD, "/etc/nsswitch.conf", {st_mode=S_IFREG|0644, st_size=2518, ...}, 0) = 0
+19:04:11.760488 (+     0.000027) openat(AT_FDCWD, "/var/db/passwd.db", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+19:04:11.760514 (+     0.000026) openat(AT_FDCWD, "/etc/passwd", O_RDONLY|O_CLOEXEC) = 12</etc/passwd>
+19:04:11.760543 (+     0.000028) newfstatat(12</etc/passwd>, "", {st_mode=S_IFREG|0644, st_size=1679, ...}, AT_EMPTY_PATH) = 0
+19:04:11.760571 (+     0.000027) lseek(12</etc/passwd>, 0, SEEK_SET) = 0
+19:04:11.760594 (+     0.000022) read(12</etc/passwd>, "root:x:0:0:System user; root:/ro"..., 4096) = 1679
+19:04:11.760625 (+     0.000031) close(12</etc/passwd>) = 0
+19:04:11.760652 (+     0.000026) write(1</dev/pts/0>, "\33]0;mc [egrep@saturn]:~/work/dot"..., 40) = 40
+19:04:11.760778 (+     0.000127) openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 12</proc/91440/mountinfo>
+19:04:11.760833 (+     0.000054) newfstatat(12</proc/91440/mountinfo>, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+19:04:11.760866 (+     0.000033) read(12</proc/91440/mountinfo>, "21 27 0:20 / /proc rw,nosuid,nod"..., 1024) = 1024
+19:04:11.760958 (+     0.000092) read(12</proc/91440/mountinfo>, "/dev/hugepages rw,relatime share"..., 1024) = 1012
+19:04:11.761055 (+     0.000109) read(12</proc/91440/mountinfo>, "", 1024) = 0
+19:04:11.761097 (+     0.000027) close(12</proc/91440/mountinfo>) = 0
+19:04:11.761122 (+     0.000026) readlink("/home", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.761149 (+     0.000026) readlink("/home/egrep", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.761174 (+     0.000024) readlink("/home/egrep/work", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.761195 (+     0.000021) readlink("/home/egrep/work/dotfiles", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.761218 (+     0.000023) uname({sysname="Linux", nodename="saturn", ...}) = 0
+19:04:11.761243 (+     0.000024) statfs("/", {f_type=EXT2_SUPER_MAGIC, f_bsize=4096, f_blocks=118590559, f_bfree=114056839, f_bavail=108014403, f_files=30195712, f_ffree=29696027, f_fsid={val=[0x4ecfbca8, 0xd3df5f64]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOATIME}) = 0
+19:04:11.761276 (+     0.000033) getuid() = 1000
+19:04:11.761309 (+     0.000032) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761375 (+     0.000067) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761427 (+     0.000050) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761456 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761504 (+     0.000047) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761531 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761576 (+     0.000045) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761626 (+     0.000049) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761653 (+     0.000026) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.761687 (+     0.000035) futex(0x7f754766e648, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+19:04:11.765213 (+     0.003530) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765350 (+     0.000134) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765478 (+     0.000127) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765601 (+     0.000122) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765726 (+     0.000125) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765767 (+     0.000037) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765796 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765824 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765849 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765873 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765901 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765930 (+     0.000029) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765959 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.765987 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766044 (+     0.000057) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766118 (+     0.000073) openat(AT_FDCWD, "/usr/share/mc/hints/mc.hint.en_US.utf8", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:11.766143 (+     0.000024) openat(AT_FDCWD, "/usr/share/mc/hints/mc.hint.en", O_RDONLY) = -1 ENOENT (No such file or directory)
+19:04:11.766162 (+     0.000019) openat(AT_FDCWD, "/usr/share/mc/hints/mc.hint", O_RDONLY) = 12</usr/share/mc/hints/mc.hint>
+19:04:11.766190 (+     0.000027) newfstatat(12</usr/share/mc/hints/mc.hint>, "", {st_mode=S_IFREG|0644, st_size=3023, ...}, AT_EMPTY_PATH) = 0
+19:04:11.766214 (+     0.000024) read(12</usr/share/mc/hints/mc.hint>, "Hint: Use C-x t to copy tagged f"..., 3023) = 3023
+19:04:11.766236 (+     0.000021) close(12</usr/share/mc/hints/mc.hint>) = 0
+19:04:11.766266 (+     0.000029) pselect6(5, [4<pipe:[265936]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.766509 (+     0.000243) write(1</dev/pts/0>, "\r\342\224\214<\342\224\200\33[30m\33[47m ~/work/dotfil"..., 3824) = 3824
+19:04:11.766618 (+     0.000108) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766646 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766678 (+     0.000032) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766701 (+     0.000022) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766723 (+     0.000022) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766745 (+     0.000022) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766768 (+     0.000022) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766790 (+     0.000022) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766812 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766843 (+     0.000031) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766872 (+     0.000029) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766900 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766932 (+     0.000031) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766960 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.766988 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767022 (+     0.000034) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767068 (+     0.000044) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767092 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767116 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767144 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767173 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767201 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767229 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767257 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767325 (+     0.000068) openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 12</proc/91440/mountinfo>
+19:04:11.767352 (+     0.000026) newfstatat(12</proc/91440/mountinfo>, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+19:04:11.767374 (+     0.000022) read(12</proc/91440/mountinfo>, "21 27 0:20 / /proc rw,nosuid,nod"..., 1024) = 1024
+19:04:11.767429 (+     0.000055) read(12</proc/91440/mountinfo>, "/dev/hugepages rw,relatime share"..., 1024) = 1012
+19:04:11.767472 (+     0.000042) read(12</proc/91440/mountinfo>, "", 1024) = 0
+19:04:11.767491 (+     0.000018) close(12</proc/91440/mountinfo>) = 0
+19:04:11.767511 (+     0.000019) readlink("/home", 0x7fff2e255d80, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.767530 (+     0.000019) readlink("/home/egrep", 0x7fff2e255d80, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.767548 (+     0.000018) readlink("/home/egrep/work", 0x7fff2e255d80, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.767566 (+     0.000017) readlink("/home/egrep/work/lenovo-legion-y520-15ikbn", 0x7fff2e255d80, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.767584 (+     0.000018) statfs("/", {f_type=EXT2_SUPER_MAGIC, f_bsize=4096, f_blocks=118590559, f_bfree=114056837, f_bavail=108014401, f_files=30195712, f_ffree=29696027, f_fsid={val=[0x4ecfbca8, 0xd3df5f64]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOATIME}) = 0
+19:04:11.767609 (+     0.000025) getuid() = 1000
+19:04:11.767634 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767656 (+     0.000022) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767678 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767699 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767721 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767750 (+     0.000029) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767775 (+     0.000025) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767803 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767827 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767855 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767877 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.767958 (+     0.000081) chdir("/home/egrep/work/dotfiles") = 0
+19:04:11.767980 (+     0.000022) uname({sysname="Linux", nodename="saturn", ...}) = 0
+19:04:11.767998 (+     0.000017) getuid() = 1000
+19:04:11.768060 (+     0.000062) newfstatat(AT_FDCWD, "/etc/nsswitch.conf", {st_mode=S_IFREG|0644, st_size=2518, ...}, 0) = 0
+19:04:11.768099 (+     0.000038) openat(AT_FDCWD, "/var/db/passwd.db", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+19:04:11.768136 (+     0.000037) openat(AT_FDCWD, "/etc/passwd", O_RDONLY|O_CLOEXEC) = 12</etc/passwd>
+19:04:11.768159 (+     0.000022) newfstatat(12</etc/passwd>, "", {st_mode=S_IFREG|0644, st_size=1679, ...}, AT_EMPTY_PATH) = 0
+19:04:11.768181 (+     0.000022) lseek(12</etc/passwd>, 0, SEEK_SET) = 0
+19:04:11.768199 (+     0.000017) read(12</etc/passwd>, "root:x:0:0:System user; root:/ro"..., 4096) = 1679
+19:04:11.768223 (+     0.000023) close(12</etc/passwd>) = 0
+19:04:11.768244 (+     0.000020) write(1</dev/pts/0>, "\33]0;mc [egrep@saturn]:~/work/dot"..., 40) = 40
+19:04:11.768367 (+     0.000123) openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 12</proc/91440/mountinfo>
+19:04:11.768393 (+     0.000026) newfstatat(12</proc/91440/mountinfo>, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+19:04:11.768438 (+     0.000044) read(12</proc/91440/mountinfo>, "21 27 0:20 / /proc rw,nosuid,nod"..., 1024) = 1024
+19:04:11.768484 (+     0.000045) read(12</proc/91440/mountinfo>, "/dev/hugepages rw,relatime share"..., 1024) = 1012
+19:04:11.768522 (+     0.000037) read(12</proc/91440/mountinfo>, "", 1024) = 0
+19:04:11.768541 (+     0.000018) close(12</proc/91440/mountinfo>) = 0
+19:04:11.768559 (+     0.000018) readlink("/home", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.768578 (+     0.000018) readlink("/home/egrep", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.768596 (+     0.000017) readlink("/home/egrep/work", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.768613 (+     0.000017) readlink("/home/egrep/work/dotfiles", 0x7fff2e255e20, 1023) = -1 EINVAL (Invalid argument)
+19:04:11.768631 (+     0.000017) statfs("/", {f_type=EXT2_SUPER_MAGIC, f_bsize=4096, f_blocks=118590559, f_bfree=114056836, f_bavail=108014400, f_files=30195712, f_ffree=29696027, f_fsid={val=[0x4ecfbca8, 0xd3df5f64]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOATIME}) = 0
+19:04:11.768651 (+     0.000021) getuid() = 1000
+19:04:11.768676 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768699 (+     0.000023) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768724 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768746 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768767 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768789 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768810 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768832 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768853 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768882 (+     0.000029) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768911 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768938 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768969 (+     0.000030) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.768997 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769052 (+     0.000055) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769092 (+     0.000040) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769120 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769144 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769168 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769196 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769225 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769254 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769282 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769309 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769355 (+     0.000046) pselect6(5, [4<pipe:[265936]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.769378 (+     0.000022) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.769399 (+     0.000020) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.769423 (+     0.000023) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769471 (+     0.000048) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769494 (+     0.000022) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769515 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769537 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769558 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769580 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769601 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769623 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769646 (+     0.000023) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769675 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769703 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769730 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769761 (+     0.000030) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769789 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769816 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769843 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769871 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769895 (+     0.000023) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769919 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769946 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.769975 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770027 (+     0.000053) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770059 (+     0.000044) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770113 (+     0.000040) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770160 (+     0.000047) chdir("/home/egrep/work/dotfiles") = 0
+19:04:11.770181 (+     0.000020) uname({sysname="Linux", nodename="saturn", ...}) = 0
+19:04:11.770198 (+     0.000017) getuid() = 1000
+19:04:11.770213 (+     0.000014) newfstatat(AT_FDCWD, "/etc/nsswitch.conf", {st_mode=S_IFREG|0644, st_size=2518, ...}, 0) = 0
+19:04:11.770232 (+     0.000019) openat(AT_FDCWD, "/var/db/passwd.db", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+19:04:11.770251 (+     0.000019) openat(AT_FDCWD, "/etc/passwd", O_RDONLY|O_CLOEXEC) = 12</etc/passwd>
+19:04:11.770272 (+     0.000020) newfstatat(12</etc/passwd>, "", {st_mode=S_IFREG|0644, st_size=1679, ...}, AT_EMPTY_PATH) = 0
+19:04:11.770293 (+     0.000021) lseek(12</etc/passwd>, 0, SEEK_SET) = 0
+19:04:11.770311 (+     0.000017) read(12</etc/passwd>, "root:x:0:0:System user; root:/ro"..., 4096) = 1679
+19:04:11.770334 (+     0.000023) close(12</etc/passwd>) = 0
+19:04:11.770354 (+     0.000019) write(1</dev/pts/0>, "\33]0;mc [egrep@saturn]:~/work/dot"..., 40) = 40
+19:04:11.770471 (+     0.000117) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770499 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770536 (+     0.000036) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770558 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770579 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770601 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770622 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770644 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770665 (+     0.000021) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770697 (+     0.000032) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770725 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770753 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770783 (+     0.000030) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770811 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770838 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770866 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770893 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770917 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770941 (+     0.000024) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770968 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.770997 (+     0.000028) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.771066 (+     0.000069) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.771108 (+     0.000041) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.771136 (+     0.000027) newfstatat(AT_FDCWD, "/etc/localtime", {st_mode=S_IFREG|0644, st_size=2088, ...}, 0) = 0
+19:04:11.771181 (+     0.000045) pselect6(5, [4<pipe:[265936]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.771379 (+     0.000197) write(1</dev/pts/0>, "\33[1;1H  Left     File     Comman"..., 3661) = 3661
+19:04:11.771421 (+     0.000041) pselect6(5, [4<pipe:[265936]>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 0 (Timeout)
+19:04:11.771443 (+     0.000022) rt_sigaction(SIGINT, {sa_handler=0x55c56e2eb2d0, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:11.771476 (+     0.000032) pselect6(4, [3</dev/tty>], NULL, NULL, NULL, NULL) = 1 (in [3])
+19:04:31.676103 (+    19.904637) rt_sigaction(SIGINT, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f75475292e0}, NULL, 8) = 0
+19:04:31.676312 (+     0.000204) pselect6(4, [3</dev/tty>], NULL, NULL, NULL, NULL) = 1 (in [3])
+19:04:31.676551 (+     0.000238) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=10, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=9, tv_nsec=999998759})
+19:04:31.676692 (+     0.000139) read(3</dev/tty>, "\33", 1) = 1
+19:04:31.676724 (+     0.000029) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=1, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=0, tv_nsec=999999513})
+19:04:31.676770 (+     0.000045) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=0, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=0, tv_nsec=0})
+19:04:31.676797 (+     0.000026) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=10, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=9, tv_nsec=999999426})
+19:04:31.676824 (+     0.000027) read(3</dev/tty>, "[", 1) = 1
+19:04:31.676851 (+     0.000026) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=10, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=9, tv_nsec=999999211})
+19:04:31.676878 (+     0.000027) read(3</dev/tty>, "2", 1) = 1
+19:04:31.676901 (+     0.000022) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=10, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=9, tv_nsec=999999226})
+19:04:31.676929 (+     0.000027) read(3</dev/tty>, "1", 1) = 1
+19:04:31.676952 (+     0.000022) pselect6(4, [3</dev/tty>], NULL, NULL, {tv_sec=10, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=9, tv_nsec=999999212})
+19:04:31.676978 (+     0.000026) read(3</dev/tty>, "~", 1) = 1
+19:04:31.677006 (+     0.000027) ioctl(0</dev/pts/0>, TIOCLINUX, 0x7fff2e257770) = -1 ENOTTY (Inappropriate ioctl for device)
+19:04:31.677192 (+     0.000186) access("/home/egrep/.config/mc/ini", R_OK) = 0
+19:04:31.677217 (+     0.000024) access("/home/egrep/.config/mc/ini", R_OK) = 0
+19:04:31.677235 (+     0.000018) openat(AT_FDCWD, "/home/egrep/.config/mc/ini", O_RDONLY) = 12</home/egrep/.config/mc/ini>
+19:04:31.677263 (+     0.000028) newfstatat(12</home/egrep/.config/mc/ini>, "", {st_mode=S_IFREG|0644, st_size=3507, ...}, AT_EMPTY_PATH) = 0
+19:04:31.677288 (+     0.000024) read(12</home/egrep/.config/mc/ini>, "[Midnight-Commander]\nverbose=tru"..., 3507) = 3507
+19:04:31.677309 (+     0.000020) close(12</home/egrep/.config/mc/ini>) = 0
+19:04:31.677327 (+     0.000018) openat(AT_FDCWD, "/home/egrep/.config/mc/ini~", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 12</home/egrep/.config/mc/ini~>
+19:04:31.677373 (+     0.000046) newfstatat(12</home/egrep/.config/mc/ini~>, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+19:04:31.677396 (+     0.000022) write(12</home/egrep/.config/mc/ini~>, "[Midnight-Commander]\nverbose=tru"..., 3507) = 3507
+19:04:31.677423 (+     0.000027) close(12</home/egrep/.config/mc/ini~>) = 0
+19:04:31.677442 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/.config/mc/ini", {st_mode=S_IFREG|0644, st_size=3507, ...}, 0) = 0
+19:04:31.677463 (+     0.000021) chmod("/home/egrep/.config/mc/ini~", 0100644) = 0
+19:04:31.677486 (+     0.000023) openat(AT_FDCWD, "/home/egrep/.config/mc/ini", O_WRONLY|O_TRUNC) = 12</home/egrep/.config/mc/ini>
+19:04:31.677528 (+     0.000041) write(12</home/egrep/.config/mc/ini>, "[Midnight-Commander]\nverbose=tru"..., 3507) = 3507
+19:04:31.677550 (+     0.000022) write(12</home/egrep/.config/mc/ini>, "", 0) = 0
+19:04:31.677568 (+     0.000017) close(12</home/egrep/.config/mc/ini>) = 0
+19:04:31.677602 (+     0.000034) access("/home/egrep/.config/mc/ini~", R_OK) = 0
+19:04:31.677623 (+     0.000021) unlink("/home/egrep/.config/mc/ini~") = 0
+19:04:31.677660 (+     0.000036) openat(AT_FDCWD, "/home/egrep/.local/share/mc/history", O_RDONLY|O_CREAT|O_EXCL, 0600) = -1 EEXIST (File exists)
+19:04:31.677681 (+     0.000020) chmod("/home/egrep/.local/share/mc/history", 0600) = 0
+19:04:31.677700 (+     0.000019) access("/home/egrep/.local/share/mc/history", R_OK) = 0
+19:04:31.677719 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/.local/share/mc/history", {st_mode=S_IFREG|0600, st_size=313, ...}, 0) = 0
+19:04:31.677739 (+     0.000019) openat(AT_FDCWD, "/home/egrep/.local/share/mc/history", O_RDONLY) = 12</home/egrep/.local/share/mc/history>
+19:04:31.677759 (+     0.000020) newfstatat(12</home/egrep/.local/share/mc/history>, "", {st_mode=S_IFREG|0600, st_size=313, ...}, AT_EMPTY_PATH) = 0
+19:04:31.677780 (+     0.000021) read(12</home/egrep/.local/share/mc/history>, "[cmdline]\n0=31\n1=\n\n[Dir Hist New"..., 4096) = 313
+19:04:31.677806 (+     0.000025) read(12</home/egrep/.local/share/mc/history>, "", 4096) = 0
+19:04:31.677824 (+     0.000017) close(12</home/egrep/.local/share/mc/history>) = 0
+19:04:31.677854 (+     0.000030) access("/home/egrep/.local/share/mc/history", R_OK) = 0
+19:04:31.677871 (+     0.000017) access("/home/egrep/.local/share/mc/history", R_OK) = 0
+19:04:31.677889 (+     0.000017) openat(AT_FDCWD, "/home/egrep/.local/share/mc/history", O_RDONLY) = 12</home/egrep/.local/share/mc/history>
+19:04:31.677910 (+     0.000020) newfstatat(12</home/egrep/.local/share/mc/history>, "", {st_mode=S_IFREG|0600, st_size=313, ...}, AT_EMPTY_PATH) = 0
+19:04:31.677931 (+     0.000021) read(12</home/egrep/.local/share/mc/history>, "[cmdline]\n0=31\n1=\n\n[Dir Hist New"..., 313) = 313
+19:04:31.677950 (+     0.000018) close(12</home/egrep/.local/share/mc/history>) = 0
+19:04:31.677967 (+     0.000016) openat(AT_FDCWD, "/home/egrep/.local/share/mc/history~", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 12</home/egrep/.local/share/mc/history~>
+19:04:31.677998 (+     0.000034) newfstatat(12</home/egrep/.local/share/mc/history~>, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+19:04:31.678050 (+     0.000048) write(12</home/egrep/.local/share/mc/history~>, "[cmdline]\n0=31\n1=\n\n[Dir Hist New"..., 313) = 313
+19:04:31.678112 (+     0.000061) close(12</home/egrep/.local/share/mc/history~>) = 0
+19:04:31.678131 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/.local/share/mc/history", {st_mode=S_IFREG|0600, st_size=313, ...}, 0) = 0
+19:04:31.678150 (+     0.000019) chmod("/home/egrep/.local/share/mc/history~", 0100600) = 0
+19:04:31.678172 (+     0.000021) openat(AT_FDCWD, "/home/egrep/.local/share/mc/history", O_WRONLY|O_TRUNC) = 12</home/egrep/.local/share/mc/history>
+19:04:31.678206 (+     0.000033) write(12</home/egrep/.local/share/mc/history>, "[cmdline]\n0=31\n1=\n\n[Dir Hist New"..., 313) = 313
+19:04:31.678228 (+     0.000022) write(12</home/egrep/.local/share/mc/history>, "", 0) = 0
+19:04:31.678246 (+     0.000017) close(12</home/egrep/.local/share/mc/history>) = 0
+19:04:31.678275 (+     0.000028) access("/home/egrep/.local/share/mc/history~", R_OK) = 0
+19:04:31.678294 (+     0.000019) unlink("/home/egrep/.local/share/mc/history~") = 0
+19:04:31.678430 (+     0.000135) write(1</dev/pts/0>, "\33[1;1H\33[39m\33[49m\33[K\n\33[K\n\33[K\n\33[K\n"..., 223) = 223
+19:04:31.678474 (+     0.000044) write(1</dev/pts/0>, "\33[?2004l", 8) = 8
+19:04:31.678496 (+     0.000021) write(1</dev/pts/0>, "\33[?1006l\33[?1002l\33[?1001r", 24) = 24
+19:04:31.678538 (+     0.000042) access("/home/egrep/.cache/mc/Tree", R_OK) = 0
+19:04:31.678559 (+     0.000020) openat(AT_FDCWD, "/home/egrep/.cache/mc/Tree", O_RDONLY) = 12</home/egrep/.cache/mc/Tree>
+19:04:31.678598 (+     0.000038) newfstatat(12</home/egrep/.cache/mc/Tree>, "", {st_mode=S_IFREG|0644, st_size=35, ...}, AT_EMPTY_PATH) = 0
+19:04:31.678620 (+     0.000022) read(12</home/egrep/.cache/mc/Tree>, "Midnight Commander TreeStore v 2"..., 35) = 35
+19:04:31.678640 (+     0.000019) close(12</home/egrep/.cache/mc/Tree>) = 0
+19:04:31.678658 (+     0.000017) openat(AT_FDCWD, "/home/egrep/.cache/mc/Tree.tmp", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 12</home/egrep/.cache/mc/Tree.tmp>
+19:04:31.678689 (+     0.000031) newfstatat(12</home/egrep/.cache/mc/Tree.tmp>, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+19:04:31.678722 (+     0.000033) write(12</home/egrep/.cache/mc/Tree.tmp>, "Midnight Commander TreeStore v 2"..., 35) = 35
+19:04:31.678747 (+     0.000024) close(12</home/egrep/.cache/mc/Tree.tmp>) = 0
+19:04:31.678766 (+     0.000018) newfstatat(AT_FDCWD, "/home/egrep/.cache/mc/Tree", {st_mode=S_IFREG|0644, st_size=35, ...}, 0) = 0
+19:04:31.678786 (+     0.000020) chmod("/home/egrep/.cache/mc/Tree.tmp", 0100644) = 0
+19:04:31.678805 (+     0.000019) openat(AT_FDCWD, "/home/egrep/.cache/mc/Tree", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 12</home/egrep/.cache/mc/Tree>
+19:04:31.678862 (+     0.000057) newfstatat(12</home/egrep/.cache/mc/Tree>, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+19:04:31.678886 (+     0.000023) write(12</home/egrep/.cache/mc/Tree>, "Midnight Commander TreeStore v 2"..., 35) = 35
+19:04:31.678909 (+     0.000023) close(12</home/egrep/.cache/mc/Tree>) = 0
+19:04:31.678939 (+     0.000029) access("/home/egrep/.cache/mc/Tree.tmp", R_OK) = 0
+19:04:31.678961 (+     0.000021) unlink("/home/egrep/.cache/mc/Tree.tmp") = 0
+19:04:31.679103 (+     0.000142) close(4<pipe:[265936]>) = 0
+19:04:31.679124 (+     0.000020) close(5<pipe:[265936]>) = 0
+19:04:31.679145 (+     0.000020) ioctl(3</dev/tty>, SNDCTL_TMR_START or TCSETS, {B38400 opost isig icanon echo ...}) = 0
+19:04:31.679170 (+     0.000024) rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+19:04:31.679207 (+     0.000037) write(1</dev/pts/0>, "\33[?1l\33>\33[50;1H\33(B\33[m\33[39;49m\r\33[K"..., 50) = 50
+19:04:31.679249 (+     0.000042) rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+19:04:31.679267 (+     0.000018) rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+19:04:31.679286 (+     0.000018) ioctl(3</dev/tty>, SNDCTL_TMR_STOP or TCSETSW, {B38400 opost isig icanon echo ...}) = 0
+19:04:31.679324 (+     0.000037) close(3</dev/tty>) = 0
+19:04:31.679342 (+     0.000017) rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+19:04:31.679361 (+     0.000019) write(1</dev/pts/0>, "\33[39;49m", 8) = 8
+19:04:31.679421 (+     0.000060) rt_sigaction(SIGCHLD, {sa_handler=SIG_DFL, sa_mask=[CHLD], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7f7547394780}, {sa_handler=0x55c56e327260, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7f75475292e0}, 8) = 0
+19:04:31.679474 (+     0.000052) write(1</dev/pts/0>, "\n", 1) = 1
+19:04:31.679639 (+     0.000164) exit_group(0) = ?
+19:04:31.679934 (+     0.000295) +++ exited with 0 +++

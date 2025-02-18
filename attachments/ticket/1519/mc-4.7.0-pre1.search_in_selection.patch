@@ -1,0 +1,65 @@
+diff -Naur mc-4.7.0-pre1~/edit/edit-widget.h mc-4.7.0-pre1/edit/edit-widget.h
+--- mc-4.7.0-pre1~/edit/edit-widget.h	2009-07-20 21:03:45.000000000 +0300
++++ mc-4.7.0-pre1/edit/edit-widget.h	2009-08-10 03:20:43.000000000 +0300
+@@ -62,6 +62,7 @@
+     int replace_mode;
+     int replace_backwards;
+     int replace_case;
++    int replace_in_selection;
+     int all_codepages;
+ 
+     long search_start;		/* First character to start searching from */
+diff -Naur mc-4.7.0-pre1~/edit/editcmd.c mc-4.7.0-pre1/edit/editcmd.c
+--- mc-4.7.0-pre1~/edit/editcmd.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd.c	2009-08-10 03:21:29.000000000 +0300
+@@ -1276,15 +1276,36 @@
+ static gboolean
+ editcmd_find (WEdit *edit, gsize *len)
+ {
++    long search_lo = 0;
++    long search_hi = edit->last_byte;
++
+     gsize search_start = edit->search_start;
+     gsize search_end;
+ 
++    if (edit->replace_in_selection) {
++	if (eval_marks(edit, &search_lo, &search_hi)) {
++	    edit->search->error = MC_SEARCH_E_NOTFOUND;
++	    edit->search->error_str = g_strdup(_(" Search string not found "));
++	    return FALSE;
++	}
++	if (edit->replace_backwards) {
++	    if (search_start > search_hi) {
++		search_start = search_hi;
++	    }
++	} else {
++	    if (search_start < search_lo) {
++		search_start = search_lo;
++	    }
++	}
++    }
++
+     if (edit->replace_backwards) {
+-	search_end = edit->curs1-1;
+-	while ((int) search_start >= 0) {
+-	    if (search_end - search_start > edit->search->original_len && mc_search_is_fixed_search_str(edit->search))
+-		search_end = search_start + edit->search->original_len +1;
+-	    if ( mc_search_run(edit->search, (void *) edit, search_start, search_end, len))
++	search_end = search_hi;
++	while ((int) search_start >= search_lo) {
++	    if (search_end > search_start + edit->search->original_len && mc_search_is_fixed_search_str(edit->search))
++		search_end = search_start + edit->search->original_len;
++	    if ( mc_search_run(edit->search, (void *) edit, search_start, search_end, len)
++		&& edit->search->normal_offset == search_start )
+ 	    {
+ 		return TRUE;
+ 	    }
+@@ -1292,7 +1313,7 @@
+ 	}
+ 	edit->search->error_str = g_strdup(_(" Search string not found "));
+     } else {
+-	return mc_search_run(edit->search, (void *) edit, edit->search_start, edit->last_byte, len);
++	return mc_search_run(edit->search, (void *) edit, search_start, search_hi, len);
+     }
+     return FALSE;
+ }

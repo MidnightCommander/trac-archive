@@ -1,0 +1,122 @@
+diff --git a/lib/vfs/mc-vfs/Makefile.am b/lib/vfs/mc-vfs/Makefile.am
+index d7f1541..0981b66 100644
+--- a/lib/vfs/mc-vfs/Makefile.am
++++ b/lib/vfs/mc-vfs/Makefile.am
+@@ -1,5 +1,5 @@
+ if ENABLE_VFS_SMB
+-SAMBA_CFLAGS  = -DCONFIGDIR=\""@configdir@"\"
++SAMBA_CFLAGS  = -DCONFIGDIR=\""@smbconfigdir@"\"
+ SAMBA_SUBDIRS = samba
+ endif
+ 
+diff --git a/lib/vfs/mc-vfs/samba/configure.ac b/lib/vfs/mc-vfs/samba/configure.ac
+index b2d44b5..a77af2f 100644
+--- a/lib/vfs/mc-vfs/samba/configure.ac
++++ b/lib/vfs/mc-vfs/samba/configure.ac
+@@ -524,42 +524,23 @@ AC_ARG_WITH(ssl,
+   AC_MSG_RESULT(no)
+ )
+ 
+-
+-#################################################
++####################################################
++# get variables from parent process (main configure)
+ # set configuration directory location
+-configdir="\$(LIBDIR)"
+-AC_ARG_WITH(smb-configdir,
+-[  --with-smb-configdir=DIR    Where to put configuration files (\$libdir)],
+-[ case "$withval" in
+-  yes|no)
+-  #
+-  # Just in case anybody does it
+-  #
+-    AC_MSG_WARN([--with-smb-configdir called without argument - will use default])
+-  ;;
+-  * )
+-    configdir="$withval"
+-    ;;
+-  esac]
+-)
+-
+-
+-#################################################
++if test -n "$SMBCONFIGDIR"; then
++    configdir="$SMBCONFIGDIR"
++else
++    configdir="\$(LIBDIR)"
++fi
+ # set codepage directory location
+-codepagedir="\$(LIBDIR)/codepages"
+-AC_ARG_WITH(smb-codepagedir,
+-[  --with-smb-codepagedir=DIR  Where to put codepage files (\$libdir/codepages)],
+-[ case "$withval" in
+-  yes|no)
+-  #
+-  # Just in case anybody does it
+-  #
+-    AC_MSG_WARN([--with-smb-codepagedir called without argument - will use default])
+-  ;;
+-  * )
+-    codepagedir="$withval"
+-    ;;
+-  esac])
++if test -n "$SMBCODEPAGEDIR"; then
++    codepagedir="$SMBCODEPAGEDIR"
++elif test -n "$SMBCONFIGDIR"; then
++    codepagedir="$SMBCONFIGDIR/codepages"
++else
++    codepagedir="\$(LIBDIR)/codepages"
++fi
++####################################################
+ 
+ AC_MSG_CHECKING([configure summary])
+ AC_TRY_RUN([
+diff --git a/m4.include/vfs/mc-vfs-samba.m4 b/m4.include/vfs/mc-vfs-samba.m4
+index 9eeb127..701b41a 100644
+--- a/m4.include/vfs/mc-vfs-samba.m4
++++ b/m4.include/vfs/mc-vfs-samba.m4
+@@ -20,7 +20,42 @@ AC_DEFUN([AC_MC_VFS_SMB],
+ 
+     if test "$enable_vfs_smb" = "yes"; then
+ 	AC_CONFIG_SUBDIRS([lib/vfs/mc-vfs/samba])
+-    fi
+ 
+-    AM_CONDITIONAL([ENABLE_VFS_SMB], [test x"$enable_vfs_smb" = x"yes"])
++	AM_CONDITIONAL([ENABLE_VFS_SMB], [test "1" = "1"])
++
++	# set configuration directory location
++	smbconfigdir="/etc"
++	AC_ARG_WITH(smb-configdir,
++		    [  --with-smb-configdir=DIR    Where to put configuration files],
++		    [ case "$withval" in
++			    yes|no)
++				# Just in case anybody does it
++				AC_MSG_WARN([--with-smb-configdir called without argument - will use default])
++				;;
++			    *)
++				smbconfigdir="$withval"
++				;;
++		    esac])
++
++	AC_SUBST(smbconfigdir)
++
++	# set codepage directory location
++	AC_ARG_WITH(smb-codepagedir,
++		    [  --with-smb-codepagedir=DIR  Where to put codepage files],
++		    [ case "$withval" in
++			yes|no)
++			    # Just in case anybody does it
++			    AC_MSG_WARN([--with-smb-codepagedir called without argument - will use default])
++			    ;;
++			*)
++			    smbcodepagedir="$withval"
++			    ;;
++		 esac])
++
++	# export variable for child process (configure of samba)
++	export SMBCONFIGDIR="$smbconfigdir"
++	export SMBCODEPAGEDIR="$smbcodepagedir"
++    else
++	AM_CONDITIONAL([ENABLE_VFS_SMB], [test "1" = "2"])
++    fi
+ ])

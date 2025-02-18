@@ -1,0 +1,446 @@
+From 4acc6835387a1c9e5477ec5fc7949eb6a40d1d1b Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Tue, 2 Feb 2021 12:50:19 -0600
+Subject: Other File concept: jumping between headers and sources.
+
+---
+ lib/keybind.c           |   1 +
+ lib/keybind.h           |   1 +
+ lib/vfs/path.c          |  19 +++++
+ lib/vfs/path.h          |   1 +
+ misc/mc.default.keymap  |   1 +
+ misc/mc.emacs.keymap    |   1 +
+ src/editor/edit-impl.h  |  13 +++-
+ src/editor/edit.c       |  27 +++++++
+ src/editor/edit.h       |   2 +
+ src/editor/editcmd.c    |   7 +-
+ src/editor/editwidget.c | 165 +++++++++++++++++++++++++++++++++++++++-
+ src/editor/editwidget.h |   1 +
+ src/keybind-defaults.c  |   1 +
+ 13 files changed, 236 insertions(+), 4 deletions(-)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..2ec715bfa 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -277,6 +277,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (ParagraphUp),
+     ADD_KEYMAP_NAME (ParagraphDown),
+     ADD_KEYMAP_NAME (EditFile),
++    ADD_KEYMAP_NAME (OtherFile),
+     ADD_KEYMAP_NAME (MarkWord),
+     ADD_KEYMAP_NAME (MarkLine),
+     ADD_KEYMAP_NAME (MarkAll),
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..cd7192d06 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -246,6 +246,7 @@ enum
+     CK_ParagraphDown,
+     /* file commands */
+     CK_EditFile,
++    CK_OtherFile,
+     CK_InsertFile,
+     CK_EditSyntaxFile,
+     CK_Close,
+diff --git a/lib/vfs/path.c b/lib/vfs/path.c
+index 49553198f..46a694d08 100644
+--- a/lib/vfs/path.c
++++ b/lib/vfs/path.c
+@@ -593,6 +593,25 @@ vfs_path_strip_home (const char *dir)
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Returns TRUE if path has one of the given extensions (in a NULL terminated array).
++ * The extension strings should include the dot.
++ */
++gboolean
++vfs_path_has_extension (const vfs_path_t * fs_path, const char *exts[])
++{
++    const char *path, **cur_ext;
++    path = vfs_path_as_str (fs_path);
++    for (cur_ext = exts; cur_ext != NULL && *cur_ext != NULL; cur_ext++)
++    {
++        if (g_str_has_suffix (path, *cur_ext))
++            return TRUE;
++    }
++    return FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ #define vfs_append_from_path(appendfrom, is_relative) \
+ { \
+     if ((flags & VPF_STRIP_HOME) && element_index == 0 && \
+diff --git a/lib/vfs/path.h b/lib/vfs/path.h
+index c5dc4f5a4..f1a24e49e 100644
+--- a/lib/vfs/path.h
++++ b/lib/vfs/path.h
+@@ -67,6 +67,7 @@ char *vfs_path_to_str_elements_count (const vfs_path_t * path, int elements_coun
+ char *vfs_path_to_str_flags (const vfs_path_t * vpath, int elements_count, vfs_path_flag_t flags);
+ vfs_path_t *vfs_path_from_str (const char *path_str);
+ vfs_path_t *vfs_path_from_str_flags (const char *path_str, vfs_path_flag_t flags);
++gboolean vfs_path_has_extension (const vfs_path_t * fs_path, const char *exts[]);
+ vfs_path_t *vfs_path_build_filename (const char *first_element, ...);
+ vfs_path_t *vfs_path_append_new (const vfs_path_t * vpath, const char *first_element, ...);
+ vfs_path_t *vfs_path_append_vpath_new (const vfs_path_t * first_vpath, ...);
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 2931ddd0a..075c8e4ce 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -291,6 +291,7 @@ DeleteToEnd = ctrl-k
+ Save = f2
+ # EditFile =
+ EditNew = ctrl-n
++OtherFile = alt-a
+ SaveAs = f12; ctrl-f2
+ # Close =
+ History = alt-shift-e
+diff --git a/misc/mc.emacs.keymap b/misc/mc.emacs.keymap
+index 7cc305db7..bff42b0a0 100644
+--- a/misc/mc.emacs.keymap
++++ b/misc/mc.emacs.keymap
+@@ -290,6 +290,7 @@ DeleteToEnd = ctrl-k
+ # ParagraphDown =
+ Save = f2
+ # EditFile =
++OtherFile = alt-a
+ SaveAs = f12; ctrl-f2
+ # Close =
+ History = alt-shift-e
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 3ad04dbea..90dc5dedb 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -94,6 +94,16 @@ typedef enum
+     EDIT_DO_BACKUP
+ } edit_save_mode_t;
+ 
++
++/* Describes how well a file suits for editing. Symlinks and empty files get average grade. */
++typedef enum
++{
++    FILE_RANK_INVALID = -1,
++    FILE_RANK_NOT_SUITABLE = 0,
++    FILE_RANK_AVERAGE_SUITABLE,
++    FILE_RANK_SUITABLE
++} file_suitable_rank_t;
++
+ /*** structures declarations (and typedefs of structures)*****************************************/
+ 
+ /* search/replace options */
+@@ -185,7 +195,8 @@ WEdit *edit_init (WEdit * edit, int y, int x, int lines, int cols,
+                   const vfs_path_t * filename_vpath, long line);
+ gboolean edit_clean (WEdit * edit);
+ gboolean edit_ok_to_exit (WEdit * edit);
+-gboolean edit_load_cmd (WDialog * h);
++file_suitable_rank_t edit_check_file_suitable (const vfs_path_t * fs_path);
++gboolean edit_load_cmd (WDialog * h, const void *data);
+ gboolean edit_load_file_from_history (WDialog * h);
+ gboolean edit_load_syntax_file (WDialog * h);
+ gboolean edit_load_menu_file (WDialog * h);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index edda1f832..befaed434 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -277,6 +277,31 @@ edit_insert_stream (WEdit * edit, FILE * f)
+     return i;
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++/**
++ * Gives a 3-level evaluation of how well given file is looking as a suitable input to the editor.
++ */
++file_suitable_rank_t
++edit_check_file_suitable (const vfs_path_t * fs_path)
++{
++    struct stat lst, st;
++
++    if (fs_path == NULL)
++        return FILE_RANK_INVALID;
++
++    if (exist_file (vfs_path_as_str (fs_path)))
++    {
++        if (mc_lstat (fs_path, &lst) == 0 && mc_stat (fs_path, &st) == 0)
++        {
++            if (st.st_size != 0 && S_ISREG (st.st_mode) && !S_ISLNK (lst.st_mode))
++                return FILE_RANK_SUITABLE;
++            else
++                return FILE_RANK_AVERAGE_SUITABLE;
++        }
++    }
++    return FILE_RANK_NOT_SUITABLE;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+   * Open file and create it if necessary.
+@@ -2108,6 +2133,7 @@ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * f
+         w->options |= WOP_SELECTABLE | WOP_TOP_SELECT | WOP_WANT_CURSOR;
+         w->keymap = editor_map;
+         w->ext_keymap = editor_x_map;
++        edit->otherfile_vpath = NULL;
+         edit->fullscreen = TRUE;
+         edit_save_size (edit);
+     }
+@@ -2204,6 +2230,7 @@ edit_clean (WEdit * edit)
+     g_free (edit->redo_stack);
+     vfs_path_free (edit->filename_vpath);
+     vfs_path_free (edit->dir_vpath);
++    vfs_path_free (edit->otherfile_vpath);
+     mc_search_free (edit->search);
+     g_free (edit->last_search_string);
+ 
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index 6c519e9d3..74c38d1b3 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -66,6 +66,8 @@ extern gboolean show_right_margin;
+ void edit_stack_init (void);
+ void edit_stack_free (void);
+ 
++/* If file is open, switch to it, otherwise it is loaded */
++gboolean edit_switch_to_file (WDialog * h, const vfs_path_t * file);
+ gboolean edit_file (const vfs_path_t * file_vpath, long line);
+ gboolean edit_files (const GList * files);
+ 
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 0d2caa923..fbfd8a66a 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -2063,12 +2063,15 @@ edit_save_confirm_cmd (WEdit * edit)
+   */
+ 
+ gboolean
+-edit_load_cmd (WDialog * h)
++edit_load_cmd (WDialog * h, const void *data)
+ {
+     char *exp;
+     gboolean ret = TRUE;        /* possible cancel */
+ 
+-    exp = input_expand_dialog (_("Load"), _("Enter file name:"),
++    if (data != NULL)
++        exp = g_strdup((char *) data);
++    else
++        exp = input_expand_dialog (_("Load"), _("Enter file name:"),
+                                MC_HISTORY_EDIT_LOAD, INPUT_LAST_TEXT,
+                                INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
+ 
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 18ac00e66..721933d2f 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -88,6 +88,126 @@ static unsigned int edit_dlg_init_refcounter = 0;
+ static cb_ret_t edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
+                                       void *data);
+ 
++/* --------------------------------------------------------------------------------------------- */
++
++static char *
++replace_suffix_with (const char *src_str, const char *old_suffix, const char *new_suffix)
++{
++    char *new_str, *sufx_ptr;
++    new_str = g_strndup (src_str, strlen (src_str) + strlen (new_suffix));
++    sufx_ptr = g_strrstr (new_str, old_suffix);
++    if (sufx_ptr != NULL)
++    {
++        g_stpcpy (sufx_ptr, new_suffix);
++        return new_str;
++    }
++    else
++    {
++        g_free (new_str);
++        return NULL;
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
++ * Fills otherfile_vpath field with a detected and verified alternate (also called `other`)
++ * file path. In short, the other file is a header main.h when editing main.c and vice versa.
++ */
++static gboolean
++edit_compute_other_file_vfs_path (WEdit * edit)
++{
++    const char *headers[] = { ".h", ".hpp", NULL };
++    const char *sources[] = { ".c", ".cpp", NULL };
++    const char **exts[] = { headers, sources };
++    vfs_path_t *fs_path, *avg_path;
++    int idx, oth_type = -1, ext_index;
++    file_suitable_rank_t existing_rank;
++
++    /* Try the already computed one if it exists in otherfile_vpath field */
++    fs_path = edit->otherfile_vpath;
++    avg_path = fs_path;
++    edit->otherfile_vpath = NULL;
++
++    /* Is it only an average match or no match? If yes, try to find a better one */
++    existing_rank = edit_check_file_suitable (fs_path);
++    if (existing_rank <= FILE_RANK_AVERAGE_SUITABLE && edit->filename_vpath != NULL)
++    {
++        for (idx = 0; idx <= 1; idx++)
++        {
++            if (vfs_path_has_extension (edit->filename_vpath, exts[idx]))
++            {
++                oth_type = 1 - idx;
++                break;
++            }
++        }
++        if (oth_type >= 0)
++            fs_path = edit->filename_vpath;
++    }
++    /* No extension matched, or using the previously, highly suited file */
++    if (oth_type == -1)
++    {
++        edit->otherfile_vpath = avg_path;
++        return (existing_rank >= FILE_RANK_AVERAGE_SUITABLE);
++    }
++
++    for (ext_index = 0; exts[oth_type][ext_index] != NULL; ext_index++)
++    {
++        char *try_path;
++        vfs_path_t *cand_fs_path = NULL;
++        file_suitable_rank_t rank;
++
++        try_path = replace_suffix_with (vfs_path_as_str (fs_path), ".", exts[oth_type][ext_index]);
++
++        if (try_path == NULL)
++            continue;
++
++        cand_fs_path = vfs_path_from_str (try_path);
++        g_free (try_path);
++
++        if (cand_fs_path == NULL)
++            continue;
++
++        rank = edit_check_file_suitable (cand_fs_path);
++        if (rank < FILE_RANK_AVERAGE_SUITABLE)
++        {
++            vfs_path_free (cand_fs_path);
++            cand_fs_path = NULL;
++            continue;
++        }
++        else if (rank == FILE_RANK_AVERAGE_SUITABLE)
++        {
++            if (existing_rank < rank)
++            {
++                existing_rank = rank;
++                if (avg_path != NULL)
++                    vfs_path_free (avg_path);
++                avg_path = cand_fs_path;
++                cand_fs_path = NULL;
++            }
++            else
++            {
++                vfs_path_free (cand_fs_path);
++                cand_fs_path = NULL;
++            }
++        }
++        else if (rank >= FILE_RANK_SUITABLE)
++        {
++            if (avg_path != NULL)
++                vfs_path_free (avg_path);
++            edit->otherfile_vpath = cand_fs_path;
++            return TRUE;
++        }
++    }
++
++    /* Any side-saved average candidate? */
++    if (avg_path != NULL)
++    {
++        edit->otherfile_vpath = avg_path;
++        return (existing_rank >= FILE_RANK_AVERAGE_SUITABLE);
++    }
++    return FALSE;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Init the 'edit' subsystem
+@@ -391,7 +511,22 @@ edit_dialog_command_execute (WDialog * h, long command)
+         edit_add_window (h, wh->y + 1, wh->x, wh->lines - 2, wh->cols, NULL, 0);
+         break;
+     case CK_EditFile:
+-        edit_load_cmd (h);
++        edit_load_cmd (h, NULL);
++        break;
++    case CK_OtherFile:
++        {
++            WEdit *e = (WEdit *) g->current->data;
++            gboolean retval = FALSE;
++
++            if (e != NULL)
++            {
++                retval = edit_compute_other_file_vfs_path (e);
++                if (retval)
++                    retval = edit_switch_to_file (h, e->otherfile_vpath);
++            }
++            if (!retval)
++                ret = MSG_NOT_HANDLED;
++        }
+         break;
+     case CK_History:
+         edit_load_file_from_history (h);
+@@ -1178,6 +1313,34 @@ edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
++
++gboolean
++edit_switch_to_file (WDialog * h, const vfs_path_t * file)
++{
++    const WGroup *g = CONST_GROUP (h);
++    GList *el;
++    gboolean ret = FALSE;
++
++    for (el = g->widgets; el != NULL; el = g_list_next (el))
++    {
++        if (edit_widget_is_editor (CONST_WIDGET (el->data)))
++        {
++            WEdit *e = (WEdit *) el->data;
++            if (g_strcmp0 (edit_get_file_name (e), vfs_path_as_str (file)) == 0)
++            {
++                widget_select (WIDGET (e));
++                ret = TRUE;
++                break;
++            }
++        }
++    }
++    if (!ret)
++        ret = edit_load_cmd (h, vfs_path_as_str (file));
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ /**
+  * Edit one file.
+  *
+diff --git a/src/editor/editwidget.h b/src/editor/editwidget.h
+index 446ef07ac..b4b10692e 100644
+--- a/src/editor/editwidget.h
++++ b/src/editor/editwidget.h
+@@ -72,6 +72,7 @@ struct WEdit
+ 
+     vfs_path_t *filename_vpath; /* Name of the file */
+     vfs_path_t *dir_vpath;      /* NULL if filename is absolute */
++    vfs_path_t *otherfile_vpath;        /* Name of the `other` file (e.g.: header, with .h extension) */
+ 
+     /* dynamic buffers and cursor position for editor: */
+     edit_buffer_t buffer;
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7b87c2f5a..aa4eb5ec0 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -393,6 +393,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"InsertOverwrite", "insert"},
+     {"Help", "f1"},
+     {"Save", "f2"},
++    {"OtherFile", "alt-a"},
+     {"Mark", "f3"},
+     {"Replace", "f4"},
+     {"Copy", "f5"},
+-- 
+2.28.0
+

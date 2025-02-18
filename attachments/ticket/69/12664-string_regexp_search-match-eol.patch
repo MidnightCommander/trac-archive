@@ -1,0 +1,16 @@
+Index: edit/editcmd.c
+===================================================================
+RCS file: /sources/mc/mc/edit/editcmd.c,v
+retrieving revision 1.154
+diff -u -p -r1.154 editcmd.c
+--- edit/editcmd.c	2 May 2007 11:22:01 -0000	1.154
++++ edit/editcmd.c	2 May 2007 11:44:51 -0000
+@@ -1452,7 +1452,7 @@ string_regexp_search (char *pattern, cha
+ 	    g_free (old_pattern);
+ 	    old_pattern = 0;
+ 	}
+-	if (regcomp (&r, pattern, REG_EXTENDED | (icase ? REG_ICASE : 0))) {
++	if (regcomp (&r, pattern, REG_EXTENDED | REG_NEWLINE | (icase ? REG_ICASE : 0))) {
+ 	    *found_len = 0;
+ 	    return -3;
+ 	}

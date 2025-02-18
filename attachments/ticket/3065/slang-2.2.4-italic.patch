@@ -1,0 +1,78 @@
+diff -ur slang-2.2.4.orig/src/slang.h slang-2.2.4/src/slang.h
+--- slang-2.2.4.orig/src/slang.h	2011-04-11 04:37:07.000000000 +0200
++++ slang-2.2.4/src/slang.h	2013-09-01 13:57:43.827628263 +0200
+@@ -1595,6 +1595,7 @@
+ #define SLTT_ULINE_MASK	0x04000000UL
+ #define SLTT_REV_MASK	0x08000000UL
+ #define SLTT_ALTC_MASK  0x10000000UL
++#define SLTT_ITALIC_MASK 0x20000000UL
+ 
+ SL_EXTERN int SLtt_Screen_Rows;
+ SL_EXTERN int SLtt_Screen_Cols;
+diff -ur slang-2.2.4.orig/src/slcurses.c slang-2.2.4/src/slcurses.c
+--- slang-2.2.4.orig/src/slcurses.c	2011-04-11 04:37:07.000000000 +0200
++++ slang-2.2.4/src/slcurses.c	2013-09-01 13:19:14.539725379 +0200
+@@ -372,6 +372,7 @@
+    SLtt_set_mono (SLCURSES_EXTRACT_COLOR(A_UNDERLINE), NULL, SLTT_ULINE_MASK);
+    SLtt_set_mono (SLCURSES_EXTRACT_COLOR(A_REVERSE), NULL, SLTT_REV_MASK);
+    /* SLtt_set_mono (SLCURSES_EXTRACT_COLOR(A_BLINK), NULL, SLTT_BLINK_MASK); */
++   /* SLtt_set_mono (SLCURSES_EXTRACT_COLOR(A_ITALIC), NULL, SLTT_ITALIC_MASK); */
+    SLtt_set_mono ((SLCURSES_EXTRACT_COLOR(A_BOLD|A_UNDERLINE)), NULL, SLTT_ULINE_MASK|SLTT_BOLD_MASK);
+    SLtt_set_mono ((SLCURSES_EXTRACT_COLOR(A_REVERSE|A_UNDERLINE)), NULL, SLTT_ULINE_MASK|SLTT_REV_MASK);
+ 
+diff -ur slang-2.2.4.orig/src/slcurses.h slang-2.2.4/src/slcurses.h
+--- slang-2.2.4.orig/src/slcurses.h	2011-04-11 04:37:07.000000000 +0200
++++ slang-2.2.4/src/slcurses.h	2013-09-01 13:19:52.435723785 +0200
+@@ -286,6 +286,7 @@
+ #define A_UNDERLINE	0x40000000UL	/* was 0x4000 */
+ #define A_ALTCHARSET	0x80000000UL	/* was 0x8000 */
+ #define A_BLINK		0x00000000UL
++#define A_ITALIC	0x00000000UL
+ #define A_DIM		0x00000000UL
+ #define A_PROTECT	0x00000000UL
+ #define A_INVIS		0x00000000UL
+diff -ur slang-2.2.4.orig/src/sldisply.c slang-2.2.4/src/sldisply.c
+--- slang-2.2.4.orig/src/sldisply.c	2011-04-11 04:37:07.000000000 +0200
++++ slang-2.2.4/src/sldisply.c	2013-09-01 15:45:53.691355335 +0200
+@@ -94,7 +94,7 @@
+ #define CHAR_MASK	0x000000FF
+ #define FG_MASK		0x0000FF00
+ #define BG_MASK		0x00FF0000
+-#define ATTR_MASK	0x1F000000
++#define ATTR_MASK	0x3F000000
+ #define BGALL_MASK	0x0FFF0000
+ 
+ /* The 0x10000000 bit represents the alternate character set.  BGALL_MASK does
+@@ -192,6 +192,7 @@
+ 
+ static SLCONST char *UnderLine_Vid_Str;
+ static SLCONST char *Blink_Vid_Str;
++static SLCONST char *Italic_Vid_Str;
+ static SLCONST char *Bold_Vid_Str;
+ static SLCONST char *Ins_Mode_Str; /* = "\033[4h"; */   /* ins mode (im) */
+ static SLCONST char *Eins_Mode_Str; /* = "\033[4l"; */  /* end ins mode (ei) */
+@@ -1481,6 +1482,7 @@
+ 	if (fgbg & SLTT_ULINE_MASK) tt_write_string (UnderLine_Vid_Str);
+ 	if (fgbg & SLTT_BOLD_MASK) SLtt_bold_video ();
+ 	if (fgbg & SLTT_REV_MASK) tt_write_string (Rev_Vid_Str);
++	if (fgbg & SLTT_ITALIC_MASK) tt_write_string (Italic_Vid_Str);
+ 	if (fgbg & SLTT_BLINK_MASK)
+ 	  {
+ 	     /* Someday Linux will have a blink mode that set high intensity
+@@ -2666,6 +2668,8 @@
+ 
+    UnderLine_Vid_Str = tt_tgetstr("us");
+ 
++   Italic_Vid_Str = "\033[3m";
++
+    Start_Alt_Chars_Str = tt_tgetstr ("as");   /* smacs */
+    End_Alt_Chars_Str = tt_tgetstr ("ae");   /* rmacs */
+    Enable_Alt_Char_Set = tt_tgetstr ("eA");   /* enacs */
+@@ -2862,6 +2866,7 @@
+    Bold_Vid_Str = "\033[1m";
+    Blink_Vid_Str = "\033[5m";
+    UnderLine_Vid_Str = "\033[4m";
++   Italic_Vid_Str = "\033[3m";
+    Del_Eol_Str = "\033[K";
+    Del_Bol_Str = "\033[1K";
+    Rev_Scroll_Str = "\033M";

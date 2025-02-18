@@ -1,0 +1,34 @@
+From a849f2703636c6286477edd049da295dda704fb5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 13 Jan 2019 13:05:31 +0000
+Subject: [PATCH] utilunix.c: Cleanup -Wdangling-else warning
+
+Found by Clang 6.0.1
+
+utilunix.c:865:13: error: add explicit braces to avoid dangling else [-Werror,-Wdangling-else]
+            else
+            ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/utilunix.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index 07a855713..3f18fbe7a 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -859,11 +859,13 @@ custom_canonicalize_pathname (char *path, CANON_PATH_FLAGS flags)
+ 
+     /* Collapse "/./" -> "/" */
+     if ((flags & CANON_PATH_JOINSLASHES) != 0)
++    {
+         for (p = lpath; *p != '\0';)
+             if (IS_PATH_SEP (p[0]) && p[1] == '.' && IS_PATH_SEP (p[2]))
+                 str_move (p, p + 2);
+             else
+                 p++;
++    }
+ 
+     if ((flags & CANON_PATH_REMSLASHDOTS) != 0)
+     {

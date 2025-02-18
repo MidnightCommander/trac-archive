@@ -1,0 +1,38 @@
+From e519f0b9056bf19658721a3851d87e94729d5f85 Mon Sep 17 00:00:00 2001
+From: Adam Majer <amajer@suse.de>
+Date: Tue, 10 Apr 2018 13:22:55 +0200
+Subject: [PATCH] Update xls2csv usage
+
+xls2csv only prints error page and returns EXIT CODE 0
+when only supplied a spreadsheet without -x parameter.
+-c parameter also mandatory.
+
+Currently permitted parameters are:
+
+usage: xls2csv -x spreadsheet.xls [-w worksheet]
+   [-n worksheet number] [-b charset] [-c csvfile.csv]
+   [-a charset] [-qshvWf]
+
+This is xls2csv version 1.07
+
+Which is latest version in openSUSE:Factory
+---
+ misc/ext.d/doc.sh.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/ext.d/doc.sh.in b/misc/ext.d/doc.sh.in
+index c8e83cfee..04f13c2c5 100644
+--- a/misc/ext.d/doc.sh.in
++++ b/misc/ext.d/doc.sh.in
+@@ -67,7 +67,7 @@ do_view_action() {
+             elinks -dump "$tmp/page.html"
+             rm -rf "$tmp"
+         } || \
+-            xls2csv "${MC_EXT_FILENAME}" || \
++            xls2csv -c - -x "${MC_EXT_FILENAME}" || \
+             strings "${MC_EXT_FILENAME}"
+         ;;
+     dvi)
+-- 
+2.13.6
+

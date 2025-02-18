@@ -1,0 +1,30 @@
+From b9946429f73ccec4f32e835d267c2510b556f00c Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 5 Jan 2019 18:38:18 +0000
+Subject: [PATCH] edit.c: cleanup -Wcast-align warning
+
+Using free_segment = TRUE, array will always freed.
+No need to save it back.
+
+edit.c:2194:38: warning: cast from 'gchar *' (aka 'char *') to 'GArray *' (aka 'struct _GArray *') increases required alignment from 1 to 8 [-Wcast-align]
+        edit->serialized_bookmarks = (GArray *) g_array_free (edit->serialized_bookmarks, TRUE);
+                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/edit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 7ff1a92cb..6e1684a33 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -2191,7 +2191,7 @@ edit_clean (WEdit * edit)
+     if (option_save_position)
+         edit_save_position (edit);
+     else if (edit->serialized_bookmarks != NULL)
+-        edit->serialized_bookmarks = (GArray *) g_array_free (edit->serialized_bookmarks, TRUE);
++        g_array_free (edit->serialized_bookmarks, TRUE);
+ 
+     /* File specified on the mcedit command line and never saved */
+     if (edit->delete_file)

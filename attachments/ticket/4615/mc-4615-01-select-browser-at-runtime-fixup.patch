@@ -1,0 +1,39 @@
+From 7531c56935fbbd649e8b702698c1e3a0a66f79a1 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 19 Dec 2024 16:00:00 +0000
+Subject: [PATCH] (web.sh) select browser at runtime FIXUP
+
+ - use POSIX compatible builtin 'command' (all ext.d scripts use it)
+ - allow 'web.sh' git handling
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ misc/.gitignore   | 1 -
+ misc/ext.d/web.sh | 2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/misc/.gitignore b/misc/.gitignore
+index 7bf6778a9..530b73140 100644
+--- a/misc/.gitignore
++++ b/misc/.gitignore
+@@ -2,7 +2,6 @@ mc.ext
+ ext.d/doc.sh
+ ext.d/misc.sh
+ ext.d/text.sh
+-ext.d/web.sh
+ mc.charsets
+ mc.menu
+ mcedit.menu
+diff --git a/misc/ext.d/web.sh b/misc/ext.d/web.sh
+index 41d516f2a..8de9c70d1 100755
+--- a/misc/ext.d/web.sh
++++ b/misc/ext.d/web.sh
+@@ -30,7 +30,7 @@ do_open_action() {
+     html)
+         (if [ -n "$DISPLAY" ]; then
+             for browser in gnome-moz-remote mozilla firefox chromium google-chrome konqueror brave-browser opera open ; do
+-                if which "${browser}" 1>&2 ; then
++                if command -v "${browser}" 1>&2 ; then
+                     "${browser}" file://"${MC_EXT_CURRENTDIR}"/"${MC_EXT_BASENAME}" 1>&2 &
+                     break
+                 fi

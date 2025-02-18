@@ -1,0 +1,63 @@
+From 26620f1618f74134cdb49c5cc4913ee76430285c Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Tue, 16 Feb 2021 16:59:53 -0600
+Subject: Support for custom .zshrc for Zsh subshell.
+
+---
+ lib/mcconfig/paths.c  |  1 +
+ src/subshell/common.c | 26 +++++++++++++++++++++++++-
+ 2 files changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/lib/mcconfig/paths.c b/lib/mcconfig/paths.c
+index e111dc7a2..082f8226f 100644
+--- a/lib/mcconfig/paths.c
++++ b/lib/mcconfig/paths.c
+@@ -81,6 +81,7 @@ static const struct
+     { "ashrc",                               &mc_data_str, "ashrc" },
+     { "bashrc",                              &mc_data_str, "bashrc" },
+     { "inputrc",                             &mc_data_str, "inputrc" },
++    { ".zshrc",                              &mc_data_str, ".zshrc" },
+     { "extfs.d",                             &mc_data_str, MC_EXTFS_DIR },
+     { "history",                             &mc_data_str, MC_HISTORY_FILE },
+     { "filepos",                             &mc_data_str, MC_FILEPOS_FILE },
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 97cd78117..c7a9f0865 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -359,8 +359,32 @@ init_subshell_child (const char *pty_name)
+         break;
+ 
+         /* TODO: Find a way to pass initfile to TCSH, ZSH and FISH */
+-    case SHELL_TCSH:
+     case SHELL_ZSH:
++        /* Do we have a custom init file ~/.local/share/mc/.zshrc? */
++        init_file = mc_config_get_full_path (".zshrc");
++        /* Otherwise use standard ~/.zshrc */
++        if (!exist_file (init_file))
++            MC_PTR_FREE (init_file);
++        else
++        {
++            /* Strip filename to set rcs dir via ZDOTDIR */
++            char *tmp = init_file;
++            init_file = g_path_get_dirname(init_file);
++            g_free (tmp);
++            tmp = g_strconcat("ZDOTDIR=", init_file, (char *) NULL);
++
++            /* Set ZDOTDIR to ~/.local/share/mc (if not configured differently) */
++            if(putenv(tmp) != 0)
++                mc_log("ZDOTDIR set for Zsh shell failed");
++            else
++                mc_log("Correctly set ZDOTDIR to: %s", strchr(tmp,'='));
++
++            /* Release the dir path string */
++            g_free(init_file);
++        }
++        break;
++
++    case SHELL_TCSH:
+     case SHELL_FISH:
+         break;
+ 
+-- 
+2.28.0
+

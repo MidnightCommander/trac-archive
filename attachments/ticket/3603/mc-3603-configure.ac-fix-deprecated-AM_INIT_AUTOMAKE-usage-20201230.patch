@@ -1,0 +1,83 @@
+From 90d65cf6f03c4a7d1df9e728cb8e0e7bf3e7b78b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 30 Dec 2020 12:19:53 +0000
+Subject: [PATCH] (configure.ac) fix deprecated AM_INIT_AUTOMAKE usage
+
+Fix deprecate warning
+configure.ac:13: warning: AM_INIT_AUTOMAKE: two- and three-arguments forms are deprecated.  For more info, see:
+configure.ac:13: https://www.gnu.org/software/automake/manual/automake.html#Modernize-AM_005fINIT_005fAUTOMAKE-invocation
+
+Support of m4_esyscmd_s() since autoconf-2.64 (release 2009-07-26)
+
+Also smarten up PACKAGE defines
+# diff -u0N  config.h.before config.h.after
+-#define PACKAGE_BUGREPORT ""
++#define PACKAGE_BUGREPORT "mc-devel@gnome.org"
+-#define PACKAGE_NAME ""
++#define PACKAGE_NAME "GNU Midnight Commander"
+-#define PACKAGE_STRING ""
++#define PACKAGE_STRING "GNU Midnight Commander 4.8.25-145-gfa8513be6"
+-#define PACKAGE_TARNAME ""
++#define PACKAGE_TARNAME "mc"
+-#define PACKAGE_URL ""
++#define PACKAGE_URL "https://midnight-commander.org/"
+-#define PACKAGE_VERSION ""
++#define PACKAGE_VERSION "4.8.25-145-gfa8513be6"
+
+(extend version.sh for early use at AC_INIT)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac           | 6 +++---
+ doc/INSTALL            | 2 +-
+ maint/utils/version.sh | 1 +
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4f542b567..269c30860 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2,15 +2,15 @@ dnl
+ dnl Configure.in file for the Midnight Commander
+ dnl
+ 
+-AC_PREREQ(2.60)
+-AC_INIT([GNU Midnight Commander], [], [mc-devel@gnome.org])
+++AC_PREREQ(2.64) dnl needed at least for m4_esyscmd_s()
+++AC_INIT([GNU Midnight Commander], [m4_esyscmd_s([maint/utils/version.sh .])], [mc-devel@gnome.org], [mc], [https://midnight-commander.org/])
+ m4_pattern_forbid(MC_)
+ AC_CONFIG_MACRO_DIR([m4])
+ AC_CONFIG_AUX_DIR(config)
+ AC_CONFIG_SRCDIR(src/main.c)
+ AC_CONFIG_HEADERS(config.h)
+ mc_VERSION
+-AM_INIT_AUTOMAKE(mc, ${VERSION} )
++AM_INIT_AUTOMAKE
+ dnl Enable silent rules by default (if yes)
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
+diff --git a/doc/INSTALL b/doc/INSTALL
+index 564862c33..4cc4ea4da 100644
+--- a/doc/INSTALL
++++ b/doc/INSTALL
+@@ -12,7 +12,7 @@ Build requirements for GNU Midnight Commander
+ - glibc
+ - gcc
+ - make
+-- autoconf
++- autoconf >= 2.64
+ - automake
+ - libtool
+ - glib2 >= 2.30
+diff --git a/maint/utils/version.sh b/maint/utils/version.sh
+index 64405191f..47107ffda 100755
+--- a/maint/utils/version.sh
++++ b/maint/utils/version.sh
+@@ -42,6 +42,7 @@ mc_print_version(){
+ #endif
+ EOF
+     fi
++    echo "${CURR_MC_VERSION}"
+     exit
+ }
+ 

@@ -1,0 +1,197 @@
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index f78d9d4..28e0d62 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -160,13 +160,18 @@ edit_refresh_cmd (WEdit * edit)
+ static int
+ edit_save_file (WEdit *edit, const char *filename)
+ {
+-    char *p;
+-    gchar *tmp;
+-    long filelen = 0;
++    const char *slashpos;
++    char *p, *msg;
++    char *savedir, *saveprefix;
+     char *savename = 0;
+-    gchar *real_filename;
+-    int this_save_mode, fd = -1;
+ 
++    gchar *tmp, *real_filename;
++
++    int rv, this_save_mode, fd = -1;
++    long buf, filelen = 0;
++
++    struct stat sb;
++    
+     if (!filename)
+ 	return 0;
+     if (!*filename)
+@@ -192,32 +197,27 @@ edit_save_file (WEdit *edit, const char *filename)
+ 	    mc_close (fd);
+     }
+ 
+-    if (this_save_mode == EDIT_QUICK_SAVE &&
+-	!edit->skip_detach_prompt) {
+-	int rv;
+-	struct stat sb;
+-
++    if (this_save_mode == EDIT_QUICK_SAVE && !edit->skip_detach_prompt) {
+ 	rv = mc_stat (real_filename, &sb);
+-	if (rv == 0 && sb.st_nlink > 1) {
++	  if (rv == 0 && sb.st_nlink > 1) {
+ 	    rv = edit_query_dialog3 (_("Warning"),
+ 				     _(" File has hard-links. Detach before saving? "),
+ 				     _("&Yes"), _("&No"), _("&Cancel"));
+-	    switch (rv) {
+-	    case 0:
+-		this_save_mode = EDIT_SAFE_SAVE;
+-		/* fallthrough */
+-	    case 1:
+-		edit->skip_detach_prompt = 1;
+-		break;
+-	    default:
+-		g_free(real_filename);
+-		return -1;
+-	    }
++		switch (rv) {
++			case 0:
++				this_save_mode = EDIT_SAFE_SAVE;
++				/* fallthrough */
++			case 1:
++				edit->skip_detach_prompt = 1;
++				break;
++			default:
++				g_free(real_filename);
++				return -1;
++		}
+ 	}
+ 
+ 	/* Prevent overwriting changes from other editor sessions. */
+ 	if (rv == 0 && edit->stat1.st_mtime != 0 && edit->stat1.st_mtime != sb.st_mtime) {
+-
+ 	    /* The default action is "Cancel". */
+ 	    query_set_sel(1);
+ 
+@@ -234,8 +234,6 @@ edit_save_file (WEdit *edit, const char *filename)
+     }
+ 
+     if (this_save_mode != EDIT_QUICK_SAVE) {
+-	char *savedir, *saveprefix;
+-	const char *slashpos;
+ 	slashpos = strrchr (real_filename, PATH_SEP);
+ 	if (slashpos) {
+ 	    savedir = g_strdup (real_filename);
+@@ -299,8 +297,7 @@ edit_save_file (WEdit *edit, const char *filename)
+ 	    goto error_save;
+ 	}
+ 	g_free (p);
+-    } else if (edit->lb == LB_ASIS) { /* do not change line breaks */
+-	long buf;
++    } else if (edit->lb == LB_ASIS) { /* do not change line breaks */	
+ 	buf = 0;
+ 	filelen = edit->last_byte;
+ 	while (buf <= (edit->curs1 >> S_EDIT_BUF_SIZE) - 1) {
+@@ -355,8 +352,6 @@ edit_save_file (WEdit *edit, const char *filename)
+ 	    filelen = edit_write_stream (edit, file);
+ 	    fclose (file);
+ 	} else {
+-	    char *msg;
+-
+ 	    msg = g_strdup_printf (_(" Cannot open file for writing: %s "), savename);
+ 	    edit_error_dialog (_("Error"), msg);
+ 	    g_free (msg);
+@@ -787,6 +782,7 @@ edit_delete_macro_cmd (WEdit * edit)
+ int edit_load_macro_cmd (WEdit * edit, struct macro macro[], int *n, int k)
+ {
+     FILE *f;
++    int u;
+     int s, i = 0, found = 0;
+ 
+     (void) edit;
+@@ -798,7 +794,6 @@ int edit_load_macro_cmd (WEdit * edit, struct macro macro[], int *n, int k)
+     if ((f = edit_open_macro_file ("r"))) {
+ 	struct macro dummy;
+ 	do {
+-	    int u;
+ 	    u = fscanf (f, ("key '%d 0': "), &s);
+ 	    if (!u || u == EOF)
+ 		break;
+@@ -1457,7 +1452,7 @@ editcmd_find (WEdit *edit, gsize *len)
+     if (edit->replace_backwards) {
+         search_end = end_mark;
+         while ((int) search_start >= start_mark) {
+-            if (search_end > search_start + edit->search->original_len
++            if (search_end > search_start + (off_t)edit->search->original_len
+                 && mc_search_is_fixed_search_str(edit->search)) {
+                 search_end = search_start + edit->search->original_len;
+             }
+@@ -2263,8 +2258,6 @@ edit_block_process_cmd (WEdit *edit, const char *shell_cmd, int block)
+ 	 */
+ 	tmp = g_strconcat (" ", home_dir, PATH_SEP_STR EDIT_DIR, shell_cmd, " ", quoted_name,
+ 			 " ", home_dir, PATH_SEP_STR EDIT_BLOCK_FILE " /dev/null", (char *) NULL);
+-	system (tmp);
+-	g_free(tmp);
+     } else {
+ 	/*
+ 	 * No block selected, just execute the command for the file.
+@@ -2273,9 +2266,11 @@ edit_block_process_cmd (WEdit *edit, const char *shell_cmd, int block)
+ 	 */
+ 	tmp = g_strconcat (" ", home_dir, PATH_SEP_STR EDIT_DIR, shell_cmd, " ",
+ 			 quoted_name, (char *) NULL);
+-	system (tmp);
+-	g_free(tmp);
+     }
++    system (tmp);
++    g_free(tmp);
++
++
+     g_free (quoted_name);
+     close_error_pipe (D_NORMAL, NULL);
+ 
+@@ -2396,7 +2391,7 @@ static gboolean is_break_char(char c)
+ static int edit_find_word_start (WEdit *edit, long *word_start, gsize *word_len)
+ {
+     int c, last;
+-    gsize i;
++    gssize i;
+ 
+ /* return if at begin of file */
+     if (edit->curs1 <= 0)
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 7f147de..ece52c1 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -280,14 +280,18 @@ struct line_s {
+ static inline void
+ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+ 		 long end_col, struct line_s line[], char *status)
+-{
+-    struct line_s *p;
++{    
++    unsigned int textchar;
++    int i;
++    int style;
++    int color;
+ 
+     int x = start_col_real;
+     int x1 = start_col + EDIT_TEXT_HORIZONTAL_OFFSET + option_line_state_width;
+     int y = row + EDIT_TEXT_VERTICAL_OFFSET;
+     int cols_to_skip = abs (x);
+-    int i;
++
++    struct line_s *p;
+ 
+     tty_setcolor (EDITOR_NORMAL_COLOR);
+ 
+@@ -321,10 +325,7 @@ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+     p = line;
+     i = 1;
+     while (p->ch) {
+-	int style;
+-	unsigned int textchar;
+-	int color;
+-
++	
+ 	if (cols_to_skip) {
+ 	    p++;
+ 	    cols_to_skip--;

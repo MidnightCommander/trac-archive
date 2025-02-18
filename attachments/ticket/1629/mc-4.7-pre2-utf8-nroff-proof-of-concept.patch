@@ -1,0 +1,29 @@
+diff -urdp mc-4.7.0-pre2.orig/src/viewer/nroff.c mc-4.7.0-pre2/src/viewer/nroff.c
+--- mc-4.7.0-pre2.orig/src/viewer/nroff.c	2009-08-25 20:51:56.000000000 +0200
++++ mc-4.7.0-pre2/src/viewer/nroff.c	2009-09-20 22:19:32.000000000 +0200
+@@ -103,10 +103,14 @@ mcview_display_nroff (mcview_t * view)
+ 
+         if (c == '\b') {
+             if (from > 1) {
+-                mcview_get_byte (view, from - 2, &c_prev);
++#ifdef HAVE_CHARSET
++                if (view->utf8) {
++                    c_next = mcview_get_utf (view, from, &cw, &read_res);
++                } else
++#endif
+                 mcview_get_byte (view, from, &c_next);
+             }
+-            if (g_ascii_isprint (c_prev) && g_ascii_isprint (c_prev)
++            if (g_unichar_isprint (c_prev) && g_unichar_isprint (c_prev)
+                 && (c_prev == c_next || c_prev == '_' || (c_prev == '+' && c_next == 'o'))) {
+                 if (col == 0) {
+                     if (row == 0) {
+@@ -159,6 +163,8 @@ mcview_display_nroff (mcview_t * view)
+             tty_setcolor (SELECTED_COLOR);
+         }
+ 
++        c_prev = c;
++
+         if (col >= view->dpy_text_column && col - view->dpy_text_column < width) {
+             widget_move (view, top + row, left + (col - view->dpy_text_column));
+ #ifdef HAVE_CHARSET

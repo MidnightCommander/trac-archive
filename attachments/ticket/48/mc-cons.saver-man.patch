@@ -1,0 +1,50 @@
+? doc/cons.saver.8.in
+Index: configure.ac
+===================================================================
+RCS file: /cvsroot/mc/mc/configure.ac,v
+retrieving revision 1.44
+diff -u -r1.44 configure.ac
+--- configure.ac	11 Oct 2007 12:32:42 -0000	1.44
++++ configure.ac	30 Mar 2008 18:43:13 -0000
+@@ -616,7 +616,7 @@
+ vfs/extfs/uzip
+ vfs/extfs/uzoo
+ 
+-doc/mc.1 doc/mcedit.1 doc/mcview.1 doc/mcserv.8
++doc/mc.1 doc/mcedit.1 doc/mcview.1 doc/mcserv.8 doc/cons.saver.8
+ doc/es/mc.1 doc/es/Makefile
+ doc/hu/mc.1 doc/hu/Makefile
+ doc/it/mc.1 doc/it/Makefile
+Index: doc/.cvsignore
+===================================================================
+RCS file: /cvsroot/mc/mc/doc/.cvsignore,v
+retrieving revision 1.4
+diff -u -r1.4 .cvsignore
+--- doc/.cvsignore	20 Jan 2003 17:08:33 -0000	1.4
++++ doc/.cvsignore	30 Mar 2008 18:43:13 -0000
+@@ -3,5 +3,5 @@
+ mc.1
+ mc.hlp
+ mcedit.1
+-mcserv.8
++*.8
+ mcview.1
+Index: doc/Makefile.am
+===================================================================
+RCS file: /cvsroot/mc/mc/doc/Makefile.am,v
+retrieving revision 1.18
+diff -u -r1.18 Makefile.am
+--- doc/Makefile.am	27 Nov 2003 18:06:57 -0000	1.18
++++ doc/Makefile.am	30 Mar 2008 18:43:13 -0000
+@@ -2,9 +2,9 @@
+ SUBDIRS = $(DOC_LINGUAS)
+ 
+ if USE_MCFS
+-man_MANS = mc.1 mcedit.1 mcview.1 mcserv.8
++man_MANS = mc.1 mcedit.1 mcview.1 cons.saver.8 mcserv.8
+ else
+-man_MANS = mc.1 mcedit.1 mcview.1
++man_MANS = mc.1 mcedit.1 mcview.1 cons.saver.8
+ endif
+ 
+ pkgdata_DATA = mc.hlp

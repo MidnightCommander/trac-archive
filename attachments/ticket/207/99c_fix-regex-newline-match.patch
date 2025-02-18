@@ -1,0 +1,12 @@
+--- mc-4.6.2~git20080311/edit/editcmd.c.orig	2008-06-23 02:22:30.000000000 +0200
++++ mc-4.6.2~git20080311/edit/editcmd.c	2008-06-23 02:23:34.000000000 +0200
+@@ -1570,7 +1570,8 @@
+ 	    g_free (old_pattern);
+ 	    old_pattern = 0;
+ 	}
+-	if (regcomp (&r, pattern, REG_EXTENDED | (icase ? REG_ICASE : 0))) {
++	if (regcomp (&r, pattern, REG_EXTENDED | (icase ? REG_ICASE : 0) |
++	    REG_NEWLINE)) {
+ 	    *found_len = 0;
+ 	    return -3;
+ 	}

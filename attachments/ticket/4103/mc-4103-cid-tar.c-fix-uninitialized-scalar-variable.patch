@@ -1,0 +1,27 @@
+From 1f99fd9dcffdd654fe4cf0d10ab6974e6262e8e2 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 7 Dec 2020 13:08:05 +0000
+Subject: [PATCH] (tar.c) fix uninitialized scalar variable
+
+Fix uninitialized scalar variable
+
+found by Coverity
+coverity id #32634
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index 913a39520..d7e0130ea 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -708,6 +708,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive, int tard, si
+         size_t len;
+         char *current_file_name, *current_link_name;
+ 
++        memset(&st, 0, sizeof(struct stat));
+         current_link_name =
+             next_long_link != NULL ? next_long_link : g_strndup (header->header.linkname,
+                                                                  sizeof (header->header.linkname));

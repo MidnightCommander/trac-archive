@@ -1,0 +1,37 @@
+From 13ae89a4bf74429f56589f6785c9f2d2eca7cccd Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 15 Mar 2016 17:37:45 +0000
+Subject: [PATCH] args.c: Make Solaris Studio happy
+
+Make Solaris Studio 12.4 & 12.5 happy.
+
+"args.c", line 180: warning: initialization type mismatch
+"args.c", line 188: warning: initialization type mismatch
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/args.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/args.c b/src/args.c
+index a93defc..1ba0159 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -177,7 +177,7 @@ static const GOptionEntry argument_main_table[] = {
+     {
+      /* handle arguments manually */
+      "view", 'v', G_OPTION_FLAG_IN_MAIN | G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
+-     parse_mc_v_argument,
++     (void *) parse_mc_v_argument,
+      N_("Launches the file viewer on a file"),
+      "<file>"
+     },
+@@ -185,7 +185,7 @@ static const GOptionEntry argument_main_table[] = {
+     {
+      /* handle arguments manually */
+      "edit", 'e', G_OPTION_FLAG_IN_MAIN | G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
+-     parse_mc_e_argument,
++     (void *) parse_mc_e_argument,
+      N_("Edit files"),
+      "<file> ..." },
+ 

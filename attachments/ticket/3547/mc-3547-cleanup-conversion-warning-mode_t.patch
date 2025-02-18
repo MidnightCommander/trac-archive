@@ -1,0 +1,90 @@
+fix -Wconversion warning for mask/mode values
+
+use mode_t definition
+
+patch will fix following warnings:
+direntry.c:994:15: warning: implicit conversion changes signedness: '__mode_t' (aka 'unsigned int') to 'int' [-Wsign-conversion]
+direntry.c:995:12: warning: implicit conversion changes signedness: 'int' to '__mode_t' (aka 'unsigned int') [-Wsign-conversion]
+direntry.c:996:13: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+interface.c:211:57: warning: implicit conversion changes signedness: 'int' to 'mode_t' (aka 'unsigned int') [-Wsign-conversion]
+file.c:1593:59: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+file.c:1620:76: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+file.c:1973:62: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+file.c:1993:55: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+file.c:2150:58: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+file.c:2259:50: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+file.c:2269:50: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+filegui.c:1294:18: warning: implicit conversion changes signedness: '__mode_t' (aka 'unsigned int') to 'int' [-Wsign-conversion]
+filegui.c:1295:20: warning: implicit conversion changes signedness: 'int' to '__mode_t' (aka 'unsigned int') [-Wsign-conversion]
+usermenu.c:165:55: warning: implicit conversion changes signedness: '__mode_t' (aka 'unsigned int') to 'int' [-Wsign-conversion]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -987,7 +987,7 @@
+ vfs_s_default_stat (struct vfs_class *me, mode_t mode)
+ {
+     static struct stat st;
+-    int myumask;
++    mode_t myumask;
+ 
+     (void) me;
+ 
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -188,7 +188,8 @@
+ int
+ mc_open (const vfs_path_t * vpath, int flags, ...)
+ {
+-    int mode = 0, result = -1;
++    int result = -1;
++    mode_t mode = 0;
+     const vfs_path_element_t *path_element;
+ 
+     if (vpath == NULL)
+@@ -199,7 +200,7 @@
+     {
+         va_list ap;
+         va_start (ap, flags);
+-        mode = va_arg (ap, int);
++        mode = va_arg (ap, mode_t);
+         va_end (ap);
+     }
+ 
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -1288,7 +1288,7 @@
+         }
+         else
+         {
+-            int i2;
++            mode_t i2;
+ 
+             ctx->preserve = ctx->preserve_uidgid = FALSE;
+             i2 = umask (0);
+--- a/src/filemanager/fileopctx.h
++++ b/src/filemanager/fileopctx.h
+@@ -129,7 +129,7 @@
+     gboolean preserve_uidgid;
+ 
+     /* The bits to preserve in created files' modes on file copy */
+-    int umask_kill;
++    mode_t umask_kill;
+ 
+     /* The mask of files to actually operate on */
+     char *dest_mask;
+--- a/src/filemanager/usermenu.c
++++ b/src/filemanager/usermenu.c
+@@ -162,7 +162,7 @@
+ test_type (WPanel * panel, char *arg)
+ {
+     int result = 0;             /* False by default */
+-    int st_mode = panel->dir.list[panel->selected].st.st_mode;
++    mode_t st_mode = panel->dir.list[panel->selected].st.st_mode;
+ 
+     for (; *arg != 0; arg++)
+     {

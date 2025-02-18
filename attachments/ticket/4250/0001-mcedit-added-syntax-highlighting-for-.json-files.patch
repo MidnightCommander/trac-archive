@@ -1,0 +1,87 @@
+From a13754397478d84820c9638a132c91a5ca5a7e61 Mon Sep 17 00:00:00 2001
+From: Sergii Pylypenko <x.pelya.x@gmail.com>
+Date: Thu, 27 May 2021 23:12:16 +0300
+Subject: [PATCH] mcedit: added syntax highlighting for .json files
+
+---
+ misc/filehighlight.ini  |  2 +-
+ misc/syntax/Syntax.in   |  3 +++
+ misc/syntax/json.syntax | 39 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 43 insertions(+), 1 deletion(-)
+ create mode 100644 misc/syntax/json.syntax
+
+diff --git a/misc/filehighlight.ini b/misc/filehighlight.ini
+index b2731d756..014ab6f3a 100644
+--- a/misc/filehighlight.ini
++++ b/misc/filehighlight.ini
+@@ -28,7 +28,7 @@
+     extensions=7z;Z;ace;apk;arc;arj;ark;bz2;cab;cpio;deb;gz;lha;lz;lz4;lzh;lzma;rar;rpm;tar;tbz;tbz2;tgz;tlz;txz;tzst;xz;zip;zoo;zst
+ 
+ [doc]
+-    extensions=chm;css;ctl;diz;doc;docm;docx;dtd;fodg;fodp;fods;fodt;htm;html;letter;lsm;mail;man;me;msg;nroff;odg;odp;ods;odt;pdf;po;ppt;pptm;pptx;ps;rtf;sgml;shtml;tex;text;txt;xls;xlsm;xlsx;xml;xsd;xslt
++    extensions=chm;css;ctl;diz;doc;docm;docx;dtd;fodg;fodp;fods;fodt;htm;html;json;letter;lsm;mail;man;me;msg;nroff;odg;odp;ods;odt;pdf;po;ppt;pptm;pptx;ps;rtf;sgml;shtml;tex;text;txt;xls;xlsm;xlsx;xml;xsd;xslt
+ 
+ [source]
+     extensions=ada;asm;awk;bash;c;c++;caml;cc;cgi;cpp;cxx;diff;erl;go;h;h++;hh;hi;hpp;hs;inc;jasm;jav;java;js;m4;mak;mjs;ml;mli;mll;mlp;mly;pas;patch;php;phps;pl;pm;prg;py;rb;s;sas;sh;sl;st;swift;tcl;tk;xq
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 5bde4573f..d5b26d50f 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -136,6 +136,9 @@ include cs.syntax
+ file ..\*\\.(?i:m?js)$ JavaScript\sProgram ^#!.\*[\s/](node|nodejs)\\b
+ include js.syntax
+ 
++file ..\*\\.(?i:json)$ JSON\sFile
++include json.syntax
++
+ file ..\*\\.(?i:ts)$ TypeScript\sProgram
+ include ts.syntax
+ 
+diff --git a/misc/syntax/json.syntax b/misc/syntax/json.syntax
+new file mode 100644
+index 000000000..906a24749
+--- /dev/null
++++ b/misc/syntax/json.syntax
+@@ -0,0 +1,39 @@
++#
++# JavaScript syntax highlighting
++# for MC Editor/CoolEdit
++#
++# Author: Sergii Pylypenko <x.pelya.x@gmail.com>
++#
++
++context default
++
++    #=========================
++    # Constants
++    keyword whole true brightgreen
++    keyword whole false brightgreen
++    keyword whole null brightgreen
++
++    #=========================
++    # Numbers
++    keyword whole \[-\]\{0123456789\}\[0123456789\] brightgreen
++    keyword whole \[-\]\{0123456789\}\[0123456789\]\.\{0123456789\}\[0123456789\] brightgreen
++    keyword whole \[-\]\{0123456789\}\[0123456789\]\{eE\}\{0123456789\}\[0123456789\] brightgreen
++    keyword whole \[-\]\{0123456789\}\[0123456789\]\{eE\}\{\-\+\}\{0123456789\}\[0123456789\] brightgreen
++    keyword whole \[-\]\{0123456789\}\[0123456789\]\.\{0123456789\}\[0123456789\]\{eE\}\{0123456789\}\[0123456789\] brightgreen
++    keyword whole \[-\]\{0123456789\}\[0123456789\]\.\{0123456789\}\[0123456789\]\{eE\}\{\-\+\}\{0123456789\}\[0123456789\] brightgreen
++
++    #=========================
++    # Separators
++    keyword { brightcyan
++    keyword } brightcyan
++    keyword [ brightcyan
++    keyword ] brightcyan
++    keyword , brightcyan
++    keyword : brightcyan
++
++#=============================
++# Strings
++context " " green
++    spellcheck
++    keyword \\\{"\\/bfnrt\} brightgreen
++    keyword \\u\{0123456789ABCDEFabcdef\}\{0123456789ABCDEFabcdef\}\{0123456789ABCDEFabcdef\}\{0123456789ABCDEFabcdef\} brightgreen
+-- 
+2.20.1
+

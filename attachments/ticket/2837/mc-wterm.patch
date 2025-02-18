@@ -1,0 +1,13 @@
+--- mc-4.8.4/lib/tty/key.c.OLD	2012-05-21 15:59:43.000000000 +0300
++++ mc-4.8.4/lib/tty/key.c	2012-06-26 15:35:22.889220908 +0300
+@@ -428,6 +428,10 @@
+     {'/', ESC_STR "Oo", MCKEY_NOACTION},
+     {'\n', ESC_STR "OM", MCKEY_NOACTION},
+ 
++    /* WTerm */
++    {KEY_M_CTRL | KEY_HOME, ESC_STR "[1^", MCKEY_NOACTION},
++    {KEY_M_CTRL | KEY_END, ESC_STR "[4^", MCKEY_NOACTION},
++
+     {0, NULL, MCKEY_NOACTION},
+ };
+ 

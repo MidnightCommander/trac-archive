@@ -1,0 +1,28 @@
+diff -Naur mc-4.7.0.1/src/main.c mc-4.7.0.1.patched/src/main.c
+--- mc-4.7.0.1/src/main.c	2009-12-30 19:58:49.000000000 +0100
++++ mc-4.7.0.1.patched/src/main.c	2010-01-22 15:28:21.000000000 +0100
+@@ -1408,7 +1408,9 @@
+ 	use_mouse_p = MOUSE_DISABLED;
+     }
+ 
+-    if (mc_args__force_xterm || strncmp (termvalue, "xterm", 5) == 0
++    if (mc_args__force_xterm
++        || strncmp (termvalue, "xterm", 5) == 0
++        || strncmp (termvalue, "putty", 5) == 0 // http://www.midnight-commander.org/ticket/1974
+ 	|| strncmp (termvalue, "konsole", 7) == 0
+ 	|| strncmp (termvalue, "rxvt", 4) == 0
+ 	|| strcmp (termvalue, "Eterm") == 0
+diff -Naur mc-4.7.0.1/src/tty/key.c mc-4.7.0.1.patched/src/tty/key.c
+--- mc-4.7.0.1/src/tty/key.c	2009-12-30 19:58:49.000000000 +0100
++++ mc-4.7.0.1.patched/src/tty/key.c	2010-01-22 15:25:34.000000000 +0100
+@@ -1049,7 +1049,9 @@
+         || (term != NULL
+             && (strncmp (term, "iris-ansi", 9) == 0
+                 || strncmp (term, "xterm", 5) == 0
+-                || strncmp (term, "rxvt", 4) == 0 || strcmp (term, "screen") == 0)))
++                || strncmp (term, "putty", 5) == 0 // http://www.midnight-commander.org/ticket/1974
++                || strncmp (term, "rxvt", 4) == 0
++                || strcmp (term, "screen") == 0)))
+         define_sequences (xterm_key_defines);
+ 
+     /* load some additional keys (e.g. direct Alt-? support) */

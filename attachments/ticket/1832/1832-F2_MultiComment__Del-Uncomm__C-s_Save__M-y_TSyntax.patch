@@ -1,0 +1,307 @@
+From ba30d9da31e1d69fcb4b13ec47364a330f728dcf Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 17 Nov 2009 05:04:43 +0000
+Subject: [PATCH]  F2_MultiComment__Del-Uncomm__C-s_Save__M-y_TSyntax
+
+---
+ edit/edit.c            |  135 +++++++++++++++++++++++++++++++++++++++++++++++-
+ edit/edit.h            |    7 +++
+ misc/mc.keymap.default |    5 +-
+ misc/mc.keymap.emacs   |    5 +-
+ src/cmddef.h           |   13 +++--
+ src/keybind.c          |    6 ++-
+ 6 files changed, 160 insertions(+), 11 deletions(-)
+
+diff --git a/edit/edit.c b/edit/edit.c
+index 9a51b79..6a4c947 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -2732,7 +2732,7 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+ 		break;
+ 	    }
+ 	}
+-	edit_delete (edit, 0);
++        case_CK_Delete (edit);
+ 	break;
+     case CK_Delete_Word_Left:
+         edit->over_col = 0;
+@@ -3177,6 +3177,9 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+     case CK_Ext_Mode:
+ 	edit->extmod = 1;
+ 	break;
++    case CK_MultiComment:
++        case_CK_MultiComment (edit);
++        return;
+     default:
+ 	break;
+     }
+@@ -3336,3 +3339,133 @@ edit_stack_free (void)
+ 	    edit_stack_iterator++)
+ 	g_free (edit_history_moveto[edit_stack_iterator].filename);
+ }
++
++void edit_show_bottom (WEdit * edit)
++{
++    edit_cursor_to_bol (edit);
++    if (edit->curs_line >= (edit->total_lines - 1)) {
++        edit->force |= REDRAW_PAGE;
++        return;
++    }
++    edit_move_down (edit, 1, 0);
++    edit_cursor_to_bol (edit);
++    edit->force |= REDRAW_PAGE;
++    if (edit->curs_line > (edit->start_line + edit->num_widget_lines - 3)) {
++        edit_update_screen (edit);
++        edit_move_display (edit, edit->start_line + 1);
++        edit->force |= REDRAW_PAGE;
++    }
++}
++
++int it_is_ELF (WEdit * edit)
++{
++    if ('E' == edit_get_byte (edit, 1)) {
++        if ('L' == edit_get_byte (edit, 2)) {
++            if ('F' == edit_get_byte (edit, 3)) {
++                return 1;
++            }
++        }
++    }
++    return 0;
++}
++
++/* for "*.[s,S]" filenames */
++int it_is_ASM (WEdit * edit)
++{
++    int fn_len = (int) strlen ((char *) edit->filename);
++    if (fn_len > 2 && '.' == edit->filename[fn_len - 2]) {
++        if ('s' == edit->filename[fn_len - 1]
++                || 'S' == edit->filename[fn_len - 1]) {
++            edit_cursor_to_bol (edit);
++            return 1;
++        }
++    }
++    return 0;
++}
++
++/* for "*.[h,H,c,C]" | "*.[c,C]??" filenames */
++int it_is_C (WEdit * edit)
++{
++    int fn_len = (int) strlen ((char *) edit->filename);
++
++    if (fn_len < 3) 
++        return 0;
++
++    if ('.' == edit->filename[fn_len - 2]) {
++        if ('h' == edit->filename[fn_len - 1]
++                || 'H' == edit->filename[fn_len - 1]
++                || 'c' == edit->filename[fn_len - 1]
++                || 'C' == edit->filename[fn_len - 1]) {
++            edit_cursor_to_bol (edit);
++            return 1;
++        }
++    }
++
++    if ((fn_len = (fn_len - 2)) < 3)
++        return 0;
++
++    if ('.' == edit->filename[fn_len - 2]) {
++        if ('h' == edit->filename[fn_len - 1]
++                || 'H' == edit->filename[fn_len - 1]
++                || 'c' == edit->filename[fn_len - 1]
++                || 'C' == edit->filename[fn_len - 1]) {
++            edit_cursor_to_bol (edit);
++            return 1;
++        }
++    }
++    return 0;
++}
++
++void case_CK_Delete (WEdit * edit)
++{
++    int c1;
++
++    if (edit->curs_col) {
++        edit_delete (edit, 0);
++        return;
++    }
++    c1 = edit_get_byte (edit, edit->curs1);
++    edit_delete (edit, 0);
++
++    if ('/' == c1) {
++        if (it_is_C (edit)) {
++            if ('/' == edit_get_byte (edit, edit->curs1)) 
++                edit_delete (edit, 1);
++            else
++                return;
++        }
++    } else if (!( '#' == c1 || ';' == c1 )) {
++        return;
++    }
++    edit_show_bottom (edit);
++}
++
++void case_CK_MultiComment (WEdit * edit)
++{
++    if (edit->curs_line >= edit->total_lines) {
++        return;
++    } else if (it_is_ELF (edit)) {
++        return;
++    } else if (it_is_ASM (edit)) { /* for "*.[s,S]" filenames */
++        if ((edit->total_lines - 1) == edit->curs_line) {
++            if (';' == edit_get_byte (edit, edit->curs1))
++                return;
++        }
++        edit_insert (edit, ';');
++    } else if (it_is_C (edit)) { /* for "*.[h,H,c,C]" | "*.[c,C]??" filenames */
++        if ((edit->total_lines - 1) == edit->curs_line) {
++            if ('/' == edit_get_byte (edit, edit->curs1))
++                return;
++        }
++        edit_insert (edit, '/');
++        edit_insert (edit, '/');
++    } else {
++        edit_cursor_to_bol (edit);
++        if ((edit->total_lines - 1) == edit->curs_line) {
++            if ('#' == edit_get_byte (edit, edit->curs1))
++                return;
++        }
++        edit_insert (edit, '#');
++    }
++    edit_show_bottom (edit);
++}
+diff --git a/edit/edit.h b/edit/edit.h
+index 0891801..01fa4e0 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -72,4 +72,11 @@ const char *edit_get_file_name (const WEdit *edit);
+ int edit_get_curs_col (const WEdit *edit);
+ const char *edit_get_syntax_type (const WEdit *edit);
+ 
++int it_is_C (WEdit * edit);
++int it_is_ELF (WEdit * edit);
++int it_is_ASM (WEdit * edit);
++void case_CK_Delete (WEdit * edit);
++void edit_show_bottom (WEdit * edit);
++void case_CK_MultiComment (WEdit * edit);
++
+ #endif				/* MC_EDIT_H */
+diff --git a/misc/mc.keymap.default b/misc/mc.keymap.default
+index f571d0d..d7885cd 100644
+--- a/misc/mc.keymap.default
++++ b/misc/mc.keymap.default
+@@ -33,9 +33,9 @@ EditDeleteWordLeft = alt-backspace
+ EditDeleteWordRight = alt-d
+ EditParagraphUp =
+ EditParagraphDown =
+-EditSave = f2
+ EditLoad =
+ EditNew = ctrl-n
++EditSave = ctrl-s
+ EditSaveas = f12
+ EditMark = f3
+ EditCopy = f5
+@@ -149,11 +149,12 @@ EditDeleteMacro =
+ 
+ EditToggleLineState = alt-n
+ EditToggleTabTWS = alt-underline
+-EditToggleSyntax = ctrl-s
++EditToggleSyntax = alt-y
+ 
+ EditFindDefinition = alt-enter
+ EditLoadPrevFile = alt-minus
+ EditLoadNextFile = alt-plus
++EditMultiComment = f2
+ 
+ SelectCodepage = alt-e
+ 
+diff --git a/misc/mc.keymap.emacs b/misc/mc.keymap.emacs
+index 1acb5cd..6c1ac38 100644
+--- a/misc/mc.keymap.emacs
++++ b/misc/mc.keymap.emacs
+@@ -33,8 +33,8 @@ EditDeleteWordLeft = alt-backspace
+ EditDeleteWordRight = alt-d
+ EditParagraphUp =
+ EditParagraphDown =
+-EditSave = f2
+ EditLoad =
++EditSave = ctrl-s
+ EditSaveas = f12
+ EditMark = f3
+ EditCopy = f5
+@@ -147,11 +147,12 @@ EditDeleteMacro =
+ 
+ EditToggleLineState = alt-n
+ EditToggleTabTWS = alt-underline
+-EditToggleSyntax = ctrl-s
++EditToggleSyntax = alt-y
+ 
+ EditFindDefinition = alt-enter
+ EditLoadPrevFile = alt-minus
+ EditLoadNextFile = alt-plus
++EditMultiComment = f2
+ 
+ SelectCodepage = alt-e
+ 
+diff --git a/src/cmddef.h b/src/cmddef.h
+index 2644130..55ef6a9 100644
+--- a/src/cmddef.h
++++ b/src/cmddef.h
+@@ -109,10 +109,15 @@
+ #define CK_ExtCmd		424
+ #define CK_User_Menu		425
+ #define CK_Find_Definition	426
+-#define CK_Edit_Options     427
+-#define CK_Edit_Save_Mode   428
+-#define CK_Choose_Syntax    429
+-#define CK_About            430
++#define CK_Edit_Options         427
++#define CK_Edit_Save_Mode       428
++#define CK_Choose_Syntax        429
++#define CK_About                430
++
++/* to comment lines: F2 (while pressing)
++   to uncomment first Home (if needed)
++   then Delete (while pressing) */
++#define CK_MultiComment         431
+ 
+ #if 0
+ /* application control */
+diff --git a/src/keybind.c b/src/keybind.c
+index c898e8c..7d2df7f 100644
+--- a/src/keybind.c
++++ b/src/keybind.c
+@@ -192,6 +192,7 @@ static const name_keymap_t command_names[] = {
+     { "EditOptions",                       CK_Edit_Options },
+     { "EditSaveMode",                      CK_Edit_Save_Mode },
+     { "EditChooseSyntax",                  CK_Choose_Syntax },
++    { "EditMultiComment",                  CK_MultiComment },
+     { "EditAbout",                         CK_About },
+ 
+ #if 0
+@@ -518,12 +519,13 @@ const global_keymap_t default_editor_keymap[] = {
+     { ALT ('i'),                            CK_Prev_Bookmark,       "M-i" },
+     { ALT ('j'),                            CK_Next_Bookmark,       "M-j" },
+     { ALT ('o'),                            CK_Flush_Bookmarks,     "M-o" },
++    { ALT ('y'),                            CK_Toggle_Syntax,       "M-y" },
+ 
+     { XCTRL ('n'),                          CK_New,                 "C-n" },
+     { XCTRL ('k'),                          CK_Delete_To_Line_End,  "C-k" },
+     { XCTRL ('l'),                          CK_Refresh,             "C-l" },
+     { XCTRL ('o'),                          CK_Shell,               "C-o" },
+-    { XCTRL ('s'),                          CK_Toggle_Syntax,       "C-s" },
++    { XCTRL ('s'),                          CK_Save,                "C-s" },
+     { XCTRL ('u'),                          CK_Undo,                "C-u" },
+     { ALT ('e'),                            CK_SelectCodepage,      "M-e" },
+     { XCTRL ('q'),                          CK_Insert_Literal,      "C-q" },
+@@ -533,7 +535,7 @@ const global_keymap_t default_editor_keymap[] = {
+     { XCTRL ('a'),                          CK_Execute_Macro,       "C-a" },
+ 
+     { KEY_F (1),                            CK_Help,                "F1" },
+-    { KEY_F (2),                            CK_Save,                "F2" },
++    { KEY_F (2),                            CK_MultiComment,        "F2" },
+     { KEY_F (3),                            CK_Mark,                "F3" },
+     { KEY_F (4),                            CK_Replace,             "F4" },
+     { KEY_F (5),                            CK_Copy,                "F5" },
+-- 
+1.6.4
+

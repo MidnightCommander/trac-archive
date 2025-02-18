@@ -1,0 +1,30 @@
+diff -ur mc.orig/src/viewer/display.c mc/src/viewer/display.c
+--- mc.orig/src/viewer/display.c	2010-05-04 20:44:47.000000000 +0200
++++ mc/src/viewer/display.c	2010-05-04 20:46:15.000000000 +0200
+@@ -168,7 +168,7 @@
+         tty_print_string (str_fit_to_term (file_label, width - 34, J_LEFT_FIT));
+     else
+         tty_print_string (str_fit_to_term (file_label, width - 5, J_LEFT_FIT));
+-    if (width > 26)
++    if (width > 27)
+         mcview_percent (view, view->hex_mode ? view->hex_cursor : view->dpy_end);
+ }
+ 
+@@ -398,7 +398,7 @@
+     int percent;
+     off_t filesize;
+ 
+-    if (height < 1 || right < 4)
++    if (height < 1 || right < 5)
+         return;
+     if (mcview_may_still_grow (view))
+         return;
+@@ -411,7 +411,7 @@
+     else
+         percent = p * 100 / filesize;
+ 
+-    widget_move (view, top, right - 4);
++    widget_move (view, top, right - 5);
+     tty_printf ("%3d%%", percent);
+ }
+ 

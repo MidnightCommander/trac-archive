@@ -1,0 +1,49 @@
+From 23e2b56461609b36a2a0d7b13fb49e7e854cf689 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 6 Nov 2016 02:37:06 +0200
+Subject: [PATCH] Ticket #3721: clean up radio widget's MSG_CURSOR.
+
+---
+ lib/widget/radio.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/widget/radio.c b/lib/widget/radio.c
+index 4568968..a4cc7c8 100644
+--- a/lib/widget/radio.c
++++ b/lib/widget/radio.c
+@@ -84,7 +84,7 @@ radio_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         {
+         case ' ':
+             r->sel = r->pos;
+-            widget_set_state (w, WST_FOCUSED, TRUE);
++            widget_set_state (w, WST_FOCUSED, TRUE);    /* Also draws the widget. */
+             return MSG_HANDLED;
+ 
+         case KEY_UP:
+@@ -92,6 +92,7 @@ radio_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+             if (r->pos > 0)
+             {
+                 r->pos--;
++                widget_redraw (w);
+                 return MSG_HANDLED;
+             }
+             return MSG_NOT_HANDLED;
+@@ -101,6 +102,7 @@ radio_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+             if (r->count - 1 > r->pos)
+             {
+                 r->pos++;
++                widget_redraw (w);
+                 return MSG_HANDLED;
+             }
+         default:
+@@ -108,7 +110,6 @@ radio_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         }
+ 
+     case MSG_CURSOR:
+-        widget_set_state (w, WST_FOCUSED, TRUE);
+         widget_move (r, r->pos, 1);
+         return MSG_HANDLED;
+ 
+-- 
+2.9.3
+

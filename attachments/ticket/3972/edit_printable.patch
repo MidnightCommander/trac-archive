@@ -1,0 +1,44 @@
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index bdaea7493..c75ac712b 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -759,33 +759,17 @@ edit_draw_this_line (WEdit *edit, off_t b, long row, long start_col, long end_co
+                         control_char = TRUE;
+                         break;
+                     }
+-#ifdef HAVE_CHARSET
+-                    if (edit->utf8)
++                    if ((mc_global.utf8_display && g_unichar_isprint (c)) ||
++                        (!mc_global.utf8_display && is_printable (c)))
+                     {
+-                        if (g_unichar_isprint (c))
+-                            p->ch = c;
+-                        else
+-                        {
+-                            p->ch = '.';
+-                            p->style = abn_style;
+-                        }
++                        p->ch = c;
+                         p++;
+                     }
+                     else
+-#endif
+                     {
+-                        if ((mc_global.utf8_display && g_unichar_isprint (c)) ||
+-                            (!mc_global.utf8_display && is_printable (c)))
+-                        {
+-                            p->ch = c;
+-                            p++;
+-                        }
+-                        else
+-                        {
+-                            p->ch = '.';
+-                            p->style = abn_style;
+-                            p++;
+-                        }
++                        p->ch = '.';
++                        p->style = abn_style;
++                        p++;
+                     }
+                     col++;
+                     break;

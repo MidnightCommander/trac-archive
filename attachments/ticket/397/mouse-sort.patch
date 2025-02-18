@@ -1,0 +1,92 @@
+diff --git a/src/screen.c b/src/screen.c
+index fd7a043..a375913 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -427,7 +427,7 @@ static struct {
+     const char *title;
+     int  use_in_gui;
+     const char *(*string_fn)(file_entry *, int);
+-    sortfn *sort_routine; /* This field is currently unused. */
++    sortfn *sort_routine; /* used by mouse_sort_col() */
+ } formats [] = {
+ { "name",  12, 1, J_LEFT_FIT,	N_("Name"),	1, string_file_name,	   (sortfn *) sort_name },
+ { "size",  7,  0, J_RIGHT,	N_("Size"),	1, string_file_size,	   (sortfn *) sort_size },
+@@ -826,6 +826,8 @@ show_dir (WPanel *panel)
+     addstr (">");
+     widget_move (&panel->widget, 0, panel->widget.cols - 3);
+     addstr ("v");
++    widget_move (&panel->widget, 0, panel->widget.cols - 4);
++    addstr (".");
+ 
+     if (!show_mini_info) {
+ 	if (panel->marked == 0) {
+@@ -2480,6 +2482,50 @@ mark_if_marking (WPanel *panel, Gpm_Event *event)
+     return 0;
+ }
+ 
++/* Determine which column was clicked, and sort the panel on
++ * that column, or reverse sort on that column if already
++ * sorted on that column.
++ */
++static void
++mouse_sort_col(Gpm_Event *event, WPanel *panel)
++{
++  int x = event->x;
++  int pos = 0;
++  int found = 0;
++  const char *name;
++  sortfn *col_sort_type = NULL;
++  format_e *format = panel->format;
++  while (format) {
++    pos += format->field_len;
++    if ( x < pos + 1) {
++      /* found column */
++      name = format->title;
++      found = 1;
++      break;
++    }
++    format = format->next;
++  }
++  if (found) {
++    int i;
++    for (i=0; i < ELEMENTS(formats); i++) {
++      if ( !strcmp(name,formats[i].title) && formats[i].sort_routine ) {
++          col_sort_type = formats[i].sort_routine;
++          break;
++      }
++    }
++    if (col_sort_type) {
++      if (panel->sort_type == col_sort_type) {
++        /* reverse the sort if clicked column is already the sorted column */
++        panel->reverse = panel->reverse ? 0 : 1;
++      }
++      else {
++        panel->reverse = 0; /* new sort is forced to be ascending */
++      }
++      panel_set_sort_order(panel, col_sort_type);
++    }
++  }
++}
++
+ /*
+  * Mouse callback of the panel minus repainting.
+  * If the event is redirected to the menu, *redir is set to 1.
+@@ -2521,6 +2567,18 @@ do_panel_event (Gpm_Event *event, WPanel *panel, int *redir)
+ 	return MOU_NORMAL;
+     }
+ 
++    /* "." button show/hide hidden files */
++    if (event->type & GPM_DOWN && event->x == panel->widget.cols - 3
++	&& event->y == 1) {
++        toggle_show_hidden();
++	return MOU_NORMAL;
++    }
++
++    /* sort on clicked column */
++    if (event->type & GPM_DOWN && event->y == 2) {
++      mouse_sort_col(event,panel);
++    }
++
+     /* rest of the upper frame, the menu is invisible - call menu */
+     if (event->type & GPM_DOWN && event->y == 1 && !menubar_visible) {
+ 	*redir = 1;

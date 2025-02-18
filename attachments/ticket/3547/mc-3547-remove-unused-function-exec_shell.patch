@@ -1,0 +1,44 @@
+From a471fc273a529bc3de3a7aa4a2ffe3e76c8c1f46 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 20 Dec 2015 23:07:45 +0000
+Subject: [PATCH] remove unused function exec_shell()
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/execute.c | 8 --------
+ src/execute.h | 3 ---
+ 2 files changed, 11 deletions(-)
+
+diff --git a/src/execute.c b/src/execute.c
+index b778a73..9e491a5 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -443,14 +443,6 @@ shell_execute (const char *command, int flags)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-exec_shell (void)
+-{
+-    do_execute (mc_global.shell->path, 0, 0);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-void
+ toggle_panels (void)
+ {
+ #ifdef ENABLE_SUBSHELL
+diff --git a/src/execute.h b/src/execute.h
+index a8a00ef..56d24c5 100644
+--- a/src/execute.h
++++ b/src/execute.h
+@@ -31,9 +31,6 @@ extern int pause_after_run;
+ /* Execute functions that use the shell to execute */
+ void shell_execute (const char *command, int flags);
+ 
+-/* This one executes a shell */
+-void exec_shell (void);
+-
+ /* Handle toggling panels by Ctrl-O */
+ void toggle_panels (void);
+ 

@@ -1,0 +1,180 @@
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Date: Mon, 22 Oct 2012 16:49:42 +0200
+Subject: [PATCH 2/5] keyboard input: add commented-out debugging logging mechanism.
+
+Figuring out what exactly happens in get_key_code() when user
+uses various function keys is not trivial.
+While working on some fixes, I added a debugging code
+which records a log in /tmp/mc_key.log; I would like
+to save future developers from doing this again.
+
+This patch adds my debugging code, disabled via "#if 0".
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+---
+ lib/tty/key.c |   55 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 55 insertions(+), 0 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index d2142fa..33732db 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1811,6 +1811,34 @@ is_idle (void)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++#if 0
++# define key_debug 1
++static void keylog (const char *fmt, ...)
++{
++    static int logfd = -1;
++
++    if (logfd < 0) {
++        logfd = open ("/tmp/mc_key.log", O_CREAT | O_WRONLY | O_APPEND, 0666);
++        if (logfd < 0)
++            return;
++    }
++
++    va_list ap;
++    va_start (ap, fmt);
++    char *p = NULL;
++    vasprintf (&p, fmt, ap);
++    va_end (ap);
++
++    if (p)
++    {
++        write (logfd, p, strlen(p));
++        free (p);
++    }
++}
++#else
++# define key_debug 0
++# define keylog(...) ((void)0)
++#endif
+ 
+ int
+ get_key_code (int no_delay)
+@@ -1820,6 +1848,8 @@ get_key_code (int no_delay)
+     static struct timeval esctime = { -1, -1 };
+     static int lastnodelay = -1;
+ 
++    keylog ("entered %s(no_delay:%d)\n", __func__, no_delay);
++
+     if (no_delay != lastnodelay)
+     {
+         this = NULL;
+@@ -1832,15 +1862,18 @@ get_key_code (int no_delay)
+         int m;
+ 
+         m = parse_extended_mouse_coordinates ();
++        keylog (" pending_keys!=NULL. m=%d\n", m);
+         if (m == 1)
+         {
+             pending_keys = seq_append = NULL;
+             this = NULL;
++            keylog ("return MCKEY_EXTENDED_MOUSE\n");
+             return MCKEY_EXTENDED_MOUSE;
+         }
+         if (m == -1)
+         {
+             int d = *pending_keys++;
++            keylog (" d=*pending_keys++=%d\n", d);
+           check_pend:
+             if (*pending_keys == 0)
+             {
+@@ -1850,11 +1883,16 @@ get_key_code (int no_delay)
+             else if (d == ESC_CHAR)
+             {
+                 d = ALT (*pending_keys++);
++                keylog (" d=ALT(*pending_keys++)=ALT(%d)=%d\n", pending_keys[-1], d);
+                 goto check_pend;
+             }
+             if ((d > 127 && d < 256) && use_8th_bit_as_meta)
++            {
+                 d = ALT (d & 0x7f);
++                keylog (" d=ALT(d & 0x7f)=ALT(%d)=%d\n", d & 0x7f, d);
++            }
+             this = NULL;
++            keylog ("return correct_key_code(%d)\n", d);
+             return correct_key_code (d);
+         }
+         /* else if (m == 0), just let it continue */
+@@ -1865,6 +1903,7 @@ get_key_code (int no_delay)
+         tty_nodelay (TRUE);
+ 
+     c = tty_lowlevel_getch ();
++    keylog (" c=tty_lowlevel_getch()=%d\n", c);
+ #if (defined(USE_NCURSES) || defined(USE_NCURSESW)) && defined(KEY_RESIZE)
+     if (c == KEY_RESIZE)
+         goto nodelay_try_again;
+@@ -1941,15 +1980,18 @@ get_key_code (int no_delay)
+                 pending_keys = seq_append = NULL;
+                 code = this->code;
+                 this = NULL;
++                keylog ("2 return correct_key_code(%d)\n", code);
+                 return correct_key_code (code);
+             }
+             /* No match yet, but it may be a prefix for a valid seq */
+ 
+             if (!push_char (c))
+             {
++                keylog (" push_char(%d) failure (no more space)\n", c);
+                 pending_keys = seq_buffer;
+                 goto pend_send;
+             }
++            keylog (" push_char(%d) ok\n", c);
+             parent = this;
+             this = this->child;
+             if (parent->action == MCKEY_ESCAPE && old_esc_mode)
+@@ -1967,10 +2009,12 @@ get_key_code (int no_delay)
+                 }
+                 esctime.tv_sec = -1;
+                 c = xgetch_second ();
++                keylog (" c=xgetch_second()=%d\n", c);
+                 if (c == -1)
+                 {
+                     pending_keys = seq_append = NULL;
+                     this = NULL;
++                    keylog ("return ESC_CHAR\n");
+                     return ESC_CHAR;
+                 }
+                 continue;
+@@ -1978,6 +2022,7 @@ get_key_code (int no_delay)
+             if (no_delay)
+                 goto nodelay_try_again;
+             c = tty_lowlevel_getch ();
++            keylog (" 2 c=tty_lowlevel_getch()=%d\n", c);
+             continue;
+         }
+ 
+@@ -2000,17 +2045,27 @@ get_key_code (int no_delay)
+ 
+             pending_keys = seq_append = NULL;
+             this = NULL;
++            keylog ("3 return correct_key_code(%d)\n", c);
+             return correct_key_code (c);
+         }
+ 
+         /* Unknown sequence. Maybe a prefix of a longer one. Save it. */
++        keylog (" push_char(%d)\n", c);
+         push_char (c);
++        if (key_debug)
++        {
++            int i = 0;
++            do
++                keylog ("  seq_buffer[%d]:%d\n", i, seq_buffer[i]);
++            while (seq_buffer[i++]);
++        }
+         pending_keys = seq_buffer;
+         goto pend_send;
+ 
+     } /* while (this != NULL) */
+ 
+     this = NULL;
++    keylog ("4 return correct_key_code(%d)\n", c);
+     return correct_key_code (c);
+ }
+ 
+-- 
+1.7.7.6
+

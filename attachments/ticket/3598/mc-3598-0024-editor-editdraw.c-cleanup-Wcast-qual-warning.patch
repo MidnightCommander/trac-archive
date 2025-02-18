@@ -1,0 +1,31 @@
+From d519e7ae07f24dc3449a26bc498d39ea97b5c1cd Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 15:48:08 +0000
+Subject: [PATCH] editor/editdraw.c: cleanup -Wcast-qual warning
+
+editdraw.c: In function 'edit_draw_window_icons':
+../../lib/widget/widget-common.h:13:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define WIDGET(x) ((Widget *)(x))
+                    ^
+editdraw.c:377:23: note: in expansion of macro 'WIDGET'
+     const Widget *w = WIDGET (edit);
+                       ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editdraw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 2411f69..9bb1ed9 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -374,7 +374,7 @@ edit_draw_frame (const WEdit * edit, int color, gboolean active)
+ static inline void
+ edit_draw_window_icons (const WEdit * edit, int color)
+ {
+-    const Widget *w = WIDGET (edit);
++    const Widget *w = CWIDGET (edit);
+     char tmp[17];
+ 
+     tty_setcolor (color);

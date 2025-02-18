@@ -1,0 +1,30 @@
+From af01ea1e95abbd85ce9e7596abe7014aa0692b96 Mon Sep 17 00:00:00 2001
+From: Michelle Konzack <linux4michelle@tamay-dogan.net>
+Date: Thu, 1 Apr 2010 13:21:46 +0200
+Subject: [PATCH] Ticket #2127:
+
+I find it realy annoying, if I put something in my BaSH configs and have
+NO syntax hilighting so I have changed the line in Syntax which now
+coloriser my BaSH configs nicely...
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ misc/syntax/Syntax |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/misc/syntax/Syntax b/misc/syntax/Syntax
+index 3ff1c81..0d0c5a2 100644
+--- a/misc/syntax/Syntax
++++ b/misc/syntax/Syntax
+@@ -37,7 +37,7 @@ include diff.syntax
+ file ..\*\\.lsm$ LSM\sFile
+ include lsm.syntax
+ 
+-file ..\*\\.sh$ Shell\sScript ^#!.\*([\s/]([abd-z]?|ba|pdk)sh|@SH@)
++file .\*(bash_completion|profile|\\.(sh|bash_login|bash_profile|bash_logout|bash_aliases|bash_exports|bash_history|bash_userstuff|bashrc|profile))$ Shell\sScript ^#!\s\*/(.\*/|usr/bin/env\s)([a-z]?|ba|pdk)sh
+ include sh.syntax
+ 
+ file ..\*\\.(pl|PL|pm|PM)$ Perl\sProgram ^#!.\*([\s/]perl|@PERL@)
+-- 
+1.7.0.3
+

@@ -1,0 +1,66 @@
+diff --git a/lib/tty/tty-internal.h b/lib/tty/tty-internal.h
+index 77f0062..8543c35 100644
+--- a/lib/tty/tty-internal.h
++++ b/lib/tty/tty-internal.h
+@@ -30,9 +30,11 @@
+ /* The mouse is currently: TRUE - enabled, FALSE - disabled */
+ extern gboolean mouse_enabled;
+ 
++#ifndef __FreeBSD__
+ /* terminal ca capabilities */
+ extern char *smcup;
+ extern char *rmcup;
++#endif
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+diff --git a/lib/tty/tty.c b/lib/tty/tty.c
+index c33e566..8d838e7 100644
+--- a/lib/tty/tty.c
++++ b/lib/tty/tty.c
+@@ -279,12 +279,14 @@ tty_init_xterm_support (gboolean is_xterm)
+     xmouse_seq = tty_tgetstr ("kmous");
+     if (xmouse_seq == NULL)
+         xmouse_seq = tty_tgetstr ("Km");
++#ifndef __FreeBSD__
+     smcup = tty_tgetstr ("smcup");
+     if (smcup == NULL)
+         smcup = tty_tgetstr ("ti");
+     rmcup = tty_tgetstr ("rmcup");
+     if (rmcup == NULL)
+         rmcup = tty_tgetstr ("te");
++#endif
+ 
+     if (strcmp (termvalue, "cygwin") == 0)
+     {
+diff --git a/lib/tty/win.c b/lib/tty/win.c
+index e7cf59c..3521f15 100644
+--- a/lib/tty/win.c
++++ b/lib/tty/win.c
+@@ -95,7 +95,12 @@ anything_ready (void)
+ void
+ do_enter_ca_mode (void)
+ {
+-    if (mc_global.tty.xterm_flag && smcup != NULL)
++    if (mc_global.tty.xterm_flag
++#ifndef __FreeBSD__
++        && smcup != NULL
++#endif
++        )
++
+     {
+         fprintf (stdout, /* ESC_STR ")0" */ ESC_STR "7" ESC_STR "[?47h");
+         fflush (stdout);
+@@ -107,7 +112,11 @@ do_enter_ca_mode (void)
+ void
+ do_exit_ca_mode (void)
+ {
+-    if (mc_global.tty.xterm_flag && rmcup != NULL)
++    if (mc_global.tty.xterm_flag
++#ifndef __FreeBSD__
++        && rmcup != NULL
++#endif
++        )
+     {
+         fprintf (stdout, ESC_STR "[?47l" ESC_STR "8" ESC_STR "[m");
+         fflush (stdout);

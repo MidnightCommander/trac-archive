@@ -1,0 +1,53 @@
+From 55a208bbb5359c52749584c0641b7cb106e7e8c2 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 16 Mar 2016 18:47:22 +0200
+Subject: [PATCH] configure summary omits "S-Lang" when used as screen library.
+
+When using slang, 'configure' prints blank in the "Screen library" name:
+
+    ...
+    File system:                Midnight Commander Virtual Filesystem
+                                cpio, extfs, fish, ftp, sfs, sftp, smb, tar
+    Screen library:
+    Mouse support:              gpm and xterm
+    X11 events support:         yes
+    ...
+
+This occurs when slang is found using pkg-config (as opposed to explicit path
+search). The patch fixes this by moving the 'screen_msg' assignment one level
+up, to the controlling function (mc_WITH_SLANG) so that it's effective for
+however method the library was found.
+
+The problem was mentioned on our mailing list:
+
+    https://mail.gnome.org/archives/mc-devel/2016-March/msg00021.html
+---
+ m4.include/mc-with-screen-slang.m4 | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/m4.include/mc-with-screen-slang.m4 b/m4.include/mc-with-screen-slang.m4
+index 6ae263f..2a315ce 100644
+--- a/m4.include/mc-with-screen-slang.m4
++++ b/m4.include/mc-with-screen-slang.m4
+@@ -137,9 +137,6 @@ int main (void)
+     fi
+ 
+     if test x"$found_slang" = x"yes"; then
+-        screen_type=slang
+-        screen_msg="S-Lang library"
+-
+         MCLIBS="$ac_slang_lib_path -lslang $MCLIBS"
+         dnl do not reset CPPFLAGS
+         dnl if CPPFLAGS are reset then cpp does not find the specified header
+@@ -206,6 +203,8 @@ AC_DEFUN([mc_WITH_SLANG], [
+         fi
+     fi
+ 
++    screen_type=slang
++    screen_msg="S-Lang library"
+     AC_DEFINE(HAVE_SLANG, 1, [Define to use S-Lang library for screen management])
+ 
+     mc_CHECK_SLANG_HEADER
+-- 
+2.5.0
+

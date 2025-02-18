@@ -1,0 +1,74 @@
+From 4101b57d2b360c95113119da4221b7210c15eca8 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 17:12:37 +0000
+Subject: [PATCH] strutil/strutilutf8.c: cleanup some -Wcast-qual warnings
+
+strutilutf8.c: In function 'str_utf8_vfs_convert_to':
+strutilutf8.c:430:39: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         result = str_nconvert (coder, (char *) string, size, buffer);
+                                       ^
+strutilutf8.c: In function 'str_utf8_search_first':
+strutilutf8.c:996:30: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_text = (case_sen) ? (char *) text : g_utf8_casefold (text, -1);
+                              ^
+strutilutf8.c: In function 'str_utf8_search_last':
+strutilutf8.c:1040:30: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_text = (case_sen) ? (char *) text : g_utf8_casefold (text, -1);
+                              ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/strutil/strutilutf8.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/lib/strutil/strutilutf8.c b/lib/strutil/strutilutf8.c
+index 8ec754d..aea7ecc 100644
+--- a/lib/strutil/strutilutf8.c
++++ b/lib/strutil/strutilutf8.c
+@@ -427,7 +427,7 @@ str_utf8_vfs_convert_to (GIConv coder, const char *string, int size, GString * b
+     if (coder == str_cnv_not_convert)
+         g_string_append_len (buffer, string, size);
+     else
+-        result = str_nconvert (coder, (char *) string, size, buffer);
++        result = str_nconvert (coder, string, size, buffer);
+ 
+     return result;
+ }
+@@ -993,7 +993,7 @@ str_utf8_search_first (const char *text, const char *search, int case_sen)
+     const char *result = NULL;
+     const char *m;
+ 
+-    fold_text = (case_sen) ? (char *) text : g_utf8_casefold (text, -1);
++    fold_text = (case_sen) ? g_strdup (text) : g_utf8_casefold (text, -1);
+     deco_text = g_utf8_normalize (fold_text, -1, G_NORMALIZE_ALL);
+ 
+     match = deco_text;
+@@ -1020,8 +1020,7 @@ str_utf8_search_first (const char *text, const char *search, int case_sen)
+     while (match != NULL && result == NULL);
+ 
+     g_free (deco_text);
+-    if (!case_sen)
+-        g_free (fold_text);
++    g_free (fold_text);
+ 
+     return result;
+ }
+@@ -1037,7 +1036,7 @@ str_utf8_search_last (const char *text, const char *search, int case_sen)
+     const char *result = NULL;
+     const char *m;
+ 
+-    fold_text = (case_sen) ? (char *) text : g_utf8_casefold (text, -1);
++    fold_text = (case_sen) ? g_strdup (text) : g_utf8_casefold (text, -1);
+     deco_text = g_utf8_normalize (fold_text, -1, G_NORMALIZE_ALL);
+ 
+     do
+@@ -1063,8 +1062,7 @@ str_utf8_search_last (const char *text, const char *search, int case_sen)
+     while (match != NULL && result == NULL);
+ 
+     g_free (deco_text);
+-    if (!case_sen)
+-        g_free (fold_text);
++    g_free (fold_text);
+ 
+     return result;
+ }

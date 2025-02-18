@@ -1,0 +1,17 @@
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 4a060a82e..64168f232 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -425,10 +425,10 @@ confvfs_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+ static void
+ jobs_fill_listbox (WListbox * list)
+ {
+-    static const char *state_str[2] = { "", "" };
++    static const char *state_str[2] = { NULL, NULL };
+     TaskList *tl;
+ 
+-    if (state_str[0] == '\0')
++    if (state_str[0] == NULL)
+     {
+         state_str[0] = _("Running");
+         state_str[1] = _("Stopped");

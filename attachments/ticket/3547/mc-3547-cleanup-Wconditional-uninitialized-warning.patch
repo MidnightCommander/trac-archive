@@ -1,0 +1,47 @@
+From 90a369768322d0e085f5260be2c039ecdb8c41ec Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 27 Feb 2016 23:31:24 +0000
+Subject: [PATCH] cleanup -Wconditional-uninitialized warning
+
+editcmd.c:2372:53: error: variable 'mark2' may be uninitialized when used here [-Werror,-Wconditional-uninitialized]
+        edit_set_markers (edit, edit->buffer.curs1, mark2, c1, c2);
+                                                    ^~~~~
+editcmd.c:2334:23: note: initialize the variable 'mark2' to silence this warning
+    off_t mark1, mark2;
+                      ^
+                       = 0
+editcmd.c:2372:60: error: variable 'c1' may be uninitialized when used here [-Werror,-Wconditional-uninitialized]
+        edit_set_markers (edit, edit->buffer.curs1, mark2, c1, c2);
+                                                           ^~
+editcmd.c:2335:12: note: initialize the variable 'c1' to silence this warning
+    long c1, c2;
+           ^
+            = 0
+editcmd.c:2372:64: error: variable 'c2' may be uninitialized when used here [-Werror,-Wconditional-uninitialized]
+        edit_set_markers (edit, edit->buffer.curs1, mark2, c1, c2);
+                                                               ^~
+editcmd.c:2335:16: note: initialize the variable 'c2' to silence this warning
+    long c1, c2;
+               ^
+                = 0
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 0d2d6e1..a962e39 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -2331,8 +2331,8 @@ void
+ edit_block_copy_cmd (WEdit * edit)
+ {
+     off_t start_mark, end_mark, current = edit->buffer.curs1;
+-    off_t mark1, mark2;
+-    long c1, c2;
++    off_t mark1, mark2 = 0;
++    long c1 = 0, c2 = 0;
+     off_t size;
+     unsigned char *copy_buf;
+ 

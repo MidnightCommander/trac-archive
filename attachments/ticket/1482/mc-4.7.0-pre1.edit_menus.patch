@@ -1,0 +1,42 @@
+diff -Naur mc-4.7.0-pre1~/edit/editmenu.c mc-4.7.0-pre1/edit/editmenu.c
+--- mc-4.7.0-pre1~/edit/editmenu.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/edit/editmenu.c	2009-08-07 00:50:41.000000000 +0300
+@@ -463,7 +463,11 @@
+ {
+     {' ', N_("&Search...         F7"), NULL_HOTKEY, menu_search_cmd},
+     {' ', N_("Search &again     F17"), NULL_HOTKEY, menu_search_again_cmd},
+-    {' ', N_("&Replace...        F4"), NULL_HOTKEY, menu_replace_cmd}
++    {' ', N_("&Replace...        F4"), NULL_HOTKEY, menu_replace_cmd},
++    {' ', "", NULL_HOTKEY, 0},
++    {' ', N_("Find decl     A-Enter"), NULL_HOTKEY, menu_find_declare},
++    {' ', N_("Back from decl    M--"), NULL_HOTKEY, menu_declare_back},
++    {' ', N_("Forward to decl   M-+"), NULL_HOTKEY, menu_declare_forward}
+ };
+ 
+ #define SearReplMenuEmacs SearReplMenu
+@@ -474,14 +478,6 @@
+     {' ', N_("Toggle li&ne state        M-n"), NULL_HOTKEY, menu_toggle_line_state},
+     {' ', N_("Go to matching &bracket   M-b"), NULL_HOTKEY, menu_goto_bracket},
+     {' ', "", NULL_HOTKEY, 0},
+-    {' ', N_("Find declaration      A-Enter"), NULL_HOTKEY, menu_find_declare},
+-    {' ', N_("Back from declaration     M--"), NULL_HOTKEY, menu_declare_back},
+-    {' ', N_("Forward to declaration    M-+"), NULL_HOTKEY, menu_declare_forward},
+-#ifdef HAVE_CHARSET
+-    {' ', "", NULL_HOTKEY, 0},
+-    {' ', N_("Encod&ing...             C-t"), NULL_HOTKEY, menu_select_codepage_cmd},
+-#endif
+-    {' ', "", NULL_HOTKEY, 0},
+     {' ', N_("Insert &literal...       C-q"), NULL_HOTKEY, menu_lit_cmd},
+     {' ', "", NULL_HOTKEY, 0},
+     {' ', N_("&Refresh screen          C-l"), NULL_HOTKEY, menu_refresh_cmd},
+@@ -535,6 +531,10 @@
+     {' ', "", NULL_HOTKEY, 0},
+     {' ', N_("S&yntax file"), NULL_HOTKEY, menu_edit_syntax_file_cmd},
+     {' ', N_("&Menu file"), NULL_HOTKEY, menu_edit_menu_file_cmd},
++#ifdef HAVE_CHARSET
++    {' ', "", NULL_HOTKEY, 0},
++    {' ', N_("Encod&ing...             C-t"), NULL_HOTKEY, menu_select_codepage_cmd},
++#endif
+     {' ', "", NULL_HOTKEY, 0},
+     {' ', N_("Save setu&p"), NULL_HOTKEY, save_setup_cmd}
+ };

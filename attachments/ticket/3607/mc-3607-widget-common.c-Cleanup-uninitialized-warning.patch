@@ -1,0 +1,32 @@
+From 88fda438cc0649267d1386f623212586f246c9d8 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 19 Mar 2016 18:11:35 +0000
+Subject: [PATCH] widget-common.c: Cleanup uninitialized warning
+
+Cleanup uninitialized warning with gcc compiler (gcc-4.4.7-4.el6).
+
+widget-common.c: In function 'mouse_get_local':
+widget-common.c:369: error: 'local.margin' is used uninitialized in this function [-Wuninitialized]
+widget-common.c:369: error: 'local.clicks' is used uninitialized in this function [-Wuninitialized]
+widget-common.c:369: error: 'local.vc' is used uninitialized in this function [-Wuninitialized]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/widget-common.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index 917f2d9..cc680fa 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -360,7 +360,10 @@ mouse_get_local (const Gpm_Event * global, const Widget * w)
+ 
+     local.buttons = global->buttons;
+ #ifdef HAVE_LIBGPM
++    local.clicks = 0;
++    local.margin = 0;
+     local.modifiers = 0;
++    local.vc = 0;
+ #endif
+     local.x = global->x - w->x;
+     local.y = global->y - w->y;

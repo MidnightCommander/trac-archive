@@ -1,0 +1,5 @@
+--- src/subshell/common.c
++++ src/subshell/common.c
+@@ -239 +239 @@ write_all (int fd, const void *buf, size_t count)
+-        ret = write (fd, (const unsigned char *) buf + written, count);
++        ret = write (fd, (const unsigned char *) buf + written, count>128?128:count); usleep(5000);

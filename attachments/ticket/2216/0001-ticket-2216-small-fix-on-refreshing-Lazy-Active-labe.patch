@@ -1,0 +1,29 @@
+From 599be30037207f19ea8b9b76a76dfd78c506f3ce Mon Sep 17 00:00:00 2001
+From: Janek Kozicki <janek_listy@wp.pl>
+Date: Sat, 22 May 2010 06:07:35 +0200
+Subject: [PATCH] ticket 2216: small fix on refreshing Lazy Active labels
+
+---
+ src/tree.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/src/tree.c b/src/tree.c
+index cc0e0ea..13cfd19 100644
+--- a/src/tree.c
++++ b/src/tree.c
+@@ -535,9 +535,11 @@ tree_event (WTree * tree, int y)
+     }
+     refresh_always_tmp = xtree_mode;
+     xtree_mode = TRUE;
+-    tree_chdir_sel (tree, FALSE, TRUE);
++    tree_chdir_sel (tree, FALSE, FALSE);
+     xtree_mode = refresh_always_tmp;
+     show_tree (tree);
++    change_panel (); /* force refresh of ButtonBar */
++    change_panel ();
+ }
+ 
+ /* In fact I don't know how to refresh without unfolding / Janek Kozicki */
+-- 
+1.7.1
+

@@ -1,0 +1,288 @@
+diff -Purp mc-4.6.2/edit/edit.c mc-4.6.2-rhs/edit/edit.c
+--- mc-4.6.2/edit/edit.c    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/edit/edit.c    2009-08-14 05:21:44.000000000 +0000
+@@ -178,15 +178,18 @@ edit_load_file_fast (WEdit *edit, const
+ }
+ =
+
+ /* detecting an error on save is easy: just check if every byte has =
+
+been written. */
+-/* detecting an error on read, is not so easy 'cos there is not way to tell
++/* detecting an error on read, is not so easy 'cos there is no way to tell
+    whether you read everything or not. */
+ /* FIXME: add proper `triple_pipe_open' to read, write and check errors. */
+ static const struct edit_filters {
+     const char *read, *write, *extension;
+ } all_filters[] =3D {
+-    { "bzip2 -cd %s 2>&1",  "bzip2 > %s",  ".bz2" },
+-    { "gzip -cd %s 2>&1",   "gzip > %s",   ".gz"  },
+-    { "gzip -cd %s 2>&1",   "gzip > %s",   ".Z"   }
++    { "xz -cd %s 2>&1",     "xz > %s",     ".xz"   },
++    { "lzip -cd %s 2>&1",   "lzip > %s",   ".lz"   },
++    { "lzma -cd %s 2>&1",   "lzma > %s",   ".lzma" },
++    { "bzip2 -cd %s 2>&1",  "bzip2 > %s",  ".bz2"  },
++    { "gzip -cd %s 2>&1",   "gzip > %s",   ".gz"   },
++    { "gzip -cd %s 2>&1",   "gzip > %s",   ".Z"    }
+ };
+ =
+
+ /* Return index of the filter or -1 is there is no appropriate filter */
+diff -Purp mc-4.6.2/src/util.c mc-4.6.2-rhs/src/util.c
+--- mc-4.6.2/src/util.c    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/src/util.c    2009-08-14 05:07:48.000000000 +0000
+@@ -947,10 +947,10 @@ get_current_wd (char *buffer, int size)
+ enum compression_type
+ get_compression_type (int fd)
+ {
+-    unsigned char magic[4];
++    unsigned char magic[16];
+ =
+
+     /* Read the magic signature */
+-    if (mc_read (fd, (char *) magic, 4) !=3D 4)
++    if (mc_read (fd, (char *) magic, 6) !=3D 6)
+     return COMPRESSION_NONE;
+ =
+
+     /* GZIP_MAGIC and OLD_GZIP_MAGIC */
+@@ -991,16 +991,73 @@ get_compression_type (int fd)
+         return COMPRESSION_BZIP2;
+     }
+     }
+-    return 0;
++
++    /* LZIP files */
++    if ((magic[0] =3D=3D 'L') && (magic[1] =3D=3D 'Z') &&
++    (magic[2] =3D=3D 'I') && (magic[3] =3D=3D 'P')) {
++    switch (magic[4]) {
++    case 0:case 1:
++        return COMPRESSION_LZIP;
++    default:
++        return COMPRESSION_NONE;
++    }
++    }
++
++    /* XZ format */
++    if ((magic[0] =3D=3D 0xFD) && (magic[1] =3D=3D '7') && (magic[2] =3D=
+=3D 'z') &&
++    (magic[3] =3D=3D 'X') && (magic[4] =3D=3D 'Z')) {
++    switch (magic[5]) {
++    case 0:
++        return COMPRESSION_XZ;
++    default:
++        return COMPRESSION_NONE;
++    }
++    }
++
++    /* LZMA Utils format.
++     * This format is the default for LZMA utils 4.32.1 and later. */
++    if ((magic[0] =3D=3D 0xFF) && (magic[1] =3D=3D 'L') && (magic[2] =3D=
+=3D 'Z') &&
++    (magic[3] =3D=3D 'M') && (magic[4] =3D=3D 'A')) {
++    switch (magic[5]) {
++    case 0:
++        return COMPRESSION_LZMA;
++    default:
++        return COMPRESSION_NONE;
++    }
++    }
++
++    /* LZMA_Alone format.
++     * It is used by the LZMA_Alone tool from the LZMA SDK. */
++    if (magic[0] < 0xE1) {
++    if (mc_read (fd, (char *) magic + 6, 7) =3D=3D 7) {
++        /* The LZMA_Alone format has no magic bytes, thus we
++         * need to play a wizard. This can give false positives,
++         * thus the detection below should be removed when
++         * the newer LZMA utils format has got popular. */
++        if (magic[4] < 0x20 &&
++        ((magic[10] =3D=3D 0x00 && magic[11] =3D=3D 0x00 &&
++          magic[12] =3D=3D 0x00) ||
++         (magic[5] =3D=3D 0xFF && magic[6] =3D=3D 0xFF &&
++          magic[7] =3D=3D 0xFF && magic[8] =3D=3D 0xFF &&
++          magic[9] =3D=3D 0xFF && magic[10] =3D=3D 0xFF &&
++          magic[11] =3D=3D 0xFF && magic[12] =3D=3D 0xFF)))
++        return COMPRESSION_LZMA;
++    }
++    }
++
++    return COMPRESSION_NONE;
+ }
+ =
+
+ const char *
+ decompress_extension (int type)
+ {
+     switch (type){
+-    case COMPRESSION_GZIP: return "#ugz";
+-    case COMPRESSION_BZIP:   return "#ubz";
+-    case COMPRESSION_BZIP2:  return "#ubz2";
++    case COMPRESSION_GZIP:  return "#ugz";
++    case COMPRESSION_BZIP:  return "#ubz";
++    case COMPRESSION_BZIP2: return "#ubz2";
++    case COMPRESSION_LZMA:  return "#ulzma";
++    case COMPRESSION_LZIP:  return "#ulzip";
++    case COMPRESSION_XZ:    return "#uxz";
+     }
+     /* Should never reach this place */
+     fprintf (stderr, "Fatal: decompress_extension called with an =
+
+unknown argument\n");
+diff -Purp mc-4.6.2/src/util.h mc-4.6.2-rhs/src/util.h
+--- mc-4.6.2/src/util.h    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/src/util.h    2009-08-14 05:21:44.000000000 +0000
+@@ -178,7 +178,10 @@ enum compression_type {
+     COMPRESSION_NONE,
+     COMPRESSION_GZIP,
+     COMPRESSION_BZIP,
+-    COMPRESSION_BZIP2
++    COMPRESSION_BZIP2,
++    COMPRESSION_LZMA,
++    COMPRESSION_LZIP,
++    COMPRESSION_XZ
+ };
+ =
+
+ /* Looks for ``magic'' bytes at the start of the VFS file to guess the
+diff -Purp mc-4.6.2/vfs/extfs/iso9660.in mc-4.6.2-rhs/vfs/extfs/iso9660.in
+--- mc-4.6.2/vfs/extfs/iso9660.in    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/vfs/extfs/iso9660.in    2009-08-14 05:21:44.000000000 +0000
+@@ -29,7 +29,10 @@ test_iso () {
+ mcisofs_list () {
+ # left as a reminder to implement compressed image support =3D)
+ case "$1" in
++  *.lzma) MYCAT=3D"lzma -dc";;
+   *.bz2) MYCAT=3D"bzip2 -dc";;
++  *.xz)  MYCAT=3D"xz -dc";;
++  *.lz)  MYCAT=3D"lzip -dc";;
+   *.gz)  MYCAT=3D"gzip -dc";;
+   *.z)   MYCAT=3D"gzip -dc";;
+   *.Z)   MYCAT=3D"gzip -dc";;
+diff -Purp mc-4.6.2/vfs/extfs/lslR.in mc-4.6.2-rhs/vfs/extfs/lslR.in
+--- mc-4.6.2/vfs/extfs/lslR.in    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/vfs/extfs/lslR.in    2009-08-14 05:21:44.000000000 +0000
+@@ -12,7 +12,10 @@ AWK=3D@AWK@
+ =
+
+ mclslRfs_list () {
+ case "$1" in
++  *.lzma) MYCAT=3D"lzma -dc";;
+   *.bz2) MYCAT=3D"bzip2 -dc";;
++  *.xz)  MYCAT=3D"xz -dc";;
++  *.lz)  MYCAT=3D"lzip -dc";;
+   *.gz)  MYCAT=3D"gzip -dc";;
+   *.z)   MYCAT=3D"gzip -dc";;
+   *.Z)   MYCAT=3D"gzip -dc";;
+diff -Purp mc-4.6.2/vfs/extfs/mailfs.in mc-4.6.2-rhs/vfs/extfs/mailfs.in
+--- mc-4.6.2/vfs/extfs/mailfs.in    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/vfs/extfs/mailfs.in    2009-08-14 05:21:44.000000000 +0000
+@@ -7,6 +7,9 @@ use bytes;
+ =
+
+ $zcat=3D"zcat";                 # gunzip to stdout
+ $bzcat=3D"bzip2 -dc";           # bunzip2 to stdout
++$lzcat=3D"lzma -dc";            # unlzma to stdout
++$lzkat=3D"lzip -dc";            # unlzip to stdout
++$xzcat=3D"xz -dc";              # unxzip to stdout
+ $file=3D"file";                 # "file" command
+ $TZ=3D'GMT';                    # default timezone (for Date module)
+ =
+
+@@ -182,6 +185,10 @@ if (/gzip/) {
+     exit 1 unless (open IN, "$zcat $mbox_qname|");
+ } elsif (/bzip/) {
+     exit 1 unless (open IN, "$bzcat $mbox_qname|");
++} elsif (/lzma/) {
++    exit 1 unless (open IN, "$lzcat $mbox_qname|");
++} elsif (/lzip/) {
++    exit 1 unless (open IN, "$lzkat $mbox_qname|");
+ } else {
+     exit 1 unless (open IN, "<$mbox_name");
+ }
+diff -Purp mc-4.6.2/vfs/extfs/patchfs.in mc-4.6.2-rhs/vfs/extfs/patchfs.in
+--- mc-4.6.2/vfs/extfs/patchfs.in    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/vfs/extfs/patchfs.in    2009-08-14 05:21:44.000000000 +0000
+@@ -12,8 +12,10 @@ use POSIX;
+ use File::Temp 'tempfile';
+ =
+
+ # standard binaries
++my $lzma =3D 'lzma';
+ my $bzip =3D 'bzip2';
+ my $gzip =3D 'gzip';
++my $lzip =3D 'lzip';
+ my $fileutil =3D 'file';
+ =
+
+ # date parsing requires Date::Parse from TimeDate module
+@@ -70,10 +72,14 @@ sub myin
+     my ($qfname)=3D(quotemeta $_[0]);
+ =
+
+     $_=3D`$fileutil $qfname`;
+-    if (/bzip/) {
++    if (/lzma/) {
++    return "$lzma -dc $qfname";
++    } elsif (/bzip/) {
+     return "$bzip -dc $qfname";
+     } elsif (/gzip/) {
+     return "$gzip -dc $qfname";
++    } elsif (/lzip/) {
++    return "$lzip -dc $qfname";
+     } else {
+     return "cat $qfname";
+     }
+@@ -86,7 +92,9 @@ sub myout
+     my ($sep) =3D $append ? '>>' : '>';
+ =
+
+     $_=3D`$fileutil $qfname`;
+-    if (/bzip/) {
++    if (/lzma/) {
++    return "$lzma -c $sep $qfname";
++    } elsif (/bzip/) {
+     return "$bzip -c $sep $qfname";
+     } elsif (/gzip/) {
+     return "$gzip -c $sep $qfname";
+diff -Purp mc-4.6.2/vfs/extfs/sfs.ini mc-4.6.2-rhs/vfs/extfs/sfs.ini
+--- mc-4.6.2/vfs/extfs/sfs.ini    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/vfs/extfs/sfs.ini    2009-08-14 05:20:26.000000000 +0000
+@@ -10,6 +10,12 @@ bz/1    bzip < %1 > %3
+ ubz/1    bzip -d < %1 > %3
+ bz2/1    bzip2 < %1 > %3
+ ubz2/1    bzip2 -d < %1 > %3
++lzma/1    lzma < %1 > %3
++ulzma/1    lzma -dc < %1 > %3
++lzip/1    lzip < %1 > %3
++ulzip/1    lzip -dc < %1 > %3
++xz/1    xz < %1 > %3
++uxz/1    xz -dc < %1 > %3
+ tar/1    tar cf %3 %1
+ tgz/1    tar czf %3 %1
+ uhtml/1    lynx -force_html -dump %1 > %3
+diff -Purp mc-4.6.2/vfs/extfs/ulha.in mc-4.6.2-rhs/vfs/extfs/ulha.in
+--- mc-4.6.2/vfs/extfs/ulha.in    2009-02-01 19:30:21.000000000 +0000
++++ mc-4.6.2-rhs/vfs/extfs/ulha.in    2009-08-14 05:21:44.000000000 +0000
+@@ -45,6 +45,12 @@ mc_lha_fs_list()
+       $(NF) ~ /^\// { $(NF) =3D substr($NF,2) }
+       # Print the line this way if there is no permission string
+       $1 ~ /^\[.*\]/ {
++         # AR, PMA and CP/M LHARC lack date info
++         if ($6 =3D=3D "") {
++            $6 =3D $4
++            $5 =3D "00:00"
++            $4 =3D "01-01-1980"
++         }
+          # Invent a generic permission
+          $1 =3D ($NF ~ /\/$/) ? "drwxr-xr-x":"-rwxr--r--";
+          # Print it
+@@ -76,7 +82,7 @@ mc_lha_fs_list()
+          # Well, that is the intent.  At the moment mc is translating them.
+          split($2, id, "/");
+          printf "%s 1 %-8d %-8d %-8d %s %s %s %s\n",
+-                 $1, id[1], id[2], $3, $5, $6, $7, $8;
++                 $1, id[1], id[2], $3, $5, $6, $7, substr($0, 52);
+          # Get the next line of the list
+          next;
+       }

@@ -1,0 +1,101 @@
+diff -rNu mc-4.8.13/lib/strescape.h mc-new/lib/strescape.h
+--- mc-4.8.13/lib/strescape.h	2014-09-02 11:23:58.000000000 +0200
++++ mc-new/lib/strescape.h	2015-10-04 23:40:40.790273623 +0200
+@@ -29,4 +29,9 @@
+ 
+ gboolean strutils_is_char_escaped (const char *, const char *);
+ 
++/*
++   In-place unescaping of http %xx sequences.
++*/
++void strutils_url_unescape(char *buff);
++
+ #endif
+diff -rNu mc-4.8.13/lib/strutil/strescape.c mc-new/lib/strutil/strescape.c
+--- mc-4.8.13/lib/strutil/strescape.c	2014-09-02 11:23:58.000000000 +0200
++++ mc-new/lib/strutil/strescape.c	2015-10-04 23:36:05.440284658 +0200
+@@ -253,3 +253,64 @@
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++/* unescape auxiliary function */
++
++/*
++   returns the (integer) digit value to the character,
++   or -1 if not in the valid set '0' ... '9', 'A' ... F'
++*/
++static unsigned int 
++digit_heximal(char dig)
++{
++
++  if ((dig >= '0') && (dig <= '9')) {
++    return dig - '0';
++  }
++  if (dig > 'F') { dig -= 0x20; }
++  if ((dig >= 'A') && (dig <= 'F')) {
++    return dig - 0x37;
++  }
++  return -1;
++}
++
++/*
++  Scans the srce string converting valid %cc hex escapes to their
++  ascii representation into the dest string.
++  Srce and dest refer to the same buffer without any ill effects.
++*/
++
++void
++strutils_url_unescape(char *buff)
++{
++  char *psrc = buff;
++  char *pdst = buff;
++  short int hex8;
++  short int low8;
++  int copy = 0;
++
++  while (*psrc != 0) {
++    if (*psrc != '%') {
++      if (copy) { *pdst++ = *psrc++; continue; }
++      else { pdst++; psrc++; continue; }
++    }
++    copy = 1;
++    // %% escape ?
++    if (*(++psrc) == '%') {
++      *pdst++ = *psrc++; continue;
++    }
++    hex8 = 16 * digit_heximal(*psrc++);
++    low8 = digit_heximal(*psrc++);
++    if ((low8 | hex8) < 0) {
++      // not a valid url escape - leave unmodified
++      *pdst++ = '%';
++      *pdst++ = *(psrc - 2);
++      *pdst++ = *(psrc - 1);
++    } else {
++      *pdst++ = (char) (hex8 + low8);
++    }
++  }
++  *pdst = 0;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff -rNu mc-4.8.13/src/vfs/ftpfs/ftpfs.c mc-new/src/vfs/ftpfs/ftpfs.c
+--- mc-4.8.13/src/vfs/ftpfs/ftpfs.c	2014-09-02 13:34:09.000000000 +0200
++++ mc-new/src/vfs/ftpfs/ftpfs.c	2015-10-04 23:44:07.136932019 +0200
+@@ -110,6 +110,7 @@
+ #include "lib/vfs/netutil.h"
+ #include "lib/vfs/xdirentry.h"
+ #include "lib/vfs/gc.h"         /* vfs_stamp_create */
++#include "lib/strescape.h"
+ 
+ #include "ftpfs.h"
+ 
+@@ -622,6 +623,8 @@
+     else
+         name = g_strdup (super->path_element->user);
+ 
++    strutils_url_unescape(name);
++
+     if (ftpfs_get_reply (me, SUP->sock, reply_string, sizeof (reply_string) - 1) == COMPLETE)
+     {
+         char *reply_up;

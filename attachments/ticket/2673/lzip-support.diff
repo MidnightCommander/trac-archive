@@ -1,0 +1,208 @@
+diff --git a/lib/util.c b/lib/util.c
+index 8ce9f81..13d98cf 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -938,6 +938,14 @@ get_compression_type (int fd, const char *name)
+     if (mc_read (fd, (char *) magic + 4, 2) != 2)
+         return COMPRESSION_NONE;
+ 
++    /* LZIP files */
++    if (magic[0] == 'L'
++        && magic[1] == 'Z'
++        && magic[2] == 'I'
++        && magic[3] == 'P'
++        && (magic[4] == 0 || magic[4] == 1 ) )
++        return COMPRESSION_LZIP;
++
+     /* LZMA utils format */
+     if (magic[0] == 0xFF
+         && magic[1] == 'L'
+@@ -972,6 +980,8 @@ decompress_extension (int type)
+         return "/ubz" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_BZIP2:
+         return "/ubz2" VFS_PATH_URL_DELIMITER;
++    case COMPRESSION_LZIP:
++        return "/ulz" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_LZMA:
+         return "/ulzma" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_XZ:
+diff --git a/lib/util.h b/lib/util.h
+index 3f67277..8af7e6f 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -41,6 +41,7 @@ enum compression_type
+     COMPRESSION_GZIP,
+     COMPRESSION_BZIP,
+     COMPRESSION_BZIP2,
++    COMPRESSION_LZIP,
+     COMPRESSION_LZMA,
+     COMPRESSION_XZ
+ };
+diff --git a/misc/filehighlight.ini b/misc/filehighlight.ini
+index af911fe..ac8c415 100644
+--- a/misc/filehighlight.ini
++++ b/misc/filehighlight.ini
+@@ -28,7 +28,7 @@
+     regexp=(^#.*|.*~$)
+ 
+ [archive]
+-    extensions=gz;bz2;tar;tgz;rpm;Z;rar;zip;arj;cab;lzh;lha;zoo;arc;ark;xz;tbz;tbz2;
++    extensions=gz;bz2;tar;tgz;rpm;Z;rar;zip;arj;cab;lzh;lha;zoo;arc;ark;xz;tbz;tbz2;lz;tlz;
+ 
+ [doc]
+     extensions=txt;doc;rtf;diz;ctl;me;ps;pdf;xml;xsd;xslt;dtd;html;shtml;htm;mail;msg;lsm;po;nroff;man;tex;sgml;css;text;letter;chm
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 50bcbda..0a9dd75 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -125,6 +125,11 @@ regex/\.t(ar\.bz2|bz2?|b2)$
+ 	Open=%cd %p/utar://
+ 	View=%view{ascii} bzip2 -dc %f 2>/dev/null | tar tvvf -
+ 
++# .tar.lz, .tlz
++regex/\.t(ar\.lz|lz)$
++	Open=%cd %p/utar://
++	View=%view{ascii} lzip -dc %f 2>/dev/null | tar tvvf -
++
+ # .tar.lzma, .tlz
+ regex/\.t(ar\.lzma|lz)$
+ 	Open=%cd %p/utar://
+@@ -347,6 +352,10 @@ regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.bz2$
+ 	Open=case %d/%f in */log/*|*/logs/*) bzip2 -dc %f ;; *) bzip2 -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
+ 	View=%view{ascii,nroff} case %d/%f in */log/*|*/logs/*) bzip2 -dc %f ;; *) bzip2 -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac
+ 
++regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.lz$
++	Open=case %d/%f in */log/*|*/logs/*) lzip -dc %f ;; *) lzip -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
++	View=%view{ascii,nroff} case %d/%f in */log/*|*/logs/*) lzip -dc %f ;; *) lzip -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac
++
+ regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.lzma$
+ 	Open=case %d/%f in */log/*|*/logs/*) lzma -dc %f ;; *) lzma -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
+ 	View=%view{ascii,nroff} case %d/%f in */log/*|*/logs/*) lzma -dc %f ;; *) lzma -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac
+@@ -663,6 +672,14 @@ type/^compress
+ 	Open=gzip -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} gzip -dc %f 2>/dev/null
+ 
++# lzip
++type/^lzip
++	Open=lzip -dc %f | %var{PAGER:more}
++	View=%view{ascii} lzip -dc %f 2>/dev/null
++
++regex/\.lz?$
++	View=%view{ascii} lzip -dc %f 2>/dev/null
++
+ # lzma
+ regex/\.lzma$
+ 	Open=lzma -dc %f | %var{PAGER:more}
+diff --git a/misc/syntax/sh.syntax b/misc/syntax/sh.syntax
+index f5537df..c582e1c 100644
+--- a/misc/syntax/sh.syntax
++++ b/misc/syntax/sh.syntax
+@@ -459,6 +459,8 @@ wholechars abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._
+     keyword whole lspci cyan
+     keyword whole lsusb cyan
+     keyword whole lynx cyan
++    keyword whole lzip cyan
++    keyword whole lziprecover cyan
+     keyword whole MAKEDEV cyan
+     keyword whole MAKEFLOPPIES cyan
+     keyword whole mail cyan
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 0dfdfb6..d388539 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -125,6 +125,7 @@ static const struct edit_filters
+ {
+     /* *INDENT-OFF* */
+     { "xz -cd %s 2>&1", "xz > %s", ".xz"},
++    { "lzip -cd %s 2>&1", "lzip > %s", ".lz"},
+     { "lzma -cd %s 2>&1", "lzma > %s", ".lzma" },
+     { "bzip2 -cd %s 2>&1", "bzip2 > %s", ".bz2" },
+     { "gzip -cd %s 2>&1", "gzip > %s", ".gz" },
+diff --git a/src/vfs/extfs/helpers/iso9660.in b/src/vfs/extfs/helpers/iso9660.in
+index 296ac54..e14b4ff 100644
+--- a/src/vfs/extfs/helpers/iso9660.in
++++ b/src/vfs/extfs/helpers/iso9660.in
+@@ -37,6 +37,7 @@ test_iso () {
+ mcisofs_list () {
+ # left as a reminder to implement compressed image support =)
+ case "$1" in
++  *.lz)  MYCAT="lzip -dc";;
+   *.lzma) MYCAT="lzma -dc";;
+   *.xz)  MYCAT="xz -dc";;
+   *.bz2) MYCAT="bzip2 -dc";;
+diff --git a/src/vfs/extfs/helpers/lslR.in b/src/vfs/extfs/helpers/lslR.in
+index 8b6833a..0ac2759 100644
+--- a/src/vfs/extfs/helpers/lslR.in
++++ b/src/vfs/extfs/helpers/lslR.in
+@@ -12,6 +12,7 @@ AWK=@AWK@
+ 
+ mclslRfs_list () {
+ case "$1" in
++  *.lz)  MYCAT="lzip -dc";;
+   *.lzma) MYCAT="lzma -dc";;
+   *.xz)  MYCAT="xz -dc";;
+   *.bz2) MYCAT="bzip2 -dc";;
+diff --git a/src/vfs/extfs/helpers/mailfs.in b/src/vfs/extfs/helpers/mailfs.in
+index bb372e3..b0c2a70 100644
+--- a/src/vfs/extfs/helpers/mailfs.in
++++ b/src/vfs/extfs/helpers/mailfs.in
+@@ -7,6 +7,7 @@ use bytes;
+ 
+ $zcat="zcat";                 # gunzip to stdout
+ $bzcat="bzip2 -dc";           # bunzip2 to stdout
++$lzipcat="lzip -dc";          # unlzip to stdout
+ $lzcat="lzma -dc";            # unlzma to stdout
+ $xzcat="xz -dc";              # unxz to stdout
+ $file="file";                 # "file" command
+@@ -184,6 +185,8 @@ if (/gzip/) {
+     exit 1 unless (open IN, "$zcat $mbox_qname|");
+ } elsif (/bzip/) {
+     exit 1 unless (open IN, "$bzcat $mbox_qname|");
++} elsif (/lzip/) {
++    exit 1 unless (open IN, "$lzipcat $mbox_qname|");    
+ } elsif (/lzma/) {
+     exit 1 unless (open IN, "$lzcat $mbox_qname|");
+ } elsif (/xz/) {
+diff --git a/src/vfs/extfs/helpers/patchfs.in b/src/vfs/extfs/helpers/patchfs.in
+index 264e857..ace3b49 100644
+--- a/src/vfs/extfs/helpers/patchfs.in
++++ b/src/vfs/extfs/helpers/patchfs.in
+@@ -13,6 +13,7 @@ use POSIX;
+ use File::Temp 'tempfile';
+ 
+ # standard binaries
++my $lzip = 'lzip';
+ my $lzma = 'lzma';
+ my $xz   = 'xz';
+ my $bzip = 'bzip2';
+@@ -80,6 +81,8 @@ sub myin
+     $_=`$fileutil $qfname`;
+     if (/^'*lzma/) {
+ 	return "$lzma -dc $qfname";
++    } elsif (/^'*lzip/) {
++	return "$lzip -dc $qfname";
+     } elsif (/^'*xz/) {
+ 	return "$xz -dc $qfname";
+     } elsif (/^'*bzip/) {
+@@ -100,6 +103,8 @@ sub myout
+     $_=`$fileutil $qfname`;
+     if (/^'*lzma/) {
+ 	return "$lzma -c $sep $qfname";
++    } elsif (/^'*lzip/) {
++	return "$lzip -c $sep $qfname";
+     } elsif (/^'*xz/) {
+ 	return "$xz -c $sep $qfname";
+     } elsif (/^'*bzip/) {
+diff --git a/src/vfs/extfs/helpers/sfs.ini b/src/vfs/extfs/helpers/sfs.ini
+index 522cca1..e16858d 100644
+--- a/src/vfs/extfs/helpers/sfs.ini
++++ b/src/vfs/extfs/helpers/sfs.ini
+@@ -10,6 +10,8 @@ bz/1	bzip < %1 > %3
+ ubz/1	bzip -d < %1 > %3
+ bz2/1	bzip2 < %1 > %3
+ ubz2/1	bzip2 -d < %1 > %3
++lz/1	lzip < %1 > %3
++ulz/1	lzip -dc < %1 > %3
+ lzma/1	lzma < %1 > %3
+ ulzma/1	lzma -d < %1 > %3
+ xz/1	xz < %1 > %3

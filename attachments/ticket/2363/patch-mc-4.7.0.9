@@ -1,0 +1,36 @@
+diff -urp mc-4.7.0.9/src/screen.c mc-4.7.0.9-mine/src/screen.c
+--- mc-4.7.0.9/src/screen.c	2010-09-07 08:53:08.000000000 +0200
++++ mc-4.7.0.9-mine/src/screen.c	2011-08-23 01:40:34.164204935 +0200
+@@ -1047,6 +1047,9 @@ paint_panel (WPanel * panel)
+     paint_dir (panel);
+     mini_info_separator (panel);
+     display_mini_info (panel);
++    widget_move(&panel->widget, (panel->selected - panel->top_file) %
++		    llines (panel) + 2, 1);
++
+     panel->dirty = 0;
+ }
+ 
+@@ -1325,8 +1328,8 @@ panel_new_with_dir (const char *panel_na
+     /* No know sizes of the panel at startup */
+     init_widget (&panel->widget, 0, 0, 0, 0, panel_callback, panel_event);
+ 
+-    /* We do not want the cursor */
+-    widget_want_cursor (panel->widget, 0);
++    /* We do want the cursor */
++    widget_want_cursor (panel->widget, 1);
+ 
+     if (wpath)
+     {
+diff -urp mc-4.7.0.9/src/widget.c mc-4.7.0.9-mine/src/widget.c
+--- mc-4.7.0.9/src/widget.c	2010-09-07 08:53:08.000000000 +0200
++++ mc-4.7.0.9-mine/src/widget.c	2011-08-23 01:38:54.019646895 +0200
+@@ -956,6 +956,8 @@ update_input (WInput *in, int clear_firs
+     if (!in->is_password) {
+         tty_print_string (str_term_substring (in->buffer, in->term_first_shown,
+                 in->field_width - has_history));
++        widget_move (&in->widget, 0, str_term_width2 (in->buffer, in->point)
++                - in->term_first_shown);
+     } else {
+         cp = in->buffer;
+         for (i = -in->term_first_shown; i < in->field_width - has_history; i++){

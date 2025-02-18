@@ -1,0 +1,270 @@
+diff --git a/misc/skins/default.ini b/misc/skins/default.ini
+index adcdef5..1fdf6bf 100644
+--- a/misc/skins/default.ini
++++ b/misc/skins/default.ini
+@@ -131,7 +131,7 @@
+ 
+ [widget-common]
+     sort-sign-up = '
+-    sort-sign-down = ,
++    sort-sign-down = .
+ 
+ [widget-panel]
+     filename-scroll-left-char = {
+diff --git a/misc/skins/double-lines.ini b/misc/skins/double-lines.ini
+index 690347e..63c7b60 100644
+--- a/misc/skins/double-lines.ini
++++ b/misc/skins/double-lines.ini
+@@ -130,7 +130,7 @@
+ 
+ [widget-common]
+     sort-sign-up = '
+-    sort-sign-down = ,
++    sort-sign-down = .
+ 
+ [widget-panel]
+     filename-scroll-left-char = {
+diff --git a/misc/skins/featured.ini b/misc/skins/featured.ini
+index 09957c3..1ceaa9d 100644
+--- a/misc/skins/featured.ini
++++ b/misc/skins/featured.ini
+@@ -131,8 +131,8 @@
+     menutitle=white;cyan
+ 
+ [widget-common]
+-    sort-sign-up = ↓
+-    sort-sign-down = ↑
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+     hiddenfiles-sign-show = ⋅
+diff --git a/misc/skins/mc46.ini b/misc/skins/mc46.ini
+index c7c2576..8c76f96 100644
+--- a/misc/skins/mc46.ini
++++ b/misc/skins/mc46.ini
+@@ -122,7 +122,7 @@
+ 
+ [widget-common]
+ 	sort-sign-up = '
+-	sort-sign-down = ,
++	sort-sign-down = .
+ 
+ [widget-panel]
+ 	filename-scroll-left-char = {
+diff --git a/misc/skins/modarcon16-defbg.ini b/misc/skins/modarcon16-defbg.ini
+index ec06e9b..6f92c08 100644
+--- a/misc/skins/modarcon16-defbg.ini
++++ b/misc/skins/modarcon16-defbg.ini
+@@ -163,8 +163,8 @@
+   error=color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/modarcon16.ini b/misc/skins/modarcon16.ini
+index 6e9d061..b3b8609 100644
+--- a/misc/skins/modarcon16.ini
++++ b/misc/skins/modarcon16.ini
+@@ -163,8 +163,8 @@
+   error=color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/modarcon16root-defbg.ini b/misc/skins/modarcon16root-defbg.ini
+index 14b8b01..0fb51a1 100644
+--- a/misc/skins/modarcon16root-defbg.ini
++++ b/misc/skins/modarcon16root-defbg.ini
+@@ -163,8 +163,8 @@
+   error=color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/modarcon16root.ini b/misc/skins/modarcon16root.ini
+index 9acaeba..51c83a1 100644
+--- a/misc/skins/modarcon16root.ini
++++ b/misc/skins/modarcon16root.ini
+@@ -163,8 +163,8 @@
+   error=color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/modarin256-defbg.ini b/misc/skins/modarin256-defbg.ini
+index b3621cb..0c0e459 100644
+--- a/misc/skins/modarin256-defbg.ini
++++ b/misc/skins/modarin256-defbg.ini
+@@ -163,8 +163,8 @@
+   error=color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/modarin256.ini b/misc/skins/modarin256.ini
+index bae8118..7a348ad 100644
+--- a/misc/skins/modarin256.ini
++++ b/misc/skins/modarin256.ini
+@@ -163,8 +163,8 @@
+   error=color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/modarin256root-defbg.ini b/misc/skins/modarin256root-defbg.ini
+index 9b510fb..07b55e1 100644
+--- a/misc/skins/modarin256root-defbg.ini
++++ b/misc/skins/modarin256root-defbg.ini
+@@ -163,8 +163,8 @@
+   error=color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/modarin256root.ini b/misc/skins/modarin256root.ini
+index 6d6b5fd..c21f385 100644
+--- a/misc/skins/modarin256root.ini
++++ b/misc/skins/modarin256root.ini
+@@ -163,8 +163,8 @@
+   error=color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↓
+-  sort-sign-down=↑
++  sort-sign-up=↑
++  sort-sign-down=↓
+ 
+ [widget-panel]
+   hiddenfiles-sign-show=•
+diff --git a/misc/skins/nicedark.ini b/misc/skins/nicedark.ini
+index 6243e04..bccdb19 100644
+--- a/misc/skins/nicedark.ini
++++ b/misc/skins/nicedark.ini
+@@ -129,8 +129,8 @@
+     menutitle=lightgray;black
+ 
+ [widget-common]
+-    sort-sign-down=↑
+-    sort-sign-up=↓
++    sort-sign-up=↑
++    sort-sign-down=↓
+ 
+ [widget-panel]
+     hiddenfiles-sign-show  = •
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index 7f2a55c..3454f51 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -103,8 +103,8 @@
+     _default_=rgb554;rgb320;bold
+     errdfocus=black;rgb452;bold
+     errdhotnormal=;;bold+underline
+-    errdhotfocus=black;rgb452;bold+underline 
+-    errdtitle=;;bold+underline 
++    errdhotfocus=black;rgb452;bold+underline
++    errdtitle=;;bold+underline
+ 
+ [filehighlight]
+     directory=
+@@ -132,7 +132,7 @@
+     menuinactive=
+ 
+ [popupmenu]
+-    _default_=black;rgb553 
++    _default_=black;rgb553
+     menusel=;rgb452;underline
+     menutitle=;;underline
+ 
+@@ -179,8 +179,8 @@
+     error=rgb554;rgb320
+ 
+ [widget-common]
+-    sort-sign-up = ↓
+-    sort-sign-down = ↑
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+     hiddenfiles-sign-show = •
+diff --git a/misc/skins/xoria256.ini b/misc/skins/xoria256.ini
+index e4f68dd..309833d 100644
+--- a/misc/skins/xoria256.ini
++++ b/misc/skins/xoria256.ini
+@@ -170,8 +170,8 @@
+     error=rgb554;rgb320
+ 
+ [widget-common]
+-    sort-sign-up = ↓
+-    sort-sign-down = ↑
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+     hiddenfiles-sign-show = •
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index cc9479b..45e4759 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1507,7 +1507,7 @@ panel_paint_sort_info (WPanel * panel)
+     if (*panel->sort_field->hotkey != '\0')
+     {
+         const char *sort_sign =
+-            panel->sort_info.reverse ? panel_sort_down_sign : panel_sort_up_sign;
++            panel->sort_info.reverse ? panel_sort_up_sign : panel_sort_down_sign;
+         char *str;
+ 
+         str = g_strdup_printf ("%s%s", sort_sign, Q_ (panel->sort_field->hotkey));
+@@ -1582,7 +1582,7 @@ paint_frame (WPanel * panel)
+                     && strcmp (format->id, panel->sort_field->id) == 0)
+                     g_string_append (format_txt,
+                                      panel->sort_info.reverse
+-                                     ? panel_sort_down_sign : panel_sort_up_sign);
++                                     ? panel_sort_up_sign : panel_sort_down_sign);
+ 
+                 g_string_append (format_txt, format->title);
+                 if (strcmp (format->id, "name") == 0 && panel->filter && *panel->filter)
+@@ -4758,7 +4758,7 @@ void
+ panel_init (void)
+ {
+     panel_sort_up_sign = mc_skin_get ("widget-common", "sort-sign-up", "'");
+-    panel_sort_down_sign = mc_skin_get ("widget-common", "sort-sign-down", ",");
++    panel_sort_down_sign = mc_skin_get ("widget-common", "sort-sign-down", ".");
+ 
+     panel_hiddenfiles_sign_show = mc_skin_get ("widget-panel", "hiddenfiles-sign-show", ".");
+     panel_hiddenfiles_sign_hide = mc_skin_get ("widget-panel", "hiddenfiles-sign-hide", ".");

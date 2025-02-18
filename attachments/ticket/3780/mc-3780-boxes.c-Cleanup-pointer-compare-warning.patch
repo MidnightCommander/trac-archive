@@ -1,0 +1,32 @@
+From 8a9f7a48bda32ed0dbbf47f358d0e734bfd75c5a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 11 May 2017 06:33:54 +0000
+Subject: [PATCH] (boxes.c) Cleanup pointer-compare warning
+
+Found by GCC 7.1.0.
+
+boxes.c:431:22: error: comparison between pointer and zero character constant [-Werror=pointer-compare]
+     if (state_str[0] == '\0')
+                      ^~
+boxes.c:431:9: note: did you mean to dereference the pointer?
+     if (state_str[0] == '\0')
+         ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/boxes.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 90dc6e0..2a39b37 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -428,7 +428,7 @@ jobs_fill_listbox (WListbox * list)
+     static const char *state_str[2] = { "", "" };
+     TaskList *tl;
+ 
+-    if (state_str[0] == '\0')
++    if (state_str[0][0] == '\0')
+     {
+         state_str[0] = _("Running");
+         state_str[1] = _("Stopped");

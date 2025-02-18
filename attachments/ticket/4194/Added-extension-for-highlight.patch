@@ -1,0 +1,53 @@
+From 4e165237674de2eee1fc4746e1d95c17a0e3109f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marek=20=C4=8Cernock=C3=BD?= <marek@manet.cz>
+Date: Sun, 7 Feb 2021 14:47:14 +0100
+Subject: [PATCH] Added .c++ and .h++ extensions for highlight
+
+---
+ lib/strutil/strescape.c | 2 +-
+ misc/filehighlight.ini  | 2 +-
+ misc/syntax/Syntax.in   | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/strutil/strescape.c b/lib/strutil/strescape.c
+index f27ee8aa0..706698c52 100644
+--- a/lib/strutil/strescape.c
++++ b/lib/strutil/strescape.c
+@@ -38,7 +38,7 @@
+ /*** file scope variables ************************************************************************/
+ 
+ static const char ESCAPE_SHELL_CHARS[] = " !#$%()&{}[]`?|<>;*\\\"'";
+-static const char ESCAPE_REGEX_CHARS[] = "^!#$%()&{}[]`?|<>;*.\\";
++static const char ESCAPE_REGEX_CHARS[] = "^!#$%()&{}[]`?|<>;*+.\\";
+ static const char ESCAPE_GLOB_CHARS[] = "$*\\?";
+ 
+ /*** file scope functions ************************************************************************/
+diff --git a/misc/filehighlight.ini b/misc/filehighlight.ini
+index c4716a5c0..5c754aa8a 100644
+--- a/misc/filehighlight.ini
++++ b/misc/filehighlight.ini
+@@ -34,7 +34,7 @@
+     extensions=chm;css;ctl;diz;doc;docm;docx;dtd;fodg;fodp;fods;fodt;htm;html;letter;lsm;mail;man;me;msg;nroff;odg;odp;ods;odt;pdf;po;ppt;pptm;pptx;ps;rtf;sgml;shtml;tex;text;txt;xls;xlsm;xlsx;xml;xsd;xslt
+ 
+ [source]
+-    extensions=ada;asm;awk;bash;c;caml;cc;cgi;cpp;cxx;diff;erl;go;h;hh;hi;hpp;hs;inc;jasm;jav;java;js;m4;mak;mjs;ml;mli;mll;mlp;mly;pas;patch;php;phps;pl;pm;prg;py;rb;s;sas;sh;sl;st;swift;tcl;tk;xq
++    extensions=ada;asm;awk;bash;c;caml;cc;cgi;cpp;cxx;c++;diff;erl;go;h;hh;hi;hpp;hs;h++;inc;jasm;jav;java;js;m4;mak;mjs;ml;mli;mll;mlp;mly;pas;patch;php;phps;pl;pm;prg;py;rb;s;sas;sh;sl;st;swift;tcl;tk;xq
+ 
+ [media]
+     extensions=3gp;aac;ac3;ape;asf;avi;dts;flac;flv;it;m3u;m4a;m4v;med;mid;midi;mkv;mod;mol;mov;mp2;mp3;mp4;mpeg;mpg;mpl;ogg;ogv;opus;s3m;ts;umx;vob;wav;webm;wma;wmv;xm
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index eefe91d72..43f02e8c4 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -97,7 +97,7 @@ include texinfo.syntax
+ file ..\*\\.c$ C\sProgram
+ include c.syntax
+ 
+-file ..\*\\.([hC]|(?i:cxx|cc|cpp|hpp|hxx|hh|ino)|[Hh]\\.in)$ C/C\+\+\sProgram
++file ..\*\\.([hC]|(?i:cxx|cc|cpp|c\\\+\\\+|hxx|hh|hpp|h\\\+\\\+|ino)|[Hh]\\.in)$ C/C\+\+\sProgram
+ include cxx.syntax
+ 
+ file ..\*\\.d$ D\sProgram
+-- 
+2.29.2
+

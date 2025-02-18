@@ -1,0 +1,30 @@
+From 2c8d370eb1f5e63a692b912048b4bf7f3fd3a3c9 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 12:29:59 +0000
+Subject: [PATCH] editor/choosesyntax.c: cleanup -Wcast-qual warning
+
+choosesyntax.c:64:21: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return strcmp (*(char **) p1, *(char **) p2);
+                     ^
+choosesyntax.c:64:36: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return strcmp (*(char **) p1, *(char **) p2);
+                                    ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/choosesyntax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/choosesyntax.c b/src/editor/choosesyntax.c
+index bec3bdc..b7e402e 100644
+--- a/src/editor/choosesyntax.c
++++ b/src/editor/choosesyntax.c
+@@ -61,7 +61,7 @@
+ static int
+ pstrcmp (const void *p1, const void *p2)
+ {
+-    return strcmp (*(char **) p1, *(char **) p2);
++    return strcmp (*(char *const *) p1, *(char *const *) p2);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

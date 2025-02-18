@@ -1,0 +1,193 @@
+# OpenLDAP Schema file syntax
+# Copyleft, by KLArk (A), 2012
+#
+
+define KeyName cyan
+define Comments green
+define StringID yellow
+define SchemaEquality red
+define SchemaStruct white
+define SchemaOID brightblue
+define DigitalID brightgreen
+define SchemaAttrUsage brightred
+
+
+context default
+    keyword linestart # Comments
+    keyword whole linestart \{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Ii\}\{Dd\}\{Ee\}\{Nn\}\{Tt\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\} KeyName
+    keyword whole linestart \{Aa\}\{Tt\}\{Tt\}\{Rr\}\{Ii\}\{Bb\}\{Uu\}\{Tt\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\} KeyName
+    keyword whole linestart \{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\} KeyName
+
+# Comments
+context exclusive linestart # \n Comments
+
+
+# objectidentifier
+
+context exclusive linestart O\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Ii\}\{Dd\}\{Ee\}\{Nn\}\{Tt\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\} \n
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+
+context exclusive linestart o\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Ii\}\{Dd\}\{Ee\}\{Nn\}\{Tt\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\} \n
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+
+
+# attributetype
+
+context exclusive linestart A\{Tt\}\{Tt\}\{Rr\}\{Ii\}\{Bb\}\{Uu\}\{Tt\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\} \n\{#\n\}
+    keyword '*' StringID
+
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole USAGE SchemaStruct
+    keyword whole SUBSTR SchemaStruct
+    keyword whole SYNTAX SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole EQUALITY SchemaStruct
+    keyword whole ORDERING SchemaStruct
+    keyword whole COLLECTIVE SchemaStruct
+    keyword whole SINGLE-VALUE SchemaStruct
+    keyword whole NO-USER-MODIFICATION SchemaStruct
+
+    keyword whole userApplications SchemaAttrUsage
+    keyword whole directoryOperation SchemaAttrUsage
+    keyword whole distributedOperation SchemaAttrUsage
+    keyword whole dSAOperation SchemaAttrUsage
+
+    keyword whole booleanMatch SchemaEquality
+    keyword whole caseIgnoreMatch SchemaEquality
+    keyword whole caseIgnoreOrderingMatch SchemaEquality
+    keyword whole caseIgnoreSubstringsMatch SchemaEquality
+    keyword whole caseExactMatch SchemaEquality
+    keyword whole caseExactOrderingMatch SchemaEquality
+    keyword whole caseExactSubstringsMatch SchemaEquality
+    keyword whole distinguishedNameMatch SchemaEquality
+    keyword whole integerMatch SchemaEquality
+    keyword whole integerOrderingMatch SchemaEquality
+    keyword whole numericStringMatch SchemaEquality
+    keyword whole numericStringOrderingMatch SchemaEquality
+    keyword whole numericStringSubstringsMatch SchemaEquality
+    keyword whole octetStringMatch SchemaEquality
+    keyword whole octetStringOrderingMatch SchemaEquality
+    keyword whole octetStringSubstringsMatch SchemaEquality
+    keyword whole objectIdentiferMatch SchemaEquality
+    keyword whole caseIgnoreListMatch SchemaEquality
+    keyword whole caseIgnoreListSubstringsMatch SchemaEquality
+    keyword whole telephoneNumberMatch SchemaEquality
+    keyword whole telephoneNumberSubstringsMatch SchemaEquality
+    keyword whole presentationAddressMatch SchemaEquality
+    keyword whole objectIdentifierMatch SchemaEquality
+    keyword whole certificateExactMatch SchemaEquality
+    keyword whole bitStringMatch SchemaEquality
+    keyword whole protocolInformationMatch SchemaEquality
+    keyword whole uniqueMemberMatch SchemaEquality
+    keyword whole caseExactIA5Match SchemaEquality
+    keyword whole caseIgnoreIA5Match SchemaEquality
+    keyword whole caseExactIA5SubstringsMatch SchemaEquality
+    keyword whole caseIgnoreIA5SubstringsMatch SchemaEquality
+
+    keyword wholeright {\{01234567890\}\[.01234567890\]} DigitalID
+
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+
+context exclusive linestart a\{Tt\}\{Tt\}\{Rr\}\{Ii\}\{Bb\}\{Uu\}\{Tt\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\} \n\{#\n\}
+    keyword '*' StringID
+
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole USAGE SchemaStruct
+    keyword whole SUBSTR SchemaStruct
+    keyword whole SYNTAX SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole EQUALITY SchemaStruct
+    keyword whole ORDERING SchemaStruct
+    keyword whole COLLECTIVE SchemaStruct
+    keyword whole SINGLE-VALUE SchemaStruct
+    keyword whole NO-USER-MODIFICATION SchemaStruct
+
+    keyword whole userApplications SchemaAttrUsage
+    keyword whole directoryOperation SchemaAttrUsage
+    keyword whole distributedOperation SchemaAttrUsage
+    keyword whole dSAOperation SchemaAttrUsage
+
+    keyword whole booleanMatch SchemaEquality
+    keyword whole caseIgnoreMatch SchemaEquality
+    keyword whole caseIgnoreOrderingMatch SchemaEquality
+    keyword whole caseIgnoreSubstringsMatch SchemaEquality
+    keyword whole caseExactMatch SchemaEquality
+    keyword whole caseExactOrderingMatch SchemaEquality
+    keyword whole caseExactSubstringsMatch SchemaEquality
+    keyword whole distinguishedNameMatch SchemaEquality
+    keyword whole integerMatch SchemaEquality
+    keyword whole integerOrderingMatch SchemaEquality
+    keyword whole numericStringMatch SchemaEquality
+    keyword whole numericStringOrderingMatch SchemaEquality
+    keyword whole numericStringSubstringsMatch SchemaEquality
+    keyword whole octetStringMatch SchemaEquality
+    keyword whole octetStringOrderingMatch SchemaEquality
+    keyword whole octetStringSubstringsMatch SchemaEquality
+    keyword whole objectIdentiferMatch SchemaEquality
+    keyword whole caseIgnoreListMatch SchemaEquality
+    keyword whole caseIgnoreListSubstringsMatch SchemaEquality
+    keyword whole telephoneNumberMatch SchemaEquality
+    keyword whole telephoneNumberSubstringsMatch SchemaEquality
+    keyword whole presentationAddressMatch SchemaEquality
+    keyword whole objectIdentifierMatch SchemaEquality
+    keyword whole certificateExactMatch SchemaEquality
+    keyword whole bitStringMatch SchemaEquality
+    keyword whole protocolInformationMatch SchemaEquality
+    keyword whole uniqueMemberMatch SchemaEquality
+    keyword whole caseExactIA5Match SchemaEquality
+    keyword whole caseIgnoreIA5Match SchemaEquality
+    keyword whole caseExactIA5SubstringsMatch SchemaEquality
+    keyword whole caseIgnoreIA5SubstringsMatch SchemaEquality
+
+    keyword wholeright {\{01234567890\}\[.01234567890\]} DigitalID
+
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+
+
+
+# objectclass
+
+context exclusive linestart O\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\} \n\{#\n\}
+    keyword '*' StringID
+
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole $ SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole MAY SchemaStruct
+    keyword whole MUST SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole ABSTRACT SchemaStruct
+    keyword whole AUXILIARY SchemaStruct
+    keyword whole STRUCTURAL SchemaStruct
+
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+
+context exclusive linestart o\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\} \n\{#\n\}
+    keyword '*' StringID
+
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole $ SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole MAY SchemaStruct
+    keyword whole MUST SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole ABSTRACT SchemaStruct
+    keyword whole AUXILIARY SchemaStruct
+    keyword whole STRUCTURAL SchemaStruct
+
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+

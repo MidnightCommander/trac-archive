@@ -1,0 +1,398 @@
+diff --git a/src/filemanager/ext.c b/src/filemanager/ext.c
+index b022dcb..70a293d 100644
+--- a/src/filemanager/ext.c
++++ b/src/filemanager/ext.c
+@@ -76,10 +76,20 @@
+ #define FILE_CMD "file "
+ #endif
+ 
++#define EXT_COMMAND_CACHE_SIZE 128
++
+ /*** file scope type declarations ****************************************************************/
+ 
+ typedef char *(*quote_func_t) (const char *name, int quote_percent);
+ 
++typedef struct {
++    char *filename;
++    char *command;
++    char *temp_command_file;
++    int freq;
++} ext_command_cache_t;
++
++
+ /*** file scope variables ************************************************************************/
+ 
+ /* This variable points to a copy of the mc.ext file in memory
+@@ -98,6 +108,9 @@ static gboolean is_cd = FALSE;
+ static gboolean written_nonspace = FALSE;
+ static gboolean do_local_copy = FALSE;
+ 
++static ext_command_cache_t ext_command_cache[EXT_COMMAND_CACHE_SIZE];
++static int command_cache_idx = 0;
++
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -337,8 +350,7 @@ exec_make_shell_string (const char *lc_data, const vfs_path_t * filename_vpath)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-exec_extension_view (char *cmd, const vfs_path_t * filename_vpath, int start_line,
+-                     vfs_path_t * temp_file_name_vpath)
++exec_extension_view (char *cmd, const vfs_path_t * filename_vpath, int start_line)
+ {
+     int def_hex_mode = mcview_default_hex_mode, changed_hex_mode = 0;
+     int def_nroff_flag = mcview_default_nroff_flag, changed_nroff_flag = 0;
+@@ -356,7 +368,6 @@ exec_extension_view (char *cmd, const vfs_path_t * filename_vpath, int start_lin
+     if (written_nonspace)
+     {
+         mcview_viewer (cmd, filename_vpath, start_line);
+-        mc_unlink (temp_file_name_vpath);
+     }
+     else
+         mcview_viewer (NULL, filename_vpath, start_line);
+@@ -398,7 +409,94 @@ exec_extension_cd (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-exec_extension (const vfs_path_t * filename_vpath, const char *lc_data, int start_line)
++flush_command_cache_member (int i)
++{
++    vfs_path_t *vpath = vfs_path_from_str (ext_command_cache[i].temp_command_file);
++
++    mc_unlink (vpath);
++    vfs_path_free (vpath);
++    g_free (ext_command_cache[i].filename);
++    g_free (ext_command_cache[i].command);
++    g_free (ext_command_cache[i].temp_command_file);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static int
++check_command_cache (const vfs_path_t *filename_vpath)
++{
++    int i;
++    char *filename = vfs_path_to_str (filename_vpath);
++
++    for (i=0; i<command_cache_idx; i++)
++    {
++        if (!strcmp(ext_command_cache[i].filename, filename))
++        {
++            g_free (filename);
++            ext_command_cache[i].freq++;
++            return i;
++        }
++    }
++    return -1;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static int
++add_command_cache (char *cmd, const vfs_path_t *filename_vpath, vfs_path_t *temp_file_name_vpath)
++{
++    int i;
++    char *filename = vfs_path_to_str (filename_vpath);
++
++    for (i=0; i<command_cache_idx; i++)
++    {
++        if (!strcmp(ext_command_cache[i].filename, filename))
++        {
++            g_free (filename);
++            ext_command_cache[i].freq++;
++            return i;
++        }
++    }
++    if (i < EXT_COMMAND_CACHE_SIZE)
++    {
++        ext_command_cache[i].filename = g_strdup(filename);
++        ext_command_cache[i].command = g_strdup(cmd);
++        ext_command_cache[i].temp_command_file = vfs_path_to_str (temp_file_name_vpath);
++        ext_command_cache[i].freq = 0;
++        command_cache_idx++;
++    }
++    else
++    {
++        int j, min = 99999;
++        i = 0;
++
++        for (j=0; j<command_cache_idx; j++)
++        {
++            if (ext_command_cache[j].freq == 0)
++            {
++                i = j;
++                break;
++            }
++            if (ext_command_cache[j].freq < min)
++            {
++                min = ext_command_cache[j].freq;
++                i = j;
++            }
++        }
++        flush_command_cache_member(i);
++        ext_command_cache[i].filename = g_strdup(filename);
++        ext_command_cache[i].command = g_strdup(cmd);
++        ext_command_cache[i].temp_command_file = vfs_path_to_str (temp_file_name_vpath);
++        ext_command_cache[i].freq = 0;
++    }
++    g_free (filename);
++    return i;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++exec_extension (const vfs_path_t * filename_vpath, const char *lc_data, int start_line, int *cmd_idx, gboolean run_dialog)
+ {
+     char *shell_string, *export_variables;
+     vfs_path_t *temp_file_name_vpath = NULL;
+@@ -493,7 +591,17 @@ exec_extension (const vfs_path_t * filename_vpath, const char *lc_data, int star
+     }
+ 
+     if (run_view)
+-        exec_extension_view (cmd, filename_vpath, start_line, temp_file_name_vpath);
++    {
++        int cidx = -1;
++        if (written_nonspace)
++            cidx = add_command_cache (cmd, filename_vpath, temp_file_name_vpath);
++        if (!run_dialog)
++        {
++            *cmd_idx = cidx;
++        }
++        else
++            exec_extension_view (cmd, filename_vpath, start_line);
++    }
+     else
+     {
+         shell_execute (cmd, EXECUTE_INTERNAL);
+@@ -754,6 +862,31 @@ flush_extension_file (void)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++void
++ext_flush_command_cache (void)
++{
++    int i;
++
++    for (i=0; i<command_cache_idx; i++)
++    {
++        flush_command_cache_member(i);
++    }
++    command_cache_idx = 0;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++char *
++ext_get_command_cache (int idx)
++{
++    if (idx >= command_cache_idx)
++        return NULL;
++
++    return ext_command_cache[idx].command;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ /**
+  * The second argument is action, i.e. Open, View or Edit
+  *
+@@ -770,6 +903,12 @@ flush_extension_file (void)
+ int
+ regex_command (const vfs_path_t * filename_vpath, const char *action)
+ {
++    return regex_command2 (filename_vpath, action, NULL, TRUE);
++}
++
++int
++regex_command2 (const vfs_path_t * filename_vpath, const char *action, int *cmd_idx, gboolean run_dialog)
++{
+     char *filename, *p, *q, *r, c;
+     size_t file_len;
+     gboolean found = FALSE;
+@@ -795,6 +934,22 @@ regex_command (const vfs_path_t * filename_vpath, const char *action)
+         view_at_line_number = 0;
+     }
+ 
++    if (strcmp (action, "View") == 0)
++    {
++        int cidx;
++        if ((cidx = check_command_cache(filename_vpath)) > -1)
++        {
++            if (!run_dialog)
++            {
++                *cmd_idx = cidx;
++            }
++            else
++                exec_extension_view (ext_get_command_cache(cidx), filename_vpath, view_at_line_number);
++
++            return 1;
++        }
++    }
++
+     if (data == NULL)
+     {
+         char *extension_file;
+@@ -1022,7 +1177,7 @@ regex_command (const vfs_path_t * filename_vpath, const char *action)
+                          */
+                         if (p < q)
+                         {
+-                            exec_extension (filename_vpath, r + 1, view_at_line_number);
++                            exec_extension (filename_vpath, r + 1, view_at_line_number, cmd_idx, run_dialog);
+                             ret = 1;
+                         }
+                         break;
+diff --git a/src/filemanager/ext.h b/src/filemanager/ext.h
+index a4c470b..4847507 100644
+--- a/src/filemanager/ext.h
++++ b/src/filemanager/ext.h
+@@ -15,6 +15,9 @@
+ /*** declarations of public functions ************************************************************/
+ 
+ int regex_command (const vfs_path_t * filename_vpath, const char *action);
++int regex_command2 (const vfs_path_t * filename_vpath, const char *action, int *cmd_idx, gboolean run_dialog);
++char *ext_get_command_cache (int idx);
++void ext_flush_command_cache (void);
+ 
+ /* Call it after the user has edited the mc.ext file,
+  * to flush the cached mc.ext file
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index f97a18e..23ae881 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -77,6 +77,8 @@
+ #include "chown.h"
+ #include "achown.h"
+ 
++#include "ext.h"          /* ext_flush_command_cache() */
++
+ #ifdef USE_INTERNAL_EDIT
+ #include "src/editor/edit.h"
+ #endif
+@@ -1797,6 +1799,7 @@ do_nc (void)
+     destroy_dlg (midnight_dlg);
+     current_panel = NULL;
+ 
++    ext_flush_command_cache();
+ #ifdef USE_INTERNAL_EDIT
+     edit_stack_free ();
+ #endif
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index e6baa02..68adc10 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -62,6 +62,7 @@
+ 
+ #include "src/filemanager/layout.h"
+ #include "src/filemanager/cmd.h"
++#include "src/filemanager/ext.h"
+ #include "src/filemanager/midnight.h"   /* current_panel */
+ 
+ #include "src/history.h"
+@@ -319,7 +320,7 @@ static void
+ mcview_load_next_prev (mcview_t * view, int direction)
+ {
+     dir_list *dir;
+-    int *dir_count, *dir_idx;
++    int *dir_count, *dir_idx, cmd_idx;
+     vfs_path_t *vfile;
+     char *file;
+ 
+@@ -335,10 +336,30 @@ mcview_load_next_prev (mcview_t * view, int direction)
+     view->dir_idx = NULL;
+     vfile = vfs_path_append_new (view->workdir_vpath, dir->list[*dir_idx].fname, (char *) NULL);
+     file = vfs_path_to_str (vfile);
+-    vfs_path_free (vfile);
+     mcview_done (view);
+     mcview_init (view);
+-    mcview_load (view, NULL, file, 0);
++    if (view->magic_mode) {
++        if (regex_command2 (vfile, "View", &cmd_idx, FALSE) != 1)
++        {
++            mcview_load (view, NULL, file, 0);
++        }
++        else
++        {
++            if (cmd_idx > -1)
++            {
++                mcview_load (view, ext_get_command_cache(cmd_idx), file, 0);
++            }
++            else
++            {
++                mcview_load (view, NULL, file, 0);
++            }
++        }
++    }
++    else
++    {
++        mcview_load (view, NULL, file, 0);
++    }
++    vfs_path_free (vfile);
+     g_free (file);
+     view->dir = dir;
+     view->dir_count = dir_count;
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index c99197f..594f77a 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -52,6 +52,8 @@
+ #include "src/selcodepage.h"
+ #endif
+ 
++#include "src/filemanager/ext.h"
++
+ #include "internal.h"
+ #include "mcviewer.h"
+ 
+@@ -79,7 +81,8 @@ mcview_toggle_magic_mode (mcview_t * view)
+ {
+     char *filename, *command;
+     dir_list *dir;
+-    int *dir_count, *dir_idx;
++    int *dir_count, *dir_idx, cmd_idx;
++    vfs_path_t *vfile = vfs_path_clone (view->filename_vpath);
+ 
+     mcview_altered_magic_flag = 1;
+     view->magic_mode = !view->magic_mode;
+@@ -95,10 +98,39 @@ mcview_toggle_magic_mode (mcview_t * view)
+     view->dir_idx = NULL;
+     mcview_done (view);
+     mcview_init (view);
+-    mcview_load (view, command, filename, 0);
++    if (view->magic_mode)
++    {
++        if (command)
++        {
++            mcview_load (view, command, filename, 0);
++        }
++        else
++        {
++            if (regex_command2 (vfile, "View", &cmd_idx, FALSE) != 1)
++            {
++                mcview_load (view, NULL, filename, 0);
++            }
++            else
++            {
++                if (cmd_idx > -1)
++                {
++                    mcview_load (view, ext_get_command_cache(cmd_idx), filename, 0);
++                }
++                else
++                {
++                    mcview_load (view, NULL, filename, 0);
++                }
++            }
++        }
++    }
++    else
++    {
++        mcview_load (view, NULL, filename, 0);
++    }
+     view->dir = dir;
+     view->dir_count = dir_count;
+     view->dir_idx = dir_idx;
++    vfs_path_free (vfile);
+     g_free (filename);
+     g_free (command);
+ 

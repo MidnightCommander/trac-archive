@@ -1,0 +1,41 @@
+From bdbf4b4f5e3e277e48295d2462ec208ba29f60c8 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 12 Dec 2016 14:23:50 +0200
+Subject: [PATCH 06/13] Ticket #3729: extfs: uarc: fix date format.
+
+Use "MM-DD-YYYY hh:mm" instead of "Mon DD YYYY hh:mm".
+---
+ src/vfs/extfs/helpers/uarc.in | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/uarc.in b/src/vfs/extfs/helpers/uarc.in
+index 8c1a006..2ddee8b 100644
+--- a/src/vfs/extfs/helpers/uarc.in
++++ b/src/vfs/extfs/helpers/uarc.in
+@@ -24,7 +24,13 @@ mc_arc_fs_list()
+         fi
+     fi
+     $ARC_LIST "$1" | @AWK@ -v uid=$UID '
+-BEGIN { }
++BEGIN {
++  # Copied from uzoo.in.
++  split("Jan:Feb:Mar:Apr:May:Jun:Jul:Aug:Sep:Oct:Nov:Dec", month_list, ":")
++  for (i=1; i<=12; i++) {
++    month[month_list[i]] = i
++  }
++}
+ /^Name/ { next }
+ /===/ { next }
+ /^Total/ { next }
+@@ -45,7 +51,7 @@ BEGIN { }
+                 a[2]=substr(a[2],1,2)
+         }
+ 
+-        printf "-rw-r--r--   1 %-8d %-8d %8d %s %2d %4d %02d:%02d %s\n", uid, 0, $2, $7, $6, $8, a[1], a[2], $1
++        printf "-rw-r--r--   1 %-8d %-8d %8d %02d-%02d-%04d %02d:%02d %s\n", uid, 0, $2, month[$7], $6, $8, a[1], a[2], $1
+ }' 2>/dev/null
+     exit 0
+ }
+-- 
+2.9.3
+

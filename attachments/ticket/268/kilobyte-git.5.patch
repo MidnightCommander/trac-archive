@@ -1,0 +1,192 @@
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 22f354e..6a56a7b 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -3139,6 +3139,13 @@ This value is the number of seconds the Midnight Commander will wait
+ before attempting to reconnect to an FTP server that has denied the
+ login.  If the value is zero, the login will no be retried.
+ .TP
++.I kilobyte_si
++If this option is set (kilobyte_si=1), Midnight Commander will use SI units
++(powers of 1000) when displaying any byte sizes. The suffixes (k, m ...)
++are shown in lowercase.
++If unset (default), Midnight Commander will use binary units (powers of 1024)
++and the suffixes are shown in upper case (K, M ...)
++.TP
+ .I max_dirt_limit
+ Specifies how many screen updates can be skipped at most in the internal
+ file viewer.  Normally this value is not significant, because the code
+diff --git a/src/dir.c b/src/dir.c
+index 9bd371f..181140c 100644
+--- a/src/dir.c
++++ b/src/dir.c
+@@ -45,6 +45,13 @@ int show_backups = 1;
+ /* If false then directories are shown separately from files */
+ int mix_all_files = 0;
+ 
++/*
++ * If true, SI units (1000 based) will be used for
++ * larger units (kilobyte, megabyte, ...).
++ * If false binary units (1024 based) will be used.
++ */
++int kilobyte_si = 0;
++
+ /* Reverse flag */
+ static int reverse = 1;
+ 
+diff --git a/src/dir.h b/src/dir.h
+index 2a4d92a..9ee0096 100644
+--- a/src/dir.h
++++ b/src/dir.h
+@@ -83,5 +83,6 @@ int if_link_is_exe (const char *full_name, const file_entry *file);
+ extern int show_backups;
+ extern int show_dot_files;
+ extern int mix_all_files;
++extern int kilobyte_si;
+ 
+ #endif
+diff --git a/src/main.c b/src/main.c
+index 04f8d5a..7fc028b 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -883,6 +883,13 @@ toggle_show_hidden (void)
+     update_panels (UP_RELOAD, UP_KEEPSEL);
+ }
+ 
++void
++toggle_kilobyte_si (void)
++{
++    kilobyte_si = !kilobyte_si;
++    update_panels (UP_RELOAD, UP_KEEPSEL);
++}
++
+ /*
+  * Just a hack for allowing url-like pathnames to be accepted from the
+  * command line.
+diff --git a/src/main.h b/src/main.h
+index 6e1fe2c..aac3ec0 100644
+--- a/src/main.h
++++ b/src/main.h
+@@ -11,6 +11,7 @@ void toggle_fast_reload (void);
+ void toggle_mix_all_files (void);
+ void toggle_show_backup (void);
+ void toggle_show_hidden (void);
++void toggle_kilobyte_si (void);
+ 
+ extern int quote;
+ extern volatile int quit;
+diff --git a/src/option.c b/src/option.c
+index 64aad7b..1815bcc 100644
+--- a/src/option.c
++++ b/src/option.c
+@@ -78,12 +78,13 @@ static struct {
+    {N_("ma&Rk moves down"),   &mark_moves_down,   TOGGLE_VARIABLE,       0 },
+    {N_("show &Hidden files"), &show_dot_files,    toggle_show_hidden,    0 },
+    {N_("show &Backup files"), &show_backups,      toggle_show_backup,    0 },
++   {N_("SI si&ze prefixes"),  &kilobyte_si,       toggle_kilobyte_si,    0 },
+    { 0, 0, 0, 0 }
+ };
+ 
+ /* Make sure this corresponds to the check_options structure */
+ #define OTHER_OPTIONS 13
+-#define PANEL_OPTIONS 6
++#define PANEL_OPTIONS 7
+ 
+ static WRadio *pause_radio;
+ 
+diff --git a/src/setup.c b/src/setup.c
+index 66b1e23..256cca1 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -148,6 +148,7 @@ static const struct {
+     int  *opt_addr;
+ } int_options [] = {
+     { "show_backups", &show_backups },
++    { "kilobyte_si", &kilobyte_si },
+     { "show_dot_files", &show_dot_files },
+     { "verbose", &verbose },
+     { "mark_moves_down", &mark_moves_down },
+diff --git a/src/util.c b/src/util.c
+index 2649182..3d5a5c8 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -53,6 +53,7 @@
+ #include "strutil.h"
+ #include "fileopctx.h"
+ #include "file.h"		/* copy_file_file() */
++#include "dir.h"
+ 
+ #ifdef HAVE_CHARSET
+ #include "charsets.h"
+@@ -271,11 +272,11 @@ size_trunc (double size)
+     const char *xtra = "";
+     
+     if (size > 999999999L){
+-	divisor = 1024;
+-	xtra = "K";
++	divisor = kilobyte_si?1000:1024;
++	xtra = kilobyte_si?"k":"K";
+ 	if (size/divisor > 999999999L){
+-	    divisor = 1024*1024;
+-	    xtra = "M";
++	    divisor = kilobyte_si?(1000*1000):(1024*1024);
++	    xtra = kilobyte_si?"m":"M";
+ 	}
+     }
+     g_snprintf (x, sizeof (x), "%.0f%s", (size/divisor), xtra);
+@@ -327,12 +328,29 @@ size_trunc_len (char *buffer, int len, off_t size, int units)
+ 	 1000000000};
+     static const char * const suffix [] =
+ 	{"", "K", "M", "G", "T", "P", "E", "Z", "Y", NULL};
++    static const char * const suffix_lc [] =
++	{"", "k", "m", "g", "t", "p", "e", "z", "y", NULL};
+     int j = 0;
++    int size_remain;
+ 
+     /* Don't print more than 9 digits - use suffix.  */
+     if (len == 0 || len > 9)
+ 	len = 9;
+ 
++    /*
++     * recalculate from 1024 base to 1000 base if units>0
++     * We can't just multiply by 1024 - that might cause overflow
++     * if off_t type is too small
++     */
++    if (units && kilobyte_si) {
++     for (j = 0; j < units; j++) {
++      size_remain=((size % 125)*1024)/1000; /* size mod 125, recalculated */
++      size = size / 125; /* 128/125 = 1024/1000 */
++      size = size * 128; /* This will convert size from multiple of 1024 to multiple of 1000 */
++      size += size_remain; /* Re-add remainder lost by division/multiplication */
++     }
++    }
++
+     for (j = units; suffix [j] != NULL; j++) {
+ 	if (size == 0) {
+ 	    if (j == units) {
+@@ -343,17 +361,21 @@ size_trunc_len (char *buffer, int len, off_t size, int units)
+ 
+ 	    /* Use "~K" or just "K" if len is 1.  Use "B" for bytes.  */
+ 	    g_snprintf (buffer, len + 1, (len > 1) ? "~%s" : "%s",
+-			(j > 1) ? suffix[j - 1] : "B");
++			(j > 1) ? (kilobyte_si ? suffix_lc[j - 1] : suffix[j - 1]) : "B");
+ 	    break;
+ 	}
+ 
+ 	if (size < power10 [len - (j > 0)]) {
+-	    g_snprintf (buffer, len + 1, "%lu%s", (unsigned long) size, suffix[j]);
++	    g_snprintf (buffer, len + 1, "%lu%s", (unsigned long) size, kilobyte_si ? suffix_lc[j] : suffix[j]);
+ 	    break;
+ 	}
+ 
+-	/* Powers of 1024, with rounding.  */
+-	size = (size + 512) >> 10;
++	/* Powers of 1000 or 1024, with rounding.  */
++	if (kilobyte_si) {
++	    size = (size + 500) / 1000;
++	} else {
++	    size = (size + 512) >> 10;
++	}
+     }
+ }
+ 

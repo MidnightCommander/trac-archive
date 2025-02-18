@@ -1,0 +1,253 @@
+diff --git a/misc/ext.d/package.sh b/misc/ext.d/package.sh
+index 4422879..69078ce 100755
+--- a/misc/ext.d/package.sh
++++ b/misc/ext.d/package.sh
+@@ -32,6 +32,16 @@ do_view_action() {
+     deba)
+         apt-cache show `echo "${MC_EXT_BASENAME}" | sed 's/\([0-9a-z.-]*\).*/\1/'`
+         ;;
++    ipk)
++        if [ "${filetype}" == "ipk" ];then
++            gzip -t "${MC_EXT_FILENAME}" 2>/dev/null
++            if [ $? -eq 0 ];then
++                gzip -dc "${MC_EXT_FILENAME}" 2>/dev/null | tar tvvf -
++            else
++                dpkg-deb -I "${MC_EXT_FILENAME}" && echo && dpkg-deb -c "${MC_EXT_FILENAME}"
++            fi
++        fi
++        ;;
+     *)
+         ;;
+     esac
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 68c6819..e32b5c8 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -117,8 +117,8 @@ regex/^\[git\]
+ 
+ ### Archives ###
+ 
+-# .tgz, .tpz, .tar.gz, .tar.z, .tar.Z, .ipk, .gem
+-regex/\.t([gp]?z|ar\.g?[zZ])$|\.ipk$|\.gem$
++# .tgz, .tpz, .tar.gz, .tar.z, .tar.Z, .gem
++regex/\.t([gp]?z|ar\.g?[zZ])$|\.gem$
+ 	Open=%cd %p/utar://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view tar.gz
+ 
+@@ -249,6 +249,11 @@ shell/.deba
+         Open=%cd %p/deba://
+ 	View=%view{ascii} @EXTHELPERSDIR@/package.sh view deba
+ 
++# ipk
++regex/\.ipk$
++	Open=%cd %p/ipk://
++	View=%view{ascii} @EXTHELPERSDIR@/package.sh view ipk
++
+ # ISO9660
+ shell/i/.iso
+ 	Open=%cd %p/iso9660://
+diff --git a/src/vfs/extfs/helpers/ipk b/src/vfs/extfs/helpers/ipk
+new file mode 100755
+index 0000000..68f42fc
+--- /dev/null
++++ b/src/vfs/extfs/helpers/ipk
+@@ -0,0 +1,199 @@
++#! /usr/bin/perl
++#
++# Written by Chris Owen <chris@candu.co.uk> 2014
++#
++# Deb file handling adapted from deb.
++#
++# Copyright (C) 2014 Free Software Foundation
++#
++
++sub quote {
++    $_ = shift(@_);
++    s/([^\w\/.+-])/\\$1/g;
++    return($_);
++}
++
++sub mcdebfs_list
++{
++#
++#	CAVEAT: Hard links are listed as if they were symlinks
++#		Empty directories do not appear at all
++#
++	local($archivename)=@_;
++	local $qarchivename = quote($archivename);
++	chop($date=`LC_ALL=C date "+%b %d %H:%M"`);
++	chop($info_size=`dpkg -I $qarchivename | wc -c`);
++
++	print "dr-xr-xr-x   1 root     root     0 $date CONTENTS\n";
++	print "dr-xr-xr-x   1 root     root     0 $date DEBIAN\n";
++	print "-r--r--r--   1 root     root     $info_size $date INFO\n";
++
++        if ( open(PIPEIN, "LC_ALL=C dpkg-deb -c $qarchivename |") )
++	{
++		while(<PIPEIN>)
++		{
++			@_ = split;
++
++			$perm=$_[0]; $owgr=$_[1]; $size=$_[2];
++			if($_[3] =~ /^\d\d\d\d\-/) { # New tar format
++				
++				($year,$mon,$day) = split(/-/,$_[3]);
++				$month = ("Gee","Jan","Feb","Mar","Apr","May","Jun",
++						  "Jul","Aug","Sep","Oct","Nov","Dec")[$mon] || "Gee";
++				$time=$_[4];
++				$pathindex=5;
++			}
++			else {
++				$mstring='GeeJanFebMarAprMayJunJulAugSepOctNovDec';
++				$month=$_[3];
++				$mon=index($mstring,$month) / 3;
++				$day=$_[4];
++				$time=$_[5];
++				$year=$_[6];
++				$pathindex=7;
++			}
++			
++			$path=$_[$pathindex++];
++			$arrow=$_[$pathindex++];
++			$link=$_[$pathindex++];
++			$link2=$_[$pathindex++];
++
++			$owgr=~s!/! !;
++			if($arrow eq 'link')
++			{
++# report hard links as soft links
++				$arrow='->'; $link="/$link2"; 
++				substr($perm, 0, 1) = "l";
++			}
++			if($arrow ne '')
++			{
++				$arrow=' ' . $arrow;
++				$link= ' ' . $link;
++			}
++			$now=`date "+%Y %m"`;
++			($thisyear, $thismon) = split(/ /, $now);
++			# show time for files younger than 6 months
++			# but not for files with dates in the future
++			if ($year * 12 + $mon > $thisyear * 12 + $thismon - 6 &&
++				$year * 12 + $mon <= $thisyear * 12 + $thismon) {
++				print "$perm 1 $owgr $size $month $day $time CONTENTS/$path$arrow$link\n";
++			} else {
++				print "$perm 1 $owgr $size $month $day $year CONTENTS/$path$arrow$link\n";
++			}
++		}
++	}
++        if ( open(PIPEIN, "LC_ALL=C dpkg-deb -I $qarchivename |") )
++        {
++               while(<PIPEIN>)
++               {
++                       @_ = split;
++                       $size=$_[0];
++                       last if $size =~ /:/;
++                       next if $size !~ /\d+/;
++                       if($_[4] eq '*')
++                       {
++                           $perm='-r-xr-xr-x';
++                           $name=$_[5];
++                       }
++                       else
++                       {
++                           $perm='-r--r--r--';
++                           $name=$_[4];
++                       }
++                       print "$perm 1 root root $size $date DEBIAN/$name\n";
++               }
++        }
++}
++
++sub mcdebfs_copyout
++{
++	local($archive,$filename,$destfile)=@_;
++	local $qarchive = quote($archive);
++	local $qfilename = quote($filename);
++	local $qdestfile = quote($destfile);
++
++	if($filename eq "INFO")
++	{
++		system("dpkg-deb -I $qarchive > $qdestfile");
++        }
++        elsif($filename =~ /^DEBIAN/)
++        {
++               $qfilename=~s!^DEBIAN/!!;
++               system("dpkg-deb -I $qarchive $qfilename > $qdestfile");
++	}
++	elsif($filename eq "INSTALL")
++	{
++		if ( open(FILEOUT,">$destfile") )
++		{
++			print FILEOUT $pressinstall;
++			close FILEOUT;
++			system("chmod a+x $qdestfile");
++		}
++	}
++	else
++	{
++	# files can be prepended with ./ or not, depending on the version of tar
++		$qfilename=~s!^CONTENTS/!!;
++		system("dpkg-deb --fsys-tarfile $qarchive | tar xOf - $qfilename ./$qfilename > $qdestfile 2>/dev/null");
++	}
++}
++
++sub mcdebfs_run
++{
++	local($archive,$filename)=@_;
++	local $qarchive = quote($archive);
++	if($filename eq "INSTALL")
++	{
++		print "Installing $archive\n";
++		system("dpkg -i $qarchive");
++	}
++	else
++	{
++		use File::Temp qw(mkdtemp);
++		my $template = "/tmp/mcdebfs.run.XXXXXX";
++		$template="$ENV{MC_TMPDIR}/mcdebfs.XXXXXX" if ($ENV{MC_TMPDIR});
++		$tmpdir = mkdtemp($template);
++		$tmpcmd="$tmpdir/run";
++		&mcdebfs_copyout($archive, $filename, $tmpcmd);
++		system("chmod u+x $tmpcmd");
++		system($tmpcmd);
++		unlink($tmpcmd);
++		rmdir($tmpdir);
++	}
++}
++
++sub mcipkfs_list
++{
++	local($archivename)=@_;
++	local($gzipfail)=system("gzip -t $archivename 2> /dev/null");
++	if($gzipfail)
++	{
++		mcdebfs_list(@_)
++	}
++	else
++	{
++		system("tar ztvvf $archivename | sed -n \"s/^\\(..........\\) \\(\\w\\+\\)\\/\\(\\w\\+\\)\\s\\+\\(\\w\\+\\) \\(....\\)-\\(..\\)-\\(..\\)/\\1 1 \\2 \\3 \\4 \\6-\\7-\\5/p\"")
++	}
++}
++
++sub mcipkfs_copyout
++{
++	local($archivename,$filename,$destfile)=@_;
++	local($gzipfail)=system("gzip -t $archivename 2> /dev/null");
++	if($gzipfail)
++	{
++		mcdebfs_copyout(@_)
++	}
++	else
++	{
++		system("tar zxOf '$archivename' '$filename' > '$destfile'")
++	}
++}
++
++umask 077;
++
++if($ARGV[0] eq "list") { shift; &mcipkfs_list(@ARGV); exit 0; }
++elsif($ARGV[0] eq "copyout") { shift; &mcipkfs_copyout(@ARGV); exit 0; }
++
++exit 1;
++

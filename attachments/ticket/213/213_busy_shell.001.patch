@@ -1,0 +1,33 @@
+diff --git a/src/subshell.c b/src/subshell.c
+index 8d98da5..2e135a2 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -887,6 +887,7 @@ feed_subshell (int how, int fail_on_error)
+ 
+     struct timeval wtime;	/* Maximum time we wait for the subshell */
+     struct timeval *wptr;
++    char lastChar;		/* for remove stupid 'The shell is already running a command' */
+ 
+     /* we wait up to 10 seconds if fail_on_error, forever otherwise */
+     wtime.tv_sec = 10;
+@@ -984,12 +985,19 @@ feed_subshell (int how, int fail_on_error)
+ 	    for (i = 0; i < bytes; ++i)
+ 		if (pty_buffer[i] == subshell_switch_key) {
+ 		    write_all (subshell_pty, pty_buffer, i);
+-		    if (subshell_ready)
++		    if (subshell_ready) {
+ 			subshell_state = INACTIVE;
++		    } else {
++			if (lastChar != 0xd ){
++			    subshell_ready = TRUE;
++			    subshell_state = INACTIVE;
++			}
++		    }
+ 		    return TRUE;
+ 		}
+ 
+ 	    write_all (subshell_pty, pty_buffer, bytes);
++	    lastChar = (char) pty_buffer[bytes-1];
+ 	    subshell_ready = FALSE;
+ 	} else {
+ 	    return FALSE;

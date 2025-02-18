@@ -1,0 +1,82 @@
+From 1b4a63fbf00b80169f96f8091e2b53c54a9a5c33 Mon Sep 17 00:00:00 2001
+From: Martin Michel <dev@famic.de>
+Date: Sat, 16 Jan 2021 15:33:34 +0100
+Subject: [PATCH] My squashed CenterLine commits
+
+---
+ lib/keybind.c          |  1 +
+ lib/keybind.h          |  1 +
+ misc/mc.default.keymap |  1 +
+ src/editor/edit.c      | 19 +++++++++++++++++++
+ 4 files changed, 22 insertions(+)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..e441dcaa7 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -331,6 +331,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (SyntaxOnOff),
+     ADD_KEYMAP_NAME (SyntaxChoose),
+     ADD_KEYMAP_NAME (ShowMargin),
++    ADD_KEYMAP_NAME (CenterLine),
+     ADD_KEYMAP_NAME (OptionsSaveMode),
+     ADD_KEYMAP_NAME (About),
+     /* An action to run external script from macro */
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..ebb8e7211 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -310,6 +310,7 @@ enum
+     CK_OptionsSaveMode,
+     CK_About,
+     CK_ShowMargin,
++    CK_CenterLine,
+     CK_ShowTabTws,
+     CK_SyntaxOnOff,
+     CK_SyntaxChoose,
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 2931ddd0a..c5a02e0e6 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -369,6 +369,7 @@ ShowTabTws = alt-underline
+ SyntaxOnOff = ctrl-s
+ # SyntaxChoose =
+ # ShowMargin =
++# CenterLine =
+ Find = alt-enter
+ FilePrev = alt-minus
+ FileNext = alt-plus
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index edda1f832..710e11e75 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3764,7 +3764,26 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+             }
+         }
+         break;
++    case CK_CenterLine:
+ 
++        /*
++         * Center cursor line in window, redraw window when cursor is in
++         * bottom half of window
++         */
++        if (edit->buffer.curs_line > edit->buffer.lines - w->lines / 2)
++        {
++            edit_save_size (edit);
++            widget_set_size (w, w->y, w->x, w->lines / 2 + 2, w->cols);
++            edit_move_display (edit, edit->buffer.curs_line - w->lines + 1);
++            w->pos_flags = WPOS_KEEP_ALL;
++            edit_update_screen (edit);
++            widget_set_size_rect (w, &edit->loc_prev);
++        }
++        else if (edit->buffer.curs_line > edit->curs_row / 2)
++        {
++            edit_move_display (edit, edit->buffer.curs_line - w->lines / 2 + 1);
++        }
++        break;
+     case CK_Top:
+     case CK_MarkToFileBegin:
+         edit_move_to_top (edit);
+-- 
+2.24.1
+

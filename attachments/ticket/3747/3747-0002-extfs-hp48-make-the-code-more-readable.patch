@@ -1,0 +1,53 @@
+From e2e1a1ed50ef56baca36d4df3897b57cdfc38493 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 28 Dec 2016 17:38:25 +0200
+Subject: [PATCH 2/2] Ticket #3747: extfs: hp48: make the code more readable.
+
+Whitespace tweaking here. There's no change in the code itself except for
+using '%c' in the first printf too, to make it like the second printf.
+---
+ src/vfs/extfs/helpers/hp48+.in | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/hp48+.in b/src/vfs/extfs/helpers/hp48+.in
+index 838f565..17c03ab 100644
+--- a/src/vfs/extfs/helpers/hp48+.in
++++ b/src/vfs/extfs/helpers/hp48+.in
+@@ -65,6 +65,7 @@ echo QUIT)| $KERMIT -B >/dev/null
+ hp48_parser()
+ {
+ HP48_DIRS=
++
+ read -r INPUT
+ while [ "x$INPUT" != "xEOF" ]
+ do
+@@ -77,15 +78,22 @@ do
+     obj_size=`echo $obj_size | $AWK '{ print int($0) }'`  # Truncates floats to ints; anything else to "0".
+ 
+     if [ "$obj_size" != "0" ]; then  # Skips the 1st reply line (purportedly there aren't zero-size files b/c, according to resource [4], the size is "including name").
+-    case "$obj_type" in
+-    Directory) HP48_DIRS="$HP48_DIRS $obj_name"
+-    printf "drwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 0 0 $obj_size "$NOW" "$HP48_CDIR/$obj_name";;
+-    *) printf "%crw-r--r--   1 %-8d %-8d %8d %s %s\n" '-' 0 0 $obj_size "$NOW" "$HP48_CDIR/$obj_name";;
++      case "$obj_type" in
++        Directory)
++          HP48_DIRS="$HP48_DIRS $obj_name"
++          printf "%crwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 'd' \
++            0 0 $obj_size "$NOW" "$HP48_CDIR/$obj_name"
++          ;;
++        *)
++          printf "%crw-r--r--   1 %-8d %-8d %8d %s %s\n" '-' \
++            0 0 $obj_size "$NOW" "$HP48_CDIR/$obj_name"
++          ;;
+     esac
+     fi
+ 
+     read -r INPUT
+ done
++
+ for HP48_DIR in $HP48_DIRS;
+ do 
+     HP48_PDIR="$HP48_CDIR"
+-- 
+2.9.3
+

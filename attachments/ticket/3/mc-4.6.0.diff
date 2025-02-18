@@ -1,0 +1,44 @@
+--- mc-4.6.0/src/file.c	2002-12-26 22:04:10.000000000 +0300
++++ mc-4.6.0.patched/src/file.c	2004-03-12 21:22:17.000000000 +0300
+@@ -1895,4 +1895,30 @@
+    }
+     }
++
++	/*
++	 * Dmitry Koteroff <d[at]koteroff.ru>
++	 * Patch to save selected items in environment variable. 
++	 * This variable would be passed to extfs scripts and may be used 
++	 * to optimize depacking performance.
++	 */
++	{{{{
++	char* env = g_strconcat("", NULL);
++	for (i = 0; i < panel->count; i++) {
++	    char *prevEnv, *p;
++	    if (!panel->dir.list[i].f.marked) continue;
++	    p = concat_dir_and_file (panel->cwd, panel->dir.list[i].fname);
++	    prevEnv = env;
++	    env = g_strconcat(prevEnv, p, "\n", NULL); 
++	    g_free(p); 
++	    g_free(prevEnv); 
++	}
++	setenv("MC_SELECTION", env, 1);
++	g_free(env);	
++	char *cur = concat_dir_and_file (panel->cwd, source);
++	setenv("MC_CURRENT", cur, 1);	
++	g_free(cur);
++	}}}}
++
++    
+ #ifdef WITH_BACKGROUND
+     /* Did the user select to do a background operation? */
+@@ -1913,4 +1939,5 @@
+        mc_setctl (dest, MCCTL_FORGET_ABOUT, NULL);
+ /*  	    file_op_context_destroy (ctx); */
++	    setenv("MC_SELECTION", "", 1); setenv("MC_CURRENT", "", 1);	
+        return 0;
+    }
+@@ -2123,4 +2150,5 @@
+     }				/* Many files */
+   clean_up:
++    setenv("MC_SELECTION", "", 1); setenv("MC_CURRENT", "", 1);	    
+     /* Clean up */

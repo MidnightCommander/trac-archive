@@ -1,0 +1,25 @@
+diff --git a/lib/util.h b/lib/util.h
+index a6aa3a4..6ccad7a 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -188,16 +188,10 @@ char *guess_message_value (void);
+ 
+ /*** inline functions **************************************************/
+ 
+-static inline gboolean
+-exist_file (const char *name)
+-{
+-    return (access (name, R_OK) == 0);
+-}
++#define exist_file(name) ((gboolean) (access(name, R_OK)))
+ 
+-static inline gboolean
+-is_exe (mode_t mode)
+-{
+-    return (gboolean) ((S_IXUSR & mode) || (S_IXGRP & mode) || (S_IXOTH & mode));
+-}
++#define is_exe(__mode) ((gboolean)((S_IXUSR & __mode)  || \
++                                   (S_IXGRP & __mode)  || \
++                                   (S_IXOTH & __mode)))
+ 
+ #endif /* MC_UTIL_H */

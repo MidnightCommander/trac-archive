@@ -1,0 +1,59 @@
+From 73e8a7806c76190ca796b9db9dd77c1a7b11ad9f Mon Sep 17 00:00:00 2001
+From: Grzegorz Szymaszek <gszymaszek@short.pl>
+Date: Sat, 4 Dec 2021 23:31:47 +0100
+Subject: [PATCH] Fix SPICE syntax file to recognize where control script
+ context ends
+
+Since .endc was defined both as the context end delimiter and a context
+keyword, it was not recognized as the former and the control script
+context, once started, would never be finished. This issue can be
+noticed, for example, in wrong syntax highlighting of the .end command
+if it was preceded by a control script.
+
+Fix the issue by making the control script context exclusive and
+highlighting the .control and .endc keywords in the default context
+instead.
+---
+ misc/syntax/spice.syntax | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/misc/syntax/spice.syntax b/misc/syntax/spice.syntax
+index 15e6aea58..86ff10e4f 100644
+--- a/misc/syntax/spice.syntax
++++ b/misc/syntax/spice.syntax
+@@ -9,12 +9,14 @@ context default
+ 
+     # dot commands
+     keyword whole .ac brightmagenta
++    keyword whole .control brightmagenta
+     keyword whole .csparam brightmagenta
+     keyword whole .dc brightmagenta
+     keyword whole .disto brightmagenta
+     keyword whole .else brightmagenta
+     keyword whole .elseif brightmagenta
+     keyword whole .end brightmagenta
++    keyword whole .endc brightmagenta
+     keyword whole .endif brightmagenta
+     keyword whole .ends brightmagenta
+     keyword whole .four brightmagenta
+@@ -186,16 +188,13 @@ context default
+ 
+ context " " green
+ 
+-context .control .endc
++context exclusive .control .endc
+     keyword linestart \**\n brown
+     keyword $*\n brown
+     keyword ;*\n brown
+     keyword //*\n brown
+     keyword linestart \+ red
+ 
+-    keyword .control brightmagenta
+-    keyword .endc brightmagenta
+-
+     # commands
+     keyword whole ac yellow
+     keyword whole alias yellow
+-- 
+2.33.0
+

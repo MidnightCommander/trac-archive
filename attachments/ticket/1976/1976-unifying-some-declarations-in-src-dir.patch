@@ -1,0 +1,408 @@
+From 6f9d17e6541df19caa115e398b15b454eb3bf4cf Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sun, 24 Jan 2010 21:00:39 +0000
+Subject: [PATCH]  unifying some declarations in src dir
+
+---
+ src/args.c                   |    2 +-
+ src/cmd.c                    |    6 +++---
+ src/cmd.h                    |    4 ++--
+ src/ext.c                    |    6 +++---
+ src/file.c                   |    2 +-
+ src/filehighlight/internal.h |    2 +-
+ src/find.c                   |   18 +++++++++---------
+ src/main.c                   |    6 +++---
+ src/panel.h                  |    4 ++--
+ src/screen.c                 |    2 +-
+ src/tty/mouse.c              |    3 +++
+ src/viewer/display.c         |    6 +++++-
+ src/viewer/internal.h        |    4 ++--
+ src/viewer/mcviewer.c        |    4 ++--
+ src/viewer/mcviewer.h        |    4 ++--
+ src/viewer/nroff.c           |    2 +-
+ src/viewer/search.c          |    6 +++---
+ 17 files changed, 44 insertions(+), 37 deletions(-)
+
+diff --git a/src/args.c b/src/args.c
+index f845aed..4e560a0 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -235,7 +235,7 @@ static const GOptionEntry argument_terminal_table[] = {
+ 
+ GOptionGroup *color_group;
+ #define ARGS_COLOR_OPTIONS 0
+-// #define ARGS_COLOR_OPTIONS G_OPTION_FLAG_IN_MAIN
++/* #define ARGS_COLOR_OPTIONS G_OPTION_FLAG_IN_MAIN */
+ static const GOptionEntry argument_color_table[] = {
+     /* color options */
+     {
+diff --git a/src/cmd.c b/src/cmd.c
+index 182a896..ad912cf 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -113,7 +113,7 @@ int select_flags = SELECT_MATCH_CASE | SELECT_SHELL_PATTERNS;
+ 
+ int
+ view_file_at_line (const char *filename, int plain_view, int internal,
+-		   int start_line)
++		   long start_line)
+ {
+     static const char *viewer = NULL;
+     int move_dir = 0;
+@@ -150,7 +150,7 @@ view_file_at_line (const char *filename, int plain_view, int internal,
+ 	char view_entry[BUF_TINY];
+ 
+ 	if (start_line != 0)
+-	    g_snprintf (view_entry, sizeof (view_entry), "View:%d",
++	    g_snprintf (view_entry, sizeof (view_entry), "View:%ld",
+ 			start_line);
+ 	else
+ 	    strcpy (view_entry, "View");
+@@ -295,7 +295,7 @@ filtered_view_cmd (void)
+ }
+ 
+ void
+-do_edit_at_line (const char *what, int start_line)
++do_edit_at_line (const char *what, long start_line)
+ {
+     static const char *editor = NULL;
+ 
+diff --git a/src/cmd.h b/src/cmd.h
+index cca7473..23069d3 100644
+--- a/src/cmd.h
++++ b/src/cmd.h
+@@ -18,13 +18,13 @@ void smart_dirsize_cmd (void);
+ void single_dirsize_cmd (void);
+ void dirsizes_cmd (void);
+ int view_file_at_line (const char *filename, int plain_view, int internal,
+-		       int start_line);
++		       long start_line);
+ int view_file (const char *filename, int normal, int internal);
+ void view_cmd (void);
+ void view_file_cmd (void);
+ void view_simple_cmd (void);
+ void filtered_view_cmd (void);
+-void do_edit_at_line (const char *what, int start_line);
++void do_edit_at_line (const char *what, long start_line);
+ void edit_cmd (void);
+ void edit_cmd_new (void);
+ void copy_cmd (void);
+diff --git a/src/ext.c b/src/ext.c
+index 7e368e8..6e26931 100644
+--- a/src/ext.c
++++ b/src/ext.c
+@@ -67,7 +67,7 @@ typedef char *(*quote_func_t) (const char *name, int quote_percent);
+ 
+ static void
+ exec_extension (const char *filename, const char *lc_data, int *move_dir,
+-		int start_line)
++		long start_line)
+ {
+     char *fn;
+     char *file_name;
+@@ -433,14 +433,14 @@ regex_command (const char *filename, const char *action, int *move_dir)
+     int error_flag = 0;
+     int ret = 0;
+     struct stat mystat;
+-    int view_at_line_number;
++    long view_at_line_number;
+     char *include_target;
+     int include_target_len;
+     int have_type = 0;		/* Flag used by regex_check_type() */
+ 
+     /* Check for the special View:%d parameter */
+     if (strncmp (action, "View:", 5) == 0) {
+-	view_at_line_number = atoi (action + 5);
++	view_at_line_number = atol (action + 5);
+ 	action = "View";
+     } else {
+ 	view_at_line_number = 0;
+diff --git a/src/file.c b/src/file.c
+index f0b0c02..3041d72 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -1800,7 +1800,7 @@ end_bg_process (FileOpContext *ctx, enum OperationMode mode) {
+     ctx->pid = 0;
+ 
+     unregister_task_with_pid(pid);
+-//    file_op_context_destroy(ctx);
++/*    file_op_context_destroy(ctx); */
+     return 1;
+ }
+ #endif
+diff --git a/src/filehighlight/internal.h b/src/filehighlight/internal.h
+index 4b66254..3856af6 100644
+--- a/src/filehighlight/internal.h
++++ b/src/filehighlight/internal.h
+@@ -26,7 +26,7 @@ typedef enum {
+     MC_FLHGH_FTYPE_T_SPECIAL,
+     MC_FLHGH_FTYPE_T_SPECIAL_SOCKET,
+     MC_FLHGH_FTYPE_T_SPECIAL_FIFO,
+-    MC_FLHGH_FTYPE_T_SPECIAL_DOOR,
++    MC_FLHGH_FTYPE_T_SPECIAL_DOOR
+ } mc_flhgh_ftype_type;
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+diff --git a/src/find.c b/src/find.c
+index 1d0a3e0..bfac3eb 100644
+--- a/src/find.c
++++ b/src/find.c
+@@ -117,8 +117,8 @@ static char *old_dir = NULL;
+ 
+ /* Where did we stop */
+ static int resuming;
+-static int last_line;
+-static int last_pos;
++static long last_line;
++static long last_pos;
+ 
+ static Dlg_head *find_dlg;	/* The dialog */
+ static WButton *stop_button;	/* pointer to the stop button */
+@@ -644,7 +644,7 @@ find_add_match (const char *dir, const char *file)
+  * has_newline - is there newline ?
+  */
+ static char *
+-get_line_at (int file_fd, char *buf, int buf_size, int *pos, int *n_read,
++get_line_at (int file_fd, char *buf, int buf_size, long *pos, long *n_read,
+ 	     gboolean *has_newline)
+ {
+     char *buffer = NULL;
+@@ -753,9 +753,9 @@ search_content (Dlg_head *h, const char *directory, const char *filename)
+     tty_got_interrupt ();
+ 
+     {
+-	int line = 1;
+-	int pos = 0;
+-	int n_read = 0;
++	long line = 1;
++	long pos = 0;
++	long n_read = 0;
+ 	gboolean has_newline;
+ 	char *p = NULL;
+ 	gboolean found = FALSE;
+@@ -774,7 +774,7 @@ search_content (Dlg_head *h, const char *directory, const char *filename)
+ 	    if (!found		/* Search in binary line once */
+ 		    && mc_search_run (search_content_handle,
+ 					(const void *) p, 0, strlen (p), &found_len)) {
+-		g_snprintf (result, sizeof (result), "%d:%s", line, filename);
++		g_snprintf (result, sizeof (result), "%ld:%s", line, filename);
+ 		find_add_match (directory, result);
+ 		found = TRUE;
+ 	    }
+@@ -1018,11 +1018,11 @@ find_do_view_edit (int unparsed_view, int edit, char *dir, char *file)
+ {
+     char *fullname = NULL;
+     const char *filename = NULL;
+-    int line;
++    long line;
+ 
+     if (content_pattern != NULL) {
+ 	filename = strchr (file + 4, ':') + 1;
+-	line = atoi (file + 4);
++	line = atol (file + 4);
+     } else {
+ 	filename = file + 4;
+ 	line = 0;
+diff --git a/src/main.c b/src/main.c
+index a12fb12..82b39f7 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -280,7 +280,7 @@ const char *view_one_file = NULL;
+ const char *edit_one_file = NULL;
+ 
+ /* Line to start the editor on */
+-static int edit_one_file_start_line = 0;
++static long edit_one_file_start_line = 0;
+ 
+ /* Used so that widgets know if they are being destroyed or
+    shut down */
+@@ -2052,7 +2052,7 @@ mc_main__setup_by_args (int argc, char *argv[])
+ 		 */
+ 		if (mc_stat (tmp, &st) == -1 && mc_stat (fname, &st) != -1) {
+ 		    edit_one_file = fname;
+-		    edit_one_file_start_line = atoi (p);
++		    edit_one_file_start_line = atol (p);
+ 		} else {
+ 		    g_free (fname);
+ 		    goto try_plus_filename;
+@@ -2060,7 +2060,7 @@ mc_main__setup_by_args (int argc, char *argv[])
+ 	    } else {
+ 	    try_plus_filename:
+ 		if (*tmp == '+' && g_ascii_isdigit ((gchar) tmp[1])) {
+-		    int start_line = atoi (tmp);
++		    long start_line = atol (tmp);
+ 		    if (start_line > 0) {
+ 			char *file = (argc > 1) ? argv[2] : NULL;
+ 			if (file) {
+diff --git a/src/panel.h b/src/panel.h
+index b32dabc..0415abd 100644
+--- a/src/panel.h
++++ b/src/panel.h
+@@ -27,8 +27,8 @@ typedef enum {
+     view_listing	= 0,		/* Directory listing */
+     view_info		= 1,		/* Information panel */
+     view_tree		= 2,		/* Tree view */
+-    view_quick		= 3,		/* Quick view */
+-    view_nothing	= 4,		/* Undefined */
++    view_quick		= 3		/* Quick view */
++/*  view_nothing	= 4		   Undefined */
+ } panel_view_mode_t;
+ 
+ enum panel_display_enum {
+diff --git a/src/screen.c b/src/screen.c
+index 6abfac6..ade7af9 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -1381,7 +1381,7 @@ panel_get_title_without_hotkey(const char *title)
+ 
+     hkey = strchr(translated_title, '&');
+     if ((hkey != NULL) && (hkey[1] != '\0'))
+-        memmove((void *) hkey, (void *) hkey+1,strlen(hkey));
++        memmove((void *) hkey, (void *) (hkey + 1), strlen (hkey));
+ 
+     return translated_title;
+ }
+diff --git a/src/tty/mouse.c b/src/tty/mouse.c
+index a811c05..841d377 100644
+--- a/src/tty/mouse.c
++++ b/src/tty/mouse.c
+@@ -47,6 +47,9 @@ show_mouse_pointer (int x, int y)
+ #ifdef HAVE_LIBGPM
+     if (use_mouse_p == MOUSE_GPM)
+         Gpm_DrawPointer (x, y, gpm_consolefd);
++#else
++    (void) x;
++    (void) y;
+ #endif /* HAVE_LIBGPM */
+ }
+ 
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index 87a94a2..f67afba 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -49,6 +49,10 @@
+ #include "internal.h"
+ #include "mcviewer.h"
+ 
++#ifdef HAVE_CHARSET
++#include "charsets.h"		        /* get_codepage_id () */
++#endif
++
+ /*** global variables ****************************************************************************/
+ 
+ /*** file scope macro definitions ****************************************************************/
+@@ -127,7 +131,7 @@ mcview_display_status (mcview_t * view)
+     const screen_dimen width = view->status_area.width;
+     const screen_dimen height = view->status_area.height;
+     const char *file_label;
+-    screen_dimen file_label_width, i = 0;
++    screen_dimen file_label_width;
+ 
+     if (height < 1)
+         return;
+diff --git a/src/viewer/internal.h b/src/viewer/internal.h
+index 22391c6..348385f 100644
+--- a/src/viewer/internal.h
++++ b/src/viewer/internal.h
+@@ -231,7 +231,7 @@ gboolean mcview_get_byte_none (mcview_t *, off_t, int *);
+ void mcview_set_byte (mcview_t *, off_t, byte);
+ void mcview_file_load_data (mcview_t *, off_t);
+ void mcview_close_datasource (mcview_t *);
+-void mcview_set_datasource_file (mcview_t *, int, const struct stat *);
++void mcview_set_datasource_file (mcview_t * view, int fd, const struct stat *st);
+ gboolean mcview_load_command_output (mcview_t *, const char *);
+ void mcview_set_datasource_vfs_pipe (mcview_t *, int);
+ void mcview_set_datasource_string (mcview_t *, const char *);
+@@ -297,7 +297,7 @@ void mcview_moveto_match (mcview_t *);
+ 
+ /* nroff.c: */
+ void mcview_display_nroff (mcview_t *view);
+-int mcview__get_nroff_real_len (mcview_t *view, off_t, off_t p);
++int mcview_get_nroff_real_len (mcview_t *view, off_t, off_t p);
+ 
+ mcview_nroff_t *mcview_nroff_seq_new_num (mcview_t *view, off_t p);
+ mcview_nroff_t *mcview_nroff_seq_new (mcview_t * view);
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index a2aecf4..d9f2020 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -261,7 +261,7 @@ mcview_new (int y, int x, int lines, int cols, int is_panel)
+ 
+ /* Real view only */
+ int
+-mcview_viewer (const char *command, const char *file, int *move_dir_p, int start_line)
++mcview_viewer (const char *command, const char *file, int *move_dir_p, long start_line)
+ {
+     gboolean succeeded;
+     mcview_t *lc_mcview;
+@@ -295,7 +295,7 @@ mcview_viewer (const char *command, const char *file, int *move_dir_p, int start
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ gboolean
+-mcview_load (mcview_t * view, const char *command, const char *file, int start_line)
++mcview_load (mcview_t * view, const char *command, const char *file, long start_line)
+ {
+     int i, type;
+     int fd = -1;
+diff --git a/src/viewer/mcviewer.h b/src/viewer/mcviewer.h
+index 89ba277..6bea829 100644
+--- a/src/viewer/mcviewer.h
++++ b/src/viewer/mcviewer.h
+@@ -44,8 +44,8 @@ extern struct mcview_struct *mcview_new (int y, int x, int lines, int cols, int
+  * wants to move (-1 = previous file, 1 = next file, 0 = do nothing).
+  */
+ extern int mcview_viewer (const char *command, const char *file,
+-                          int *move_dir_p, int start_line);
++                          int *move_dir_p, long start_line);
+ 
+-extern gboolean mcview_load (struct mcview_struct *, const char *, const char *, int);
++extern gboolean mcview_load (struct mcview_struct *, const char *, const char *, long start_line);
+ 
+ #endif
+diff --git a/src/viewer/nroff.c b/src/viewer/nroff.c
+index 8602572..045f577 100644
+--- a/src/viewer/nroff.c
++++ b/src/viewer/nroff.c
+@@ -197,7 +197,7 @@ mcview_display_nroff (mcview_t * view)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ int
+-mcview__get_nroff_real_len (mcview_t * view, off_t start, off_t length)
++mcview_get_nroff_real_len (mcview_t * view, off_t start, off_t length)
+ {
+     mcview_nroff_t *nroff;
+     int ret = 0;
+diff --git a/src/viewer/search.c b/src/viewer/search.c
+index 63d639e..b5df1b2 100644
+--- a/src/viewer/search.c
++++ b/src/viewer/search.c
+@@ -111,7 +111,7 @@ mcview_search_show_result(mcview_t * view, Dlg_head **d, size_t match_len)
+ {
+ 
+         view->search_start = view->search->normal_offset +
+-                mcview__get_nroff_real_len (view,
++                mcview_get_nroff_real_len (view,
+                                             view->search->start_buffer,
+                                             view->search->normal_offset -
+                                             view->search->start_buffer);
+@@ -120,7 +120,7 @@ mcview_search_show_result(mcview_t * view, Dlg_head **d, size_t match_len)
+             view->search_start++;
+ 
+         view->search_end = view->search_start + match_len +
+-            mcview__get_nroff_real_len (view, view->search_start - 1, match_len);
++            mcview_get_nroff_real_len (view, view->search_start - 1, match_len);
+ 
+         if (view->hex_mode) {
+             view->hex_cursor = view->search_start;
+@@ -221,7 +221,7 @@ mcview_do_search (mcview_t * view)
+     if (view->search_start) {
+         search_start = (view->search_backwards) ? -2 : 2;
+         search_start = view->search_start + search_start +
+-            mcview__get_nroff_real_len (view, view->search_start, 2) * search_start;
++            mcview_get_nroff_real_len (view, view->search_start, 2) * search_start;
+     } else {
+         search_start = view->search_start;
+     }
+-- 
+1.6.4
+

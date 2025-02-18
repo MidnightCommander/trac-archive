@@ -1,0 +1,27 @@
+parent 78019b896ba0e59ba886ecf500747cbe77dbc7cb (4.7.5-189-g78019b8)
+commit 5f60901c55b5d9ef3c2d92f0f64f5fa5e5c172d9
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Mar 30 23:14:54 2011 +0200
+
+tty: characters starting from 0xA0 are valid Unicode
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ lib/tty/tty-slang.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/lib/tty/tty-slang.c b/lib/tty/tty-slang.c
+index 0e7ecb9..93fc82f 100644
+--- a/lib/tty/tty-slang.c
++++ b/lib/tty/tty-slang.c
+@@ -616,7 +616,7 @@ tty_print_anychar (int c)
+ {
+     char str[6 + 1];
+ 
+-    if (c > 255)
++    if (c >= 160)
+     {
+         int res = g_unichar_to_utf8 (c, str);
+         if (res == 0)
+-- 
+# Created with git-export-patch

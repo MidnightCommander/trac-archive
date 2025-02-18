@@ -1,0 +1,22 @@
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Date: Mon, 22 Oct 2012 16:49:40 +0200
+Subject: [PATCH 0/5] keyboard input: stop generating garbage input from unknown ESC sequences
+
+I got tired of seeing garbage when I press function key MC doesn't know.
+This changeset attempts to eradicate this problem.
+
+Denys Vlasenko (5):
+  keyboard input: simplify code, no logic changes
+  keyboard input: add commented-out debugging logging mechanism.
+  keyboard input: remove unreachable code
+  keyboard input: treat only ESC<char><end> or <ESC><char><ESC> as
+    valid
+  keyboard input: when an unknown sequence is seen, purge all buffered
+    input
+
+ lib/tty/key.c |  204 ++++++++++++++++++++++++++++++++++++++-------------------
+ 1 files changed, 136 insertions(+), 68 deletions(-)
+
+-- 
+1.7.7.6
+

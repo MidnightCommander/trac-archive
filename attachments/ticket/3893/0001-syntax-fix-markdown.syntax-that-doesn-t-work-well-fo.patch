@@ -1,0 +1,51 @@
+From b6809ed60526376f5682e88642a9c0d8fbe74ad2 Mon Sep 17 00:00:00 2001
+From: Sergey Naumov <snaumov@quantenna.com>
+Date: Fri, 19 Jan 2018 12:10:20 +0300
+Subject: [PATCH] syntax: fix markdown.syntax that doesn't work well for
+ complex files
+
+* Asterisk and underscore contexts don't play well with lists or
+  words containing underscores. And given that markdown files
+  could contain not only ASCII text, it is better to be conservative
+  in detecting contexts.
+---
+ misc/syntax/markdown.syntax | 19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
+
+diff --git a/misc/syntax/markdown.syntax b/misc/syntax/markdown.syntax
+index f91454f..da6bd08 100644
+--- a/misc/syntax/markdown.syntax
++++ b/misc/syntax/markdown.syntax
+@@ -4,6 +4,13 @@ context default lightgray
+     spellcheck
+     # links
+     keyword whole [*](*) yellow
++    keyword \*\* white
++    keyword \*   yellow
++    keyword \\_  lightgray
++    keyword wholeleft  __ white
++    keyword wholeright __ white
++    keyword wholeleft  _  yellow
++    keyword wholeright _  yellow
+ 
+ context linestart #### \n red
+     spellcheck
+@@ -21,15 +28,3 @@ context ``` ``` cyan
+ context `` `` cyan
+ 
+ context ` ` cyan
+-
+-context \*\* \*\* brightgreen
+-    spellcheck
+-
+-context \* \* magenta
+-    spellcheck
+-
+-context \_\_ \_\_ brightgreen
+-    spellcheck
+-
+-context \_ \_ magenta
+-    spellcheck
+-- 
+2.7.4
+

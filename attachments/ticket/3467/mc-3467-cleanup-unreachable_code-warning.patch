@@ -1,0 +1,75 @@
+
+fix -Wunreachable-code warnings and add to mc cflags
+
+input_complete.c:1170:9: warning: 'break' will never be executed [-Wunreachable-code-break]
+ascii.c:291:12: error: 'return' will never be executed [-Wunreachable-code-return]
+cons.saver.c:211:9: warning: 'break' will never be executed [-Wunreachable-code-break]
+hotlist.c:860:9: error: code will never be executed [-Werror,-Wunreachable-code]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -84,6 +84,7 @@
+     MC_CHECK_ONE_CFLAG([-Wtype-limits])
+     MC_CHECK_ONE_CFLAG([-Wundef])
+     MC_CHECK_ONE_CFLAG([-Wuninitialized])
++    MC_CHECK_ONE_CFLAG([-Wunreachable-code])
+     MC_CHECK_ONE_CFLAG([-Wunused-but-set-variable])
+     MC_CHECK_ONE_CFLAG([-Wunused-function])
+     MC_CHECK_ONE_CFLAG([-Wunused-label])
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -1070,7 +1070,6 @@
+                 /* This means we want to refill the list box and start again */
+                 h->ret_value = B_USER;
+                 dlg_stop (h);
+-                return MSG_HANDLED;
+             }
+             else
+             {
+@@ -1165,9 +1164,8 @@
+                 }
+                 bl = 0;
+             }
+-            return MSG_HANDLED;
+         }
+-        break;
++        return MSG_HANDLED;
+ 
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+--- a/src/viewer/ascii.c
++++ b/src/viewer/ascii.c
+@@ -286,9 +286,9 @@
+     return g_unichar_isprint (c);
+ #else
+     (void) view;
+-#endif /* HAVE_CHARSET */
+     /* TODO this is very-very buggy by design: ticket 3257 comments 0-1 */
+     return is_printable (c);
++#endif /* HAVE_CHARSET */
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+--- a/src/consaver/cons.saver.c
++++ b/src/consaver/cons.saver.c
+@@ -208,7 +208,6 @@
+         break;
+     default:
+         die ();
+-        break;
+     }
+ 
+     snprintf (console_name, sizeof (console_name), p, console_minor);
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -856,8 +856,6 @@
+ {
+     dlg_destroy (hotlist_dlg);
+     l_hotlist = NULL;
+-    if (FALSE)
+-        update_panels (UP_OPTIMIZE, UP_KEEPSEL);
+     repaint_screen ();
+ }
+ 

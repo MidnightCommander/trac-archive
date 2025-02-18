@@ -1,0 +1,56 @@
+diff -Nur a/src/find.c b/src/find.c
+--- a/src/find.c	2006-02-04 12:03:35.000000000 +0100
++++ b/src/find.c	2009-05-23 17:15:38.000000000 +0200
+@@ -56,6 +56,9 @@
+ static int FIND2_X = 64;
+ #define FIND2_X_USE (FIND2_X - 20)
+ 
++/* Separator for file line view in search */
++#define SEPARATOR " -//- "
++
+ /* A couple of extra messages we need */
+ enum {
+     B_STOP = B_USER + 1,
+@@ -559,9 +562,9 @@
+ 	    if (found == 0){	/* Search in binary line once */
+ 	    	if (find_regex_flag) {
+ 		if (regexec (r, p, 1, 0, 0) == 0){
+-		    g_free (p);
+-		    p = g_strdup_printf ("%d:%s", line, filename);
+-		    find_add_match (h, directory, p);
++		    char *p2 = g_strdup_printf ("%d:%s%s%s", line, filename, SEPARATOR, p);
++		    find_add_match (h, directory, p2);
++		    g_free (p2);
+ 		    found = 1;
+ 		}
+ 	    	} else {
+@@ -747,12 +750,24 @@
+ static char *
+ make_fullname (const char *dirname, const char *filename)
+ {
+-
++    char *dirty_name, *clean_name, *separator_start;
++	
+     if (strcmp(dirname, ".") == 0 || strcmp(dirname, "."PATH_SEP_STR) == 0)
+-	return g_strdup (filename);
+-    if (strncmp(dirname, "."PATH_SEP_STR, 2) == 0)
+-	return concat_dir_and_file (dirname + 2, filename);
+-    return concat_dir_and_file (dirname, filename);
++	dirty_name = g_strdup (filename);
++    else if (strncmp(dirname, "."PATH_SEP_STR, 2) == 0)
++	dirty_name = concat_dir_and_file (dirname + 2, filename);
++    else
++	dirty_name = concat_dir_and_file (dirname, filename);
++
++    /* If the separator is in the name remove it */
++    if ((separator_start = strstr (dirty_name, SEPARATOR)))
++	clean_name = g_strndup (dirty_name, separator_start - dirty_name);
++    else
++	return dirty_name;
++
++    g_free (dirty_name);
++
++    return (clean_name);
+ }
+ 
+ static void

@@ -1,0 +1,74 @@
+From c7aa40a5d3ea2e64665d8f1b4ee6f88295c3d24f Mon Sep 17 00:00:00 2001
+From: Michael Osipov <1983-01-06@gmx.net>
+Date: Sun, 4 Sep 2016 19:37:44 +0200
+Subject: [PATCH] Ticket #3666: Improper use of IEC and SI prefixes for size in
+ man pages
+
+Updated English, Russian, and Spanish man pages to describe that SI or IEC
+prefixes are used and *not* SI units.
+---
+ doc/man/es/mc.1.in | 10 ++++------
+ doc/man/mc.1.in    |  7 +++----
+ doc/man/ru/mc.1.in |  7 +++----
+ 3 files changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/doc/man/es/mc.1.in b/doc/man/es/mc.1.in
+index 6a7516e..30165fd 100644
+--- a/doc/man/es/mc.1.in
++++ b/doc/man/es/mc.1.in
+@@ -2026,12 +2026,10 @@ con información sobre el archivo seleccionado en cada momento. Por defecto,
+ está activado.
+ .PP
+ .I Tamaños en unidades SI.
+-Mostrar tamaños de archivos en bytes con unidades derivadas según el SI,
+-Sistema Internacional de Unidades, o sea, en potencias de 1000.  Los prefijos
+-(k, m ...) se muestran en minúsculas.  Por defecto, está desactivada: los
+-tamaños se calculan según el modelo binario tradicional, empleando múltiplos
+-de 1024 (2 elevado a 10) y los prefijos aparecen en mayúsculas (K, M, etc).
+-Véase al respecto ISO/IEC 80000-13.
++Mostrar tamaños de archivos en bytes con prefijos según el SI, Sistema
++Internacional de Unidades, o sea, en base de 10. Por defecto, está
++desactivada: los tamaños se calculan con prefijos según el IEC, empleando
++base de 2. Véase al respecto ISO/IEC 80000-13.
+ .PP
+ .I Mezclar Archivos y Directorios.
+ Cuando esta opción está habilitada, todos los archivos y directorios
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 482cdf6..9fab83b 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -2030,10 +2030,9 @@ If enabled, one line of status information about the currently selected item
+ is shown at the bottom of the panels. Enabled by default.
+ .PP
+ .I Use SI size units.
+-If this option is enabled, Midnight Commander will use SI units (powers of 1000)
+-when displaying any byte sizes. The suffixes (k, m ...) are shown in lowercase.
+-If disabled (default), Midnight Commander will use binary units (powers of 1024)
+-and the suffixes are shown in upper case (K, M ...)
++If this option is enabled, Midnight Commander will use SI prefixes (base 10)
++when displaying any byte sizes. If disabled (default), Midnight Commander will
++use IEC prefixes (base 2).
+ .PP
+ .I Mix all files.
+ If this option is enabled, all files and directories are shown mixed
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index 5bc53ae..d543292 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -2174,10 +2174,9 @@ FreeBSD. Она устанавливает число строк, которые
+ .PP
+ .I Размеры в единицах СИ.
+ Если эта опция включена, то Midnight Commander отображает размеры файлов
+-и каталогов в единицах СИ (по основанию 1000). Суффиксы к, м, и т. д.
+-отображаются в нижнем регистре. По умолчанию опция выключена. В этом случае
+-Midnight Commander отображат размеры в двоичных единицах (по снованию
+-1024), и суффиксы К, М, и т. д. отображаются в верхнем регистре.
++и каталогов с префиксами СИ (по основанию 10). По умолчанию опция выключена.
++В этом случае Midnight Commander отображает размеры с префиксами МЭК (по
++основанию 2).
+ .PP
+ .I Смешивать файлы/каталоги.
+ Если эта опция включена, имена файлов и каталогов отображаются вперемежку.
+-- 
+2.9.2
+

@@ -1,0 +1,25 @@
+From 1cc1a4c5783faab1a7cd330ff7e86ec23345156c Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 12 Dec 2016 04:21:35 +0200
+Subject: [PATCH 04/13] extfs: uace: make it testable.
+
+---
+ src/vfs/extfs/helpers/uace.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/uace.in b/src/vfs/extfs/helpers/uace.in
+index c29b9de..22eae30 100644
+--- a/src/vfs/extfs/helpers/uace.in
++++ b/src/vfs/extfs/helpers/uace.in
+@@ -16,7 +16,7 @@
+ #
+ 
+ # Define which archiver you are using with appropriate options
+-ACE_LIST="unace l"
++ACE_LIST=${MC_TEST_EXTFS_LIST_CMD:-"unace l"}
+ ACE_GET="unace x"
+ # ACE_PUT="unace ?"  not available
+ 
+-- 
+2.9.3
+

@@ -1,0 +1,154 @@
+diff --git a/doc/man/mcedit.1.in b/doc/man/mcedit.1.in
+index d451cf6..192304a 100644
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -588,6 +588,13 @@ deleting, navigating, typing)
+ Search autocomplete candidates in entire of file or just from
+ begin of file to cursor position (0)
+ .TP
++.I editor_smart_home_end
++when option switched on:
++the Home key go to the first column on first press, and after second
++press go to the beginning of non-whitespace char and
++the End key go to the last column on first press, and after second
++press go to the end of non-whitespace char.
++.TP
+ .I spell_language
+ Spelling language (en, en\-variant_0, ru, etc) installed with aspell
+ package (a full list can be get using 'aspell' utility).
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 2cd91c9..b281e64 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -90,6 +90,7 @@ int option_cursor_beyond_eol = 0;
+ int option_line_state = 0;
+ int option_line_state_width = 0;
+ gboolean option_cursor_after_inserted_block = FALSE;
++int option_smart_home_end = 0;
+ 
+ int option_edit_right_extreme = 0;
+ int option_edit_left_extreme = 0;
+@@ -942,13 +943,69 @@ edit_move_to_bottom (WEdit * edit)
+     }
+ }
+ 
++/** returns index of first char on line or the first nonspace char */
++
++static long
++edit_bol_var (WEdit * edit, long current)
++{
++    long tmp;
++    int b;
++
++    if (!option_smart_home_end)
++        return edit_bol (edit, current);
++
++    if (current < 0)
++        current = 0;
++
++    if (edit_get_byte (edit, current - 1) != '\n')      /* not at BOL */
++        return edit_bol (edit, current);
++
++    if (edit_get_byte (edit, current) == '\n')  /* on an empty line */
++        return current;
++
++    for (tmp = current; (b = edit_get_byte (edit, tmp)) != '\n'; tmp++)
++    {
++        if (!isspace (b))
++            return tmp;
++    }
++    return current;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/** returns index of last char on line or the last nonspace char */
++static long
++edit_eol_var (WEdit * edit, long current)
++{
++    long tmp;
++    int b;
++
++    if (!option_smart_home_end)
++        return edit_eol (edit, current);
++
++    if (current >= edit->last_byte)
++        current = edit->last_byte;
++
++    if (edit_get_byte (edit, current) != '\n')  /* not at BOL */
++        return edit_eol (edit, current);
++
++    if (edit_get_byte (edit, current - 1) == '\n')      /* on an empty line */
++        return current;
++
++    for (tmp = current - 1; (b = edit_get_byte (edit, tmp)) != '\n'; tmp--)
++    {
++        if (!isspace (b))
++            return tmp + 1;
++    }
++    return current;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /** goto beginning of line */
+ 
+ static void
+ edit_cursor_to_bol (WEdit * edit)
+ {
+-    edit_cursor_move (edit, edit_bol (edit, edit->curs1) - edit->curs1);
++    edit_cursor_move (edit, edit_bol_var (edit, edit->curs1) - edit->curs1);
+     edit->search_start = edit->curs1;
+     edit->prev_col = edit_get_col (edit);
+     edit->over_col = 0;
+@@ -960,7 +1017,7 @@ edit_cursor_to_bol (WEdit * edit)
+ static void
+ edit_cursor_to_eol (WEdit * edit)
+ {
+-    edit_cursor_move (edit, edit_eol (edit, edit->curs1) - edit->curs1);
++    edit_cursor_move (edit, edit_eol_var (edit, edit->curs1) - edit->curs1);
+     edit->search_start = edit->curs1;
+     edit->prev_col = edit_get_col (edit);
+     edit->over_col = 0;
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index 3ff1860..0b9ebe3 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -56,6 +56,7 @@ extern int visible_tws;
+ extern int simple_statusbar;
+ extern int option_check_nl_at_eof;
+ extern int show_right_margin;
++extern int option_smart_home_end;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+diff --git a/src/editor/editoptions.c b/src/editor/editoptions.c
+index 4ab2aea..4e7195c 100644
+--- a/src/editor/editoptions.c
++++ b/src/editor/editoptions.c
+@@ -151,6 +151,7 @@ edit_options_dialog (WDialog * h)
+                 QUICK_STOP_GROUPBOX,
+                 QUICK_SEPARATOR (FALSE),
+                 QUICK_SEPARATOR (FALSE),
++                QUICK_SEPARATOR (FALSE),
+                 QUICK_START_GROUPBOX (N_("Tabulation")),
+                     QUICK_CHECKBOX (N_("&Fake half tabs"), &option_fake_half_tabs, NULL),
+                     QUICK_CHECKBOX (N_("&Backspace through tabs"), &option_backspace_through_tabs,
+@@ -168,6 +169,7 @@ edit_options_dialog (WDialog * h)
+                     QUICK_CHECKBOX (N_("Save file &position"), &option_save_position, NULL),
+                     QUICK_CHECKBOX (N_("&Visible trailing spaces"), &visible_tws, NULL),
+                     QUICK_CHECKBOX (N_("Visible &tabs"), &visible_tabs, NULL),
++                    QUICK_CHECKBOX (N_("Smart &Home/End key behavior"), &option_smart_home_end, NULL),
+                     QUICK_CHECKBOX (N_("Synta&x highlighting"), &option_syntax_highlighting, NULL),
+                     QUICK_CHECKBOX (N_("C&ursor after inserted block"), &option_cursor_after_inserted_block, NULL),
+                     QUICK_CHECKBOX (N_("Pers&istent selection"), &option_persistent_selections,
+diff --git a/src/setup.c b/src/setup.c
+index 1e5e8c6..bf44a74 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -344,6 +344,7 @@ static const struct
+     { "editor_option_auto_para_formatting", &option_auto_para_formatting },
+     { "editor_option_typewriter_wrap", &option_typewriter_wrap },
+     { "editor_edit_confirm_save", &edit_confirm_save },
++    { "editor_smart_home_end", &option_smart_home_end },
+     { "editor_syntax_highlighting", &option_syntax_highlighting },
+     { "editor_persistent_selections", &option_persistent_selections },
+     { "editor_cursor_beyond_eol", &option_cursor_beyond_eol },

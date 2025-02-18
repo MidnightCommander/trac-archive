@@ -1,0 +1,12 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index a093f88..ab93168 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -350,6 +350,7 @@ type/^GIF
+ 	Include=image
+ 
+ type/^JPEG
++	View=%view{ascii} identify %f; test -x /usr/bin/exif && echo && exif %f 2>/dev/null
+ 	Include=image
+ 
+ type/^PC\ bitmap

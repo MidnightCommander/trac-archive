@@ -1,0 +1,213 @@
+diff -Naur mc-4.7.0.10/src/cmddef.h mc-4.7.0.10_ho/src/cmddef.h
+--- mc-4.7.0.10/src/cmddef.h	2010-11-08 13:46:14.000000000 +0200
++++ mc-4.7.0.10_ho/src/cmddef.h	2010-11-17 16:02:40.877256004 +0200
+@@ -117,6 +117,8 @@
+ #define CK_Edit_Save_Mode   428
+ #define CK_Choose_Syntax    429
+ #define CK_About            430
++#define CK_Highlight_Occurences     431
++#define CK_Unhighlight_Occurences   432
+ 
+ #if 0
+ /* application control */
+diff -Naur mc-4.7.0.10/src/editor/edit.c mc-4.7.0.10_ho/src/editor/edit.c
+--- mc-4.7.0.10/src/editor/edit.c	2010-11-08 13:46:14.000000000 +0200
++++ mc-4.7.0.10_ho/src/editor/edit.c	2010-11-17 16:43:42.847256004 +0200
+@@ -969,6 +969,10 @@
+ 
+     edit_set_keymap ();
+ 
++    edit->hword_symbols_left = 0;
++    memset(edit->highlight_word, 0, HW_LEN * sizeof(char));
++    edit->highlight_word_length = 0;
++
+     return edit;
+ }
+ 
+@@ -3043,6 +3047,13 @@
+ 
+     switch (command)
+     {
++    case CK_Highlight_Occurences:
++        exec_highlight_occurences(edit);
++        break;
++
++    case CK_Unhighlight_Occurences:
++        exec_unhighlight_occurences(edit);
++        break;
+     case CK_Begin_Page:
+     case CK_End_Page:
+     case CK_Begin_Page_Highlight:
+diff -Naur mc-4.7.0.10/src/editor/edit.h mc-4.7.0.10_ho/src/editor/edit.h
+--- mc-4.7.0.10/src/editor/edit.h	2010-11-08 13:46:14.000000000 +0200
++++ mc-4.7.0.10_ho/src/editor/edit.h	2010-11-17 16:44:29.567255999 +0200
+@@ -63,6 +63,7 @@
+ 
+ extern int simple_statusbar;
+ extern int option_check_nl_at_eof;
++extern int option_highlight_occurences;
+ 
+ /* used in main() */
+ void edit_stack_init (void);
+@@ -74,4 +75,8 @@
+ int edit_get_curs_col (const WEdit *edit);
+ const char *edit_get_syntax_type (const WEdit *edit);
+ 
++extern int need_highlighing(WEdit* edit, long byte_index);
++extern void exec_highlight_occurences(WEdit *edit);
++extern void exec_unhighlight_occurences(WEdit *edit);
++
+ #endif				/* MC_EDIT_H */
+diff -Naur mc-4.7.0.10/src/editor/editmenu.c mc-4.7.0.10_ho/src/editor/editmenu.c
+--- mc-4.7.0.10/src/editor/editmenu.c	2010-11-08 13:46:14.000000000 +0200
++++ mc-4.7.0.10_ho/src/editor/editmenu.c	2010-11-17 16:05:32.837256001 +0200
+@@ -116,6 +116,8 @@
+     entries = g_list_append (entries, menu_entry_create (_("&Next bookmark"),       CK_Next_Bookmark));
+     entries = g_list_append (entries, menu_entry_create (_("&Prev bookmark"),       CK_Prev_Bookmark));
+     entries = g_list_append (entries, menu_entry_create (_("&Flush bookmark"),      CK_Flush_Bookmarks));
++    entries = g_list_append (entries, menu_entry_create (_("Highlight occurences"),   CK_Highlight_Occurences));
++    entries = g_list_append (entries, menu_entry_create (_("Unhighlight occurences"), CK_Unhighlight_Occurences));
+ 
+     return entries;
+ }
+diff -Naur mc-4.7.0.10/src/editor/edit-widget.h mc-4.7.0.10_ho/src/editor/edit-widget.h
+--- mc-4.7.0.10/src/editor/edit-widget.h	2010-11-08 13:46:14.000000000 +0200
++++ mc-4.7.0.10_ho/src/editor/edit-widget.h	2010-11-17 16:38:13.687256010 +0200
+@@ -14,6 +14,8 @@
+ 
+ #define MAX_MACRO_LENGTH 1024
+ #define N_LINE_CACHES 32
++/* HW_LEN max length of word to highlight */
++#define HW_LEN      512
+ 
+ struct _book_mark {
+     int line;			/* line number */
+@@ -127,6 +129,10 @@
+ 
+     char *labels[10];
+ 
++    int hword_symbols_left;
++
++    char highlight_word[HW_LEN];
++    int  highlight_word_length;
+ };
+ 
+ #endif				/* MC_EDIT_WIDGET_H */
+diff -Naur mc-4.7.0.10/src/editor/syntax.c mc-4.7.0.10_ho/src/editor/syntax.c
+--- mc-4.7.0.10/src/editor/syntax.c	2010-11-08 13:46:14.000000000 +0200
++++ mc-4.7.0.10_ho/src/editor/syntax.c	2010-11-17 16:47:59.127256002 +0200
+@@ -56,6 +56,7 @@
+ 
+ #include "edit-impl.h"
+ #include "edit-widget.h"
++//#include "../src/myslang.h"
+ 
+ /* bytes */
+ #define SYNTAX_MARKER_DENSITY 512
+@@ -75,6 +76,60 @@
+ #define SYNTAX_TOKEN_BRACKET	'\003'
+ #define SYNTAX_TOKEN_BRACE	'\004'
+ 
++/**
++    Section related to highlighting of occurences
++ */
++
++#define HIGHLIGHT_DLG_WIDTH 58
++#define HIGHLIGHT_DLG_HEIGHT 8
++#define B_REPLACE_ALL (B_USER+1)
++#define B_REPLACE_ONE (B_USER+2)
++#define B_SKIP_REPLACE (B_USER+3)
++
++int option_highlight_occurences = 0;
++
++int need_highlighing(WEdit* edit, long byte_index)
++{
++    int ret = 0;
++    int i = 0;
++    char token[edit->highlight_word_length+1];
++
++    token[edit->highlight_word_length] = 0;
++    for ( ; i < edit->highlight_word_length; i++)
++        token[i] = edit_get_byte(edit, byte_index++);
++
++    ret = !strncmp(token, edit->highlight_word, edit->highlight_word_length);
++
++    if ( ret )
++        ret = edit->highlight_word_length;
++
++    return ret;
++}
++
++void exec_highlight_occurences(WEdit *edit)
++{
++    char *text = input_expand_dialog (_("Highlight occurences"), _(" Text:"), "", "");
++
++    if ( text )
++    {
++        option_highlight_occurences = 1;
++        edit->highlight_word_length = strlen(text);
++        strcpy(edit->highlight_word, text); // TODO: Check for Unicode
++        g_free(text);
++        edit_refresh_cmd(edit);
++    }
++}
++
++void exec_unhighlight_occurences(WEdit *edit)
++{
++    option_highlight_occurences = 0;
++    edit->highlight_word_length = 0;
++    memset(edit->highlight_word, 0, HW_LEN);
++    edit_refresh_cmd(edit);
++}
++
++/*---------------------*/
++
+ struct key_word {
+     char *keyword;
+     unsigned char first;
+@@ -494,13 +549,32 @@
+ void
+ edit_get_syntax_color (WEdit * edit, long byte_index, int *color)
+ {
++
+     if (!tty_use_colors ())
+-	*color = 0;
+-    else if (edit->rules && byte_index < edit->last_byte &&
+-		 option_syntax_highlighting)
+-	translate_rule_to_color (edit, edit_get_rule (edit, byte_index), color);
++        *color = 0;
+     else
+-	*color = EDITOR_NORMAL_COLOR;
++    {
++        if (edit->rules && byte_index < edit->last_byte && option_syntax_highlighting)
++            translate_rule_to_color (edit, edit_get_rule (edit, byte_index), color);
++        else
++            *color = EDITOR_NORMAL_COLOR;
++
++        if ( option_highlight_occurences )
++        {
++            if ( edit->hword_symbols_left )
++            {
++                --edit->hword_symbols_left;
++                *color = SELECTED_COLOR;
++                return;
++            }
++            else if (( edit->hword_symbols_left = need_highlighing(edit, byte_index) ))
++            {
++                --edit->hword_symbols_left;
++                *color = SELECTED_COLOR;
++                return;
++            }
++        }
++    }
+ }
+ 
+ 
+@@ -1253,3 +1327,7 @@
+ {
+     return edit->syntax_type;
+ }
++
++
++
++

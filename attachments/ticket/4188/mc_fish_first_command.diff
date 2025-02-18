@@ -1,0 +1,47 @@
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index cb8bbe3f1..8b623fdd6 100644
+@@ -1441,18 +1442,12 @@ invoke_subshell (const char *command, int how, vfs_path_t ** new_dir_vpath)
+     }
+     else                        /* MC has passed us a user command */
+     {
+-        /* Before we write to the command prompt, we need to clear whatever */
+-        /* data is there, but only if we are using one of the shells that */
+-        /* doesn't support keeping command buffer contents, OR if there was */
+-        /* some sort of error. */
+-        if (!use_persistent_buffer || subshell_should_clear_command_line)
++        /* Hack to make fish shell process the first command after window resize. */
++        if (subshell_ready)
+         {
+-            write_all (mc_global.tty.subshell_pty, "\003", 1);
+-            subshell_state = RUNNING_COMMAND;
+-            /* We need to call feed_subshell here if we are using fish, because of a quirk
+-             * in the behavioral of that particular shell. */
+-            if (mc_global.shell->type != SHELL_FISH)
+-                feed_subshell (QUIETLY, FALSE);
++          write_all (mc_global.tty.subshell_pty,  " \n", 2);
++          subshell_state = RUNNING_COMMAND;
++          feed_subshell (VISIBLY, FALSE);
+         }
+ 
+         if (how == QUIETLY)
+@@ -1655,15 +1650,11 @@ do_subshell_chdir (const vfs_path_t * vpath, gboolean update_prompt)
+         return;
+     }
+ 
+-    /* If we are using a shell that doesn't support persistent command buffer, we need to clear
+-     * the command prompt before we send the cd command. */
+-    if (!use_persistent_buffer || subshell_should_clear_command_line)
+-    {
+-        write_all (mc_global.tty.subshell_pty, "\003", 1);
+-        subshell_state = RUNNING_COMMAND;
+-        if (mc_global.shell->type != SHELL_FISH)
+-            feed_subshell (QUIETLY, FALSE);
+-    }
++    /* Hack to make fish shell process the first cd after window resize. */
++    write_all (mc_global.tty.subshell_pty, " \n", 2);
++    subshell_state = RUNNING_COMMAND;
++    feed_subshell (QUIETLY, FALSE);
++
+     /* The initial space keeps this out of the command history (in bash
+        because we set "HISTCONTROL=ignorespace") */
+     write_all (mc_global.tty.subshell_pty, " cd ", 4);

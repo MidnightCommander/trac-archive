@@ -1,0 +1,14 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index a093f88..41dd8a2 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -539,6 +539,9 @@ regex/\.([dD][vV][iI])$
+ regex/\.([Tt][Ee][Xx])$
+ 	Open=%var{EDITOR:vi} %f
+ 
++# DjVu
++regex/\.(djvu|DJVU)$
++	Open=djview %f &
+ 
+ ### Miscellaneous ###
+ 

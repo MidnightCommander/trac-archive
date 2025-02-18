@@ -1,0 +1,14 @@
+--- mc-4.6.1-org/src/screen.c	2005-05-27 14:19:18.000000000 +0000
++++ mc-4.6.1/src/screen.c	2007-06-16 08:15:35.000000000 +0000
+@@ -1706,7 +1706,10 @@
+     if ((S_ISDIR (selection (panel)->st.st_mode)
+ 	 || link_isdir (selection (panel)))) {
+ 	do_cd (selection (panel)->fname, cd_exact);
+-    }
++    }else
++    /* Try associated command */
++    if (regex_command (selection (panel)->fname, "Open", 0) != 0)
++	return 1;
+ }
+ 
+ static void

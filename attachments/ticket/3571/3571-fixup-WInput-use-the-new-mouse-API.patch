@@ -1,0 +1,74 @@
+From 28edd8ddaed980cf5a592fe78a83fcfd83c6baca Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 19 Feb 2016 12:28:42 +0200
+Subject: [PATCH] fixup! WInput: use the new mouse API.
+
+---
+ lib/widget/input.c | 27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
+
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index 3c07537..c4f0384 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -908,15 +908,20 @@ input_destroy (WInput * in)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static void
+-input_update_point (WInput * in, int pos)
++/**
++ * Calculates the buffer index (aka "point") corresponding to some screen coordinate.
++ */
++static int
++input_screen_to_point (WInput * in, int x)
+ {
+-    pos += in->term_first_shown;
++    x += in->term_first_shown;
+ 
+-    if (pos < str_term_width1 (in->buffer))
+-        in->point = str_column_to_pos (in->buffer, pos);
++    if (x < 0)
++        return 0;
++    else if (x < str_term_width1 (in->buffer))
++        return str_column_to_pos (in->buffer, x);
+     else
+-        in->point = str_length (in->buffer);
++        return str_length (in->buffer);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -933,26 +938,24 @@ input_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+     case MSG_MOUSE_DOWN:
+         dlg_select_widget (w);
+         in->first = FALSE;
+-        input_mark_cmd (in, FALSE);
+ 
+         if (event->x >= w->cols - HISTORY_BUTTON_WIDTH && should_show_history_button (in))
+             do_show_hist (in);
+         else
+         {
+-            input_update_point (in, event->x);
++            input_mark_cmd (in, FALSE);
++            input_set_point (in, input_screen_to_point (in, event->x));
+             /* save point for the possible following MSG_MOUSE_DRAG action */
+             prev_point = in->point;
+         }
+-        input_update (in, TRUE);
+         break;
+ 
+     case MSG_MOUSE_DRAG:
+-        /* start point: set marker using point before first GPM_DRAG action */
++        /* start point: set marker using point before first MSG_MOUSE_DRAG action */
+         if (in->mark < 0)
+             in->mark = prev_point;
+ 
+-        input_update_point (in, event->x);
+-        input_update (in, TRUE);
++        input_set_point (in, input_screen_to_point (in, event->x));
+         break;
+ 
+     default:
+-- 
+2.5.0
+

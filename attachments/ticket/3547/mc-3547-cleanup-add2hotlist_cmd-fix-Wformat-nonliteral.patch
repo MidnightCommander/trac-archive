@@ -1,0 +1,38 @@
+From da6f2bc159f5aa3115688b92d5594b1c0696e1ae Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 26 Nov 2015 20:40:07 +0000
+Subject: [PATCH] (add2hotlist_cmd) fix -Wformat-nonliteral
+
+hotlist.c:1576:34: warning: format string is not a string literal [-Wformat-nonliteral]
+
+and remove unnecessary ENABLE_NLS switch
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/hotlist.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index 3c13c34..71cd3f9 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -1563,17 +1563,12 @@ void
+ add2hotlist_cmd (void)
+ {
+     char *lc_prompt;
+-    const char *cp = N_("Label for \"%s\":");
+     int l;
+     char *label_string, *label;
+ 
+-#ifdef ENABLE_NLS
+-    cp = _(cp);
+-#endif
+-
+-    l = str_term_width1 (cp);
++    l = str_term_width1 (_("Label for \"%s\":"));
+     label_string = vfs_path_to_str_flags (current_panel->cwd_vpath, 0, VPF_STRIP_PASSWORD);
+-    lc_prompt = g_strdup_printf (cp, str_trunc (label_string, COLS - 2 * UX - (l + 8)));
++    lc_prompt = g_strdup_printf (_("Label for \"%s\":"), str_trunc (label_string, COLS - 2 * UX - (l + 8)));
+     label =
+         input_dialog (_("Add to hotlist"), lc_prompt, MC_HISTORY_HOTLIST_ADD, label_string,
+                       INPUT_COMPLETE_NONE);

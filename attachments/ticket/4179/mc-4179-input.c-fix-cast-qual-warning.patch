@@ -1,0 +1,36 @@
+From 81e9d21b1573b82bb0738c416686a42796990f8b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 13:02:40 +0000
+Subject: [PATCH] (input.c) Fix -Wcast-qual warning
+
+input.c:92:55: warning: cast from 'const struct _GList *' to 'struct _GList *' drops const qualifier [-Wcast-qual]
+    for (; history != NULL; history = (const GList *) g_list_previous (history))
+                                                      ^
+/usr/include/glib-2.0/glib/glist.h:172:60: note: expanded from macro 'g_list_previous'
+#define g_list_previous(list)           ((list) ? (((GList *)(list))->prev) : NULL)
+
+Found by Clang-11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/input.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index b5cec7e6b..1b64a3cdd 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -85,11 +85,11 @@ static char *kill_buffer = NULL;
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static size_t
+-get_history_length (const GList * history)
++get_history_length (GList * history)
+ {
+     size_t len = 0;
+ 
+-    for (; history != NULL; history = (const GList *) g_list_previous (history))
++    for (; history != NULL; history = g_list_previous (history))
+         len++;
+ 
+     return len;

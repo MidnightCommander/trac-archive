@@ -1,0 +1,158 @@
+From ede8abc8a991051c58f96a522ca4b8b5f3f6297d Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 24 Mar 2016 00:20:06 +0200
+Subject: [PATCH] Get rid of the 'click' variable.
+
+---
+ lib/widget/dialog.c     |  5 ++---
+ lib/widget/mouse.c      | 31 +++++++++++++++----------------
+ lib/widget/mouse.h      |  4 ++--
+ src/editor/editwidget.c |  3 +--
+ 4 files changed, 20 insertions(+), 23 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index 8fa00fc..216edf2 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -365,12 +365,11 @@ dlg_handle_key (WDialog * h, int d_key)
+ static int
+ dlg_mouse_translator (Gpm_Event * event, Widget * w)
+ {
+-    gboolean run_click;
+     mouse_event_t me;
+ 
+-    me = mouse_translate_event (w, event, &run_click);
++    me = mouse_translate_event (w, event);
+ 
+-    return mouse_process_event (w, &me, run_click);
++    return mouse_process_event (w, &me);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/mouse.c b/lib/widget/mouse.c
+index 1c83049..3834769 100644
+--- a/lib/widget/mouse.c
++++ b/lib/widget/mouse.c
+@@ -78,12 +78,11 @@ init_mouse_event (mouse_event_t * event, mouse_msg_t msg, const Gpm_Event * glob
+  *
+  * @param w Widget object
+  * @param event GPM event
+- * @param click whether mouse click was raised or not
+  *
+  * @return high level mouse event
+  */
+ mouse_event_t
+-mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click)
++mouse_translate_event (Widget * w, Gpm_Event * event)
+ {
+     gboolean in_widget;
+     mouse_msg_t msg = MSG_MOUSE_NONE;
+@@ -97,8 +96,6 @@ mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click)
+      */
+     in_widget = w->mouse.forced_capture || mouse_global_in_widget (event, w);
+ 
+-    *click = FALSE;
+-
+     if ((event->type & GPM_DOWN) != 0)
+     {
+         if (in_widget)
+@@ -132,10 +129,6 @@ mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click)
+             w->mouse.capture = FALSE;
+             msg = MSG_MOUSE_UP;
+ 
+-            if (in_widget)
+-                /* If the mouse hasn't been dragged since the MSG_MOUSE_DOWN, we trigger a click. */
+-                *click = (w->mouse.last_msg == MSG_MOUSE_DOWN);
+-
+             /*
+              * When using xterm, event->buttons reports the buttons' state
+              * after the event occurred (meaning that event->buttons is zero,
+@@ -159,10 +152,6 @@ mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click)
+             msg = MSG_MOUSE_MOVE;
+     }
+ 
+-    if (msg != MSG_MOUSE_NONE)
+-        /* Record the current event type for the benefit of the next event. */
+-        w->mouse.last_msg = msg;
+-
+     init_mouse_event (&local, msg, event, w);
+ 
+     return local;
+@@ -173,23 +162,33 @@ mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click)
+ /**
+  * Call widget mouse handler to process high-level mouse event.
+  *
++ * Besides sending to the widget the event itself, this function may also
++ * send one or more pseudo events. Currently, MSG_MOUSE_CLICK is the only
++ * pseudo event in existence but in the future (e.g., with the introduction
++ * of a drag-drop API) there may be more.
++ *
+  * @param w Widget object
+- * @param high level mouse event
+- * @param click whether mouse click was raised or not
++ * @param event high level mouse event
+  *
+  * @return result of mouse event handling
+  */
+ int
+-mouse_process_event (Widget * w, mouse_event_t * event, gboolean click)
++mouse_process_event (Widget * w, mouse_event_t * event)
+ {
+     int ret = MOU_UNHANDLED;
+ 
+     if (event->msg != MSG_MOUSE_NONE)
+     {
+         w->mouse_callback (w, event->msg, event);
+-        if (click)
++
++        /* Upon releasing the mouse button: if the mouse hasn't been dragged
++         * since the MSG_MOUSE_DOWN, we also trigger a click. */
++        if (event->msg == MSG_MOUSE_UP && w->mouse.last_msg == MSG_MOUSE_DOWN)
+             w->mouse_callback (w, MSG_MOUSE_CLICK, event);
+ 
++        /* Record the current event type for the benefit of the next event. */
++        w->mouse.last_msg = event->msg;
++
+         if (!event->result.abort)
+             ret = event->result.repeat ? MOU_REPEAT : MOU_NORMAL;
+     }
+diff --git a/lib/widget/mouse.h b/lib/widget/mouse.h
+index 8cdd0e9..b0c8c1f 100644
+--- a/lib/widget/mouse.h
++++ b/lib/widget/mouse.h
+@@ -58,9 +58,9 @@ typedef struct
+ /*** declarations of public functions ************************************************************/
+ 
+ /* Translate GPM event to high-level event */
+-mouse_event_t mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click);
++mouse_event_t mouse_translate_event (Widget * w, Gpm_Event * event);
+ /* Process high-level mouse event */
+-int mouse_process_event (Widget * w, mouse_event_t * event, gboolean click);
++int mouse_process_event (Widget * w, mouse_event_t * event);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 21d209e..277af8e 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -766,7 +766,6 @@ edit_mouse_move_resize (WEdit * edit, mouse_event_t event)
+     while (edit->drag_state != MCEDIT_DRAG_NORMAL)
+     {
+         int c;
+-        gboolean click = FALSE; /* unused */
+ 
+         if (event.msg == MSG_MOUSE_UP)
+             goto finish;
+@@ -812,7 +811,7 @@ edit_mouse_move_resize (WEdit * edit, mouse_event_t event)
+          * outside of widget */
+         c = tty_get_event (&gevent, FALSE, TRUE);
+         if (c == EV_MOUSE)
+-            event = mouse_translate_event (w, &gevent, &click);
++            event = mouse_translate_event (w, &gevent);
+         else
+         {
+           finish:
+-- 
+2.5.0
+

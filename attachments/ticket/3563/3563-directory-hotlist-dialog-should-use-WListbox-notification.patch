@@ -1,0 +1,73 @@
+From fac25a0ae6be5d1b3fc223eb8fde3bb3b66029c8 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 21 Nov 2015 22:53:51 +0200
+Subject: [PATCH] "Directory hotlist" dialog should use WListbox's change
+ notification.
+
+---
+ src/filemanager/hotlist.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index 3d76082..ac7608f 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -335,10 +335,8 @@ add_name_to_list (const char *path)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static int
+-hotlist_button_callback (WButton * button, int action)
++hotlist_run_cmd (int action)
+ {
+-    (void) button;
+-
+     switch (action)
+     {
+     case B_MOVE:
+@@ -488,6 +486,19 @@ hotlist_button_callback (WButton * button, int action)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static int
++hotlist_button_callback (WButton * button, int action)
++{
++    int ret;
++
++    (void) button;
++    ret = hotlist_run_cmd (action);
++    update_path_name ();
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static inline cb_ret_t
+ hotlist_handle_key (WDialog * h, int key)
+ {
+@@ -568,9 +579,9 @@ hotlist_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         return hotlist_handle_key (h, parm);
+ 
+     case MSG_POST_KEY:
+-        dlg_select_widget (h == hotlist_dlg ? l_hotlist : l_movelist);
+         /* always stay on hotlist */
+-        /* fall through */
++        dlg_select_widget (h == hotlist_dlg ? l_hotlist : l_movelist);
++        return MSG_HANDLED;
+ 
+     case MSG_INIT:
+         update_path_name ();
+@@ -581,6 +592,11 @@ hotlist_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         dlg_set_size (h, LINES - (h == hotlist_dlg ? 2 : 6), COLS - 6);
+         return MSG_HANDLED;
+ 
++    case MSG_ACTION:
++        if (sender != NULL)     /* The listbox tells us the item has changed. */
++            update_path_name ();
++        /* fall through */
++
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+     }
+-- 
+2.1.4
+

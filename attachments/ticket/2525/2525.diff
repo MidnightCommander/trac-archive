@@ -1,0 +1,116 @@
+parent 78019b896ba0e59ba886ecf500747cbe77dbc7cb (4.7.5-189-g78019b8)
+commit afd64cbbcbc6b94970587ccaefbe4f85beb7f58d
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Mar 31 00:35:16 2011 +0200
+
+editor: add option to show EOL
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ src/editor/edit.h        |    1 +
+ src/editor/editdraw.c    |    8 +++++++-
+ src/editor/editoptions.c |   24 +++++++++++++-----------
+ src/setup.c              |    1 +
+ 4 files changed, 22 insertions(+), 12 deletions(-)
+
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index d6b8344..bf539a3 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -69,6 +69,7 @@ extern int edit_confirm_save;
+ 
+ extern int visible_tabs;
+ extern int visible_tws;
++extern int visible_eol;
+ 
+ extern int simple_statusbar;
+ extern int option_check_nl_at_eof;
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 7fbb294..fb23f4b 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -57,7 +57,7 @@
+ /* Toggles statusbar draw style */
+ int simple_statusbar = 0;
+ 
+-int visible_tabs = 1, visible_tws = 1;
++int visible_tabs = 1, visible_tws = 1, visible_eol;
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+@@ -419,6 +419,12 @@ edit_draw_this_line (WEdit * edit, long b, long row, long start_col, long end_co
+                 {
+                 case '\n':
+                     col = (end_col + utf8lag) - edit->start_col + 1;    /* quit */
++                    if (tty_use_colors() && visible_eol) {
++                        p->ch = 0xB6;
++                        p->style |= MOD_WHITESPACE;
++                        ++p;
++                        ++col;
++                    }
+                     break;
+                 case '\t':
+                     i = TAB_SIZE - ((int) col % TAB_SIZE);
+diff --git a/src/editor/editoptions.c b/src/editor/editoptions.c
+index ece015c..482e74b 100644
+--- a/src/editor/editoptions.c
++++ b/src/editor/editoptions.c
+@@ -90,13 +90,13 @@ edit_options_dialog (WEdit * edit)
+         /*  3 */ QUICK_INPUT (OPT_DLG_W / 2 + 25, OPT_DLG_W, 12, OPT_DLG_H,
+                               wrap_length, OPT_DLG_W / 2 - 4 - 24, 0, "edit-word-wrap", &p),
+         /*  4 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 11, OPT_DLG_H,
+-                                 N_("&Group undo"), &option_group_undo),
+-        /*  5 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 10, OPT_DLG_H,
+                                  N_("Cursor beyond end of line"), &option_cursor_beyond_eol),
+-        /*  6 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 9, OPT_DLG_H,
++        /*  5 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 10, OPT_DLG_H,
+                                  N_("Pers&istent selection"), &option_persistent_selections),
+-        /*  7 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 8, OPT_DLG_H,
++        /*  6 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 9, OPT_DLG_H,
+                                  N_("Synta&x highlighting"), &option_syntax_highlighting),
++        /*  7 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 8, OPT_DLG_H,
++                                 N_("Visible EOL"), &visible_eol),
+         /*  8 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 7, OPT_DLG_H,
+                                  N_("Visible tabs"), &visible_tabs),
+         /*  9 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 6, OPT_DLG_H,
+@@ -107,17 +107,19 @@ edit_options_dialog (WEdit * edit)
+                                  N_("Confir&m before saving"), &edit_confirm_save),
+         /* 12 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 3, OPT_DLG_H,
+                                  N_("&Return does autoindent"), &option_return_does_auto_indent),
+-        /* 13 */ QUICK_LABEL (3, OPT_DLG_W, 11, OPT_DLG_H, N_("Tab spacing:")),
+-        /* 14 */ QUICK_INPUT (3 + 24, OPT_DLG_W, 11, OPT_DLG_H,
++        /* 13 */ QUICK_LABEL (3, OPT_DLG_W, 12, OPT_DLG_H, N_("Tab spacing:")),
++        /* 14 */ QUICK_INPUT (3 + 24, OPT_DLG_W, 12, OPT_DLG_H,
+                               tab_spacing, OPT_DLG_W / 2 - 4 - 24, 0, "edit-tab-spacing", &q),
+-        /* 15 */ QUICK_CHECKBOX (3, OPT_DLG_W, 10, OPT_DLG_H,
++        /* 15 */ QUICK_CHECKBOX (3, OPT_DLG_W, 11, OPT_DLG_H,
++                                 N_("&Group undo"), &option_group_undo),
++        /* 16 */ QUICK_CHECKBOX (3, OPT_DLG_W, 10, OPT_DLG_H,
+                                  N_("Fill tabs with &spaces"), &option_fill_tabs_with_spaces),
+-        /* 16 */ QUICK_CHECKBOX (3, OPT_DLG_W, 9, OPT_DLG_H,
++        /* 17 */ QUICK_CHECKBOX (3, OPT_DLG_W, 9, OPT_DLG_H,
+                                  N_("&Backspace through tabs"), &option_backspace_through_tabs),
+-        /* 17 */ QUICK_CHECKBOX (3, OPT_DLG_W, 8, OPT_DLG_H,
++        /* 18 */ QUICK_CHECKBOX (3, OPT_DLG_W, 8, OPT_DLG_H,
+                                  N_("&Fake half tabs"), &option_fake_half_tabs),
+-        /* 18 */ QUICK_RADIO (4, OPT_DLG_W, 4, OPT_DLG_H, 3, wrap_str, &wrap_mode),
+-        /* 19 */ QUICK_LABEL (3, OPT_DLG_W, 3, OPT_DLG_H, N_("Wrap mode")),
++        /* 19 */ QUICK_RADIO (4, OPT_DLG_W, 4, OPT_DLG_H, 3, wrap_str, &wrap_mode),
++        /* 20 */ QUICK_LABEL (3, OPT_DLG_W, 3, OPT_DLG_H, N_("Wrap mode")),
+         QUICK_END
+     };
+ 
+diff --git a/src/setup.c b/src/setup.c
+index 2d7dad7..bc91e93 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -304,6 +304,7 @@ static const struct
+     { "editor_cursor_beyond_eol", &option_cursor_beyond_eol },
+     { "editor_visible_tabs", &visible_tabs },
+     { "editor_visible_spaces", &visible_tws },
++    { "editor_visible_eol", &visible_eol },
+     { "editor_line_state", &option_line_state },
+     { "editor_simple_statusbar", &simple_statusbar },
+     { "editor_check_new_line", &option_check_nl_at_eof },
+-- 
+# Created with git-export-patch

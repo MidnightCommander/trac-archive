@@ -1,0 +1,33 @@
+From 48f34f72c96b5518404b8fb83d70397b87097eb2 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 28 Feb 2016 22:01:45 +0000
+Subject: [PATCH] src/editor/etags.c: Cleanup some compiler warnings
+
+etags.c:215:38: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+            filename = g_malloc (pos + 2);
+                       ~~~~~~~~  ~~~~^~~
+etags.c:216:52: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+            g_strlcpy (filename, (char *) buf, pos + 1);
+            ~~~~~~~~~                          ~~~~^~~
+etags.c:213:19: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+            pos = strcspn (buf, ",");
+                ~ ^~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/etags.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/etags.c b/src/editor/etags.c
+index be886ec..6da990e 100644
+--- a/src/editor/etags.c
++++ b/src/editor/etags.c
+@@ -188,7 +188,7 @@ etags_set_definition_hash (const char *tagfile, const char *start_path,
+     char *chekedstr = NULL;
+ 
+     int num = 0;                /* returned value */
+-    int pos;
++    gsize pos;
+     char *filename = NULL;
+ 
+     if (!match_func || !tagfile)

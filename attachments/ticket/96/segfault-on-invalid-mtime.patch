@@ -1,0 +1,36 @@
+#
+# Invalid timestamps on files caused mc to segfault by passing a null
+# pointer to strftime. Avoid trying to print the time in this case.
+# 
+# Source:       Gentoo Portage
+# Reference:	mc-4.6.1
+# Reported-By:	Maxim Britov <maxim office modum by>
+# Reported-Bug: <a rel="nofollow" href="http://bugs.gentoo.org/184296">http://bugs.gentoo.org/184296</a>
+# Submit-By:    Enrico Weigelt, metux IT service <weigelt metux de>
+# Submit-Date:	2008-12-26
+# State:	new
+#
+diff -ruN mc-4.6.1.orig/src/util.c mc-4.6.1/src/util.c
+--- mc-4.6.1.orig/src/util.c	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/src/util.c	2008-12-26 03:13:13.000000000 +0100
+@@ -717,6 +717,7 @@
+     static size_t i18n_timelength = 0;
+     static const char *fmtyear, *fmttime;
+     const char *fmt;
++    struct tm *whentm;
+ 
+     if (i18n_timelength == 0){
+ 	i18n_timelength = i18n_checktimelength() + 1;
+@@ -740,7 +741,11 @@
+     else
+ 	fmt = fmttime;
+     
+-    strftime (timebuf, i18n_timelength, fmt, localtime(&when));
++    whentm = localtime(&when);
++    if (whentm == NULL)
++	return "(invalid)";
++
++    strftime (timebuf, i18n_timelength, fmt, whentm);
+     return timebuf;
+ }
+ 

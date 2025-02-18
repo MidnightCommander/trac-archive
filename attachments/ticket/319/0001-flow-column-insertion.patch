@@ -1,0 +1,339 @@
+From d1854925692e2efa9e21272c70f697dc4e15e3d9 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 7 Apr 2009 21:17:45 +0100
+Subject: [PATCH] flow column insertion
+
+---
+ edit/ChangeLog |   13 +++++++++
+ edit/edit.c    |   73 +++++++++++++++++++++++++++++++++++++++++++++------
+ edit/edit.h    |    2 +
+ edit/editcmd.c |   79 +++++++++++++++++++++++++++++++++----------------------
+ 4 files changed, 126 insertions(+), 41 deletions(-)
+
+diff --git a/edit/ChangeLog b/edit/ChangeLog
+index a663358..241e173 100644
+--- a/edit/ChangeLog
++++ b/edit/ChangeLog
+@@ -1,3 +1,16 @@
++2009-04-05  Vit Rosin   <vit_r@list.ru>
++        flow column insertion:
++        * edit.h, edit.c (Add edit_flow_insert_col ()):
++        * edit.c (edit_insert_file):
++        * edit.c (edit_execute_key_command):
++        * editcmd.c (edit_copy_to_X_buf_cmd):
++        * editcmd.c (edit_cut_to_X_buf_cmd):
++        When chars are inserted place cursor after inserted chars.
++        If after insertion cursor changes line
++        (<Up-arrow>, <Down-arrow>, <PageUp>, <PageDown>,
++        <BeginText> or <EndText>), -
++        move cursor to the insert-start column.
++
+ 2007-11-02  Vladimir Nadvornik  <nadvornik@suse.cz>
+ 
+ 	* editlock.c (lock_build_name): Check the return value of getpwuid().
+diff --git a/edit/edit.c b/edit/edit.c
+index eb61c29..ede9890 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -50,6 +50,7 @@
+    what editor are we going to emulate? one of EDIT_KEY_EMULATION_NORMAL
+    or EDIT_KEY_EMULATION_EMACS
+  */
++static int flow_insert_col = -1;
+ int edit_key_emulation = EDIT_KEY_EMULATION_NORMAL;
+ 
+ int option_word_wrap_line_length = 72;
+@@ -265,13 +266,17 @@ int
+ edit_insert_file (WEdit *edit, const char *filename)
+ {
+     char *p;
++    int tmp_curr_col;
++    edit->force |= REDRAW_COMPLETELY;
++    edit_update_screen (edit);
++    edit_update_curs_col (edit);
++    tmp_curr_col = edit_get_col (edit);
++    flow_insert_col = -1;
+     if ((p = edit_get_filter (filename))) {
+ 	FILE *f;
+-	long current = edit->curs1;
+ 	f = (FILE *) popen (p, "r");
+ 	if (f) {
+ 	    edit_insert_stream (edit, f);
+-	    edit_cursor_move (edit, current - edit->curs1);
+ 	    if (pclose (f) > 0) {
+ 	        GString *errmsg = g_string_new (NULL);
+ 		g_string_sprintf (errmsg, _(" Error reading from pipe: %s "), p);
+@@ -291,7 +296,6 @@ edit_insert_file (WEdit *edit, const char *filename)
+ 	g_free (p);
+     } else {
+ 	int i, file, blocklen;
+-	long current = edit->curs1;
+ 	unsigned char *buf;
+ 	if ((file = mc_open (filename, O_RDONLY | O_BINARY)) == -1)
+ 	    return 0;
+@@ -300,12 +304,12 @@ edit_insert_file (WEdit *edit, const char *filename)
+ 	    for (i = 0; i < blocklen; i++)
+ 		edit_insert (edit, buf[i]);
+ 	}
+-	edit_cursor_move (edit, current - edit->curs1);
+ 	g_free (buf);
+ 	mc_close (file);
+ 	if (blocklen)
+ 	    return 0;
+     }
++    flow_insert_col = tmp_curr_col;
+     return 1;
+ }
+ 
+@@ -2017,7 +2021,8 @@ static void edit_tab_cmd (WEdit * edit)
+ 
+ static void check_and_wrap_line (WEdit * edit)
+ {
+-    int curs, c;
++    int c;
++    long curs;
+     if (!option_typewriter_wrap)
+ 	return;
+     edit_update_curs_col (edit);
+@@ -2032,7 +2037,7 @@ static void check_and_wrap_line (WEdit * edit)
+ 	    return;
+ 	}
+ 	if (c == ' ' || c == '\t') {
+-	    int current = edit->curs1;
++	    long current = edit->curs1;
+ 	    edit_cursor_move (edit, curs - edit->curs1 + 1);
+ 	    edit_insert (edit, '\n');
+ 	    edit_cursor_move (edit, current - edit->curs1 + 1);
+@@ -2150,6 +2155,7 @@ void edit_execute_key_command (WEdit *edit, int command, int char_for_insertion)
+ 	edit_push_key_press (edit);
+ 
+     edit_execute_cmd (edit, command, char_for_insertion);
++    edit_flow_insert_col (edit, command);
+     if (column_highlighting)
+ 	edit->force |= REDRAW_PAGE;
+ }
+@@ -2512,14 +2518,20 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+     case CK_Move:
+ 	edit_block_move_cmd (edit);
+ 	break;
+-
+     case CK_XStore:
+-	edit_copy_to_X_buf_cmd (edit);
++        if (edit_copy_to_X_buf_cmd (edit)) {
++            flow_insert_col = get_flowing_col (edit);
++            edit_mark_cmd (edit, 1);
++        }
+ 	break;
+     case CK_XCut:
+-	edit_cut_to_X_buf_cmd (edit);
++        if (edit_cut_to_X_buf_cmd (edit)) {
++            flow_insert_col = edit_get_col (edit);
++            edit_mark_cmd (edit, 1);
++        }
+ 	break;
+     case CK_XPaste:
++	flow_insert_col = edit_get_col (edit);
+ 	edit_paste_from_X_buf_cmd (edit);
+ 	break;
+     case CK_Selection_History:
+@@ -2772,3 +2784,46 @@ user_menu (WEdit * edit)
+ cleanup:
+     g_free (block_file);
+ }
++
++int get_flowing_col (WEdit * edit)
++{
++    long start_mark, end_mark;
++    edit->force |= REDRAW_COMPLETELY;
++    edit_update_screen (edit);
++    if ( ! eval_marks (edit, &start_mark, &end_mark)) {
++        if (start_mark == edit->mark1)
++            return edit->column1;
++        else
++            return edit->column2;
++    }
++    return (-1);
++}
++
++void edit_flow_insert_col (WEdit * edit, const int command)
++{
++    if (command == CK_Mark && edit->mark2 >= 0
++            || command == CK_Copy || command == CK_Move)
++        flow_insert_col = get_flowing_col (edit);
++
++    if (command == CK_Beginning_Of_Text || command == CK_End_Of_Text
++            || command == CK_Page_Up || command == CK_Page_Down
++            || command == CK_Up || command == CK_Down) {
++        if (flow_insert_col >= 0) {
++            edit->force |= REDRAW_COMPLETELY;
++            edit_update_screen (edit);
++            if ((edit_eol (edit, edit->curs1) - edit_bol (edit, edit->curs1)) >= flow_insert_col) {
++                edit_cursor_move (edit, flow_insert_col - edit->curs_col);
++                edit->force |= REDRAW_COMPLETELY;
++                edit_update_screen (edit);
++            }
++        }
++    } else if (command == CK_Copy || command == CK_Move
++            || command == CK_XCut || command == CK_XPaste
++            || command == CK_XStore) {
++	/* */
++    } else if (edit->mark2 >= 0) {
++	/* */
++    } else {
++        flow_insert_col = -1;
++    }
++}
+diff --git a/edit/edit.h b/edit/edit.h
+index 783bcd5..cdf0371 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -244,6 +244,8 @@ void format_paragraph (WEdit *edit, int force);
+ 
+ /* either command or char_for_insertion must be passed as -1 */
+ void edit_execute_cmd (WEdit *edit, int command, int char_for_insertion);
++void edit_flow_insert_col (WEdit * edit, const int command);
++int get_flowing_col (WEdit * edit);
+ 
+ #define get_sys_error(s) (s)
+ 
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index d3f8ecf..ff81aa2 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -970,8 +970,8 @@ edit_insert_column_of_text (WEdit * edit, unsigned char *data, int size, int wid
+ void
+ edit_block_copy_cmd (WEdit *edit)
+ {
+-    long start_mark, end_mark, current = edit->curs1;
+-    int size;
++    long start_mark, end_mark, start_curs1, current = edit->curs1;
++    int size, start_col;
+     unsigned char *copy_buf;
+ 
+     edit_update_curs_col (edit);
+@@ -988,6 +988,12 @@ edit_block_copy_cmd (WEdit *edit)
+ 	edit_insert_column_of_text (edit, copy_buf, size,
+ 				    abs (edit->column2 - edit->column1));
+     } else {
++        edit_scroll_screen_over_cursor (edit);
++        edit->force |= REDRAW_COMPLETELY;
++        edit_update_screen (edit);
++        edit_update_curs_col (edit);
++        start_col = edit_get_col (edit);
++        start_curs1 = edit->curs1;
+ 	while (size--)
+ 	    edit_insert_ahead (edit, copy_buf[size]);
+     }
+@@ -999,23 +1005,28 @@ edit_block_copy_cmd (WEdit *edit)
+ 	edit_set_markers (edit, 0, 0, 0, 0);
+ 	edit_push_action (edit, COLUMN_ON);
+ 	column_highlighting = 0;
+-    } else if (start_mark < current && end_mark > current)
++    } else if (current >= start_mark && current < end_mark) {
++        edit_cursor_move (edit, end_mark + end_mark - start_mark - edit->curs1);
+ 	edit_set_markers (edit, start_mark,
+-			  end_mark + end_mark - start_mark, 0, 0);
+-
++			  end_mark + end_mark - start_mark, start_col, edit->curs_col);
++    } else {
++        edit_cursor_move (edit, end_mark - start_mark);
++        edit_set_markers (edit, start_curs1,
++                          edit->curs1, start_col, edit->curs_col);
++    }
++    edit_scroll_screen_over_cursor (edit);
+     edit->force |= REDRAW_PAGE;
+ }
+ 
+-
+ void
+ edit_block_move_cmd (WEdit *edit)
+ {
+     long count;
+     long current;
+     unsigned char *copy_buf;
+-    long start_mark, end_mark;
++    long start_mark, end_mark, start_curs1;
+     int deleted = 0;
+-    int x = 0;
++    int start_col, x = 0;
+ 
+     if (eval_marks (edit, &start_mark, &end_mark))
+ 	return;
+@@ -1073,24 +1084,30 @@ edit_block_move_cmd (WEdit *edit)
+ 	edit_push_action (edit, COLUMN_ON);
+ 	column_highlighting = 0;
+     } else {
+-	copy_buf = g_malloc (end_mark - start_mark);
+-	edit_cursor_move (edit, start_mark - edit->curs1);
+-	edit_scroll_screen_over_cursor (edit);
+-	count = start_mark;
+-	while (count < end_mark) {
+-	    copy_buf[end_mark - count - 1] = edit_delete (edit);
+-	    count++;
+-	}
+-	edit_scroll_screen_over_cursor (edit);
+-	edit_cursor_move (edit,
+-			  current - edit->curs1 -
+-			  (((current - edit->curs1) >
+-			    0) ? end_mark - start_mark : 0));
+-	edit_scroll_screen_over_cursor (edit);
+-	while (count-- > start_mark)
+-	    edit_insert_ahead (edit, copy_buf[end_mark - count - 1]);
+-	edit_set_markers (edit, edit->curs1,
+-			  edit->curs1 + end_mark - start_mark, 0, 0);
++        copy_buf = g_malloc (end_mark - start_mark);
++        edit_cursor_move (edit, start_mark - edit->curs1);
++        edit_scroll_screen_over_cursor (edit);
++        count = start_mark;
++        while (count < end_mark) {
++            copy_buf[end_mark - count - 1] = edit_delete (edit);
++            count++;
++        }
++        edit_scroll_screen_over_cursor (edit);
++        edit_cursor_move (edit,
++                          current - edit->curs1 -
++                          (((current - edit->curs1) >
++                            0) ? end_mark - start_mark : 0));
++        edit_scroll_screen_over_cursor (edit);
++        edit->force |= REDRAW_COMPLETELY;
++        edit_update_screen (edit);
++        edit_update_curs_col (edit);
++        start_col = edit_get_col (edit);
++        start_curs1 = edit->curs1;
++        while (count-- > start_mark)
++            edit_insert_ahead (edit, copy_buf[end_mark - count - 1]);
++        edit_cursor_move (edit, end_mark - start_mark);
++        edit_set_markers (edit, start_curs1,
++                          edit->curs1, start_col, edit->curs_col);
+     }
+     edit_scroll_screen_over_cursor (edit);
+     g_free (copy_buf);
+@@ -2276,10 +2293,9 @@ int edit_copy_to_X_buf_cmd (WEdit * edit)
+ 	return 0;
+     if (!edit_save_block_to_clip_file (edit, start_mark, end_mark)) {
+ 	edit_error_dialog (_(" Copy to clipboard "), get_sys_error (_(" Unable to save to file. ")));
+-	return 1;
++	return 0;
+     }
+-    edit_mark_cmd (edit, 1);
+-    return 0;
++    return 1;
+ }
+ 
+ int edit_cut_to_X_buf_cmd (WEdit * edit)
+@@ -2289,11 +2305,10 @@ int edit_cut_to_X_buf_cmd (WEdit * edit)
+ 	return 0;
+     if (!edit_save_block_to_clip_file (edit, start_mark, end_mark)) {
+ 	edit_error_dialog (_(" Cut to clipboard "), _(" Unable to save to file. "));
+-	return 1;
++	return 0;
+     }
+     edit_block_delete_cmd (edit);
+-    edit_mark_cmd (edit, 1);
+-    return 0;
++    return 1;
+ }
+ 
+ void edit_paste_from_X_buf_cmd (WEdit * edit)
+-- 
+1.6.2.1

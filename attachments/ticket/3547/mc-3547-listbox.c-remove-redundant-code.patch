@@ -1,0 +1,31 @@
+From 2e2e7b13631547091b54bddae5d523823a71e43c Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 21 Nov 2015 23:44:58 +0200
+Subject: [PATCH] listbox.c: remove redundant code.
+
+This l->top calculation is already done in listbox_select_entry().
+---
+ lib/widget/listbox.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index ab3fc1f..4861ce1 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -330,13 +330,7 @@ listbox_key (WListbox * l, int key)
+     /* focus on listbox item N by '0'..'9' keys */
+     if (key >= '0' && key <= '9')
+     {
+-        int oldpos = l->pos;
+         listbox_select_entry (l, key - '0');
+-
+-        /* need scroll to item? */
+-        if (abs (oldpos - l->pos) > WIDGET (l)->lines)
+-            l->top = l->pos;
+-
+         return MSG_HANDLED;
+     }
+ 
+-- 
+2.1.4
+

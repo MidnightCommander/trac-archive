@@ -1,0 +1,22 @@
+diff --git a/misc/ext.d/text.sh.in b/misc/ext.d/text.sh.in
+index 99c8bee..3349188 100644
+--- a/misc/ext.d/text.sh.in
++++ b/misc/ext.d/text.sh.in
+@@ -45,7 +45,7 @@ do_view_action() {
+             cat "${MC_EXT_FILENAME}"
+             ;;
+         *)
+-            { zsoelim "${MC_EXT_FILENAME}" 2>/dev/null || cat "${MC_EXT_FILENAME}"; } | nroff @MAN_FLAGS@ @MANDOC@
++            MAN_KEEP_FORMATTING=1 man -P cat -l "${MC_EXT_FILENAME}"
+             ;;
+         esac
+         ;;
+@@ -64,7 +64,7 @@ do_view_action() {
+             ${unpacker} "${MC_EXT_FILENAME}"
+             ;;
+         *)
+-            ${unpacker} "${MC_EXT_FILENAME}" | nroff @MAN_FLAGS@ @MANDOC@
++            ${unpacker} "${MC_EXT_FILENAME}" | MAN_KEEP_FORMATTING=1 man -P cat -l -
+             ;;
+         esac
+         ;;

@@ -1,0 +1,57 @@
+From 7be779ee069338d5dff30e73a9b5b19bde9dd0e7 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 28 Feb 2016 20:27:39 +0000
+Subject: [PATCH] src/editor/editbuffer.c: Cleanup some compiler warning
+
+editbuffer.c:428:12: warning: implicit conversion changes signedness: 'long' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+    *cut = cut_len;
+         ~ ^~~~~~~
+editbuffer.c:518:44: warning: implicit conversion loses integer precision: 'off_t' (aka 'long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+        g_ptr_array_remove_index (buf->b2, i);
+        ~~~~~~~~~~~~~~~~~~~~~~~~           ^
+editbuffer.c:554:44: warning: implicit conversion loses integer precision: 'off_t' (aka 'long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+        g_ptr_array_remove_index (buf->b1, i);
+        ~~~~~~~~~~~~~~~~~~~~~~~~           ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editbuffer.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/editor/editbuffer.c b/src/editor/editbuffer.c
+index a62bc00..6b45c10 100644
+--- a/src/editor/editbuffer.c
++++ b/src/editor/editbuffer.c
+@@ -401,7 +401,7 @@ edit_buffer_get_word_from_pos (const edit_buffer_t * buf, off_t start_pos, off_t
+                                gsize * cut)
+ {
+     off_t word_start;
+-    long cut_len = 0;
++    gsize cut_len = 0;
+     GString *match_expr;
+     int c1, c2;
+ 
+@@ -502,8 +502,8 @@ edit_buffer_delete (edit_buffer_t * buf)
+ {
+     void *b;
+     unsigned char c;
+-    off_t prev;
+-    off_t i;
++    off_t prev, i;
++    guint j;
+ 
+     prev = buf->curs2 - 1;
+ 
+@@ -513,9 +513,9 @@ edit_buffer_delete (edit_buffer_t * buf)
+ 
+     if (i == 0)
+     {
+-        i = buf->b2->len - 1;
+-        b = g_ptr_array_index (buf->b2, i);
+-        g_ptr_array_remove_index (buf->b2, i);
++        j = buf->b2->len - 1;
++        b = g_ptr_array_index (buf->b2, j);
++        g_ptr_array_remove_index (buf->b2, j);
+         g_free (b);
+     }
+ 

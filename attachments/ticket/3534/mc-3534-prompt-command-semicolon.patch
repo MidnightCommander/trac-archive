@@ -1,0 +1,13 @@
+diff --git a/src/subshell.c b/src/subshell.c
+index ebd1667..511dad1 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -878,7 +878,7 @@ init_subshell (void)
+     {
+     case BASH:
+         g_snprintf (precmd, sizeof (precmd),
+-                    " PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND; }'pwd>&%d;kill -STOP $$'\n",
++                    " PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND\n}'pwd>&%d;kill -STOP $$'\n",
+                     subshell_pipe[WRITE]);
+         break;
+ 

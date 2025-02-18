@@ -1,0 +1,37 @@
+
+fix memleak at filemanager/find.c:panel_operate()
+
+panel_operate() allocate source_with_path_str but never freed
+
+found by LeakSanitizer
+
+Direct leak of 128 byte(s) in 4 object(s) allocated from:
+    #0 0x4d60a5 in realloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d60a5)
+    #1 0x7f15c5ba190d in g_realloc (/usr/lib64/libglib-2.0.so.0+0x6790d)
+    #2 0x7f15c5bcb493 in g_string_sized_new (/usr/lib64/libglib-2.0.so.0+0x91493)
+    #3 0x6076ba in strutils_unescape /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/strutil/strescape.c:111:11
+    #4 0x7cc719 in panel_operate /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/file.c:2982:29
+    #5 0x7a702b in copy_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:795:9
+    #6 0x5a64cb in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1144:9
+    #7 0x519c47 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #8 0x531415 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #9 0x52fbfa in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #10 0x530546 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #11 0x530165 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #12 0x5a1cca in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1762:9
+    #13 0x4fa3e8 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #14 0x7f15c4c72133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #15 0x44ed96 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x44ed96)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -3014,6 +3014,7 @@
+                             abort ();
+                         }
+ 
++                        g_free (source_with_path_str);
+                         g_free (temp);
+                     }
+                 }               /* Copy or move operation */

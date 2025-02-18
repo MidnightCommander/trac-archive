@@ -1,0 +1,17 @@
+--- mc-4.8.8/src/filemanager/filegui.c.OLD	2013-03-21 12:01:18.000000000 +0200
++++ mc-4.8.8/src/filemanager/filegui.c	2013-04-09 14:55:03.878473580 +0300
+@@ -548,12 +548,12 @@
+     add_widget (ui->replace_dlg, hline_new (y++, -1, -1));
+ 
+     /* source date and size */
+-    size_trunc_len (fsize_buffer, sizeof (fsize_buffer), ui->s_stat->st_size, -1,
++    size_trunc_len (fsize_buffer, sizeof (fsize_buffer), ui->s_stat->st_size, 0,
+                     panels_options.kilobyte_si);
+     ADD_RD_LABEL (2, file_date (ui->s_stat->st_mtime), fsize_buffer, y++);
+     rd_xlen = max (rd_xlen, label2->cols + 8);
+     /* destination date and size */
+-    size_trunc_len (fsize_buffer, sizeof (fsize_buffer), ui->d_stat->st_size, -1,
++    size_trunc_len (fsize_buffer, sizeof (fsize_buffer), ui->d_stat->st_size, 0,
+                     panels_options.kilobyte_si);
+     ADD_RD_LABEL (3, file_date (ui->d_stat->st_mtime), fsize_buffer, y++);
+     rd_xlen = max (rd_xlen, label2->cols + 8);

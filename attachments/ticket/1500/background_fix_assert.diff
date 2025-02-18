@@ -1,0 +1,95 @@
+diff --git a/src/file.c b/src/file.c
+index de3d600..d53b6c2 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -1768,6 +1768,13 @@ panel_operate_generate_prompt (const WPanel *panel, const int operation,
+     return g_strdup (format_string);
+ }
+ 
++#ifdef WITH_BACKGROUND
++int file_op_context_destroy_bg_wrap (FileOpContext *ctx) {
++    file_op_context_destroy(ctx);
++    return 0;
++}
++#endif
++
+ /**
+  * panel_operate:
+  *
+@@ -1911,6 +1918,12 @@ panel_operate (void *source_panel, FileOperation operation,
+ 	}
+     }
+ 
++    /* Background also need ctx->ui, but not full */
++    if (do_bg)
++	file_op_context_create_ui_without_init (ctx, 1);
++    else
++	file_op_context_create_ui (ctx, 1);
++
+ #ifdef WITH_BACKGROUND
+     /* Did the user select to do a background operation? */
+     if (do_bg) {
+@@ -1949,11 +1962,6 @@ panel_operate (void *source_panel, FileOperation operation,
+ 
+     /* Now, let's do the job */
+ 
+-    if (do_bg)
+-	ctx->ui = NULL;
+-    else
+-	file_op_context_create_ui (ctx, 1);
+-
+     /* This code is only called by the tree and panel code */
+     if (single_entry) {
+ 	/* We now have ETA in all cases */
+@@ -2181,6 +2189,7 @@ panel_operate (void *source_panel, FileOperation operation,
+ #ifdef WITH_BACKGROUND
+     /* Let our parent know we are saying bye bye */
+     if (we_are_background) {
++	parent_call ((void *) file_op_context_destroy_bg_wrap, ctx, 0);
+ 	vfs_shut ();
+ 	_exit (0);
+     }
+diff --git a/src/filegui.c b/src/filegui.c
+index 340e12a..e9a31cf 100644
+--- a/src/filegui.c
++++ b/src/filegui.c
+@@ -222,7 +222,7 @@ check_progress_buttons (FileOpContext *ctx)
+ /* {{{ File progress display routines */
+ 
+ void
+-file_op_context_create_ui (FileOpContext *ctx, int with_eta)
++file_op_context_create_ui_without_init (FileOpContext *ctx, int with_eta)
+ {
+     FileOpContextUI *ui;
+     int x_size;
+@@ -293,6 +293,18 @@ file_op_context_create_ui (FileOpContext *ctx, int with_eta)
+ 		label_new (3, FCOPY_GAUGE_X, sixty));
+     add_widget (ui->op_dlg, ui->file_label[0] =
+ 		label_new (3, FCOPY_LABEL_X, fifteen));
++}
++
++void
++file_op_context_create_ui (FileOpContext *ctx, int with_eta)
++{
++    FileOpContextUI *ui;
++
++    g_return_if_fail (ctx != NULL);
++    g_return_if_fail (ctx->ui == NULL);
++
++    file_op_context_create_ui_without_init(ctx, with_eta);
++    ui = ctx->ui;
+ 
+     /* We will manage the dialog without any help, that's why
+        we have to call init_dlg */
+diff --git a/src/fileopctx.h b/src/fileopctx.h
+index 4943e28..305fe63 100644
+--- a/src/fileopctx.h
++++ b/src/fileopctx.h
+@@ -144,6 +144,7 @@ enum OperationMode {
+ /* The following functions are implemented separately by each port */
+ 
+ void file_op_context_create_ui (FileOpContext *ctx, int with_eta);
++void file_op_context_create_ui_without_init (FileOpContext *ctx, int with_eta);
+ void file_op_context_destroy_ui (FileOpContext *ctx);
+ 
+ FileProgressStatus file_progress_show (FileOpContext *ctx, off_t done, off_t total);

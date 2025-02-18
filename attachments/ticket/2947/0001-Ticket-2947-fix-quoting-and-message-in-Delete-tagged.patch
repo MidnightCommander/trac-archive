@@ -1,0 +1,37 @@
+From a7bf56cbeb3716de942758071a6676afb8e7e365 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Mon, 7 Jan 2013 16:03:41 +0100
+Subject: [PATCH] Ticket #2947: fix quoting and message in "Delete tagged
+ files..." @ mc.menu
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ misc/mc.menu |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/misc/mc.menu b/misc/mc.menu
+index 58daeeb..a753413 100644
+--- a/misc/mc.menu
++++ b/misc/mc.menu
+@@ -107,15 +107,15 @@ D       Delete tagged files if a copy exists in the other directory.
+         for i in %t
+         do
+           if [ -f "%D/$i" ]; then
+-            SUM1="`sum $i`"
+-            SUM2="`sum %D/$i`"
++            SUM1="`sum \"$i\"`"
++            SUM2="`sum \"%D/$i\"`"
+             if [ "$SUM1" = "$SUM2" ]; then
+ 	      rm "$i" && echo "${i}: DELETED."
+ 	    else
+ 	      echo "$i and %D/$i differ: NOT deleted."
+ 	    fi
+ 	  else
+-	    echo "%i has no copy in %D: NOT deleted."
++	    echo "$i has no copy in %D: NOT deleted."
+           fi
+         done
+ 
+-- 
+1.7.10
+

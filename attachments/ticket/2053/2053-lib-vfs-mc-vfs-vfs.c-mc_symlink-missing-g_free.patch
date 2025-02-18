@@ -1,0 +1,24 @@
+From b30a7e31bdda7e84047c4da057a047416a72c12a Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Mon, 22 Feb 2010 20:37:16 +0000
+Subject: [PATCH] lib/vfs/mc-vfs/vfs.c mc_symlink missing g_free
+
+---
+ lib/vfs/mc-vfs/vfs.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/lib/vfs/mc-vfs/vfs.c b/lib/vfs/mc-vfs/vfs.c
+index 3f92269..8831e84 100644
+--- a/lib/vfs/mc-vfs/vfs.c
++++ b/lib/vfs/mc-vfs/vfs.c
+@@ -617,6 +617,7 @@ mc_symlink (const char *name1, const char *path)
+             vfs = vfs_get_class (mpath); 
+             result = vfs->symlink ? (*vfs->symlink) (vfs, lpath, mpath) : -1;
+             g_free (lpath);
++            g_free (mpath);
+     
+             if (result == -1) 
+                 errno = vfs->symlink ? ferrno (vfs) : E_NOTSUPP; 
+-- 
+1.6.4
+

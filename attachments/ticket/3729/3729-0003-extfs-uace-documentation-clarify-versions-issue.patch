@@ -1,0 +1,29 @@
+From 5b74afbdcd4d8eda99eca311e888f4184f6d3fd3 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 14 Dec 2016 01:04:43 +0200
+Subject: [PATCH 03/13] extfs: uace: documentation: clarify versions issue.
+
+---
+ src/vfs/extfs/helpers/uace.in | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/vfs/extfs/helpers/uace.in b/src/vfs/extfs/helpers/uace.in
+index 525e571..c29b9de 100644
+--- a/src/vfs/extfs/helpers/uace.in
++++ b/src/vfs/extfs/helpers/uace.in
+@@ -4,6 +4,12 @@
+ # ACE Virtual filesystem executive v0.1
+ # Works with unace v2.5
+ 
++# Note: There are two packages for Debian: 'unace' (v1.2b) and
++# 'unace-nonfree' (v2.x). This script supports 'unace-nonfree' only.
++# 'unace', which supports only old versions of ACE archives (and is
++# therefore of little use), uses the pipe character to separate columns
++# in its listing format.
++
+ # Copyright (C) 2008 Jacques Pelletier
+ # May be distributed under the terms of the GNU Public License
+ # <jpelletier@ieee.org>
+-- 
+2.9.3
+

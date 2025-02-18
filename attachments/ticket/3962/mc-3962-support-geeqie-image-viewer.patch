@@ -1,0 +1,29 @@
+From e3cc8a4da26ddd7833537362f945ad9b36919224 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 21 Jan 2019 16:50:04 +0000
+Subject: [PATCH] support geeqie image viewer
+
+Support geeqie (a fork of GQview) as image viewer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ misc/ext.d/image.sh | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/misc/ext.d/image.sh b/misc/ext.d/image.sh
+index 8afbad6c0..583c09ecf 100755
+--- a/misc/ext.d/image.sh
++++ b/misc/ext.d/image.sh
+@@ -40,7 +40,11 @@ do_open_action() {
+         ;;
+     *)
+         if [ -n "$DISPLAY" ]; then
+-            (gqview "${MC_EXT_FILENAME}" &)
++            if which geeqie >/dev/null 2>&1; then
++                (geeqie "${MC_EXT_FILENAME}" &)
++            else
++                (gqview "${MC_EXT_FILENAME}" &)
++            fi
+         elif see >/dev/null 2>&1; then
+             (see "${MC_EXT_FILENAME}" &)
+         else

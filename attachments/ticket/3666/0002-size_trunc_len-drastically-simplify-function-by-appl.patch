@@ -1,0 +1,234 @@
+From 1ff23c2965a324617513114fff2bf7f505e97ccf Mon Sep 17 00:00:00 2001
+From: Michael Osipov <1983-01-06@gmx.net>
+Date: Sat, 30 Jul 2016 23:37:38 +0200
+Subject: [PATCH 2/2] size_trunc_len(): drastically simplify function by
+ applying autoscale from size_trunc()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This function was used to scale according to the supplied length. Now, it will
+scale at most to 8 characters by passing the size to size_trunc() and appending
+to the supplied buffer.
+
+It is important to note that small buffers to be bigger than it appears because
+they store bytes and non-Latin scripts need more than one byte with UTF-8 to
+encode them, e.g., 1023 МиБ in Russian requires 11 bytes + null terminator.
+---
+ lib/util.c                | 101 +++-------------------------------------------
+ src/filemanager/filegui.c |   6 ++-
+ src/filemanager/info.c    |  12 +++---
+ src/filemanager/panel.c   |   9 +++--
+ 4 files changed, 22 insertions(+), 106 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 8de5314..6e2cd83 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -425,104 +425,15 @@ size_trunc_sep (uintmax_t size, gboolean use_si)
+ void
+ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gboolean use_si)
+ {
+-    /* Avoid taking power for every file.  */
+-    /* *INDENT-OFF* */
+-    static const uintmax_t power10[] = {
+-    /* we hope that size of uintmax_t is 4 bytes at least */
+-        1ULL,
+-        10ULL,
+-        100ULL,
+-        1000ULL,
+-        10000ULL,
+-        100000ULL,
+-        1000000ULL,
+-        10000000ULL,
+-        100000000ULL,
+-        1000000000ULL
+-    /* maximum value of uintmax_t (in case of 4 bytes) is
+-        4294967295
+-     */
+-#if SIZEOF_UINTMAX_T == 8
+-                     ,
+-        10000000000ULL,
+-        100000000000ULL,
+-        1000000000000ULL,
+-        10000000000000ULL,
+-        100000000000000ULL,
+-        1000000000000000ULL,
+-        10000000000000000ULL,
+-        100000000000000000ULL,
+-        1000000000000000000ULL,
+-        10000000000000000000ULL
+-    /* maximum value of uintmax_t (in case of 8 bytes) is
+-        18447644073710439615
+-     */
+-#endif
+-    };
+-    /* *INDENT-ON* */
+-    static const char *const suffix[] = { "", "K", "M", "G", "T", "P", "E", "Z", "Y", NULL };
+-    static const char *const suffix_lc[] = { "", "k", "m", "g", "t", "p", "e", "z", "y", NULL };
+-
+-    const char *const *sfx = use_si ? suffix_lc : suffix;
+     int j = 0;
++    const char *y;
+ 
+-    if (len == 0)
+-        len = 9;
+-#if SIZEOF_UINTMAX_T == 8
+-    /* 20 decimal digits are required to represent 8 bytes */
+-    else if (len > 19)
+-        len = 19;
+-#else
+-    /* 10 decimal digits are required to represent 4 bytes */
+-    else if (len > 9)
+-        len = 9;
+-#endif
++    for (j = 0; j < units; j++)
++        size *= 1024;        /* Scale to bytes */
+ 
+-    /*
+-     * recalculate from 1024 base to 1000 base if units>0
+-     * We can't just multiply by 1024 - that might cause overflow
+-     * if uintmax_t type is too small
+-     */
+-    if (use_si)
+-        for (j = 0; j < units; j++)
+-        {
+-            uintmax_t size_remain;
+-
+-            size_remain = ((size % 125) * 1024) / 1000; /* size mod 125, recalculated */
+-            size /= 125;        /* 128/125 = 1024/1000 */
+-            size *= 128;        /* This will convert size from multiple of 1024 to multiple of 1000 */
+-            size += size_remain;        /* Re-add remainder lost by division/multiplication */
+-        }
+-
+-    for (j = units; sfx[j] != NULL; j++)
+-    {
+-        if (size == 0)
+-        {
+-            if (j == units)
+-            {
+-                /* Empty files will print "0" even with minimal width.  */
+-                g_snprintf (buffer, len + 1, "%s", "0");
+-            }
+-            else
+-            {
+-                /* Use "~K" or just "K" if len is 1.  Use "B" for bytes.  */
+-                g_snprintf (buffer, len + 1, (len > 1) ? "~%s" : "%s", (j > 1) ? sfx[j - 1] : "B");
+-            }
+-            break;
+-        }
+-
+-        if (size < power10[len - (j > 0 ? 1 : 0)])
+-        {
+-            g_snprintf (buffer, len + 1, "%" PRIuMAX "%s", size, sfx[j]);
+-            break;
+-        }
+-
+-        /* Powers of 1000 or 1024, with rounding.  */
+-        if (use_si)
+-            size = (size + 500) / 1000;
+-        else
+-            size = (size + 512) >> 10;
+-    }
++    y = size_trunc (size, use_si);
++    g_strlcpy (buffer, y, len + 1);
++    return;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index 2b6871a..7165f0a 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -1013,12 +1013,14 @@ file_progress_show_total (file_op_total_context_t * tctx, file_op_context_t * ct
+ 
+     if (ui->total_bytes_label != NULL)
+     {
+-        size_trunc_len (buffer2, 5, tctx->copied_bytes, 0, panels_options.kilobyte_si);
++        size_trunc_len (buffer2, sizeof(buffer2) - 1, tctx->copied_bytes, 0,
++                        panels_options.kilobyte_si);
+         if (!ctx->progress_totals_computed)
+             g_snprintf (buffer, sizeof (buffer), _(" Total: %s "), buffer2);
+         else
+         {
+-            size_trunc_len (buffer3, 5, ctx->progress_bytes, 0, panels_options.kilobyte_si);
++            size_trunc_len (buffer3, sizeof(buffer3) - 1, ctx->progress_bytes, 0,
++                            panels_options.kilobyte_si);
+             g_snprintf (buffer, sizeof (buffer), _(" Total: %s/%s "), buffer2, buffer3);
+         }
+ 
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index cb5cf6a..eda600c 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -176,10 +176,12 @@ info_show_info (WInfo * info)
+             tty_print_string (_("No space information"));
+         else
+         {
+-            char buffer1[6], buffer2[6];
++            char buffer1[12], buffer2[12];
+ 
+-            size_trunc_len (buffer1, 5, myfs_stats.avail, 1, panels_options.kilobyte_si);
+-            size_trunc_len (buffer2, 5, myfs_stats.total, 1, panels_options.kilobyte_si);
++            size_trunc_len (buffer1, sizeof(buffer1) - 1,  myfs_stats.avail, 1,
++                            panels_options.kilobyte_si);
++            size_trunc_len (buffer2, sizeof(buffer2) - 1, myfs_stats.total, 1,
++                            panels_options.kilobyte_si);
+             tty_printf (_("Free space: %s/%s (%d%%)"), buffer1, buffer2,
+                         myfs_stats.total == 0 ? 0 :
+                         (int) (100 * (long double) myfs_stats.avail / myfs_stats.total));
+@@ -232,8 +234,8 @@ info_show_info (WInfo * info)
+         else
+ #endif
+         {
+-            char buffer[10];
+-            size_trunc_len (buffer, 9, st.st_size, 0, panels_options.kilobyte_si);
++            char buffer[12];
++            size_trunc_len (buffer, sizeof(buffer) - 1, st.st_size, 0, panels_options.kilobyte_si);
+             tty_printf (_("Size:       %s"), buffer);
+ #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+             tty_printf (ngettext (" (%ld block)", " (%ld blocks)",
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 38e740a..b176be9 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -195,7 +195,7 @@ static panel_field_t panel_fields[] = {
+     }
+     ,
+     {
+-     "size", 7, FALSE, J_RIGHT,
++     "size", 8, FALSE, J_RIGHT,
+      /* TRANSLATORS: one single character to represent 'size' sort mode  */
+      /* TRANSLATORS: no need to translate 'sort', it's just a context prefix  */
+      N_("sort|s"),
+@@ -205,7 +205,7 @@ static panel_field_t panel_fields[] = {
+     }
+     ,
+     {
+-     "bsize", 7, FALSE, J_RIGHT,
++     "bsize", 8, FALSE, J_RIGHT,
+      "",
+      N_("Block Size"), FALSE, FALSE,
+      string_file_size_brief,
+@@ -515,7 +515,8 @@ string_file_size (file_entry_t * fe, int len)
+         format_device_number (buffer, len + 1, fe->st.st_rdev);
+     else
+ #endif
+-        size_trunc_len (buffer, (unsigned int) len, fe->st.st_size, 0, panels_options.kilobyte_si);
++        size_trunc_len (buffer, (unsigned int) (len + 3), fe->st.st_size, 0,
++                        panels_options.kilobyte_si);
+ 
+     return buffer;
+ }
+@@ -1154,7 +1155,7 @@ show_free_space (const WPanel * panel)
+     if (myfs_stats.avail != 0 || myfs_stats.total != 0)
+     {
+         const Widget *w = CONST_WIDGET (panel);
+-        char buffer1[6], buffer2[6], tmp[BUF_SMALL];
++        char buffer1[12], buffer2[12], tmp[BUF_SMALL];
+ 
+         size_trunc_len (buffer1, sizeof (buffer1) - 1, myfs_stats.avail, 1,
+                         panels_options.kilobyte_si);
+-- 
+2.9.2
+

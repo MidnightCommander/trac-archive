@@ -1,0 +1,24 @@
+--- src/diffviewer/ydiff.c.orig	Fri Dec 28 20:35:25 2018
++++ src/diffviewer/ydiff.c	Sun May  5 23:41:00 2019
+@@ -619,7 +619,7 @@
+         return length;
+ 
+     if (g_utf8_validate (text, -1, NULL))
+-        result = g_utf8_offset_to_pointer (text, length) - text;
++	result =  g_utf8_strlen (text, length);
+     else
+     {
+         gunichar uni;
+@@ -637,10 +637,10 @@
+                 tmpbuf++;
+             }
+         }
+-        result = g_utf8_offset_to_pointer (tmpbuf, length) - tmpbuf;
++	result =  g_utf8_strlen (tmpbuf, length);
+         g_free (buffer);
+     }
+-    return MAX (length, (size_t) result);
++	return 2 * length - result;
+ }
+ #endif /*HAVE_CHARSET */
+ 

@@ -1,0 +1,28 @@
+From 9aa44abcf77c646a61cd0b80cf6d88e816367c4d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 08:55:08 +0000
+Subject: [PATCH] (editdraw.c) fix copy-paste error
+
+(stunning coverity detection)
+
+found by Coverity
+coverity id #32566
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editdraw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 564e18d6c..248128b68 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -1093,7 +1093,7 @@ edit_scroll_screen_over_cursor (WEdit * edit)
+     {
+         int n;
+ 
+-        n = l_extreme + t_extreme;
++        n = l_extreme + r_extreme;
+         if (n == 0)
+             n = 1;
+         l_extreme = (l_extreme * (w->cols - 1)) / n;

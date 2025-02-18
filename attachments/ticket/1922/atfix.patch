@@ -1,0 +1,11 @@
+--- vfs/vfs.c.old	2009-12-29 15:32:49.000000000 +0100
++++ vfs/vfs.c	2010-01-16 16:20:03.000000000 +0100
+@@ -290,7 +290,7 @@
+ 	return NULL;
+ 
+     at_chr = strrchr (semi, '@');
+-    if (at_chr)
++    if (at_chr && at_chr < semi)
+ 	slash = strchr (at_chr, PATH_SEP);
+     else
+ 	slash = strchr (semi, PATH_SEP);

@@ -1,0 +1,5 @@
+file ..\*\\.ldif$ LDIF\sfile
+include ldif.syntax
+
+file ..\*\\.schema$ OpenLDAP\sSchema\sfile
+include schema.syntax

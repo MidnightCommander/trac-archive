@@ -1,0 +1,40 @@
+From cc38e115badb68c53de19147c2e0512f3373d32e Mon Sep 17 00:00:00 2001
+From: Denys Vlasenko <vda.linux@googlemail.com> 
+Subject: [PATCH] isofs fix: do not skip all .dotfiles
+
+There is a simple bug in iso9660 helper:
+
+    if (name ~ /^\.\.?/) next
+
+means "skip all lines which start with one or two dots".
+Author probably meant:
+
+    if (name ~ /^\.\.?$/) next
+
+I propose to not be cryptic and just check both possibilities separately.
+
+The below trivial patch was tested to work: now I see
+the file named ".dot" in a test iso file.
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com> 
+---
+ src/vfs/extfs/helpers/iso9660.in | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/iso9660.in b/src/vfs/extfs/helpers/iso9660.in
+index fd652b8..a7c891c 100644
+--- a/src/vfs/extfs/helpers/iso9660.in
++++ b/src/vfs/extfs/helpers/iso9660.in
+@@ -156,7 +156,8 @@ BEGIN {
+   if (SEMICOLON = "YES") sub(";1$", "", name);
+   ## sub(";[0-9]+$", "", name) ## would break copyout
+   # skip . and ..
+-  if (name ~ /^\.\.?/) next;
++  if (name == ".") next;
++  if (name == "..") next;
+   printf "%s%s%s\n", attr, dir, name
+ }'
+ }
+-- 
+1.8.1.4
+

@@ -1,0 +1,44 @@
+From 5bc85e994a5b0eff6db723817741a6da9c3ca27b Mon Sep 17 00:00:00 2001
+From: "Eugene San (eugenesan)" <eugenesan@gmail.com>
+Date: Tue, 3 Dec 2013 10:02:18 +0200
+Subject: [PATCH] add support for kernel initrd images as vfs
+
+This utilizes already existing initrd suppport
+---
+ misc/ext.d/archive.sh | 3 +++
+ misc/mc.ext.in        | 5 +++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/misc/ext.d/archive.sh b/misc/ext.d/archive.sh
+index 2264b12..7397e85 100644
+--- a/misc/ext.d/archive.sh
++++ b/misc/ext.d/archive.sh
+@@ -14,6 +14,9 @@ do_view_action() {
+     filetype=$1
+ 
+     case "${filetype}" in
++    auto)
++        less "${MC_EXT_FILENAME}" 2>/dev/null
++        ;;
+     gz)
+         gzip -dc "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index d373813..35894e4 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -202,6 +202,11 @@ shell/i/.cpio
+ 	Open=%cd %p/ucpio://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio
+ 
++# initrd
++regex/initrd.img-.+$
++	Open=%cd %p/ucpio://
++	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio.auto
++
+ # 7zip archives (they are not man pages)
+ shell/i/.7z
+ 	Open=%cd %p/u7z://
+-- 
+1.8.3.2
+

@@ -1,0 +1,42 @@
+From 6138d03805a20967ab4dfcb14a627b4bd029d19e Mon Sep 17 00:00:00 2001
+From: Grzegorz Szymaszek <gszymaszek@short.pl>
+Date: Tue, 25 May 2021 16:26:30 +0200
+Subject: [PATCH] Add alacritty to known terminals
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Alacritty is a “fast, cross-platform, OpenGL terminal emulator” (see
+<https://github.com/alacritty/alacritty>). Add its default TERM value to
+the recognized ones. This enables mc to change window title and handle
+mouse events.
+---
+ lib/tty/tty.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/tty/tty.c b/lib/tty/tty.c
+index 0f0fd7c69..a34d4f293 100644
+--- a/lib/tty/tty.c
++++ b/lib/tty/tty.c
+@@ -92,7 +92,7 @@ sigintr_handler (int signo)
+  * @param force_xterm Set forced the XTerm type
+  *
+  * @return true if @param force_xterm is true or value of $TERM is one of term*, konsole*
+- *              rxvt*, Eterm or dtterm
++ *              rxvt*, Eterm, dtterm or alacritty
+  */
+ gboolean
+ tty_check_term (gboolean force_xterm)
+@@ -116,7 +116,8 @@ tty_check_term (gboolean force_xterm)
+         || strncmp (termvalue, "rxvt", 4) == 0
+         || strcmp (termvalue, "Eterm") == 0
+         || strcmp (termvalue, "dtterm") == 0
+-        || (strncmp (termvalue, "screen", 6) == 0 && xdisplay != NULL);
++        || (strncmp (termvalue, "screen", 6) == 0 && xdisplay != NULL)
++        || strncmp (termvalue, "alacritty", 9) == 0;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-- 
+2.30.2
+

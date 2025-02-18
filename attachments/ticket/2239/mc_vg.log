@@ -1,0 +1,114 @@
+==29820== Memcheck, a memory error detector
+==29820== Copyright (C) 2002-2009, and GNU GPL'd, by Julian Seward et al.
+==29820== Using Valgrind-3.5.0 and LibVEX; rerun with -h for copyright info
+==29820== Command: /usr/bin/mc
+==29820== Parent PID: 29760
+==29820== 
+==29820== Warning: invalid file descriptor -1 in syscall close()
+==29820== Warning: invalid file descriptor -1 in syscall close()
+==29820== Conditional jump or move depends on uninitialised value(s)
+==29820==    at 0x46EF53: get_user_permissions (utilunix.c:846)
+==29820==    by 0x422D60: add_permission_string (screen.c:154)
+==29820==    by 0x4236ED: format_file (screen.c:724)
+==29820==    by 0x4239EE: repaint_file (screen.c:783)
+==29820==    by 0x423DFE: paint_dir (screen.c:865)
+==29820==    by 0x42483D: paint_panel (screen.c:1052)
+==29820==    by 0x428970: panel_callback (screen.c:3062)
+==29820==    by 0x41EF3F: send_message (dialog.h:268)
+==29820==    by 0x41FA0B: dlg_broadcast_msg_to (dialog.c:444)
+==29820==    by 0x41FA41: dlg_broadcast_msg (dialog.c:453)
+==29820==    by 0x4200A6: dlg_redraw (dialog.c:661)
+==29820==    by 0x4208D1: init_dlg (dialog.c:935)
+==29820== 
+==29820== Conditional jump or move depends on uninitialised value(s)
+==29820==    at 0x46EF90: get_user_permissions (utilunix.c:851)
+==29820==    by 0x422D60: add_permission_string (screen.c:154)
+==29820==    by 0x4236ED: format_file (screen.c:724)
+==29820==    by 0x4239EE: repaint_file (screen.c:783)
+==29820==    by 0x423DFE: paint_dir (screen.c:865)
+==29820==    by 0x42483D: paint_panel (screen.c:1052)
+==29820==    by 0x428970: panel_callback (screen.c:3062)
+==29820==    by 0x41EF3F: send_message (dialog.h:268)
+==29820==    by 0x41FA0B: dlg_broadcast_msg_to (dialog.c:444)
+==29820==    by 0x41FA41: dlg_broadcast_msg (dialog.c:453)
+==29820==    by 0x4200A6: dlg_redraw (dialog.c:661)
+==29820==    by 0x4208D1: init_dlg (dialog.c:935)
+==29820== 
+==29820== Invalid read of size 4
+==29820==    at 0x42F587: show_hist (widget.c:1478)
+==29820==    by 0x42F618: do_show_hist (widget.c:1493)
+==29820==    by 0x4309D0: input_execute_cmd (widget.c:2137)
+==29820==    by 0x430C1E: handle_char (widget.c:2197)
+==29820==    by 0x430EC6: input_callback (widget.c:2274)
+==29820==    by 0x41EF3F: send_message (dialog.h:268)
+==29820==    by 0x4207BB: dlg_key_event (dialog.c:900)
+==29820==    by 0x4209A6: dlg_process_event (dialog.c:962)
+==29820==    by 0x420ABA: frontend_run_dlg (dialog.c:1004)
+==29820==    by 0x420B89: run_dlg (dialog.c:1034)
+==29820==    by 0x43455C: quick_dialog_skip (wtools.c:473)
+==29820==    by 0x434651: quick_dialog (wtools.c:512)
+==29820==  Address 0x82e2f08 is 40 bytes inside a block of size 128 free'd
+==29820==    at 0x4C289CF: free (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29820==    by 0x420C06: destroy_dlg (dialog.c:1047)
+==29820==    by 0x42F582: show_hist (widget.c:1475)
+==29820==    by 0x42F618: do_show_hist (widget.c:1493)
+==29820==    by 0x4309D0: input_execute_cmd (widget.c:2137)
+==29820==    by 0x430C1E: handle_char (widget.c:2197)
+==29820==    by 0x430EC6: input_callback (widget.c:2274)
+==29820==    by 0x41EF3F: send_message (dialog.h:268)
+==29820==    by 0x4207BB: dlg_key_event (dialog.c:900)
+==29820==    by 0x4209A6: dlg_process_event (dialog.c:962)
+==29820==    by 0x420ABA: frontend_run_dlg (dialog.c:1004)
+==29820==    by 0x420B89: run_dlg (dialog.c:1034)
+==29820== 
+==29820== Invalid read of size 1
+==29820==    at 0x4C2A626: strlen (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29820==    by 0x471188: concat_dir_and_file (util.c:1327)
+==29820==    by 0x451823: panel_operate (file.c:2239)
+==29820==    by 0x443489: copy_cmd (cmd.c:397)
+==29820==    by 0x463B3C: midnight_execute_cmd (main.c:1206)
+==29820==    by 0x464713: midnight_callback (main.c:1767)
+==29820==    by 0x4327A3: buttonbar_call (widget.c:3014)
+==29820==    by 0x432A3C: buttonbar_callback (widget.c:3102)
+==29820==    by 0x41EF3F: send_message (dialog.h:268)
+==29820==    by 0x42064E: dlg_try_hotkey (dialog.c:847)
+==29820==    by 0x420772: dlg_key_event (dialog.c:894)
+==29820==    by 0x4209A6: dlg_process_event (dialog.c:962)
+==29820==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
+==29820== 
+==29820== 
+==29820== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==29820==  Access not within mapped region at address 0x0
+==29820==    at 0x4C2A626: strlen (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29820==    by 0x471188: concat_dir_and_file (util.c:1327)
+==29820==    by 0x451823: panel_operate (file.c:2239)
+==29820==    by 0x443489: copy_cmd (cmd.c:397)
+==29820==    by 0x463B3C: midnight_execute_cmd (main.c:1206)
+==29820==    by 0x464713: midnight_callback (main.c:1767)
+==29820==    by 0x4327A3: buttonbar_call (widget.c:3014)
+==29820==    by 0x432A3C: buttonbar_callback (widget.c:3102)
+==29820==    by 0x41EF3F: send_message (dialog.h:268)
+==29820==    by 0x42064E: dlg_try_hotkey (dialog.c:847)
+==29820==    by 0x420772: dlg_key_event (dialog.c:894)
+==29820==    by 0x4209A6: dlg_process_event (dialog.c:962)
+==29820==  If you believe this happened as a result of a stack
+==29820==  overflow in your program's main thread (unlikely but
+==29820==  possible), you can try to increase the size of the
+==29820==  main thread stack using the --main-stacksize= flag.
+==29820==  The main thread stack size used in this run was 8388608.
+==29820== 
+==29820== HEAP SUMMARY:
+==29820==     in use at exit: 955,049 bytes in 3,114 blocks
+==29820==   total heap usage: 146,748 allocs, 143,634 frees, 6,525,525 bytes allocated
+==29820== 
+==29820== LEAK SUMMARY:
+==29820==    definitely lost: 0 bytes in 0 blocks
+==29820==    indirectly lost: 0 bytes in 0 blocks
+==29820==      possibly lost: 167,024 bytes in 2,035 blocks
+==29820==    still reachable: 788,025 bytes in 1,079 blocks
+==29820==         suppressed: 0 bytes in 0 blocks
+==29820== Rerun with --leak-check=full to see details of leaked memory
+==29820== 
+==29820== For counts of detected and suppressed errors, rerun with: -v
+==29820== Use --track-origins=yes to see where uninitialised values come from
+==29820== ERROR SUMMARY: 9622 errors from 4 contexts (suppressed: 42 from 7)

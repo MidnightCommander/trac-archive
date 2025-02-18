@@ -1,0 +1,257 @@
+diff -urp mc-4.7.5.4/lib/search/internal.h mc-4.7.5.4.new/lib/search/internal.h
+--- mc-4.7.5.4/lib/search/internal.h	2011-02-08 12:46:09.000000000 +0100
++++ mc-4.7.5.4.new/lib/search/internal.h	2011-09-16 00:10:07.000000000 +0200
+@@ -57,7 +57,7 @@ GString *mc_search__toupper_case_str (co
+ 
+ void mc_search__cond_struct_new_init_regex (const char *, mc_search_t *, mc_search_cond_t *);
+ 
+-gboolean mc_search__run_regex (mc_search_t *, const void *, gsize, gsize, gsize *);
++long mc_search__run_regex (mc_search_t *, const void *, gsize, gsize, gsize *);
+ 
+ GString *mc_search_regex_prepare_replace_str (mc_search_t *, GString *);
+ 
+@@ -65,7 +65,7 @@ GString *mc_search_regex_prepare_replace
+ 
+ void mc_search__cond_struct_new_init_normal (const char *, mc_search_t *, mc_search_cond_t *);
+ 
+-gboolean mc_search__run_normal (mc_search_t *, const void *, gsize, gsize, gsize *);
++long mc_search__run_normal (mc_search_t *, const void *, gsize, gsize, gsize *);
+ 
+ GString *mc_search_normal_prepare_replace_str (mc_search_t *, GString *);
+ 
+diff -urp mc-4.7.5.4/lib/search/normal.c mc-4.7.5.4.new/lib/search/normal.c
+--- mc-4.7.5.4/lib/search/normal.c	2011-02-08 12:46:09.000000000 +0100
++++ mc-4.7.5.4.new/lib/search/normal.c	2011-09-16 00:09:45.000000000 +0200
+@@ -108,7 +108,7 @@ mc_search__cond_struct_new_init_normal (
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-gboolean
++long
+ mc_search__run_normal (mc_search_t * lc_mc_search, const void *user_data,
+                        gsize start_search, gsize end_search, gsize * found_len)
+ {
+diff -urp mc-4.7.5.4/lib/search/regex.c mc-4.7.5.4.new/lib/search/regex.c
+--- mc-4.7.5.4/lib/search/regex.c	2011-09-12 11:32:59.000000000 +0200
++++ mc-4.7.5.4.new/lib/search/regex.c	2011-09-16 02:00:20.000000000 +0200
+@@ -576,7 +576,7 @@ mc_search__cond_struct_new_init_regex (c
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-gboolean
++long
+ mc_search__run_regex (mc_search_t * lc_mc_search, const void *user_data,
+                       gsize start_search, gsize end_search, gsize * found_len)
+ {
+@@ -584,6 +584,7 @@ mc_search__run_regex (mc_search_t * lc_m
+     int current_chr = 0;
+     gint start_pos;
+     gint end_pos;
++    ulong lines = 0;
+ 
+     if (lc_mc_search->regex_buffer != NULL)
+         g_string_free (lc_mc_search->regex_buffer, TRUE);
+@@ -615,8 +616,10 @@ mc_search__run_regex (mc_search_t * lc_m
+             g_string_append_c (lc_mc_search->regex_buffer, (char) current_chr);
+ 
+ 
+-            if (current_chr == 0 || (char) current_chr == '\n')
++            if (current_chr == 0 || (char) current_chr == '\n') {
++                lines++;
+                 break;
++            }
+ 
+             if (virtual_pos > end_search)
+                 break;
+@@ -649,13 +652,13 @@ mc_search__run_regex (mc_search_t * lc_m
+             if (found_len)
+                 *found_len = end_pos - start_pos;
+             lc_mc_search->normal_offset = lc_mc_search->start_buffer + start_pos;
+-            return TRUE;
++            return 1+lines;
+         case COND__NOT_ALL_FOUND:
+             break;
+         default:
+             g_string_free (lc_mc_search->regex_buffer, TRUE);
+             lc_mc_search->regex_buffer = NULL;
+-            return FALSE;
++            return 0;
+         }
+         if ((lc_mc_search->update_fn != NULL) &&
+             ((lc_mc_search->update_fn) (user_data, current_pos) == MC_SEARCH_CB_ABORT))
+@@ -673,7 +676,7 @@ mc_search__run_regex (mc_search_t * lc_m
+     else
+         lc_mc_search->error_str = NULL;
+ 
+-    return FALSE;
++    return 1-lines;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff -urp mc-4.7.5.4/lib/search/search.c mc-4.7.5.4.new/lib/search/search.c
+--- mc-4.7.5.4/lib/search/search.c	2011-02-08 12:46:09.000000000 +0100
++++ mc-4.7.5.4.new/lib/search/search.c	2011-09-16 01:53:24.000000000 +0200
+@@ -232,19 +232,18 @@ mc_search_prepare (mc_search_t * lc_mc_s
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-gboolean
++long
+ mc_search_run (mc_search_t * lc_mc_search, const void *user_data,
+                gsize start_search, gsize end_search, gsize * found_len)
+ {
+-    gboolean ret = FALSE;
+-
++    long ret = 0;
+     if (!lc_mc_search)
+-        return FALSE;
++        return 0;
+     if (!mc_search_is_type_avail (lc_mc_search->search_type))
+     {
+         lc_mc_search->error = MC_SEARCH_E_INPUT;
+         lc_mc_search->error_str = g_strdup (_(STR_E_UNKNOWN_TYPE));
+-        return FALSE;
++        return 0;
+     }
+ #ifdef SEARCH_TYPE_GLIB
+     if (lc_mc_search->regex_match_info)
+@@ -259,7 +258,7 @@ mc_search_run (mc_search_t * lc_mc_searc
+     lc_mc_search->error_str = NULL;
+ 
+     if ((lc_mc_search->conditions == NULL) && !mc_search_prepare (lc_mc_search))
+-        return FALSE;
++        return 0;
+ 
+     switch (lc_mc_search->search_type)
+     {
+diff -urp mc-4.7.5.4/lib/search.h mc-4.7.5.4.new/lib/search.h
+--- mc-4.7.5.4/lib/search.h	2011-09-12 11:32:59.000000000 +0200
++++ mc-4.7.5.4.new/lib/search.h	2011-09-16 01:54:06.000000000 +0200
+@@ -127,7 +127,7 @@ void mc_search_free (mc_search_t * lc_mc
+ 
+ gboolean mc_search_prepare (mc_search_t * mc_search);
+ 
+-gboolean mc_search_run (mc_search_t * mc_search, const void *user_data, gsize start_search,
++long mc_search_run (mc_search_t * mc_search, const void *user_data, gsize start_search,
+                         gsize end_search, gsize * found_len);
+ 
+ gboolean mc_search_is_type_avail (mc_search_type_t);
+diff -urp mc-4.7.5.4/src/viewer/search.c mc-4.7.5.4.new/src/viewer/search.c
+--- mc-4.7.5.4/src/viewer/search.c	2011-07-25 14:16:44.000000000 +0200
++++ mc-4.7.5.4.new/src/viewer/search.c	2011-09-17 03:49:47.000000000 +0200
+@@ -76,9 +76,10 @@ mcview_search_update_steps (mcview_t * v
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static gboolean
+-mcview_find (mcview_t * view, gsize search_start, gsize * len)
++mcview_find (mcview_t * view, gsize search_start, gsize * len, gboolean secondPass)
+ {
+     gsize search_end;
++    long skip_lines;
+ 
+     view->search_numNeedSkipChar = 0;
+     search_cb_char_curr_index = -1;
+@@ -95,11 +96,13 @@ mcview_find (mcview_t * view, gsize sear
+                 && mc_search_is_fixed_search_str (view->search))
+                 search_end = search_start + view->search->original_len;
+ 
+-            if (mc_search_run (view->search, (void *) view, search_start, search_end, len)
++            skip_lines = mc_search_run (view->search, (void *) view, search_start, search_end, len);
++            if (skip_lines
+                 && view->search->normal_offset == (off_t) search_start)
+             {
+                 if (view->text_nroff_mode)
+                     view->search->normal_offset++;
++                view->dpy_start_line-=skip_lines;
+                 return TRUE;
+             }
+ 
+@@ -111,8 +114,21 @@ mcview_find (mcview_t * view, gsize sear
+     view->search_nroff_seq->index = search_start;
+     mcview_nroff_seq_info (view->search_nroff_seq);
+ 
+-    return mc_search_run (view->search, (void *) view, search_start, mcview_get_filesize (view),
++    skip_lines = mc_search_run (view->search, (void *) view, search_start, mcview_get_filesize (view),
+                           len);
++    if (skip_lines>1) {
++    	view->dpy_start_line+=skip_lines-2;
++    	if(secondPass && view->dpy_lines_status != -1) view->dpy_start_line-=view->dpy_lines_total-view->dpy_visible_lines;
++    	if(secondPass && view->dpy_lines_status == -1) { view->dpy_start_line+=view->dpy_visible_lines; view->dpy_lines_status = 0; }
++    	return TRUE;
++    }
++    if (view->dpy_lines_status==0) {
++        view->dpy_lines_total=view->dpy_start_line-skip_lines;
++        view->dpy_lines_status=1;
++    } else if (view->dpy_lines_status==-1 && view->dpy_lines_total<-skip_lines) {
++        view->dpy_lines_total=-skip_lines;
++    }
++    return FALSE;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -247,6 +263,7 @@ mcview_do_search (mcview_t * view)
+     off_t search_start = 0;
+     gboolean isFound = FALSE;
+     gboolean need_search_again = TRUE;
++    long saved_lines_total = view->dpy_lines_total;
+ 
+     Dlg_head *d = NULL;
+ 
+@@ -293,6 +310,7 @@ mcview_do_search (mcview_t * view)
+     /* Compute the percent steps */
+     mcview_search_update_steps (view);
+     view->update_activate = 0;
++//    view->dpy_visible_lines = 0;	// mcview_search_show_result -> destroy_dlg sets lines_total as start_line (already calculated) + visible_lines (currently shown)
+ 
+     tty_enable_interrupt_key ();
+ 
+@@ -305,7 +323,7 @@ mcview_do_search (mcview_t * view)
+         else
+             growbufsize = view->search->original_len;
+ 
+-        if (mcview_find (view, search_start, &match_len))
++        if (mcview_find (view, search_start, &match_len, FALSE))
+         {
+             mcview_search_show_result (view, &d, match_len);
+             need_search_again = FALSE;
+@@ -336,22 +354,36 @@ mcview_do_search (mcview_t * view)
+             query_dialog (_("Search done"), _("Continue from beginning?"), D_NORMAL, 2, _("&Yes"),
+                           _("&No"));
+ 
+-        if (result != 0)
++        if (result != 0) {
++    	    saved_lines_total=view->dpy_lines_total;
+             isFound = TRUE;
+-        else
++        }
++        else {
+             search_start = 0;
++            if (view->dpy_lines_status == -1) {
++//            	view->dpy_lines_status = 0;
++//            	view->dpy_lines_total = saved_lines_total;	// for mcview_find below
++            }
++        }
+     }
+ 
+-    if (!isFound && view->search->error_str != NULL && mcview_find (view, search_start, &match_len))
++    if (!isFound && view->search->error_str != NULL) { if(mcview_find (view, search_start, &match_len, TRUE))
+     {
+         mcview_search_show_result (view, &d, match_len);
+         isFound = TRUE;
+-    }
++    } else {
++    	saved_lines_total=view->dpy_lines_total;
++    	if(view->dpy_lines_status==-1) {
++    	view->dpy_lines_status=1;
++    	view->dpy_start_line+=view->dpy_lines_total;
++    	}
++    }}
+ 
+     if (!isFound && view->search->error_str != NULL)
+         message (D_NORMAL, _("Search"), "%s", view->search->error_str);
+ 
+     view->dirty++;
++    view->dpy_lines_total = saved_lines_total;
+     mcview_update (view);
+ 
+     tty_disable_interrupt_key ();

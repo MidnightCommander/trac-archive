@@ -1,0 +1,22 @@
+#
+# This patch replaces the calls to obsolete the macros AC_AIX and AC_MINIX
+# by AC_USE_SYSTEM_EXTENSIONS - makes certain autoconf warnings go away.
+#
+# Reference:	mc-4.6.1
+# Submit-By:	Enrico Weigelt, metux IT service <weigelt@metux.de>
+# Submit-Date:	2008-12-30
+# State:	new
+#
+diff -ruN mc-4.6.1.orig/configure.ac mc-4.6.1/configure.ac
+--- mc-4.6.1.orig/configure.ac	2008-12-30 01:52:56.000000000 +0100
++++ mc-4.6.1/configure.ac	2008-12-30 02:12:39.000000000 +0100
+@@ -13,8 +13,7 @@
+ 
+ AC_CANONICAL_HOST
+ 
+-AC_AIX
+-AC_MINIX
++AC_USE_SYSTEM_EXTENSIONS
+ AC_ISC_POSIX
+ 
+ AC_PROG_CC_STDC

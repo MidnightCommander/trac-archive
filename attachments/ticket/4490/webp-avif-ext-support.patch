@@ -1,0 +1,32 @@
+diff --git a/misc/ext.d/image.sh b/misc/ext.d/image.sh
+index 04307e01b..5a928a23d 100755
+--- a/misc/ext.d/image.sh
++++ b/misc/ext.d/image.sh
+@@ -12,7 +12,7 @@ do_view_action() {
+     filetype=$1
+ 
+     case "${filetype}" in
+-    jpeg)
++    jpeg | image)
+         identify "${MC_EXT_FILENAME}"
+         which exif >/dev/null 2>&1 && exif "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+diff --git a/misc/mc.ext.ini.in b/misc/mc.ext.ini.in
+index 3d961a95c..6acf8481b 100644
+--- a/misc/mc.ext.ini.in
++++ b/misc/mc.ext.ini.in
+@@ -578,7 +578,13 @@ Open=@EXTHELPERSDIR@/image.sh open svg
+ 
+ [webp]
+ Shell=.webp
+-Open=@EXTHELPERSDIR@/image.sh open webp
++View=%view{ascii} @EXTHELPERSDIR@/image.sh view image
++Open=@EXTHELPERSDIR@/image.sh open image
++
++[avif]
++Shell=.avif
++View=%view{ascii} @EXTHELPERSDIR@/image.sh view image
++Open=@EXTHELPERSDIR@/image.sh open image
+ 
+ 
+ ### Sound files ###

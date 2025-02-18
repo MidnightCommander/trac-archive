@@ -1,0 +1,86 @@
+From b3f1f71b4278f9bb96d20e3e333680ffb3d27902 Mon Sep 17 00:00:00 2001
+From: Peter Hjalmarsson <kanelxake@gmail.com>
+Date: Mon, 21 Sep 2015 17:27:20 +0200
+Subject: [PATCH] Uglybtrfsclone
+
+---
+ lib/vfs/vfs.c          | 23 +++++++++++++++++++++++
+ lib/vfs/vfs.h          |  2 ++
+ src/filemanager/file.c |  9 +++++++++
+ 3 files changed, 34 insertions(+)
+
+diff --git a/lib/vfs/vfs.c b/lib/vfs/vfs.c
+index 01278e9..2df6d4a 100644
+--- a/lib/vfs/vfs.c
++++ b/lib/vfs/vfs.c
+@@ -45,6 +45,10 @@
+ #include <errno.h>
+ #include <stdlib.h>
+ 
++#ifdef HAVE_SYS_IOCTL_H
++#include <sys/ioctl.h>
++#endif
++
+ #include "lib/global.h"
+ #include "lib/strutil.h"
+ #include "lib/util.h"
+@@ -644,4 +648,23 @@ vfs_preallocate (int dest_vfs_fd, off_t src_fsize, off_t dest_fsize)
+ #endif /* HAVE_POSIX_FALLOCATE */
+ }
+ 
++int
++vfs_clone_file (int dest_vfs_fd, int src_vfs_fd)
++{
++	#ifdef __linux__
++	# undef BTRFS_IOCTL_MAGIC
++	# define BTRFS_IOCTL_MAGIC 0x94
++	# undef BTRFS_IOC_CLONE
++	# define BTRFS_IOC_CLONE _IOW (BTRFS_IOCTL_MAGIC, 9, int)
++	  int *dest_fd = (int *) vfs_class_data_find_by_handle (dest_vfs_fd);
++	  int *src_fd = (int *) vfs_class_data_find_by_handle (src_vfs_fd);
++	  return ioctl (*dest_fd, BTRFS_IOC_CLONE, *src_fd);
++	#else
++	  (void) dest_vfs_fd;
++	  (void) src_vfs_fd;
++	  errno = ENOTSUP;
++	  return -1;
++	#endif
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/vfs/vfs.h b/lib/vfs/vfs.h
+index 037f889..a1b3335 100644
+--- a/lib/vfs/vfs.h
++++ b/lib/vfs/vfs.h
+@@ -273,6 +273,8 @@ char *_vfs_get_cwd (void);
+ 
+ int vfs_preallocate (int dest_desc, off_t src_fsize, off_t dest_fsize);
+ 
++int vfs_clone_file (int dest_vfs_fd, int src_vfs_fd);
++
+ /**
+  * Interface functions described in interface.c
+  */
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 0bacc54..e6aebd2 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -1737,6 +1737,15 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+         goto ret;
+     }
+ 
++	/*here*/
++    if (vfs_clone_file(dest_desc,src_desc) == 0)
++    {
++        dst_status = DEST_FULL;
++        goto ret;
++    }
++
++
++
+     /* try preallocate space; if fail, try copy anyway */
+     while (vfs_preallocate (dest_desc, file_size, ctx->do_append != 0 ? sb.st_size : 0) != 0)
+     {
+-- 
+2.4.3
+

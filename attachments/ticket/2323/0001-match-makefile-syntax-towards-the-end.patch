@@ -1,0 +1,37 @@
+From 8f5ce71fb53dbcafca1b01f9e59d8a35b574da7a Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@gmx.de>
+Date: Fri, 9 Oct 2020 00:14:34 +0200
+Subject: [PATCH 5/5] match makefile syntax towards the end
+
+the pattern is very broad and would occasionally clash with non-
+makefiles, for example makefile.cpp.
+---
+ misc/syntax/Syntax.in | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 397bec473..7426c7ad3 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -67,9 +67,6 @@ include xml.syntax
+ file ..\*\\.(?i:tt)$ Template::Toolkit\sFile
+ include tt.syntax
+ 
+-file (.\*[Mm]akefile[\\\.A-Za-z0-9]\*|..\*\\.mk|..\*\\.mak|Kbuild)$ Makefile
+-include makefile.syntax
+-
+ file (CMakeLists.txt|.\*.cmake)$ CMake
+ include cmake.syntax
+ 
+@@ -307,5 +304,8 @@ include cobol.syntax
+ file ..\*\\.kt$ Kotliin\sSource
+ include kotlin.syntax
+ 
++file (.\*[Mm]akefile[\\\.A-Za-z0-9]\*|..\*\\.mk|..\*\\.mak|Kbuild)$ Makefile
++include makefile.syntax
++
+ file .\* unknown
+ include unknown.syntax
+-- 
+2.28.0.1.g7ba5ae0684
+

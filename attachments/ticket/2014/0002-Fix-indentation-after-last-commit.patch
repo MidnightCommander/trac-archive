@@ -1,0 +1,54 @@
+From efabdc542fa8f893a8b316d088af77caa245c5f2 Mon Sep 17 00:00:00 2001
+From: Francesco Cosoleto <cosoleto@gmail.com>
+Date: Tue, 9 Feb 2010 19:10:04 +0100
+Subject: [PATCH 2/2] Fix indentation after last commit.
+
+
+Signed-off-by: Francesco Cosoleto <cosoleto@gmail.com>
+---
+ src/cmd.c |   29 ++++++++++++++---------------
+ 1 files changed, 14 insertions(+), 15 deletions(-)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index 2c4f2d7..bafbed0 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -401,21 +401,20 @@ mkdir_cmd (void)
+ 	return;
+ 
+     if (*dir) {
+-    if (dir[0] == '/' || dir[0] == '~')
+-	absdir = g_strdup (dir);
+-    else
+-	absdir = concat_dir_and_file (current_panel->cwd, dir);
+-
+-    save_cwds_stat ();
+-    if (my_mkdir (absdir, 0777) == 0) {
+-	update_panels (UP_OPTIMIZE, dir);
+-	repaint_screen ();
+-	select_item (current_panel);
+-    } else {
+-	message (D_ERROR, MSG_ERROR, "  %s  ", unix_error_string (errno));
+-    }
+-
+-    g_free (absdir);
++        if (dir[0] == '/' || dir[0] == '~')
++            absdir = g_strdup (dir);
++        else
++            absdir = concat_dir_and_file (current_panel->cwd, dir);
++
++        save_cwds_stat ();
++        if (my_mkdir (absdir, 0777) == 0) {
++            update_panels (UP_OPTIMIZE, dir);
++            repaint_screen ();
++            select_item (current_panel);
++        } else {
++            message (D_ERROR, MSG_ERROR, "  %s  ", unix_error_string (errno));
++        }
++        g_free (absdir);
+     }
+     g_free (dir);
+ }
+-- 
+1.6.6.1
+

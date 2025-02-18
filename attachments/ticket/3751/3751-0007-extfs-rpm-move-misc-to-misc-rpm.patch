@@ -1,0 +1,36 @@
+From 1602ce75291abbd78ed5509424a86ab94ff720a9 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 5 Jan 2017 15:34:57 +0200
+Subject: [PATCH 3/3] Ticket #3751: extfs: rpm: move misc/* to misc/rpm/*.
+
+In the future we will probably place each helper's tests in a separate folder.
+We'll then get rid of this 'misc/rpm' folder by moving it there.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ tests/src/vfs/extfs/helpers-list/misc/Makefile.am         | 2 +-
+ tests/src/vfs/extfs/helpers-list/misc/{ => rpm}/rpm2tags  | 0
+ tests/src/vfs/extfs/helpers-list/misc/{ => rpm}/test.spec | 0
+ 3 files changed, 1 insertion(+), 1 deletion(-)
+ rename tests/src/vfs/extfs/helpers-list/misc/{ => rpm}/rpm2tags (100%)
+ rename tests/src/vfs/extfs/helpers-list/misc/{ => rpm}/test.spec (100%)
+
+diff --git a/tests/src/vfs/extfs/helpers-list/misc/Makefile.am b/tests/src/vfs/extfs/helpers-list/misc/Makefile.am
+index 8361ecc..3c11b66 100644
+--- a/tests/src/vfs/extfs/helpers-list/misc/Makefile.am
++++ b/tests/src/vfs/extfs/helpers-list/misc/Makefile.am
+@@ -1,2 +1,2 @@
+ 
+-EXTRA_DIST = rpm2tags test.spec
++EXTRA_DIST = rpm/rpm2tags rpm/test.spec
+diff --git a/tests/src/vfs/extfs/helpers-list/misc/rpm2tags b/tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags
+similarity index 100%
+rename from tests/src/vfs/extfs/helpers-list/misc/rpm2tags
+rename to tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags
+diff --git a/tests/src/vfs/extfs/helpers-list/misc/test.spec b/tests/src/vfs/extfs/helpers-list/misc/rpm/test.spec
+similarity index 100%
+rename from tests/src/vfs/extfs/helpers-list/misc/test.spec
+rename to tests/src/vfs/extfs/helpers-list/misc/rpm/test.spec
+-- 
+2.9.3
+

@@ -1,0 +1,155 @@
+From 228a0f21709c163a84273ff8db3cbc8a4070d95b Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Fri, 19 Feb 2021 03:33:25 -0600
+Subject: =?UTF-8?q?Ctrl-x=201=E2=80=A60=20shortcuts=20to=20switch=20to=20f?=
+ =?UTF-8?q?ile=201=E2=80=A610.?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ lib/keybind.c                  | 13 +++++++++-
+ lib/keybind.h                  |  2 +-
+ lib/widget/order_kept_dialog.c | 47 ++++++++++++++++++++++++++++++++++
+ src/editor/editwidget.c        |  1 +
+ src/keybind-defaults.c         | 10 ++++++++
+ 5 files changed, 71 insertions(+), 2 deletions(-)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..4c7c8212f 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -449,7 +449,18 @@ keybind_lookup_action (const char *name)
+ 
+     res = bsearch (&key, command_names, num_command_names,
+                    sizeof (command_names[0]), name_keymap_comparator);
+-
++    if (res == NULL)
++    {
++        /* Recognize the parametrized action name WindowN:(idx) */
++        if (g_str_has_prefix (name, "WindowN:"))
++        {
++            long idx;
++            errno = 0;
++            idx = strtol (name + 8, NULL, 10);
++            if (errno == 0)
++                return CK_WindowN (idx);
++        }
++    }
+     return (res != NULL) ? res->val : CK_IgnoreKey;
+ }
+ 
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..8262dba70 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -31,7 +31,7 @@
+ #define CK_PipeBlock(i)  (10000+(i))
+ #define CK_Macro(i)      (20000+(i))
+ #define CK_MacroLast     CK_Macro(0x7FFF)
+-
++#define CK_WindowN(i)    (5000+(i))
+ /*** enums ***************************************************************************************/
+ 
+ enum
+diff --git a/lib/widget/order_kept_dialog.c b/lib/widget/order_kept_dialog.c
+index 99521ba60..28cd05cf1 100644
+--- a/lib/widget/order_kept_dialog.c
++++ b/lib/widget/order_kept_dialog.c
+@@ -52,6 +52,32 @@
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static gboolean
++order_dlg_switch_to_win_idx (WOrderKeptDialog * h, long win_idx)
++{
++    if (win_idx >= 1 && win_idx <= h->ordered_widgets->len)
++    {
++        widget_select (g_ptr_array_index (h->ordered_widgets, win_idx - 1));
++        return TRUE;
++    }
++    return FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++static cb_ret_t
++order_dlg_execute_action (WOrderKeptDialog * h, long action)
++{
++    /* CK_WindowN */
++    if ((action / CK_WindowN (0)) == 1)
++    {
++        if (order_dlg_switch_to_win_idx (h, action - CK_WindowN (0)))
++            return MSG_HANDLED;
++    }
++    return MSG_NOT_HANDLED;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ /* To search WEdit by file name till extension, if any - extensions and case can differ */
+ static gboolean
+ similar_filename_edit_widgets (gconstpointer a, gconstpointer b)
+@@ -235,6 +261,27 @@ order_dlg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, voi
+         g_ptr_array_free (h->ordered_widgets, TRUE);
+         h->ordered_widgets = NULL;
+         break;
++    case MSG_KEY:
++        {
++            Widget *we = WIDGET (GROUP (h)->current->data);
++
++            if (edit_widget_is_editor (we))
++            {
++                gboolean ext_mode;
++                long action;
++
++                /* keep and then extmod flag */
++                ext_mode = we->ext_mode;
++                action = widget_lookup_key (we, parm);
++                we->ext_mode = ext_mode;
++
++                if (action == CK_IgnoreKey)
++                    we->ext_mode = FALSE;
++                else
++                    ret = order_dlg_execute_action (h, action);
++            }
++        }
++        break;
+     default:
+         break;
+     }
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 72f76d3c7..d00187d11 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -481,6 +481,7 @@ edit_dialog_command_execute (WDialog * h, long command)
+         break;
+     }
+ 
++
+     return ret;
+ }
+ 
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7b87c2f5a..5988f1b5d 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -480,6 +480,16 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+ 
+ /* emacs keyboard layout emulation */
+ static const global_keymap_ini_t default_editor_x_keymap[] = {
++    {"WindowN:1", "1"},
++    {"WindowN:2", "2"},
++    {"WindowN:3", "3"},
++    {"WindowN:4", "4"},
++    {"WindowN:5", "5"},
++    {"WindowN:6", "6"},
++    {"WindowN:7", "7"},
++    {"WindowN:8", "8"},
++    {"WindowN:9", "9"},
++    {"WindowN:10","0"},
+     {NULL, NULL}
+ };
+ #endif /* USE_INTERNAL_EDIT */
+-- 
+2.28.0
+

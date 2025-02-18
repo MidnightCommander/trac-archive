@@ -1,0 +1,324 @@
+diff -rwu '--exclude=Makefile.in' mc-4.8.1/src/editor/edit.c mc-4.8.1-lbr/src/editor/edit.c
+--- mc-4.8.1/src/editor/edit.c	2013-05-31 03:43:21.000000000 -0400
++++ mc-4.8.1-lbr/src/editor/edit.c	2013-05-31 03:40:33.000000000 -0400
+@@ -87,6 +87,7 @@
+ int option_cursor_beyond_eol = 0;
+ int option_line_state = 0;
+ int option_line_state_width = 0;
++int option_autodetect_lb = 0;
+ 
+ int option_edit_right_extreme = 0;
+ int option_edit_left_extreme = 0;
+@@ -423,6 +424,35 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /**
++ * detect type of line breaks of loaded file by lead BUF_MEDIUM bytes
++ *
++ */
++static LineBreaks
++detect_lb_type (char *filename)
++{
++    char buf[BUF_MEDIUM];
++    ssize_t file, sz;
++
++    file = mc_open (filename, O_RDONLY | O_BINARY);
++    if (file == -1)
++        return LB_ASIS;
++
++    memset (buf, 0, sizeof (buf));
++    sz = mc_read (file, buf, sizeof (buf) - 1);
++    if (sz < 0)
++        return LB_ASIS;
++    mc_close (file);
++
++    buf[(size_t) sz] = '\0';
++    if (strstr (buf, "\r\n") != NULL)
++        return LB_WIN;
++    if (strchr (buf, '\r') != NULL)
++        return LB_MAC;
++    return LB_ASIS;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
+  * Open the file and load it into the buffers, either directly or using
+  * a filter.  Return 0 on success, 1 on error.
+  *
+@@ -436,6 +466,7 @@
+ edit_load_file (WEdit * edit)
+ {
+     int fast_load = 1;
++    LineBreaks lb_type = LB_ASIS;
+     vfs_path_t *vpath = vfs_path_from_str (edit->filename);
+ 
+     /* Cannot do fast load if a filter is used */
+@@ -460,6 +491,14 @@
+         /* If we are dealing with a real file, check that it exists */
+         if (check_file_access (edit, edit->filename, &edit->stat1))
+             return 1;
++
++        if (option_autodetect_lb)
++            lb_type = detect_lb_type(edit->filename);
++        else
++            lb_type = LB_ASIS;
++
++        if (lb_type != LB_ASIS && lb_type != LB_UNIX)
++            fast_load = 0;
+     }
+     else
+     {
+@@ -482,15 +521,16 @@
+         if (*edit->filename)
+         {
+             edit->undo_stack_disable = 1;
+-            if (edit_insert_file (edit, edit->filename) == 0)
++            if (edit_insert_file (edit, edit->filename, lb_type) == 0)
+             {
+                 edit_clean (edit);
+                 return 1;
+             }
++            edit_set_markers (edit, 0, 0, 0, 0);
+             edit->undo_stack_disable = 0;
+         }
+     }
+-    edit->lb = LB_ASIS;
++    edit->lb = lb_type;
+     return 0;
+ }
+ 
+@@ -1855,7 +1895,7 @@
+         {
+             long ins_len;
+ 
+-            ins_len = edit_insert_file (edit, block_file);
++            ins_len = edit_insert_file (edit, block_file, LB_ASIS);
+             if (nomark == 0 && ins_len > 0)
+                 edit_set_markers (edit, start_mark, start_mark + ins_len, 0, 0);
+         }
+@@ -2071,7 +2111,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ /** inserts a file at the cursor, returns count of inserted bytes on success */
+ long
+-edit_insert_file (WEdit * edit, const char *filename)
++edit_insert_file (WEdit * edit, const char *filename, LineBreaks lb_type)
+ {
+     char *p;
+     long ins_len = 0;
+@@ -2146,8 +2186,20 @@
+             while ((blocklen = mc_read (file, (char *) buf, TEMP_BUF_LEN)) > 0)
+             {
+                 for (i = 0; i < blocklen; i++)
++                {
++                    if (buf[i] == '\r')
++                    {
++                        if (lb_type == LB_MAC)
++                            edit_insert (edit, '\n');
++                        else if (lb_type == LB_WIN)
++                        /* just skip */;
++                        else
++                            edit_insert (edit, '\r');
++                    }
++                    else
+                     edit_insert (edit, buf[i]);
+             }
++            }
+             /* highlight inserted text then not persistent blocks */
+             if (!option_persistent_selections && edit->modified)
+             {
+@@ -2245,7 +2297,7 @@
+     edit->redo_stack_size = START_STACK_SIZE;
+     edit->redo_stack_size_mask = START_STACK_SIZE - 1;
+     edit->redo_stack = g_malloc0 ((edit->redo_stack_size + 10) * sizeof (long));
+-
++    edit->highlight = 0;
+     edit->utf8 = 0;
+     edit->converter = str_cnv_from_term;
+     edit_set_codeset (edit);
+@@ -4367,3 +4419,4 @@
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
+diff -rwu '--exclude=Makefile.in' mc-4.8.1/src/editor/editcmd.c mc-4.8.1-lbr/src/editor/editcmd.c
+--- mc-4.8.1/src/editor/editcmd.c	2011-12-13 03:21:26.000000000 -0500
++++ mc-4.8.1-lbr/src/editor/editcmd.c	2013-05-31 03:07:14.000000000 -0400
+@@ -348,6 +348,10 @@
+             g_free (msg);
+             goto error_save;
+         }
++        
++        /* Update the file information, especially the mtime. */
++        if (mc_stat (savename, &edit->stat1) == -1)
++            goto error_save;
+     }
+ 
+     if (filelen != edit->last_byte)
+@@ -432,6 +436,8 @@
+     {
+         char *fname;
+ 
++        /* Don't change current LB type (possibly autodetected), unless user asked to. */
++        if (cur_lb != LB_ASIS)
+         edit->lb = cur_lb;
+         fname = tilde_expand (filename);
+         g_free (filename);
+@@ -2684,7 +2690,7 @@
+     /* try use external clipboard utility */
+     mc_event_raise (MCEVENT_GROUP_CORE, "clipboard_file_from_ext_clip", NULL);
+     tmp = mc_config_get_full_path (EDIT_CLIP_FILE);
+-    edit_insert_file (edit, tmp);
++    edit_insert_file (edit, tmp, LB_ASIS);
+     g_free (tmp);
+ }
+ 
+@@ -2800,7 +2806,7 @@
+         }
+         else
+         {
+-            if (edit_insert_file (edit, exp) != 0)
++            if (edit_insert_file (edit, exp, LB_ASIS) != 0)
+             {
+                 g_free (exp);
+                 edit->force |= REDRAW_COMPLETELY;
+@@ -2878,7 +2884,7 @@
+     if (edit_block_delete_cmd (edit))
+         return 1;
+     tmp = mc_config_get_full_path (EDIT_TEMP_FILE);
+-    edit_insert_file (edit, tmp);
++    edit_insert_file (edit, tmp, LB_ASIS);
+     g_free (tmp);
+     return 0;
+ }
+@@ -2917,7 +2923,7 @@
+ 
+     edit->force |= REDRAW_COMPLETELY;
+     tmp = mc_config_get_full_path (EDIT_TEMP_FILE);
+-    edit_insert_file (edit, tmp);
++    edit_insert_file (edit, tmp, LB_ASIS);
+     g_free (tmp);
+     return 0;
+ }
+diff -rwu '--exclude=Makefile.in' mc-4.8.1/src/editor/editdraw.c mc-4.8.1-lbr/src/editor/editdraw.c
+--- mc-4.8.1/src/editor/editdraw.c	2011-12-13 03:21:26.000000000 -0500
++++ mc-4.8.1-lbr/src/editor/editdraw.c	2013-05-31 03:07:14.000000000 -0400
+@@ -108,6 +108,13 @@
+     unsigned int cur_utf = 0;
+     int cw = 1;
+ 
++    static const char *lb_names[LB_NAMES] = {
++        "",
++        "LF",
++        "CRLF",
++        "CR"
++    };
++
+     /*
+      * If we are at the end of file, print <EOF>,
+      * otherwise print the current character as is (if printable),
+@@ -147,7 +154,7 @@
+     /* The field lengths just prevent the status line from shortening too much */
+     if (simple_statusbar)
+         g_snprintf (s, w,
+-                    "%c%c%c%c %3ld %5ld/%ld %6ld/%ld %s %s",
++                    "%c%c%c%c %3ld %5ld/%ld %6ld/%ld %s %s %s",
+                     edit->mark1 != edit->mark2 ? (edit->column_highlight ? 'C' : 'B') : '-',
+                     edit->modified ? 'M' : '-',
+                     macro_index < 0 ? '-' : 'R',
+@@ -157,10 +164,11 @@
+                     edit->total_lines + 1, edit->curs1, edit->last_byte, byte_str,
+ #ifdef HAVE_CHARSET
+                     mc_global.source_codepage >=
+-                    0 ? get_codepage_id (mc_global.source_codepage) : ""
++                    0 ? get_codepage_id (mc_global.source_codepage) : "",
+ #else
+-                    ""
++                    "",
+ #endif
++					lb_names[edit->lb]
+             );
+     else
+         g_snprintf (s, w,
+@@ -176,10 +184,11 @@
+                     edit->total_lines + 1, edit->curs1, edit->last_byte, byte_str,
+ #ifdef HAVE_CHARSET
+                     mc_global.source_codepage >=
+-                    0 ? get_codepage_id (mc_global.source_codepage) : ""
++                    0 ? get_codepage_id (mc_global.source_codepage) : "",
+ #else
+-                    ""
++                    "",
+ #endif
++					lb_names[edit->lb]
+             );
+ }
+ 
+diff -rwu '--exclude=Makefile.in' mc-4.8.1/src/editor/edit.h mc-4.8.1-lbr/src/editor/edit.h
+--- mc-4.8.1/src/editor/edit.h	2011-12-12 04:15:38.000000000 -0500
++++ mc-4.8.1-lbr/src/editor/edit.h	2013-05-31 03:07:14.000000000 -0400
+@@ -36,6 +36,7 @@
+ extern int option_fill_tabs_with_spaces;
+ extern int option_return_does_auto_indent;
+ extern int option_backspace_through_tabs;
++extern int option_autodetect_lb;
+ extern int option_fake_half_tabs;
+ extern int option_persistent_selections;
+ extern int option_cursor_beyond_eol;
+diff -rwu '--exclude=Makefile.in' mc-4.8.1/src/editor/edit-impl.h mc-4.8.1-lbr/src/editor/edit-impl.h
+--- mc-4.8.1/src/editor/edit-impl.h	2013-05-31 03:43:21.000000000 -0400
++++ mc-4.8.1-lbr/src/editor/edit-impl.h	2013-05-31 03:07:14.000000000 -0400
+@@ -245,7 +245,7 @@
+ void edit_insert_over (WEdit * edit);
+ int edit_insert_column_of_text_from_file (WEdit * edit, int file,
+                                           long *start_pos, long *end_pos, int *col1, int *col2);
+-long edit_insert_file (WEdit * edit, const char *filename);
++long edit_insert_file (WEdit * edit, const char *filename, LineBreaks lb_type);
+ int edit_load_back_cmd (WEdit * edit);
+ int edit_load_forward_cmd (WEdit * edit);
+ void edit_block_process_cmd (WEdit * edit, int macro_number);
+diff -rwu '--exclude=Makefile.in' mc-4.8.1/src/editor/editoptions.c mc-4.8.1-lbr/src/editor/editoptions.c
+--- mc-4.8.1/src/editor/editoptions.c	2011-12-12 04:15:38.000000000 -0500
++++ mc-4.8.1-lbr/src/editor/editoptions.c	2013-05-31 03:07:14.000000000 -0400
+@@ -109,17 +109,19 @@
+                                  N_("Confir&m before saving"), &edit_confirm_save),
+         /* 12 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 3, OPT_DLG_H,
+                                  N_("&Return does autoindent"), &option_return_does_auto_indent),
+-        /* 13 */ QUICK_LABEL (3, OPT_DLG_W, 11, OPT_DLG_H, N_("Tab spacing:")),
+-        /* 14 */ QUICK_INPUT (3 + 24, OPT_DLG_W, 11, OPT_DLG_H,
++        /* 13 */ QUICK_LABEL (3, OPT_DLG_W, 12, OPT_DLG_H, N_("Tab spacing:")),
++        /* 14 */ QUICK_INPUT (3 + 24, OPT_DLG_W, 12, OPT_DLG_H,
+                               tab_spacing, OPT_DLG_W / 2 - 4 - 24, 0, "edit-tab-spacing", &q),
+-        /* 15 */ QUICK_CHECKBOX (3, OPT_DLG_W, 10, OPT_DLG_H,
++        /* 15 */ QUICK_CHECKBOX (3, OPT_DLG_W, 11, OPT_DLG_H,
+                                  N_("Fill tabs with &spaces"), &option_fill_tabs_with_spaces),
+-        /* 16 */ QUICK_CHECKBOX (3, OPT_DLG_W, 9, OPT_DLG_H,
++        /* 16 */ QUICK_CHECKBOX (3, OPT_DLG_W, 10, OPT_DLG_H,
+                                  N_("&Backspace through tabs"), &option_backspace_through_tabs),
+-        /* 17 */ QUICK_CHECKBOX (3, OPT_DLG_W, 8, OPT_DLG_H,
++        /* 17 */ QUICK_CHECKBOX (3, OPT_DLG_W, 9, OPT_DLG_H,
+                                  N_("&Fake half tabs"), &option_fake_half_tabs),
+-        /* 18 */ QUICK_RADIO (4, OPT_DLG_W, 4, OPT_DLG_H, 3, wrap_str, &wrap_mode),
+-        /* 19 */ QUICK_LABEL (3, OPT_DLG_W, 3, OPT_DLG_H, N_("Wrap mode")),
++        /* 18 */ QUICK_CHECKBOX (3, OPT_DLG_W, 8, OPT_DLG_H,
++                                 N_("&Autodetect line break"), &option_autodetect_lb),
++        /* 19 */ QUICK_RADIO (4, OPT_DLG_W, 4, OPT_DLG_H, 3, wrap_str, &wrap_mode),
++        /* 20 */ QUICK_LABEL (3, OPT_DLG_W, 3, OPT_DLG_H, N_("Wrap mode")),
+         QUICK_END
+     };
+ 
+diff -rwu '--exclude=Makefile.in' mc-4.8.1/src/setup.c mc-4.8.1-lbr/src/setup.c
+--- mc-4.8.1/src/setup.c	2011-12-12 04:15:38.000000000 -0500
++++ mc-4.8.1-lbr/src/setup.c	2013-05-31 03:32:50.000000000 -0400
+@@ -298,6 +298,7 @@
+     { "editor_word_wrap_line_length", &option_word_wrap_line_length },
+     { "editor_fill_tabs_with_spaces", &option_fill_tabs_with_spaces },
+     { "editor_return_does_auto_indent", &option_return_does_auto_indent },
++    { "editor_autodetect_linebreak", &option_autodetect_lb },
+     { "editor_backspace_through_tabs", &option_backspace_through_tabs },
+     { "editor_fake_half_tabs", &option_fake_half_tabs },
+     { "editor_option_save_mode", &option_save_mode },
+@@ -1377,3 +1378,4 @@
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++

@@ -1,0 +1,26 @@
+diff --git a/m4.include/mc-ext2fs-attr.m4 b/m4.include/mc-ext2fs-attr.m4
+index 6a57cd5ef..42e4a292e 100644
+--- a/m4.include/mc-ext2fs-attr.m4
++++ b/m4.include/mc-ext2fs-attr.m4
+@@ -12,9 +12,8 @@ AC_DEFUN([mc_EXT2FS_ATTR],
+ 
+         if test x"$found_e2p" = "xyes"; then
+             AC_DEFINE(ENABLE_EXT2FS_ATTR, 1, [Define to enable support for ext2fs attributes])
+-            AC_SUBST(EXT2FS_CFLAGS)
+-            AC_SUBST(E2P_CFLAGS)
+             MCLIBS="$MCLIBS $E2P_LIBS"
++            CPPFLAGS="$CPPFLAGS $EXT2FS_CFLAGS $E2P_CFLAGS"
+             ext2fs_attr_msg="yes"
+         else
+             AC_MSG_WARN([e2p library not found or version too old (must be >= 1.42.4)])
+diff --git a/src/filemanager/Makefile.am b/src/filemanager/Makefile.am
+index 534d8dcf3..0b3c36556 100644
+--- a/src/filemanager/Makefile.am
++++ b/src/filemanager/Makefile.am
+@@ -35,6 +35,4 @@ AM_CPPFLAGS = -I$(top_srcdir) $(GLIB_CFLAGS)
+ if ENABLE_EXT2FS_ATTR
+ libmcfilemanager_la_SOURCES += \
+ 	chattr.c
+-
+-AM_CPPFLAGS += @EXT2FS_CFLAGS@ @E2P_CFLAGS@
+ endif

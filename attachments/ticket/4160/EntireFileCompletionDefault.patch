@@ -1,0 +1,67 @@
+From 7c3c5232b33939b19b98ef4ec15f7bb3f119fa95 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Sat, 23 Jan 2021 11:58:19 -0600
+Subject: Make  completion collect entire file.
+
+---
+ src/editor/edit.c    | 1 +
+ src/editor/edit.h    | 1 +
+ src/editor/editcmd.c | 5 +----
+ src/setup.c          | 1 +
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index edda1f832..de1c96f05 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -90,6 +90,7 @@ gboolean option_line_state = FALSE;
+ int option_line_state_width = 0;
+ gboolean option_cursor_after_inserted_block = FALSE;
+ gboolean option_state_full_filename = FALSE;
++gboolean option_completion_collect_entire_file = TRUE;
+ 
+ gboolean enable_show_tabs_tws = TRUE;
+ gboolean option_check_nl_at_eof = FALSE;
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index 6c519e9d3..01fdbc5f0 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -42,6 +42,7 @@ extern gboolean option_drop_selection_on_copy;
+ extern gboolean option_cursor_beyond_eol;
+ extern gboolean option_cursor_after_inserted_block;
+ extern gboolean option_state_full_filename;
++extern gboolean option_completion_collect_entire_file;
+ extern gboolean option_line_state;
+ extern int option_save_mode;
+ extern gboolean option_save_position;
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 0d2caa923..fcbb8edbc 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1233,10 +1233,7 @@ edit_collect_completions (WEdit * edit, off_t word_start, gsize word_len,
+     if (srch == NULL)
+         return 0;
+ 
+-    entire_file =
+-        mc_config_get_bool (mc_global.main_config, CONFIG_APP_SECTION,
+-                            "editor_wordcompletion_collect_entire_file", 0);
+-
++    entire_file = option_completion_collect_entire_file;
+     last_byte = entire_file ? edit->buffer.size : word_start;
+ 
+     srch->search_type = MC_SEARCH_T_REGEX;
+diff --git a/src/setup.c b/src/setup.c
+index 77c07649d..499169593 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -357,6 +357,7 @@ static const struct
+     { "editor_show_right_margin", &show_right_margin },
+     { "editor_group_undo", &option_group_undo },
+     { "editor_state_full_filename", &option_state_full_filename },
++    { "editor_wordcompletion_collect_entire_file", &option_completion_collect_entire_file },
+ #endif /* USE_INTERNAL_EDIT */
+     { "editor_ask_filename_before_edit", &editor_ask_filename_before_edit },
+     { "nice_rotating_dash", &nice_rotating_dash },
+-- 
+2.28.0
+

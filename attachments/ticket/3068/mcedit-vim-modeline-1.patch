@@ -1,0 +1,292 @@
+diff --git a/.gitignore b/.gitignore
+index 310c62f..9e8b9e7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -46,3 +46,12 @@ make.log
+ make.clang
+ make.gcc
+ make.tcc
++misc/ext.d/doc.sh
++misc/ext.d/misc.sh
++misc/ext.d/text.sh
++misc/ext.d/web.sh
++misc/syntax/Syntax
++src/man2hlp/man2hlp
++src/vfs/extfs/helpers/uc1541
++src/vfs/extfs/helpers/ulib
++tests/src/editor/test-data.txt
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 1c80466..1fe0a53 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -142,6 +142,23 @@ static const off_t option_filesize_default_threshold = 64 * 1024 * 1024;
+ /* --------------------------------------------------------------------------------------------- */
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++edit_fake_half_tabs(WEdit *edit)
++{
++    if (edit->force_halftabs == -1)
++        return option_fake_half_tabs;
++    return edit->force_halftabs;
++}
++
++static gboolean
++edit_fill_tabs_with_spaces(WEdit *edit)
++{
++    if (edit->force_fill_tabs_with_spaces == -1)
++        return option_fill_tabs_with_spaces;
++    return edit->force_fill_tabs_with_spaces;
++}
++
+ /**
+  * Load file OR text into buffers.  Set cursor to the beginning of file.
+  *
+@@ -1393,12 +1410,12 @@ insert_spaces_tab (WEdit * edit, gboolean half)
+ static inline void
+ edit_tab_cmd (WEdit * edit)
+ {
+-    if (option_fake_half_tabs && is_in_indent (&edit->buffer))
++    if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer))
+     {
+         /* insert a half tab (usually four spaces) unless there is a
+            half tab already behind, then delete it and insert a
+            full tab. */
+-        if (option_fill_tabs_with_spaces || !right_of_four_spaces (edit))
++        if (edit_fill_tabs_with_spaces(edit) || !right_of_four_spaces (edit))
+             insert_spaces_tab (edit, TRUE);
+         else
+         {
+@@ -1409,7 +1426,7 @@ edit_tab_cmd (WEdit * edit)
+             edit_insert (edit, '\t');
+         }
+     }
+-    else if (option_fill_tabs_with_spaces)
++    else if (edit_fill_tabs_with_spaces(edit))
+         insert_spaces_tab (edit, FALSE);
+     else
+         edit_insert (edit, '\t');
+@@ -1545,8 +1562,8 @@ edit_move_block_to_right (WEdit * edit)
+         edit_cursor_move (edit, cur_bol - edit->buffer.curs1);
+         if (!edit_line_is_blank (edit, edit->buffer.curs_line))
+         {
+-            if (option_fill_tabs_with_spaces)
+-                insert_spaces_tab (edit, option_fake_half_tabs);
++            if (edit_fill_tabs_with_spaces(edit))
++                insert_spaces_tab (edit, edit_fake_half_tabs(edit));
+             else
+                 edit_insert (edit, '\t');
+             edit_cursor_move (edit,
+@@ -1585,7 +1602,7 @@ edit_move_block_to_left (WEdit * edit)
+ 
+         edit_cursor_move (edit, cur_bol - edit->buffer.curs1);
+ 
+-        if (option_fake_half_tabs)
++        if (edit_fake_half_tabs(edit))
+             del_tab_width = HALF_TAB_SIZE;
+         else
+             del_tab_width = option_tab_spacing;
+@@ -2017,6 +2034,108 @@ edit_insert_file (WEdit * edit, const vfs_path_t * filename_vpath)
+  * cursor on that line and show it in the middle of the screen.
+  */
+ 
++static off_t
++mc_findinfile(int handle, const char *searchstr)
++{
++    off_t offset_bak, offset_cur, filesize;
++    char buff[10240];
++    ssize_t got;
++    const char *found;
++    size_t searchstr_len;
++
++    searchstr_len = strlen(searchstr);
++
++    offset_bak = mc_lseek(handle, 0, SEEK_CUR);
++    if (offset_bak < 0)
++        return -1;
++
++    filesize = mc_lseek(handle, 0, SEEK_END);
++    offset_cur = mc_lseek(handle, offset_bak, SEEK_SET);
++
++    do {
++        got = mc_read(handle, buff, sizeof(buff) - 1);
++        if (got <= 0)
++            return -1;
++        buff[got] = '\0';
++
++        found = strstr(buff, searchstr);
++        if (found)
++            return mc_lseek(handle, offset_cur + (found - buff), SEEK_SET);
++
++        offset_cur = mc_lseek(handle,
++            offset_cur + (sizeof(buff) - 1) - searchstr_len, SEEK_SET);
++    } while (offset_cur + searchstr_len < filesize);
++
++    return -1;
++}
++
++static void
++scan_modeline(WEdit *edit, const vfs_path_t *filename)
++{
++    int fd;
++    int conf_tabstop = -1;
++    int conf_softtabstop = -1;
++    int conf_expandtab = -1;
++    int dst_halftabs = -1;
++    int dst_fill_tabs_with_spaces = -1;
++
++    fd = mc_open(filename, O_RDONLY | O_BINARY);
++    while (1) {
++        off_t foundat;
++        char buff[200];
++        char *s;
++        ssize_t got;
++        const char *foundstr;
++
++        foundat = mc_findinfile(fd, "\n/*");
++        if (foundat < 0)
++            return;
++
++        got = mc_read(fd, buff, sizeof(buff) - 1);
++        if (got <= 0)
++            return;
++        buff[got] = '\0';
++
++        mc_lseek(fd, foundat + 3, SEEK_SET);
++
++        s = &buff[3];
++        while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
++            s++;
++
++        if (strncmp(s, "vim:", 4) != 0)
++            continue;
++        s += 4;
++
++        foundstr = strstr(s, "tabstop=");
++        if (foundstr)
++            conf_tabstop=atoi(foundstr + 8);
++        foundstr = strstr(s, "softtabstop=");
++        if (foundstr)
++            conf_softtabstop=atoi(foundstr + 12);
++        foundstr = strstr(s, "expandtab");
++        if (foundstr)
++            conf_expandtab = 1;
++        foundstr = strstr(s, "noexpandtab");
++        if (foundstr)
++            conf_expandtab = 0;
++
++        break;
++    }
++
++    if (conf_softtabstop > 0 && conf_tabstop > 0 &&
++        conf_softtabstop * 2 == conf_tabstop)
++    {
++        dst_halftabs = 1;
++    }
++
++    dst_fill_tabs_with_spaces = conf_expandtab;
++
++    edit->force_halftabs = dst_halftabs;
++    edit->force_fill_tabs_with_spaces = dst_fill_tabs_with_spaces;
++
++    mc_close(fd);
++}
++
+ WEdit *
+ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * filename_vpath,
+            long line)
+@@ -2054,6 +2173,11 @@ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * f
+         edit_save_size (edit);
+     }
+ 
++    edit->force_halftabs = -1;
++    edit->force_fill_tabs_with_spaces = -1;
++
++    scan_modeline(edit, filename_vpath);
++
+     edit->drag_state = MCEDIT_DRAG_NORMAL;
+ 
+     edit->stat1.st_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+@@ -2909,7 +3033,7 @@ edit_move_to_prev_col (WEdit * edit, off_t p)
+     else
+     {
+         edit->over_col = 0;
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer))
++        if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer))
+         {
+             long fake_half_tabs;
+ 
+@@ -3402,7 +3526,7 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+             while (edit_buffer_get_previous_byte (&edit->buffer) != '\n' && edit->buffer.curs1 > 0)
+                 edit_backspace (edit, TRUE);
+         }
+-        else if (option_fake_half_tabs && is_in_indent (&edit->buffer)
++        else if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer)
+                  && right_of_four_spaces (edit))
+         {
+             int i;
+@@ -3410,6 +3534,16 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+             for (i = 0; i < HALF_TAB_SIZE; i++)
+                 edit_backspace (edit, TRUE);
+         }
++        else if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer)
++                 && is_aligned_on_a_tab(edit)) {
++            int i;
++
++            edit_backspace (edit, TRUE);
++            for (i = 0; i < HALF_TAB_SIZE; i++)
++                edit_insert (edit, ' ');
++            /* TODO: if (right_of_four_spaces(edit) && left_of_four_spaces(edit)
++             * - replace spaces with a tab */
++        }
+         else
+             edit_backspace (edit, FALSE);
+         break;
+@@ -3422,7 +3556,7 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+             if (option_cursor_beyond_eol && edit->over_col > 0)
+                 edit_insert_over (edit);
+ 
+-            if (option_fake_half_tabs && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
++            if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
+             {
+                 int i;
+ 
+@@ -3488,7 +3622,7 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+         edit->column_highlight = 1;
+     case CK_Left:
+     case CK_MarkLeft:
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer) && right_of_four_spaces (edit))
++        if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer) && right_of_four_spaces (edit))
+         {
+             if (option_cursor_beyond_eol && edit->over_col > 0)
+                 edit->over_col--;
+@@ -3503,7 +3637,7 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+         edit->column_highlight = 1;
+     case CK_Right:
+     case CK_MarkRight:
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
++        if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
+         {
+             edit_cursor_move (edit, HALF_TAB_SIZE);
+             edit->force &= (0xFFF - REDRAW_CHAR_ONLY);
+@@ -3964,3 +4098,5 @@ edit_move_down (WEdit * edit, long i, gboolean do_scroll)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++/* vim: set tabstop=8 softtabstop=4 shiftwidth=4 expandtab: */
+diff --git a/src/editor/editwidget.h b/src/editor/editwidget.h
+index 90c73f6..1b45cfb 100644
+--- a/src/editor/editwidget.h
++++ b/src/editor/editwidget.h
+@@ -163,6 +163,9 @@ struct WEdit
+     /* line break */
+     LineBreaks lb;
+     gboolean extmod;
++
++    int force_halftabs;
++    int force_fill_tabs_with_spaces;
+ };
+ 
+ /*** global variables defined in .c file *********************************************************/

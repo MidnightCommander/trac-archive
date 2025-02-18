@@ -1,0 +1,124 @@
+============================================
+   /lib/vfs: tests/lib/vfs/test-suite.log
+============================================
+
+# TOTAL: 18
+# PASS:  13
+# SKIP:  0
+# XFAIL: 0
+# FAIL:  5
+# XPASS: 0
+# ERROR: 0
+
+.. contents:: :depth: 2
+
+FAIL: path_cmp
+==============
+
+Running suite /lib/vfs
+/exp86%: Checks: 15, Failures: 2, Errors: 0
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:138:F:Core:test_path_equal:4: Assertion 'actual_result == data->expected_result' failed: actual_result == 1, data->expected_result == 0
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:138:F:Core:test_path_equal:5: Assertion 'actual_result == data->expected_result' failed: actual_result == 1, data->expected_result == 0
+h_equal:3: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:138:F:Core:test_path_equal:4: Assertion 'actual_result == data->expected_result' failed: actual_result == 1, data->expected_result == 0
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:138:F:Core:test_path_equal:5: Assertion 'actual_result == data->expected_result' failed: actual_result == 1, data->expected_result == 0
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:138:P:Core:test_path_equal:6: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:0: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:1: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:2: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:3: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:4: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:5: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:6: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_cmp.c:226:P:Core:test_path_equal_len:7: Passed
+Results for all suites run:
+86%: Checks: 15, Failures: 2, Errors: 0
+FAIL path_cmp (exit status: 1)
+
+FAIL: path_len
+==============
+
+Running suite /lib/vfs
+/exp75%: Checks: 4, Failures: 1, Errors: 0
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_len.c:116:F:Core:test_path_length:3: Assertion 'actual_length == data->expected_length' failed: actual_length == 26, data->expected_length == 38
+newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_len.c:116:P:Core:test_path_length:2: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_len.c:116:F:Core:test_path_length:3: Assertion 'actual_length == data->expected_length' failed: actual_length == 26, data->expected_length == 38
+Results for all suites run:
+75%: Checks: 4, Failures: 1, Errors: 0
+FAIL path_len (exit status: 1)
+
+FAIL: path_manipulations
+========================
+
+Running suite /lib/vfs
+/exp**
+ERROR:/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:359:test_vfs_path_append_vpath: assertion failed (vfs_path_as_str (vpath3) == data->expected_path): ("/local/path/test1://user:pass@some.host:12345/bla-bla/some/path/test2://bla-bla/some/path/test3://111/22/33/local/path/test1://user:pass@some.host:12345/bla-bla/some/path" == "/local/path/test1://user:pass@some.host:12345/bla-bla/some/path/test2://#enc:KOI8-R/bla-bla/some/path/test3://111/22/33/local/path/test1://user:pass@some.host:12345/bla-bla/some/path")
+96%: Checks: 27, Failures: 0, Errors: 1
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:358:E:Core:test_vfs_path_append_vpath:1: (after this point) Received signal 6 (Abort)
+s/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:175:P:Core:test_vfs_path_tokens_count:5: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:175:P:Core:test_vfs_path_tokens_count:6: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:175:P:Core:test_vfs_path_tokens_count:7: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:0: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:1: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:2: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:3: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:4: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:5: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:6: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:7: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:8: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:9: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:10: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:11: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:290:P:Core:test_vfs_path_tokens_get:12: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:358:P:Core:test_vfs_path_append_vpath:0: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:358:E:Core:test_vfs_path_append_vpath:1: (after this point) Received signal 6 (Abort)
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:406:P:Core:test_vfs_path_relative:0: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:406:P:Core:test_vfs_path_relative:1: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:433:P:Core:test_vfs_path_relative_clone:0: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_manipulations.c:433:P:Core:test_vfs_path_relative_clone:1: Passed
+Results for all suites run:
+96%: Checks: 27, Failures: 0, Errors: 1
+FAIL path_manipulations (exit status: 1)
+
+FAIL: path_serialize
+====================
+
+Running suite /lib/vfs
+/exp**
+ERROR:/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_serialize.c:183:test_path_deserialize: a/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_serialize.c:182:E:Core:test_path_deserialize:0: (after this point) Received signal 6 (Abort)
+Results for all suites run:
+50%: Checks: 2, Failures: 0, Errors: 1
+la/some/path/test3://111/22/33" == "/local/path/test1://user:pass@some.host:12345/bla-bla/some/path/test2://#enc:KOI8-R/bla-bla/some/path/test3://111/22/33")
+50%: Checks: 2, Failures: 0, Errors: 1
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/path_serialize.c:182:E:Core:test_path_deserialize:0: (after this point) Received signal 6 (Abort)
+FAIL path_serialize (exit status: 1)
+
+FAIL: vfs_path_string_convert
+=============================
+
+Running suite /lib/vfs
+/exp**
+ERROR:/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:196:test_from_to_string: assertion failed (actual_result == data->expected_result): ("/test1://bla-bla1/some/path/test2://bla-bla2/some/path/test3://111/22/33" == "/test1://bla-bla1/some/path/test2://#enc:KOI8-R/bla-bla2/some/path/test3://111/22/33")
+**
+ERROR:/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:313:test_vfs_path_encoding_at_end: assertion failed (result == "/path/to/file.ext/test1://#enc:KOI8-R"): ("/path/to/file.ext/test1://" == "/path/to/file.ext/test1://#enc:KOI8-R")
+63%: Checks: 19, Failures: 0, Errors: 7
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:195:E:Core:test_from_to_string:3: (after this point) Received signal 6 (Abort)
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:178:E:Core:test_from_to_string:4: (after this point) Received signal 11 (Segmentation Fault)
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:178:E:Core:test_from_to_string:5: (after this point) Received signal 11 (Segmentation Fault)
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:178:E:Core:test_from_to_string:6: (after this point) Received signal 11 (Segmentation Fault)
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:178:E:Core:test_from_to_string:7: (after this point) Received signal 11 (Segmentation Fault)
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:178:E:Core:test_from_to_string:8: (after this point) Received signal 11 (Segmentation Fault)
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:312:E:Core:test_vfs_path_encoding_at_end:0: (after this point) Received signal 6 (Abort)
+index:2: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:267:P:Core:test_partial_string_by_index:3: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:267:P:Core:test_partial_string_by_index:4: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:267:P:Core:test_partial_string_by_index:5: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:267:P:Core:test_partial_string_by_index:6: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:267:P:Core:test_partial_string_by_index:7: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:267:P:Core:test_partial_string_by_index:8: Passed
+/export/home/newman/ws/oi-userland/components/sysutils/mc/mc-4.8.22/tests/lib/vfs/vfs_path_string_convert.c:312:E:Core:test_vfs_path_encoding_at_end:0: (after this point) Received signal 6 (Abort)
+Results for all suites run:
+63%: Checks: 19, Failures: 0, Errors: 7
+FAIL vfs_path_string_convert (exit status: 1)
+

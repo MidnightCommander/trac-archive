@@ -1,0 +1,13 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 493e8c5..33fbcb2 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -107,7 +107,7 @@
+ ### Archives ###
+ 
+ # .tgz, .tpz, .tar.gz, .tar.z, .tar.Z, .ipk
+-regex/\.t([gp]?z|ar\.g?[zZ])$|\.ipk$
++regex/\.t([gp]?z|ar\.g?[zZ])$|\.ipk|\.gem$
+ 	Open=%cd %p#utar
+ 	View=%view{ascii} gzip -dc %f 2>/dev/null | tar tvvf -
+ 

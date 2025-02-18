@@ -1,0 +1,37 @@
+From 1d8c9550bf7fb7f216fb67bc4adc7614b1b9eaa5 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 27 Dec 2016 13:40:24 +0200
+Subject: [PATCH] Ticket #3747: extfs: hp48: fix float truncation.
+
+Some printf implementations can't process with %d anything other than integers.
+---
+ src/vfs/extfs/helpers/hp48+.in | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/hp48+.in b/src/vfs/extfs/helpers/hp48+.in
+index 25da24a..af0ed6d 100644
+--- a/src/vfs/extfs/helpers/hp48+.in
++++ b/src/vfs/extfs/helpers/hp48+.in
+@@ -40,14 +40,18 @@ done
+ echo QUIT)| $KERMIT -B >/dev/null
+ }
+ 
++# Returns the 1'st field, which stands for the file name.
+ hp48_retdir()
+ {
+ echo "$1"
+ }
+ 
++# Returns the 2'nd field, which stands for the file size.
++#
++# It truncates it from float to integer.
+ hp48_retsize()
+ {
+-printf "%d" "$2" 2>/dev/null
++echo ${2%.*}
+ }
+ 
+ #
+-- 
+2.9.3
+

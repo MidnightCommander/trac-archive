@@ -1,0 +1,37 @@
+diff -ur mc.orig/syntax/spec.syntax mc/syntax/spec.syntax
+--- mc.orig/syntax/spec.syntax	2009-08-02 20:39:56 +0300
++++ mc/syntax/spec.syntax	2009-08-02 20:41:54 +0300
+@@ -9,9 +9,9 @@
+     keyword whole Build\{Rr\}equires: green
+     keyword whole Conflicts: green
+     keyword whole Copyright: white
+-    keyword whole Description: green    
+-    keyword whole Distribution: green    
+-    keyword whole Doc\{Dd\}ir: green    
++    keyword whole Description: green
++    keyword whole Distribution: green
++    keyword whole Doc\{Dd\}ir: green
+     keyword whole Epoch: green
+     keyword whole Exclude\{Aa\}rch: green
+     keyword whole Exclusive\{Aa\}rch: green
+@@ -23,14 +23,14 @@
+     keyword whole NoSource\[0123456789\]: green
+     keyword whole Obsoletes: green
+     keyword whole Packager: green
+-    keyword whole Patch\[0123456789\]: green    
++    keyword whole Patch\[0123456789\]: green
+     keyword whole Prefix: green
+-    keyword whole Pre\{Rr\}eq: green    
+-    keyword whole Provides: green    
+-    keyword whole Release: green    
+-    keyword whole Requires: green    
++    keyword whole Pre\{Rr\}eq: green
++    keyword whole Provides: green
++    keyword whole Release: green
++    keyword whole Requires: green
+     keyword whole Requires(\[abcdefghijklmnopqrstuvwxyz\]): green
+-    keyword whole Root: green    
++    keyword whole Root: green
+     keyword whole Serial: white
+     keyword whole Source\[0123456789\]: green
+     keyword whole Suggests: green

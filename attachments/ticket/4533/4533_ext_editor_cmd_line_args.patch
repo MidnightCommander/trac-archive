@@ -1,0 +1,21 @@
+diff -ru a/lib/utilunix.c b/lib/utilunix.c
+--- a/lib/utilunix.c	2024-03-28 07:29:36.474366238 +0100
++++ b/lib/utilunix.c	2024-03-27 07:29:21.686181873 +0100
+@@ -218,9 +218,16 @@
+         if (shell_token == NULL)
+             *execute_name = g_strdup (shell);
+         else
++        {
+             *execute_name = g_strndup (shell, (gsize) (shell_token - shell));
++            shell_token++;
++        }
+ 
+-        g_ptr_array_add (args_array, (gpointer) shell);
++        g_ptr_array_add (args_array, (gpointer) *execute_name);
++        if (shell_token != NULL)
++        {
++            g_ptr_array_add (args_array, (gpointer) shell_token);
++        }
+     }
+     return args_array;
+ }

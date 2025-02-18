@@ -1,0 +1,19 @@
+If compiled without --enable-charset (the default), the focus after pressing
+F5 or F6 was not on the destination filename.
+
+diff -Nar -U 5 mc-4.6.2.orig/src/filegui.c mc-4.6.2/src/filegui.c
+--- mc-4.6.2.orig/src/filegui.c	2009-02-05 21:44:07.000000000 +0100
++++ mc-4.6.2/src/filegui.c	2009-02-05 21:49:41.000000000 +0100
+@@ -773,11 +773,11 @@
+ #ifdef HAVE_CHARSET
+  #define SKIP             10
+  #define B_FROM B_USER+1
+  #define B_TO   B_USER+2
+ #else
+- #define SKIP             10
++ #define SKIP             7
+ #endif
+ 
+     {quick_checkbox, 42,64, 8, FMDY, N_("&Stable Symlinks"),0,0,0,0,"stab-sym"},
+     {quick_checkbox, 31,64, 7, FMDY, N_("&Dive into subdir if exists"),0,0,0,0,"dive"},
+     {quick_checkbox, 3, 64, 8, FMDY, N_("preserve &Attributes"),9,0,0,0,"preserve"},

@@ -1,0 +1,260 @@
+From 8fc04194435f3a07efa73f21532bdb5d6d1f8670 Mon Sep 17 00:00:00 2001
+From: Andrew Borodin <aborodin@vmail.ru>
+Date: Sat, 11 Apr 2015 12:12:50 +0300
+Subject: [PATCH] Ticket #3441: fix Linux kernel-specific segfault on startup.
+
+Sync with gnulib 3fb6e360363744462ce15c381f0b116c6fc4ce82.
+
+src/filemanager/mountlist.c: remove dependency on libmount.
+Parse /proc/self/mountinfo directly, rather than depending on libmount,
+which has many dependencies due to its dependence on libselinux, as
+detailed at:
+http://lists.gnu.org/archive/html/bug-gnulib/2015-01/msg00063.html.
+Note we restrict this to __linux__ as that's probably where this
+interface will remain.  If ever porting, it would be best to first pull
+the makedev() wrapper from coreutils to a gnulib module.
+
+Signed-off-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ m4.include/ls-mntd-fs.m4    |  23 ++------
+ src/filemanager/mountlist.c | 124 ++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 102 insertions(+), 45 deletions(-)
+
+diff --git a/m4.include/ls-mntd-fs.m4 b/m4.include/ls-mntd-fs.m4
+index c29f0aa..7e4aa19 100644
+--- a/m4.include/ls-mntd-fs.m4
++++ b/m4.include/ls-mntd-fs.m4
+@@ -1,7 +1,7 @@
+-# serial 29
++# serial 32
+ # How to list mounted file systems.
+ 
+-# Copyright (C) 1998-2004, 2006, 2009-2011 Free Software Foundation, Inc.
++# Copyright (C) 1998-2004, 2006, 2009-2015 Free Software Foundation, Inc.
+ #
+ # This file is free software; the Free Software Foundation
+ # gives unlimited permission to copy and/or distribute it,
+@@ -110,7 +110,7 @@ if test -z "$ac_list_mounted_fs"; then
+     AC_DEFINE([MOUNTED_VMOUNT], [1],
+         [Define if there is a function named mntctl that can be used to read
+          the list of mounted file systems, and there is a system header file
+-         that declares 'struct vmount.'  (AIX)])
++         that declares 'struct vmount'.  (AIX)])
+   fi
+ fi
+ 
+@@ -120,7 +120,7 @@ if test $ac_cv_func_getmntent = yes; then
+   # Determine whether it's the one-argument variant or the two-argument one.
+ 
+   if test -z "$ac_list_mounted_fs"; then
+-    # 4.3BSD, SunOS, HP-UX, Dynix, Irix
++    # GNU/Linux, 4.3BSD, SunOS, HP-UX, Dynix, Irix
+     AC_MSG_CHECKING([for one-argument getmntent function])
+     AC_CACHE_VAL([fu_cv_sys_mounted_getmntent1],
+                  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+@@ -152,19 +152,6 @@ if test $ac_cv_func_getmntent = yes; then
+          of mounted file systems, and that function takes a single argument.
+          (4.3BSD, SunOS, HP-UX, Dynix, Irix)])
+       AC_CHECK_FUNCS([hasmntopt])
+-
+-      # Check for libmount to support /proc/self/mountinfo on Linux
+-      AC_CACHE_VAL([ac_cv_lib_libmount_mnt_table_parse_stream],
+-        [AC_CHECK_LIB([mount], [mnt_new_table_from_file],
+-          ac_cv_lib_mount_mnt_table_parse_stream=yes,
+-          ac_cv_lib_mount_mnt_table_parse_stream=no)])
+-      if test $ac_cv_lib_mount_mnt_table_parse_stream = yes; then
+-         AC_DEFINE([MOUNTED_PROC_MOUNTINFO], [1],
+-           [Define if want to use /proc/self/mountinfo on Linux.])
+-         LIBS="-lmount $LIBS"
+-      elif test -f /proc/self/mountinfo; then
+-         AC_MSG_WARN([/proc/self/mountinfo present but libmount is missing.])
+-      fi
+     fi
+   fi
+ 
+@@ -353,7 +340,7 @@ if test -z "$ac_list_mounted_fs"; then
+       ac_list_mounted_fs=found
+       AC_DEFINE([MOUNTED_INTERIX_STATVFS], [1],
+                 [Define if we are on interix, and ought to use statvfs plus
+-                 some special knowledge on where mounted filesystems can be
++                 some special knowledge on where mounted file systems can be
+                  found. (Interix)])
+     fi
+     ;;
+diff --git a/src/filemanager/mountlist.c b/src/filemanager/mountlist.c
+index 991ebc3..1bc5b33 100644
+--- a/src/filemanager/mountlist.c
++++ b/src/filemanager/mountlist.c
+@@ -87,6 +87,7 @@
+ 
+ #ifdef MOUNTED_GETMNTENT1       /* 4.3BSD, SunOS, HP-UX, Dynix, Irix.  */
+ #include <mntent.h>
++#include <sys/types.h>
+ #ifndef MOUNTED
+ #ifdef _PATH_MOUNTED            /* GNU libc  */
+ #define MOUNTED _PATH_MOUNTED
+@@ -157,12 +158,6 @@
+ #include <sys/mntent.h>
+ #endif
+ 
+-#ifdef MOUNTED_PROC_MOUNTINFO
+-/* Use /proc/self/mountinfo instead of /proc/self/mounts (/etc/mtab)
+- * on Linux, if available */
+-#include <libmount/libmount.h>
+-#endif
+-
+ #ifndef HAVE_HASMNTOPT
+ #define hasmntopt(mnt, opt) ((char *) 0)
+ #endif
+@@ -613,6 +608,35 @@ statfs (char *file, struct statfs *fsb)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++#if defined MOUNTED_GETMNTENT1 && defined __linux__
++
++/* Unescape the paths in mount tables.
++   STR is updated in place.  */
++static void
++unescape_tab (char *str)
++{
++    size_t i, j = 0;
++    size_t len;
++
++    len = strlen (str) + 1;
++
++    for (i = 0; i < len; i++)
++    {
++        if (str[i] == '\\' && (i + 4 < len)
++            && str[i + 1] >= '0' && str[i + 1] <= '3'
++            && str[i + 2] >= '0' && str[i + 2] <= '7' && str[i + 3] >= '0' && str[i + 3] <= '7')
++        {
++            str[j++] = (str[i + 1] - '0') * 64 + (str[i + 2] - '0') * 8 + (str[i + 3] - '0');
++            i += 3;
++        }
++        else
++            str[j++] = str[i];
++    }
++}
++#endif
++
++/* --------------------------------------------------------------------------------------------- */
++
+ /* Return a list of the currently mounted file systems, or NULL on error.
+    Add each entry to the tail of the list so that they stay in order.
+    If NEED_FS_TYPE is true, ensure that the file system type fields in
+@@ -658,30 +682,67 @@ read_file_system_list (int need_fs_type)
+ 
+ #ifdef MOUNTED_GETMNTENT1       /* GNU/Linux, 4.3BSD, SunOS, HP-UX, Dynix, Irix.  */
+     {
+-#ifdef MOUNTED_PROC_MOUNTINFO
+-        struct libmnt_table *fstable = NULL;
++        FILE *fp;
+ 
+-        fstable = mnt_new_table_from_file ("/proc/self/mountinfo");
++#ifdef __linux__
++        /* Try parsing mountinfo first, as that make device IDs available.
++           Note we could use libmount routines to simplify this parsing a little
++           (and that code is in previous versions of this function), however
++           libmount depends on libselinux which pulls in many dependencies.  */
++        char const *mountinfo = "/proc/self/mountinfo";
+ 
+-        if (fstable != NULL)
++        fp = fopen (mountinfo, "r");
++        if (fp != NULL)
+         {
+-            struct libmnt_fs *fs;
+-            struct libmnt_iter *iter;
++            char *line = NULL;
++            size_t buf_size = 0;
+ 
+-            iter = mnt_new_iter (MNT_ITER_FORWARD);
+-
+-            while (iter && mnt_table_next_fs (fstable, iter, &fs) == 0)
++            while (getline (&line, &buf_size, fp) != -1)
+             {
++                unsigned int devmaj, devmin;
++                int target_s, target_e, type_s, type_e, source_s, source_e;
++                char test;
++                char *dash;
++                int rc;
++
++                rc = sscanf (line, "%*u "       /* id - discarded  */
++                             "%*u "     /* parent - discarded */
++                             "%u:%u "   /* dev major:minor  */
++                             "%*s "     /* mountroot - discarded  */
++                             "%n%*s%n"  /* target, start and end  */
++                             "%c",      /* more data...  */
++                             &devmaj, &devmin, &target_s, &target_e, &test);
++                if (rc != 3 && rc != 5) /* 5 if %n included in count.  */
++                    continue;
++
++                /* skip optional fields, terminated by " - "  */
++                dash = strstr (line + target_e, " - ");
++                if (dash == NULL)
++                    continue;
++
++                rc = sscanf (dash, " - "        /* */
++                             "%n%*s%n " /* FS type, start and end  */
++                             "%n%*s%n " /* source, start and end  */
++                             "%c",      /* more data...  */
++                             &type_s, &type_e, &source_s, &source_e, &test);
++                if (rc != 1 && rc != 5) /* 5 if %n included in count.  */
++                    continue;
++
++                /* manipulate the sub-strings in place.  */
++                line[target_e] = '\0';
++                dash[type_e] = '\0';
++                dash[source_e] = '\0';
++                unescape_tab (dash + source_s);
++                unescape_tab (line + target_s);
++
+                 me = g_malloc (sizeof *me);
+ 
+-                me->me_devname = g_strdup (mnt_fs_get_source (fs));
+-                me->me_mountdir = g_strdup (mnt_fs_get_target (fs));
+-                me->me_type = g_strdup (mnt_fs_get_fstype (fs));
++                me->me_devname = strdup (dash + source_s);
++                me->me_mountdir = strdup (line + target_s);
++                me->me_type = strdup (dash + type_s);
+                 me->me_type_malloced = 1;
+-                me->me_dev = mnt_fs_get_devno (fs);
+-                /* Note we don't use mnt_fs_is_pseudofs() or mnt_fs_is_netfs() here
+-                   as libmount's classification is non-compatible currently.
+-                   Also we pass "false" for the "Bind" option as that's only
++                me->me_dev = makedev (devmaj, devmin);
++                /* we pass "false" for the "Bind" option as that's only
+                    significant when the Fs_type is "none" which will not be
+                    the case when parsing "/proc/self/mountinfo", and only
+                    applies for static /etc/mtab files.  */
+@@ -693,14 +754,23 @@ read_file_system_list (int need_fs_type)
+                 mtail = &me->me_next;
+             }
+ 
+-            mnt_free_iter (iter);
+-            mnt_free_table (fstable);
++            free (line);
++
++            if (ferror (fp) != 0)
++            {
++                int saved_errno = errno;
++
++                fclose (fp);
++                errno = saved_errno;
++                goto free_then_fail;
++            }
+ 
++            if (fclose (fp) == EOF)
++                goto free_then_fail;
+         }
+-        else                    /* fallback to /proc/self/mounts (/etc/mtab) if anything failed */
+-#endif /* MOUNTED_PROC_MOUNTINFO */
++        else                    /* fallback to /proc/self/mounts (/etc/mtab).  */
++#endif /* __linux __ */
+         {
+-            FILE *fp;
+             struct mntent *mnt;
+             const char *table = MOUNTED;
+ 
+-- 
+2.1.4
+

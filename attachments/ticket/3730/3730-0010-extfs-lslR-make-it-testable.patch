@@ -1,0 +1,25 @@
+From 74d9d88dbba338c28c863dce4e36011d421d2b94 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 23 Nov 2016 10:51:36 +0200
+Subject: [PATCH 10/11] extfs: lslR: make it testable.
+
+---
+ src/vfs/extfs/helpers/lslR.in | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/vfs/extfs/helpers/lslR.in b/src/vfs/extfs/helpers/lslR.in
+index cc4dd83..aba5457 100644
+--- a/src/vfs/extfs/helpers/lslR.in
++++ b/src/vfs/extfs/helpers/lslR.in
+@@ -23,6 +23,8 @@ case "$1" in
+   *)     MYCAT="cat";;
+ esac
+ 
++MYCAT=${MC_TEST_EXTFS_LIST_CMD:-$MYCAT}  # Let the test framework hook in.
++
+ $MYCAT "$1" | $AWK '
+ BEGIN {
+   dir="";
+-- 
+2.9.3
+

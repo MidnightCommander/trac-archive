@@ -1,0 +1,36 @@
+--- panel.c	2013-10-23 11:40:40.329269838 +0400
++++ panel.c.new	2013-10-23 11:40:13.472367318 +0400
+@@ -2699,7 +2699,7 @@
+ chdir_to_readlink (WPanel * panel)
+ {
+     vfs_path_t *new_dir_vpath;
+-    char buffer[MC_MAXPATHLEN], *p;
++    char buffer[MC_MAXPATHLEN], *p, fname[MC_MAXPATHLEN];
+     int i;
+     struct stat st;
+     vfs_path_t *panel_fname_vpath;
+@@ -2722,6 +2722,7 @@
+         return;
+ 
+     buffer[i] = 0;
++    fname[0] = 0;
+     if (!S_ISDIR (st.st_mode))
+     {
+         p = strrchr (buffer, PATH_SEP);
+@@ -2732,6 +2733,7 @@
+         }
+         if (!p)
+             return;
++	strcpy(fname, p + 1);
+         p[1] = 0;
+     }
+     if (*buffer == PATH_SEP)
+@@ -2741,6 +2743,8 @@
+ 
+     change_panel ();
+     do_cd (new_dir_vpath, cd_exact);
++    if (fname[0])
++        try_to_select(current_panel, fname);
+     vfs_path_free (new_dir_vpath);
+     change_panel ();
+ 

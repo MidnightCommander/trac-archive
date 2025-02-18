@@ -1,0 +1,363 @@
+diff -pru mc-4.6.1-orig/src/file.c mc-4.6.1/src/file.c
+--- mc-4.6.1-orig/src/file.c	2005-05-27 16:19:18.000000000 +0200
++++ mc-4.6.1/src/file.c	2009-11-23 16:27:52.000000000 +0100
+@@ -548,26 +548,43 @@ copy_file_file (FileOpContext *ctx, cons
+ 		S_ISSOCK (sb.st_mode)) {
+ 	    while (mc_mknod (dst_path, sb.st_mode & ctx->umask_kill,
+ 		    sb.st_rdev) < 0) {
++		if ( ctx->skip_all )
++		    break;
+ 		return_status = file_error (
+ 		    _(" Cannot create special file \"%s\" \n %s "), dst_path);
+ 		if (return_status == FILE_RETRY)
+ 		    continue;
++		if (return_status == FILE_SKIPALL)
++		    ctx->skip_all = 1;
++		if (return_status == FILE_SKIP);
+ 		return return_status;
+ 	    }
+ 	    /* Success */
+ 
+ 	    while (ctx->preserve_uidgid
+ 		   && mc_chown (dst_path, sb.st_uid, sb.st_gid)) {
++		if ( ctx->skip_all )
++		    break;
+ 		temp_status = file_error (
+ 			_(" Cannot chown target file \"%s\" \n %s "), dst_path);
++		if (temp_status == FILE_SKIPALL)
++		    ctx->skip_all = 1;
++		if (temp_status == FILE_SKIP)
++		    break;
+ 		if (temp_status == FILE_RETRY)
+ 		    continue;
+ 		return temp_status;
+ 	    }
+ 	    while (ctx->preserve &&
+ 		   mc_chmod (dst_path, sb.st_mode & ctx->umask_kill)) {
++		if ( ctx->skip_all )
++		    break;
+ 		temp_status = file_error (
+ 			_(" Cannot chmod target file \"%s\" \n %s "), dst_path);
++		if (temp_status == FILE_SKIPALL)
++		    ctx->skip_all = 1;
++		if (temp_status == FILE_SKIP)
++		    break;
+ 		if (temp_status == FILE_RETRY)
+ 		    continue;
+ 		return temp_status;
+@@ -579,10 +596,16 @@ copy_file_file (FileOpContext *ctx, cons
+     gettimeofday (&tv_transfer_start, (struct timezone *) NULL);
+ 
+     while ((src_desc = mc_open (src_path, O_RDONLY | O_LINEAR)) < 0) {
++	if ( ctx->skip_all )
++	    break;
+ 	return_status = file_error (
+ 		_(" Cannot open source file \"%s\" \n %s "), src_path);
+ 	if (return_status == FILE_RETRY)
+ 	    continue;
++	if (return_status == FILE_SKIPALL)
++	    ctx->skip_all = 1;
++	if (return_status == FILE_SKIP)
++	    break;
+ 	ctx->do_append = 0;
+ 	return return_status;
+     }
+@@ -596,10 +619,15 @@ copy_file_file (FileOpContext *ctx, cons
+     }
+ 
+     while (mc_fstat (src_desc, &sb)) {
++	if ( ctx->skip_all )
++	    goto ret;
+ 	return_status = file_error (
+ 		_(" Cannot fstat source file \"%s\" \n %s "), src_path);
+ 	if (return_status == FILE_RETRY)
+ 	    continue;
++	if (return_status == FILE_SKIPALL)
++	    ctx->skip_all = 1;
++	if (return_status == FILE_SKIP);
+ 	ctx->do_append = 0;
+ 	goto ret;
+     }
+@@ -616,10 +644,15 @@ copy_file_file (FileOpContext *ctx, cons
+ 
+     while ((dest_desc = mc_open (dst_path, O_WRONLY | (ctx->do_append ?
+     	    O_APPEND : (O_CREAT | O_TRUNC)), 0600)) < 0) {
++	if ( ctx->skip_all )
++	    goto ret;
+ 	return_status = file_error (
+ 		_(" Cannot create target file \"%s\" \n %s "), dst_path);
+ 	if (return_status == FILE_RETRY)
+ 	    continue;
++	if (return_status == FILE_SKIPALL)
++	    ctx->skip_all = 1;
++	if (return_status == FILE_SKIP);
+ 	ctx->do_append = 0;
+ 	goto ret;
+     }
+@@ -630,10 +663,15 @@ copy_file_file (FileOpContext *ctx, cons
+ 
+     /* Find out the optimal buffer size.  */
+     while (mc_fstat (dest_desc, &sb)) {
++	if ( ctx->skip_all )
++	    goto ret;
+ 	return_status = file_error (
+ 		_(" Cannot fstat target file \"%s\" \n %s "), dst_path);
+ 	if (return_status == FILE_RETRY)
+ 	    continue;
++	if (return_status == FILE_SKIPALL)
++	    ctx->skip_all = 1;
++	if (return_status == FILE_SKIP);
+ 	goto ret;
+     }
+     buf = g_malloc (buf_size);
+@@ -662,10 +700,15 @@ copy_file_file (FileOpContext *ctx, cons
+ 		n_read = -1;
+ 	    else
+ 		while ((n_read = mc_read (src_desc, buf, buf_size)) < 0) {
++		    if ( ctx->skip_all )
++			goto ret;
+ 		    return_status = file_error (
+ 			_(" Cannot read source file \"%s\" \n %s "), src_path);
+ 		    if (return_status == FILE_RETRY)
+ 			continue;
++		    if (return_status == FILE_SKIPALL)
++			ctx->skip_all = 1;
++		    if (return_status == FILE_SKIP);
+ 		    goto ret;
+ 		}
+ 	    if (n_read == 0)
+@@ -688,6 +731,8 @@ copy_file_file (FileOpContext *ctx, cons
+ 		/* dst_write */
+ 		while ((n_written =
+ 			mc_write (dest_desc, t, n_read)) < n_read) {
++		    if ( ctx->skip_all )
++			break;
+ 		    if (n_written > 0) {
+ 			n_read -= n_written;
+ 			t += n_written;
+@@ -698,6 +743,10 @@ copy_file_file (FileOpContext *ctx, cons
+ 				dst_path);
+ 		    if (return_status != FILE_RETRY)
+ 			goto ret;
++		    if (return_status == FILE_SKIPALL)
++			ctx->skip_all = 1;
++		    if (return_status == FILE_SKIP)
++			break;
+ 		}
+ 	    }
+ 
+@@ -755,20 +804,30 @@ copy_file_file (FileOpContext *ctx, cons
+     g_free (buf);
+ 
+     while (src_desc != -1 && mc_close (src_desc) < 0) {
++        if ( ctx->skip_all )
++    	    break;
+ 	temp_status = file_error (
+ 		_(" Cannot close source file \"%s\" \n %s "), src_path);
+ 	if (temp_status == FILE_RETRY)
+ 	    continue;
+ 	if (temp_status == FILE_ABORT)
+ 	    return_status = temp_status;
++	if (temp_status == FILE_SKIPALL)
++	    ctx->skip_all = 1;
++	if (temp_status == FILE_SKIP);
+ 	break;
+     }
+ 
+     while (dest_desc != -1 && mc_close (dest_desc) < 0) {
++        if ( ctx->skip_all )
++    	    break;
+ 	temp_status = file_error (
+ 		_(" Cannot close target file \"%s\" \n %s "), dst_path);
+ 	if (temp_status == FILE_RETRY)
+ 	    continue;
++	if (temp_status == FILE_SKIPALL)
++	    ctx->skip_all = 1;
++	if (temp_status == FILE_SKIP);
+ 	return_status = temp_status;
+ 	break;
+     }
+@@ -785,23 +844,37 @@ copy_file_file (FileOpContext *ctx, cons
+ 	/* Copy has succeeded */
+ 	if (!appending && ctx->preserve_uidgid) {
+ 	    while (mc_chown (dst_path, src_uid, src_gid)) {
++ 		if ( ctx->skip_all )
++ 		    break;
+ 		temp_status = file_error (
+ 			_(" Cannot chown target file \"%s\" \n %s "), dst_path);
+ 		if (temp_status == FILE_RETRY)
+ 		    continue;
+-		return_status = temp_status;
++		if (temp_status == FILE_SKIPALL) {
++		    ctx->skip_all = 1;
++		    return_status = FILE_CONT;
++		}
++		if (temp_status == FILE_SKIP)
++		    return_status = FILE_CONT;
+ 		break;
+ 	    }
+ 	}
+ 
+ 	if (!appending && ctx->preserve) {
+ 	    while (mc_chmod (dst_path, (src_mode & ctx->umask_kill))) {
++ 		if ( ctx->skip_all )
++ 		    break;
+ 		temp_status = file_error (
+ 			_(" Cannot chmod target file \"%s\" \n %s "), dst_path);
+-		if (temp_status != FILE_RETRY) {
+-		    return_status = temp_status;
+-		    break;
++		if (temp_status == FILE_RETRY)
++		    continue;
++		if (temp_status == FILE_SKIPALL){
++		    ctx->skip_all = 1;
++		    return_status = FILE_CONT;
+ 		}
++		if (temp_status == FILE_SKIP)
++		    return_status = FILE_CONT;
++		break;
+ 	    }
+ 	    mc_utime (dst_path, &utb);
+ 	}
+@@ -1291,19 +1364,30 @@ erase_file (FileOpContext *ctx, const ch
+     }
+ 
+     while (mc_unlink (s)) {
++	if ( ctx->skip_all )
++	    break;
+ 	return_status =
+ 	    file_error (_(" Cannot delete file \"%s\" \n %s "), s);
+-	if (return_status != FILE_RETRY)
++	if (return_status == FILE_ABORT)
+ 	    return return_status;
++	if (return_status == FILE_RETRY)
++	    continue;
++	if (return_status == FILE_SKIPALL) 
++	    ctx->skip_all = 1;
++	if (return_status == FILE_SKIP);
++	break;
+     }
+-
+     if (progress_count)
+ 	return progress_update_one (ctx, progress_count, progress_bytes,
+ 				    buf.st_size, is_toplevel_file);
+     else
+ 	return FILE_CONT;
+ }
+-
++/* recursive remove of files
++  abort->cancel stack
++  skip ->warn every level, gets default
++  skipall->remove as much as possible
++ */
+ static int
+ recursive_erase (FileOpContext *ctx, const char *s, off_t *progress_count,
+ 		 double *progress_bytes)
+@@ -1322,7 +1406,7 @@ recursive_erase (FileOpContext *ctx, con
+     if (!reading)
+ 	return 1;
+ 
+-    while ((next = mc_readdir (reading)) && return_status == FILE_CONT) {
++    while ((next = mc_readdir (reading)) && !(return_status == FILE_ABORT) ) {
+ 	if (!strcmp (next->d_name, "."))
+ 	    continue;
+ 	if (!strcmp (next->d_name, ".."))
+@@ -1334,27 +1418,33 @@ recursive_erase (FileOpContext *ctx, con
+ 	    return 1;
+ 	}
+ 	if (S_ISDIR (buf.st_mode))
+-	    return_status =
+-		(recursive_erase
+-		 (ctx, path, progress_count, progress_bytes)
+-		 != FILE_CONT);
++	    return_status = 
++		recursive_erase(ctx, path, progress_count, progress_bytes);
+ 	else
+ 	    return_status =
+ 		erase_file (ctx, path, progress_count, progress_bytes, 0);
+ 	g_free (path);
+     }
+     mc_closedir (reading);
+-    if (return_status != FILE_CONT)
++    if (return_status == FILE_ABORT)
+ 	return return_status;
+     if (file_progress_show_deleting (ctx, s) == FILE_ABORT)
+ 	return FILE_ABORT;
+     mc_refresh ();
+ 
+     while (my_rmdir (s)) {
++	if ( ctx->skip_all )
++	    break;
+ 	return_status =
+ 	    file_error (_(" Cannot remove directory \"%s\" \n %s "), s);
+-	if (return_status != FILE_RETRY)
++	if (return_status == FILE_RETRY)
++	    continue;
++	if (return_status == FILE_ABORT)
+ 	    return return_status;
++	if (return_status == FILE_SKIPALL)
++	    ctx->skip_all = 1;
++	if (return_status == FILE_SKIP);
++	break;
+     }
+ 
+     return FILE_CONT;
+@@ -2075,7 +2165,7 @@ real_do_file_error (enum OperationMode m
+ 
+     msg = mode == Foreground ? MSG_ERROR : _(" Background process error ");
+     result =
+-	query_dialog (msg, error, D_ERROR, 3, _("&Skip"), _("&Retry"),
++	query_dialog (msg, error, D_ERROR, 3, _("&Skip"),("Ski&p All"), _("&Retry"),
+ 		      _("&Abort"));
+ 
+     switch (result) {
+@@ -2085,9 +2175,13 @@ real_do_file_error (enum OperationMode m
+ 
+     case 1:
+ 	do_refresh ();
+-	return FILE_RETRY;
++	return FILE_SKIPALL;
+ 
+     case 2:
++	do_refresh ();
++	return FILE_RETRY;
++
++    case 3:
+     default:
+ 	return FILE_ABORT;
+     }
+diff -pru mc-4.6.1-orig/src/fileopctx.c mc-4.6.1/src/fileopctx.c
+--- mc-4.6.1-orig/src/fileopctx.c	2005-05-27 16:19:18.000000000 +0200
++++ mc-4.6.1/src/fileopctx.c	2009-11-23 16:22:18.000000000 +0100
+@@ -51,7 +51,7 @@ file_op_context_new (FileOperation op)
+     ctx->preserve_uidgid = (geteuid () == 0) ? TRUE : FALSE;
+     ctx->umask_kill = 0777777;
+     ctx->erase_at_end = TRUE;
+-
++    ctx->skip_all = 0;
+     return ctx;
+ }
+ 
+diff -pru mc-4.6.1-orig/src/fileopctx.h mc-4.6.1/src/fileopctx.h
+--- mc-4.6.1-orig/src/fileopctx.h	2004-10-06 20:06:26.000000000 +0200
++++ mc-4.6.1/src/fileopctx.h	2009-11-23 16:22:18.000000000 +0100
+@@ -104,6 +104,9 @@ typedef struct FileOpContext {
+ 
+ 	/* PID of the child for background operations */
+ 	pid_t pid;
++	
++	/* toggle if all errors should be ignored */
++	int skip_all;
+ 
+ 	/* User interface data goes here */
+ 
+@@ -121,7 +124,8 @@ typedef enum {
+ 	FILE_CONT,
+ 	FILE_RETRY,
+ 	FILE_SKIP,
+-	FILE_ABORT
++	FILE_ABORT,
++	FILE_SKIPALL
+ } FileProgressStatus;
+ 
+ typedef enum {

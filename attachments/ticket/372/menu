@@ -1,0 +1,370 @@
+shell_patterns=0
++ t r & ! t t
+^       Edit file
+	e %f
+
++ t t
+^       Edit files
+	e %u
+
++ ! t t
+@       Do something on the current file
+	CMD=%{Enter command}
+	$CMD %f
+
++ t t
+@       Do something on the tagged files
+	set %t; CMD=%{Enter command}
+	set -x
+	while [ -n "$1" ]; do
+	  $CMD "$1" || echo tag "$1" >>$MC_CONTROL_FILE
+	  shift
+	done
+
+= t d
+3       Make a release of the current subdirectory (tar.gz)
+	Pwd=`basename %d /`
+	echo -n "Name of the distribution file (without extension) [$Pwd]: "
+	read tar
+        if [ "$tar"x = x ]; then tar=$Pwd; fi
+	cd .. && tar chf - $Pwd | gzip -f9 > $tar.tar.gz
+	echo ../${tar}.tar.gz created.
+#       tar=%{Name of the distribution file (without extension)}
+
+4       Make a release of the current subdirectory (tar.bz2)
+	Pwd=`basename %d /`
+	echo -n "Name of the distribution file (without extension) [$Pwd]: "
+	read tar
+        if [ "$tar"x = x ]; then tar=$Pwd; fi
+	cd .. && tar chf - $Pwd | bzip2 -f > $tar.tar.bz2
+	echo ../${tar}.tar.bz2 created.
+#       tar=%{Name of the distribution file (without extension)}
+
+= f \.(c|cpp|cc|C)$ & t r
++ f \.(c|cpp|cc|C)$ & t r & ! t t
+m       Compile and link current c/c++ file
+        fil=%f; trg=${fil##*/}; trg=${trg%%.c}; trg=${trg%%.cpp}; trg=${trg%%.cc}; trg=${trg%%.C}
+        if make -n $trg >/dev/null 2>&1; then
+          make $trg
+        else
+          g++ -O2 -march=$(uname -m) -g -o $trg $fil
+        fi
+
++ t r & ! t t
+a       Append file to opposite
+	cat %f >>%D/%f
+
++ t t
+A       Append files to opposite files
+	set %u
+	while [ -n "$1" ]; do
+	  cat $1 >>%D/$1 || echo tag $1 >>$MC_CONTROL_FILE
+	  shift
+	done
+
++ t r & ! t t
+d       Delete file if a copy exists in the other directory.
+	if [ "%d" = "%D" ]; then
+	  echo "The two directores must be different"
+	  exit 1
+	fi
+  	if [ -f %D/%f ]; then        # if two of them, then
+          if cmp -s %D/%f %f; then
+            rm %f && echo %f: DELETED
+          else
+            echo "%f and %D/%f differ: NOT deleted"
+            echo -n "Press RETURN "
+            read key
+          fi
+	else
+	  echo %f: No copy in %D/%f: NOT deleted.
+        fi
+
++ t t
+D       Delete tagged files if a copy exists in the other directory.
+	if [ "%d" = "%D" ]; then
+	  echo "The two directores must be different"
+	  exit 1
+	fi 
+        for i in %t
+        do 
+          if [ -f %D/$i ]; then
+            SUM1="`sum $i`"
+            SUM2="`sum %D/$i`"
+            if [ "$SUM1" = "$SUM2" ]; then
+	      rm $i && echo ${i}: DELETED
+	    else
+	      echo $i and %D/$i differ: NOT deleted.
+	    fi
+	  else
+	    echo %f has no copy in %D/%f: NOT deleted.
+          fi
+        done
+
++ ! t t
+c       Copy file to remote host (no error checking)
+        scp %f %{Target host:dir}
+
++ t t
+c       Copy files to remote host (no error checking)
+        scp -r %u %{Target host:dir}
+
+= f \.tex$ & t r
++ f \.tex$ & t r & ! t t
+t       Run latex on file and show it with xdvi
+        latex %f && xdvi `basename %f .tex`.dvi
+
+=+ f \.tar\.gz$ | f \.tar\.z$ | f \.tgz$ | f \.tpz$ | f \.tar\.Z$| f \.tar\.bz2$ & t r
+x       Extract the contents of a compressed tar file
+	unset EXT
+	echo %f|egrep -q "\.tar.bz2$" && EXT=tar_bz2
+	if [ "$EXT" = "tar_bz2" ]; then
+	  bunzip2 -c %f | tar xvf -
+	else
+	  gzip -dc %f | tar xvf -
+	fi
+
+= t r
++ ! t t
+y       Gzip or gunzip current file
+        unset DECOMP
+	echo %f|egrep -q "\.gz$|\.z$|\.Z$" && DECOMP=-d
+        gzip $DECOMP -v %f
+
++ t t
+Y       Gzip or gunzip tagged files
+        for i in %t
+        do
+          unset DECOMP
+	  echo $i|egrep -q "\.gz$|\.z$|\.Z$" && DECOMP=-d
+          gzip $DECOMP -v $i
+        done
+
++ ! t t
+b       Bzip2 or bunzip2 current file
+        unset DECOMP
+	echo %f|egrep -q "\.bz2$" && DECOMP=-d
+        bzip2 $DECOMP -v %f
+
++ t t
+B       Bzip2 or bunzip2 tagged files
+        for i in %t
+        do
+          unset DECOMP
+	  echo $i|egrep -q "\.bz2$" && DECOMP=-d
+          bzip2 $DECOMP -v $i
+        done
+
++ f \.tar.gz$ | f \.tgz$ | f \.tpz$ | f \.tar.Z$ | f \.tar.z$ | f \.tar.bz2$ & t r & ! t t
+z       Extract compressed tar file to subdirectory
+        unset D
+	echo %f|egrep -q "\.tar.gz$" && EXT=tar_gz
+	echo %f|egrep -q "\.tgz$"    && EXT=tgz
+	echo %f|egrep -q "\.tpz$"    && EXT=tpz
+	echo %f|egrep -q "\.tar.Z$"    && EXT=tar_Z
+	echo %f|egrep -q "\.tar.z$"    && EXT=tar_z
+	echo %f|egrep -q "\.tar.bz2$"  && EXT=tar_bz2
+        case $EXT in
+          tar_gz) D="`basename %f .tar.gz`";;
+          tgz)    D="`basename %f .tgz`";;
+          tpz)    D="`basename %f .tpz`";;
+          tar_Z)  D="`basename %f .tar.Z`";;
+          tar_z)  D="`basename %f .tar.z`";;
+	  tar_bz2) D="`basename %f .tar.bz2`";;
+        esac
+        if [ "$EXT" = "tar_bz2" ]; then
+            mkdir $D; cd $D && (bunzip2 -c ../%f | tar xvf -)
+	else
+	    mkdir $D; cd $D && (gzip -dc ../%f | tar xvf -)
+	fi
+
++ f \.tar.F$ & t r & ! t t
+z	Extract compressed tar file to subdirectory
+        unset D
+	echo %f|egrep -q "\.tar.F$" && EXT=tar_F
+	case $EXT in
+	  tar_F) D="`basename %f .tar.F`";;
+	esac
+	mkdir $D; cd $D && (freeze -dc ../%f | tar xvf -)
+
++ t t
+Z       Extract compressed tar files to subdirectories
+	set %u
+	while [ -n "$1" ]
+        do
+          unset D
+	  echo $1|egrep -q "\.tar.gz$" && EXT=tar_gz
+	  echo $1|egrep -q "\.tgz$"    && EXT=tgz
+	  echo $1|egrep -q "\.tpz$"    && EXT=tpz
+	  echo $1|egrep -q "\.tar.Z$"    && EXT=tar_Z
+	  echo $1|egrep -q "\.tar.z$"    && EXT=tar_z
+	  echo $1|egrep -q "\.tar.F$"    && EXT=tar_F
+	  echo $1|egrep -q "\.tar.bz2$"  && EXT=tar_bz2
+          case $EXT in
+            tar_gz)  D="`basename $1 .tar.gz`";;
+            tgz)     D="`basename $1 .tgz`";;
+            tpz)     D="`basename $1 .tpz`";;
+            tar_Z)   D="`basename $1 .tar.Z`";;
+            tar_z)   D="`basename $1 .tar.z`";;
+	    tar_F)   D="`basename $1 .tar.F`";;
+	    tar_bz2) D="`basename $1 .tar.bz2`";;
+          esac
+	  case $EXT in
+	    tar_gz|tgz|tpz|tar_Z|tar_z) mkdir $D; (cd $D && gzip -dc ../$1 | tar xvf -)||echo tag $1 >>$MC_CONTROL_FILE;;
+	    tar_F)                      mkdir $D; (cd $D && freeze -dc ../$1 | tar xvf -)||echo tag $1 >>$MC_CONTROL_FILE;;
+	    tar_bz2)			mkdir $D; (cd $D && bunzip2 -c ../$1 | tar xvf -)||echo tag $1 >>$MC_CONTROL_FILE
+	  esac
+	  shift
+        done
+
++ f \.gz$ | f \.tgz$ | f \.tpz$ | f \.Z$ | f \.z$ | f \.bz2$ & t r & ! t t
+c       Convert gz<->bz2, tar.gz<->tar.bz2 & tgz->tar.bz2
+        unset D
+	echo %f|egrep -q "\.tgz$"    && EXT=tgz
+	echo %f|egrep -q "\.tpz$"    && EXT=tpz
+	echo %f|egrep -q "\.Z$"    && EXT=Z
+	echo %f|egrep -q "\.z$"    && EXT=z
+	echo %f|egrep -q "\.gz$" && EXT=gz
+	echo %f|egrep -q "\.bz2$" && EXT=bz2
+        case $EXT in
+          tgz)    D="`basename %f .tgz`.tar";;
+          tpz)    D="`basename %f .tpz`.tar";;
+          gz) D="`basename %f .gz`";;
+	  bz2) D="`basename %f .bz2`";;
+        esac
+        if [ "$EXT" = "bz2" ]; then
+	    bunzip2 -v %f ; gzip -f9 -v $D
+	else
+	    gunzip -v %f ; bzip2 -v $D
+	fi
+
++ t t
+C       Convert gz<->bz2, tar.gz<->tar.bz2 & tgz->tar.bz2
+	set %u
+	while [ -n "$1" ]
+        do
+          unset D
+	  echo %f|egrep -q "\.tgz$"    && EXT=tgz
+	  echo %f|egrep -q "\.tpz$"    && EXT=tpz
+	  echo %f|egrep -q "\.Z$"    && EXT=Z
+	  echo %f|egrep -q "\.z$"    && EXT=z
+	  echo %f|egrep -q "\.gz$" && EXT=gz
+	  echo %f|egrep -q "\.bz2$" && EXT=bz2
+	  case $EXT in
+	      tgz)    D="`basename $1 .tgz`.tar";;
+              tpz)    D="`basename $1 .tpz`.tar";;
+              gz) D="`basename $1 .gz`";;
+	      bz2) D="`basename $1 .bz2`";;
+	  esac
+	  if [ "$EXT" = "bz2" ]; then
+	    (bunzip2 -v $1 ; gzip -f9 -v $D)||echo tag $1 >>$MC_CONTROL_FILE
+	  else
+	    (gunzip -v $1 ; bzip2 -v $D)||echo tag $1 >>$MC_CONTROL_FILE
+	  fi
+	  shift
+        done
+
++ x /usr/bin/open | x /usr/local/bin/open & x /bin/sh
+o       Open next a free console
+        open -s -- sh
+
+u       umount hdb
+	umount /dev/hdb2
+	umount /dev/hdb3
+	sudo hdparm -y /dev/hdb
+
++ f \.wav$ & ! t t
+M       Make mp3
+	mp3 mp3 %f
+
++ t t
+M       Make mp3s
+	mp3 mp3 %u
+
++ f \.wav$ & ! t t
+O       Make ogg
+	ogg ogg %f
+
++ t t
+O       Make oggs
+	ogg ogg %u
+
++ f \.(ogg|mp3)$ & ! t t
+r       Recode ogg/mp3 to ogg
+	ogg recode %f
+
++ f ^\.\.$ & ! t t
+r       Recode oggs/mp3s in this dir to ogg
+	ls *.mp3 *.ogg 2>/dev/null | sed "s/\([ \"']\)/\\\\\1/g" | xargs -r ogg recode
+
++ t t
+r       Recode tagged oggs/mp3s to ogg
+	ogg recode %u
+
++ f \.(ogg|mp3)$ & ! t t
+p       Play ogg/mp3
+	mp3 play %f
+
++ f ^\.\.$ & ! t t
+p       Play oggs/mp3s in this dir
+	mp3 play
+
++ t t
+p       Play tagged oggs/mp3s
+	mp3 play %u
+
++ f ^\.\.$ & ! t t
+P       Play oggs/mp3s in this dir in random order
+	mp3 rplay
+
++ t t
+P       Play tagged in random order oggs/mp3s
+	mp3 rplay %u
+
++ f \.(ogg|mp3)$ & ! t t
+e       Play ogg/mp3 (queue)
+	mp3 play -e %f
+
++ f ^\.\.$ & ! t t
+e       Play oggs/mp3s in this dir (queue)
+	mp3 play -e
+
++ t t
+e       Play tagged oggs/mp3s (queue)
+	mp3 play -e %u
+
++ f ^\.\.$ & ! t t
+E       Play oggs/mp3s in this dir in random order (queue)
+	mp3 rplay -e
+
++ t t
+E       Play tagged in random order oggs/mp3s (queue)
+	mp3 rplay -e %u
+
++ f \.(ogg|mp3)$ & ! t t
+t       Retag ogg/mp3
+	mp3 retag %f
+
++ f ^\.\.$ & ! t t
+t       Retag oggs/mp3s in this dir
+	ls *.mp3 *.ogg 2>/dev/null | sed "s/\([ \"']\)/\\\\\1/g" | xargs -r mp3 retag
+
++ t t
+t       Retag tagged oggs/mp3s
+	mp3 retag %u
+
++ t t
+B       cvs admin -kb on tagged files
+	cvs admin -kb %u
+
++ t t
+N       cvs admin -ko on tagged files
+	cvs admin -ko %u
+
++ ! t t
+B       cvs admin -kb on file
+	cvs admin -kb %f
+
++ ! t t
+N       cvs admin -ko on file
+	cvs admin -ko %f

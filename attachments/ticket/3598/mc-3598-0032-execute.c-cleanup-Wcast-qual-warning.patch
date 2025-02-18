@@ -1,0 +1,33 @@
+From ebcb4b292164732e4e9dbc5e6fa97725d0c77ca3 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 16:17:00 +0000
+Subject: [PATCH] execute.c: cleanup -Wcast-qual warning
+
+execute.c: In function 'do_execute':
+execute.c:387:34: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     g_ptr_array_add (args_array, (char *) command);
+                                  ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/execute.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/execute.c b/src/execute.c
+index c12d58c..0c6ad5b 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -384,11 +384,12 @@ do_execute (const char *shell, const char *command, int flags)
+     GPtrArray *args_array;
+ 
+     args_array = g_ptr_array_new ();
+-    g_ptr_array_add (args_array, (char *) command);
++    g_ptr_array_add (args_array, g_strdup (command));
+     g_ptr_array_add (args_array, NULL);
+ 
+     do_executev (shell, flags, (char *const *) args_array->pdata);
+ 
++    g_ptr_array_foreach (args_array, (GFunc) g_free, NULL);
+     g_ptr_array_free (args_array, TRUE);
+ }
+ 

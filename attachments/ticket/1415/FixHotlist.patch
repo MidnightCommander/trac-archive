@@ -1,0 +1,13 @@
+diff --git a/src/hotlist.c b/src/hotlist.c
+index dd8dd04..53920e1 100644
+--- a/src/hotlist.c
++++ b/src/hotlist.c
+@@ -228,6 +228,8 @@ static void fill_listbox (void)
+ 	switch (current->type) {
+ 	case HL_TYPE_GROUP:
+ 	    {
++		/* clean buff */
++		g_string_truncate(buff, 0);		  
+ 		g_string_append(buff,"->");
+ 		g_string_append(buff,current->label);
+ 		if (hotlist_state.moving)

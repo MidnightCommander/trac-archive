@@ -1,0 +1,13 @@
+diff --git a/misc/syntax/Syntax b/misc/syntax/Syntax
+index 48b57dc..476d476 100644
+--- a/misc/syntax/Syntax
++++ b/misc/syntax/Syntax
+@@ -61,7 +61,7 @@ include xml.syntax
+ file ..\*\\.(tt|TT)$ Template::Toolkit\sFile
+ include tt.syntax
+ 
+-file (.\*[Mm]akefile[\\\.A-Za-z0-9]\*|..\*\\.mk|Kbuild)$ Makefile
++file (.\*[Mm]akefile[\\\.A-Za-z0-9]\*|..\*\\.mk|..\*\\.mak|Kbuild)$ Makefile
+ include makefile.syntax
+ 
+ file ..\*\\.(pp|PP|pas|PAS|dpr|DPR|inc|INC)$ Pascal\sProgram

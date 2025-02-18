@@ -1,0 +1,39 @@
+CHSH(1)                                                                CHSH(1)
+
+
+
+NNÉÉVV
+       chsh - bejelentkezési parancsértelmező (héj) állítása
+
+ÁÁTTTTEEKKIINNTTÉÉSS
+       cchhsshh [--ss _h_é_j_p_r_o_g_r_a_m] [_f_e_l_h_a_s_z_n_á_l_ó]
+
+LLEEÍÍRRÁÁSS
+       A cchhsshh parancs a felhasználó bejelentkezési parancsértelmezőjét változ‐
+       tatja  meg.   Normál  felhasználó  csak  a  saját   parancsértelmezőjét
+       állíthatja, a rendszergazda bárkiét.
+
+       A  héjprogrammal (shell) szemben támasztott követelmény, hogy szerepel‐
+       jen a _/_e_t_c_/_s_h_e_l_l_s fájlban, kivéve ha a rendszergazdáé mert neki  minden
+       beállítás  elfogadott.  Korlátozott parancsértelmezőt nem lehet másikra
+       átállítani.  Ezért nem tanácsos a //bbiinn//rrsshh-nak a  _/_e_t_c_/_s_h_e_l_l_s-ben  való
+       felsorolása,  mert  ha  a  felhasználó átvált erre a héj-ra nem válthat
+       másikra.
+
+       A --ss opció nélkül a cchhsshh interaktív módon működik. Be kell írni  az  új
+       értéket,  vagy  üresen  hagyni a sort, hogy az éppen aktuális beállítás
+       maradjon, ami [[ ]] jelek között látható.
+
+FFÁÁJJLLOOKK
+       _/_e_t_c_/_p_a_s_s_w_d - felhaszálói nyilvántartás
+       _/_e_t_c_/_s_h_e_l_l_s - engedélyezett parancsértelmezők listája
+
+LLÁÁSSDD MMÉÉGG
+       cchhffnn(1), ppaasssswwdd(5)
+
+MMAAGGYYAARR FFOORRDDÍÍTTÁÁSS
+       Székely Krisztián <szekelyk@edasz.hu>
+
+
+
+                                                                       CHSH(1)

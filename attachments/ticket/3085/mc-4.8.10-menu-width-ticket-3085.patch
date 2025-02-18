@@ -1,0 +1,122 @@
+diff -urp mc-4.8.10.orig/lib/widget/menu.c mc-4.8.10/lib/widget/menu.c
+--- mc-4.8.10.orig/lib/widget/menu.c	2013-08-02 20:02:40.000000000 +0200
++++ mc-4.8.10/lib/widget/menu.c	2013-09-28 23:58:31.016499409 +0200
+@@ -68,7 +68,7 @@ struct menu_t
+     hotkey_t text;
+     GList *entries;
+     size_t max_entry_len;       /* cached max length of entry texts (text + shortcut) */
+-    size_t max_hotkey_len;      /* cached max length of shortcuts */
++    size_t max_text_len;        /* cached max length of entry texts (without shortcut) */
+     unsigned int selected;      /* pointer to current menu entry */
+     char *help_node;
+ };
+@@ -86,8 +86,7 @@ menu_arrange (menu_t * menu, dlg_shortcu
+         GList *i;
+         size_t max_shortcut_len = 0;
+ 
+-        menu->max_entry_len = 1;
+-        menu->max_hotkey_len = 1;
++        menu->max_text_len = 1;
+ 
+         for (i = menu->entries; i != NULL; i = g_list_next (i))
+         {
+@@ -98,7 +97,7 @@ menu_arrange (menu_t * menu, dlg_shortcu
+                 size_t len;
+ 
+                 len = (size_t) hotkey_width (entry->text);
+-                menu->max_hotkey_len = max (menu->max_hotkey_len, len);
++                menu->max_text_len = max (menu->max_text_len, len);
+ 
+                 if (get_shortcut != NULL)
+                     entry->shortcut = get_shortcut (entry->command);
+@@ -111,7 +110,7 @@ menu_arrange (menu_t * menu, dlg_shortcu
+             }
+         }
+ 
+-        menu->max_entry_len = menu->max_hotkey_len + max_shortcut_len;
++        menu->max_entry_len = menu->max_text_len + (max_shortcut_len > 0 ? 2 + max_shortcut_len : 0);
+     }
+ }
+ 
+@@ -126,8 +125,8 @@ menubar_paint_idx (WMenuBar * menubar, u
+     const int y = 2 + idx;
+     int x = menu->start_x;
+ 
+-    if (x + menu->max_entry_len + 4 > (gsize) w->cols)
+-        x = w->cols - menu->max_entry_len - 4;
++    if (x + menu->max_entry_len + 3 > (gsize) w->cols)
++        x = w->cols - menu->max_entry_len - 3;
+ 
+     if (entry == NULL)
+     {
+@@ -136,8 +135,8 @@ menubar_paint_idx (WMenuBar * menubar, u
+ 
+         widget_move (w, y, x - 1);
+         tty_print_alt_char (ACS_LTEE, FALSE);
+-        tty_draw_hline (w->y + y, w->x + x, ACS_HLINE, menu->max_entry_len + 3);
+-        widget_move (w, y, x + menu->max_entry_len + 3);
++        tty_draw_hline (w->y + y, w->x + x, ACS_HLINE, menu->max_entry_len + 2);
++        widget_move (w, y, x + menu->max_entry_len + 2);
+         tty_print_alt_char (ACS_RTEE, FALSE);
+     }
+     else
+@@ -149,7 +148,7 @@ menubar_paint_idx (WMenuBar * menubar, u
+         widget_move (w, y, x);
+         tty_print_char ((unsigned char) entry->first_letter);
+         tty_getyx (&yt, &xt);
+-        tty_draw_hline (yt, xt, ' ', menu->max_entry_len + 2);  /* clear line */
++        tty_draw_hline (yt, xt, ' ', menu->max_entry_len + 1);  /* clear line */
+         tty_print_string (entry->text.start);
+ 
+         if (entry->text.hotkey != NULL)
+@@ -164,7 +163,7 @@ menubar_paint_idx (WMenuBar * menubar, u
+ 
+         if (entry->shortcut != NULL)
+         {
+-            widget_move (w, y, x + menu->max_hotkey_len + 3);
++            widget_move (w, y, x + menu->max_text_len + 3);
+             tty_print_string (entry->shortcut);
+         }
+ 
+@@ -184,11 +183,11 @@ menubar_draw_drop (WMenuBar * menubar)
+     int column = menu->start_x - 1;
+     unsigned int i;
+ 
+-    if (column + menu->max_entry_len + 5 > (gsize) w->cols)
+-        column = w->cols - menu->max_entry_len - 5;
++    if (column + menu->max_entry_len + 4 > (gsize) w->cols)
++        column = w->cols - menu->max_entry_len - 4;
+ 
+     tty_setcolor (MENU_ENTRY_COLOR);
+-    tty_draw_box (w->y + 1, w->x + column, count + 2, menu->max_entry_len + 5, FALSE);
++    tty_draw_box (w->y + 1, w->x + column, count + 2, menu->max_entry_len + 4, FALSE);
+ 
+     for (i = 0; i < count; i++)
+         menubar_paint_idx (menubar, i,
+@@ -712,12 +711,12 @@ menubar_event (Gpm_Event * event, void *
+ 
+     /* the mouse operation is on the menus or it is not */
+     menu = MENU (g_list_nth_data (menubar->menu, menubar->selected));
+-    left_x = menu->start_x;
+-    right_x = left_x + menu->max_entry_len + 3;
+-    if (right_x > w->cols)
++    left_x = menu->start_x + 1;
++    right_x = left_x + menu->max_entry_len + 1;
++    if (right_x > w->cols - 1)
+     {
+-        left_x = w->cols - menu->max_entry_len - 3;
+-        right_x = w->cols;
++        left_x = w->cols - menu->max_entry_len - 2;
++        right_x = w->cols - 1;
+     }
+ 
+     bottom_y = g_list_length (menu->entries) + 3;
+@@ -805,7 +804,7 @@ create_menu (const char *name, GList * e
+     menu->text = parse_hotkey (name);
+     menu->entries = entries;
+     menu->max_entry_len = 1;
+-    menu->max_hotkey_len = 0;
++    menu->max_text_len = 0;
+     menu->selected = 0;
+     menu->help_node = g_strdup (help_node);
+ 

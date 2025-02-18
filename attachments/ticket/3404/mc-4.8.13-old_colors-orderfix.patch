@@ -1,0 +1,18 @@
+
+bsearch() expected a sorted array to work correctly
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+diff -ruN mc-4.8.13/lib/skin/colors-old.c mc-4.8.13.patch/lib/skin/colors-old.c
+--- mc-4.8.13/lib/skin/colors-old.c	2014-09-02 11:23:58.000000000 +0200
++++ mc-4.8.13.patch/lib/skin/colors-old.c	2015-02-16 10:34:07.469404529 +0100
+@@ -96,8 +96,8 @@
+     {"reverse", "core", "reverse"},
+     {"selected", "core", "selected"},
+     {"statusbar", "statusbar", "_default_"},
+-    {"viewnormal", "viewer", "_default_"},
+     {"viewbold", "viewer", "viewbold"},
++    {"viewnormal", "viewer", "_default_"},
+     {"viewselected", "viewer", "viewselected"},
+     {"viewunderline", "viewer", "viewunderline"}
+ };

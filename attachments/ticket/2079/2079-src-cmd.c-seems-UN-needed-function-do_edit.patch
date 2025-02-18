@@ -1,0 +1,87 @@
+From 2396f2c83c562b6d6b9c1f1e597d2abc75fa474d Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 2 Mar 2010 19:12:12 +0000
+Subject: [PATCH]  src/cmd.c seems UN needed function do_edit()
+
+---
+ src/cmd.c |   20 +++++++-------------
+ 1 files changed, 7 insertions(+), 13 deletions(-)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index 3436778..20b0c6b 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -318,17 +318,11 @@ do_edit_at_line (const char *what, int start_line)
+     repaint_screen ();
+ }
+ 
+-static void
+-do_edit (const char *what)
+-{
+-    do_edit_at_line (what, 0);
+-}
+-
+ void
+ edit_cmd (void)
+ {
+     if (regex_command (selection (current_panel)->fname, "Edit", 0) == 0)
+-	do_edit (selection (current_panel)->fname);
++	do_edit_at_line (selection (current_panel)->fname, 0);
+ }
+ 
+ void
+@@ -337,7 +331,7 @@ edit_cmd_new (void)
+ #if HAVE_CHARSET
+     source_codepage = default_source_codepage;
+ #endif
+-    do_edit (NULL);
++    do_edit_at_line (NULL, 0);
+ }
+ 
+ /* Invoked by F5.  Copy, default to the other panel.  */
+@@ -608,14 +602,14 @@ void ext_cmd (void)
+     if (dir == 0){
+ 	buffer = g_build_filename (home_dir, MC_USERCONF_DIR, MC_FILEBIND_FILE, NULL);
+ 	check_for_default (extdir, buffer);
+-	do_edit (buffer);
++	do_edit_at_line (buffer, 0);
+ 	g_free (buffer);
+     } else if (dir == 1) {
+ 	if (!exist_file(extdir)) {
+ 	    g_free (extdir);
+ 	    extdir = concat_dir_and_file (mc_home_alt, MC_LIB_EXT);
+ 	}
+-	do_edit (extdir);
++	do_edit_at_line (extdir, 0);
+     }
+    g_free (extdir);
+    flush_extension_file ();
+@@ -668,7 +662,7 @@ edit_mc_menu_cmd (void)
+ 	    return;
+     }
+ 
+-    do_edit (buffer);
++    do_edit_at_line (buffer, 0);
+ 
+     g_free (buffer);
+     g_free (menufile);
+@@ -692,14 +686,14 @@ void edit_fhl_cmd (void)
+     if (dir == 0){
+ 	buffer = g_build_filename (home_dir, MC_USERCONF_DIR, MC_FHL_INI_FILE, NULL);
+ 	check_for_default (fhlfile, buffer);
+-	do_edit (buffer);
++	do_edit_at_line (buffer, 0);
+ 	g_free (buffer);
+     } else if (dir == 1) {
+ 	if (!exist_file(fhlfile)) {
+ 	    g_free (fhlfile);
+ 	    fhlfile = concat_dir_and_file (mc_home, MC_FHL_INI_FILE);
+ 	}
+-	do_edit (fhlfile);
++	do_edit_at_line (fhlfile, 0);
+     }
+    g_free (fhlfile);
+ 
+-- 
+1.6.4
+

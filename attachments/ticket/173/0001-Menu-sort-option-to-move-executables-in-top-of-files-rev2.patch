@@ -1,0 +1,264 @@
+From 0de68335546e486df9d6dd1756e02c191a974249 Mon Sep 17 00:00:00 2001
+From: ilia <admin@darkstar.example.net>
+Date: Sun, 25 Jan 2009 21:19:02 +0000
+Subject: [PATCH] Menu sort option to move executables in top of files list in panel, after directory list (ticket#173)
+
+Signed-off-by: ilia <admin@darkstar.example.net>
+---
+ src/boxes.c  |   12 ++++++++----
+ src/boxes.h  |    2 +-
+ src/dir.c    |   16 ++++++++++------
+ src/dir.h    |    6 +++---
+ src/main.c   |    7 +++++--
+ src/panel.h  |    1 +
+ src/screen.c |    8 +++++---
+ src/setup.c  |    5 ++++-
+ 8 files changed, 37 insertions(+), 20 deletions(-)
+
+diff --git a/src/boxes.c b/src/boxes.c
+index 0fd2a0b..bd0a94c 100644
+--- a/src/boxes.c
++++ b/src/boxes.c
+@@ -266,23 +266,24 @@ display_box (WPanel *panel, char **userp, char **minip, int *use_msformat, int n
+     return result;
+ }
+ 
+-static int SORT_X = 40, SORT_Y = 14;
++static int SORT_X = 60, SORT_Y = 14;
+ 
+ static const char *sort_orders_names [SORT_TYPES];
+ 
+ sortfn *
+-sort_box (sortfn *sort_fn, int *reverse, int *case_sensitive)
++sort_box (sortfn *sort_fn, int *reverse, int *case_sensitive, int *exec_first)
+ {
+     int i, r, l;
+     sortfn *result;
+-    WCheck *c, *case_sense;
++    WCheck *c, *case_sense, *exec_ff;
+ 
+     const char *ok_button = _("&OK");
+     const char *cancel_button = _("&Cancel");
+     const char *reverse_label = _("&Reverse");
+     const char *case_label = _("case sensi&tive");
+     const char *sort_title = _("Sort order");
+-
++    const char *exec_label = _("Executable first");
++
+     static int i18n_sort_flag = 0, check_pos = 0, button_pos = 0;
+ 
+     if (!i18n_sort_flag) {
+@@ -339,6 +340,8 @@ sort_box (sortfn *sort_fn, int *reverse, int *case_sensitive)
+ 		button_new (9, button_pos, B_ENTER, DEFPUSH_BUTTON,
+ 			    ok_button, 0));
+ 
++    exec_ff = check_new (5, check_pos, *exec_first, exec_label);
++    add_widget (dd, exec_ff);
+     case_sense = check_new (4, check_pos, *case_sensitive, case_label);
+     add_widget (dd, case_sense);
+     c = check_new (3, check_pos, *reverse, reverse_label);
+@@ -355,6 +358,7 @@ sort_box (sortfn *sort_fn, int *reverse, int *case_sensitive)
+ 	result = (sortfn *) sort_orders[my_radio->sel].sort_fn;
+ 	*reverse = c->state & C_BOOL;
+ 	*case_sensitive = case_sense->state & C_BOOL;
++	*exec_first = exec_ff->state & C_BOOL;
+     } else
+ 	result = sort_fn;
+     destroy_dlg (dd);
+diff --git a/src/boxes.h b/src/boxes.h
+index 77c016c..4496c11 100644
+--- a/src/boxes.h
++++ b/src/boxes.h
+@@ -7,7 +7,7 @@
+ int     display_box      (WPanel *p, char **user, char **mini,
+ 			  int *use_msformat, int num);
+ sortfn *sort_box         (sortfn *sort_fn, int *reverse,
+-			  int *case_sensitive);
++			  int *case_sensitive, int *exec_first);
+ void    confirm_box      (void);
+ void    display_bits_box (void);
+ void    configure_vfs    (void);
+diff --git a/src/dir.c b/src/dir.c
+index 6992f40..26df6fb 100644
+--- a/src/dir.c
++++ b/src/dir.c
+@@ -46,7 +46,10 @@ static int reverse = 1;
+ /* Are the files sorted case sensitively? */
+ static int case_sensitive = OS_SORT_CASE_SENSITIVE_DEFAULT;
+ 
+-#define MY_ISDIR(x) ( (S_ISDIR (x->st.st_mode) || x->f.link_to_dir) ? 1 : 0)
++/* Are the exec_bit files top in list*/
++static int exec_first = 1;
++
++#define MY_ISDIR(x) ( (is_exe (x->st.st_mode) && !(S_ISDIR (x->st.st_mode) || x->f.link_to_dir) && (exec_first == 1)) ? 1 : ( (S_ISDIR (x->st.st_mode) || x->f.link_to_dir) ? 2 : 0) )
+ 
+ sort_orders_t sort_orders [SORT_TYPES_TOTAL] = {
+     { N_("&Unsorted"),    unsorted },
+@@ -226,7 +229,7 @@ sort_size (const file_entry *a, const file_entry *b)
+ 
+ 
+ void
+-do_sort (dir_list *list, sortfn *sort, int top, int reverse_f, int case_sensitive_f)
++do_sort (dir_list *list, sortfn *sort, int top, int reverse_f, int case_sensitive_f, int exec_first_f)
+ {
+     int dot_dot_found = 0;
+ 
+@@ -240,6 +243,7 @@ do_sort (dir_list *list, sortfn *sort, int top, int reverse_f, int case_sensitiv
+ 
+     reverse = reverse_f ? -1 : 1;
+     case_sensitive = case_sensitive_f;
++    exec_first = exec_first_f;
+     qsort (&(list->list) [dot_dot_found],
+ 	   top + 1 - dot_dot_found, sizeof (file_entry), sort);
+ }
+@@ -382,7 +386,7 @@ handle_path (dir_list *list, const char *path,
+ 
+ int
+ do_load_dir (const char *path, dir_list *list, sortfn *sort, int reverse,
+-	     int case_sensitive, const char *filter)
++	     int case_sensitive, int exec_ff, const char *filter)
+ {
+     DIR *dirp;
+     struct dirent *dp;
+@@ -428,7 +432,7 @@ do_load_dir (const char *path, dir_list *list, sortfn *sort, int reverse,
+     }
+ 
+     if (next_free) {
+-	do_sort (list, sort, next_free - 1, reverse, case_sensitive);
++	do_sort (list, sort, next_free - 1, reverse, case_sensitive, exec_ff);
+     }
+ 
+     mc_closedir (dirp);
+@@ -484,7 +488,7 @@ alloc_dir_copy (int size)
+ /* If filter is null, then it is a match */
+ int
+ do_reload_dir (const char *path, dir_list *list, sortfn *sort, int count,
+-	       int rev, int case_sensitive, const char *filter)
++	       int rev, int case_sensitive, int exec_ff, const char *filter)
+ {
+     DIR *dirp;
+     struct dirent *dp;
+@@ -581,7 +585,7 @@ do_reload_dir (const char *path, dir_list *list, sortfn *sort, int count,
+     tree_store_end_check ();
+     g_hash_table_destroy (marked_files);
+     if (next_free) {
+-	do_sort (list, sort, next_free - 1, rev, case_sensitive);
++	do_sort (list, sort, next_free - 1, rev, case_sensitive, exec_ff);
+     }
+     clean_dir (&dir_copy, count);
+     return next_free;
+diff --git a/src/dir.h b/src/dir.h
+index 5f852af..90af8bb 100644
+--- a/src/dir.h
++++ b/src/dir.h
+@@ -31,11 +31,11 @@ typedef struct {
+ typedef int sortfn (const void *, const void *);
+ 
+ int do_load_dir (const char *path, dir_list * list, sortfn * sort, int reverse,
+-		 int case_sensitive, const char *filter);
++		 int case_sensitive, int exec_ff, const char *filter);
+ void do_sort (dir_list * list, sortfn * sort, int top, int reverse,
+-	      int case_sensitive);
++	      int case_sensitive, int exec_ff);
+ int do_reload_dir (const char *path, dir_list * list, sortfn * sort, int count,
+-		   int reverse, int case_sensitive, const char *filter);
++		   int reverse, int case_sensitive, int exec_ff, const char *filter);
+ void clean_dir (dir_list * list, int count);
+ int set_zero_dir (dir_list * list);
+ int handle_path (dir_list *list, const char *path, struct stat *buf1,
+diff --git a/src/main.c b/src/main.c
+index 624df71..890f1df 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -609,7 +609,8 @@ _do_panel_cd (WPanel *panel, const char *new_dir, enum cd_enum cd_type)
+     panel_clean_dir (panel);
+     panel->count =
+ 	do_load_dir (panel->cwd, &panel->dir, panel->sort_type,
+-		     panel->reverse, panel->case_sensitive, panel->filter);
++		     panel->reverse, panel->case_sensitive,
++		     panel->exec_first, panel->filter);
+     try_to_select (panel, get_parent_dir_name (panel->cwd, olddir));
+     load_hint (0);
+     panel->dirty = 1;
+@@ -759,7 +760,9 @@ sort_cmd (void)
+ 	return;
+ 
+     p = MENU_PANEL;
+-    sort_order = sort_box (p->sort_type, &p->reverse, &p->case_sensitive);
++    sort_order = sort_box (p->sort_type, &p->reverse,
++			   &p->case_sensitive,
++			   &p->exec_first);
+ 
+     panel_set_sort_order (p, sort_order);
+ 
+diff --git a/src/panel.h b/src/panel.h
+index 1cd15af..ebd0bed 100644
+--- a/src/panel.h
++++ b/src/panel.h
+@@ -49,6 +49,7 @@ typedef struct WPanel {
+     int      selected;		/* Index to the selected file */
+     int      reverse;		/* Show listing in reverse? */
+     int      case_sensitive;    /* Listing is case sensitive? */
++    int      exec_first;	/* Show executable top in list? */
+     int      split;		/* Split panel to allow two columns */
+     int      is_panelized;	/* Flag: special filelisting, can't reload */
+     int      frame_size;	/* half or full frame */
+diff --git a/src/screen.c b/src/screen.c
+index f35099e..a6c67c1 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -1054,7 +1054,8 @@ panel_new (const char *panel_name)
+     /* Load the default format */
+     panel->count =
+ 	do_load_dir (panel->cwd, &panel->dir, panel->sort_type,
+-		     panel->reverse, panel->case_sensitive, panel->filter);
++		     panel->reverse, panel->case_sensitive,
++		     panel->exec_first, panel->filter);
+     return panel;
+ }
+ 
+@@ -1088,7 +1089,7 @@ panel_reload (WPanel *panel)
+     panel->count =
+ 	do_reload_dir (panel->cwd, &panel->dir, panel->sort_type,
+ 		       panel->count, panel->reverse, panel->case_sensitive,
+-		       panel->filter);
++		       panel->exec_first, panel->filter);
+ 
+     panel->dirty = 1;
+     if (panel->selected >= panel->count)
+@@ -2464,7 +2465,8 @@ panel_re_sort (WPanel *panel)
+ 
+     filename = g_strdup (selection (panel)->fname);
+     unselect_item (panel);
+-    do_sort (&panel->dir, panel->sort_type, panel->count-1, panel->reverse, panel->case_sensitive);
++    do_sort (&panel->dir, panel->sort_type, panel->count-1, panel->reverse,
++             panel->case_sensitive, panel->exec_first);
+     panel->selected = -1;
+     for (i = panel->count; i; i--){
+ 	if (!strcmp (panel->dir.list [i-1].fname, filename)){
+diff --git a/src/setup.c b/src/setup.c
+index f26566a..9fa8784 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -247,6 +247,8 @@ panel_save_setup (struct WPanel *panel, const char *section)
+     save_string (section, "reverse", buffer, profile_name);
+     g_snprintf (buffer, sizeof (buffer), "%d", panel->case_sensitive);
+     save_string (section, "case_sensitive", buffer, profile_name);
++    g_snprintf (buffer, sizeof (buffer), "%d", panel->exec_first);
++    save_string (section, "exec_first", buffer, profile_name);
+     for (i = 0; sort_names [i].key; i++)
+ 	if (sort_names [i].sort_type == (sortfn *) panel->sort_type){
+ 	    save_string (section, "sort_order",
+@@ -388,7 +390,8 @@ panel_load_setup (WPanel *panel, const char *section)
+ 
+     panel->reverse = load_int (section, "reverse", 0);
+     panel->case_sensitive = load_int (section, "case_sensitive", OS_SORT_CASE_SENSITIVE_DEFAULT);
+-
++    panel->exec_first = load_int (section, "exec_first", 1);
++
+     /* Load sort order */
+     load_string (section, "sort_order", "name", buffer, sizeof (buffer));
+     panel->sort_type = (sortfn *) sort_name;
+-- 
+1.6.0.3
+

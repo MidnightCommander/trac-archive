@@ -1,0 +1,43 @@
+From 4afbee67cc7379bf9b7ff5ac308c4ac93381995d Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 19 Dec 2016 15:11:20 +0200
+Subject: [PATCH] Ticket #3730: extfs: urar: don't invoke 'rar' when running
+ under the tester.
+
+We want to prevent messages printed to STDERR when running the tester on
+systems where rar is not installed.
+
+(Yes, we could compress this new code to just one line, but...)
+---
+ src/vfs/extfs/helpers/urar.in | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/urar.in b/src/vfs/extfs/helpers/urar.in
+index 35d0fca..5453d31 100644
+--- a/src/vfs/extfs/helpers/urar.in
++++ b/src/vfs/extfs/helpers/urar.in
+@@ -21,12 +21,17 @@ UNRAR=`which unrar 2>/dev/null`
+ [ -z $UNRAR ] && UNRAR=$RAR
+ [ ! -x $UNRAR -a -x $RAR ] && UNRAR=$RAR
+ 
+-# Define $UNRAR version
+-UNRAR_VERSION=`$UNRAR -cfg- -? | grep "Copyright" | sed -e 's/.*\([0-9]\)\..*/\1/'`
+-
+ # Let the test framework hook in:
+ UNRAR=${MC_TEST_EXTFS_LIST_CMD:-$UNRAR}
+-UNRAR_VERSION=${MC_TEST_EXTFS_UNRAR_VERSION:-$UNRAR_VERSION}
++
++# Determine the $UNRAR version
++if [ -n "$MC_TEST_EXTFS_UNRAR_VERSION" ]; then
++  # Let the test framework fool us:
++  UNRAR_VERSION=$MC_TEST_EXTFS_UNRAR_VERSION
++else
++  # Figure it out from rar itself:
++  UNRAR_VERSION=`$UNRAR -cfg- -? | grep "Copyright" | sed -e 's/.*\([0-9]\)\..*/\1/'`
++fi
+ 
+ mcrar4fs_list ()
+ {
+-- 
+2.9.3
+

@@ -1,0 +1,14 @@
+Fix non FHS path
+Index: mc-4.6.2~git20090529/doc/man/es/mc.1.in
+===================================================================
+--- mc-4.6.2~git20090529.orig/doc/man/es/mc.1.in	2009-05-30 17:32:24.000000000 +0200
++++ mc-4.6.2~git20090529/doc/man/es/mc.1.in	2009-05-30 17:32:30.000000000 +0200
+@@ -1272,7 +1272,7 @@
+ de los archivos de registro (log) de la transferencia:
+ .PP
+ .nf
+-awk '$9 ~! /incoming/ { print $9 }' < /usr/adm/xferlog
++awk '$9 ~! /incoming/ { print $9 }' < /var/log/xferlog
+ .fi
+ .PP
+ Tal vez podríamos necesitar guardar los comandos utilizados frecuentemente bajo un nombre descriptivo,

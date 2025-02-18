@@ -1,0 +1,912 @@
+diff --git a/lib/skin.h b/lib/skin.h
+index 904266b..a85f70c 100644
+--- a/lib/skin.h
++++ b/lib/skin.h
+@@ -125,6 +125,7 @@ typedef struct mc_skin_struct
+ 
+ extern int mc_skin_color__cache[];
+ extern mc_skin_t mc_skin__default;
++extern gboolean underline_hotkeys;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+@@ -135,6 +136,8 @@ int mc_skin_color_get (const gchar *, const gchar *);
+ 
+ void mc_skin_lines_parse_ini_file (mc_skin_t *);
+ 
++void mc_skin_color_cache_init (void);
++
+ gchar *mc_skin_get (const gchar *, const gchar *, const gchar *);
+ 
+ GPtrArray *mc_skin_list (void);
+diff --git a/lib/skin/colors.c b/lib/skin/colors.c
+index 7ca9d47..da152ed 100644
+--- a/lib/skin/colors.c
++++ b/lib/skin/colors.c
+@@ -36,6 +36,7 @@
+ /*** global variables ****************************************************************************/
+ 
+ int mc_skin_color__cache[MC_SKIN_COLOR_CACHE_COUNT];
++gboolean underline_hotkeys = FALSE;
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+@@ -180,6 +181,67 @@ mc_skin_color_set_default_for_terminal (mc_skin_t * mc_skin)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
++mc_skin_color_copy_add_attributes (mc_skin_t * mc_skin, const gchar * group,
++                                   const gchar * key_old, const gchar * key_new,
++                                   const gchar * attrs)
++{
++    mc_skin_color_t *mc_skin_color_old, *mc_skin_color_new;
++    mc_skin_color_old = mc_skin_color_get_from_hash (mc_skin, group, key_old);
++    if (mc_skin_color_old != NULL) {
++        mc_skin_color_new = g_try_new0 (mc_skin_color_t, 1);
++        if (mc_skin_color_new != NULL) {
++            mc_skin_color_new->fgcolor = g_strdup (mc_skin_color_old->fgcolor);
++            mc_skin_color_new->bgcolor = g_strdup (mc_skin_color_old->bgcolor);
++            if (mc_skin_color_old->attrs == NULL)
++                mc_skin_color_new->attrs = g_strdup (attrs);
++            else
++                mc_skin_color_new->attrs = g_strconcat (mc_skin_color_old->attrs, "+", attrs, NULL);
++            mc_skin_color_new->pair_index =
++                tty_try_alloc_color_pair2 (mc_skin_color_new->fgcolor, mc_skin_color_new->bgcolor,
++                                           mc_skin_color_new->attrs, FALSE);
++            mc_skin_color_add_to_hash (mc_skin, group, key_new, mc_skin_color_new);
++        }
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++mc_skin_color_check_inisection (const gchar * group)
++{
++    return !((strcasecmp ("skin", group) == 0)
++             || (strcasecmp ("lines", group) == 0) || (strncasecmp ("widget-", group, 7) == 0));
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++mc_skin_color_check_bw_mode (mc_skin_t * mc_skin)
++{
++    gchar **groups, **orig_groups;
++
++    if (tty_use_colors () && !mc_global.tty.disable_colors)
++        return;
++
++    orig_groups = groups = mc_config_get_groups (mc_skin->config, NULL);
++
++    if (groups == NULL)
++        return;
++
++    for (; *groups != NULL; groups++)
++    {
++        if (mc_skin_color_check_inisection (*groups))
++            mc_config_del_group (mc_skin->config, *groups);
++    }
++    g_strfreev (orig_groups);
++    mc_skin_hardcoded_blackwhite_colors (mc_skin);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++void
+ mc_skin_color_cache_init (void)
+ {
+     DEFAULT_COLOR = mc_skin_color_get ("skin", "terminal_default_color");
+@@ -194,20 +256,20 @@ mc_skin_color_cache_init (void)
+ 
+     COLOR_NORMAL = mc_skin_color_get ("dialog", "_default_");
+     COLOR_FOCUS = mc_skin_color_get ("dialog", "dfocus");
+-    COLOR_HOT_NORMAL = mc_skin_color_get ("dialog", "dhotnormal");
+-    COLOR_HOT_FOCUS = mc_skin_color_get ("dialog", "dhotfocus");
++    COLOR_HOT_NORMAL = mc_skin_color_get ("dialog", underline_hotkeys ? "dulinormal" : "dhotnormal");
++    COLOR_HOT_FOCUS = mc_skin_color_get ("dialog", underline_hotkeys ? "dulifocus" : "dhotfocus");
+     COLOR_TITLE = mc_skin_color_get ("dialog", "dtitle");
+ 
+     ERROR_COLOR = mc_skin_color_get ("error", "_default_");
+     ERROR_FOCUS = mc_skin_color_get ("error", "errdfocus");
+-    ERROR_HOT_NORMAL = mc_skin_color_get ("error", "errdhotnormal");
+-    ERROR_HOT_FOCUS = mc_skin_color_get ("error", "errdhotfocus");
++    ERROR_HOT_NORMAL = mc_skin_color_get ("error", underline_hotkeys ? "errdulinormal" : "errdhotnormal");
++    ERROR_HOT_FOCUS = mc_skin_color_get ("error", underline_hotkeys ? "errdulifocus" : "errdhotfocus");
+     ERROR_TITLE = mc_skin_color_get ("error", "errdtitle");
+ 
+     MENU_ENTRY_COLOR = mc_skin_color_get ("menu", "_default_");
+     MENU_SELECTED_COLOR = mc_skin_color_get ("menu", "menusel");
+-    MENU_HOT_COLOR = mc_skin_color_get ("menu", "menuhot");
+-    MENU_HOTSEL_COLOR = mc_skin_color_get ("menu", "menuhotsel");
++    MENU_HOT_COLOR = mc_skin_color_get ("menu", underline_hotkeys ? "menuuli" : "menuhot");
++    MENU_HOTSEL_COLOR = mc_skin_color_get ("menu", underline_hotkeys ? "menuulisel" : "menuhotsel");
+     MENU_INACTIVE_COLOR = mc_skin_color_get ("menu", "menuinactive");
+ 
+     PMENU_ENTRY_COLOR = mc_skin_color_get ("popupmenu", "_default_");
+@@ -261,41 +323,6 @@ mc_skin_color_cache_init (void)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static gboolean
+-mc_skin_color_check_inisection (const gchar * group)
+-{
+-    return !((strcasecmp ("skin", group) == 0)
+-             || (strcasecmp ("lines", group) == 0) || (strncasecmp ("widget-", group, 7) == 0));
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-static void
+-mc_skin_color_check_bw_mode (mc_skin_t * mc_skin)
+-{
+-    gchar **groups, **orig_groups;
+-
+-    if (tty_use_colors () && !mc_global.tty.disable_colors)
+-        return;
+-
+-    orig_groups = groups = mc_config_get_groups (mc_skin->config, NULL);
+-
+-    if (groups == NULL)
+-        return;
+-
+-    for (; *groups != NULL; groups++)
+-    {
+-        if (mc_skin_color_check_inisection (*groups))
+-            mc_config_del_group (mc_skin->config, *groups);
+-    }
+-    g_strfreev (orig_groups);
+-    mc_skin_hardcoded_blackwhite_colors (mc_skin);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-/*** public functions ****************************************************************************/
+-/* --------------------------------------------------------------------------------------------- */
+-
+ gboolean
+ mc_skin_color_parse_ini_file (mc_skin_t * mc_skin)
+ {
+@@ -341,6 +368,14 @@ mc_skin_color_parse_ini_file (mc_skin_t * mc_skin)
+     }
+     g_strfreev (orig_groups);
+ 
++    /* create underlined hotkey variants */
++    mc_skin_color_copy_add_attributes (mc_skin, "dialog", "_default_", "dulinormal",    "underline");
++    mc_skin_color_copy_add_attributes (mc_skin, "dialog", "dfocus",    "dulifocus",     "underline");
++    mc_skin_color_copy_add_attributes (mc_skin, "error",  "_default_", "errdulinormal", "underline");
++    mc_skin_color_copy_add_attributes (mc_skin, "error",  "errdfocus", "errdulifocus",  "underline");
++    mc_skin_color_copy_add_attributes (mc_skin, "menu",   "_default_", "menuuli",       "underline");
++    mc_skin_color_copy_add_attributes (mc_skin, "menu",   "menusel",   "menuulisel",    "underline");
++
+     mc_skin_color_cache_init ();
+     return TRUE;
+ }
+diff --git a/lib/tty/tty-ncurses.c b/lib/tty/tty-ncurses.c
+index 8c385ea..f82ce11 100644
+--- a/lib/tty/tty-ncurses.c
++++ b/lib/tty/tty-ncurses.c
+@@ -569,6 +569,8 @@ tty_print_anychar (int c)
+ void
+ tty_print_alt_char (int c, gboolean single)
+ {
++    if (!double_lines)
++        single = TRUE;
+     if (yx_in_screen (mc_curs_row, mc_curs_col))
+     {
+         if ((chtype) c == ACS_VLINE)
+diff --git a/lib/tty/tty-slang.c b/lib/tty/tty-slang.c
+index 0b16614..381c1db 100644
+--- a/lib/tty/tty-slang.c
++++ b/lib/tty/tty-slang.c
+@@ -630,6 +630,8 @@ tty_print_char (int c)
+ void
+ tty_print_alt_char (int c, gboolean single)
+ {
++    if (!double_lines)
++        single = TRUE;
+ #define DRAW(x, y) (x == y) \
+        ? SLsmg_draw_object (SLsmg_get_row(), SLsmg_get_column(), x) \
+        : SLsmg_write_char ((unsigned int) y)
+diff --git a/lib/tty/tty.c b/lib/tty/tty.c
+index 5fa758b..8bfaa11 100644
+--- a/lib/tty/tty.c
++++ b/lib/tty/tty.c
+@@ -57,6 +57,8 @@ int reset_hp_softkeys = 0;
+ 
+ int mc_tty_frm[MC_TTY_FRM_MAX];
+ 
++gboolean double_lines = FALSE;
++
+ /*** file scope macro definitions ****************************************************************/
+ 
+ /*** file scope type declarations ****************************************************************/
+@@ -199,6 +201,8 @@ tty_draw_box (int y, int x, int ys, int xs, gboolean single)
+     y2 = y + ys;
+     x2 = x + xs;
+ 
++    if (!double_lines)
++        single = TRUE;
+     tty_draw_vline (y, x, mc_tty_frm[single ? MC_TTY_FRM_VERT : MC_TTY_FRM_DVERT], ys);
+     tty_draw_vline (y, x2, mc_tty_frm[single ? MC_TTY_FRM_VERT : MC_TTY_FRM_DVERT], ys);
+     tty_draw_hline (y, x, mc_tty_frm[single ? MC_TTY_FRM_HORIZ : MC_TTY_FRM_DHORIZ], xs);
+diff --git a/lib/tty/tty.h b/lib/tty/tty.h
+index 0450208..a68fdb1 100644
+--- a/lib/tty/tty.h
++++ b/lib/tty/tty.h
+@@ -65,6 +65,8 @@ extern int mc_tty_frm[];
+ 
+ extern char *tty_tgetstr (const char *name);
+ 
++extern gboolean double_lines;
++
+ /* {{{ Input }}} */
+ 
+ extern int reset_hp_softkeys;
+diff --git a/misc/skins/Makefile.am b/misc/skins/Makefile.am
+index 3cf0bdf..5e04e09 100644
+--- a/misc/skins/Makefile.am
++++ b/misc/skins/Makefile.am
+@@ -2,9 +2,7 @@ skindir = $(pkgdatadir)/skins
+ 
+ skin_DATA = \
+ 	dark.ini \
+-	darkfar.ini \
+ 	default.ini \
+-	double-lines.ini \
+ 	featured.ini \
+ 	gotar.ini \
+ 	mc46.ini \
+diff --git a/misc/skins/dark.ini b/misc/skins/dark.ini
+index f586b84..4e7a084 100644
+--- a/misc/skins/dark.ini
++++ b/misc/skins/dark.ini
+@@ -13,16 +13,16 @@
+     leftmiddle = ├
+     rightmiddle = ┤
+     cross = ┼
+-    dhoriz = ─
+-    dvert = │
+-    dlefttop = ┌
+-    drighttop = ┐
+-    dleftbottom = └
+-    drightbottom = ┘
+-    dtopmiddle = ┬
+-    dbottommiddle = ┴
+-    dleftmiddle = ├
+-    drightmiddle = ┤
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+     _default_ = lightgray;black
+diff --git a/misc/skins/darkfar.ini b/misc/skins/darkfar.ini
+deleted file mode 100644
+index 1f05f6b..0000000
+--- a/misc/skins/darkfar.ini
++++ /dev/null
+@@ -1,149 +0,0 @@
+-[skin]
+-    description = Dark Far skin
+-
+-[Lines]
+-    horiz = ─
+-    vert = │
+-    lefttop = ┌
+-    righttop = ┐
+-    leftbottom = └
+-    rightbottom = ┘
+-    topmiddle = ┬
+-    bottommiddle = ┴
+-    leftmiddle = ├
+-    rightmiddle = ┤
+-    cross = ┼
+-    dhoriz = ═
+-    dvert = ║
+-    dlefttop = ╔
+-    drighttop = ╗
+-    dleftbottom = ╚
+-    drightbottom = ╝
+-    dtopmiddle = ╤
+-    dbottommiddle = ╧
+-    dleftmiddle = ╟
+-    drightmiddle = ╢
+-
+-[core]
+-    _default_ = lightgray;black
+-    selected = black;cyan
+-    marked = yellow;black
+-    markselect = yellow;cyan
+-    gauge = white;black
+-    input = black;cyan
+-    inputunchanged = gray;cyan
+-    inputmark = cyan;black
+-    disabled = gray;blue
+-    reverse = black;lightgray
+-    commandlinemark = black;lightgray
+-    header = yellow;black
+-    inputhistory =
+-    commandhistory =
+-
+-[dialog]
+-    _default_ = brightcyan;blue
+-    dfocus = blue;cyan
+-    dhotnormal = white;
+-    dhotfocus = white;cyan
+-    dtitle = white;
+-
+-[error]
+-    _default_ = white;red
+-    errdfocus = black;lightgray
+-    errdhotnormal = yellow;red
+-    errdhotfocus = yellow;lightgray
+-    errdtitle = yellow;red
+-
+-[filehighlight]
+-    directory = white;
+-    executable = brightmagenta;
+-    symlink = lightgray;
+-    hardlink =
+-    stalelink = brightred;
+-    device = brightmagenta;
+-    special = brightblue;
+-    core = red;
+-    temp = gray;
+-    archive = brightgreen;
+-    doc = brown;
+-    source = cyan;
+-    media = green;
+-    graph = brightcyan;
+-    database = brightred;
+-
+-[menu]
+-    _default_ = lightgray;blue
+-    menusel = black;cyan
+-    menuhot = white;blue
+-    menuhotsel = white;cyan
+-    menuinactive = black;lightgray
+-
+-[popupmenu]
+-    _default_ = lightgray;blue
+-    menusel = black;cyan
+-    menutitle = lightgray;blue
+-
+-[buttonbar]
+-    hotkey = red;lightgray
+-    button = black;lightgray
+-
+-[statusbar]
+-    _default_ = black;lightgray
+-
+-[help]
+-    _default_ = black;lightgray
+-    helpitalic = red;lightgray
+-    helpbold = blue;lightgray
+-    helplink = black;cyan
+-    helpslink = yellow;blue
+-    helptitle = blue;lightgray
+-
+-[editor]
+-    _default_ = lightgray;black
+-    editbold = yellow;green
+-    editmarked = black;lightgray
+-    editwhitespace = brightblue;black
+-    editlinestate = white;cyan
+-    bookmark = white;red
+-    bookmarkfound = black;green
+-    editrightmargin = white;blue
+-#    editbg =
+-    editframe = gray;
+-    editframeactive = lightgray;
+-    editframedrag = white;
+-    window-state-char = ↕
+-    window-close-char = ×
+-
+-[viewer]
+-    viewbold = yellow;black
+-    viewunderline = brightred;black
+-    viewselected = yellow;cyan
+-
+-[diffviewer]
+-    added = white;green
+-    changedline = blue;cyan
+-    changednew = red;cyan
+-    changed = white;cyan
+-    removed = white;red
+-    error = red;
+-
+-[widget-common]
+-    sort-sign-up = ↑
+-    sort-sign-down = ↓
+-
+-[widget-panel]
+-    hiddenfiles-sign-show = •
+-    hiddenfiles-sign-hide = ○
+-    history-prev-item-sign = ←
+-    history-next-item-sign = →
+-    history-show-list-sign = ↓
+-    filename-scroll-left-char = «
+-    filename-scroll-right-char = »
+-
+-[widget-scollbar]
+-    first-vert-char = ↑
+-    last-vert-char = ↓
+-    first-horiz-char = «
+-    last-horiz-char = »
+-    current-char = ■
+-    background-char = ▒
+diff --git a/misc/skins/default.ini b/misc/skins/default.ini
+index 117b4db..4806c85 100644
+--- a/misc/skins/default.ini
++++ b/misc/skins/default.ini
+@@ -13,16 +13,16 @@
+     leftmiddle = ├
+     rightmiddle = ┤
+     cross = ┼
+-    dhoriz = ─
+-    dvert = │
+-    dlefttop = ┌
+-    drighttop = ┐
+-    dleftbottom = └
+-    drightbottom = ┘
+-    dtopmiddle = ┬
+-    dbottommiddle = ┴
+-    dleftmiddle = ├
+-    drightmiddle = ┤
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+     _default_ = lightgray;blue
+diff --git a/misc/skins/double-lines.ini b/misc/skins/double-lines.ini
+deleted file mode 100644
+index 7a2f7c9..0000000
+--- a/misc/skins/double-lines.ini
++++ /dev/null
+@@ -1,136 +0,0 @@
+-[skin]
+-    description = Far-like skin
+-
+-[Lines]
+-    horiz = ─
+-    vert = │
+-    lefttop = ┌
+-    righttop = ┐
+-    leftbottom = └
+-    rightbottom = ┘
+-    topmiddle = ┬
+-    bottommiddle = ┴
+-    leftmiddle = ├
+-    rightmiddle = ┤
+-    cross = ┼
+-    dhoriz = ═
+-    dvert = ║
+-    dlefttop = ╔
+-    drighttop = ╗
+-    dleftbottom = ╚
+-    drightbottom = ╝
+-    dtopmiddle = ╤
+-    dbottommiddle = ╧
+-    dleftmiddle = ╟
+-    drightmiddle = ╢
+-
+-[core]
+-    _default_ = lightgray;blue
+-    selected = black;cyan
+-    marked = yellow;blue
+-    markselect = yellow;cyan
+-    gauge = white;black
+-    input = black;cyan
+-    inputunchanged = gray;cyan
+-    inputmark = cyan;black
+-    commandlinemark = black;lightgray
+-    disabled = gray;lightgray
+-    reverse = black;lightgray
+-    header = yellow;blue
+-    inputhistory =
+-    commandhistory =
+-
+-[dialog]
+-    _default_ = black;lightgray
+-    dfocus = black;cyan
+-    dhotnormal = blue;lightgray
+-    dhotfocus = blue;cyan
+-    dtitle = blue;lightgray
+-
+-[error]
+-    _default_ = white;red
+-    errdfocus = black;lightgray
+-    errdhotnormal = yellow;red
+-    errdhotfocus = yellow;lightgray
+-    errdtitle = yellow;red
+-
+-[filehighlight]
+-    directory = white;
+-    executable = brightgreen;
+-    symlink = lightgray;
+-    hardlink =
+-    stalelink = brightred;
+-    device = brightmagenta;
+-    special = black;
+-    core = red;
+-    temp = gray;
+-    archive = brightmagenta;
+-    doc = brown;
+-    source = cyan;
+-    media = green;
+-    graph = brightcyan;
+-    database = brightred;
+-
+-[menu]
+-    _default_ = white;cyan
+-    menusel = white;black
+-    menuhot = yellow;cyan
+-    menuhotsel = yellow;black
+-    menuinactive = lightgray;blue
+-
+-[popupmenu]
+-    _default_ = white;cyan
+-    menusel = white;black
+-    menutitle = white;cyan
+-
+-[buttonbar]
+-    hotkey = lightgray;blue
+-    button = lightgray;blue
+-
+-[statusbar]
+-    _default_ = black;cyan
+-
+-[help]
+-    _default_ = black;lightgray
+-    helpitalic = red;lightgray
+-    helpbold = blue;lightgray
+-    helplink = black;cyan
+-    helpslink = yellow;blue
+-    helptitle = blue;lightgray
+-
+-[editor]
+-    _default_ = lightgray;blue
+-    editbold = yellow;green
+-    editmarked = black;cyan
+-    editwhitespace = brightblue;blue
+-    editlinestate = white;cyan
+-    bookmark = white;red
+-    bookmarkfound = black;green
+-    editrightmargin = brightblue;black
+-#    editbg =
+-#    editframe =
+-    editframeactive = white;
+-    editframedrag = green;
+-    window-state-char = *
+-    window-close-char = X
+-
+-[viewer]
+-    viewbold = yellow;blue
+-    viewunderline = brightred;blue
+-    viewselected = yellow;cyan
+-
+-[diffviewer]
+-    added = white;green
+-    changedline = blue;cyan
+-    changednew = red;cyan
+-    changed = white;cyan
+-    removed = white;red
+-    error = red;lightgray
+-
+-[widget-common]
+-    sort-sign-up = '
+-    sort-sign-down = .
+-
+-[widget-panel]
+-    filename-scroll-left-char = {
+-    filename-scroll-right-char = }
+diff --git a/misc/skins/gotar.ini b/misc/skins/gotar.ini
+index c0aa35b..3feb1eb 100644
+--- a/misc/skins/gotar.ini
++++ b/misc/skins/gotar.ini
+@@ -13,16 +13,16 @@
+     leftmiddle = ├
+     rightmiddle = ┤
+     cross = ┼
+-    dhoriz = ─
+-    dvert = │
+-    dlefttop = ┌
+-    drighttop = ┐
+-    dleftbottom = └
+-    drightbottom = ┘
+-    dtopmiddle = ┬
+-    dbottommiddle = ┴
+-    dleftmiddle = ├
+-    drightmiddle = ┤
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+     _default_ = lightgray;black
+diff --git a/misc/skins/mc46.ini b/misc/skins/mc46.ini
+index ed80535..cd9f1e0 100644
+--- a/misc/skins/mc46.ini
++++ b/misc/skins/mc46.ini
+@@ -13,16 +13,16 @@
+     leftmiddle = ├
+     rightmiddle = ┤
+     cross = ┼
+-    dhoriz = ─
+-    dvert = │
+-    dlefttop = ┌
+-    drighttop = ┐
+-    dleftbottom = └
+-    drightbottom = ┘
+-    dtopmiddle = ┬
+-    dbottommiddle = ┴
+-    dleftmiddle = ├
+-    drightmiddle = ┤
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+     _default_ = lightgray;blue
+diff --git a/misc/skins/nicedark.ini b/misc/skins/nicedark.ini
+index 22a60fa..2c324eb 100644
+--- a/misc/skins/nicedark.ini
++++ b/misc/skins/nicedark.ini
+@@ -13,16 +13,16 @@
+     leftmiddle = ├
+     rightmiddle = ┤
+     cross = ┼
+-    dhoriz = ─
+-    dvert = │
+-    dlefttop = ┌
+-    drighttop = ┐
+-    dleftbottom = └
+-    drightbottom = ┘
+-    dtopmiddle = ┬
+-    dbottommiddle = ┴
+-    dleftmiddle = ├
+-    drightmiddle = ┤
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+     _default_ = lightgray;black
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index 456f7c8..6c3e253 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -67,16 +67,16 @@
+     leftmiddle = ├
+     rightmiddle = ┤
+     cross = ┼
+-    dhoriz = ─
+-    dvert = │
+-    dlefttop = ┌
+-    drighttop = ┐
+-    dleftbottom = └
+-    drightbottom = ┘
+-    dtopmiddle = ┬
+-    dbottommiddle = ┴
+-    dleftmiddle = ├
+-    drightmiddle = ┤
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+     _default_ = black;rgb554
+@@ -95,15 +95,15 @@
+ [dialog]
+     _default_ = black;rgb553
+     dfocus = ;rgb452
+-    dhotnormal = ;;underline
+-    dhotfocus = ;rgb452;underline
++    dhotnormal = red;
++    dhotfocus = red;rgb452
+     dtitle = ;;underline
+ 
+ [error]
+     _default_ = rgb554;rgb320;bold
+     errdfocus = black;rgb452;bold
+-    errdhotnormal = ;;bold+underline
+-    errdhotfocus = black;rgb452;bold+underline
++    errdhotnormal = rgb341;;bold
++    errdhotfocus = red;rgb452;bold
+     errdtitle = ;;bold+underline
+ 
+ [filehighlight]
+@@ -127,8 +127,8 @@
+ [menu]
+     _default_ = black;rgb452
+     menusel = ;rgb551
+-    menuhot = ;;underline
+-    menuhotsel = ;rgb551;underline
++    menuhot = red;
++    menuhotsel = red;rgb551
+     menuinactive =
+ 
+ [popupmenu]
+diff --git a/misc/skins/xoria256.ini b/misc/skins/xoria256.ini
+index 656f996..1442070 100644
+--- a/misc/skins/xoria256.ini
++++ b/misc/skins/xoria256.ini
+@@ -16,29 +16,6 @@
+     description = Xoria256
+     256colors = true
+ 
+-# [Lines]
+-#     horiz = ─
+-#     vert = │
+-#     lefttop = ┌
+-#     righttop = ┐
+-#     leftbottom = └
+-#     rightbottom = ┘
+-#     topmiddle = ┬
+-#     bottommiddle = ┴
+-#     leftmiddle = ├
+-#     rightmiddle = ┤
+-#     cross = ┼
+-#     dhoriz = ─
+-#     dvert = │
+-#     dlefttop = ┌
+-#     drighttop = ┐
+-#     dleftbottom = └
+-#     drightbottom = ┘
+-#     dtopmiddle = ┬
+-#     dbottommiddle = ┴
+-#     dleftmiddle = ├
+-#     drightmiddle = ┤
+-
+ [Lines]
+     horiz = ─
+     vert = │
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 026f5b3..f5111f1 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -94,6 +94,7 @@
+ /*** file scope variables ************************************************************************/
+ 
+ unsigned long configure_old_esc_mode_id, configure_time_out_id;
++unsigned long configure_double_lines_id, configure_underline_hotkeys_id;
+ 
+ /* Index in list_types[] for "user defined" */
+ static const int panel_listing_user_idx = 3;
+@@ -614,9 +615,40 @@ sel_skin_button (WButton * button, int action)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static cb_ret_t
++appearance_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    switch (msg)
++    {
++    case MSG_ACTION:
++        /* message from checkbuttons */
++        if (sender != NULL)
++        {
++            if (sender->id == configure_double_lines_id) {
++                double_lines = CHECK (sender)->state & C_BOOL;
++            } else if (sender->id == configure_underline_hotkeys_id) {
++                underline_hotkeys = CHECK (sender)->state & C_BOOL;
++                mc_skin_color_cache_init ();
++                dlg_set_default_colors ();
++            }
++            repaint_screen ();
++            return MSG_HANDLED;
++        }
++        return MSG_NOT_HANDLED;
++
++    default:
++        return dlg_default_callback (w, sender, msg, parm, data);
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ appearance_box (void)
+ {
++    gboolean old_double_lines = double_lines;
++    gboolean old_underline_hotkeys = underline_hotkeys;
++
+     current_skin_name = g_strdup (mc_skin__default.name);
+     skin_names = mc_skin_list ();
+ 
+@@ -629,6 +661,9 @@ appearance_box (void)
+                 QUICK_BUTTON (str_fit_to_term (skin_name_to_label (current_skin_name), 20, J_LEFT_FIT),
+                               B_USER, sel_skin_button, &skin_name_id),
+             QUICK_STOP_COLUMNS,
++            QUICK_SEPARATOR (TRUE),
++            QUICK_CHECKBOX (N_("&Double lines"), &double_lines, &configure_double_lines_id),
++            QUICK_CHECKBOX (N_("&Underlined hotkeys"), &underline_hotkeys, &configure_underline_hotkeys_id),
+             QUICK_BUTTONS_OK_CANCEL,
+             QUICK_END
+             /* *INDENT-ON* */
+@@ -637,13 +672,16 @@ appearance_box (void)
+         quick_dialog_t qdlg = {
+             -1, -1, 54,
+             N_("Appearance"), "[Appearance]",
+-            quick_widgets, dlg_default_callback, NULL
++            quick_widgets, appearance_callback, NULL
+         };
+ 
+-        if (quick_dialog (&qdlg) == B_ENTER)
++        if (quick_dialog (&qdlg) == B_ENTER) {
+             mc_config_set_string (mc_main_config, CONFIG_APP_SECTION, "skin", current_skin_name);
+-        else
++        } else {
++            double_lines = old_double_lines;
++            underline_hotkeys = old_underline_hotkeys;
+             skin_apply (NULL);
++        }
+     }
+ 
+     g_free (current_skin_name);
+diff --git a/src/setup.c b/src/setup.c
+index 5cd58b3..4edb537 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -38,6 +38,7 @@
+ #include "lib/tty/key.h"
+ #include "lib/mcconfig.h"
+ #include "lib/fileloc.h"
++#include "lib/skin.h"
+ #include "lib/timefmt.h"
+ #include "lib/util.h"
+ #include "lib/widget.h"
+@@ -363,6 +364,8 @@ static const struct
+     { "auto_fill_mkdir_name", &auto_fill_mkdir_name },
+     { "copymove_persistent_attr", &setup_copymove_persistent_attr },
+     { "select_flags", &select_flags },
++    { "double_lines", &double_lines },
++    { "underline_hotkeys", &underline_hotkeys },
+     { NULL, NULL }
+ };
+ 

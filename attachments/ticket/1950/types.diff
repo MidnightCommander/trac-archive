@@ -1,0 +1,1155 @@
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 3d60d90..88c81f7 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -1458,7 +1458,7 @@ editcmd_find (WEdit *edit, gsize *len)
+     if (edit->replace_backwards) {
+         search_end = end_mark;
+         while ((int) search_start >= start_mark) {
+-            if (search_end > search_start + edit->search->original_len
++            if (search_end > search_start + (off_t)(edit->search->original_len)
+                 && mc_search_is_fixed_search_str(edit->search)) {
+                 search_end = search_start + edit->search->original_len;
+             }
+@@ -2397,7 +2397,7 @@ static gboolean is_break_char(char c)
+ static int edit_find_word_start (WEdit *edit, long *word_start, gsize *word_len)
+ {
+     int c, last;
+-    gsize i;
++    gssize i;
+ 
+ /* return if at begin of file */
+     if (edit->curs1 <= 0)
+diff --git a/edit/editdraw.c b/edit/editdraw.c
+index 15fb0c8..e649a07 100644
+--- a/edit/editdraw.c
++++ b/edit/editdraw.c
+@@ -281,6 +281,7 @@ static inline void
+ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+ 		 long end_col, struct line_s line[], char *status)
+ {
++    int i = -1;
+     struct line_s *p;
+ 
+     int x = start_col_real;
+@@ -306,8 +307,7 @@ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+                         end_col + 1 - start_col);
+     }
+ 
+-    if (option_line_state) {
+-        int i;
++    if (option_line_state) {        
+         for (i = 0; i < LINE_STATE_WIDTH; i++)
+             if (status[i] == '\0')
+                 status[i] = ' ';
+@@ -319,7 +319,7 @@ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+ 
+     edit_move (x1 + FONT_OFFSET_X, y + FONT_OFFSET_Y);
+     p = line;
+-    int i = 1;
++    i = 1;
+     while (p->ch) {
+ 	int style;
+ 	unsigned int textchar;
+diff --git a/src/layout.c b/src/layout.c
+index 5ee9fe3..e3a0cba 100644
+--- a/src/layout.c
++++ b/src/layout.c
+@@ -824,7 +824,7 @@ void print_vfs_message (const char *msg, ...)
+ void rotate_dash (void)
+ {
+     static const char rotating_dash [] = "|/-\\";
+-    static size_t pos = 0;
++    static unsigned short pos = 0;
+ 
+     if (!nice_rotating_dash || (ok_to_refresh <= 0))
+ 	return;
+diff --git a/src/main.c b/src/main.c
+index a12fb12..13a84dc 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -2093,10 +2093,12 @@ mc_main__setup_by_args (int argc, char *argv[])
+ int
+ main (int argc, char *argv[])
+ {
++    setbuf(stdout, (char *)0); /* Flushing Output Old Buffer */
++
+     struct stat s;
+     char *mc_dir;
+     GError *error = NULL;
+diff --git a/src/search/glob.c b/src/search/glob.c
+index 18ed322..46fa654 100644
+--- a/src/search/glob.c
++++ b/src/search/glob.c
+@@ -124,7 +124,7 @@ mc_search__translate_replace_glob_to_regex (gchar *str)
+ 	case '*':
+ 	case '?':
+ 	    g_string_append_c (buff, '\\');
+-	    c = ++cnt;
++	    c = (char)(++cnt);
+ 	    break;
+ 	/* breaks copying: mc uses "\0" internally, it must not be changed */
+ 	/*case '\\':*/
+diff --git a/src/setup.c b/src/setup.c
+index 122b9b7..7757bb0 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -266,7 +266,7 @@ panel_save_setup (struct WPanel *panel, const char *section)
+     mc_config_set_string(mc_panels_config, section, "user_format", panel->user_format);
+ 
+     for (i = 0; i < LIST_TYPES; i++){
+-	buffer = g_strdup_printf("user_status%d", i);
++	buffer = g_strdup_printf("user_status%zu", i);  /* %zu - size_t, %zd - ssize_t */
+ 	mc_config_set_string(mc_panels_config, section, buffer, panel->user_status_format [i]);
+ 	g_free(buffer);
+     }
+@@ -435,7 +435,7 @@ panel_load_setup (WPanel *panel, const char *section)
+ 
+     for (i = 0; i < LIST_TYPES; i++){
+ 	g_free (panel->user_status_format [i]);
+-	buffer = g_strdup_printf("user_status%d",i);
++	buffer = g_strdup_printf("user_status%zu",i);
+ 	panel->user_status_format [i] =
+ 	    mc_config_get_string(mc_panels_config, section, buffer, DEFAULT_USER_FORMAT);
+         g_free(buffer);
+diff --git a/src/strutil.h b/src/strutil.h
+index e379b55..6a6e2cf 100644
+--- a/src/strutil.h
++++ b/src/strutil.h
+@@ -131,7 +131,7 @@ struct str_class {
+     char *(*create_key_for_filename) (const char *text, int case_sen);  /*I*/
+     int (*key_collate) (const char *t1, const char *t2, int case_sen);  /*I*/
+     void (*release_key) (char *key, int case_sen);                      /*I*/
+-};
++} __attribute__((packed, aligned(sizeof(void)))); /* FIXME: Need more testing or not need */
+ 
+ struct str_class str_utf8_init (void);
+ struct str_class str_8bit_init (void);
+diff --git a/src/strutilutf8.c b/src/strutilutf8.c
+index 90bd542..2e82a92 100644
+--- a/src/strutilutf8.c
++++ b/src/strutilutf8.c
+@@ -37,13 +37,19 @@
+ 
+ static const char replch[] = "\xEF\xBF\xBD";
+ 
+-static int
+-str_unichar_iscombiningmark (gunichar uni)
++static inline int __attribute__((always_inline))
++str_unichar_iscombiningmark(gunichar uni)
+ {
+-    int type = g_unichar_type (uni);
+-    return (type == G_UNICODE_COMBINING_MARK)
+-	|| (type == G_UNICODE_ENCLOSING_MARK)
+-	|| (type == G_UNICODE_NON_SPACING_MARK);
++	GUnicodeType type = g_unichar_type(uni);
++
++	switch (type) {
++		case G_UNICODE_COMBINING_MARK:   break;
++		case G_UNICODE_ENCLOSING_MARK:   break;
++		case G_UNICODE_NON_SPACING_MARK: break;
++		default: 
++		     type = G_UNICODE_CONTROL;   break;
++	}
++  return ((int)type);
+ }
+ 
+ static void
+diff --git a/src/tty/color.c b/src/tty/color.c
+index e9ccf1c..26b5319 100644
+--- a/src/tty/color.c
++++ b/src/tty/color.c
+@@ -85,7 +85,7 @@ tty_color_free_condition_cb (gpointer key, gpointer value, gpointer user_data)
+     tty_color_pair_t *mc_color_pair;
+     (void) key;
+ 
+-    is_temp_color = (gboolean) user_data;
++    is_temp_color = (gssize) user_data;
+     mc_color_pair = (tty_color_pair_t *) value;
+     return (mc_color_pair->is_temp == is_temp_color);
+ }
+@@ -93,7 +93,7 @@ tty_color_free_condition_cb (gpointer key, gpointer value, gpointer user_data)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-tty_color_free_all (gboolean is_temp_color)
++tty_color_free_all (gssize is_temp_color)
+ {
+     g_hash_table_foreach_remove (mc_tty_color__hashtable, tty_color_free_condition_cb,
+                                  (gpointer) is_temp_color);
+@@ -104,11 +104,11 @@ tty_color_free_all (gboolean is_temp_color)
+ static gboolean
+ tty_color_get_next_cpn_cb (gpointer key, gpointer value, gpointer user_data)
+ {
+-    int cp;
++    ssize_t cp;
+     tty_color_pair_t *mc_color_pair;
+     (void) key;
+ 
+-    cp = (int) user_data;
++    cp = (ssize_t) user_data;
+     mc_color_pair = (tty_color_pair_t *) value;
+ 
+     if (cp == mc_color_pair->pair_index)
+@@ -119,11 +119,11 @@ tty_color_get_next_cpn_cb (gpointer key, gpointer value, gpointer user_data)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static int
++static gssize
+ tty_color_get_next__color_pair_number ()
+ {
+     int cp_count = g_hash_table_size (mc_tty_color__hashtable);
+-    int cp = 0;
++    gssize cp = 0;
+ 
+     for (cp = 0; cp < cp_count; cp++) {
+         if (g_hash_table_find (mc_tty_color__hashtable, tty_color_get_next_cpn_cb, (gpointer) cp) ==
+diff --git a/src/tty/mouse.c b/src/tty/mouse.c
+index a811c05..65b514f 100644
+--- a/src/tty/mouse.c
++++ b/src/tty/mouse.c
+@@ -41,12 +41,15 @@
+ gboolean mouse_enabled = FALSE;
+ const char *xmouse_seq;
+ 
+-void
+-show_mouse_pointer (int x, int y)
+-{
+ #ifdef HAVE_LIBGPM
++void show_mouse_pointer (int x, int y)
++{
+     if (use_mouse_p == MOUSE_GPM)
+         Gpm_DrawPointer (x, y, gpm_consolefd);
++#else
++void show_mouse_pointer (int x __attribute__((unused)), /* unused variables without LIBGPM */
++			  int y __attribute__((unused))) 
++{
+ #endif /* HAVE_LIBGPM */
+ }
+ 
+diff --git a/src/util.c b/src/util.c
+index 37f3e8e..63c8ee9 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -1029,15 +1029,15 @@ void
+     for (;*p ; p++)
+         *p = 0;
+     g_free (passwd);
++    passwd = NULL; p = NULL;  /* adanced security :) */
+ }
+ 
+ /* Convert "\E" -> esc character and ^x to control-x key and ^^ to ^ key */
+diff --git a/src/viewer/datasource.c b/src/viewer/datasource.c
+index d2d689a..b65e7a4 100644
+--- a/src/viewer/datasource.c
++++ b/src/viewer/datasource.c
+@@ -134,7 +134,7 @@ char *
+ mcview_get_ptr_string (mcview_t * view, off_t byte_index)
+ {
+     assert (view->datasource == DS_STRING);
+-    if (byte_index < view->ds_string_len)
++    if (byte_index < (off_t )view->ds_string_len)
+         return (char *) (view->ds_string_data + byte_index);
+     return NULL;
+ }
+@@ -199,7 +199,7 @@ gboolean
+ mcview_get_byte_string (mcview_t * view, off_t byte_index, int *retval)
+ {
+     assert (view->datasource == DS_STRING);
+-    if (byte_index < view->ds_string_len) {
++    if (byte_index < (off_t )view->ds_string_len) {
+         if (retval)
+             *retval = view->ds_string_data[byte_index];
+         return TRUE;
+@@ -267,7 +267,7 @@ mcview_file_load_data (mcview_t * view, off_t byte_index)
+         bytes_read += (size_t) res;
+     }
+     view->ds_file_offset = blockoffset;
+-    if (bytes_read > view->ds_file_filesize - view->ds_file_offset) {
++    if ((off_t )bytes_read > view->ds_file_filesize - view->ds_file_offset) {
+         /* the file has grown in the meantime -- stick to the old size */
+         view->ds_file_datalen = view->ds_file_filesize - view->ds_file_offset;
+     } else {
+diff --git a/src/viewer/growbuf.c b/src/viewer/growbuf.c
+index 3923fa5..4c64922 100644
+--- a/src/viewer/growbuf.c
++++ b/src/viewer/growbuf.c
+@@ -178,7 +178,7 @@ mcview_get_byte_growing_buffer (mcview_t * view, off_t byte_index, int *retval)
+ 
+     assert (view->growbuf_in_use);
+ 
+-    if ((size_t) pageno != pageno)
++    if ( ((size_t) pageno - pageno) != 0 ) /* To not compare sing. and unsing. vars */
+         return FALSE;
+ 
+     mcview_growbuf_read_until (view, byte_index + 1);
+@@ -189,7 +189,7 @@ mcview_get_byte_growing_buffer (mcview_t * view, off_t byte_index, int *retval)
+             *retval = *((byte *) (g_ptr_array_index(view->growbuf_blockptr, pageno) + pageindex));
+         return TRUE;
+     }
+-    if (pageno == view->growbuf_blockptr->len - 1 && pageindex < view->growbuf_lastindex) {
++    if (pageno == (view->growbuf_blockptr->len - 1) && pageindex < view->growbuf_lastindex) {
+         if (retval)
+             *retval = *((byte *) (g_ptr_array_index(view->growbuf_blockptr, pageno) + pageindex));
+         return TRUE;
+@@ -207,7 +207,7 @@ mcview_get_ptr_growing_buffer (mcview_t * view, off_t byte_index)
+ 
+     assert (view->growbuf_in_use);
+ 
+-    if ((size_t) pageno != pageno)
++    if (((size_t) pageno - pageno) != 0) /* To not compare sing. and unsing. vars */
+         return NULL;
+ 
+     mcview_growbuf_read_until (view, byte_index + 1);
+@@ -215,7 +215,7 @@ mcview_get_ptr_growing_buffer (mcview_t * view, off_t byte_index)
+         return NULL;
+     if (pageno < view->growbuf_blockptr->len - 1)
+         return (char *) (g_ptr_array_index(view->growbuf_blockptr, pageno) + pageindex);
+-    if (pageno == view->growbuf_blockptr->len - 1 && pageindex < view->growbuf_lastindex)
++    if (pageno == (view->growbuf_blockptr->len - 1) && pageindex < view->growbuf_lastindex)
+         return (char *) (g_ptr_array_index(view->growbuf_blockptr, pageno) + pageindex);
+     return NULL;
+ }
+diff --git a/src/viewer/inlines.h b/src/viewer/inlines.h
+index 224f8e6..fc80e78 100644
+--- a/src/viewer/inlines.h
++++ b/src/viewer/inlines.h
+@@ -70,7 +70,7 @@ mcview_may_still_grow (mcview_t * view)
+ static inline gboolean
+ mcview_already_loaded (off_t offset, off_t idx, size_t size)
+ {
+-    return (offset <= idx && idx - offset < size);
++    return (offset <= idx && idx - offset < (off_t)size);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/viewer/search.c b/src/viewer/search.c
+index 63d639e..67e31a0 100644
+--- a/src/viewer/search.c
++++ b/src/viewer/search.c
+@@ -89,7 +89,7 @@ mcview_find (mcview_t * view, gsize search_start, gsize * len)
+                 search_end = search_start + view->search->original_len;
+ 
+             if (mc_search_run (view->search, (void *) view, search_start, search_end, len)
+-                && view->search->normal_offset == search_start)
++                && view->search->normal_offset == (off_t)search_start)
+                 return TRUE;
+ 
+             search_start--;
+@@ -184,7 +184,7 @@ mcview_search_update_cmd_callback (const void *user_data, gsize char_offset)
+ {
+     mcview_t *view = (mcview_t *) user_data;
+ 
+-    if (char_offset >= view->update_activate) {
++    if ((off_t)char_offset >= view->update_activate) {
+         view->update_activate += view->update_steps;
+         if (verbose) {
+             mcview_percent (view, char_offset);
+diff --git a/src/wtools.c b/src/wtools.c
+index b267c87..0ebef63 100644
+--- a/src/wtools.c
++++ b/src/wtools.c
+@@ -327,11 +327,6 @@ message (int flags, const char *title, const char *text, ...)
+ {
+     char *p;
+     va_list ap;
+-    union {
+-	void *p;
+-	void (*f) (int, int *, char *, const char *);
+-    } func;
+-
+     va_start (ap, text);
+     p = g_strdup_vprintf (text, ap);
+     va_end (ap);
+@@ -340,6 +335,11 @@ message (int flags, const char *title, const char *text, ...)
+ 	title = _("Error");
+ 
+ #ifdef WITH_BACKGROUND
++    union {
++	void *p;
++	void (*f) (int, int *, char *, const char *);
++    } func;
++    
+     if (we_are_background) {
+ 	func.f = bg_message;
+ 	parent_call (func.p, NULL, 3, sizeof (flags), &flags,
+@@ -585,12 +585,13 @@ char *
+ input_dialog_help (const char *header, const char *text, const char *help,
+ 		   const char *history_name, const char *def_text)
+ {
++#ifdef WITH_BACKGROUND
+     union {
+ 	void *p;
+ 	char * (*f) (const char *, const char *, const char *,
+ 		      const char *, const char *);
+     } func;
+-#ifdef WITH_BACKGROUND
++
+     if (we_are_background)
+     {
+ 	func.f = fg_input_dialog_help;
+diff --git a/vfs/cpio.c b/vfs/cpio.c
+index 0af9cda..adab951 100644
+--- a/vfs/cpio.c
++++ b/vfs/cpio.c
+@@ -95,18 +95,17 @@ struct new_cpio_header
+ struct defer_inode {
+     struct defer_inode *next;
+     unsigned long inumber;
+-    unsigned short device;
++    dev_t device;
+     struct vfs_s_inode *inode;
+ };
+ 
+-/* FIXME: should be off_t instead of int. */
+-static int cpio_position;
++static off_t cpio_position;
+ 
+-static int cpio_find_head(struct vfs_class *me, struct vfs_s_super *super);
++static ssize_t cpio_find_head(struct vfs_class *me, struct vfs_s_super *super);
+ static ssize_t cpio_read_bin_head(struct vfs_class *me, struct vfs_s_super *super);
+ static ssize_t cpio_read_oldc_head(struct vfs_class *me, struct vfs_s_super *super);
+ static ssize_t cpio_read_crc_head(struct vfs_class *me, struct vfs_s_super *super);
+-static ssize_t cpio_read(void *fh, char *buffer, int count);
++static ssize_t cpio_read(void *fh, char *buffer, size_t count);
+ 
+ #define CPIO_POS(super) cpio_position
+ /* If some time reentrancy should be needed change it to */
+@@ -123,7 +122,7 @@ cpio_defer_find (struct defer_inode *l, struct defer_inode *i)
+     return l;
+ }
+ 
+-static int cpio_skip_padding(struct vfs_s_super *super)
++static ssize_t cpio_skip_padding(struct vfs_s_super *super)
+ {
+     switch(super->u.arch.type) {
+     case CPIO_BIN:
+@@ -229,10 +228,10 @@ static ssize_t cpio_read_head(struct vfs_class *me, struct vfs_s_super *super)
+ #define SEEKBACK CPIO_SEEK_CUR(super, ptr - top)
+ #define RETURN(x) return(super->u.arch.type = (x))
+ #define TYPEIS(x) ((super->u.arch.type == CPIO_UNKNOWN) || (super->u.arch.type == (x)))
+-static int cpio_find_head(struct vfs_class *me, struct vfs_s_super *super)
++static ssize_t cpio_find_head(struct vfs_class *me, struct vfs_s_super *super)
+ {
+     char buf[256];
+-    int ptr = 0;
++    ssize_t ptr = 0;
+     ssize_t top;
+     ssize_t tmp;
+ 
+@@ -594,7 +593,7 @@ static int
+ cpio_open_archive (struct vfs_class *me, struct vfs_s_super *super,
+ 		   const char *name, char *op)
+ {
+-    int status = STATUS_START;
++    ssize_t status = STATUS_START;
+ 
+     (void) op;
+ 
+@@ -657,8 +656,9 @@ cpio_super_same (struct vfs_class *me, struct vfs_s_super *parc,
+     return 1;
+ }
+ 
+-static ssize_t cpio_read(void *fh, char *buffer, int count)
++static ssize_t cpio_read(void *fh, char *buffer, size_t count)
+ {
++    ssize_t cnt; /* Internal counter, for unbreak signesss */
+     off_t begin = FH->ino->data_offset;
+     int fd = FH_SUPER->u.arch.fd;
+     struct vfs_class *me = FH_SUPER->me;
+@@ -666,12 +666,12 @@ static ssize_t cpio_read(void *fh, char *buffer, int count)
+     if (mc_lseek (fd, begin + FH->pos, SEEK_SET) != 
+         begin + FH->pos) ERRNOR (EIO, -1);
+ 
+-    count = MIN(count, FH->ino->st.st_size - FH->pos);
++    count = MIN(count, (size_t)(FH->ino->st.st_size - FH->pos));
+ 
+-    if ((count = mc_read (fd, buffer, count)) == -1) ERRNOR (errno, -1);
++    if ((cnt = mc_read (fd, buffer, count)) == -1) ERRNOR (errno, -1);
+ 
+-    FH->pos += count;
+-    return count;
++    FH->pos += cnt;
++    return cnt;
+ }
+ 
+ static int cpio_fh_open(struct vfs_class *me, struct vfs_s_fh *fh, int flags, int mode)
+diff --git a/vfs/direntry.c b/vfs/direntry.c
+index e608d5e..dd78217 100644
+--- a/vfs/direntry.c
++++ b/vfs/direntry.c
+@@ -814,9 +814,9 @@ vfs_s_open (struct vfs_class *me, const char *file, int flags, int mode)
+ }
+ 
+ static ssize_t
+-vfs_s_read (void *fh, char *buffer, int count)
++vfs_s_read (void *fh, char *buffer, size_t count)
+ {
+-    int n;
++    ssize_t n;
+     struct vfs_class *me = FH_SUPER->me;
+ 
+     if (FH->linear == LS_LINEAR_PREOPEN) {
+@@ -841,9 +841,9 @@ vfs_s_read (void *fh, char *buffer, int count)
+ }
+ 
+ static ssize_t
+-vfs_s_write (void *fh, const char *buffer, int count)
++vfs_s_write (void *fh, const char *buffer, size_t count)
+ {
+-    int n;
++    ssize_t n;
+     struct vfs_class *me = FH_SUPER->me;
+     
+     if (FH->linear)
+diff --git a/vfs/extfs.c b/vfs/extfs.c
+index d30774e..bbd3994 100644
+--- a/vfs/extfs.c
++++ b/vfs/extfs.c
+@@ -742,7 +742,7 @@ extfs_open (struct vfs_class *me, const char *file, int flags, int mode)
+     return extfs_info;
+ }
+ 
+-static ssize_t extfs_read (void *data, char *buffer, int count)
++static ssize_t extfs_read (void *data, char *buffer, size_t count)
+ {
+     struct pseudofile *file = (struct pseudofile *)data;
+ 
+@@ -1026,7 +1026,7 @@ cleanup:
+     return result;
+ }
+ 
+-static int extfs_chown (struct vfs_class *me, const char *path, int owner, int group)
++static int extfs_chown (struct vfs_class *me, const char *path, uid_t owner, gid_t group)
+ {
+     (void) me;
+     (void) path;
+@@ -1035,7 +1035,7 @@ static int extfs_chown (struct vfs_class *me, const char *path, int owner, int g
+     return 0;
+ }
+ 
+-static int extfs_chmod (struct vfs_class *me, const char *path, int mode)
++static int extfs_chmod (struct vfs_class *me, const char *path, mode_t mode)
+ {
+     (void) me;
+     (void) path;
+@@ -1043,7 +1043,7 @@ static int extfs_chmod (struct vfs_class *me, const char *path, int mode)
+     return 0;
+ }
+ 
+-static ssize_t extfs_write (void *data, const char *buf, int nbyte)
++static ssize_t extfs_write (void *data, const char *buf, size_t nbyte)
+ {
+     struct pseudofile *file = (struct pseudofile *)data;
+ 
+diff --git a/vfs/fish.c b/vfs/fish.c
+index 04c8527..df425d2 100644
+--- a/vfs/fish.c
++++ b/vfs/fish.c
+@@ -867,7 +867,7 @@ fish_linear_abort (struct vfs_class *me, struct vfs_s_fh *fh)
+ {
+     struct vfs_s_super *super = FH_SUPER;
+     char buffer[8192];
+-    int n;
++    ssize_t n;
+ 
+     print_vfs_message( _("Aborting transfer...") );
+     do {
+@@ -885,12 +885,14 @@ fish_linear_abort (struct vfs_class *me, struct vfs_s_fh *fh)
+         print_vfs_message( _("Aborted transfer would be successful.") );
+ }
+ 
+-static int
+-fish_linear_read (struct vfs_class *me, struct vfs_s_fh *fh, void *buf, int len)
++static ssize_t
++fish_linear_read (struct vfs_class *me, struct vfs_s_fh *fh, void *buf, size_t len)
+ {
+     struct vfs_s_super *super = FH_SUPER;
+-    int n = 0;
+-    len = MIN( fh->u.fish.total - fh->u.fish.got, len );
++    ssize_t n = 0;
++    
++    len = MIN( (size_t)(fh->u.fish.total - fh->u.fish.got), len );
++    
+     tty_disable_interrupt_key ();
+     while (len && ((n = read (SUP.sockr, buf, len))<0)) {
+         if ((errno == EINTR) && !tty_got_interrupt ())
+@@ -972,7 +974,7 @@ fish_send_command(struct vfs_class *me, struct vfs_s_super *super, const char *c
+     return fish_send_command(me, super, buf, flags);
+ 
+ static int
+-fish_chmod (struct vfs_class *me, const char *path, int mode)
++fish_chmod (struct vfs_class *me, const char *path, mode_t mode)
+ {
+     PREFIX
+     g_snprintf(buf, sizeof(buf), "#CHMOD %4.4o /%s\n"
+@@ -1043,7 +1045,7 @@ static int fish_symlink (struct vfs_class *me, const char *setto, const char *pa
+ }
+ 
+ static int
+-fish_chown (struct vfs_class *me, const char *path, int owner, int group)
++fish_chown (struct vfs_class *me, const char *path, uid_t owner, gid_t group)
+ {
+     char *sowner, *sgroup;
+     struct passwd *pw;
+diff --git a/vfs/ftpfs.c b/vfs/ftpfs.c
+index c4be6bf..c042153 100644
+--- a/vfs/ftpfs.c
++++ b/vfs/ftpfs.c
+@@ -455,7 +455,7 @@ static int
+ ftpfs_login_server (struct vfs_class *me, struct vfs_s_super *super,
+ 		    const char *netrcpass)
+ {
+-    char *pass;
++    volatile char *pass;
+     char *op;
+     char *name;			/* login user name */
+     int anon = 0;
+@@ -478,7 +478,7 @@ ftpfs_login_server (struct vfs_class *me, struct vfs_s_super *super,
+ 	p = g_strconcat (_(" FTP: Password required for "),
+                         SUP.user, " ", (char *) NULL);
+ 	op = vfs_get_password (p);
+-	g_free (p);
++	g_free (p); p = NULL; /* Advanced security :) */
+ 	if (op == NULL)
+ 	    ERRNOR (EPERM, 0);
+ 	SUP.password = g_strdup (op);
+ static struct no_proxy_entry {
+@@ -1554,10 +1554,10 @@ ftpfs_linear_start (struct vfs_class *me, struct vfs_s_fh *fh, off_t offset)
+     return 1;
+ }
+ 
+-static int
+-ftpfs_linear_read (struct vfs_class *me, struct vfs_s_fh *fh, void *buf, int len)
++static ssize_t
++ftpfs_linear_read (struct vfs_class *me, struct vfs_s_fh *fh, void *buf, size_t len)
+ {
+-    int n;
++    ssize_t n;
+     struct vfs_s_super *super = FH_SUPER;
+ 
+     while ((n = read (FH_SOCK, buf, len))<0) {
+@@ -1660,7 +1660,7 @@ ftpfs_init_passwd(void)
+     ftpfs_anonymous_passwd = g_strdup ("anonymous@");
+ }
+ 
+-static int ftpfs_chmod (struct vfs_class *me, const char *path, int mode)
++static int ftpfs_chmod (struct vfs_class *me, const char *path, mode_t mode)
+ {
+     char buf[BUF_SMALL];
+     int ret;
+@@ -1677,7 +1677,7 @@ static int ftpfs_chmod (struct vfs_class *me, const char *path, int mode)
+     return ret;
+ }
+ 
+-static int ftpfs_chown (struct vfs_class *me, const char *path, int owner, int group)
++static int ftpfs_chown (struct vfs_class *me, const char *path, uid_t owner, gid_t group)
+ {
+ #if 0
+     ftpfs_errno = EPERM;
+diff --git a/vfs/local.c b/vfs/local.c
+index e136c07..2fb0015 100644
+--- a/vfs/local.c
++++ b/vfs/local.c
+@@ -48,9 +48,9 @@ local_open (struct vfs_class *me, const char *file, int flags, int mode)
+ }
+
+ ssize_t
+-local_read (void *data, char *buffer, int count)
++local_read (void *data, char *buffer, size_t count)
+ {
+-    int n;
++    ssize_t n;
+
+     if (!data)
+ 	return -1;
+@@ -149,7 +149,7 @@ local_fstat (void *data, struct stat *buf)
+ }
+ 
+ static int
+-local_chmod (struct vfs_class *me, const char *path, int mode)
++local_chmod (struct vfs_class *me, const char *path, mode_t mode)
+ {
+     (void) me;
+
+@@ -157,7 +157,7 @@ local_chmod (struct vfs_class *me, const char *path, int mode)
+ }
+
+ static int
+-local_chown (struct vfs_class *me, const char *path, int owner, int group)
++local_chown (struct vfs_class *me, const char *path, uid_t owner, gid_t group)
+ {
+     (void) me;
+ 
+@@ -197,7 +197,7 @@ local_symlink (struct vfs_class *me, const char *n1, const char *n2)
+ }
+ 
+ static ssize_t
+-local_write (void *data, const char *buf, int nbyte)
++local_write (void *data, const char *buf, size_t nbyte)
+ {
+     int fd;
+     int n;
+diff --git a/vfs/local.h b/vfs/local.h
+index 176279b..eccfe66 100644
+--- a/vfs/local.h
++++ b/vfs/local.h
+@@ -14,7 +14,7 @@ extern void init_localfs (void);
+ /* these functions are used by other filesystems, so they are
+  * published here. */
+ extern int local_close (void *data);
+-extern ssize_t local_read (void *data, char *buffer, int count);
++extern ssize_t local_read (void *data, char *buffer, size_t count);
+ extern int local_fstat (void *data, struct stat *buf);
+ extern int local_errno (struct vfs_class *me);
+ extern off_t local_lseek (void *data, off_t offset, int whence);
+diff --git a/vfs/samba/include/proto.h b/vfs/samba/include/proto.h
+index c6d2232..8e5aa62 100644
+--- a/vfs/samba/include/proto.h
++++ b/vfs/samba/include/proto.h
+@@ -127,11 +127,11 @@ void expand_mask(char *Mask,BOOL doext);
+ void make_dir_struct(char *buf,char *mask,char *fname,SMB_OFF_T size,int mode,time_t date);
+ void close_low_fds(void);
+ int set_blocking(int fd, BOOL set);
+-int TvalDiff(struct timeval *tvalold,struct timeval *tvalnew);
++time_t TvalDiff(struct timeval *tvalold,struct timeval *tvalnew);
+ SMB_OFF_T transfer_file(int infd,int outfd,SMB_OFF_T n,char *header,int headlen,int align);
+ int name_extract(char *buf,int ofs,char *name);
+ int name_len(char *s1);
+-void msleep(int t);
++void msleep(time_t t);
+ BOOL do_match(char *str, char *regexp, int case_sig);
+ BOOL mask_match(char *str, char *regexp, int case_sig,BOOL trans2);
+ int set_filelen(int fd, SMB_OFF_T len);
+diff --git a/vfs/samba/lib/charset.c b/vfs/samba/lib/charset.c
+index 58be253..7690716 100644
+--- a/vfs/samba/lib/charset.c
++++ b/vfs/samba/lib/charset.c
+@@ -296,7 +296,7 @@ multiple of 4.\n", codepage_file_name));
+     goto clean_and_exit;
+   }
+ 
+-  if(fread( (char *)cp_p, 1, size, fp)!=size)
++  if(fread( (char *)cp_p, 1, size, fp)!= (size_t)size)
+   {
+     DEBUG(0,("load_client_codepage: read fail on file %s. Error was %s.\n",
+               codepage_file_name, unix_error_string (errno)));
+diff --git a/vfs/samba/lib/util.c b/vfs/samba/lib/util.c
+index 98df37a..edf345c 100644
+--- a/vfs/samba/lib/util.c
++++ b/vfs/samba/lib/util.c
+@@ -318,8 +318,8 @@ int name_mangle( char *In, char *Out, char name_type )
+   for( i = 0; i < 16; i++ )
+     {
+     c = toupper( buf[i] );
+-    p[i*2]     = ( (c >> 4) & 0x000F ) + 'A';
+-    p[(i*2)+1] = (c & 0x000F) + 'A';
++    p[i*2]     = (char)(( (c >> 4) & 0x000F ) + 'A');
++    p[(i*2)+1] = (char)((c & 0x000F) + 'A');
+     }
+   p += 32;
+   p[0] = '\0';
+@@ -330,12 +330,12 @@ int name_mangle( char *In, char *Out, char name_type )
+     switch( global_scope[i] )
+       {
+       case '\0':
+-        p[0]     = len;
++        p[0]     = (char)len;
+         if( len > 0 )
+           p[len+1] = 0;
+         return( name_len(Out) );
+       case '.':
+-        p[0] = len;
++        p[0] = (char)len;
+         p   += (len + 1);
+         len  = -1;
+         break;
+@@ -470,7 +470,7 @@ void show_msg(char *buf)
+ 
+ 	for (i=0;i<(int)CVAL(buf,smb_wct);i++)
+ 	{
+-		DEBUG(5,("smb_vwv[%d]=%d (0x%X)\n",i,
++		DEBUG(5,("smb_vwv[%d]=%d (0x%x)\n", i, /* %x - unsigned int hex, but %X - unsigned long hex */
+ 			SVAL(buf,smb_vwv+2*i),SVAL(buf,smb_vwv+2*i)));
+ 	}
+ 
+@@ -494,16 +494,15 @@ int smb_len(char *buf)
+ {
+   return( PVAL(buf,3) | (PVAL(buf,2)<<8) | ((PVAL(buf,1)&1)<<16) );
+ }
+-
+ /*******************************************************************
+   set the length of an smb packet
+-********************************************************************/
+-void _smb_setlen(char *buf,int len)
++ ********************************************************************/
++void _smb_setlen(char *buf, int len)
+ {
+-  buf[0] = 0;
+-  buf[1] = (len&0x10000)>>16;
+-  buf[2] = (len&0xFF00)>>8;
+-  buf[3] = len&0xFF;
++	buf[0] = '\0';
++	buf[1] = (char)((len & 0x10000) >> 16);
++	buf[2] = (char)((len & 0xFF00) >> 8);
++	buf[3] = (char)(len & 0xFF);
+ }
+ 
+ /*******************************************************************
+@@ -968,7 +967,7 @@ int set_blocking(int fd, BOOL set)
+ find the difference in milliseconds between two struct timeval
+ values
+ ********************************************************************/
+-int TvalDiff(struct timeval *tvalold,struct timeval *tvalnew)
++time_t TvalDiff(struct timeval *tvalold,struct timeval *tvalnew)
+ {
+   return((tvalnew->tv_sec - tvalold->tv_sec)*1000 + 
+ 	 ((int)tvalnew->tv_usec - (int)tvalold->tv_usec)/1000);	 
+@@ -1109,30 +1108,29 @@ int name_len(char *s1)
+ 	return(len);
+ } /* name_len */
+
+-
+ /*******************************************************************
+ sleep for a specified number of milliseconds
+-********************************************************************/
+-void msleep(int t)
++ ********************************************************************/
++void msleep(time_t t)
+ {
+-  int tdiff=0;
++  time_t tdiff = 0;
+ 
+@@ -1703,7 +1701,7 @@ BOOL get_myname(char *my_name,struct in_addr *ip)
+     }
+ 
+   if (ip)
+-    putip((char *)ip,(char *)hp->h_addr);
++    putip((char *)ip,(char *)hp->h_addr_list);
+ 
+   return(True);
+ }
+@@ -1714,10 +1712,7 @@ true if two IP addresses are equal
+ ****************************************************************************/
+ BOOL ip_equal(struct in_addr ip1,struct in_addr ip2)
+ {
+-  uint32 a1,a2;
+-  a1 = ntohl(ip1.s_addr);
+-  a2 = ntohl(ip2.s_addr);
+-  return(a1 == a2);
++  return (ntohl(ip1.s_addr) == ntohl(ip2.s_addr)); 
+ }
+ 
+ #if 0	/* May be useful one day */
+@@ -1747,39 +1742,43 @@ int interpret_protocol(char *str,int def)
+ 
+ /****************************************************************************
+ interpret an internet address or name into an IP address in 4 byte form
+-****************************************************************************/
+-uint32 interpret_addr(const char *str)
++ ****************************************************************************/
++in_addr_t interpret_addr(const char *str)
+ {
+-  struct hostent *hp;
+-  uint32 res;
+-  int i;
+-  BOOL pure_address = True;
+-
+-  if (strcmp(str,"0.0.0.0") == 0) return(0);
+-  if (strcmp(str,"255.255.255.255") == 0) return(0xFFFFFFFF);
+-
+-  for (i=0; pure_address && str[i]; i++)
+-    if (!(isdigit((int)str[i]) || str[i] == '.')) 
+-      pure_address = False;
+-
+-  /* if it's in the form of an IP address then get the lib to interpret it */
+-  if (pure_address) {
+-    res = inet_addr(str);
+-  } else {
+-    /* otherwise assume it's a network name of some sort and use 
+-       Get_Hostbyname */
+-    if ((hp = Get_Hostbyname(str)) == 0) {
+-      DEBUG(3,("Get_Hostbyname: Unknown host. %s\n",str));
+-      return 0;
+-    }
+-    if(hp->h_addr == NULL) {
+-      DEBUG(3,("Get_Hostbyname: host address is invalid for host %s\n",str));
+-      return 0;
+-    }
+-    putip((char *)&res,(char *)hp->h_addr);
+-  }
++	int i;
++	BOOL pure_address = True;
++	in_addr_t res;
++	struct hostent *hp;
++
++	if (strcmp(str, "0.0.0.0") == 0)
++		return(INADDR_ANY);
++	if (strcmp(str, "255.255.255.255") == 0)
++		return(INADDR_BROADCAST);
++
++	for (i = 0; pure_address && str[i]; i++)
++		if (!(isdigit((int) str[i]) || str[i] == '.'))
++			pure_address = False;
++
++	/* if it's in the form of an IP address then get the lib to interpret it */
++	if (pure_address) {
++		res = inet_addr(str);
++	} else {
++		/* otherwise assume it's a network name of some sort and use
++		   Get_Hostbyname */
++		if ((hp = Get_Hostbyname(str)) == 0) {
++			DEBUG(3, ("Get_Hostbyname: Unknown host. %s\n", str));
++			return 0;
++		}
++		if (hp->h_addr_list == NULL) {
++			DEBUG(3, ("Get_Hostbyname: host address is invalid for host %s\n", str));
++			return 0;
++		}
++		putip((char *)&res, (char *) hp->h_addr_list);
++	}
+ 
+-  if (res == (uint32)-1) return(0);
++	if (res == (in_addr_t)(-1)) {
++	    return 0;
++	}
+ 
+   return(res);
+ }
+@@ -2108,7 +2107,7 @@ void standard_sub_basic(char *str)
+ 				fstring envname;
+ 				char *envval;
+ 				char *q, *r;
+-				int copylen;
++				ssize_t copylen;
+ 
+ 				if (*(p+2) != '(')
+ 				{
+diff --git a/vfs/samba/lib/util_sock.c b/vfs/samba/lib/util_sock.c
+index e8c7a20..5fbad8f 100644
+--- a/vfs/samba/lib/util_sock.c
++++ b/vfs/samba/lib/util_sock.c
+@@ -682,7 +682,7 @@ int open_socket_in(int type, int port, int dlevel,uint32 socket_addr, BOOL rebin
+     }
+   
+   memset((char *)&sock,'\0',sizeof(sock));
+-  memcpy((char *)&sock.sin_addr,(char *)hp->h_addr, hp->h_length);
++  memcpy((char *)&sock.sin_addr,(char *)hp->h_addr_list, hp->h_length);
+ 
+ #ifdef HAVE_SOCK_SIN_LEN
+   sock.sin_len = sizeof(sock);
+diff --git a/vfs/sfs.c b/vfs/sfs.c
+index ade71ee..db685ae 100644
+--- a/vfs/sfs.c
++++ b/vfs/sfs.c
+@@ -236,13 +236,13 @@ static int sfs_lstat (struct vfs_class *me, const char *path, struct stat *buf)
+ #endif
+ }
+ 
+-static int sfs_chmod (struct vfs_class *me, const char *path, int mode)
++static int sfs_chmod (struct vfs_class *me, const char *path, mode_t mode)
+ {
+     path = sfs_redirect (me, path);
+     return chmod (path, mode);
+ }
+ 
+-static int sfs_chown (struct vfs_class *me, const char *path, int owner, int group)
++static int sfs_chown (struct vfs_class *me, const char *path, uid_t owner, gid_t group)
+ {
+     path = sfs_redirect (me, path);
+     return chown (path, owner, group);
+diff --git a/vfs/smbfs.c b/vfs/smbfs.c
+index ff31130..4a07bb0 100644
+--- a/vfs/smbfs.c
++++ b/vfs/smbfs.c
+@@ -380,12 +380,12 @@ smbfs_fill_names (struct vfs_class *me, fill_names_f func)
+ /* does same as do_get() in client.c */
+ /* called from vfs.c:1080, count = buffer size */
+ static ssize_t
+-smbfs_read (void *data, char *buffer, int count)
++smbfs_read (void *data, char *buffer, size_t count)
+ {
+     smbfs_handle *info = (smbfs_handle *) data;
+-	int n;
++	ssize_t n;
+ 
+-	DEBUG(3, ("smbfs_read(fnum:%d, nread:%d, count:%d)\n",
++	DEBUG(3, ("smbfs_read(fnum:%d, nread:%d, count:%zu)\n",
+ 		info->fnum, (int)info->nread, count));
+ 	n = cli_read(info->cli, info->fnum, buffer, info->nread, count);
+ 	if (n > 0)
+@@ -394,12 +394,12 @@ smbfs_read (void *data, char *buffer, int count)
+ }
+ 
+ static ssize_t
+-smbfs_write (void *data, const char *buf, int nbyte)
++smbfs_write (void *data, const char *buf, size_t nbyte)
+ {
+     smbfs_handle *info = (smbfs_handle *) data;
+-	int n;
++	ssize_t n;
+ 
+-	DEBUG(3, ("smbfs_write(fnum:%d, nread:%d, nbyte:%d)\n",
++	DEBUG(3, ("smbfs_write(fnum:%d, nread:%d, nbyte:%zu)\n",
+ 		info->fnum, (int)info->nread, nbyte));
+ 	n = cli_write(info->cli, info->fnum, 0, buf, info->nread, nbyte);
+ 	if (n > 0)
+@@ -870,7 +870,7 @@ smbfs_closedir (void *info)
+ }
+ 
+ static int
+-smbfs_chmod (struct vfs_class *me, const char *path, int mode)
++smbfs_chmod (struct vfs_class *me, const char *path, mode_t mode)
+ {
+ 	(void) me;
+ 
+@@ -881,7 +881,7 @@ smbfs_chmod (struct vfs_class *me, const char *path, int mode)
+ }
+ 
+ static int
+-smbfs_chown (struct vfs_class *me, const char *path, int owner, int group)
++smbfs_chown (struct vfs_class *me, const char *path, uid_t owner, gid_t group)
+ {
+ 	(void) me;
+ 
+@@ -1193,7 +1193,8 @@ smbfs_open_link (char *host, char *path, const char *user, int *port,
+ static char *
+ smbfs_get_path (smbfs_connection ** sc, const char *path)
+ {
+-    char *user, *host, *remote_path, *pass;
++    char *user, *host, *remote_path;
++    const volatile char *pass;
+     int port = SMB_PORT;
+ 
+     DEBUG (3, ("smbfs_get_path(%s)\n", path));
+diff --git a/vfs/tar.c b/vfs/tar.c
+index acf4abb..610387b 100644
+--- a/vfs/tar.c
++++ b/vfs/tar.c
+@@ -294,7 +294,7 @@ tar_get_next_record (struct vfs_s_super *archive, int tard)
+     return &rec_buf;
+ }
+ 
+-static void tar_skip_n_records (struct vfs_s_super *archive, int tard, int n)
++static void tar_skip_n_records (struct vfs_s_super *archive, int tard, size_t n)
+ {
+     (void) archive;
+ 
+@@ -534,7 +534,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive,
+ 	struct vfs_s_inode *inode = NULL, *parent;
+ 	long data_position;
+ 	char *q;
+-	int len;
++	ssize_t len;
+ 	char *current_file_name, *current_link_name;
+ 
+ 	current_link_name =
+@@ -760,8 +760,9 @@ tar_super_same (struct vfs_class *me, struct vfs_s_super *parc,
+     return 1;
+ }
+ 
+-static ssize_t tar_read (void *fh, char *buffer, int count)
++static ssize_t tar_read (void *fh, char *buffer, size_t count)
+ {
++    ssize_t cnt;
+     off_t begin = FH->ino->data_offset;
+     int fd = FH_SUPER->u.arch.fd;
+     struct vfs_class *me = FH_SUPER->me;
+@@ -769,12 +770,12 @@ static ssize_t tar_read (void *fh, char *buffer, int count)
+     if (mc_lseek (fd, begin + FH->pos, SEEK_SET) != 
+         begin + FH->pos) ERRNOR (EIO, -1);
+ 
+-    count = MIN(count, FH->ino->st.st_size - FH->pos);
++    count = MIN((ssize_t)count, (FH->ino->st.st_size - FH->pos));
+ 
+-    if ((count = mc_read (fd, buffer, count)) == -1) ERRNOR (errno, -1);
++    if ((cnt = mc_read (fd, buffer, count)) == -1) ERRNOR (errno, -1);
+ 
+-    FH->pos += count;
+-    return count;
++    FH->pos += cnt;
++    return cnt;
+ }
+ 
+ static int tar_fh_open (struct vfs_class *me, struct vfs_s_fh *fh, int flags, int mode)
+diff --git a/vfs/vfs-impl.h b/vfs/vfs-impl.h
+index 22f9ea8..c27fbb6 100644
+--- a/vfs/vfs-impl.h
++++ b/vfs/vfs-impl.h
+@@ -57,8 +57,8 @@ struct vfs_class {
+     void *(*open) (struct vfs_class *me, const char *fname, int flags,
+ 		   int mode);
+     int (*close) (void *vfs_info);
+-    ssize_t (*read) (void *vfs_info, char *buffer, int count);
+-    ssize_t (*write) (void *vfs_info, const char *buf, int count);
++    ssize_t (*read) (void *vfs_info, char *buffer, size_t count);
++    ssize_t (*write) (void *vfs_info, const char *buf, size_t count);
+ 
+     void *(*opendir) (struct vfs_class *me, const char *dirname);
+     void *(*readdir) (void *vfs_info);
+@@ -68,8 +68,8 @@ struct vfs_class {
+     int (*lstat) (struct vfs_class *me, const char *path, struct stat * buf);
+     int (*fstat) (void *vfs_info, struct stat * buf);
+ 
+-    int (*chmod) (struct vfs_class *me, const char *path, int mode);
+-    int (*chown) (struct vfs_class *me, const char *path, int owner, int group);
++    int (*chmod) (struct vfs_class *me, const char *path, mode_t mode);
++    int (*chown) (struct vfs_class *me, const char *path, uid_t owner, gid_t group);
+     int (*utime) (struct vfs_class *me, const char *path,
+ 		  struct utimbuf * times);
+ 
+diff --git a/vfs/vfs.c b/vfs/vfs.c
+index 43099ee..8c0ee09 100644
+--- a/vfs/vfs.c
++++ b/vfs/vfs.c
+@@ -639,8 +639,8 @@ ssize_t mc_##name inarg \
+     return result; \
+ }
+ 
+-MC_HANDLEOP(read,  (int handle, void *buffer,    int count), (vfs_info (handle), buffer, count))
+-MC_HANDLEOP(write, (int handle, const void *buf, int nbyte), (vfs_info (handle), buf,    nbyte))
++MC_HANDLEOP(read,  (int handle, void *buffer,    size_t count), (vfs_info (handle), buffer, count))
++MC_HANDLEOP(write, (int handle, const void *buf, size_t nbyte), (vfs_info (handle), buf,    nbyte))
+ 
+ 
+ #define MC_RENAMEOP(name) \
+diff --git a/vfs/vfs.h b/vfs/vfs.h
+index a4ffd7b..4a57e1b 100644
+--- a/vfs/vfs.h
++++ b/vfs/vfs.h
+@@ -19,8 +19,8 @@ void vfs_shut (void);
+ 
+ int vfs_current_is_local (void);
+ int vfs_file_is_local (const char *filename);
+-ssize_t mc_read (int handle, void *buffer, int count);
+-ssize_t mc_write (int handle, const void *buffer, int count);
++ssize_t mc_read (int handle, void *buffer, size_t count);
++ssize_t mc_write (int handle, const void *buffer, size_t count);
+ int mc_utime (const char *path, struct utimbuf *times);
+ int mc_readlink (const char *path, char *buf, int bufsiz);
+ int mc_ungetlocalcopy (const char *pathname, const char *local, int has_changed);
+diff --git a/vfs/xdirentry.h b/vfs/xdirentry.h
+index c8da1c9..11c3b3b 100644
+--- a/vfs/xdirentry.h
++++ b/vfs/xdirentry.h
+@@ -107,7 +107,7 @@ struct vfs_s_inode {
+ /* Data associated with an open file */
+ struct vfs_s_fh {
+     struct vfs_s_inode *ino;
+-    long pos;			/* This is for module's use */
++    off_t pos;			/* This is for module's use */
+     int handle;			/* This is for module's use, but if != -1, will be mc_close()d */
+     int changed;		/* Did this file change? */
+     int linear;			/* Is that file open with O_LINEAR? */
+@@ -161,8 +161,8 @@ struct vfs_s_subclass {
+ 
+     int (*linear_start) (struct vfs_class *me, struct vfs_s_fh *fh,
+ 			 off_t from);
+-    int (*linear_read) (struct vfs_class *me, struct vfs_s_fh *fh,
+-			void *buf, int len);
++    ssize_t (*linear_read) (struct vfs_class *me, struct vfs_s_fh *fh,
++			void *buf, size_t len);
+     void (*linear_close) (struct vfs_class *me, struct vfs_s_fh *fh);
+ };
+ 

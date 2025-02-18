@@ -1,0 +1,28 @@
+From 8192140090c24fc6776979b622b086699fe19c61 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 7 Dec 2020 13:10:30 +0000
+Subject: [PATCH] (find.c) fix uninitialized scalar variable
+
+Fix uninitialized scalar variable
+
+found by Coverity
+coverity id #32628
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/find.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index c54256303..0faf0adfd 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -985,7 +985,7 @@ static gboolean
+ search_content (WDialog * h, const char *directory, const char *filename)
+ {
+     struct stat s;
+-    char buffer[BUF_4K];        /* raw input buffer */
++    char buffer[BUF_4K] = "";        /* raw input buffer */
+     int file_fd;
+     gboolean ret_val = FALSE;
+     vfs_path_t *vpath;

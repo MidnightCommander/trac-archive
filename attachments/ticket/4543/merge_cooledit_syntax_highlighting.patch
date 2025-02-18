@@ -1,0 +1,171 @@
+diff --git a/doc/man/mcedit.1.in b/doc/man/mcedit.1.in
+index 2869af70e..ac1ba9e02 100644
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -247,7 +247,8 @@ is rescanned on opening of every new editor file.  The file contains
+ rules for highlighting, each of which is given on a separate line, and
+ define which keywords will be highlighted with what color.
+ .PP
+-The file is divided into sections, each beginning with a line with the
++The file is divided into sections (rule sets), each beginning with a
++line with the
+ .B file
+ command.  The sections are normally put into separate files using the
+ .B include
+@@ -265,11 +266,51 @@ future versions of
+ may use it as well.  The third optional argument is a regular expression
+ to match the first line of text of the file.  The rules in the following
+ section apply if either the file name or the first line of text matches.
++For example,
++.PP
++.nf
++  file .\(rs+\(rs\(rs.(?i:py)$  Python\\sProgram  \(ha#!.\(rs*[\(rss/]python
++.fi
++.PP
++will cause a file to be highlighted with corresponding rules if the file
++contains, say,
++.B #!/usr/bin/python
++or
++.B #!/usr/bin/env python3
++on the first line OR if the file name ends in, say,
++.BR .py .
++.PP
++Note that
++.BR * ,
++.B +
++and
++.B \(rs
++have to be escaped with a
++.BR \(rs ,
++and space must be presented with a
++.BR \(rss .
+ .PP
+ A section ends with the start of another section.  Each section is
+-divided into contexts, and each context contains rules.  A context is a
+-scope within the text that a particular set of rules belongs to.  For
+-instance, the text within a C style comment (i.e. between
++divided into contexts, and each context contains rules (keyword
++definitions).  A context is a scope within the text that a particular
++set of rules belongs to. Contexts are usually for when you have something
++that must be coloured across multiple lines. The
++.B default
++context contains the list of keywords to fall back on should there be no
++other applicable context.
++.PP
++For instance, the region within a C-style string (i.e. between
++.B \(dq
++quotations) has its own separate colour and hence its own separate
++context. Within it, the normal C tokens, like
++.B if
++and
++.BR while ,
++will not apply, but
++.B %d
++should be highlighted in a different colour.
++.PP
++As another example, the text within a C-style comment (i.e. between
+ .B /*
+ and
+ .BR */ )
+@@ -280,7 +321,7 @@ within a C comment.
+ A trivial C programming section might look like this:
+ .PP
+ .nf
+-file .\\*\\\\.c C\\sProgram\\sFile (#include|/\\\\\\*)
++file .\(rs+\(rs\(rs.c  C\(rssProgram
+ 
+ wholechars abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_
+ 
+@@ -337,11 +378,15 @@ The first context is an exception.  It must start with the command
+ .PP
+ otherwise
+ .B mcedit
+-will report an error.  The
++will report an error.
++.PP
++The
+ .B linestart
+ option specifies that
+ .I delim
+-must start at the beginning of a line.  The
++must start at the beginning of a line.
++.PP
++The
+ .B whole
+ option tells that
+ .I delim
+@@ -354,8 +399,9 @@ option, and similarly a word that must end on the word boundary is specified by
+ The set of characters that constitute a whole word can be changed at any
+ point in the file with the
+ .B wholechars
+-command.  The left and right set of characters can be set separately
+-with
++command. The command in the sample above just sets the set exactly to its
++default and could therefore have been omitted. The left and right set of
++characters can be set separately with
+ .PP
+ .B wholechars
+ .RB [ left | right ]
+@@ -376,11 +422,28 @@ Each rule is a line of the form:
+ .RI [ attributes ]
+ .PP
+ Context or keyword strings are interpreted, so that you can include tabs
+-and spaces with the sequences \\t and \\s.  Newlines and backslashes are
+-specified with \\n and \\\\ respectively.  Since whitespace is used as a
+-separator, it may not be used as is.  Also, \\* must be used to specify
+-an asterisk.  The * itself is a wildcard that matches any length of
+-characters.  For example,
++and spaces with the sequences
++.B \(rst
++and
++.BR \(rss .
++Newlines and backslashes are specified with
++.B \(rsn
++and
++.B \(rs\(rs
++respectively. Since whitespace is used as a separator, it may not be used
++as is.
++.PP
++Also,
++.B \(rs*
++must be used to specify an asterisk, and
++.B \(rs+
++to specify the plus sign. The
++.B *
++itself is a wildcard that matches any length of characters. The
++.B +
++is like the
++.BR * ,
++but matches a length of non-whitespace characters only. For example,
+ .PP
+ .nf
+   keyword         '*'      green
+@@ -393,9 +456,25 @@ colors all C single character constants green.  You also could use
+ .fi
+ .PP
+ to color string constants, but the matched string would not be allowed
+-to span across multiple newlines.  The wildcard may be used within
+-context delimiters as well, but you cannot have a wildcard as the last
+-or first character.
++to span across multiple newlines.
++.PP
++The
++.B \(rs{
++wildcard matches any single character that exists between it and its corresponding
++.BR \(rs} .
++For example, the following matches C-style character constants with octals:
++.PP
++.nf
++  keyword  '\(rs\(rs\(rs{0123\(rs}\(rs{01234567\(rs}\(rs{01234567\(rs}'  brightgreen
++.fi
++.PP
++The
++.BR \(rs[ ...\c
++.B \(rs]
++wildcard is similar and matches any number of characters.
++.PP
++All wildcards may be used within context delimiters as well, but you cannot
++have a wildcard as the last or the first character of a context delimiter.
+ .PP
+ Important to note is the line
+ .PP

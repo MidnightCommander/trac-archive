@@ -1,0 +1,639 @@
+commit 3e3c0f259cc515ba99a4a9551caae8fab0749121
+Author: Egmont Koblinger <egmont@gmail.com>
+Date:   Thu Oct 1 23:50:13 2015 +0200
+
+    3531
+
+diff --git a/lib/skin.h b/lib/skin.h
+index 8d32180..6c0ad33 100644
+--- a/lib/skin.h
++++ b/lib/skin.h
+@@ -13,101 +13,102 @@
+    See color-slang.h (A_*) */
+ 
+ /* cache often used colors */
+-#define DEFAULT_COLOR             mc_skin_color__cache[0]
+-#define NORMAL_COLOR              mc_skin_color__cache[1]
+-#define MARKED_COLOR              mc_skin_color__cache[2]
+-#define SELECTED_COLOR            mc_skin_color__cache[3]
+-#define MARKED_SELECTED_COLOR     mc_skin_color__cache[4]
+-#define DISABLED_COLOR            mc_skin_color__cache[5]
+-#define REVERSE_COLOR             mc_skin_color__cache[6]
+-#define COMMAND_MARK_COLOR        mc_skin_color__cache[7]
+-#define HEADER_COLOR              mc_skin_color__cache[8]
++#define DEFAULT_COLOR                   mc_skin_color__cache[0]
++#define NORMAL_COLOR                    mc_skin_color__cache[1]
++#define MARKED_COLOR                    mc_skin_color__cache[2]
++#define SELECTED_COLOR                  mc_skin_color__cache[3]
++#define MARKED_SELECTED_COLOR           mc_skin_color__cache[4]
++#define DISABLED_COLOR                  mc_skin_color__cache[5]
++#define REVERSE_COLOR                   mc_skin_color__cache[6]
++#define COMMAND_MARK_COLOR              mc_skin_color__cache[7]
++#define HEADER_COLOR                    mc_skin_color__cache[8]
+ 
+ /* Dialog colors */
+-#define COLOR_NORMAL              mc_skin_color__cache[9]
+-#define COLOR_FOCUS               mc_skin_color__cache[10]
+-#define COLOR_HOT_NORMAL          mc_skin_color__cache[11]
+-#define COLOR_HOT_FOCUS           mc_skin_color__cache[12]
+-#define COLOR_TITLE               mc_skin_color__cache[13]
++#define COLOR_NORMAL                    mc_skin_color__cache[9]
++#define COLOR_FOCUS                     mc_skin_color__cache[10]
++#define COLOR_HOT_NORMAL                mc_skin_color__cache[11]
++#define COLOR_HOT_FOCUS                 mc_skin_color__cache[12]
++#define COLOR_TITLE                     mc_skin_color__cache[13]
+ 
+ /* Error dialog colors */
+-#define ERROR_COLOR               mc_skin_color__cache[14]
+-#define ERROR_FOCUS               mc_skin_color__cache[15]
+-#define ERROR_HOT_NORMAL          mc_skin_color__cache[16]
+-#define ERROR_HOT_FOCUS           mc_skin_color__cache[17]
+-#define ERROR_TITLE               mc_skin_color__cache[18]
++#define ERROR_COLOR                     mc_skin_color__cache[14]
++#define ERROR_FOCUS                     mc_skin_color__cache[15]
++#define ERROR_HOT_NORMAL                mc_skin_color__cache[16]
++#define ERROR_HOT_FOCUS                 mc_skin_color__cache[17]
++#define ERROR_TITLE                     mc_skin_color__cache[18]
+ 
+ /* Menu colors */
+-#define MENU_ENTRY_COLOR          mc_skin_color__cache[19]
+-#define MENU_SELECTED_COLOR       mc_skin_color__cache[20]
+-#define MENU_HOT_COLOR            mc_skin_color__cache[21]
+-#define MENU_HOTSEL_COLOR         mc_skin_color__cache[22]
+-#define MENU_INACTIVE_COLOR       mc_skin_color__cache[23]
++#define MENU_ENTRY_COLOR                mc_skin_color__cache[19]
++#define MENU_SELECTED_COLOR             mc_skin_color__cache[20]
++#define MENU_HOT_COLOR                  mc_skin_color__cache[21]
++#define MENU_HOTSEL_COLOR               mc_skin_color__cache[22]
++#define MENU_INACTIVE_COLOR             mc_skin_color__cache[23]
+ 
+ /* Popup menu colors */
+-#define PMENU_ENTRY_COLOR         mc_skin_color__cache[24]
+-#define PMENU_SELECTED_COLOR      mc_skin_color__cache[25]
+-#define PMENU_HOT_COLOR           mc_skin_color__cache[26]      /* unused: not implemented yet */
+-#define PMENU_HOTSEL_COLOR        mc_skin_color__cache[27]      /* unused: not implemented yet */
+-#define PMENU_TITLE_COLOR         mc_skin_color__cache[28]
++#define PMENU_ENTRY_COLOR               mc_skin_color__cache[24]
++#define PMENU_SELECTED_COLOR            mc_skin_color__cache[25]
++#define PMENU_HOT_COLOR                 mc_skin_color__cache[26]        /* unused: not implemented yet */
++#define PMENU_HOTSEL_COLOR              mc_skin_color__cache[27]        /* unused: not implemented yet */
++#define PMENU_TITLE_COLOR               mc_skin_color__cache[28]
+ 
+-#define BUTTONBAR_HOTKEY_COLOR    mc_skin_color__cache[29]
+-#define BUTTONBAR_BUTTON_COLOR    mc_skin_color__cache[30]
++#define BUTTONBAR_HOTKEY_COLOR          mc_skin_color__cache[29]
++#define BUTTONBAR_BUTTON_COLOR          mc_skin_color__cache[30]
+ 
+-#define STATUSBAR_COLOR           mc_skin_color__cache[31]
++#define STATUSBAR_COLOR                 mc_skin_color__cache[31]
+ 
+ /*
+  * This should be selectable independently. Default has to be black background
+  * foreground does not matter at all.
+  */
+-#define GAUGE_COLOR               mc_skin_color__cache[32]
+-#define INPUT_COLOR               mc_skin_color__cache[33]
+-#define INPUT_UNCHANGED_COLOR     mc_skin_color__cache[34]
+-#define INPUT_MARK_COLOR          mc_skin_color__cache[35]
+-#define INPUT_HISTORY_COLOR       mc_skin_color__cache[36]
+-#define COMMAND_HISTORY_COLOR     mc_skin_color__cache[37]
+-
+-#define HELP_NORMAL_COLOR         mc_skin_color__cache[38]
+-#define HELP_ITALIC_COLOR         mc_skin_color__cache[39]
+-#define HELP_BOLD_COLOR           mc_skin_color__cache[40]
+-#define HELP_LINK_COLOR           mc_skin_color__cache[41]
+-#define HELP_SLINK_COLOR          mc_skin_color__cache[42]
+-#define HELP_TITLE_COLOR          mc_skin_color__cache[43]
+-
+-
+-#define VIEW_NORMAL_COLOR         mc_skin_color__cache[44]
+-#define VIEW_BOLD_COLOR           mc_skin_color__cache[45]
+-#define VIEW_UNDERLINED_COLOR     mc_skin_color__cache[46]
+-#define VIEW_SELECTED_COLOR       mc_skin_color__cache[47]
++#define GAUGE_COLOR                     mc_skin_color__cache[32]
++#define INPUT_COLOR                     mc_skin_color__cache[33]
++#define INPUT_UNCHANGED_COLOR           mc_skin_color__cache[34]
++#define INPUT_MARK_COLOR                mc_skin_color__cache[35]
++#define INPUT_HISTORY_COLOR             mc_skin_color__cache[36]
++#define COMMAND_HISTORY_COLOR           mc_skin_color__cache[37]
++
++#define HELP_NORMAL_COLOR               mc_skin_color__cache[38]
++#define HELP_ITALIC_COLOR               mc_skin_color__cache[39]
++#define HELP_BOLD_COLOR                 mc_skin_color__cache[40]
++#define HELP_LINK_COLOR                 mc_skin_color__cache[41]
++#define HELP_SLINK_COLOR                mc_skin_color__cache[42]
++#define HELP_TITLE_COLOR                mc_skin_color__cache[43]
++
++
++#define VIEW_NORMAL_COLOR               mc_skin_color__cache[44]
++#define VIEW_BOLD_COLOR                 mc_skin_color__cache[45]
++#define VIEW_UNDERLINED_COLOR           mc_skin_color__cache[46]
++#define VIEW_BOLD_UNDERLINED_COLOR      mc_skin_color__cache[47]
++#define VIEW_SELECTED_COLOR             mc_skin_color__cache[48]
+ 
+ /*
+  * editor colors - only 4 for normal, search->found, select, and whitespace
+  * respectively
+  * Last is defined to view color.
+  */
+-#define EDITOR_NORMAL_COLOR       mc_skin_color__cache[48]
+-#define EDITOR_BOLD_COLOR         mc_skin_color__cache[49]
+-#define EDITOR_MARKED_COLOR       mc_skin_color__cache[50]
+-#define EDITOR_WHITESPACE_COLOR   mc_skin_color__cache[51]
+-#define EDITOR_RIGHT_MARGIN_COLOR mc_skin_color__cache[52]
+-#define EDITOR_BACKGROUND         mc_skin_color__cache[53]
+-#define EDITOR_FRAME              mc_skin_color__cache[54]
+-#define EDITOR_FRAME_ACTIVE       mc_skin_color__cache[55]
+-#define EDITOR_FRAME_DRAG         mc_skin_color__cache[56]
++#define EDITOR_NORMAL_COLOR             mc_skin_color__cache[49]
++#define EDITOR_BOLD_COLOR               mc_skin_color__cache[50]
++#define EDITOR_MARKED_COLOR             mc_skin_color__cache[51]
++#define EDITOR_WHITESPACE_COLOR         mc_skin_color__cache[52]
++#define EDITOR_RIGHT_MARGIN_COLOR       mc_skin_color__cache[53]
++#define EDITOR_BACKGROUND               mc_skin_color__cache[54]
++#define EDITOR_FRAME                    mc_skin_color__cache[55]
++#define EDITOR_FRAME_ACTIVE             mc_skin_color__cache[56]
++#define EDITOR_FRAME_DRAG               mc_skin_color__cache[57]
+ /* color of left 8 char status per line */
+-#define LINE_STATE_COLOR          mc_skin_color__cache[57]
+-#define BOOK_MARK_COLOR           mc_skin_color__cache[58]
+-#define BOOK_MARK_FOUND_COLOR     mc_skin_color__cache[59]
++#define LINE_STATE_COLOR                mc_skin_color__cache[58]
++#define BOOK_MARK_COLOR                 mc_skin_color__cache[59]
++#define BOOK_MARK_FOUND_COLOR           mc_skin_color__cache[60]
+ 
+ /* Diff colors */
+-#define DFF_ADD_COLOR             mc_skin_color__cache[60]
+-#define DFF_CHG_COLOR             mc_skin_color__cache[61]
+-#define DFF_CHH_COLOR             mc_skin_color__cache[62]
+-#define DFF_CHD_COLOR             mc_skin_color__cache[63]
+-#define DFF_DEL_COLOR             mc_skin_color__cache[64]
+-#define DFF_ERROR_COLOR           mc_skin_color__cache[65]
+-
+-#define MC_SKIN_COLOR_CACHE_COUNT 66
++#define DFF_ADD_COLOR                   mc_skin_color__cache[61]
++#define DFF_CHG_COLOR                   mc_skin_color__cache[62]
++#define DFF_CHH_COLOR                   mc_skin_color__cache[63]
++#define DFF_CHD_COLOR                   mc_skin_color__cache[64]
++#define DFF_DEL_COLOR                   mc_skin_color__cache[65]
++#define DFF_ERROR_COLOR                 mc_skin_color__cache[66]
++
++#define MC_SKIN_COLOR_CACHE_COUNT 67
+ 
+ /*** enums ***************************************************************************************/
+ 
+diff --git a/lib/skin/colors-old.c b/lib/skin/colors-old.c
+index 5294b20..9f09baf 100644
+--- a/lib/skin/colors-old.c
++++ b/lib/skin/colors-old.c
+@@ -99,7 +99,8 @@ static const mc_skin_colors_old_t old_colors[] = {
+     {"viewbold", "viewer", "viewbold"},
+     {"viewnormal", "viewer", "_default_"},
+     {"viewselected", "viewer", "viewselected"},
+-    {"viewunderline", "viewer", "viewunderline"}
++    {"viewunderline", "viewer", "viewunderline"},
++    {"viewboldunderline", "viewer", "viewboldunderline"},
+ };
+ 
+ static const size_t num_old_colors = G_N_ELEMENTS (old_colors);
+diff --git a/lib/skin/colors.c b/lib/skin/colors.c
+index 61e3a80..e7bbe2f 100644
+--- a/lib/skin/colors.c
++++ b/lib/skin/colors.c
+@@ -236,6 +236,7 @@ mc_skin_color_cache_init (void)
+     VIEW_NORMAL_COLOR = mc_skin_color_get ("viewer", "_default_");
+     VIEW_BOLD_COLOR = mc_skin_color_get ("viewer", "viewbold");
+     VIEW_UNDERLINED_COLOR = mc_skin_color_get ("viewer", "viewunderline");
++    VIEW_BOLD_UNDERLINED_COLOR = mc_skin_color_get ("viewer", "viewboldunderline");
+     VIEW_SELECTED_COLOR = mc_skin_color_get ("viewer", "viewselected");
+ 
+     EDITOR_NORMAL_COLOR = mc_skin_color_get ("editor", "_default_");
+diff --git a/misc/skins/dark.ini b/misc/skins/dark.ini
+index d3717d5..9e3fc81 100644
+--- a/misc/skins/dark.ini
++++ b/misc/skins/dark.ini
+@@ -118,6 +118,7 @@
+     _default_ = lightgray;black
+     viewbold = yellow;black
+     viewunderline = brightred;black
++    viewboldunderline = yellow;black
+     viewselected = yellow;cyan
+ 
+ [diffviewer]
+diff --git a/misc/skins/darkfar.ini b/misc/skins/darkfar.ini
+index a34de67..410b8a1 100644
+--- a/misc/skins/darkfar.ini
++++ b/misc/skins/darkfar.ini
+@@ -118,6 +118,7 @@
+     _default_ = lightgray;black
+     viewbold = yellow;black
+     viewunderline = brightred;black
++    viewboldunderline = yellow;black
+     viewselected = yellow;cyan
+ 
+ [diffviewer]
+diff --git a/misc/skins/default.ini b/misc/skins/default.ini
+index 625188e..9504c52 100644
+--- a/misc/skins/default.ini
++++ b/misc/skins/default.ini
+@@ -118,6 +118,7 @@
+     _default_ = lightgray;blue
+     viewbold = yellow;blue
+     viewunderline = brightred;blue
++    viewboldunderline = yellow;blue
+     viewselected = yellow;cyan
+ 
+ [diffviewer]
+diff --git a/misc/skins/double-lines.ini b/misc/skins/double-lines.ini
+index 172442e..d924ecc 100644
+--- a/misc/skins/double-lines.ini
++++ b/misc/skins/double-lines.ini
+@@ -118,6 +118,7 @@
+     _default_ = lightgray;blue
+     viewbold = yellow;blue
+     viewunderline = brightred;blue
++    viewboldunderline = yellow;blue
+     viewselected = yellow;cyan
+ 
+ [diffviewer]
+diff --git a/misc/skins/featured.ini b/misc/skins/featured.ini
+index 47a1a23..b53f566 100644
+--- a/misc/skins/featured.ini
++++ b/misc/skins/featured.ini
+@@ -120,6 +120,7 @@
+     _default_ = lightgray;blue
+     viewbold = yellow;blue
+     viewunderline = brightred;blue
++    viewboldunderline = yellow;blue
+     viewselected = yellow;cyan
+ 
+ [diffviewer]
+diff --git a/misc/skins/gotar.ini b/misc/skins/gotar.ini
+index fc65bb2..1291da7 100644
+--- a/misc/skins/gotar.ini
++++ b/misc/skins/gotar.ini
+@@ -115,6 +115,7 @@
+     _default_ = lightgray;black
+     viewbold = brightred;black
+     viewunderline = brightgreen;black
++    viewboldunderline = brightred;black
+     viewselected = yellow;black
+ 
+ [diffviewer]
+diff --git a/misc/skins/gray-green-purple256.ini b/misc/skins/gray-green-purple256.ini
+index 964b26f..fd89a0c 100644
+--- a/misc/skins/gray-green-purple256.ini
++++ b/misc/skins/gray-green-purple256.ini
+@@ -119,6 +119,7 @@
+     # "black" might change color when going bold, so use "rgb000" instead
+     viewbold = rgb000;;bold
+     viewunderline = ;;underline
++    viewboldunderline = rgb000;;bold+underline
+     viewselected = rgb303;rgb141;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/gray-orange-blue256.ini b/misc/skins/gray-orange-blue256.ini
+index f8426f1..7ddc5e9 100644
+--- a/misc/skins/gray-orange-blue256.ini
++++ b/misc/skins/gray-orange-blue256.ini
+@@ -119,6 +119,7 @@
+     # "black" might change color when going bold, so use "rgb000" instead
+     viewbold = rgb000;;bold
+     viewunderline = ;;underline
++    viewboldunderline = rgb000;;bold+underline
+     viewselected = rgb004;rgb530;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/mc46.ini b/misc/skins/mc46.ini
+index 39e4363..c120921 100644
+--- a/misc/skins/mc46.ini
++++ b/misc/skins/mc46.ini
+@@ -109,6 +109,7 @@
+     _default_ = lightgray;blue
+     viewbold = yellow;blue
+     viewunderline = brightred;blue
++    viewboldunderline = yellow;blue
+     viewselected = yellow;cyan
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarcon16-defbg.ini b/misc/skins/modarcon16-defbg.ini
+index b4b5b43..5475db4 100644
+--- a/misc/skins/modarcon16-defbg.ini
++++ b/misc/skins/modarcon16-defbg.ini
+@@ -154,6 +154,7 @@
+     _default_ = color7;default
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color11;color2;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarcon16.ini b/misc/skins/modarcon16.ini
+index 9381d37..a86d2d8 100644
+--- a/misc/skins/modarcon16.ini
++++ b/misc/skins/modarcon16.ini
+@@ -154,6 +154,7 @@
+     _default_ = color7;color0
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color11;color2;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarcon16root-defbg.ini b/misc/skins/modarcon16root-defbg.ini
+index b910c81..dd13f8e 100644
+--- a/misc/skins/modarcon16root-defbg.ini
++++ b/misc/skins/modarcon16root-defbg.ini
+@@ -154,6 +154,7 @@
+     _default_ = color7;default
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color11;color1;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarcon16root.ini b/misc/skins/modarcon16root.ini
+index 498a40c..fdf32ef 100644
+--- a/misc/skins/modarcon16root.ini
++++ b/misc/skins/modarcon16root.ini
+@@ -154,6 +154,7 @@
+     _default_ = color7;color0
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color11;color1;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarin256-defbg.ini b/misc/skins/modarin256-defbg.ini
+index 4e86e62..4cb69f5 100644
+--- a/misc/skins/modarin256-defbg.ini
++++ b/misc/skins/modarin256-defbg.ini
+@@ -154,6 +154,7 @@
+     _default_ = color250;default
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color228;color23;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarin256.ini b/misc/skins/modarin256.ini
+index 6d3415e..100998f 100644
+--- a/misc/skins/modarin256.ini
++++ b/misc/skins/modarin256.ini
+@@ -154,6 +154,7 @@
+     _default_ = color252;color237
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color228;color23;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarin256root-defbg.ini b/misc/skins/modarin256root-defbg.ini
+index 6f32ca4..8d6ad70 100644
+--- a/misc/skins/modarin256root-defbg.ini
++++ b/misc/skins/modarin256root-defbg.ini
+@@ -154,6 +154,7 @@
+     _default_ = color250;default
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color228;color88;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/modarin256root.ini b/misc/skins/modarin256root.ini
+index ef36965..743f52c 100644
+--- a/misc/skins/modarin256root.ini
++++ b/misc/skins/modarin256root.ini
+@@ -154,6 +154,7 @@
+     _default_ = color252;color237
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color228;color88;bold
+ 
+ [diffviewer]
+diff --git a/misc/skins/nicedark.ini b/misc/skins/nicedark.ini
+index a40e561..76439c3 100644
+--- a/misc/skins/nicedark.ini
++++ b/misc/skins/nicedark.ini
+@@ -118,6 +118,7 @@
+     _default_ = lightgray;black
+     viewbold = brown;blue
+     viewunderline = brightred;blue
++    viewboldunderline = brown;blue
+     viewselected = brown;cyan
+ 
+ [diffviewer]
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index 83af5d1..08bf6e2 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -176,6 +176,7 @@
+     # "black" might change color when going bold, so use "rgb000" instead
+     viewbold = rgb000;;bold
+     viewunderline = ;;underline
++    viewboldunderline = rgb000;;bold+underline
+     viewselected = rgb400;rgb452
+ 
+ [diffviewer]
+diff --git a/misc/skins/xoria256.ini b/misc/skins/xoria256.ini
+index 9a41a39..352fd38 100644
+--- a/misc/skins/xoria256.ini
++++ b/misc/skins/xoria256.ini
+@@ -160,6 +160,7 @@
+     _default_ = color250;color234
+     viewbold = ;;bold
+     viewunderline = ;;underline
++    viewboldunderline = ;;bold+underline
+     viewselected = color228;color60
+ 
+ [diffviewer]
+diff --git a/src/viewer/ascii.c b/src/viewer/ascii.c
+index d04a544..39268ca 100644
+--- a/src/viewer/ascii.c
++++ b/src/viewer/ascii.c
+@@ -397,8 +397,9 @@ static gboolean
+ mcview_get_next_maybe_nroff_char (mcview_t * view, mcview_state_machine_t * state, int *c,
+                                   int *color)
+ {
+-    mcview_state_machine_t state_after_nroff;
+-    int c2, c3;
++    mcview_state_machine_t state_after_three_chars;
++    mcview_state_machine_t state_after_five_chars;
++    int c2, c3, c4, c5;
+ 
+     if (color != NULL)
+         *color = VIEW_NORMAL_COLOR;
+@@ -412,28 +413,40 @@ mcview_get_next_maybe_nroff_char (mcview_t * view, mcview_state_machine_t * stat
+     if (!mcview_isprint (view, *c))
+         return TRUE;
+ 
+-    state_after_nroff = *state;
++    state_after_three_chars = *state;
+ 
+-    if (!mcview_get_next_char (view, &state_after_nroff, &c2))
++    if (!mcview_get_next_char (view, &state_after_three_chars, &c2))
+         return TRUE;
+     if (c2 != '\b')
+         return TRUE;
+ 
+-    if (!mcview_get_next_char (view, &state_after_nroff, &c3))
++    if (!mcview_get_next_char (view, &state_after_three_chars, &c3))
+         return TRUE;
+     if (!mcview_isprint (view, c3))
+         return TRUE;
+ 
+-    if (*c == '_' && c3 == '_')
++    state_after_five_chars = state_after_three_chars;
++
++    /* Bold underlined is denoted by _ ^H x ^H x */
++    if (*c == '_' &&
++        mcview_get_next_char (view, &state_after_five_chars, &c4) &&
++        c4 == '\b' && mcview_get_next_char (view, &state_after_five_chars, &c5) && c3 == c5)
++    {
++        *c = c3;
++        *state = state_after_five_chars;
++        if (color != NULL)
++            *color = VIEW_BOLD_UNDERLINED_COLOR;
++    }
++    else if (*c == '_' && c3 == '_')
+     {
+-        *state = state_after_nroff;
++        *state = state_after_three_chars;
+         if (color != NULL)
+             *color =
+                 state->nroff_underscore_is_underlined ? VIEW_UNDERLINED_COLOR : VIEW_BOLD_COLOR;
+     }
+     else if (*c == c3)
+     {
+-        *state = state_after_nroff;
++        *state = state_after_three_chars;
+         state->nroff_underscore_is_underlined = FALSE;
+         if (color != NULL)
+             *color = VIEW_BOLD_COLOR;
+@@ -441,7 +454,7 @@ mcview_get_next_maybe_nroff_char (mcview_t * view, mcview_state_machine_t * stat
+     else if (*c == '_')
+     {
+         *c = c3;
+-        *state = state_after_nroff;
++        *state = state_after_three_chars;
+         state->nroff_underscore_is_underlined = TRUE;
+         if (color != NULL)
+             *color = VIEW_UNDERLINED_COLOR;
+diff --git a/src/viewer/internal.h b/src/viewer/internal.h
+index 9a507ad..1352d77 100644
+--- a/src/viewer/internal.h
++++ b/src/viewer/internal.h
+@@ -48,7 +48,8 @@ typedef enum
+ {
+     NROFF_TYPE_NONE = 0,
+     NROFF_TYPE_BOLD = 1,
+-    NROFF_TYPE_UNDERLINE = 2
++    NROFF_TYPE_UNDERLINE = 2,
++    NROFF_TYPE_BOLD_UNDERLINE = 3,
+ } nroff_type_t;
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+diff --git a/src/viewer/nroff.c b/src/viewer/nroff.c
+index 1f9b80d..ab06f78 100644
+--- a/src/viewer/nroff.c
++++ b/src/viewer/nroff.c
+@@ -114,6 +114,9 @@ mcview__get_nroff_real_len (mcview_t * view, off_t start, off_t length)
+         case NROFF_TYPE_UNDERLINE:
+             ret += 2;           /* underline symbol and ox8 */
+             break;
++        case NROFF_TYPE_BOLD_UNDERLINE:
++            ret += 3 + nroff->char_length;      /* underline, 0x8, real char, 0x8 */
++            break;
+         default:
+             break;
+         }
+@@ -166,7 +169,7 @@ mcview_nroff_seq_free (mcview_nroff_t ** nroff)
+ nroff_type_t
+ mcview_nroff_seq_info (mcview_nroff_t * nroff)
+ {
+-    int next, next2;
++    int next, next2, next3, next4;
+ 
+     if (nroff == NULL)
+         return NROFF_TYPE_NONE;
+@@ -181,7 +184,16 @@ mcview_nroff_seq_info (mcview_nroff_t * nroff)
+     if (!mcview_nroff_get_char (nroff, &next2, nroff->index + 1 + nroff->char_length))
+         return nroff->type;
+ 
+-    if (nroff->current_char == '_' && next2 == '_')
++    if (nroff->current_char == '_' &&
++        mcview_get_byte (nroff->view, nroff->index + 2 + nroff->char_length, &next3) &&
++        next3 == '\b' &&
++        mcview_nroff_get_char (nroff, &next4, nroff->index + 3 + nroff->char_length) &&
++        next2 == next4)
++    {
++        nroff->current_char = next2;
++        nroff->type = NROFF_TYPE_BOLD_UNDERLINE;
++    }
++    else if (nroff->current_char == '_' && next2 == '_')
+     {
+         nroff->type = (nroff->prev_type == NROFF_TYPE_BOLD)
+             ? NROFF_TYPE_BOLD : NROFF_TYPE_UNDERLINE;
+@@ -196,10 +208,6 @@ mcview_nroff_seq_info (mcview_nroff_t * nroff)
+         nroff->current_char = next2;
+         nroff->type = NROFF_TYPE_UNDERLINE;
+     }
+-    else if (nroff->current_char == '+' && next2 == 'o')
+-    {
+-        /* ??? */
+-    }
+     return nroff->type;
+ }
+ 
+@@ -221,6 +229,9 @@ mcview_nroff_seq_next (mcview_nroff_t * nroff)
+     case NROFF_TYPE_UNDERLINE:
+         nroff->index += 2;
+         break;
++    case NROFF_TYPE_BOLD_UNDERLINE:
++        nroff->index += 3 + nroff->char_length;
++        break;
+     default:
+         break;
+     }
+diff --git a/src/viewer/search.c b/src/viewer/search.c
+index 50255d2..e68775e 100644
+--- a/src/viewer/search.c
++++ b/src/viewer/search.c
+@@ -223,6 +223,9 @@ mcview_search_cmd_callback (const void *user_data, gsize char_offset, int *curre
+             case NROFF_TYPE_UNDERLINE:
+                 view->search_numNeedSkipChar = 2;       /* underline symbol and ox8 */
+                 break;
++            case NROFF_TYPE_BOLD_UNDERLINE:
++                view->search_numNeedSkipChar = 3 + view->search_nroff_seq->char_length; /* underline, 0x8, real char, 0x8 */
++                break;
+             default:
+                 break;
+             }
+diff --git a/tests/src/viewer/viewertest.txt b/tests/src/viewer/viewertest.txt
+index add6284..ecb94fd 100644
+--- a/tests/src/viewer/viewertest.txt
++++ b/tests/src/viewer/viewertest.txt
+@@ -60,15 +60,15 @@ c:x̀  ccccc:x̀́̂̃̄  s:xो  sssss:xोोोोो  sssccc:xोोो̀́
+ c:の̀  ccccc:の̀́̂̃̄  s:のो  sssss:のोोोोो  sssccc:のोोो̀́̂  cccsss:の̀́̂ोोो  scscsc:のो̀ो́ो̂  cscscs:の̀ो́ो̂ो|
+ 
+ * Nroff
+----------------  一一一一  - - - -  一 一 一 一  -----------------|
+-_Hello,_World!_  のイプサ  à́ b̀́ c̀́ d̀́  हो हि हो हि  __b___u___b___u__|
+-__HHeelllloo,,___W_o_r_l_d_!__  ののイイ_プ_サ  aà̀́́ bb̀̀́́ _c_̀_́ _d_̀_́  हहोो हहिि _ह_ो _ह_ि  ____bb_______u______bb_______u____|
++--------------------  一一一一一一  - - - - - -  一 一 一 一 一 一  ----------------------|
++_Hello,_Nice_World!_  のイプサム嘆  à́ b̀́ c̀́ d̀́ è́ f̀́  हो हि हो हि हो हि  __b___u___bu___b___u__|
++__HHeelllloo,,___N_i_c_e____WW_oo_rr_ll_dd_!!___  ののイイ_プ_サ_ムム_嘆嘆  aà̀́́ bb̀̀́́ _c_̀_́ _d_̀_́ _ee_̀̀_́́ _ff_̀̀_́́  हहोो हहिि _ह_ो _ह_ि _हह_ोो _हह_िि  ____bb_______u_______bb_uu_________bb_______u____|
+ ______ <- should be bold again
+ 
+-* Invalid nroff (a backspace b tab backspace tab underscore backspace newline,
+-  reference rendering in the first row)
+-a.b     .       _.
+-ab		_
++* Invalid nroff (a ^H b (tab) ^H (tab) _ ^H a ^H b (tab) a ^H a ^H a (tab) _ ^H EOL,
++  reference rendering (including some valid nroff) in the first row)
++a.b     .       _a.b     aa.a     _.
++ab		_ab	aaa	_
+ 
+ * Control characters (00-1F except tab/lf/cr, 7F, 80-9F), should all be replaced by dots
+ @ABCDEFGH--KL-NOPQRSTUVWXYZ[\]^_|?|@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_|

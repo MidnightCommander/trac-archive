@@ -1,0 +1,109 @@
+From b3e5581900b86a713f83ade4d34bc6bdd8dc5ff6 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 1 Apr 2016 12:40:06 +0300
+Subject: [PATCH] FIX FOR: WEdit: get rid of mouse event pump.
+
+---
+ src/editor/editwidget.c | 36 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 33 insertions(+), 3 deletions(-)
+
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index b2f1ee0..2e8388c 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -212,6 +212,7 @@ static void
+ edit_restore_size (WEdit * edit)
+ {
+     edit->drag_state = MCEDIT_DRAG_NORMAL;
++    WIDGET (edit)->mouse.forced_capture = FALSE;
+     widget_set_size (WIDGET (edit), edit->y_prev, edit->x_prev, edit->lines_prev, edit->cols_prev);
+     dlg_redraw (WIDGET (edit)->owner);
+ }
+@@ -1010,11 +1011,21 @@ edit_mouse_handle_move_resize (Widget * w, mouse_msg_t msg, mouse_event_t * even
+ 
+     if (msg == MSG_MOUSE_UP)
+     {
+-        /* Exit drag mode. */
++        /* Exit move/resize mode. */
+         edit_execute_cmd (edit, CK_Enter, -1);
+         return;
+     }
+ 
++    if (msg != MSG_MOUSE_DRAG)
++        /**
++         * We ignore any other events. Specifically, MSG_MOUSE_DOWN.
++         *
++         * When the move/resize is initiated by the menu, we let the user
++         * stop it by clicking with the mouse. Which is why we don't want
++         * a mouse down to affect the window.
++         */
++        return;
++
+     /* Convert point to global coordinates for easier calculations. */
+     global_x = event->x + w->x;
+     global_y = event->y + w->y;
+@@ -1086,8 +1097,8 @@ edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+                 else
+                 {
+                     /* start window move */
+-                    edit->drag_state_start = event->x;
+                     edit_execute_cmd (edit, CK_WindowMove, -1);
++                    edit->drag_state_start = event->x;
+                 }
+                 break;
+             }
+@@ -1355,17 +1366,19 @@ edit_add_window (WDialog * h, int y, int x, int lines, int cols, const vfs_path_
+  *
+  * @param edit    editor object
+  * @param command action id
+- * @return TRUE if mouse actions was handled, FALSE otherwise
++ * @return TRUE if the action was handled, FALSE otherwise
+  */
+ 
+ gboolean
+ edit_handle_move_resize (WEdit * edit, long command)
+ {
++    Widget *w = WIDGET (edit);
+     gboolean ret = FALSE;
+ 
+     if (edit->fullscreen)
+     {
+         edit->drag_state = MCEDIT_DRAG_NORMAL;
++        w->mouse.forced_capture = FALSE;
+         return ret;
+     }
+ 
+@@ -1379,6 +1392,12 @@ edit_handle_move_resize (WEdit * edit, long command)
+             edit->drag_state = MCEDIT_DRAG_MOVE;
+             edit_save_size (edit);
+             edit_status (edit, TRUE);   /* redraw frame and status */
++            /**
++             * If a user initiates a move by the menu, not by the mouse, we
++             * make a subsequent mouse drag pull the frame from its middle.
++             * (We can instead choose '0' to pull it from the corner.)
++             */
++            edit->drag_state_start = w->cols / 2;
+             ret = TRUE;
+             break;
+         case CK_WindowResize:
+@@ -1444,6 +1463,17 @@ edit_handle_move_resize (WEdit * edit, long command)
+         break;
+     }
+ 
++    /**
++     * - We let the user stop a resize/move operation by clicking with the
++     *   mouse anywhere. ("clicking" = pressing and releasing a button.)
++     * - We let the user perform a resize/move operation by a mouse drag
++     *   initiated anywhere.
++     *
++     * "Anywhere" means: inside or outside the window. We make this happen
++     * with the 'forced_capture' flag.
++     */
++    w->mouse.forced_capture = (edit->drag_state != MCEDIT_DRAG_NORMAL);
++
+     return ret;
+ }
+ 
+-- 
+2.5.0
+

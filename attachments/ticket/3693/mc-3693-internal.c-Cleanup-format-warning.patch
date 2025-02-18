@@ -1,0 +1,27 @@
+From 15f922a0b4208003dad28c39e8f0d22689d66fc3 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 08:08:47 +0000
+Subject: [PATCH] (color-internal.c) Cleanup format compiler warning
+
+Found by GCC 6.2.0.
+
+color-internal.c:186:33: error: format '%X' expects argument of type 'unsigned int', but argument 3 has type 'int' [-Werror=format=]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/tty/color-internal.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/tty/color-internal.c b/lib/tty/color-internal.c
+index d49553f..73753fe 100644
+--- a/lib/tty/color-internal.c
++++ b/lib/tty/color-internal.c
+@@ -183,7 +183,7 @@ tty_color_get_name_by_index (int idx)
+         if (idx < 256)
+             sprintf (name, "color%d", idx);
+         else
+-            sprintf (name, "#%06X", idx & 0xFFFFFF);
++            sprintf (name, "#%06X", (unsigned int) idx & 0xFFFFFF);
+         return g_intern_string (name);
+     }
+     return "default";

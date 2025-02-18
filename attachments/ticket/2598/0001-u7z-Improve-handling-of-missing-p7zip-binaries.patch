@@ -1,0 +1,31 @@
+From 11e390be08b1c88a28b37a18bd6bbe4c88901d4a Mon Sep 17 00:00:00 2001
+From: Daniel Hahler <git@thequod.de>
+Date: Thu, 25 Aug 2011 14:20:36 +0200
+Subject: [PATCH] u7z: Improve handling of missing p7zip binaries.
+
+Fixes #2598 (https://www.midnight-commander.org/ticket/2598)
+---
+ src/vfs/extfs/helpers/u7z |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/u7z b/src/vfs/extfs/helpers/u7z
+index 9d41ac6..8ae09fe 100755
+--- a/src/vfs/extfs/helpers/u7z
++++ b/src/vfs/extfs/helpers/u7z
+@@ -5,7 +5,12 @@
+ # Some Bugfixes/workarounds by Sergiy Niskorodov <sgh@mail.zp.ua>
+ # Licensed under GNU GPL version 2 or later version.
+ 
+-P7ZIP=`which 7z 2>/dev/null` || P7ZIP=`which 7za 2>/dev/null` || P7ZIP=`which 7zr 2>/dev/null`
++P7ZIP=`which 7z 2>/dev/null` || P7ZIP=`which 7za 2>/dev/null` || P7ZIP=`which 7zr 2>/dev/null` || P7ZIP=""
++
++if [ -z "$P7ZIP" ] ; then
++  echo "Error: could not find p7zip (looked for 7z, 7za and 7zr)." >&2
++  exit 1
++fi
+ 
+ mcu7zip_list ()
+ {
+-- 
+1.7.6
+

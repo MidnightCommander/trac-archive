@@ -1,0 +1,12 @@
+diff -ur mc-4.7.0.7.orig/src/viewer/search.c mc-4.7.0.7/src/viewer/search.c
+--- mc-4.7.0.7.orig/src/viewer/search.c	2010-07-05 21:12:51.000000000 +0200
++++ mc-4.7.0.7/src/viewer/search.c	2010-07-26 16:07:17.000000000 +0200
+@@ -228,7 +228,7 @@
+ 
+     if (view->search_start)
+     {
+-        search_start = (view->search_backwards) ? -2 : 2;
++        search_start = (view->search_backwards) ? -2 : 0;
+         search_start = view->search_start + search_start +
+             mcview__get_nroff_real_len (view, view->search_start, 2) * search_start;
+     }

@@ -1,0 +1,13 @@
+The first line is the same in both files.
+First hunk: Two lines are added ...
+... to the first file.
+Second hunk follows: Replace one word
+Color
+Third hunk follows: Replace two more words
+Gray
+Sidewalk
+Fourth hunk follows:
+Three lines are added to this file, ...
+... but two from the other one are ...
+... missing from here.
+The End.

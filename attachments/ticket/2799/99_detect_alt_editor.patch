@@ -1,0 +1,21 @@
+Last-Update: 2012-02-25
+Reviewed-by: Dmitry Smirnov <onlyjob@member.fsf.org>
+Forwarded: yes
+Bug-Debian: http://bugs.debian.org/592208
+Author: Yury V. Zaytsev <yury@shurup.com>
+Description: Detect that mc was launched from alternatives symlink
+ This patch in needed to mcedit to start if run as 'editor' symlink
+ from alternatives.
+
+
+--- a/src/args.c
++++ b/src/args.c
+@@ -628,7 +628,7 @@
+     base = x_basename (argv[0]);
+     tmp = (argc > 0) ? argv[1] : NULL;
+ 
+-    if (strncmp (base, "mce", 3) == 0 || strcmp (base, "vi") == 0)
++    if (strncmp (base, "mce", 3) == 0 || strcmp (base, "vi") == 0 || strcmp (base, "editor") == 0)
+     {
+         /* mce* or vi is link to mc */
+ 

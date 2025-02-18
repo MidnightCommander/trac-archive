@@ -1,0 +1,1590 @@
+diff -urN mc-4.7.1_old/intl/localcharset.c mc-4.7.1_new/intl/localcharset.c
+--- mc-4.7.1_old/intl/localcharset.c	2010-02-26 12:27:08.000000000 +0000
++++ mc-4.7.1_new/intl/localcharset.c	2010-03-10 17:50:43.000000000 +0000
+@@ -141,7 +141,8 @@
+ 	  }
+       }
+ 
+-      if (file_name == NULL || (fp = fopen (file_name, "r")) == NULL)
++      fp = fopen (file_name, "r");
++      if (file_name == NULL || fp == NULL)
+ 	/* Out of memory or file not found, treat it as empty.  */
+ 	cp = "";
+       else
+diff -urN mc-4.7.1_old/intl/plural.c mc-4.7.1_new/intl/plural.c
+--- mc-4.7.1_old/intl/plural.c	2010-02-26 12:29:15.000000000 +0000
++++ mc-4.7.1_new/intl/plural.c	2010-03-10 17:52:54.000000000 +0000
+@@ -1532,7 +1532,8 @@
+   case 12:
+ #line 195 "/srv/work/mc/git/intl/plural.y"
+     {
+-	    if (((yyval.exp) = new_exp_0 (num)) != NULL)
++	    yyval.exp = new_exp_0 (num);
++	    if (yyval.exp != NULL)
+ 	      (yyval.exp)->val.num = (yyvsp[(1) - (1)].num);
+ 	  }
+     break;
+diff -urN mc-4.7.1_old/lib/logging.c mc-4.7.1_new/lib/logging.c
+--- mc-4.7.1_old/lib/logging.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/logging.c	2010-03-10 17:56:18.000000000 +0000
+@@ -67,7 +67,8 @@
+ 	if (is_logging_enabled()) {
+ 		va_start(args, fmt);
+ 		logfilename = g_strdup_printf("%s/%s/log", home_dir, MC_USERCONF_DIR);
+-		if ((f = fopen(logfilename, "a")) != NULL) {
++		f = fopen (logfilename, "a");
++		if (f != NULL) {
+ 			(void)vfprintf(f, fmt, args);
+ 			(void)fclose(f);
+ 		}
+diff -urN mc-4.7.1_old/lib/util.c mc-4.7.1_new/lib/util.c
+--- mc-4.7.1_old/lib/util.c	2010-02-26 12:01:53.000000000 +0000
++++ mc-4.7.1_new/lib/util.c	2010-03-10 18:00:11.000000000 +0000
+@@ -519,13 +519,15 @@
+ 
+         if (has_prefix)
+         {
+-            if ((q = strstr (p, prefixes[i].name)) == 0)
++            q = strstr (p, prefixes[i].name);
++            if (q == NULL)
+                 continue;
+             else
+                 p = q + prefixes[i].len;
+         }
+ 
+-        if ((dir = strchr (p, PATH_SEP)) != NULL)
++        dir = strchr (p, PATH_SEP);
++        if (dir != NULL)
+             *dir = '\0';
+ 
+         /* search for any possible user */
+@@ -552,7 +554,8 @@
+     size_t len;
+     static char newdir[MC_MAXPATHLEN];
+ 
+-    if (home_dir && !strncmp (dir, home_dir, len = strlen (home_dir)) &&
++    len = strlen (home_dir);
++    if (home_dir && !strncmp (dir, home_dir, len) &&
+         (dir[len] == PATH_SEP || dir[len] == '\0'))
+     {
+         newdir[0] = '~';
+@@ -612,7 +615,8 @@
+     char *data;
+     long read_size;
+ 
+-    if ((data_file = fopen (filename, "r")) == NULL)
++    data_file = fopen (filename, "r");
++    if (data_file == NULL)
+     {
+         return 0;
+     }
+diff -urN mc-4.7.1_old/lib/utilunix.c mc-4.7.1_new/lib/utilunix.c
+--- mc-4.7.1_old/lib/utilunix.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/utilunix.c	2010-03-10 18:01:24.000000000 +0000
+@@ -91,7 +91,8 @@
+     char   *name;
+     static int uid_last;
+     
+-    if ((name = i_cache_match (uid, uid_cache, UID_CACHE_SIZE)) != NULL)
++    name = i_cache_match (uid, uid_cache, UID_CACHE_SIZE);
++    if (name != NULL)
+ 	return name;
+     
+     pwd = getpwuid (uid);
+@@ -112,7 +113,8 @@
+     char *name;
+     static int  gid_last;
+     
+-    if ((name = i_cache_match (gid, gid_cache, GID_CACHE_SIZE)) != NULL)
++    name = i_cache_match (gid, gid_cache, GID_CACHE_SIZE);
++    if (name != NULL)
+ 	return name;
+     
+     grp = getgrgid (gid);
+@@ -150,11 +152,11 @@
+     /* handler messing the screen after the SIGCONT */
+     sigaction (SIGTSTP, &startup_handler, &save_stop);
+ 
+-    if ((pid = fork ()) < 0){
++    pid = fork ();
++    if (pid < 0) {
+ 	fprintf (stderr, "\n\nfork () = -1\n");
+ 	return -1;
+-    }
+-    if (pid == 0){
++    } else if (pid == 0) {
+ 	signal (SIGINT, SIG_DFL);
+ 	signal (SIGQUIT, SIG_DFL);
+ 	signal (SIGTSTP, SIG_DFL);
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/cpio.c mc-4.7.1_new/lib/vfs/mc-vfs/cpio.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/cpio.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/cpio.c	2010-03-10 18:05:48.000000000 +0000
+@@ -165,7 +165,8 @@
+     mode_t mode;
+     struct vfs_s_inode *root;
+ 
+-    if ((fd = mc_open (name, O_RDONLY)) == -1) {
++    fd = mc_open (name, O_RDONLY);
++    if (fd == -1) {
+ 	message (D_ERROR, MSG_ERROR, _("Cannot open cpio archive\n%s"), name);
+ 	return -1;
+     }
+@@ -181,7 +182,8 @@
+ 
+ 	mc_close (fd);
+ 	s = g_strconcat (name, decompress_extension (type), (char *) NULL);
+-	if ((fd = mc_open (s, O_RDONLY)) == -1) {
++	fd = mc_open (s, O_RDONLY);
++	if (fd == -1) {
+ 	    message (D_ERROR, MSG_ERROR, _("Cannot open cpio archive\n%s"), s);
+ 	    g_free (s);
+ 	    return -1;
+@@ -247,7 +249,8 @@
+ 		ptr -= top - 128;
+ 		top = 128;
+ 	    }
+-	    if((tmp = mc_read(super->u.arch.fd, buf, top)) == 0 || tmp == -1) {
++	    tmp = mc_read(super->u.arch.fd, buf, top);
++	    if (tmp == 0 || tmp == -1) {
+ 		message (D_ERROR, MSG_ERROR, _("Premature end of cpio archive\n%s"), super->name);
+ 		cpio_free_archive(me, super);
+ 		return CPIO_UNKNOWN;
+@@ -419,7 +422,8 @@
+     char *name;
+     struct stat st;
+ 
+-    if((len = mc_read(super->u.arch.fd, (char *)&u.buf, HEAD_LENGTH)) < HEAD_LENGTH)
++    len = mc_read (super->u.arch.fd, (char *)&u.buf, HEAD_LENGTH);
++    if (len < HEAD_LENGTH)
+ 	return STATUS_EOF;
+     CPIO_POS(super) += len;
+     if(super->u.arch.type == CPIO_BINRE) {
+@@ -435,7 +439,8 @@
+ 	return STATUS_FAIL;
+     }
+     name = g_malloc(u.buf.c_namesize);
+-    if((len = mc_read(super->u.arch.fd, name, u.buf.c_namesize)) < u.buf.c_namesize) {
++    len = mc_read (super->u.arch.fd, name, u.buf.c_namesize);
++    if (len < u.buf.c_namesize) {
+ 	g_free(name);
+ 	return STATUS_EOF;
+     }
+@@ -493,8 +498,8 @@
+ 	return STATUS_FAIL;
+     }
+     name = g_malloc(hd.c_namesize);
+-    if((len = mc_read(super->u.arch.fd, name, hd.c_namesize)) == -1 ||
+-       (unsigned long) len < hd.c_namesize) {
++    len = mc_read (super->u.arch.fd, name, hd.c_namesize);
++    if ((len == -1) || ((unsigned long) len < hd.c_namesize)) {
+ 	g_free (name);
+ 	return STATUS_EOF;
+     }
+@@ -669,7 +674,9 @@
+ 
+     count = MIN(count, FH->ino->st.st_size - FH->pos);
+ 
+-    if ((count = mc_read (fd, buffer, count)) == -1) ERRNOR (errno, -1);
++    count = mc_read (fd, buffer, count);
++    if (count == -1) 
++        ERRNOR (errno, -1);
+ 
+     FH->pos += count;
+     return count;
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/direntry.c mc-4.7.1_new/lib/vfs/mc-vfs/direntry.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/direntry.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/direntry.c	2010-03-10 18:06:40.000000000 +0000
+@@ -485,9 +485,11 @@
+     vfs_split (inname, &local, &op);
+     retval = (local) ? local : "";
+ 
+-    if (MEDATA->archive_check)
+-	if (!(cookie = MEDATA->archive_check (me, archive_name, op)))
++    if (MEDATA->archive_check) {
++	cookie = MEDATA->archive_check (me, archive_name, op);
++	if (cookie == NULL)
+ 	    return NULL;
++    }
+ 
+     for (super = MEDATA->supers; super != NULL; super = super->next) {
+ 	/* 0 == other, 1 == same, return it, 2 == other but stop scanning */
+@@ -587,7 +589,8 @@
+     struct vfs_s_inode *ino;
+     char *q;
+ 
+-    if (!(q = vfs_s_get_path (me, name, &super, 0)))
++    q = vfs_s_get_path (me, name, &super, 0);
++    if (q == NULL)
+ 	return NULL;
+ 
+     ino =
+@@ -670,8 +673,11 @@
+ vfs_s_chdir (struct vfs_class *me, const char *path)
+ {
+     void *data;
+-    if (!(data = vfs_s_opendir (me, path)))
++
++    data = vfs_s_opendir (me, path);
++    if (data == NULL)
+ 	return -1;
++
+     vfs_s_closedir (data);
+     return 0;
+ }
+@@ -683,8 +689,10 @@
+ {
+     struct vfs_s_inode *ino;
+ 
+-    if (!(ino = vfs_s_inode_from_path (me, path, flag)))
++    ino = vfs_s_inode_from_path (me, path, flag);
++    if (ino == NULL)
+         return -1;
++
+     *buf = ino->st;
+     return 0;
+ }
+@@ -741,7 +749,8 @@
+     char *q;
+     struct vfs_s_inode *ino;
+ 
+-    if ((q = vfs_s_get_path (me, file, &super, 0)) == NULL)
++    q = vfs_s_get_path (me, file, &super, 0);
++    if (q == NULL)
+ 	return NULL;
+     ino = vfs_s_find_inode (me, super, q, LINK_FOLLOW, FL_NONE);
+     if (ino && ((flags & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL))) {
+@@ -1105,8 +1114,10 @@
+     struct vfs_s_super *archive;
+     char *p;
+ 
+-    if (!(p = vfs_s_get_path (me, path, &archive, FL_NO_OPEN)))
++    p = vfs_s_get_path (me, path, &archive, FL_NO_OPEN);
++    if (p == NULL)
+ 	return NULL;
++	
+     g_free(p);
+     return (vfsid) archive;    
+ }
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/fish.c mc-4.7.1_new/lib/vfs/mc-vfs/fish.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/fish.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/fish.c	2010-03-10 13:51:37.000000000 +0000
+@@ -197,8 +197,10 @@
+     if ((pipe(fileset1)<0) || (pipe(fileset2)<0)) 
+ 	vfs_die("Cannot pipe(): %m.");
+     
+-    if ((res = fork())) {
+-        if (res<0) vfs_die("Cannot fork(): %m.");
++    res = fork();
++    if (res < 0) {
++        vfs_die("Cannot fork(): %m.");
++    } else if (res > 0) {
+ 	/* We are the parent */
+ 	close(fileset1[0]);
+ 	SUP.sockw = fileset1[1];
+@@ -785,7 +787,9 @@
+ 	}
+ 	if (n == 0)
+ 	    break;
+-    	if ((t = write (SUP.sockw, buffer, n)) != n) {
++
++    	t = write (SUP.sockw, buffer, n);
++    	if (t != n) {
+ 	    if (t == -1) {
+ 		me->verrno = errno;
+ 	    } else { 
+@@ -871,8 +875,10 @@
+     do {
+ 	n = MIN(8192, fh->u.fish.total - fh->u.fish.got);
+ 	if (n) {
+-	    if ((n = read(SUP.sockr, buffer, n)) < 0)
++	    n = read(SUP.sockr, buffer, n);
++	    if (n < 0)
+ 	        return;
++
+ 	    fh->u.fish.got += n;
+ 	}
+     } while (n);
+@@ -897,10 +903,13 @@
+     }
+     tty_enable_interrupt_key();
+ 
+-    if (n>0) fh->u.fish.got += n;
+-    if (n<0) fish_linear_abort(me, fh);
+-    if ((!n) && ((fish_get_reply (me, SUP.sockr, NULL, 0) != COMPLETE)))
++    if (n > 0) 
++        fh->u.fish.got += n;
++    else if (n < 0)
++        fish_linear_abort (me, fh);
++    else if (fish_get_reply (me, SUP.sockr, NULL, 0) != COMPLETE)
+         ERRNOR (E_REMOTE, -1);
++
+     ERRNOR (errno, n);
+ }
+ 
+@@ -958,7 +967,8 @@
+     const char *crpath; \
+     char *rpath, *mpath = g_strdup (path); \
+     struct vfs_s_super *super; \
+-    if (!(crpath = vfs_s_get_path_mangle (me, mpath, &super, 0))) { \
++    crpath = vfs_s_get_path_mangle (me, mpath, &super, 0); \
++    if (crpath == NULL) { \
+ 	g_free (mpath); \
+ 	return -1; \
+     } \
+@@ -991,11 +1001,13 @@
+     const char *crpath1, *crpath2; \
+     char *rpath1, *rpath2, *mpath1, *mpath2; \
+     struct vfs_s_super *super1, *super2; \
+-    if (!(crpath1 = vfs_s_get_path_mangle (me, mpath1 = g_strdup(path1), &super1, 0))) { \
++    crpath1 = vfs_s_get_path_mangle (me, mpath1 = g_strdup(path1), &super1, 0); \
++    if (crpath1 == NULL) { \
+ 	g_free (mpath1); \
+ 	return -1; \
+     } \
+-    if (!(crpath2 = vfs_s_get_path_mangle (me, mpath2 = g_strdup(path2), &super2, 0))) { \
++    crpath2 = vfs_s_get_path_mangle (me, mpath2 = g_strdup(path2), &super2, 0); \
++    if (crpath2 == NULL) { \
+ 	g_free (mpath1); \
+ 	g_free (mpath2); \
+ 	return -1; \
+@@ -1047,10 +1059,12 @@
+     struct passwd *pw;
+     struct group *gr;
+ 
+-    if ((pw = getpwuid (owner)) == NULL)
++    pw = getpwuid (owner);
++    if (pw == NULL)
+ 	return 0;
+ 
+-    if ((gr = getgrgid (group)) == NULL)
++    gr = getgrgid (group);
++    if (gr == NULL)
+ 	return 0;
+ 
+     sowner = pw->pw_name;
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/ftpfs.c mc-4.7.1_new/lib/vfs/mc-vfs/ftpfs.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/ftpfs.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/ftpfs.c	2010-03-10 15:05:11.000000000 +0000
+@@ -223,8 +223,10 @@
+ 	    memmove (p + 1, p + 2, strlen (p + 2) + 1);
+ 
+ 	/* strip trailing "/." */
+-	if ((p = strrchr (ret, '/')) && *(p + 1) == '.' && *(p + 2) == '\0')
++	p = strrchr (ret, '/');
++	if ((p != NULL) && (*(p + 1) == '.') && (*(p + 2) == '\0'))
+ 	    *p = '\0';
++	    
+ 	return ret;
+     }
+ }
+@@ -580,31 +582,33 @@
+ 	return;
+ 
+     mc_file = concat_dir_and_file (mc_home, "mc.no_proxy");
+-    if (exist_file (mc_file) &&
+-	(npf = fopen (mc_file, "r"))) {
+-	while (fgets (s, sizeof (s), npf)) {
+-	    if (!(p = strchr (s, '\n'))) {	/* skip bogus entries */ 
+-		while ((c = fgetc (npf)) != EOF && c != '\n')
+-		    ;
+-		continue;
+-	    }
+-
+-	    if (p == s)
+-		continue;
+-
+-	    *p = '\0';
+-	    
+-	    np = g_new (struct no_proxy_entry, 1);
+-	    np->domain = g_strdup (s);
+-	    np->next   = NULL;
+-	    if (no_proxy)
+-		current->next = np;
+-	    else
+-		no_proxy = np;
+-	    current = np;
+-	}
+-
+-	fclose (npf);
++    if (exist_file (mc_file)) {
++        npf = fopen (mc_file, "r");
++        if (npf != NULL) {
++            while (fgets (s, sizeof (s), npf)) {
++                p = strchr (s, '\n');
++                if (p == NULL) {  /* skip bogus entries */
++                    while ((c = fgetc (npf)) != EOF && c != '\n')
++                        ;
++                    continue;
++                }
++
++                if (p == s)
++                    continue;
++
++                *p = '\0';
++
++                np = g_new (struct no_proxy_entry, 1);
++                np->domain = g_strdup (s);
++                np->next   = NULL;
++                if (no_proxy)
++                    current->next = np;
++                else
++                    no_proxy = np;
++                current = np;
++            }
++            fclose (npf);
++        }
+     }
+     g_free (mc_file);
+ }
+@@ -1093,10 +1097,13 @@
+     int s, j, data;
+     socklen_t fromlen = sizeof(from);
+     
+-    if ((s = ftpfs_initconn (me, super)) == -1)
++    s = ftpfs_initconn (me, super); 
++    if (s == -1)
+         return -1;
++
+     if (ftpfs_changetype (me, super, isbinary) == -1)
+         return -1;
++
+     if (reget > 0){
+ 	j = ftpfs_command (me, super, WAIT_REPLY, "REST %d", reget);
+ 	if (j != CONTINUE)
+@@ -1622,8 +1629,9 @@
+     int r;
+     int flush_directory_cache = (flags & OPT_FLUSH);
+ 
+-    if (!(rpath = vfs_s_get_path_mangle(me, mpath, &super, 0))) {
+-    	g_free(mpath);
++    rpath = vfs_s_get_path_mangle (me, mpath, &super, 0);
++    if (rpath == NULL) {
++    	g_free (mpath);
+ 	return -1;
+     }
+     p = ftpfs_translate_path (me, super, rpath);
+@@ -1632,6 +1640,7 @@
+     vfs_stamp_create (&vfs_ftpfs_ops, super);
+     if (flags & OPT_IGNORE_ERROR)
+ 	r = COMPLETE;
++	
+     if (r != COMPLETE) {
+         me->verrno = EPERM;
+         g_free (mpath);
+@@ -2048,7 +2057,9 @@
+     /* Find our own domain name */
+     if (gethostname (hostname, sizeof (hostname)) < 0)
+ 	*hostname = 0;
+-    if (!(domain = strchr (hostname, '.')))
++
++    domain = strchr (hostname, '.');
++    if (domain == NULL)
+ 	domain = "";
+ 
+     /* Scan for "default" and matching "machine" keywords */
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/mcfs.c mc-4.7.1_new/lib/vfs/mc-vfs/mcfs.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/mcfs.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/mcfs.c	2010-03-10 15:09:14.000000000 +0000
+@@ -212,7 +212,8 @@
+ #ifdef HAVE_PMAP_GETPORT
+     int port;
+     for (*version = RPC_PROGVER; *version >= 1; (*version)--)
+-	if (port = pmap_getport (sin, RPC_PROGNUM, *version, IPPROTO_TCP))
++	port = pmap_getport (sin, RPC_PROGNUM, *version, IPPROTO_TCP);
++	if (port != NULL)
+ 	    return port;
+ #endif				/* HAVE_PMAP_GETPORT */
+     *version = 1;
+@@ -237,11 +238,13 @@
+     server_address.sin_family = AF_INET;
+ 
+     /*  Try to use the dotted decimal number */
+-    if ((inaddr = inet_addr (host)) != INADDR_NONE)
++    inaddr = inet_addr (host);
++    if (inaddr != INADDR_NONE) {
+ 	memcpy ((char *) &server_address.sin_addr, (char *) &inaddr,
+ 		sizeof (inaddr));
+-    else {
+-	if ((hp = gethostbyname (host)) == NULL) {
++    } else {
++	hp = gethostbyname (host);
++	if (hp == NULL) {
+ 	    message (D_ERROR, caller, _(" Cannot locate hostname: %s "),
+ 			host);
+ 	    return 0;
+@@ -259,8 +262,8 @@
+ 	*version = 1;
+ 
+     server_address.sin_port = htons (*port);
+-
+-    if ((my_socket = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
++    my_socket = socket (AF_INET, SOCK_STREAM, 0);
++    if (my_socket < 0) {
+ 	message (D_ERROR, caller, _(" Cannot create socket: %s "),
+ 		    unix_error_string (errno));
+ 	return 0;
+@@ -340,10 +343,8 @@
+ 	message (D_ERROR, MSG_ERROR, _(" Too many open connections "));
+ 	return 0;
+     }
+-
+-    if (!
+-	(sock =
+-	 mcfs_open_tcp_link (host, user, port, netrcpass, &version)))
++    sock = mcfs_open_tcp_link (host, user, port, netrcpass, &version);
++    if (sock == 0)
+ 	return 0;
+ 
+     bucket = mcfs_get_free_bucket ();
+@@ -394,12 +395,14 @@
+      * remote portmapper to get the port number
+      */
+     port = 0;
+-    if ((remote_path =
+-	 mcfs_get_host_and_username (path, &host, &user, &port, &pass)))
+-	if (!(*mc = mcfs_open_link (host, user, &port, pass))) {
++    remote_path = mcfs_get_host_and_username (path, &host, &user, &port, &pass);
++    if (remote_path != NULL) {
++	*mc = mcfs_open_link (host, user, &port, pass);
++	if (*mc == NULL) {
+ 	    g_free (remote_path);
+ 	    remote_path = NULL;
+ 	}
++    }
+     g_free (host);
+     g_free (user);
+     if (pass)
+@@ -445,10 +448,12 @@
+     mcfs_connection *mc;
+     char *r1, *r2;
+ 
+-    if ((r1 = mcfs_get_path (&mc, s1)) == 0)
++    r1 = mcfs_get_path (&mc, s1);
++    if (r1 == NULL)
+ 	return -1;
+ 
+-    if ((r2 = mcfs_get_path (&mc, s2)) == 0) {
++    r2 = mcfs_get_path (&mc, s2);
++    if (r2 == NULL) {
+ 	g_free (r1);
+ 	return -1;
+     }
+@@ -466,7 +471,8 @@
+     mcfs_connection *mc;
+     char *remote_file;
+ 
+-    if ((remote_file = mcfs_get_path (&mc, path)) == 0)
++    remote_file = mcfs_get_path (&mc, path);
++    if (remote_file == NULL)
+ 	return -1;
+ 
+     rpc_send (mc->sock,
+@@ -482,7 +488,8 @@
+     mcfs_connection *mc;
+     char *remote_file;
+ 
+-    if ((remote_file = mcfs_get_path (&mc, path)) == 0)
++    remote_file = mcfs_get_path (&mc, path);
++    if (remote_file == NULL)
+ 	return -1;
+ 
+     rpc_send (mc->sock,
+@@ -499,7 +506,8 @@
+     mcfs_connection *mc;
+     char *remote_file;
+ 
+-    if ((remote_file = mcfs_get_path (&mc, path)) == 0)
++    remote_file = mcfs_get_path (&mc, path);
++    if (remote_file == NULL)
+ 	return -1;
+ 
+     rpc_send (mc->sock,
+@@ -537,7 +545,8 @@
+ 
+     (void) me;
+ 
+-    if (!(remote_file = mcfs_get_path (&mc, file)))
++    remote_file = mcfs_get_path (&mc, file);
++    if (remote_file == NULL)
+ 	return 0;
+ 
+     rpc_send (mc->sock, RPC_INT, MC_OPEN, RPC_STRING, remote_file, RPC_INT,
+@@ -661,8 +670,9 @@
+ 
+     (void) me;
+ 
+-    if (!(remote_dir = mcfs_get_path (&mc, dirname)))
+-	return 0;
++    remote_dir = mcfs_get_path (&mc, dirname);
++    if (remote_dir == NULL)
++	return NULL;
+ 
+     rpc_send (mc->sock, RPC_INT, MC_OPENDIR, RPC_STRING, remote_dir,
+ 	      RPC_END);
+@@ -670,10 +680,10 @@
+ 
+     if (0 ==
+ 	rpc_get (mc->sock, RPC_INT, &result, RPC_INT, &error_num, RPC_END))
+-	return 0;
++	return NULL;
+ 
+     if (mcfs_is_error (result, error_num))
+-	return 0;
++	return NULL;
+ 
+     handle = result;
+ 
+@@ -683,7 +693,7 @@
+     mcfs_info->entries = 0;
+     mcfs_info->current = 0;
+ 
+-    return mcfs_info;
++    return (void *) mcfs_info;
+ }
+ 
+ static int mcfs_get_stat_info (mcfs_connection * mc, struct stat *buf);
+@@ -880,7 +890,8 @@
+     mcfs_connection *mc;
+     int status, error;
+ 
+-    if ((remote_file = mcfs_get_path (&mc, path)) == 0)
++    remote_file = mcfs_get_path (&mc, path);
++    if (remote_file == NULL)
+ 	return -1;
+ 
+     rpc_send (mc->sock, RPC_INT, cmd, RPC_STRING, remote_file, RPC_END);
+@@ -970,7 +981,8 @@
+ 
+     (void) me;
+ 
+-    if (!(file = mcfs_get_path (&mc, path)))
++    remote_file = mcfs_get_path (&mc, path);
++    if (remote_file == NULL)
+ 	return -1;
+ 
+     status = 0;
+@@ -1005,7 +1017,8 @@
+ 
+     (void) me;
+ 
+-    if (!(remote_file = mcfs_get_path (&mc, path)))
++    remote_file = mcfs_get_path (&mc, path);
++    if (remote_file == NULL)
+ 	return -1;
+ 
+     rpc_send (mc->sock, RPC_INT, MC_READLINK, RPC_STRING, remote_file,
+@@ -1062,7 +1075,8 @@
+ 
+     (void) me;
+ 
+-    if (!(remote_dir = mcfs_get_path (&mc, path)))
++    remote_file = mcfs_get_path (&mc, path);
++    if (remote_file == NULL)
+ 	return -1;
+ 
+     rpc_send (mc->sock, RPC_INT, MC_CHDIR, RPC_STRING, remote_dir,
+@@ -1137,12 +1151,11 @@
+ 	return;
+ 
+     path += 5;
+-    if (path[0] == '/' && path[1] == '/')
++    if ((path[0] == '/') && (path[1] == '/'))
+ 	path += 2;
+ 
+-    if ((p =
+-	 mcfs_get_host_and_username (path, &host, &user, &port,
+-				     &pass)) == 0) {
++    p = mcfs_get_host_and_username (path, &host, &user, &port, &pass);
++    if (p == NULL) {
+ 	g_free (host);
+ 	g_free (user);
+ 	if (pass)
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/mcserv.c mc-4.7.1_new/lib/vfs/mc-vfs/mcserv.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/mcserv.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/mcserv.c	2010-03-10 13:14:54.000000000 +0000
+@@ -799,15 +799,22 @@
+     up.password = password;
+     conv.appdata_ptr = &up;
+ 
+-    if ((status =
+-	 pam_start ("mcserv", username, &conv, &pamh)) != PAM_SUCCESS)
++    status = pam_start ("mcserv", username, &conv, &pamh);
++    if (status != PAM_SUCCESS)
+ 	goto failed_pam;
+-    if ((status = pam_authenticate (pamh, 0)) != PAM_SUCCESS)
++
++    status = pam_authenticate (pamh, 0);
++    if (status != PAM_SUCCESS)
+ 	goto failed_pam;
+-    if ((status = pam_acct_mgmt (pamh, 0)) != PAM_SUCCESS)
++
++    status = pam_acct_mgmt (pamh, 0);
++    if (status != PAM_SUCCESS)
+ 	goto failed_pam;
+-    if ((status = pam_setcred (pamh, PAM_ESTABLISH_CRED)) != PAM_SUCCESS)
++
++    status = pam_setcred (pamh, PAM_ESTABLISH_CRED);
++    if (status != PAM_SUCCESS)
+ 	goto failed_pam;
++
+     pam_end (pamh, status);
+     return 0;
+ 
+@@ -866,11 +873,13 @@
+     local_address.sin_port = htons (21);
+ 
+     /*  Convert localhost to usable format */
+-    if ((inaddr = inet_addr ("127.0.0.1")) != INADDR_NONE)
++    inaddr = inet_addr ("127.0.0.1");
++    if (inaddr != INADDR_NONE)
+ 	memcpy ((char *) &local_address.sin_addr, (char *) &inaddr,
+ 		sizeof (inaddr));
+ 
+-    if ((my_socket = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
++    my_socket = socket (AF_INET, SOCK_STREAM, 0);
++    if (my_socket < 0) {
+ 	if (!isDaemon)
+ 	    fprintf (stderr, "do_auth: can't create socket\n");
+ 	return 0;
+@@ -916,14 +925,16 @@
+     struct spwd *spw;
+ #endif
+ 
+-    if ((pw = getpwnam (username)) == 0)
++    pw = getpwnam (username);
++    if (pw == NULL)
+ 	return 0;
+ 
+ #ifdef HAVE_SHADOW
+     setspent ();
+ 
+     /* Password expiration is not checked! */
+-    if ((spw = getspnam (username)) == NULL)
++    spw = getspnam (username);
++    if (spw == NULL)
+ 	encr_pwd = "*";
+     else
+ 	encr_pwd = spw->sp_pwdp;
+@@ -1200,7 +1211,8 @@
+     struct sockaddr_in client_address, server_address;
+     int yes = 1;
+ 
+-    if ((sock = socket (AF_INET, SOCK_STREAM, 0)) < 0)
++    sock = socket (AF_INET, SOCK_STREAM, 0);
++    if (sock < 0)
+ 	return "Cannot create socket";
+ 
+     /* Use this to debug: */
+@@ -1227,7 +1239,8 @@
+ 	newsocket =
+ 	    accept (sock, (struct sockaddr *) &client_address, &clilen);
+ 
+-	if (isDaemon && (child = fork ())) {
++	child = fork ();
++	if (isDaemon && child) {
+ 	    int status;
+ 
+ 	    close (newsocket);
+@@ -1373,10 +1386,12 @@
+ 	register_port (portnum, 0);
+ 	if (verbose)
+ 	    printf ("Using port %d\n", portnum);
+-	if ((result = get_client (portnum)))
++
++	result = get_client (portnum);
++	if (result != NULL)
+ 	    perror (result);
+ #ifdef HAVE_PMAP_SET
+-	if (!isDaemon)
++	if (isDaemon == NULL)
+ 	    pmap_unset (RPC_PROGNUM, RPC_PROGVER);
+ #endif
+     }
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/sfs.c mc-4.7.1_new/lib/vfs/mc-vfs/sfs.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/sfs.c	2010-02-26 11:34:02.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/sfs.c	2010-03-10 15:12:22.000000000 +0000
+@@ -84,7 +84,8 @@
+ 
+     pname = g_strdup (name);
+     vfs_split (pname, &inpath, &op);
+-    if ((w = (*me->which) (me, op)) == -1)
++    w = (*me->which) (me, op);
++    if (w == -1)
+ 	vfs_die ("This cannot happen... Hopefully.\n");
+ 
+     if (!(sfs_flags[w] & F_1) && strcmp (pname, "/")) {
+@@ -392,9 +393,11 @@
+ 	}
+ 	if (!*c)
+ 	    goto invalid_line;
++
+ 	c++;
+ 	*(semi+1) = 0;
+-	if ((semi = strchr (c, '\n')))
++	semi = strchr (c, '\n');
++	if (semi != NULL)
+ 	    *semi = 0;
+ 
+ 	sfs_prefix [sfs_no] = g_strdup (key);
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/tar.c mc-4.7.1_new/lib/vfs/mc-vfs/tar.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/tar.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/tar.c	2010-03-09 22:24:51.000000000 +0000
+@@ -666,7 +666,8 @@
+ 
+     current_tar_position = 0;
+     /* Open for reading */
+-    if ((tard = tar_open_archive_int (me, name, archive)) == -1)
++    tard = tar_open_archive_int (me, name, archive);
++    if (tard == -1)
+ 	return -1;
+ 
+     for (;;) {
+@@ -772,7 +773,9 @@
+ 
+     count = MIN(count, FH->ino->st.st_size - FH->pos);
+ 
+-    if ((count = mc_read (fd, buffer, count)) == -1) ERRNOR (errno, -1);
++    count = mc_read (fd, buffer, count);
++    if (count == -1) 
++        ERRNOR (errno, -1);
+ 
+     FH->pos += count;
+     return count;
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/undelfs.c mc-4.7.1_new/lib/vfs/mc-vfs/undelfs.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/undelfs.c	2010-02-26 12:01:53.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/undelfs.c	2010-03-10 14:26:41.000000000 +0000
+@@ -206,17 +206,18 @@
+         message (D_ERROR, undelfserr, _(" while allocating block buffer "));
+         goto free_delarray;
+     }
+-    if ((retval = ext2fs_open_inode_scan (fs, 0, &scan)))
++    retval = ext2fs_open_inode_scan (fs, 0, &scan);
++    if (retval)
+     {
+         message (D_ERROR, undelfserr, _(" open_inode_scan: %d "), retval);
+         goto free_block_buf;
+     }
+-    if ((retval = ext2fs_get_next_inode (scan, &ino, &inode)))
++    retval = ext2fs_get_next_inode (scan, &ino, &inode);
++    if (retval)
+     {
+         message (D_ERROR, undelfserr, _(" while starting inode scan %d "), retval);
+         goto error_out;
+     }
+-
+     count = 0;
+     while (ino)
+     {
+@@ -674,7 +675,8 @@
+     /* We may use access because ext2 file systems are local */
+     /* this could be fixed by making an ext2fs io manager to use */
+     /* our vfs, but that is left as an excercise for the reader */
+-    if ((fd = open (file, O_RDONLY)) == -1)
++    fd = open (file, O_RDONLY);
++    if (fd == -1)
+     {
+         message (D_ERROR, undelfserr, _(" Cannot open file %s "), file);
+         g_free (f);
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/utilvfs.c mc-4.7.1_new/lib/vfs/mc-vfs/utilvfs.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/utilvfs.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/utilvfs.c	2010-03-10 15:14:35.000000000 +0000
+@@ -233,7 +233,8 @@
+     if (!str)
+ 	return 0;
+ 
+-    if ((pos = strstr (week, str)) != NULL) {
++    pos = strstr (week, str);
++    if (pos != NULL) {
+ 	if (tim != NULL)
+ 	    tim->tm_wday = (pos - week) / 3;
+ 	return 1;
+@@ -250,7 +251,8 @@
+     if (!str)
+ 	return 0;
+ 
+-    if ((pos = strstr (month, str)) != NULL) {
++    pos = strstr (month, str);
++    if (pos != NULL) {
+ 	if (tim != NULL)
+ 	    tim->tm_mon = (pos - month) / 3;
+ 	return 1;
+@@ -287,10 +289,12 @@
+ {
+     const char *p, *p2;
+ 
+-    if (!str)
++    if (str == NULL)
+ 	return 0;
+ 
+-    if ((p = strchr (str, ':')) && (p2 = strrchr (str, ':'))) {
++    p = strchr (str, ':');
++    p2 = strrchr (str, ':');
++    if (p && p2) {
+ 	if (p != p2) {
+ 	    if (sscanf
+ 		(str, "%2d:%2d:%2d", &tim->tm_hour, &tim->tm_min,
+@@ -619,7 +623,8 @@
+ 
+ 	tim.tm_year--;
+ 
+-    if (l10n || (*t = mktime (&tim)) < 0)
++    *t = mktime (&tim);
++    if (l10n || (*t < 0))
+ 	*t = 0;
+     return idx;
+ }
+diff -urN mc-4.7.1_old/lib/vfs/mc-vfs/vfs.c mc-4.7.1_new/lib/vfs/mc-vfs/vfs.c
+--- mc-4.7.1_old/lib/vfs/mc-vfs/vfs.c	2010-02-26 09:29:51.000000000 +0000
++++ mc-4.7.1_new/lib/vfs/mc-vfs/vfs.c	2010-03-10 15:17:25.000000000 +0000
+@@ -237,7 +237,8 @@
+ 	vfs_die ("vfs_strip_suffix_from_path got NULL: impossible");
+ 
+     p = g_strdup (filename);
+-    if (!(semi = strrchr (p, '#')))
++    semi = strrchr (p, '#');
++    if (semi == NULL)
+ 	return p;
+ 
+     /* Avoid last class (localfs) that would accept any prefix */
+@@ -305,7 +306,8 @@
+     if (slash)
+ 	*slash = 0;
+ 
+-    if ((ret = vfs_prefix_to_class (semi+1))){
++    ret = vfs_prefix_to_class (semi + 1);
++    if (ret != NULL) {
+ 	if (op) 
+ 	    *op = semi + 1;
+ 	if (inpath)
+@@ -474,7 +476,6 @@
+                     errno = EINVAL;
+                     return ESTR_FAILURE;
+                 }
+-                break;
+             default:
+                 errno = EINVAL;
+                 return ESTR_FAILURE;
+diff -urN mc-4.7.1_old/src/background.c mc-4.7.1_new/src/background.c
+--- mc-4.7.1_old/src/background.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1_new/src/background.c	2010-03-10 18:12:25.000000000 +0000
+@@ -148,7 +148,8 @@
+     if (pipe (back_comm) == -1)
+ 	return -1;
+ 
+-    if ((pid = fork ()) == -1) {
++    pid = fork ();
++    if (pid == -1) {
+ 	int saved_errno = errno;
+ 	(void) close (comm[0]);
+ 	(void) close (comm[1]);
+@@ -156,9 +157,7 @@
+ 	(void) close (back_comm[1]);
+ 	errno = saved_errno;
+ 	return -1;
+-    }
+-
+-    if (pid == 0) {
++    } else if (pid == 0) {
+ 	int nullfd;
+ 
+ 	parent_fd = comm[1];
+@@ -172,7 +171,8 @@
+ 	close (1);
+ 	close (2);
+ 
+-	if ((nullfd = open ("/dev/null", O_RDWR)) != -1) {
++	nullfd = open ("/dev/null", O_RDWR);
++	if (nullfd != -1) {
+ 	    while (dup2 (nullfd, 0) == -1 && errno == EINTR);
+ 	    while (dup2 (nullfd, 1) == -1 && errno == EINTR);
+ 	    while (dup2 (nullfd, 2) == -1 && errno == EINTR);
+diff -urN mc-4.7.1_old/src/charsets.c mc-4.7.1_new/src/charsets.c
+--- mc-4.7.1_old/src/charsets.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1_new/src/charsets.c	2010-03-09 22:39:57.000000000 +0000
+@@ -57,12 +57,14 @@
+     char *default_codepage = NULL;
+ 
+     fname = concat_dir_and_file (mc_home, CHARSETS_INDEX);
+-    if (!(f = fopen (fname, "r"))) {
++    f = fopen (fname, "r");
++    if (f == NULL) {
+ 	fprintf (stderr, _("Warning: file %s not found\n"), fname);
+ 	g_free (fname);
+ 
+ 	fname = concat_dir_and_file (mc_home_alt, CHARSETS_INDEX);
+-	if (!(f = fopen (fname, "r"))) {
++	f = fopen (fname, "r");
++	if (f == NULL) {
+ 	    fprintf (stderr, _("Warning: file %s not found\n"), fname);
+ 	    g_free (fname);
+ 
+diff -urN mc-4.7.1_old/src/complete.c mc-4.7.1_new/src/complete.c
+--- mc-4.7.1_old/src/complete.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/complete.c	2010-03-10 19:12:47.000000000 +0000
+@@ -114,7 +114,8 @@
+         g_free (filename);
+         g_free (users_dirname);
+ 
+-	if ((*text) && (temp = strrchr (text, PATH_SEP))){
++	temp = strrchr (text, PATH_SEP);
++	if ((*text) && temp) {
+ 	    filename = g_strdup (++temp);
+ 	    dirname = g_strndup (text, temp - text);
+ 	} else {
+@@ -493,11 +494,14 @@
+ 	    words = bash_reserved;
+ 	    phase = 0;
+ 	    text_len = strlen (text);
+-	    if (!path && (path = g_strdup (getenv ("PATH"))) != NULL) {
+-		p = path;
+-		path_end = strchr (p, 0);
+-		while ((p = strchr (p, PATH_ENV_SEP))) {
+-		    *p++ = 0;
++	    if (path == NULL) {
++		path = g_strdup (getenv ("PATH"));
++		if (path != NULL) {
++                    p = path; 
++                    path_end = strchr (p, 0);
++                    while ((p = strchr (p, PATH_ENV_SEP))) {
++                        *p++ = 0;
++		    }
+ 		}
+ 	    }
+ 	}
+@@ -560,14 +564,16 @@
+ 	    }
+ 	}
+     }
+-
+     if (found == NULL) {
+ 	g_free (path);
+ 	path = NULL;
+-    } else if ((p = strrchr (found, PATH_SEP)) != NULL) {
+-	char *tmp = found;
+-	found = strutils_shell_escape (p + 1);
+-	g_free (tmp);
++    } else {
++        p = strrchr (found, PATH_SEP);
++        if (p != NULL) {
++            char *tmp = found;
++            found = strutils_shell_escape (p + 1);
++            g_free (tmp);
++	}
+     }
+ 
+     g_free(text);
+@@ -1074,9 +1080,11 @@
+ 	    Dlg_head *query_dlg;
+ 	    WListbox *query_list;
+ 
+-	    for (p=in->completions + 1; *p; count++, p++)
+-	        if ((i = str_term_width1 (*p)) > maxlen)
++	    for (p=in->completions + 1; *p; count++, p++) {
++	        i = str_term_width1 (*p);
++	        if (i > maxlen)
+ 	            maxlen = i;
++	    }
+ 	    start_x = in->widget.x;
+ 	    start_y = in->widget.y;
+ 	    if (start_y - 2 >= count) {
+diff -urN mc-4.7.1_old/src/editor/choosesyntax.c mc-4.7.1_new/src/editor/choosesyntax.c
+--- mc-4.7.1_old/src/editor/choosesyntax.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/editor/choosesyntax.c	2010-03-09 22:45:12.000000000 +0000
+@@ -78,7 +78,8 @@
+     while (names[count++] != NULL);
+     qsort(names, count - 1, sizeof(char*), pstrcmp);
+ 
+-    if ((syntax = exec_edit_syntax_dialog ((const char**) names)) < 0) {
++    syntax = exec_edit_syntax_dialog ((const char**) names);
++    if (syntax < 0) {
+ 	for (i = 0; names[i]; i++) {
+ 	    g_free (names[i]);
+ 	}
+diff -urN mc-4.7.1_old/src/editor/edit.c mc-4.7.1_new/src/editor/edit.c
+--- mc-4.7.1_old/src/editor/edit.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/editor/edit.c	2010-03-10 18:25:16.000000000 +0000
+@@ -295,7 +295,8 @@
+     edit->curs2 = edit->last_byte;
+     buf2 = edit->curs2 >> S_EDIT_BUF_SIZE;
+     edit->utf8 = 0;
+-    if ((file = mc_open (filename, O_RDONLY | O_BINARY)) == -1) {
++    file = mc_open (filename, O_RDONLY | O_BINARY);
++    if (file == -1) {
+ 	GString *errmsg = g_string_new(NULL);
+ 	g_string_sprintf(errmsg, _(" Cannot open %s for reading "), filename);
+ 	edit_error_dialog (_("Error"), get_sys_error (errmsg->str));
+@@ -521,7 +522,8 @@
+ 	long current = edit->curs1;
+ 	int vertical_insertion = 0;
+ 	char *buf;
+-	if ((file = mc_open (filename, O_RDONLY | O_BINARY)) == -1)
++	file = mc_open (filename, O_RDONLY | O_BINARY);
++	if (file == -1)
+ 	    return 0;
+ 	buf = g_malloc0 (TEMP_BUF_LEN);
+         blocklen = mc_read (file, buf, sizeof(VERTICAL_MAGIC));
+@@ -1116,7 +1118,8 @@
+ 	return STACK_BOTTOM;
+     }
+     sp = (sp - 1) & edit->stack_size_mask;
+-    if ((c = edit->undo_stack[sp]) >= 0) {
++    c = edit->undo_stack[sp];
++    if (c >= 0) {
+ /*	edit->undo_stack[sp] = '@'; */
+ 	edit->stack_pointer = (edit->stack_pointer - 1) & edit->stack_size_mask;
+ 	return c;
+diff -urN mc-4.7.1_old/src/editor/editcmd.c mc-4.7.1_new/src/editor/editcmd.c
+--- mc-4.7.1_old/src/editor/editcmd.c	2010-02-26 12:01:54.000000000 +0000
++++ mc-4.7.1_new/src/editor/editcmd.c	2010-03-10 18:27:54.000000000 +0000
+@@ -277,12 +277,13 @@
+     mc_chown (savename, edit->stat1.st_uid, edit->stat1.st_gid);
+     mc_chmod (savename, edit->stat1.st_mode);
+ 
+-    if ((fd =
+-         mc_open (savename, O_CREAT | O_WRONLY | O_TRUNC | O_BINARY, edit->stat1.st_mode)) == -1)
++    fd = mc_open (savename, O_CREAT | O_WRONLY | O_TRUNC | O_BINARY, edit->stat1.st_mode);
++    if (fd == -1)
+         goto error_save;
+ 
+     /* pipe save */
+-    if ((p = edit_get_write_filter (savename, real_filename)))
++    p = edit_get_write_filter (savename, real_filename);
++    if (p != NULL)
+     {
+         FILE *file;
+ 
+@@ -599,7 +600,8 @@
+             {
+                 int file;
+                 different_filename = 1;
+-                if ((file = mc_open (exp, O_RDONLY | O_BINARY)) != -1)
++                file = mc_open (exp, O_RDONLY | O_BINARY);
++                if (file != -1)
+                 {
+                     /* the file exists */
+                     mc_close (file);
+@@ -691,7 +693,8 @@
+     FILE *fd;
+     int file;
+     filename = concat_dir_and_file (home_dir, EDIT_MACRO_FILE);
+-    if ((file = open (filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
++    file = open (filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++    if (file == -1)
+     {
+         g_free (filename);
+         return 0;
+@@ -732,8 +735,11 @@
+     (void) edit;
+ 
+     if (saved_macros_loaded)
+-        if ((j = macro_exists (k)) < 0)
++    {
++        j = macro_exists (k);
++        if (j < 0)
+             return 0;
++    }
+     tmp = concat_dir_and_file (home_dir, EDIT_TEMP_FILE);
+     g = fopen (tmp, "w");
+     g_free (tmp);
+@@ -844,7 +850,8 @@
+         if (macro_exists (k) < 0)
+             return 0;
+ 
+-    if ((f = edit_open_macro_file ("r")))
++    f = edit_open_macro_file ("r");
++    if (f != NULL)
+     {
+         struct macro dummy;
+         do
+@@ -2081,9 +2088,9 @@
+ {
+     int len, file;
+ 
+-    if ((file =
+-         mc_open (filename, O_CREAT | O_WRONLY | O_TRUNC,
+-                  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH | O_BINARY)) == -1)
++    file = mc_open (filename, O_CREAT | O_WRONLY | O_TRUNC,
++                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH | O_BINARY);
++    if (file == -1)
+         return 0;
+ 
+     if (column_highlighting)
+diff -urN mc-4.7.1_old/src/editor/editlock.c mc-4.7.1_new/src/editor/editlock.c
+--- mc-4.7.1_old/src/editor/editlock.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1_new/src/editor/editlock.c	2010-03-10 18:31:28.000000000 +0000
+@@ -152,7 +152,8 @@
+     int cnt;
+     static char buf[BUF_SIZE];
+ 
+-    if ((cnt = readlink (lockfname, buf, BUF_SIZE - 1)) == -1 || !*buf)
++    cnt = readlink (lockfname, buf, BUF_SIZE - 1);
++    if (cnt == -1 || !*buf)
+ 	return NULL;
+     buf[cnt] = '\0';
+     return buf;
+diff -urN mc-4.7.1_old/src/editor/syntax.c mc-4.7.1_new/src/editor/syntax.c
+--- mc-4.7.1_old/src/editor/syntax.c	2010-02-26 09:37:41.000000000 +0000
++++ mc-4.7.1_new/src/editor/syntax.c	2010-03-10 18:35:55.000000000 +0000
+@@ -141,7 +141,8 @@
+     int argc;
+ 
+     while (*argv && argv < argv_end) {
+-	if ((t = g_tree_lookup (defines, *argv))) {
++	t = g_tree_lookup (defines, *argv);
++	if (t != NULL) {
+ 	    int count = 0;
+ 
+ 	    /* Count argv array members */
+@@ -304,7 +305,8 @@
+     long end = 0;
+     struct syntax_rule _rule = rule;
+ 
+-    if (!(c = edit_get_byte (edit, i)))
++    c = edit_get_byte (edit, i);
++    if (!c)
+ 	return rule;
+     is_end = (rule.end == (unsigned char) i);
+ 
+@@ -322,7 +324,11 @@
+     if (_rule.context && !_rule.keyword) {
+ 	long e;
+ 	r = edit->rules[_rule.context];
+-	if (r->first_right == c && !(rule.border & RULE_ON_RIGHT_BORDER) && (e = compare_word_to_right (edit, i, r->right, r->whole_word_chars_left, r->whole_word_chars_right, r->line_start_right)) > 0) {
++	e = compare_word_to_right (edit, i, r->right, 
++	                           r->whole_word_chars_left, 
++	                           r->whole_word_chars_right, 
++	                           r->line_start_right);
++	if (r->first_right == c && !(rule.border & RULE_ON_RIGHT_BORDER) && e > 0) {
+ 	    _rule.end = e;
+ 	    found_right = 1;
+ 	    _rule.border = RULE_ON_RIGHT_BORDER;
+@@ -383,7 +389,11 @@
+ 		    _rule.context = _rule._context;
+ 		    contextchanged = 1;
+ 		    _rule.keyword = 0;
+-		    if (r->first_right == c && (e = compare_word_to_right (edit, i, r->right, r->whole_word_chars_left, r->whole_word_chars_right, r->line_start_right)) >= end) {
++		    e = compare_word_to_right (edit, i, r->right, 
++		                               r->whole_word_chars_left, 
++		                               r->whole_word_chars_right, 
++		                               r->line_start_right);
++		    if (r->first_right == c && e >= end) {
+ 			_rule.end = e;
+ 			found_right = 1;
+ 			_rule.border = RULE_ON_RIGHT_BORDER;
+@@ -928,11 +938,13 @@
+ 
+ 	    if (argc < 3)
+ 		break_a;
+-	    if ((argv = g_tree_lookup (edit->defines, key))) {
++
++	    argv = g_tree_lookup (edit->defines, key);
++	    if (argv != NULL)
+ 		mc_defines_destroy (NULL, argv, NULL);
+-	    } else {
++	    else
+ 		key = g_strdup (key);
+-	    }
++
+ 	    argv = g_new (char *, argc - 1);
+ 	    g_tree_insert (edit->defines, key, argv);
+ 	    while (*a) {
+@@ -1067,9 +1079,15 @@
+ 	if (!found && !strcmp (args[0], "include")) {
+ 	    if (g)
+ 		continue;
+-	    if (!args[1] || !(g = open_include_file (args[1]))) {
+-		result = line;
+-		break;
++	    if (args[1] == NULL) {
++                result = line;
++                break;
++	    } else {
++                g = open_include_file (args[1]);
++                if (g == NULL) {
++                    result = line;
++                    break;
++                }
+ 	    }
+ 	    goto found_type;
+ 	}
+diff -urN mc-4.7.1_old/src/ext.c mc-4.7.1_new/src/ext.c
+--- mc-4.7.1_old/src/ext.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/ext.c	2010-03-10 17:14:59.000000000 +0000
+@@ -155,22 +155,26 @@
+ 	    if (*lc_data == '{')
+ 		parameter_found = 1;
+ 	    else {
+-		int i = check_format_view (lc_data);
++		int i1, i2, i3;
+ 		char *v;
++		
++		i1 = check_format_view (lc_data);
++		i2 = check_format_cd (lc_data);
++		i3 = check_format_var (lc_data, &v);
+ 
+-		if (i) {
+-		    lc_data += i - 1;
++		if (i1) {
++		    lc_data += i1 - 1;
+ 		    run_view = 1;
+-		} else if ((i = check_format_cd (lc_data)) > 0) {
++		} else if (i2 > 0) {
+ 		    is_cd = 1;
+ 		    quote_func = fake_name_quote;
+ 		    do_local_copy = 0;
+ 		    p = buffer;
+-		    lc_data += i - 1;
+-		} else if ((i = check_format_var (lc_data, &v)) > 0 && v) {
++		    lc_data += i2 - 1;
++		} else if (i3 > 0 && v) {
+ 		    fputs (v, cmd_file);
+ 		    g_free (v);
+-		    lc_data += i;
++		    lc_data += i3;
+ 		} else {
+ 		    char *text;
+ 
+diff -urN mc-4.7.1_old/src/file.c mc-4.7.1_new/src/file.c
+--- mc-4.7.1_old/src/file.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/file.c	2010-03-10 18:37:42.000000000 +0000
+@@ -1092,7 +1092,8 @@
+ 
+     if (!ctx->do_append) {
+ 	if (S_ISLNK (src_stats.st_mode) && ctx->stable_symlinks) {
+-	    if ((return_status = make_symlink (ctx, s, d)) == FILE_CONT) {
++	    return_status = make_symlink (ctx, s, d);
++	    if (return_status == FILE_CONT) {
+ 		goto retry_src_remove;
+ 	    } else
+ 		return return_status;
+diff -urN mc-4.7.1_old/src/filenot.c mc-4.7.1_new/src/filenot.c
+--- mc-4.7.1_old/src/filenot.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1_new/src/filenot.c	2010-03-10 00:00:31.000000000 +0000
+@@ -76,7 +76,8 @@
+     q = vfs_canon (p);
+     g_free (p);
+ 
+-    if (!(result = my_mkdir_rec (q, mode)))
++    result = my_mkdir_rec (q, mode);
++    if (result == 0)
+ 	result = mc_mkdir (s, mode);
+ 
+     g_free (q);
+diff -urN mc-4.7.1_old/src/hotlist.c mc-4.7.1_new/src/hotlist.c
+--- mc-4.7.1_old/src/hotlist.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/hotlist.c	2010-03-10 19:28:34.000000000 +0000
+@@ -1272,11 +1272,13 @@
+ 	break;
+     case '"':
+ 	while ((c = getc (hotlist_file)) != EOF && c != '"') {
+-	    if (c == '\\')
+-		if ((c = getc (hotlist_file)) == EOF){
++	    if (c == '\\') {
++		c = getc (hotlist_file);
++		if (c == EOF) {
+ 		    g_string_free (tkn_buf, TRUE);
+ 		    return TKN_EOF;
+ 		}
++	    }
+ 	    g_string_append_c (tkn_buf, c == '\n' ? ' ' : c);
+ 	}
+ 	if (c == EOF)
+@@ -1285,7 +1287,8 @@
+ 	    ret = TKN_STRING;
+ 	break;
+     case '\\':
+-	if ((c = getc (hotlist_file)) == EOF){
++	c = getc (hotlist_file);
++	if (c == EOF) {
+ 	    g_string_free (tkn_buf, TRUE);
+ 	    return TKN_EOF;
+ 	}
+@@ -1323,7 +1326,8 @@
+ }
+ 
+ #define CHECK_TOKEN(_TKN_) \
+-if ((tkn = hot_next_token ()) != _TKN_) { \
++tkn = hot_next_token (); \
++if (tkn != _TKN_) { \
+     hotlist_state.readonly = 1; \
+     hotlist_state.file_error = 1; \
+     while (tkn != TKN_EOL && tkn != TKN_EOF) \
+@@ -1473,7 +1477,8 @@
+      */
+     hotlist->directory = g_strdup ("Hotlist");
+ 
+-    if ((hotlist_file = fopen (hotlist_file_name, "r")) == 0) {
++    hotlist_file = fopen (hotlist_file_name, "r");
++    if (hotlist_file == NULL) {
+ 	int	result;
+ 
+ 	load_group (hotlist);
+@@ -1575,7 +1580,8 @@
+     if (!hotlist_state.readonly && hotlist_state.modified && hotlist_file_name) {
+ 	mc_util_make_backup_if_possible (hotlist_file_name, ".bak");
+ 
+-	if ((hotlist_file = fopen (hotlist_file_name, "w")) != 0) {
++	hotlist_file = fopen (hotlist_file_name, "w");
++	if (hotlist_file != NULL) {
+ 	    hot_save_group (hotlist);
+ 	    fclose (hotlist_file);
+ 	    stat (hotlist_file_name, &stat_buf);
+diff -urN mc-4.7.1_old/src/main.c mc-4.7.1_new/src/main.c
+--- mc-4.7.1_old/src/main.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/main.c	2010-03-10 12:45:40.000000000 +0000
+@@ -436,12 +436,17 @@
+ get_parent_dir_name (const char *cwd, const char *lwd)
+ {
+     const char *p;
+-    if (strlen (lwd) > strlen (cwd))
+-	if ((p = strrchr (lwd, PATH_SEP)) && !strncmp (cwd, lwd, p - lwd) &&
+-	 ((gsize)strlen (cwd) == (gsize) p - (gsize) lwd || (p == lwd && cwd[0] == PATH_SEP &&
+-	  cwd[1] == '\0'))) {
++    if (strlen (lwd) > strlen (cwd)) {
++	p = strrchr (lwd, PATH_SEP);
++	if (p == NULL)
++	    return NULL;
++	
++	if (!strncmp (cwd, lwd, p - lwd) 
++            && ((gsize) strlen (cwd) == ((gsize) p - (gsize) lwd)
++            || (p == lwd && cwd[0] == PATH_SEP && cwd[1] == '\0'))) {
+ 	    return (p + 1);
+ 	}
++    }
+     return NULL;
+ }
+ 
+diff -urN mc-4.7.1_old/src/mountlist.c mc-4.7.1_new/src/mountlist.c
+--- mc-4.7.1_old/src/mountlist.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1_new/src/mountlist.c	2010-03-10 19:42:31.000000000 +0000
+@@ -647,7 +647,9 @@
+ 
+ 	if (!getcwd(dir, _POSIX_PATH_MAX)) return (NULL);
+ 
+-	if ((fd = open(dir, O_RDONLY)) == -1) return (NULL);
++	fd = open (dir, O_RDONLY);
++	if (fd == -1) 
++            return (NULL);
+ 
+ 	i = disk_get_entry(fd, &de);
+ 
+@@ -745,7 +747,8 @@
+ 	struct mount_entry	*entry;
+     struct fs_usage		fs_use;
+ 
+-	if ((entry = read_filesystem_list(0, 0)) != NULL)
++	entry = read_filesystem_list (0, 0);
++	if (entry != NULL)
+ 	{
+ 		get_fs_usage(entry->me_mountdir, &fs_use);
+ 
+diff -urN mc-4.7.1_old/src/subshell.c mc-4.7.1_new/src/subshell.c
+--- mc-4.7.1_old/src/subshell.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1_new/src/subshell.c	2010-03-10 18:54:16.000000000 +0000
+@@ -436,9 +436,9 @@
+ 
+ 	    /* Opening the FIFO as O_RDONLY or O_WRONLY causes deadlock */
+ 
+-	    if ((subshell_pipe[READ] = open (tcsh_fifo, O_RDWR)) == -1
+-		|| (subshell_pipe[WRITE] =
+-		    open (tcsh_fifo, O_RDWR)) == -1) {
++	    subshell_pipe[READ] = open (tcsh_fifo, O_RDWR);
++	    subshell_pipe[WRITE] = open (tcsh_fifo, O_RDWR);
++	    if (subshell_pipe[READ] == -1 || subshell_pipe[WRITE] == -1) {
+ 		fprintf (stderr, _("Cannot open named pipe %s\n"), tcsh_fifo);
+ 		perror (__FILE__": open");
+ 		use_subshell = FALSE;
+@@ -463,9 +463,7 @@
+ 	/* We exit here because, if the process table is full, the */
+ 	/* other method of running user commands won't work either */
+ 	exit (1);
+-    }
+-
+-    if (subshell_pid == 0) {	/* We are in the child process */
++    } else if (subshell_pid == 0) {	/* We are in the child process */
+ 	init_subshell_child (pty_name);
+     }
+ 
+@@ -1178,7 +1176,8 @@
+ 	    pty_name [9] = *ptr2;
+ 
+ 	    /* Try to open master */
+-	    if ((pty_master = open (pty_name, O_RDWR)) == -1) {
++	    pty_master = open (pty_name, O_RDWR);
++	    if (pty_master == -1) {
+ 		if (errno == ENOENT)  /* Different from EIO */
+ 		    return -1;	      /* Out of pty devices */
+ 		else
+@@ -1209,7 +1208,8 @@
+ 	/* chown (pty_name, getuid (), group_info->gr_gid);  FIXME */
+ 	/* chmod (pty_name, S_IRUSR | S_IWUSR | S_IWGRP);   FIXME */
+     }
+-    if ((pty_slave = open (pty_name, O_RDWR)) == -1)
++    pty_slave = open (pty_name, O_RDWR);
++    if (pty_slave == -1)
+ 	fprintf (stderr, "open (pty_name, O_RDWR): %s\r\n", pty_name);
+     fcntl(pty_slave, F_SETFD, FD_CLOEXEC);
+     return pty_slave;
+diff -urN mc-4.7.1_old/src/treestore.c mc-4.7.1_new/src/treestore.c
+--- mc-4.7.1_old/src/treestore.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1_new/src/treestore.c	2010-03-10 18:56:15.000000000 +0000
+@@ -375,7 +375,8 @@
+     name = g_build_filename (home_dir, MC_USERCONF_DIR, MC_TREESTORE_FILE, NULL);
+     mc_util_make_backup_if_possible (name, ".tmp");
+ 
+-    if ((retval = tree_store_save_to(name)) != 0) {
++    retval = tree_store_save_to (name);
++    if (retval != 0) {
+ 	mc_util_restore_from_backup_if_possible (name, ".tmp");
+ 	g_free(name);
+ 	return retval;
+diff -urN mc-4.7.1_old/src/user.c mc-4.7.1_new/src/user.c
+--- mc-4.7.1_old/src/user.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1_new/src/user.c	2010-03-10 18:57:26.000000000 +0000
+@@ -301,8 +301,8 @@
+ 	    *block = 0;
+ 	    for (i = 0; i < panel->count; i++)
+ 		if (panel->dir.list[i].f.marked) {
+-		    strcat (block, tmp =
+-			    (*quote_func) (panel->dir.list[i].fname, 0));
++		    tmp = (*quote_func) (panel->dir.list[i].fname, 0);
++		    strcat (block, tmp);
+ 		    g_free (tmp);
+ 		    strcat (block, " ");
+ 		    if (c_lc == 'u')
+@@ -784,7 +784,8 @@
+ 	}
+     }
+ 
+-    if ((data = load_file (menu)) == NULL){
++    data = load_file (menu);
++    if (data == NULL) {
+ 	message (D_ERROR, MSG_ERROR, _(" Cannot open file %s \n %s "),
+ 		 menu, unix_error_string (errno));
+ 	g_free (menu);
+diff -urN mc-4.7.1_old/src/viewer/datasource.c mc-4.7.1_new/src/viewer/datasource.c
+--- mc-4.7.1_old/src/viewer/datasource.c	2010-02-26 12:01:54.000000000 +0000
++++ mc-4.7.1_new/src/viewer/datasource.c	2010-03-10 19:05:44.000000000 +0000
+@@ -373,7 +373,8 @@
+     mcview_close_datasource (view);
+ 
+     open_error_pipe ();
+-    if ((fp = popen (command, "r")) == NULL)
++    fp = popen (command, "r");
++    if (fp == NULL)
+     {
+         /* Avoid two messages.  Message from stderr has priority.  */
+         mcview_display (view);
+diff -urN mc-4.7.1_old/src/viewer/mcviewer.c mc-4.7.1_new/src/viewer/mcviewer.c
+--- mc-4.7.1_old/src/viewer/mcviewer.c	2010-02-26 12:01:54.000000000 +0000
++++ mc-4.7.1_new/src/viewer/mcviewer.c	2010-03-10 19:06:29.000000000 +0000
+@@ -347,7 +347,8 @@
+     else if (file != NULL && file[0] != '\0')
+     {
+         /* Open the file */
+-        if ((fd = mc_open (file, O_RDONLY | O_NONBLOCK)) == -1)
++        fd = mc_open (file, O_RDONLY | O_NONBLOCK);
++        if (fd == -1)
+         {
+             g_snprintf (tmp, sizeof (tmp), _(" Cannot open \"%s\"\n %s "),
+                         file, unix_error_string (errno));

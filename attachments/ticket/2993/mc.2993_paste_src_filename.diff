@@ -1,0 +1,144 @@
+diff --git a/lib/keybind.c b/lib/keybind.c
+index eedea6b..dabd5c8 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -134,6 +134,7 @@ static name_keymap_t command_names[] = {
+     {"Bookmark", CK_Bookmark},
+     {"Quit", CK_Quit},
+     {"QuitQuiet", CK_QuitQuiet},
++    {"PasteSrcFilename", CK_PasteSrcFilename},
+     {"ExtendedKeyMap", CK_ExtendedKeyMap},
+ 
+     /* main commands */
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 5bfb81b..c6b7f6e 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -124,6 +124,7 @@ enum
+     CK_Bookmark,
+     CK_Quit,
+     CK_QuitQuiet,
++    CK_PasteSrcFilename,
+     /* C-x or similar */
+     CK_ExtendedKeyMap,
+ 
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 9d1bb60..13796dd 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -37,6 +37,7 @@ Select = kpplus
+ Unselect = kpminus
+ SelectInvert = kpasterisk
+ ScreenList = alt-prime
++PasteSrcFilename = ctrl-v; ctrl-insert
+ # OptionsLayout =
+ # OptionsPanel =
+ # OptionsConfirm =
+diff --git a/misc/mc.emacs.keymap b/misc/mc.emacs.keymap
+index 6d503b4..72de2ab 100644
+--- a/misc/mc.emacs.keymap
++++ b/misc/mc.emacs.keymap
+@@ -37,6 +37,7 @@ Select = kpplus
+ Unselect = kpminus
+ SelectInvert = kpasterisk
+ ScreenList = alt-prime
++PasteSrcFilename = ctrl-v; ctrl-insert
+ # OptionsLayout =
+ # OptionsPanel =
+ # OptionsConfirm =
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index 009b2e7..a5af1ca 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -180,6 +180,7 @@ statfs (char const *filename, struct fs_info *buf)
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"          /* verbose */
++#include "src/keybind-defaults.h"
+ 
+ #include "midnight.h"
+ #include "fileopctx.h"          /* FILE_CONT */
+@@ -277,6 +278,9 @@ struct
+     /* *INDENT-ON* */
+ };
+ 
++static unsigned long file_mask_dst_id;
++static const char *file_mask_src_filename;
++
+ /* --------------------------------------------------------------------------------------------- */
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+@@ -646,6 +650,33 @@ progress_button_callback (WButton * button, int action)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++static cb_ret_t
++file_mask_dialog_cb (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    switch (msg)
++    {
++    case MSG_KEY:
++        {
++            cb_ret_t ret = MSG_NOT_HANDLED;
++
++            if (keybind_lookup_keymap_command (main_map, parm) == CK_PasteSrcFilename)
++            {
++                WInput *wi;
++                wi = INPUT(dlg_find_by_id (DIALOG (w), file_mask_dst_id));
++                input_insert (wi, file_mask_src_filename, FALSE);
++                ret = MSG_HANDLED;
++            }
++
++            return ret;
++        }
++
++    default:
++        return dlg_default_callback (w, sender, msg, parm, data);
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -1158,6 +1189,8 @@ file_mask_dialog (FileOpContext * ctx, FileOperation operation,
+         int format_len, text_len;
+         int max_len;
+ 
++        file_mask_src_filename = text;
++
+         format_len = str_term_width1 (format);
+         text_len = str_term_width1 (text);
+         max_len = COLS - 2 - 6;
+@@ -1198,7 +1231,7 @@ file_mask_dialog (FileOpContext * ctx, FileOperation operation,
+                 QUICK_CHECKBOX (N_("&Using shell patterns"), &source_easy_patterns, NULL),
+             QUICK_STOP_COLUMNS,
+             QUICK_LABELED_INPUT (N_("to:"), input_label_above,
+-                                 def_text_secure, "input2", &dest_dir, NULL, FALSE, FALSE, INPUT_COMPLETE_FILENAMES),
++                                 def_text_secure, "input2", &dest_dir, &file_mask_dst_id, FALSE, FALSE, INPUT_COMPLETE_FILENAMES),
+             QUICK_SEPARATOR (TRUE),
+             QUICK_START_COLUMNS,
+                 QUICK_CHECKBOX (N_("Follow &links"), &ctx->follow_links, NULL),
+@@ -1220,7 +1253,7 @@ file_mask_dialog (FileOpContext * ctx, FileOperation operation,
+         quick_dialog_t qdlg = {
+             -1, -1, fmd_xlen,
+             op_names[operation], "[Mask Copy/Rename]",
+-            quick_widgets, NULL, NULL
++            quick_widgets, only_one ? file_mask_dialog_cb : NULL, NULL
+         };
+ 
+       ask_file_mask:
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7ad1f55..748c255 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -130,6 +130,8 @@ static const global_keymap_ini_t default_main_keymap[] = {
+     {"SelectInvert", "kpasterisk"},
+     /* List of screens */
+     {"ScreenList", "alt-prime"},
++    /* Paste Source filename on Copy/Move dialog */
++    {"PasteSrcFilename", "ctrl-v; ctrl-insert"},
+     {NULL, NULL}
+ };
+ 

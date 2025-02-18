@@ -1,0 +1,36 @@
+From d0a51ecb86cae5f1756fcacbae7dc2deddec52d1 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 26 Sep 2016 13:19:44 +0300
+Subject: [PATCH] Hex patterns: fix manual page.
+
+* Decimal and octal numerals aren't supported(!).
+
+* Negative numbers are no longer supported since commit
+  8a0a49c07e0725891db89b773b3e4a6c9974ed03
+---
+ doc/man/mc.1.in | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 901efd3..0c07df8 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -2894,10 +2894,13 @@ the quotes.  Each number matches one byte.  You can mix quoted text
+ with constants like this:
+ .PP
+ .nf
+-"String" \-1 0xBB 012 "more text"
++"String" 34 0xBB 012 "more text"
+ .fi
+ .PP
+-Note that 012 is an octal number.  \-1 is converted to 0xFF.
++Numbers are always interpreted in hex. In the example above, "34" is
++interpreted as 0x34. The prefix "0x" isn't really needed: we could type
++"BB" instead of "0xBB". And "012" is interpreted as 0x12, not as an octal
++number.
+ .PP
+ Here is a listing of the actions associated with each key that the
+ Midnight Commander handles in the internal file viewer.
+-- 
+2.9.3
+

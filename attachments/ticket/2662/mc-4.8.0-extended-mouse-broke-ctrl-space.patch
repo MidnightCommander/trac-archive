@@ -1,0 +1,101 @@
+diff -ur mc-4.8.0.orig/lib/tty/key.c mc-4.8.0/lib/tty/key.c
+--- mc-4.8.0.orig/lib/tty/key.c	2011-12-08 09:57:10.000000000 +0100
++++ mc-4.8.0/lib/tty/key.c	2011-12-08 09:55:46.000000000 +0100
+@@ -932,16 +932,16 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /* Parse extended mouse coordinates.
+-   Returns -1 if pending_keys cannot be a prefix of extended mouse coordinates.
+-   Returns 0 if pending_keys is a valid (but still incomplete) prefix for extended mouse
+-   coordinates, e.g. "^[[32;4".
+-   Returns 1 and fills the mouse_btn, mouse_x, mouse_y values if pending_keys is a complete extended
+-   mouse sequence, e.g. "^[[32;42;5M"
++   Returns -1 if pending_keys (up to seq_append) cannot be a prefix of extended mouse coordinates.
++   Returns 0 if pending_keys (up to seq_append) is a valid (but still incomplete) prefix for
++   extended mouse coordinates, e.g. "^[[32;4".
++   Returns 1 and fills the mouse_btn, mouse_x, mouse_y values if pending_keys (up to seq_append) is
++   a complete extended mouse sequence, e.g. "^[[32;42;5M"
+  */
+ 
+ /* Technical info (Egmont Koblinger <egmont@gmail.com>):
+ 
+-   The ancient way of reporting mouse coordinates only supports coordinates up to 231,
++   The ancient way of reporting mouse coordinates only supports coordinates up to 223,
+    so if your terminal is wider (or taller, but that's unlikely), you cannot use your mouse
+    in the rightmost columns.
+ 
+@@ -951,7 +951,7 @@
+           <x+32> and <y+32> are single bytes. (Action is 0 for left click, 1 for middle click,
+           2 for right click, 3 for release, or something like this.)
+         + Disadvantages of this format:
+-            + x and y can only go up to 231.
++            + x and y can only go up to 223.
+             + Coordinates above 95 are not ascii-compatible, so any character set converting
+               layer (e.g. luit) messes them up.
+             + The stream is not valid UTF-8, even if everything else is.
+@@ -988,7 +988,8 @@
+     Currently, at least the following terminal emulators have support for these:
+     * xterm supports the xterm extension
+     * rxvt-unicode >= 9.10 supports both extensions
+-    * iterm2 supports both extensions.
++    * iterm2 supports both extensions
++    * vte >= 0.31 supports the urxvt extension
+ */
+ 
+ static int
+@@ -996,24 +997,25 @@
+ {
+     int c, btn = 0, x = 0, y = 0;
+     const int *p = pending_keys;
++    const int *endp = seq_append;
+ 
+-    c = *p++;
+-    if (c == 0)
++    if (p == endp)
+         return 0;
++    c = *p++;
+     if (c != ESC_CHAR)
+         return -1;
+ 
+-    c = *p++;
+-    if (c == 0)
++    if (p == endp)
+         return 0;
++    c = *p++;
+     if (c != '[')
+         return -1;
+ 
+     while (TRUE)
+     {
+-        c = *p++;
+-        if (c == 0)
++        if (p == endp)
+             return 0;
++        c = *p++;
+         if (c == ';')
+             break;
+         if (c < '0' || c > '9')
+@@ -1026,9 +1028,9 @@
+ 
+     while (TRUE)
+     {
+-        c = *p++;
+-        if (c == 0)
++        if (p == endp)
+             return 0;
++        c = *p++;
+         if (c == ';')
+             break;
+         if (c < '0' || c > '9')
+@@ -1040,9 +1042,9 @@
+ 
+     while (TRUE)
+     {
+-        c = *p++;
+-        if (c == 0)
++        if (p == endp)
+             return 0;
++        c = *p++;
+         if (c == 'M')
+             break;
+         if (c < '0' || c > '9')

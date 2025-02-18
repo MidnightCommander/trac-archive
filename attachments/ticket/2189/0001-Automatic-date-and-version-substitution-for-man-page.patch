@@ -1,0 +1,159 @@
+From 089c1b417ad773ec8eae7f17fbcb17af8eb74c2e Mon Sep 17 00:00:00 2001
+From: Yury V. Zaytsev <yury@shurup.com>
+Date: Tue, 11 May 2010 16:45:05 +0200
+Subject: [PATCH] Automatic date and version substitution for man pages
+
+Currently the date and the version of Midnight Commander in the man
+pages has to be changed manually every release. This is being done
+sporadically and as the result, the man pages shipped for e.g. 4.7.2
+release contain the 4.7.0-pre1 signature, which is quite confusing.
+
+With this patch, the version is substituted with @DISTR_VERSION@ for all
+the man pages  and the date is automatically updated to the English man
+pages. Other man pages still have the manually updated date of the last
+translation.
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ configure.ac        |    3 +++
+ doc/man/es/mc.1.in  |    2 +-
+ doc/man/hu/mc.1.in  |    2 +-
+ doc/man/it/mc.1.in  |    2 +-
+ doc/man/mc.1.in     |    2 +-
+ doc/man/mcedit.1.in |    2 +-
+ doc/man/mcserv.8.in |    2 +-
+ doc/man/mcview.1.in |    2 +-
+ doc/man/pl/mc.1.in  |    2 +-
+ doc/man/ru/mc.1.in  |    2 +-
+ doc/man/sr/mc.1.in  |    2 +-
+ 11 files changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 7c820c4..6c72049 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -544,6 +544,9 @@ AC_SUBST(LIBS)
+ dnl Libraries used only when building the mc binary
+ AC_SUBST(MCLIBS)
+ 
++MAN_DATE=$(LC_ALL=C date "+%B %Y")
++AC_SUBST(MAN_DATE)
++
+ if test -n "$use_smbfs"; then
+   AC_CONFIG_SUBDIRS([lib/vfs/mc-vfs/samba])
+ fi
+diff --git a/doc/man/es/mc.1.in b/doc/man/es/mc.1.in
+index a23ead1..07635c4 100644
+--- a/doc/man/es/mc.1.in
++++ b/doc/man/es/mc.1.in
+@@ -5,7 +5,7 @@
+ .\"	David H. Martín Alonso <dmartina@excite.com>
+ .\"
+ .\"TOPICS "Índice de Contenidos:"
+-.TH MC 1 "Octubre de 2009" "MC Versión 4.7.0\-pre3" "GNU Midnight Commander"
++.TH MC 1 "Octubre de 2009" "MC Versión @DISTR_VERSION@" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+ .SH "NOMBRE"
+ mc \- Entorno visual para sistemas tipo Unix.
+diff --git a/doc/man/hu/mc.1.in b/doc/man/hu/mc.1.in
+index cf16e37..b26c671 100644
+--- a/doc/man/hu/mc.1.in
++++ b/doc/man/hu/mc.1.in
+@@ -1,5 +1,5 @@
+ .\"TOPICS "Tartalomjegyzék"
+-.TH MC 1 "January 2003" "MC Version 4.6.0" "GNU Midnight Commander"
++.TH MC 1 "January 2003" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+ .SH "NÉV"
+ mc \- Fájlkezelő Unix típusú rendszerekhez
+diff --git a/doc/man/it/mc.1.in b/doc/man/it/mc.1.in
+index 0a1d00a..c1ce3a6 100644
+--- a/doc/man/it/mc.1.in
++++ b/doc/man/it/mc.1.in
+@@ -20,7 +20,7 @@
+ .\" Prego mantenere la linea di traduzione generale (per quanto possibile).
+ .\"
+ .\"TOPICS "Indice degli argomenti:"
+-.TH MC 1 "January 2003" "MC Version 4.6.0" "GNU Midnight Commander"
++.TH MC 1 "January 2003" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+ .SH "NOME"
+ mc \- interfaccia visuale per sistemi tipo Unix.
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index e34a02b..e9be32d 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -1,5 +1,5 @@
+ .\"TOPICS "Topics:"
+-.TH MC 1 "August 2009" "MC Version 4.7.0\-pre1" "GNU Midnight Commander"
++.TH MC 1 "@MAN_DATE@" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+ .SH "NAME"
+ mc \- Visual shell for Unix\-like systems.
+diff --git a/doc/man/mcedit.1.in b/doc/man/mcedit.1.in
+index 1d7df29..14c89d7 100644
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -1,4 +1,4 @@
+-.TH MCEDIT 1 "August 2009" "MC Version 4.7.0\-pre1" "GNU Midnight Commander"
++.TH MCEDIT 1 "@MAN_DATE@" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .SH NAME
+ mcedit \- Internal file editor of GNU Midnight Commander.
+ .SH USAGE
+diff --git a/doc/man/mcserv.8.in b/doc/man/mcserv.8.in
+index 78823cf..73836a4 100644
+--- a/doc/man/mcserv.8.in
++++ b/doc/man/mcserv.8.in
+@@ -1,4 +1,4 @@
+-.TH mcserv 8 "August 2009" "MC Version 4.7.0-pre1" "GNU Midnight Commander"
++.TH mcserv 8 "@MAN_DATE@" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .SH NAME
+ mcserv \- Midnight Commander file server.
+ .SH USAGE
+diff --git a/doc/man/mcview.1.in b/doc/man/mcview.1.in
+index 68ba1ad..b285cf3 100644
+--- a/doc/man/mcview.1.in
++++ b/doc/man/mcview.1.in
+@@ -1,4 +1,4 @@
+-.TH MCVIEW 1 "August 2009" "MC Version 4.7.0\-pre1" "GNU Midnight Commander"
++.TH MCVIEW 1 "@MAN_DATE@" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .SH NAME
+ mcview \- Internal file viewer of GNU Midnight Commander.
+ .SH USAGE
+diff --git a/doc/man/pl/mc.1.in b/doc/man/pl/mc.1.in
+index 184c30d..582409f 100644
+--- a/doc/man/pl/mc.1.in
++++ b/doc/man/pl/mc.1.in
+@@ -1,5 +1,5 @@
+ .\"Przetłumaczone przez by Macieja Wojciechowskiego    wojciech@staszic.waw.pl
+-.TH MC 1 "January 2003" "MC Version 4.6.0" "GNU Midnight Commander"
++.TH MC 1 "January 2003" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+ .SH NAZWA
+ mc \- wizualny interpetator poleceń dla systemów Unixopodobnych
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index 4cd15b3..3c3e1bc 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -1,6 +1,6 @@
+ .\"TOPICS "Разделы помощи:"
+ .\" TODO: Перевести раздел EXTernal File System
+-.TH MC 1 "Сентябрь 2009" "MC Version 4.7.0-pre2" "GNU Midnight Commander"
++.TH MC 1 "Сентябрь 2009" "MC Version @DISTR_VERSION@" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+ .SH "НАИМЕНОВАНИЕ"
+ mc \- Визуальная оболочка для Unix\-подобных систем.
+diff --git a/doc/man/sr/mc.1.in b/doc/man/sr/mc.1.in
+index 22b7ea5..69f73f3 100644
+--- a/doc/man/sr/mc.1.in
++++ b/doc/man/sr/mc.1.in
+@@ -1,5 +1,5 @@
+ .\"TOPICS "Теме:"
+-.TH ПН 1 "јануар 2003." "ПН верзија 4.6.0" "ГНУ\-ов поноћни наредник"
++.TH ПН 1 "јануар 2003." "ПН верзија @DISTR_VERSION@" "ГНУ\-ов поноћни наредник"
+ .\"SKIP_SECTION"
+ .SH "НАЗИВ"
+ mc \- Визуална љуска за Униксолике системе.
+-- 
+1.7.1
+

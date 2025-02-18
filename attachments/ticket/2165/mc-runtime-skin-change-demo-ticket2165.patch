@@ -1,0 +1,57 @@
+diff -ur mc-4.8.11.orig/lib/skin/common.c mc-4.8.11/lib/skin/common.c
+--- mc-4.8.11.orig/lib/skin/common.c	2013-04-10 22:04:31.000000000 +0200
++++ mc-4.8.11/lib/skin/common.c	2014-01-11 18:17:02.417164390 +0100
+@@ -63,6 +63,8 @@
+ static char *
+ mc_skin_get_default_name (void)
+ {
++static int n = 0;
++char *skins[] = {"darkfar", "default", "double-lines", "gotar", "nicedark", "modarin256", "sand256", "xoria256"};
+     char *tmp_str;
+ 
+     /* from command line */
+@@ -74,19 +76,22 @@
+     if (tmp_str != NULL)
+         return g_strdup (tmp_str);
+ 
++return g_strdup(skins[n++ % 8]);
++
+     /*  from config. Or 'default' if no present in config */
+     return mc_config_get_string (mc_main_config, CONFIG_APP_SECTION, "skin", "default");
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static void
++void
+ mc_skin_reinit (void)
+ {
++    GError *error = NULL;
+     mc_skin_deinit ();
+-    mc_skin__default.name = mc_skin_get_default_name ();
+-    mc_skin__default.colors = g_hash_table_new_full (g_str_hash, g_str_equal,
+-                                                     g_free, mc_skin_hash_destroy_value);
++    tty_color_free_all_tmp ();
++    tty_color_free_all_non_tmp ();
++    mc_skin_init (&error);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff -ur mc-4.8.11.orig/src/filemanager/layout.c mc-4.8.11/src/filemanager/layout.c
+--- mc-4.8.11.orig/src/filemanager/layout.c	2013-11-29 19:27:07.000000000 +0100
++++ mc-4.8.11/src/filemanager/layout.c	2014-01-11 18:05:26.113135523 +0100
+@@ -1090,6 +1090,14 @@
+ void
+ swap_panels (void)
+ {
++    mc_skin_reinit ();
++    mc_fhl_free (&mc_filehighlight);
++    mc_filehighlight = mc_fhl_new (TRUE);
++    dlg_set_default_colors ();
++    panel_deinit ();
++    panel_init ();
++    return;
++
+     WPanel *panel1, *panel2;
+     Widget *tmp_widget;
+ 

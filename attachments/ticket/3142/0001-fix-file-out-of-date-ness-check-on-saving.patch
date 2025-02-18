@@ -1,0 +1,59 @@
+From a78abf2f994952bea5dd6ca887ca3ca10158c072 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Sun, 15 Dec 2013 18:49:14 +0100
+Subject: [PATCH 01/11] fix file out-of-date-ness check on saving
+
+the code depended on the execution and outcome of the hardlink check.
+this was bogus - the two checks have nothing in common except the stat()
+call they both depend on.
+---
+ src/editor/editcmd.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index b726b85..80a1565 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -156,11 +156,12 @@ edit_save_file (WEdit * edit, const vfs_path_t * filename_vpath)
+     char *p;
+     gchar *tmp;
+     off_t filelen = 0;
+-    int this_save_mode, fd = -1;
++    int this_save_mode, rv, fd = -1;
+     vfs_path_t *real_filename_vpath;
+     vfs_path_t *savename_vpath = NULL;
+     const char *start_filename;
+     const vfs_path_element_t *vpath_element;
++    struct stat sb;
+ 
+     vpath_element = vfs_path_get_by_index (filename_vpath, 0);
+     if (vpath_element == NULL)
+@@ -195,13 +196,10 @@ edit_save_file (WEdit * edit, const vfs_path_t * filename_vpath)
+             mc_close (fd);
+     }
+ 
+-    if (this_save_mode == EDIT_QUICK_SAVE && !edit->skip_detach_prompt)
++    rv = mc_stat (real_filename_vpath, &sb);
++    if (rv == 0)
+     {
+-        int rv;
+-        struct stat sb;
+-
+-        rv = mc_stat (real_filename_vpath, &sb);
+-        if (rv == 0 && sb.st_nlink > 1)
++        if (this_save_mode == EDIT_QUICK_SAVE && !edit->skip_detach_prompt && sb.st_nlink > 1)
+         {
+             rv = edit_query_dialog3 (_("Warning"),
+                                      _("File has hard-links. Detach before saving?"),
+@@ -221,7 +219,7 @@ edit_save_file (WEdit * edit, const vfs_path_t * filename_vpath)
+         }
+ 
+         /* Prevent overwriting changes from other editor sessions. */
+-        if (rv == 0 && edit->stat1.st_mtime != 0 && edit->stat1.st_mtime != sb.st_mtime)
++        if (edit->stat1.st_mtime != 0 && edit->stat1.st_mtime != sb.st_mtime)
+         {
+             /* The default action is "Cancel". */
+             query_set_sel (1);
+-- 
+1.8.4.3
+

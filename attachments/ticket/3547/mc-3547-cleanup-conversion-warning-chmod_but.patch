@@ -1,0 +1,102 @@
+fix -Wconversion warning at struct chmod_but
+
+patch will fix these warnings:
+chmod.c:245:41: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+chmod.c:266:41: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+chmod.c:321:49: warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+chmod.c:352:72: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+chmod.c:357:72: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+chmod.c:367:42: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+chmod.c:371:42: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/chmod.c
++++ b/src/filemanager/chmod.c
+@@ -94,7 +94,7 @@
+     /* *INDENT-ON* */
+ };
+ 
+-static const unsigned int check_perm_num = G_N_ELEMENTS (check_perm);
++static const int check_perm_num = G_N_ELEMENTS (check_perm);
+ static int check_perm_len = 0;
+ 
+ static const char *file_info_labels[] = {
+@@ -104,13 +104,13 @@
+     N_("Group name:")
+ };
+ 
+-static const unsigned int file_info_labels_num = G_N_ELEMENTS (file_info_labels);
++static const int file_info_labels_num = G_N_ELEMENTS (file_info_labels);
+ static int file_info_labels_len = 0;
+ 
+ static struct
+ {
+     int ret_cmd;
+-    int flags;
++    button_flags_t flags;
+     int y;                      /* vertical position relatively to dialog bottom boundary */
+     int len;
+     const char *text;
+@@ -126,7 +126,7 @@
+     /* *INDENT-ON* */
+ };
+ 
+-static const unsigned int chmod_but_num = G_N_ELEMENTS (chmod_but);
++static const int chmod_but_num = G_N_ELEMENTS (chmod_but);
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /*** file scope functions ************************************************************************/
+@@ -136,8 +136,7 @@
+ chmod_i18n (void)
+ {
+     static gboolean i18n = FALSE;
+-    unsigned int i;
+-    int len;
++    int i, len;
+ 
+     if (i18n)
+         return;
+@@ -224,7 +223,7 @@
+     case MSG_ACTION:
+         {
+             /* handle checkboxes */
+-            unsigned int i;
++            int i;
+ 
+             /* close dialog due to SIGINT (ctrl-g) */
+             if (sender == NULL && parm == CK_Cancel)
+@@ -253,7 +252,7 @@
+     case MSG_KEY:
+         if (parm == 'T' || parm == 't' || parm == KEY_IC)
+         {
+-            unsigned int i;
++            int i;
+             unsigned long id;
+ 
+             id = dlg_get_current_widget_id (h);
+@@ -287,10 +286,9 @@
+ {
+     WDialog *ch_dlg;
+     int lines, cols;
+-    int y;
++    int i, y;
+     int perm_gb_len;
+     int file_gb_len;
+-    unsigned int i;
+     const char *c_fname, *c_fown, *c_fgrp;
+     char buffer[BUF_TINY];
+ 
+@@ -460,8 +458,7 @@
+         WDialog *ch_dlg;
+         struct stat sf_stat;
+         char *fname;
+-        int result;
+-        unsigned int i;
++        int i, result;
+ 
+         do_refresh ();
+ 

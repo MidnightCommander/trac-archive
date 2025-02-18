@@ -1,0 +1,85 @@
+--- doc/man/mc.1.in~	2013-10-15 02:52:40.000000000 -0700
++++ doc/man/mc.1.in	2013-12-26 09:32:41.000000000 -0800
+@@ -2077,6 +2077,12 @@ If set (the default), panel will scroll 
+ cursor reaches the end or the beginning of the panel, otherwise it
+ will just scroll a file at a time.
+ .PP
++.I Center scrolling.
++If set, panel will scroll when the cursor reaches the middle of the
++panel, only hitting the top or bottom of the panel when actually on
++the first or last file. This behavior applies when scrolling one file
++at a time, and does not apply to the page up/down keys.
++.PP
+ .I Mouse page scrolling.
+ Controls whenever scrolling with the mouse wheel is done by pages or
+ line by line on the panels.
+--- src/setup.h~	2013-12-25 15:58:26.000000000 -0800
++++ src/setup.h	2013-12-26 12:10:53.000000000 -0800
+@@ -48,6 +48,7 @@ typedef struct
+     gboolean navigate_with_arrows;      /* If TRUE: l&r arrows are used to chdir if the input line is empty */
+     gboolean scroll_pages;      /* If TRUE, panel is scrolled by half the display when the cursor reaches
+                                    the end or the beginning of the panel */
++    gboolean scroll_center;     /* If TRUE, scroll when the cursor hits the middle of the panel */
+     gboolean mouse_move_pages;  /* Scroll page/item using mouse wheel */
+     gboolean filetype_mode;     /* If TRUE then add per file type hilighting */
+     gboolean permission_mode;   /* If TRUE, we use permission hilighting */
+--- src/setup.c~	2013-12-25 15:58:26.000000000 -0800
++++ src/setup.c	2013-12-26 12:28:18.814454924 -0800
+@@ -142,6 +142,7 @@ panels_options_t panels_options = {
+     .auto_save_setup = FALSE,
+     .navigate_with_arrows = FALSE,
+     .scroll_pages = TRUE,
++    .scroll_center = FALSE,
+     .mouse_move_pages = TRUE,
+     .filetype_mode = TRUE,
+     .permission_mode = FALSE,
+@@ -400,6 +401,7 @@ static const struct
+     { "auto_save_setup_panels", &panels_options.auto_save_setup },
+     { "navigate_with_arrows", &panels_options.navigate_with_arrows },
+     { "panel_scroll_pages", &panels_options.scroll_pages },
++    { "panel_scroll_center", &panels_options.scroll_center },
+     { "mouse_move_pages",  &panels_options.mouse_move_pages },
+     { "filetype_mode", &panels_options.filetype_mode },
+     { "permission_mode", &panels_options.permission_mode },
+--- src/filemanager/boxes.c~	2013-12-25 15:58:25.000000000 -0800
++++ src/filemanager/boxes.c	2013-12-26 12:10:36.000000000 -0800
+@@ -554,6 +554,7 @@ panel_options_box (void)
+                     QUICK_CHECKBOX (N_("L&ynx-like motion"), &panels_options.navigate_with_arrows,
+                                     NULL),
+                     QUICK_CHECKBOX (N_("Pa&ge scrolling"), &panels_options.scroll_pages, NULL),
++                    QUICK_CHECKBOX (N_("Center &scrolling"), &panels_options.scroll_center, NULL),
+                     QUICK_CHECKBOX (N_("&Mouse page scrolling"), &panels_options.mouse_move_pages,
+                                     NULL),
+                 QUICK_STOP_GROUPBOX,
+--- src/filemanager/panel.c~	2013-12-25 15:58:25.000000000 -0800
++++ src/filemanager/panel.c	2013-12-26 12:10:27.000000000 -0800
+@@ -2019,6 +2019,14 @@ move_down (WPanel * panel)
+             panel->top_file = panel->dir.len - ITEMS (panel);
+         paint_dir (panel);
+     }
++    else if (panels_options.scroll_center &&
++             (panel->selected - panel->top_file) > (ITEMS (panel) / 2))
++    {
++        /* Scroll window when cursor is halfway down */
++        panel->top_file++;
++        if (panel->top_file > panel->dir.len - ITEMS (panel))
++            panel->top_file = panel->dir.len - ITEMS (panel);
++    }
+     select_item (panel);
+ }
+ 
+@@ -2040,6 +2048,14 @@ move_up (WPanel * panel)
+             panel->top_file = 0;
+         paint_dir (panel);
+     }
++    else if (panels_options.scroll_center &&
++             panel->selected < (panel->top_file + ITEMS (panel) / 2))
++    {
++        /* Scroll window when cursor is halfway up */
++        panel->top_file--;
++        if (panel->top_file < 0)
++            panel->top_file = 0;
++    }
+     select_item (panel);
+ }
+ 

@@ -1,0 +1,66 @@
+--- mc.menu.in	2024-08-30 11:41:38.512175543 -0700
++++ mc.menu.in_full	2024-08-30 11:41:22.586840234 -0700
+@@ -862,6 +862,63 @@
+         mcdiff %d/%f %D/%F
+ 
+ + ! t t
++I  Compare (FreeFileSync) opposite directories
++        if [ %d = %D ]; then
++            echo "The two directores must be different"
++            exit 1
++        fi
++        freefilesync -dirpair %d %D &
++
+++ t t
++I  Compare (FreeFileSync) tagged directories
++        freefilesync -dirpair %t &
++
+++ t t
++o  Compare (Dolphin) tagged directories
++        dolphin --split %t &
++
++o  Open (Dolphin) current directory
++        dolphin "%d" &
++
+++ ! t t
++O  Compare (Dolphin) opposite directories
++        if [ "%d" = "%D" ]; then
++            echo "The two directores must be different"
++            exit 1
++        fi
++        dolphin --split "%d" "%D" &
++
++L  Compare (Meld) opposite directories
++        if [ "%d" = "%D" ]; then
++            echo "The two directores must be different"
++            exit 1
++        fi
++        meld "%d" "%D" &
++
+++ t t
++l  Compare (Meld) tagged files/directories
++        meld %t &
++
+++ ! t t
++l  Compare (Meld) opposite selected files/directories
++        if [ %d/%f = %D/%F ]; then
++            echo "The two files must be different"
++            exit 1
++        fi
++        meld %d/%f %D/%F &
++
+++ ! t t
++k  Open file with Kate
++        kate %f
++
+++ t t
++k  Open tagged file with Kate
++        kate %t
++
++v  Run Ookla Speedtest
++        speedtest
++
+++ ! t t
+ s  Calculate SHA256 checksum of the current file
+         if which -s shasum; then SHACMD="shasum -a256"; else SHACMD="sha256sum"; fi
+         $SHACMD %f

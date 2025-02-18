@@ -1,0 +1,40 @@
+From d2d753a78887f690290f2572c218ce543fe5b40d Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Mon, 11 Jan 2021 07:53:07 -0600
+Subject: [PATCH] =?UTF-8?q?Fix=20#silent=20macro=20runs=20=E2=80=94=20make?=
+ =?UTF-8?q?=20the=20terminal=20undisrupted.?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/editor/editcmd.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index e2b904604..95f5b2474 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3271,11 +3271,19 @@ edit_block_process_cmd (WEdit * edit, int macro_number)
+     char *fname;
+     char *macros_fname = NULL;
+ 
++    /* Prepare the terminal by setting its flag to the initial ones. This will cause \r to work as
++     * expected, instead of being ignored. */
++    tty_reset_shell_mode();
++
+     fname = g_strdup_printf ("%s.%i.sh", EDIT_HOME_MACRO_FILE, macro_number);
+     macros_fname = g_build_filename (mc_config_get_data_path (), fname, (char *) NULL);
+     user_menu (edit, macros_fname, 0);
+     g_free (fname);
+     g_free (macros_fname);
++
++    /* Restore the SLang terminal configuration and redraw the editor. */
++    tty_raw_mode();
++    edit_refresh_cmd();
+     edit->force |= REDRAW_COMPLETELY;
+ }
+ 
+-- 
+2.28.0
+

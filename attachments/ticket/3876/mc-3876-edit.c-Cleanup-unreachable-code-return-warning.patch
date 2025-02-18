@@ -1,0 +1,35 @@
+From 9019c5f1afa801c5a5fa1d6e1b67bea7eb3131eb Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 4 Jan 2018 08:15:54 +0000
+Subject: [PATCH] (edit.c): Cleanup unreachable-code-return warning
+
+Found by Clang 4.0.1.
+
+edit.c:896:16: error: 'return' will never be executed [-Werror,-Wunreachable-code-return]
+        return 0x80000000UL;
+               ^~~~~~~~~~~~
+
+(whole my_type_of() is suspect)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/edit.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index b584400f2..6cfdd4671 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -890,11 +890,7 @@ my_type_of (int c)
+     if (c == 0)
+         return 0;
+     if (c == '!')
+-    {
+-        if (*option_chars_move_whole_word == '!')
+-            return 2;
+-        return 0x80000000UL;
+-    }
++        return 2;
+     if (g_ascii_isupper ((gchar) c))
+         c = 'A';
+     else if (g_ascii_islower ((gchar) c))

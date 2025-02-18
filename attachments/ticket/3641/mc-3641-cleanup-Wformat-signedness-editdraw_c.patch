@@ -1,0 +1,79 @@
+From dd1378e7fd51efc46f861265d52ce257212688e7 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 12:06:59 +0000
+Subject: [PATCH] (editdraw.c) Cleanup -Wformat-signedness warning
+
+Cleanup -Wformat-signedness warning.
+
+editdraw.c:127:62: error: format '%d' expects argument of type 'int', but argument 4 has type 'unsigned int' [-Werror=format=]
+                 g_snprintf (byte_str, sizeof (byte_str), "%04d 0x%03X",
+                                                              ^
+
+editdraw.c:326:30: error: format '%d' expects argument of type 'int', but argument 2 has type 'unsigned int' [-Werror=format=]
+             tty_printf ("[%05d 0x%04X]", cur_utf, cur_utf);
+                              ^
+
+editdraw.c:334:30: error: format '%d' expects argument of type 'int', but argument 2 has type 'unsigned int' [-Werror=format=]
+             tty_printf ("[%05d 0x%04X]", (unsigned int) cur_byte, (unsigned int) cur_byte);
+                              ^
+
+editdraw.c:554:20: warning: conversion to 'unsigned int' from 'long int' may alter its value [-Wconversion]
+         cur_line = edit->start_line + row;
+                    ^~~~
+
+editdraw.c:557:59: error: format '%i' expects argument of type 'int', but argument 4 has type 'unsigned int' [-Werror=format=]
+             g_snprintf (line_stat, sizeof (line_stat), "%7i ", cur_line + 1);
+                                                           ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editdraw.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index ce6df58..899e3a8 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -124,7 +124,7 @@ status_string (WEdit * edit, char *s, int w)
+             cur_utf = edit_buffer_get_utf (&edit->buffer, edit->buffer.curs1, &char_length);
+             if (char_length > 0)
+             {
+-                g_snprintf (byte_str, sizeof (byte_str), "%04d 0x%03X",
++                g_snprintf (byte_str, sizeof (byte_str), "%04u 0x%03X",
+                             (unsigned) cur_utf, (unsigned) cur_utf);
+             }
+             else
+@@ -323,7 +323,7 @@ edit_status_window (WEdit * edit)
+             cur_utf = edit_buffer_get_utf (&edit->buffer, edit->buffer.curs1, &char_length);
+             if (char_length <= 0)
+                 cur_utf = edit_buffer_get_current_byte (&edit->buffer);
+-            tty_printf ("[%05d 0x%04X]", cur_utf, cur_utf);
++            tty_printf ("[%05u 0x%04X]", cur_utf, cur_utf);
+         }
+ #endif
+         else
+@@ -331,7 +331,7 @@ edit_status_window (WEdit * edit)
+             unsigned char cur_byte;
+ 
+             cur_byte = edit_buffer_get_current_byte (&edit->buffer);
+-            tty_printf ("[%05d 0x%04X]", (unsigned int) cur_byte, (unsigned int) cur_byte);
++            tty_printf ("[%05u 0x%04X]", (unsigned int) cur_byte, (unsigned int) cur_byte);
+         }
+     }
+ }
+@@ -549,12 +549,12 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+ 
+     if (option_line_state)
+     {
+-        unsigned int cur_line;
++        long cur_line;
+ 
+         cur_line = edit->start_line + row;
+-        if (cur_line <= (unsigned int) edit->buffer.lines)
++        if (cur_line <= edit->buffer.lines)
+         {
+-            g_snprintf (line_stat, sizeof (line_stat), "%7i ", cur_line + 1);
++            g_snprintf (line_stat, sizeof (line_stat), "%7ld ", cur_line + 1);
+         }
+         else
+         {

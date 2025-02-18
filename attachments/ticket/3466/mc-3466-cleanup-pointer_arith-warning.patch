@@ -1,0 +1,67 @@
+
+fix -Wpointer-arith compiler warnings and add to mc cflags
+
+panel.c:1538:51: error: pointer of type 'void *' used in arithmetic [-Wpointer-arith]
+growbuf.c:159:65: error: pointer of type 'void *' used in arithmetic [-Wpointer-arith]
+growbuf.c:296:77: error: pointer of type 'void *' used in arithmetic [-Wpointer-arith]
+growbuf.c:299:77: error: pointer of type 'void *' used in arithmetic [-Wpointer-arith]
+config_parser.c:167:31: error: arithmetic on a pointer to void is a GNU libtool
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -70,6 +70,7 @@
+     MC_CHECK_ONE_CFLAG([-Wno-long-long])
+     MC_CHECK_ONE_CFLAG([-Wno-unreachable-code])
+     MC_CHECK_ONE_CFLAG([-Wparentheses])
++    MC_CHECK_ONE_CFLAG([-Wpointer-arith])
+     MC_CHECK_ONE_CFLAG([-Wpointer-sign])
+     MC_CHECK_ONE_CFLAG([-Wredundant-decls])
+     MC_CHECK_ONE_CFLAG([-Wreturn-type])
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1535,7 +1535,7 @@
+ 
+         hkey = strchr (translated_title, '&');
+         if (hkey != NULL && hkey[1] != '\0')
+-            memmove ((void *) hkey, (void *) hkey + 1, strlen (hkey));
++            memmove (hkey, hkey + 1, strlen (hkey));
+     }
+ 
+     return translated_title;
+--- a/src/viewer/growbuf.c
++++ b/src/viewer/growbuf.c
+@@ -155,7 +155,7 @@
+             g_ptr_array_add (view->growbuf_blockptr, newblock);
+             view->growbuf_lastindex = 0;
+         }
+-        p = g_ptr_array_index (view->growbuf_blockptr,
++        p = (byte *) g_ptr_array_index (view->growbuf_blockptr,
+                                view->growbuf_blockptr->len - 1) + view->growbuf_lastindex;
+ 
+         bytesfree = VIEW_PAGE_SIZE - view->growbuf_lastindex;
+@@ -293,10 +293,10 @@
+     if (view->growbuf_blockptr->len == 0)
+         return NULL;
+     if (pageno < (off_t) view->growbuf_blockptr->len - 1)
+-        return (char *) (g_ptr_array_index (view->growbuf_blockptr, pageno) + pageindex);
++        return (char *) ((char *)g_ptr_array_index (view->growbuf_blockptr, pageno) + pageindex);
+     if (pageno == (off_t) view->growbuf_blockptr->len - 1
+         && pageindex < (off_t) view->growbuf_lastindex)
+-        return (char *) (g_ptr_array_index (view->growbuf_blockptr, pageno) + pageindex);
++        return (char *) ((char *)g_ptr_array_index (view->growbuf_blockptr, pageno) + pageindex);
+     return NULL;
+ }
+ 
+--- a/src/vfs/sftpfs/config_parser.c
++++ b/src/vfs/sftpfs/config_parser.c
+@@ -132,7 +132,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ #define POINTER_TO_STRUCTURE_MEMBER(type)  \
+-    ((type) ((void *) config_entity + (off_t) config_variables[i].offset))
++    ((type) (config_entity + (off_t) config_variables[i].offset))
+ 
+ /**
+  * Parse string and filling one config entity by parsed data.

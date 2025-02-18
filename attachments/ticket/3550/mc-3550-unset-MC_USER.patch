@@ -1,0 +1,31 @@
+From 58939fcaeeb4f3e046845900141618366aa0768a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 31 Dec 2015 16:15:02 +0000
+Subject: [PATCH] fix #3550 unset MC_USER
+
+reported by egmont
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ contrib/mc-wrapper.csh.in | 1 +
+ contrib/mc-wrapper.sh.in  | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/contrib/mc-wrapper.csh.in b/contrib/mc-wrapper.csh.in
+index fa715f7..fdf2e1f 100644
+--- a/contrib/mc-wrapper.csh.in
++++ b/contrib/mc-wrapper.csh.in
+@@ -18,3 +18,4 @@ endif
+ 
+ rm -f "$MC_PWD_FILE"
+ unsetenv MC_PWD_FILE
++unsetenv MC_USER
+diff --git a/contrib/mc-wrapper.sh.in b/contrib/mc-wrapper.sh.in
+index 8badfb8..773bbd1 100644
+--- a/contrib/mc-wrapper.sh.in
++++ b/contrib/mc-wrapper.sh.in
+@@ -12,3 +12,4 @@ fi
+ 
+ rm -f "$MC_PWD_FILE"
+ unset MC_PWD_FILE
++unset MC_USER

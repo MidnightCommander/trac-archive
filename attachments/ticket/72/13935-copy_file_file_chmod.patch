@@ -1,0 +1,50 @@
+Index: src/file.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/file.c,v
+retrieving revision 1.149
+diff -u -p -r1.149 file.c
+--- src/file.c	22 Feb 2007 14:29:11 -0000	1.149
++++ src/file.c	13 Sep 2007 12:48:28 -0000
+@@ -474,6 +474,7 @@ copy_file_file (FileOpContext *ctx, cons
+     int return_status, temp_status;
+     struct timeval tv_transfer_start;
+     int dst_status = DEST_NONE;	/* 1 if the file is not fully copied */
++    int open_flags;
+ 
+     /* FIXME: We should not be using global variables! */
+     ctx->do_reget = 0;
+@@ -606,12 +607,19 @@ copy_file_file (FileOpContext *ctx, cons
+     utb.modtime = sb.st_mtime;
+     file_size = sb.st_size;
+ 
+-    /* Create the new regular file with small permissions initially,
+-       do not create a security hole.  FIXME: You have security hole
+-       here, btw. Imagine copying to /tmp and symlink attack :-( */
+-
+-    while ((dest_desc = mc_open (dst_path, O_WRONLY | (ctx->do_append ?
+-    	    O_APPEND : (O_CREAT | O_TRUNC)), 0600)) < 0) {
++    open_flags = O_WRONLY;
++    if (dst_exists != 0) {
++	if (ctx->do_append != 0)
++	    open_flags |= O_APPEND;
++	else
++	    open_flags |= O_CREAT | O_TRUNC;
++    } else {
++	open_flags |= O_CREAT | O_EXCL;
++    }
++    while ((dest_desc = mc_open (dst_path, open_flags, src_mode)) < 0) {
++	if (errno == EEXIST) {
++	    goto ret;
++	}
+ 	return_status = file_error (
+ 		_(" Cannot create target file \"%s\" \n %s "), dst_path);
+ 	if (return_status == FILE_RETRY)
+@@ -790,7 +798,7 @@ copy_file_file (FileOpContext *ctx, cons
+ 	    }
+ 	}
+ 
+-	if (!appending) {
++	if (!appending && ctx->preserve) {
+ 	    while (mc_chmod (dst_path, (src_mode & ctx->umask_kill))) {
+ 		temp_status = file_error (
+ 			_(" Cannot chmod target file \"%s\" \n %s "), dst_path);

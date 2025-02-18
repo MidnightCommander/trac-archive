@@ -1,0 +1,12 @@
+--- Syntax.in.old	2015-08-24 00:37:15.616547592 +0200
++++ Syntax.in	2015-08-24 00:33:42.677940853 +0200
+@@ -256,6 +256,9 @@
+ file ..\*\\.([lL][kK][rR])$ PIC\slinker\sscript\sfile
+ include lkr.syntax
+ 
++file ..\*\\.(liq|LIQ)$ LiquidSoap\sScript ^#!.\*([\s/]liquidsoap|@LIQUIDSOAP@)
++include liquidsoap.syntax
++
+ file .\*\\.pp$ Puppet\smanifest\sfile
+ include puppet.syntax
+ 

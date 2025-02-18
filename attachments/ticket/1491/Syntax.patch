@@ -1,0 +1,12 @@
+--- Syntax	2009-08-07 15:53:19.000000000 +1100
++++ Syntax	2009-08-07 15:55:16.000000000 +1100
+@@ -97,6 +97,9 @@
+ file ..\*\\.(php|PHP)[0-9]?$ PHP\sProgram
+ include php.syntax
+ 
++file ..\*\\.ij[xs]$ J\sFile
++include j.syntax
++
+ file ..\*\\.(java|JAVA|Java|jav|groovy|GROOVY|Groovy)$ Java\sProgram
+ include java.syntax
+ 

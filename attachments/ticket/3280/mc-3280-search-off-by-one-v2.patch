@@ -1,0 +1,27 @@
+diff --git a/src/viewer/ascii.c b/src/viewer/ascii.c
+index b6848e2..1ed085a 100644
+--- a/src/viewer/ascii.c
++++ b/src/viewer/ascii.c
+@@ -617,7 +617,7 @@ mcview_display_line (mcview_t * view, mcview_state_machine_t * state, int row,
+             return (col > 0) ? 1 : 0;
+         }
+ 
+-        if (view->search_start <= state->offset && state->offset < view->search_end)
++        if (view->search_start <= state_saved.offset && state_saved.offset < view->search_end)
+             color = SELECTED_COLOR;
+ 
+         if (cs[0] == '\n')
+diff --git a/src/viewer/search.c b/src/viewer/search.c
+index 915bb85..40fcc29 100644
+--- a/src/viewer/search.c
++++ b/src/viewer/search.c
+@@ -168,9 +168,6 @@ mcview_search_show_result (mcview_t * view, size_t match_len)
+                                       view->search->normal_offset - view->search->start_buffer) : 0;
+     view->search_start = view->search->normal_offset + nroff_len;
+ 
+-    if (!view->hex_mode)
+-        view->search_start++;
+-
+     nroff_len =
+         view->text_nroff_mode ? mcview__get_nroff_real_len (view, view->search_start - 1,
+                                                             match_len) : 0;

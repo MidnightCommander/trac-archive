@@ -1,0 +1,91 @@
+--- regex.c	2016-01-24 16:18:36.074887778 +1100
++++ regex.c~	2016-01-06 07:09:09.000000000 +1100
+@@ -124,33 +124,30 @@
+ mc_search__cond_struct_new_regex_hex_add (const char *charset, GString * str_to,
+                                           const char *one_char, gsize str_len)
+ {
+-//  GString *upp, *low;
++    GString *upp, *low;
+     gsize loop;
+ 
+-//  upp = mc_search__toupper_case_str (charset, one_char, str_len);
+-//  low = mc_search__tolower_case_str (charset, one_char, str_len);
++    upp = mc_search__toupper_case_str (charset, one_char, str_len);
++    low = mc_search__tolower_case_str (charset, one_char, str_len);
+ 
+-//  for (loop = 0; loop < upp->len; loop++)
+-    for (loop = 0; loop < str_len; loop++)
++    for (loop = 0; loop < upp->len; loop++)
+     {
+         gchar tmp_str[10 + 1];  /* longest content is "[\\x%02X\\x%02X]" */
+         gint tmp_len;
+ 
+-//      if (loop >= low->len || upp->str[loop] == low->str[loop])
+-//          tmp_len =
+-//              g_snprintf (tmp_str, sizeof (tmp_str), "\\x%02X", (unsigned char) upp->str[loop]);
+-//      else
+-//          tmp_len =
+-//              g_snprintf (tmp_str, sizeof (tmp_str), "[\\x%02X\\x%02X]",
+-//                          (unsigned char) upp->str[loop], (unsigned char) low->str[loop]);
++        if (loop >= low->len || upp->str[loop] == low->str[loop])
+             tmp_len =
+-                g_snprintf (tmp_str, sizeof (tmp_str), "\\x%02X", one_char [loop]);
++                g_snprintf (tmp_str, sizeof (tmp_str), "\\x%02X", (unsigned char) upp->str[loop]);
++        else
++            tmp_len =
++                g_snprintf (tmp_str, sizeof (tmp_str), "[\\x%02X\\x%02X]",
++                            (unsigned char) upp->str[loop], (unsigned char) low->str[loop]);
+ 
+         g_string_append_len (str_to, tmp_str, tmp_len);
+     }
+ 
+-//  g_string_free (upp, TRUE);
+-//  g_string_free (low, TRUE);
++    g_string_free (upp, TRUE);
++    g_string_free (low, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -209,8 +206,7 @@
+     spec_char = g_string_sized_new (64);
+     loop = 0;
+ 
+-//  while (loop <= astr->len)
+-    while (loop < astr->len)
++    while (loop <= astr->len)
+     {
+         if (mc_search__regex_str_append_if_special (spec_char, astr, &loop))
+         {
+@@ -269,11 +265,8 @@
+     char *string_safe, *p, *end;
+     gboolean ret;
+ 
+-//      The processing below causes problems when 0x00 in hex arguments.
+-//      So we always just call the match function with the input argument.
+-
+-//  if ((g_regex_get_compile_flags (regex) & G_REGEX_RAW)
+-//      || g_utf8_validate (string, string_len, NULL))
++    if ((g_regex_get_compile_flags (regex) & G_REGEX_RAW)
++        || g_utf8_validate (string, string_len, NULL))
+     {
+         return g_regex_match_full (regex, string, string_len, start_position, match_options,
+                                    match_info, error);
+@@ -820,16 +813,10 @@
+ #ifdef SEARCH_TYPE_GLIB
+         GError *mcerror = NULL;
+ 
+-        GRegexCompileFlags  CompileFlags;
+-
+-        CompileFlags = mc_search__regex_get_compile_flags (charset, lc_mc_search->is_case_sensitive);
+-        if (lc_mc_search->search_type == MC_SEARCH_T_HEX)           // if hex mode search,
+-          CompileFlags |= G_REGEX_RAW;                              // use raw mode here
+-
+         mc_search_cond->regex_handle =
+             g_regex_new (mc_search_cond->str->str,
+-                         CompileFlags,
+-                         0,
++                         mc_search__regex_get_compile_flags (charset,
++                                                             lc_mc_search->is_case_sensitive), 0,
+                          &mcerror);
+ 
+         if (mcerror != NULL)

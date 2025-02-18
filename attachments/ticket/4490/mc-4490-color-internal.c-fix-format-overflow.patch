@@ -1,0 +1,33 @@
+From 3252b1779647911530176a8173bf4cf28c909f25 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 28 Sep 2023 16:56:26 +0000
+Subject: [PATCH] (color-internal.c) fix format overflow
+
+color-internal.c: In function 'tty_color_get_name_by_index':
+color-internal.c:187:34: error: '%d' directive writing between 1 and 11 bytes into a region of size 4 []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wformat-overflow=-Werror=format-overflow=]8;;]
+  187 |             sprintf (name, "color%d", idx);
+      |                                  ^~
+color-internal.c:187:28: note: directive argument in the range [-2147483648, 255]
+  187 |             sprintf (name, "color%d", idx);
+      |                            ^~~~~~~~~
+
+Found by gcc-13
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/tty/color-internal.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/tty/color-internal.c b/lib/tty/color-internal.c
+index 8db2b6cd0..f6bbfe042 100644
+--- a/lib/tty/color-internal.c
++++ b/lib/tty/color-internal.c
+@@ -179,7 +179,7 @@ tty_color_get_name_by_index (int idx)
+             return color_table[i].name;
+ 
+     /* Create and return the strings in "colorNNN" or "#rrggbb" format. */
+-    if ((idx >= 16 && idx < 256) || (idx & (1 << 24)) != 0)
++    if ((idx >= 16 && idx < 256) || (idx > 255 && idx & (1 << 24)) != 0)
+     {
+         char name[9];
+ 

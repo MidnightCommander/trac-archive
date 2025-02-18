@@ -1,0 +1,218 @@
+diff -ur mc-4.8.10.orig/lib/tty/key.c mc-4.8.10/lib/tty/key.c
+--- mc-4.8.10.orig/lib/tty/key.c	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/lib/tty/key.c	2013-09-15 22:48:40.615174670 +0200
+@@ -92,6 +92,8 @@
+ int old_esc_mode_timeout = 1000000;     /* settable via env */
+ int use_8th_bit_as_meta = 0;
+ 
++gboolean bracketed_pasting_in_progress = FALSE;
++
+ /* This table is a mapping between names and the constants we use
+  * We use this to allow users to define alternate definitions for
+  * certain keys that may be missing from the terminal database
+@@ -275,6 +277,8 @@
+ static key_define_t mc_default_keys[] = {
+     {ESC_CHAR, ESC_STR, MCKEY_ESCAPE},
+     {ESC_CHAR, ESC_STR ESC_STR, MCKEY_NOACTION},
++    {MCKEY_BRACKETED_PASTING_START, ESC_STR "[200~", MCKEY_NOACTION},
++    {MCKEY_BRACKETED_PASTING_END,   ESC_STR "[201~", MCKEY_NOACTION},
+     {0, NULL, MCKEY_NOACTION},
+ };
+ 
+@@ -2148,6 +2152,14 @@
+         return (event->type != 0) ? EV_MOUSE : EV_NONE;
+     }
+ 
++    if (c == MCKEY_BRACKETED_PASTING_START) {
++        bracketed_pasting_in_progress = TRUE;
++        return EV_NONE;
++    } else if (c == MCKEY_BRACKETED_PASTING_END) {
++        bracketed_pasting_in_progress = FALSE;
++        return EV_NONE;
++    }
++
+     return c;
+ }
+ 
+@@ -2250,3 +2262,22 @@
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++void
++enable_bracketed_paste (void)
++{
++        printf (ESC_STR "[?2004h");
++        fflush (stdout);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++disable_bracketed_paste (void)
++{
++        printf (ESC_STR "[?2004l");
++        fflush (stdout);
++        bracketed_pasting_in_progress = FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff -ur mc-4.8.10.orig/lib/tty/key.h mc-4.8.10/lib/tty/key.h
+--- mc-4.8.10.orig/lib/tty/key.h	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/lib/tty/key.h	2013-09-15 22:48:36.459174498 +0200
+@@ -36,6 +36,10 @@
+ /* Return code for the extended mouse sequence */
+ #define MCKEY_EXTENDED_MOUSE     -3
+ 
++/* Return code for brackets of bracketed paste mode */
++#define MCKEY_BRACKETED_PASTING_START -4
++#define MCKEY_BRACKETED_PASTING_END   -5
++
+ /*** enums ***************************************************************************************/
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+@@ -61,6 +65,8 @@
+ extern int use_8th_bit_as_meta;
+ extern int mou_auto_repeat;
+ 
++extern gboolean bracketed_pasting_in_progress;
++
+ /*** declarations of public functions ************************************************************/
+ 
+ gboolean define_sequence (int code, const char *seq, int action);
+@@ -101,6 +107,10 @@
+ void numeric_keypad_mode (void);
+ void application_keypad_mode (void);
+ 
++/* Bracketed paste mode */
++void enable_bracketed_paste (void);
++void disable_bracketed_paste (void);
++
+ /*** inline functions ****************************************************************************/
+ 
+ static inline gboolean
+diff -ur mc-4.8.10.orig/lib/tty/tty-ncurses.c mc-4.8.10/lib/tty/tty-ncurses.c
+--- mc-4.8.10.orig/lib/tty/tty-ncurses.c	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/lib/tty/tty-ncurses.c	2013-09-15 19:48:39.850726896 +0200
+@@ -218,6 +218,7 @@
+ tty_shutdown (void)
+ {
+     disable_mouse ();
++    disable_bracketed_paste ();
+     tty_reset_shell_mode ();
+     tty_noraw_mode ();
+     tty_keypad (FALSE);
+diff -ur mc-4.8.10.orig/lib/tty/tty-slang.c mc-4.8.10/lib/tty/tty-slang.c
+--- mc-4.8.10.orig/lib/tty/tty-slang.c	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/lib/tty/tty-slang.c	2013-09-15 19:48:28.802726438 +0200
+@@ -347,6 +347,7 @@
+     char *op_cap;
+ 
+     disable_mouse ();
++    disable_bracketed_paste ();
+     tty_reset_shell_mode ();
+     tty_noraw_mode ();
+     tty_keypad (FALSE);
+diff -ur mc-4.8.10.orig/src/editor/edit.c mc-4.8.10/src/editor/edit.c
+--- mc-4.8.10.orig/src/editor/edit.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/editor/edit.c	2013-09-15 22:48:43.803174802 +0200
+@@ -3457,14 +3457,14 @@
+         if (option_auto_para_formatting)
+         {
+             edit_double_newline (edit);
+-            if (option_return_does_auto_indent)
++            if (option_return_does_auto_indent && !bracketed_pasting_in_progress)
+                 edit_auto_indent (edit);
+             format_paragraph (edit, FALSE);
+         }
+         else
+         {
+             edit_insert (edit, '\n');
+-            if (option_return_does_auto_indent)
++            if (option_return_does_auto_indent && !bracketed_pasting_in_progress)
+                 edit_auto_indent (edit);
+         }
+         break;
+diff -ur mc-4.8.10.orig/src/editor/editwidget.c mc-4.8.10/src/editor/editwidget.c
+--- mc-4.8.10.orig/src/editor/editwidget.c	2013-08-02 20:02:40.000000000 +0200
++++ mc-4.8.10/src/editor/editwidget.c	2013-09-15 22:48:02.603173094 +0200
+@@ -1065,6 +1065,8 @@
+                     ret = edit_dialog_command_execute (h, command);
+             }
+ 
++            if (!is_idle())
++                widget_want_idle (w, TRUE);
+             return ret;
+         }
+ 
+@@ -1080,6 +1082,10 @@
+         edit_dlg_deinit ();
+         return MSG_HANDLED;
+ 
++    case MSG_IDLE:
++        widget_want_idle (w, FALSE);
++        return send_message (h->current->data, NULL, MSG_IDLE, 0, NULL);
++
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+     }
+@@ -1151,6 +1157,10 @@
+         edit_clean (e);
+         return MSG_HANDLED;
+ 
++    case MSG_IDLE:
++        edit_update_screen (e);
++        return MSG_HANDLED;
++
+     default:
+         return widget_default_callback (w, sender, msg, parm, data);
+     }
+diff -ur mc-4.8.10.orig/src/execute.c mc-4.8.10/src/execute.c
+--- mc-4.8.10.orig/src/execute.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/execute.c	2013-09-15 22:45:42.003167265 +0200
+@@ -88,6 +88,7 @@
+     tty_raw_mode ();
+     channels_up ();
+     enable_mouse ();
++    enable_bracketed_paste ();
+     if (mc_global.tty.alternate_plus_minus)
+         application_keypad_mode ();
+ }
+@@ -107,6 +108,7 @@
+ 
+     channels_down ();
+     disable_mouse ();
++    disable_bracketed_paste ();
+ 
+     tty_reset_shell_mode ();
+     tty_keypad (FALSE);
+@@ -455,6 +457,7 @@
+ 
+     channels_down ();
+     disable_mouse ();
++    disable_bracketed_paste ();
+     if (clear_before_exec)
+         clr_scr ();
+     if (mc_global.tty.alternate_plus_minus)
+@@ -518,6 +521,7 @@
+     }
+ 
+     enable_mouse ();
++    enable_bracketed_paste ();
+     channels_up ();
+     if (mc_global.tty.alternate_plus_minus)
+         application_keypad_mode ();
+diff -ur mc-4.8.10.orig/src/main.c mc-4.8.10/src/main.c
+--- mc-4.8.10.orig/src/main.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/main.c	2013-09-15 20:11:16.126783124 +0200
+@@ -381,6 +381,10 @@
+        w/o Shift button in subshell in the native console */
+     init_mouse ();
+ 
++    /* Done after do_enter_ca_mode (tty_init) because in VTE bracketed mode is
++       separate for the normal and alternate screens */
++    enable_bracketed_paste ();
++
+     /* subshell_prompt is NULL here */
+     mc_prompt = (geteuid () == 0) ? "# " : "$ ";
+ 

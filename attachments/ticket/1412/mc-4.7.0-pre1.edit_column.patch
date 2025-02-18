@@ -1,0 +1,48 @@
+diff -Naur mc-4.7.0-pre1~/edit/edit.c mc-4.7.0-pre1/edit/edit.c
+--- mc-4.7.0-pre1~/edit/edit.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/edit.c	2009-08-10 04:59:53.000000000 +0300
+@@ -1896,11 +1896,12 @@
+ 	edit_set_markers (edit, 0, 0, 0, 0);
+ 	edit->force |= REDRAW_PAGE;
+     } else {
++	int curs_col = edit->curs_col - option_line_state_width;
+ 	if (edit->mark2 >= 0) {
+-	    edit_set_markers (edit, edit->curs1, -1, edit->curs_col, edit->curs_col);
++	    edit_set_markers (edit, edit->curs1, -1, curs_col, curs_col);
+ 	    edit->force |= REDRAW_PAGE;
+ 	} else
+-	    edit_set_markers (edit, edit->mark1, edit->curs1, edit->column1, edit->curs_col);
++	    edit_set_markers (edit, edit->mark1, edit->curs1, edit->column1, curs_col);
+     }
+ }
+ 
+diff -Naur mc-4.7.0-pre1~/edit/editcmd.c mc-4.7.0-pre1/edit/editcmd.c
+--- mc-4.7.0-pre1~/edit/editcmd.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd.c	2009-08-10 04:58:18.000000000 +0300
+@@ -943,7 +943,7 @@
+ 	} else {
+ 	    *start_mark = min (edit->mark1, edit->curs1);
+ 	    *end_mark = max (edit->mark1, edit->curs1);
+-	    edit->column2 = edit->curs_col;
++	    edit->column2 = edit->curs_col - option_line_state_width;
+ 	}
+ 	return 0;
+     } else {
+@@ -1109,7 +1109,7 @@
+ 	return;
+     if (column_highlighting) {
+ 	edit_update_curs_col (edit);
+-	x = edit->curs_col;
++	x = edit->curs_col - option_line_state_width;
+ 	if (start_mark <= edit->curs1 && end_mark >= edit->curs1)
+ 	    if ((x > edit->column1 && x < edit->column2)
+ 		|| (x > edit->column2 && x < edit->column1))
+@@ -1148,7 +1148,7 @@
+ 	if (!deleted) {
+ 	    line = edit->curs_line;
+ 	    edit_update_curs_col (edit);
+-	    x = edit->curs_col;
++	    x = edit->curs_col - option_line_state_width;
+ 	    edit_block_delete_cmd (edit);
+ 	    edit_move_to_line (edit, line);
+ 	    edit_cursor_move (edit,

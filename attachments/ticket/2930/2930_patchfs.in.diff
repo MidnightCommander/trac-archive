@@ -1,0 +1,28 @@
+--- patchfs.in	2012-11-18 15:55:08.000000000 +0400
++++ patchfs.in	2012-11-18 16:38:36.000000000 +0400
+@@ -273,13 +273,18 @@
+ 	    }
+ 	    print $fh $_ if($rmmod != $filefound);
+ 	    $fsize+=length;
+-	    my ($first)= /^(.)/;
+-	    if(ord($first) == ord('+')) { $h_add++; }
+-	    elsif(ord($first) == ord('-')) { $h_del++; }
+-	    elsif(ord($first) == ord(' ')) { $h_ctx++; }
+-	    elsif(ord($first) == ord('\\')) { 0; }
+-	    elsif(ord($first) == ord('@')) { error "Malformed hunk, header came too early"; }
+-	    else { error "Unrecognized character in hunk"; }
++	    if (/^$/) {
++		# Empty line, but should start with ' '. Diff is incorrect, but try to parse it anyway.
++		$h_ctx++;
++	    } else {
++		my ($first)= /^(.)/;
++		if(ord($first) == ord('+')) { $h_add++; }
++		elsif(ord($first) == ord('-')) { $h_del++; }
++		elsif(ord($first) == ord(' ')) { $h_ctx++; }
++		elsif(ord($first) == ord('\\')) { 0; }
++		elsif(ord($first) == ord('@')) { error "Malformed hunk, header came too early"; }
++		else { error "Unrecognized character in hunk"; }
++	    }
+ 	}
+     }
+     if($file eq '' && $filetoprint) {

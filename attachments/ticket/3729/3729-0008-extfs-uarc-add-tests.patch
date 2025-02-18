@@ -1,0 +1,79 @@
+From 89829834a9b0ff0dec94e86d166c6bb2ca444d4a Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 12 Dec 2016 14:58:04 +0200
+Subject: [PATCH 08/13] extfs: uarc: add tests.
+
+---
+ tests/src/vfs/extfs/helpers-list/Makefile.am      |  3 +++
+ tests/src/vfs/extfs/helpers-list/data/uarc.README | 19 +++++++++++++++++++
+ tests/src/vfs/extfs/helpers-list/data/uarc.input  |  7 +++++++
+ tests/src/vfs/extfs/helpers-list/data/uarc.output |  3 +++
+ 4 files changed, 32 insertions(+)
+ create mode 100644 tests/src/vfs/extfs/helpers-list/data/uarc.README
+ create mode 100644 tests/src/vfs/extfs/helpers-list/data/uarc.input
+ create mode 100644 tests/src/vfs/extfs/helpers-list/data/uarc.output
+
+diff --git a/tests/src/vfs/extfs/helpers-list/Makefile.am b/tests/src/vfs/extfs/helpers-list/Makefile.am
+index ddaac03..06cb9ef 100644
+--- a/tests/src/vfs/extfs/helpers-list/Makefile.am
++++ b/tests/src/vfs/extfs/helpers-list/Makefile.am
+@@ -47,6 +47,9 @@ data_files_to_distribute = \
+ 	data/uace.README \
+ 	data/uace.input \
+ 	data/uace.output \
++	data/uarc.README \
++	data/uarc.input \
++	data/uarc.output \
+ 	data/urar.README \
+ 	data/urar.v4,v3.env_vars \
+ 	data/urar.v4,v3.input \
+diff --git a/tests/src/vfs/extfs/helpers-list/data/uarc.README b/tests/src/vfs/extfs/helpers-list/data/uarc.README
+new file mode 100644
+index 0000000..8a463a3
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/data/uarc.README
+@@ -0,0 +1,19 @@
++
++The input file was created by doing "arc v test.arc" on archive created
++with "arc a test.arc ...". We then made sure to have:
++
++- One date prior to year 2000 (to test the 1900/2000 boundary).
++- Both AM and PM times.
++
++Our 'uarc' doesn't support spaces in filenames but that's no biggie:
++
++    Man page: "Full compatibility with PC ARC files is maintained, the
++    price for which is that arc doesn't like long filenames, and can only
++    archive files with names of up to 12 characters. [...] I suggest you
++    put long-winded filenames in a 'shar' before arcing them."
++
++    Wikipedia: "ARC is incapable of compressing entire directory trees"
++
++Known issues with our uarc:
++
++- It reports '0' gid.
+diff --git a/tests/src/vfs/extfs/helpers-list/data/uarc.input b/tests/src/vfs/extfs/helpers-list/data/uarc.input
+new file mode 100644
+index 0000000..eeb2161
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/data/uarc.input
+@@ -0,0 +1,7 @@
++Name          Length    Stowage    SF   Size now  Date       Time    CRC
++============  ========  ========  ====  ========  =========  ======  ====
++README.html       9799  Crunched   50%      4922  23 Nov 16  11:48a  40ba
++extfs.c          49679  Crunched   67%     16874  18 Apr 94   3:05p  38ff
++run.log           1051  Crunched   50%       536  23 Nov 16  10:36a  6184
++        ====  ========            ====  ========
++Total      3     60529             64%     22332
+diff --git a/tests/src/vfs/extfs/helpers-list/data/uarc.output b/tests/src/vfs/extfs/helpers-list/data/uarc.output
+new file mode 100644
+index 0000000..133e4cb
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/data/uarc.output
+@@ -0,0 +1,3 @@
++-rw-r--r--   1  <<uid>>        0       9799 2016-11-23 11:48:00 README.html
++-rw-r--r--   1  <<uid>>        0      49679 1994-04-18 15:05:00 extfs.c
++-rw-r--r--   1  <<uid>>        0       1051 2016-11-23 10:36:00 run.log
+-- 
+2.9.3
+

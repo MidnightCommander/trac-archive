@@ -1,0 +1,602 @@
+From acdce880794c375224aed939cd32cf92895866bb Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Tue, 14 Dec 2021 14:59:57 +0100
+Subject: [PATCH] Scrollbox with skin support
+
+---
+ doc/man/mc.1.in          |   3 +
+ lib/skin/lines.c         |  17 +++-
+ lib/tty/tty.h            |   6 ++
+ lib/widget.h             |   1 +
+ lib/widget/Makefile.am   |   1 +
+ lib/widget/listbox.c     |  50 ++----------
+ lib/widget/listbox.h     |   3 +-
+ lib/widget/scrollbar.c   | 165 +++++++++++++++++++++++++++++++++++++++
+ lib/widget/scrollbar.h   |  37 +++++++++
+ src/filemanager/layout.c |  11 ++-
+ src/filemanager/layout.h |   1 +
+ src/filemanager/panel.c  |  25 +++++-
+ src/filemanager/panel.h  |   1 +
+ src/setup.c              |   1 +
+ 14 files changed, 272 insertions(+), 50 deletions(-)
+ create mode 100644 lib/widget/scrollbar.c
+ create mode 100644 lib/widget/scrollbar.h
+
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index ec473568e..3e4012333 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -1986,6 +1986,9 @@ Enabled by default.
+ .I Show free space.
+ If enabled, free space and total space of current file system is shown
+ at the bottom frame of panel. Enabled by default.
++.PP
++.I Panel scrollbars.
++Show scrollbars in main panels (on the right side). Enabled by default.
+ .\"NODE "    Panel options"
+ .SH "    Panel options"
+ .B Main panel options
+diff --git a/lib/skin/lines.c b/lib/skin/lines.c
+index ddf13c451..8b71f63b2 100644
+--- a/lib/skin/lines.c
++++ b/lib/skin/lines.c
+@@ -60,6 +60,22 @@ mc_skin_lines_load_frm (mc_skin_t * mc_skin, const char *name)
+ void
+ mc_skin_lines_parse_ini_file (mc_skin_t * mc_skin)
+ {
++    int ch;
++
++
++    ch = mc_skin_lines_load_frm (mc_skin, "uparrow");
++    mc_tty_frm[MC_TTY_FRM_UP_ARROW] = ch == ' ' ? L'▲' : ch;
++    ch = mc_skin_lines_load_frm (mc_skin, "uparrowempty");
++    mc_tty_frm[MC_TTY_FRM_UP_ARROW_EMPTY] = ch == ' ' ? L'△' : ch;
++    ch = mc_skin_lines_load_frm (mc_skin, "dnarrow");
++    mc_tty_frm[MC_TTY_FRM_DN_ARROW] = ch == ' ' ? L'▼' : ch;
++    ch = mc_skin_lines_load_frm (mc_skin, "dnarrowempty");
++    mc_tty_frm[MC_TTY_FRM_DN_ARROW_EMPTY] = ch == ' ' ? L'▽' : ch;
++    ch = mc_skin_lines_load_frm (mc_skin, "box");
++    mc_tty_frm[MC_TTY_FRM_BOX] = ch == ' ' ? L'▓' : ch;
++    ch = mc_skin_lines_load_frm (mc_skin, "uparrow");
++    mc_tty_frm[MC_TTY_FRM_BOX_LIGHT] = ch == ' ' ? L'░' : ch;
++
+     if (mc_global.tty.slow_terminal)
+         mc_skin_hardcoded_space_lines (mc_skin);
+     else if (mc_global.tty.ugly_line_drawing)
+@@ -90,5 +106,4 @@ mc_skin_lines_parse_ini_file (mc_skin_t * mc_skin)
+     mc_tty_frm[MC_TTY_FRM_DLEFTMIDDLE] = mc_skin_lines_load_frm (mc_skin, "dleftmiddle");
+     mc_tty_frm[MC_TTY_FRM_DRIGHTMIDDLE] = mc_skin_lines_load_frm (mc_skin, "drightmiddle");
+ }
+-
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/tty/tty.h b/lib/tty/tty.h
+index 90cbbc6c9..780907187 100644
+--- a/lib/tty/tty.h
++++ b/lib/tty/tty.h
+@@ -54,6 +54,12 @@ typedef enum
+     MC_TTY_FRM_DLEFTMIDDLE,
+     MC_TTY_FRM_DRIGHTMIDDLE,
+ 
++    MC_TTY_FRM_UP_ARROW,
++    MC_TTY_FRM_UP_ARROW_EMPTY,
++    MC_TTY_FRM_DN_ARROW,
++    MC_TTY_FRM_DN_ARROW_EMPTY,
++    MC_TTY_FRM_BOX,
++    MC_TTY_FRM_BOX_LIGHT,
+     MC_TTY_FRM_MAX
+ } mc_tty_frm_t;
+ 
+diff --git a/lib/widget.h b/lib/widget.h
+index e3bb5cac2..89104c784 100644
+--- a/lib/widget.h
++++ b/lib/widget.h
+@@ -29,6 +29,7 @@ typedef struct WGroup WGroup;
+ #include "lib/widget/gauge.h"
+ #include "lib/widget/groupbox.h"
+ #include "lib/widget/label.h"
++#include "lib/widget/scrollbar.h"
+ #include "lib/widget/listbox.h"
+ #include "lib/widget/menu.h"
+ #include "lib/widget/radio.h"
+diff --git a/lib/widget/Makefile.am b/lib/widget/Makefile.am
+index 90f023bbc..c45398d35 100644
+--- a/lib/widget/Makefile.am
++++ b/lib/widget/Makefile.am
+@@ -24,6 +24,7 @@ libmcwidget_la_SOURCES = \
+ 	quick.c quick.h \
+ 	radio.c radio.h \
+ 	rect.c rect.h \
++	scrollbar.c scrollbar.h \
+ 	widget-common.c widget-common.h \
+ 	wtools.c wtools.h
+ 
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index 198193e4a..460dbee66 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -85,47 +85,6 @@ listbox_entry_free (void *data)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static void
+-listbox_drawscroll (WListbox * l)
+-{
+-    Widget *w = WIDGET (l);
+-    int max_line = w->lines - 1;
+-    int line = 0;
+-    int i;
+-    int length;
+-
+-    /* Are we at the top? */
+-    widget_gotoyx (w, 0, w->cols);
+-    if (l->top == 0)
+-        tty_print_one_vline (TRUE);
+-    else
+-        tty_print_char ('^');
+-
+-    length = g_queue_get_length (l->list);
+-
+-    /* Are we at the bottom? */
+-    widget_gotoyx (w, max_line, w->cols);
+-    if (l->top + w->lines == length || w->lines >= length)
+-        tty_print_one_vline (TRUE);
+-    else
+-        tty_print_char ('v');
+-
+-    /* Now draw the nice relative pointer */
+-    if (!g_queue_is_empty (l->list))
+-        line = 1 + ((l->pos * (w->lines - 2)) / length);
+-
+-    for (i = 1; i < max_line; i++)
+-    {
+-        widget_gotoyx (w, i, w->cols);
+-        if (i != line)
+-            tty_print_one_vline (TRUE);
+-        else
+-            tty_print_char ('*');
+-    }
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+ static void
+ listbox_draw (WListbox * l, gboolean focused)
+ {
+@@ -183,10 +142,11 @@ listbox_draw (WListbox * l, gboolean focused)
+ 
+     l->cursor_y = sel_line;
+ 
+-    if (l->scrollbar && length > w->lines)
++    if (l->draw_scrollbar)
+     {
+         tty_setcolor (normalc);
+-        listbox_drawscroll (l);
++        scrollbar_set_state (l->scrollbar, w->y - 1, w->x + w->cols, w->lines + 2, g_queue_get_length (l->list), w->lines, l->top);
++        WIDGET (l->scrollbar)->callback (WIDGET (l->scrollbar), NULL, MSG_DRAW, 0, NULL);
+     }
+ }
+ 
+@@ -440,6 +400,7 @@ listbox_run_hotkey (WListbox * l, int pos)
+ static inline void
+ listbox_destroy (WListbox * l)
+ {
++    widget_destroy (WIDGET (l->scrollbar));
+     listbox_remove_list (l);
+ }
+ 
+@@ -564,7 +525,8 @@ listbox_new (int y, int x, int height, int width, gboolean deletable, lcback_fn
+     l->deletable = deletable;
+     l->callback = callback;
+     l->allow_duplicates = TRUE;
+-    l->scrollbar = !mc_global.tty.slow_terminal;
++    l->draw_scrollbar = !mc_global.tty.slow_terminal;
++    l->scrollbar = scrollbar_new (y, x + width - 1, height, TRUE);
+ 
+     return l;
+ }
+diff --git a/lib/widget/listbox.h b/lib/widget/listbox.h
+index 8b2236eff..96dd4afc4 100644
+--- a/lib/widget/listbox.h
++++ b/lib/widget/listbox.h
+@@ -48,7 +48,8 @@ typedef struct WListbox
+     int pos;                    /* The current element displayed */
+     int top;                    /* The first element displayed */
+     gboolean allow_duplicates;  /* Do we allow duplicates on the list? */
+-    gboolean scrollbar;         /* Draw a scrollbar? */
++    gboolean draw_scrollbar;    /* Draw a scrollbar? */
++    WScrollbar *scrollbar;      /* Scrollbar widget */
+     gboolean deletable;         /* Can list entries be deleted? */
+     lcback_fn callback;         /* The callback function */
+     int cursor_x, cursor_y;     /* Cache the values */
+diff --git a/lib/widget/scrollbar.c b/lib/widget/scrollbar.c
+new file mode 100644
+index 000000000..8b68d0893
+--- /dev/null
++++ b/lib/widget/scrollbar.c
+@@ -0,0 +1,165 @@
++/*
++   Widgets for the Midnight Commander
++
++   Copyright (C) 2021
++   Free Software Foundation, Inc.
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file scrollbar.c
++ *  \brief Source: WScrollbar widget
++ */
++
++#include <config.h>
++
++#include <stdarg.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "lib/global.h"
++
++#include "lib/tty/tty.h"
++#include "lib/tty/color.h"
++#include "lib/skin.h"
++#include "lib/strutil.h"
++#include "lib/widget.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++/*** file scope functions ************************************************************************/
++
++static cb_ret_t
++scrollbar_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    WScrollbar *s = SCROLLBAR (w);
++    switch (msg)
++    {
++    case MSG_RESIZE:
++        {
++            widget_default_callback (w, NULL, MSG_RESIZE, 0, data);
++            return MSG_HANDLED;
++        }
++
++    case MSG_DRAW:
++        {
++            int scrollbar_values_per_char;
++            int scrollbar_values_total;
++            int scrollbox_length;
++            int top_possibilities;
++            int scrollbox_pos_start;
++            int i;
++            int visible_scrollbar_position, scrollbar_position;
++
++            if (s->data_items <= s->data_visible_items)
++                return MSG_HANDLED;
++
++            /* Are we at the top? */
++            widget_gotoyx (w, 1, 0);
++            visible_scrollbar_position = s->data_visible_start_position / 2 * 2;
++            if (visible_scrollbar_position == 0)
++                tty_print_char (mc_global.tty.ugly_line_drawing ?' ':mc_tty_frm[MC_TTY_FRM_UP_ARROW_EMPTY]);
++            else
++                tty_print_char (mc_global.tty.ugly_line_drawing ?'^':mc_tty_frm[MC_TTY_FRM_UP_ARROW]);
++
++            /* Are we at the bottom? */
++            widget_gotoyx (w, w->lines - 2, 0);
++            if (visible_scrollbar_position + s->data_visible_items >= s->data_items-1)
++                tty_print_char (mc_global.tty.ugly_line_drawing ?' ':mc_tty_frm[MC_TTY_FRM_DN_ARROW_EMPTY]);
++            else
++                tty_print_char (mc_global.tty.ugly_line_drawing ?' ':mc_tty_frm[MC_TTY_FRM_DN_ARROW]);
++
++            if (w->lines <= 2)           /* there is no enough space for actual scrollbar */
++                return MSG_HANDLED;
++
++            /* Now draw the nice relative pointer */
++            scrollbar_values_per_char = (s->has_subchars && !mc_global.tty.ugly_line_drawing ? 2 : 1);
++            scrollbar_values_total = (w->lines - 4) * scrollbar_values_per_char;
++            scrollbox_length = MAX (1, scrollbar_values_total * s->data_visible_items / s->data_items) / 2 * 2;
++            top_possibilities = s->data_items - s->data_visible_items + 1;
++            scrollbox_pos_start = (2 * visible_scrollbar_position*(scrollbar_values_total-scrollbox_length)
++                    / (top_possibilities - 1) + 1) / 2;
++            scrollbox_pos_start *= 2;
++            scrollbox_pos_start /= 2;
++
++            for (i = 0; i < w->lines - 4; i++)
++            {
++                widget_gotoyx (w, i + 2, 0);
++                scrollbar_position = i * scrollbar_values_per_char / 2 * 2;
++
++                if (scrollbar_position >= scrollbox_pos_start
++                        && scrollbar_position + scrollbar_values_per_char <=
++                             scrollbox_pos_start + scrollbox_length+1)
++                    tty_print_char (mc_global.tty.ugly_line_drawing ?'#':mc_tty_frm[MC_TTY_FRM_BOX]);
++                else
++                    tty_print_char (mc_global.tty.ugly_line_drawing ?' ':mc_tty_frm[MC_TTY_FRM_BOX_LIGHT]);
++            }
++
++            return MSG_HANDLED;
++        }
++
++    default:
++        return widget_default_callback (w, sender, msg, parm, data);
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++WScrollbar *
++scrollbar_new (int y, int x, int lines, gboolean has_subchars)
++{
++    WScrollbar *scrollbar;
++    Widget *w;
++
++    scrollbar = g_new (WScrollbar, 1);
++    w = WIDGET (scrollbar);
++    widget_init (w, y, x, lines, 1, scrollbar_callback, NULL);
++
++    scrollbar->has_subchars = has_subchars;
++    scrollbar->data_items = 0;
++    scrollbar->data_visible_items = 0;
++    scrollbar->data_visible_start_position = 0;
++
++    return scrollbar;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++scrollbar_set_state(WScrollbar * scrollbar, int y, int x, int lines, int data_length,
++                    int data_visible_length, int data_position)
++{
++    Widget *w = WIDGET (scrollbar);
++
++    w->y = y;
++    w->x = x;
++    w->lines = lines;
++    scrollbar->data_items = data_length;
++    scrollbar->data_visible_items = data_visible_length;
++    scrollbar->data_visible_start_position = data_position;
++
++    widget_draw (w);
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/scrollbar.h b/lib/widget/scrollbar.h
+new file mode 100644
+index 000000000..f0ee5b2a1
+--- /dev/null
++++ b/lib/widget/scrollbar.h
+@@ -0,0 +1,37 @@
++
++/** \file scrollbar.h
++ *  \brief Header: WScrollbar widget
++ */
++
++#ifndef MC__WIDGET_SCROLLBAR_H
++#define MC__WIDGET_SCROLLBAR_H
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++#define SCROLLBAR(x) ((WScrollbar *)(x))
++
++/*** enums ***************************************************************************************/
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++typedef struct
++{
++    Widget widget;
++    gboolean has_subchars;   /* if uses sub-characters (2 states per character). Also, this
++                                turns off scrollbar background */
++    int data_items;         /* how many items are in the background data */
++    int data_visible_items; /* how many items from data are actually visible */
++    int data_visible_start_position;       /* position of first visible item in data */
++} WScrollbar;
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++WScrollbar *scrollbar_new (int y, int x, int height, gboolean has_subchars);
++void scrollbar_set_state (WScrollbar * scrollbar, int y, int x, int lines, int data_length,
++                          int data_visible_length, int data_position);
++
++/*** inline functions ****************************************************************************/
++
++#endif /* MC__WIDGET_SCROLLBAR_H */
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 9118c7848..ce8db9d77 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -100,6 +100,9 @@ gboolean xterm_title = TRUE;
+ /* Set to show free space on device assigned to current directory */
+ gboolean free_space = TRUE;
+ 
++/* Set to show scrollbars on main panels */
++gboolean panel_scrollbars = TRUE;
++
+ /* The starting line for the output of the subprogram */
+ int output_start_y = 0;
+ 
+@@ -133,6 +136,7 @@ typedef struct
+     gboolean message_visible;
+     gboolean xterm_title;
+     gboolean free_space;
++    gboolean panel_scrollbars;
+     int output_lines;
+ } layout_t;
+ 
+@@ -176,7 +180,8 @@ static struct
+     { N_("&Keybar visible"), &mc_global.keybar_visible, NULL },
+     { N_("H&intbar visible"), &mc_global.message_visible, NULL },
+     { N_("&XTerm window title"), &xterm_title, NULL },
+-    { N_("&Show free space"), &free_space, NULL }
++    { N_("&Show free space"), &free_space, NULL },
++    { N_("&Panel scrollbars"), &panel_scrollbars, NULL }
+     /* *INDENT-ON* */
+ };
+ 
+@@ -466,6 +471,8 @@ layout_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *
+                 xterm_title = check_options[5].widget->state;
+             else if (sender == WIDGET (check_options[6].widget))
+                 free_space = check_options[6].widget->state;
++            else if (sender == WIDGET (check_options[7].widget))
++                panel_scrollbars = check_options[7].widget->state;
+             else
+                 ok = FALSE;
+ 
+@@ -678,6 +685,7 @@ layout_save (void)
+     old_layout.message_visible = mc_global.message_visible;
+     old_layout.xterm_title = xterm_title;
+     old_layout.free_space = free_space;
++    old_layout.panel_scrollbars = panel_scrollbars;
+     old_layout.output_lines = -1;
+ 
+     _output_lines = output_lines;
+@@ -696,6 +704,7 @@ layout_restore (void)
+     mc_global.message_visible = old_layout.message_visible;
+     xterm_title = old_layout.xterm_title;
+     free_space = old_layout.free_space;
++    panel_scrollbars = old_layout.panel_scrollbars;
+     output_lines = old_layout.output_lines;
+ 
+     panels_layout = old_panels_layout;
+diff --git a/src/filemanager/layout.h b/src/filemanager/layout.h
+index 2566cfa32..152ee5210 100644
+--- a/src/filemanager/layout.h
++++ b/src/filemanager/layout.h
+@@ -46,6 +46,7 @@ extern gboolean menubar_visible;
+ extern int output_start_y;
+ extern gboolean xterm_title;
+ extern gboolean free_space;
++extern gboolean panel_scrollbars;
+ extern gboolean nice_rotating_dash;
+ 
+ extern int ok_to_refresh;
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index b91f303bb..21afb3bf7 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1257,15 +1257,17 @@ show_dir (const WPanel * panel)
+ {
+     const Widget *w = CONST_WIDGET (panel);
+     gchar *tmp;
++    int lines;
+ 
+     set_colors (panel);
+     tty_draw_box (w->y, w->x, w->lines, w->cols, FALSE);
++    lines = panel_lines (panel);
+ 
+     if (panels_options.show_mini_info)
+     {
+         int y;
+ 
+-        y = panel_lines (panel) + 2;
++        y = lines + 2;
+ 
+         widget_gotoyx (w, y, 0);
+         tty_print_alt_char (ACS_LTEE, FALSE);
+@@ -1273,6 +1275,11 @@ show_dir (const WPanel * panel)
+         tty_print_alt_char (ACS_RTEE, FALSE);
+     }
+ 
++    if (panel_scrollbars) {
++        scrollbar_set_state (panel->scrollbar, w->y + 1, w->x + w->cols - 1, lines + 2, panel->dir.len,
++                             lines * panel->list_cols, panel->top_file);
++    }
++
+     widget_gotoyx (w, 0, 1);
+     tty_print_string (panel_history_prev_item_char);
+ 
+@@ -1313,7 +1320,7 @@ show_dir (const WPanel * panel)
+     {
+         if (panel->marked == 0)
+         {
+-            /* Show size of curret file in the bottom of panel */
++            /* Show size of current file in the bottom of panel */
+             if (S_ISREG (panel->dir.list[panel->selected].st.st_mode))
+             {
+                 char buffer[BUF_SMALL];
+@@ -3649,17 +3656,28 @@ panel_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         mc_event_add (h->event_group, MCEVENT_HISTORY_LOAD, panel_load_history, w, NULL);
+         /* subscribe to "history_save" event */
+         mc_event_add (h->event_group, MCEVENT_HISTORY_SAVE, panel_save_history, w, NULL);
++        panel->scrollbar = scrollbar_new (w->y + 1, w->x + w->cols - 1, w->lines, FALSE);
++        return MSG_HANDLED;
++
++    case MSG_RESIZE:
++        widget_default_callback (w, NULL, MSG_RESIZE, 0, data);
++        if (panel->scrollbar != NULL)
++            WIDGET (panel->scrollbar)->callback (WIDGET (panel->scrollbar), NULL, MSG_RESIZE, 0, NULL);
+         return MSG_HANDLED;
+ 
+     case MSG_DRAW:
+         /* Repaint everything, including frame and separator */
+         widget_erase (w);
+         show_dir (panel);
++        mini_info_separator (panel);
+         panel_print_header (panel);
+         adjust_top_file (panel);
+         paint_dir (panel);
+-        mini_info_separator (panel);
+         display_mini_info (panel);
++
++        if (panel_scrollbars)
++            WIDGET (panel->scrollbar)->callback (WIDGET (panel->scrollbar), NULL, MSG_DRAW, 0, NULL);
++
+         panel->dirty = FALSE;
+         return MSG_HANDLED;
+ 
+@@ -3707,6 +3725,7 @@ panel_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         mc_event_del (h->event_group, MCEVENT_HISTORY_LOAD, panel_load_history, w);
+         /* unsubscribe from "history_save" event */
+         mc_event_del (h->event_group, MCEVENT_HISTORY_SAVE, panel_save_history, w);
++        widget_destroy (WIDGET (panel->scrollbar));
+         panel_destroy (panel);
+         free_my_statfs ();
+         return MSG_HANDLED;
+diff --git a/src/filemanager/panel.h b/src/filemanager/panel.h
+index 039950486..3270b371a 100644
+--- a/src/filemanager/panel.h
++++ b/src/filemanager/panel.h
+@@ -105,6 +105,7 @@ typedef struct
+ 
+     dir_list dir;               /* Directory contents */
+     struct stat dir_stat;       /* Stat of current dir: used by execute () */
++    WScrollbar *scrollbar;      /* scrollbar of panel */
+ 
+     vfs_path_t *cwd_vpath;      /* Current Working Directory */
+     vfs_path_t *lwd_vpath;      /* Last Working Directory */
+diff --git a/src/setup.c b/src/setup.c
+index 7fdabdc01..3b926172f 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -274,6 +274,7 @@ static const struct
+     { "command_prompt", &command_prompt },
+     { "menubar_visible", &menubar_visible },
+     { "free_space", &free_space },
++    { "panel_scrollbars", &panel_scrollbars },
+     { "horizontal_split", &panels_layout.horizontal_split },
+     { "vertical_equal", &panels_layout.vertical_equal },
+     { "horizontal_equal", &panels_layout.horizontal_equal },
+-- 
+2.28.0
+

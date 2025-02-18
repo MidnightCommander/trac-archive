@@ -1,0 +1,25 @@
+From b954b7dedf442d743ae8833414396cf555c1120d Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 14 Dec 2016 13:11:13 +0200
+Subject: [PATCH] fixup! extfs: uzip: make it testable.
+
+---
+ src/vfs/extfs/helpers/uzip.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/uzip.in b/src/vfs/extfs/helpers/uzip.in
+index beace66..22466db 100644
+--- a/src/vfs/extfs/helpers/uzip.in
++++ b/src/vfs/extfs/helpers/uzip.in
+@@ -19,7 +19,7 @@ my $app_zip = "@ZIP@";
+ # Location of the unzip program
+ my $app_unzip = $ENV{MC_TEST_EXTFS_LIST_CMD} || "@UNZIP@";
+ # Set this to 1 if zipinfo (unzip -Z) is to be used (recommended), otherwise 0.
+-my $op_has_zipinfo = $ENV{MC_TEST_EXTFS_HAVE_ZIPINFO} || @HAVE_ZIPINFO@;
++my $op_has_zipinfo = exists($ENV{MC_TEST_EXTFS_HAVE_ZIPINFO}) ? $ENV{MC_TEST_EXTFS_HAVE_ZIPINFO} : @HAVE_ZIPINFO@;
+ 
+ # Command used to list archives (zipinfo mode)
+ my $cmd_list_zi = "$app_unzip -Z -l -T";
+-- 
+2.9.3
+

@@ -1,0 +1,147 @@
+From 95d2e7bb87526157ec703c0d48bd8b311d16697f Mon Sep 17 00:00:00 2001
+From: Joshua Watt <JPEWhacker@gmail.com>
+Date: Tue, 12 Nov 2019 08:54:23 -0600
+Subject: [PATCH 2/3] Remove --configure-args option
+
+The --configure-args option isn't really required because the
+information it was intended to report can be found more readily with `mc
+-F`. Additionally, embedding the configure arguments can lead to
+non-reproducible builds, particularly when cross-compiling as it
+embeds paths into the executable.
+
+Signed-off-by: Joshua Watt <JPEWhacker@gmail.com>
+---
+ configure.ac       |  2 --
+ doc/man/es/mc.1.in |  3 ---
+ doc/man/mc.1.in    |  3 ---
+ doc/man/ru/mc.1.in |  3 ---
+ src/args.c         | 15 ---------------
+ src/textconf.c     |  7 -------
+ src/textconf.h     |  1 -
+ 7 files changed, 34 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 6abe53100..d9028bc9a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -546,8 +546,6 @@ dnl Clarify do we really need GModule
+ AM_CONDITIONAL([HAVE_GMODULE], [test -n "$g_module_supported" && \
+                                 test x"$textmode_x11_support" = x"yes" -o x"$enable_aspell" = x"yes"])
+ 
+-AC_DEFINE_UNQUOTED([MC_CONFIGURE_ARGS], ["$ac_configure_args"], [MC configure arguments])
+-
+ AC_CONFIG_FILES(
+ [
+ src/man2hlp/man2hlp
+diff --git a/doc/man/es/mc.1.in b/doc/man/es/mc.1.in
+index 68644ceb5..28dbec7e1 100644
+--- a/doc/man/es/mc.1.in
++++ b/doc/man/es/mc.1.in
+@@ -48,9 +48,6 @@ Usado para especificar un juego de colores diferentes desde la línea de
+ Colores\&. 
+ .\"Colors"
+ .TP
+-.I \-\-configure\-options
+-Muestra opciones de configuración compiladas.
+-.TP
+ .I \-d, \-\-nomouse
+ Deshabilita el soporte de ratón.
+ .TP
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index cfc34e0ab..2b301503b 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -37,9 +37,6 @@ Colors
+ .\"Colors"
+ section.
+ .TP
+-.I \-\-configure\-options
+-Display configure options.
+-.TP
+ .I \-d, \-\-nomouse
+ Disable mouse support.
+ .TP
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index 547b8fdfb..309c0648c 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -41,9 +41,6 @@ UNIX\-подобных операционных системах.
+ Цвета\&.
+ .\"Colors"
+ .TP
+-.I \-\-configure\-options
+-Выводит опции конфигурирования, с которыми был собран  Midnight Commander.
+-.TP
+ .I \-d, \-\-nomouse
+ Отключает поддержку мыши.
+ .TP
+diff --git a/src/args.c b/src/args.c
+index baef1a1c8..52f478c59 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -95,7 +95,6 @@ static gboolean mc_args__nouse_subshell = FALSE;
+ #endif /* ENABLE_SUBSHELL */
+ static gboolean mc_args__show_datadirs = FALSE;
+ static gboolean mc_args__show_datadirs_extended = FALSE;
+-static gboolean mc_args__show_configure_opts = FALSE;
+ 
+ static GOptionGroup *main_group;
+ 
+@@ -125,14 +124,6 @@ static const GOptionEntry argument_main_table[] = {
+      NULL
+     },
+ 
+-    /* show configure options */
+-    {
+-     "configure-options", '\0', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
+-     &mc_args__show_configure_opts,
+-     N_("Print configure options"),
+-     NULL
+-    },
+-
+     {
+      "printwd", 'P', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING,
+      &mc_args__last_wd_file,
+@@ -758,12 +749,6 @@ mc_args_show_info (void)
+         return FALSE;
+     }
+ 
+-    if (mc_args__show_configure_opts)
+-    {
+-        show_configure_options ();
+-        return FALSE;
+-    }
+-
+     return TRUE;
+ }
+ 
+diff --git a/src/textconf.c b/src/textconf.c
+index 1e0613e58..82e238f82 100644
+--- a/src/textconf.c
++++ b/src/textconf.c
+@@ -232,10 +232,3 @@ show_datadirs_extended (void)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-void
+-show_configure_options (void)
+-{
+-    (void) printf ("%s\n", MC_CONFIGURE_ARGS);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+diff --git a/src/textconf.h b/src/textconf.h
+index 9e039ae14..616dc12e2 100644
+--- a/src/textconf.h
++++ b/src/textconf.h
+@@ -17,7 +17,6 @@
+ 
+ extern void show_version (void);
+ extern void show_datadirs_extended (void);
+-extern void show_configure_options (void);
+ 
+ /*** inline functions ****************************************************************************/
+ #endif /* MC__TEXTCONF_H */
+-- 
+2.23.0
+

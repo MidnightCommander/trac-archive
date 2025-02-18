@@ -1,0 +1,103 @@
+From 4581198589f691ce1f8514bd9966a2e7f4650b38 Mon Sep 17 00:00:00 2001
+From: Rainer Tammer <tammer@tammer.net>
+Date: Wed, 13 Jan 2010 17:09:04 +0100
+Subject: [PATCH] MC 4.7 patches for AIX
+
+---
+ m4.include/mc-cflags.m4 |    9 ++++++++-
+ src/tty/tty-ncurses.c   |    3 +++
+ src/unixcompat.h        |    4 ++++
+ vfs/direntry.c          |    3 ++-
+ vfs/vfs.c               |    4 ++++
+ 5 files changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/m4.include/mc-cflags.m4 b/m4.include/mc-cflags.m4
+index d7d4c0b..1918910 100644
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -9,7 +9,7 @@ dnl @copyright Free Software Foundation, Inc.
+ 
+ AC_DEFUN([MC_CHECK_ONE_CFLAG],[
+ 
+-    AC_MSG_CHECKING([if gcc accepts $1])
++  AC_MSG_CHECKING([if gcc accepts $1])
+ 
+   safe_CFLAGS=$CFLAGS
+   CFLAGS="$1"
+@@ -37,8 +37,15 @@ AC_DEFUN([MC_CHECK_CFLAGS],[
+     mc_configured_cflags=""
+ 
+ dnl Sorted -f options:
++dnl AC_MSG_CHECKING([CC is $CC])
++case "$CC" in
++  gcc*)
+     MC_CHECK_ONE_CFLAG([-fdiagnostics-show-option])
+ dnl    MC_CHECK_ONE_CFLAG([-fno-stack-protector])
++    ;;
++  *)
++    ;;
++esac
+ 
+ dnl Sorted -W options:
+     MC_CHECK_ONE_CFLAG([-Wcomment])
+diff --git a/src/tty/tty-ncurses.c b/src/tty/tty-ncurses.c
+index 76b0f5f..65e410c 100644
+--- a/src/tty/tty-ncurses.c
++++ b/src/tty/tty-ncurses.c
+@@ -58,6 +58,9 @@
+ /*** global variables **************************************************/
+ 
+ /*** file scope macro definitions **************************************/
++#if defined(_AIX) && !defined(CTRL)
++#   define CTRL(x) ((x) & 0x1f)
++#endif
+ 
+ /*** global variables **************************************************/
+ 
+diff --git a/src/unixcompat.h b/src/unixcompat.h
+index e71332f..9ad6e31 100644
+--- a/src/unixcompat.h
++++ b/src/unixcompat.h
+@@ -20,6 +20,10 @@
+ # include <sys/sysmacros.h>	/* AIX */
+ #endif
+ 
++#if defined(_AIX)
++# include <time.h>		/* AIX for tm */
++#endif
++
+ #ifndef major
+ # warning major() is undefined. Device numbers will not be shown correctly.
+ # define major(devnum) (((devnum) >> 8) & 0xff)
+diff --git a/vfs/direntry.c b/vfs/direntry.c
+index 9a41aa9..bcd4ccd 100644
+--- a/vfs/direntry.c
++++ b/vfs/direntry.c
+@@ -31,7 +31,8 @@
+ #include <config.h>
+ 
+ #include <errno.h>
+-#include <sys/fcntl.h>
++#include <fcntl.h>		/* include fcntl.h -> sys/fcntl.h only       */
++				/* includes fcntl.h see IEEE Std 1003.1-2008 */
+ #include <time.h>
+ #include <sys/time.h>		/* gettimeofday() */
+ 
+diff --git a/vfs/vfs.c b/vfs/vfs.c
+index 6ca2c75..d16f45b 100644
+--- a/vfs/vfs.c
++++ b/vfs/vfs.c
+@@ -67,6 +67,10 @@
+ #include "smbfs.h"
+ #include "local.h"
+ 
++#if defined(_AIX) && !defined(NAME_MAX)
++#  define NAME_MAX FILENAME_MAX
++#endif
++
+ /** They keep track of the current directory */
+ static struct vfs_class *current_vfs;
+ static char *current_dir;
+-- 
+1.6.0.5
+

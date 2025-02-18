@@ -1,0 +1,226 @@
+From bb7cb87f251fd0bc6dc27a3539383a0b056b08d0 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sun, 6 Dec 2009 01:52:37 +0000
+Subject: [PATCH]  unifying g_strconcat-call
+
+---
+ edit/editcmd.c |    4 ++--
+ src/ext.c      |    2 +-
+ src/file.c     |    2 +-
+ src/hotlist.c  |    6 ++----
+ src/screen.c   |    6 +++---
+ src/user.c     |    2 +-
+ src/widget.c   |    2 +-
+ vfs/direntry.c |    5 +++--
+ vfs/fish.c     |    3 +--
+ vfs/ftpfs.c    |    8 ++++----
+ vfs/smbfs.c    |    3 +--
+ 11 files changed, 20 insertions(+), 23 deletions(-)
+
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 7328ac8..5531338 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -366,7 +366,7 @@ edit_save_file (WEdit *edit, const char *filename)
+ 
+     if (this_save_mode == EDIT_DO_BACKUP) {
+ 	assert (option_backup_ext != NULL);
+-	tmp = g_strconcat (real_filename, option_backup_ext,(char *) NULL);
++	tmp = g_strconcat (real_filename, option_backup_ext, (char *) NULL);
+ 	if (mc_rename (real_filename, tmp) == -1){
+ 	    g_free(tmp);
+ 	    goto error_save;
+@@ -836,7 +836,7 @@ int edit_save_confirm_cmd (WEdit * edit)
+         return 0;
+ 
+     if (edit_confirm_save) {
+-	f = g_strconcat (_(" Confirm save file? : "), edit->filename, " ", NULL);
++	f = g_strconcat (_(" Confirm save file? : "), edit->filename, " ", (char *) NULL);
+ 	if (edit_query_dialog2 (_(" Save file "), f, _("&Save"), _("&Cancel"))){
+ 	    g_free(f);
+ 	    return 0;
+diff --git a/src/ext.c b/src/ext.c
+index 779e5a2..83a0ae1 100644
+--- a/src/ext.c
++++ b/src/ext.c
+@@ -310,7 +310,7 @@ get_file_type_local (const char *filename, char *buf, int buflen)
+     int read_bytes = 0;
+ 
+     char *tmp = name_quote (filename, 0);
+-    char *command = g_strconcat (FILE_CMD, tmp, " 2>/dev/null", (char *) 0);
++    char *command = g_strconcat (FILE_CMD, tmp, " 2>/dev/null", (char *) NULL);
+     FILE *f = popen (command, "r");
+ 
+     g_free (tmp);
+diff --git a/src/file.c b/src/file.c
+index 4d7e3fb..cc9db77 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -1959,7 +1959,7 @@ panel_operate (void *source_panel, FileOperation operation,
+ 
+ 	v = do_background (ctx,
+ 			   g_strconcat (op_names[operation], ": ",
+-					panel->cwd, NULL));
++					panel->cwd, (char *) NULL));
+ 	if (v == -1) {
+ 	    message (D_ERROR, MSG_ERROR,
+ 		     _(" Sorry, I could not put the job in background "));
+diff --git a/src/hotlist.c b/src/hotlist.c
+index af58c4f..5dc5fd2 100644
+--- a/src/hotlist.c
++++ b/src/hotlist.c
+@@ -1089,8 +1089,7 @@ static void remove_from_hotlist (struct hotlist *entry)
+ 
+ 	title = g_strconcat (_(" Remove: "),
+ 				   str_trunc (entry->label, 30),
+-				   " ",
+-				   NULL);
++				   " ", (char *) NULL);
+ 
+ 	if (safe_delete)
+ 	    query_set_sel (1);
+@@ -1111,8 +1110,7 @@ static void remove_from_hotlist (struct hotlist *entry)
+ 
+ 	    header = g_strconcat (_(" Remove: "),
+ 				   str_trunc (entry->label, 30),
+-				   " ",
+-				   NULL);
++				   " ", (char *) NULL);
+ 	    result = query_dialog (header, _("\n Group not empty.\n Remove it?"),
+ 				   D_ERROR, 2,
+ 				   _("&Yes"), _("&No"));
+diff --git a/src/screen.c b/src/screen.c
+index a5ad414..99dab51 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -1004,14 +1004,14 @@ static char
+     if (semi != NULL) {
+         slash = strchr (semi, PATH_SEP);
+         if (slash != NULL) {
+-            result = g_strconcat (path, "/#enc:", encoding, NULL);
++            result = g_strconcat (path, "/#enc:", encoding, (char *) NULL);
+         } else {
+             *semi = 0;
+-            result = g_strconcat (path, "/#enc:", encoding, NULL);
++            result = g_strconcat (path, "/#enc:", encoding, (char *) NULL);
+             *semi = '#';
+         }
+     } else {
+-        result = g_strconcat (path, "/#enc:", encoding, NULL);
++        result = g_strconcat (path, "/#enc:", encoding, (char *) NULL);
+     }
+ 
+     return result;
+diff --git a/src/user.c b/src/user.c
+index 10e1dbc..b7d6a16 100644
+--- a/src/user.c
++++ b/src/user.c
+@@ -702,7 +702,7 @@ execute_menu_command (WEdit *edit_widget, const char *commands)
+     } else {
+ 	/* execute the command indirectly to allow execution even
+ 	 * on no-exec filesystems. */
+-	char *cmd = g_strconcat("/bin/sh ", file_name, (char *)NULL);
++	char *cmd = g_strconcat("/bin/sh ", file_name, (char *) NULL);
+ 	shell_execute (cmd, EXECUTE_HIDE);
+ 	g_free(cmd);
+     }
+diff --git a/src/widget.c b/src/widget.c
+index df843c6..1590d2b 100644
+--- a/src/widget.c
++++ b/src/widget.c
+@@ -342,7 +342,7 @@ button_get_text (const WButton *b)
+ {
+     if (b->text.hotkey != NULL)
+         return g_strconcat (b->text.start, "&", b->text.hotkey,
+-                            b->text.end, NULL);
++                            b->text.end, (char *) NULL);
+     else
+         return g_strdup (b->text.start);
+ }
+diff --git a/vfs/direntry.c b/vfs/direntry.c
+index 80b0b12..22b4a2c 100644
+--- a/vfs/direntry.c
++++ b/vfs/direntry.c
+@@ -237,7 +237,7 @@ vfs_s_resolve_symlink (struct vfs_class *me, struct vfs_s_entry *entry,
+     if (*linkname != PATH_SEP) {
+ 	char *fullpath = vfs_s_fullpath (me, entry->dir);
+ 	if (fullpath) {
+-	    fullname = g_strconcat (fullpath, "/", linkname, NULL);
++	    fullname = g_strconcat (fullpath, "/", linkname, (char *) NULL);
+ 	    linkname = fullname;
+ 	    g_free (fullpath);
+ 	}
+@@ -1017,7 +1017,8 @@ vfs_s_fill_names (struct vfs_class *me, fill_names_f func)
+     char *name;
+     
+     while (a){
+-	name = g_strconcat ( a->name, "#", me->prefix, "/", /* a->current_dir->name, */ NULL);
++	name = g_strconcat ( a->name, "#", me->prefix, "/",
++                            /* a->current_dir->name, */ (char *) NULL);
+ 	(*func)(name);
+ 	g_free (name);
+ 	a = a->next;
+diff --git a/vfs/fish.c b/vfs/fish.c
+index c256cd1..2af41b3 100644
+--- a/vfs/fish.c
++++ b/vfs/fish.c
+@@ -492,8 +492,7 @@ fish_dir_load(struct vfs_class *me, struct vfs_s_inode *dir, char *remote_path)
+ 	"else\n"
+ 		  "echo '### 500'\n"
+ 	"fi\n"
+-	,
+-	NULL
++	, (char *) NULL
+     );
+ 
+     fish_command (me, super, NONE, shell_commands,
+diff --git a/vfs/ftpfs.c b/vfs/ftpfs.c
+index b1e2e5c..7de7d6e 100644
+--- a/vfs/ftpfs.c
++++ b/vfs/ftpfs.c
+@@ -473,8 +473,8 @@ ftpfs_login_server (struct vfs_class *me, struct vfs_s_super *super,
+     } else {			/* ask user */
+ 	char *p;
+ 
+-	p = g_strconcat (_(" FTP: Password required for "), SUP.user, " ",
+-			 NULL);
++	p = g_strconcat (_(" FTP: Password required for "), 
++                        SUP.user, " ", (char *) NULL);
+ 	op = vfs_get_password (p);
+ 	g_free (p);
+ 	if (op == NULL)
+@@ -494,7 +494,7 @@ ftpfs_login_server (struct vfs_class *me, struct vfs_s_super *super,
+ 	name =
+ 	    g_strconcat (SUP.user, "@",
+ 			 SUP.host[0] == '!' ? SUP.host + 1 : SUP.host,
+-			 NULL);
++                         (char *) NULL);
+     } else
+ 	name = g_strdup (SUP.user);
+ 
+@@ -888,7 +888,7 @@ ftpfs_get_current_directory (struct vfs_class *me, struct vfs_s_super *super)
+ 			    /* If the remote server is an Amiga a leading slash
+ 			       might be missing. MC needs it because it is used
+ 			       as separator between hostname and path internally. */
+-			    return g_strconcat( "/", bufp, NULL);
++			    return g_strconcat( "/", bufp, (char *) NULL);
+ 			}
+ 		    } else {
+ 			ftpfs_errno = EIO;
+diff --git a/vfs/smbfs.c b/vfs/smbfs.c
+index a64405d..2d3b0c4 100644
+--- a/vfs/smbfs.c
++++ b/vfs/smbfs.c
+@@ -368,8 +368,7 @@ smbfs_fill_names (struct vfs_class *me, fill_names_f func)
+ 	    path = g_strconcat (URL_HEADER,
+ 		smbfs_connections[i].user, "@",
+ 		smbfs_connections[i].host,
+-		"/", smbfs_connections[i].service,
+-		NULL);
++		"/", smbfs_connections[i].service, (char *) NULL);
+ 	    (*func)(path);
+ 	    g_free (path);
+ 	}
+-- 
+1.6.4
+

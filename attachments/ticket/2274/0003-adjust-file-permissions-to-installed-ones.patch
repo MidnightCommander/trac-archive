@@ -1,0 +1,41 @@
+From eadd4fa78ced223ff8a50c99318f9025a5448de2 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Sat, 18 Aug 2012 13:35:24 +0200
+Subject: [PATCH 03/11] adjust file permissions to installed ones
+
+---
+ misc/edit.indent.rc   | 0
+ misc/ext.d/archive.sh | 0
+ misc/ext.d/image.sh   | 0
+ misc/ext.d/package.sh | 0
+ misc/ext.d/sound.sh   | 0
+ misc/ext.d/video.sh   | 0
+ 6 files changed, 0 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 misc/edit.indent.rc
+ mode change 100644 => 100755 misc/ext.d/archive.sh
+ mode change 100644 => 100755 misc/ext.d/image.sh
+ mode change 100644 => 100755 misc/ext.d/package.sh
+ mode change 100644 => 100755 misc/ext.d/sound.sh
+ mode change 100644 => 100755 misc/ext.d/video.sh
+
+diff --git a/misc/edit.indent.rc b/misc/edit.indent.rc
+old mode 100644
+new mode 100755
+diff --git a/misc/ext.d/archive.sh b/misc/ext.d/archive.sh
+old mode 100644
+new mode 100755
+diff --git a/misc/ext.d/image.sh b/misc/ext.d/image.sh
+old mode 100644
+new mode 100755
+diff --git a/misc/ext.d/package.sh b/misc/ext.d/package.sh
+old mode 100644
+new mode 100755
+diff --git a/misc/ext.d/sound.sh b/misc/ext.d/sound.sh
+old mode 100644
+new mode 100755
+diff --git a/misc/ext.d/video.sh b/misc/ext.d/video.sh
+old mode 100644
+new mode 100755
+-- 
+1.8.4.3
+

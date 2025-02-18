@@ -1,0 +1,155 @@
+diff -ur mc-4.8.10.orig/doc/man/mc.1.in mc-4.8.10/doc/man/mc.1.in
+--- mc-4.8.10.orig/doc/man/mc.1.in	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/doc/man/mc.1.in	2013-09-01 15:50:17.155344256 +0200
+@@ -3594,7 +3594,7 @@
+ base_color=normal=white,default:marked=magenta,default
+ .fi
+ .PP
+-Attributes can be any of bold, underline, reverse and blink, appended by a
++Attributes can be any of bold, italic, underline, reverse and blink, appended by a
+ plus sign if more than one are desired.  The special word "none" means no
+ attributes, without attempting to fall back to base_color.  Example:
+ .PP
+diff -ur mc-4.8.10.orig/doc/man/mcedit.1.in mc-4.8.10/doc/man/mcedit.1.in
+--- mc-4.8.10.orig/doc/man/mcedit.1.in	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/doc/man/mcedit.1.in	2013-09-01 15:50:31.395343657 +0200
+@@ -439,7 +439,7 @@
+ .B cooledit
+ colors.
+ .PP
+-Attributes can be any of bold, underline, reverse and blink, appended by a
++Attributes can be any of bold, italic, underline, reverse and blink, appended by a
+ plus sign if more than one are desired.
+ .PP
+ Comments may be put on a separate line starting with the hash sign (#).
+diff -ur mc-4.8.10.orig/doc/man/ru/mc.1.in mc-4.8.10/doc/man/ru/mc.1.in
+--- mc-4.8.10.orig/doc/man/ru/mc.1.in	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/doc/man/ru/mc.1.in	2013-09-01 15:51:13.663341879 +0200
+@@ -3985,7 +3985,7 @@
+ base_color=normal=white,default:marked=magenta,default
+ .fi
+ .PP
+-Атрибуты обозначаются словами "bold", "underline", "reverse" и "blink".
++Атрибуты обозначаются словами "bold", "italic", "underline", "reverse" и "blink".
+ Чтобы использовать несколько атрибутов, их надо перечислить через символ "+".
+ The special word "none" menas no attributes, without attempting to fall back
+ to base_color. Пример:
+diff -ur mc-4.8.10.orig/lib/tty/color-internal.c mc-4.8.10/lib/tty/color-internal.c
+--- mc-4.8.10.orig/lib/tty/color-internal.c	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/lib/tty/color-internal.c	2013-09-01 13:39:14.095674932 +0200
+@@ -84,6 +84,7 @@
+ 
+ mc_tty_color_table_t const attributes_table[] = {
+     {"bold", A_BOLD},
++    {"italic", A_ITALIC},
+     {"underline", A_UNDERLINE},
+     {"reverse", A_REVERSE},
+     {"blink", A_BLINK},
+diff -ur mc-4.8.10.orig/lib/tty/color-slang.h mc-4.8.10/lib/tty/color-slang.h
+--- mc-4.8.10.orig/lib/tty/color-slang.h	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/lib/tty/color-slang.h	2013-09-01 13:33:47.763688656 +0200
+@@ -11,12 +11,15 @@
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+ /* When using Slang with color, we have all the indexes free but
+- * those defined here (A_BOLD, A_UNDERLINE, A_REVERSE, A_BLINK)
++ * those defined here (A_BOLD, A_ITALIC, A_UNDERLINE, A_REVERSE, A_BLINK)
+  */
+ 
+ #ifndef A_BOLD
+ #define A_BOLD SLTT_BOLD_MASK
+ #endif /* A_BOLD */
++#ifndef A_ITALIC
++#define A_ITALIC SLTT_ITALIC_MASK
++#endif /* A_ITALIC */
+ #ifndef A_UNDERLINE
+ #define A_UNDERLINE SLTT_ULINE_MASK
+ #endif /* A_UNDERLINE */
+diff -ur mc-4.8.10.orig/misc/skins/sand256.ini mc-4.8.10/misc/skins/sand256.ini
+--- mc-4.8.10.orig/misc/skins/sand256.ini	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/misc/skins/sand256.ini	2013-09-01 15:41:14.000000000 +0200
+@@ -47,7 +47,7 @@
+ #
+ # Following the foreground and background colors, the third (optional) value
+ # can specify special attributes to enable. Valid values are bold, underline,
+-# reverse and blink. Append more with a plus sign, e.g. "underline+bold".
++# italic, reverse and blink. Append more with a plus sign, e.g. "bold+italic".
+ # Leaving the field empty makes it fall back to the attributes of _default_.
+ # Use any other word (e.g. "none") to prevent fallback and disable all flags.
+ 
+@@ -90,21 +90,21 @@
+     disabled=gray;rgb553
+     reverse=;rgb452
+     commandlinemark=white;gray
+-    header=red
++    header=red;;italic
+ 
+ [dialog]
+     _default_=black;rgb553
+     dfocus=;rgb452
+     dhotnormal=;;underline
+     dhotfocus=;rgb452;underline
+-    dtitle=;;underline
++    dtitle=;;italic+underline
+ 
+ [error]
+     _default_=rgb554;rgb320;bold
+     errdfocus=black;rgb452;bold
+     errdhotnormal=;;bold+underline
+     errdhotfocus=black;rgb452;bold+underline 
+-    errdtitle=;;bold+underline 
++    errdtitle=;;bold+italic+underline
+ 
+ [filehighlight]
+     directory=
+@@ -125,28 +125,28 @@
+     database=rgb421
+ 
+ [menu]
+-    _default_=black;rgb452
+-    menuhot=;;underline
++    _default_=black;rgb452;italic
++    menuhot=;;italic+underline
+     menusel=;rgb551
+-    menuhotsel=;rgb551;underline
++    menuhotsel=;rgb551;italic+underline
+     menuinactive=
+ 
+ [popupmenu]
+-    _default_=black;rgb553 
++    _default_=black;rgb553
+     menusel=;rgb452;underline
+-    menutitle=;;underline
++    menutitle=;;underline+italic
+ 
+ [buttonbar]
+-    hotkey=black;rgb554
+-    button=black;rgb452
++    hotkey=black;rgb554;italic
++    button=black;rgb452;italic
+ 
+ [statusbar]
+-    _default_=black;rgb452
++    _default_=black;rgb452;italic
+ 
+ [help]
+     _default_=black;rgb553
+-    helpitalic=green
+-    helpbold=red
++    helpitalic=green;;italic
++    helpbold=red;;bold
+     helplink=blue;;underline
+     helpslink=blue;;reverse
+ 
+diff -ur mc-4.8.10.orig/src/args.c mc-4.8.10/src/args.c
+--- mc-4.8.10.orig/src/args.c	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/src/args.c	2013-09-01 15:48:35.839348516 +0200
+@@ -376,7 +376,7 @@
+                                                     "Extended colors, when 256 colors are available:\n"
+                                                     "   color16 to color255, or rgb000 to rgb555 and gray0 to gray23\n\n"
+                                                     "Attributes:\n"
+-                                                    "   bold, underline, reverse, blink; append more with '+'\n")
++                                                    "   bold, italic, underline, reverse, blink; append more with '+'\n")
+                                                     );
+ /* *INDENT-ON* */
+ 

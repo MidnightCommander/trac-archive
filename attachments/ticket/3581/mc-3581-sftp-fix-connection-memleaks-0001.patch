@@ -1,0 +1,72 @@
+From e45748900803181bd0e95226ddabf29a12c349f5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 17:30:03 +0000
+Subject: [PATCH 01/05] sftp: fix connection memleaks
+
+when sftpfs_open_connection failed free elements at sftpfs_close_connection function
+this was not happen when mcerror was set
+
+found by Clang/AddressSanitizer
+
+Direct leak of 54520 byte(s) in 1 object(s) allocated from:
+    #0 0x4c7310 in __interceptor_malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c7310)
+    #1 0x7fceea957200 in libssh2_session_init_ex (/usr/lib64/libssh2.so.1+0x15200)
+    #2 0x620c2e in sftpfs_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/connection.c:372:27
+    #3 0x620c2e in sftpfs_cb_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/vfs_subclass.c:123
+    #4 0x7fceeb19ff59 in vfs_s_get_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:1139:18
+    #5 0x7fceeb1a513d in vfs_s_inode_from_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:380:9
+    #6 0x7fceeb1a3727 in vfs_s_opendir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:409:11
+    #7 0x7fceeb1a3c88 in vfs_s_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:476:12
+    #8 0x7fceeb1a87c3 in mc_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/interface.c:687:14
+    #9 0x535b44 in _do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3250:9
+    #10 0x5f37e1 in do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4627:9
+    #11 0x5f37e1 in nice_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:460
+    #12 0x529961 in fishlink_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:1430:5
+    #13 0x529961 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1208
+    #14 0x7fceeb1d909d in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #15 0x7fceeb1d909d in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341
+    #16 0x7fceeb1d830b in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #17 0x7fceeb1d555f in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #18 0x7fceeb1bbfec in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #19 0x7fceeb1bbfec in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450
+    #20 0x7fceeb1bbfec in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509
+    #21 0x7fceeb1bbfec in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1236
+    #22 0x7fceeb1bd9e7 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #23 0x7fceeb1bc585 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #24 0x4fc7b8 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:954:5
+    #25 0x4fc7b8 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757
+    #26 0x4fc7b8 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:401
+    #27 0x7fcee9722953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #28 0x4270e8 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4270e8)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/connection.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index fceb961..5ccd397 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -368,6 +368,11 @@ sftpfs_open_connection (struct vfs_s_super *super, GError ** mcerror)
+ 
+     super_data = (sftpfs_super_data_t *) super->data;
+ 
++    super_data->session = NULL;
++    super_data->socket_handle = -1;
++    super_data->agent = NULL;
++    super_data->sftp_session = NULL;
++
+     /* Create a session instance */
+     super_data->session = libssh2_session_init ();
+     if (super_data->session == NULL)
+@@ -430,7 +435,8 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+ {
+     sftpfs_super_data_t *super_data;
+ 
+-    mc_return_if_error (mcerror);
++    /* no mc_return_*_if_error() here because of abort open_connection handling too */
++    (void) mcerror;
+ 
+     super_data = (sftpfs_super_data_t *) super->data;
+     if (super_data == NULL)

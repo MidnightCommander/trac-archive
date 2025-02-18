@@ -1,0 +1,43 @@
+--- /usr/lib/mc/extfs.d/rpm	2012-01-06 23:30:42.000000000 +0200
++++ rpm	2012-05-22 19:51:00.000000000 +0300
+@@ -100,9 +100,9 @@
+ "|URL=%{URL}"\
+ "|EPOCH=%{EPOCH}"\
+ "|LICENSE=%{LICENSE}"\
+-"|REQUIRENAME=%{REQUIRENAME}"\
++"|REQUIRES=%{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}"\
+ "|OBSOLETES=%{OBSOLETES}"\
+-"|PROVIDES=%{PROVIDES}"\
++"|PROVIDES=%{PROVIDES} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}"\
+ ${tag_CONFLICTS}\
+ "|PACKAGER=%{PACKAGER}" \
+     "`echo ${rpm_filename}| $SED "${SEDCMD}"`"
+@@ -152,7 +152,7 @@
+     echo "$FILEPREF 0 $DATE INFO/URL"
+     echo "$FILEPREF 0 $DATE INFO/EPOCH"
+     echo "$FILEPREF 0 $DATE INFO/LICENSE"
+-    echo "$FILEPREF 0 $DATE INFO/REQUIRENAME"
++    echo "$FILEPREF 0 $DATE INFO/REQUIRES"
+     echo "$FILEPREF 0 $DATE INFO/OBSOLETES"
+     echo "$FILEPREF 0 $DATE INFO/PROVIDES"
+     echo "$FILEPREF 0 $DATE INFO/CONFLICTS"
+@@ -181,7 +181,7 @@
+     mcrpmfs_printOneMetaInfo "INFO/LICENSE" "LICENSE"
+ 
+ 
+-    mcrpmfs_printOneMetaInfo "INFO/REQUIRENAME" "REQUIRENAME"
++    mcrpmfs_printOneMetaInfo "INFO/REQUIRES" "REQUIRES"
+     mcrpmfs_printOneMetaInfo "INFO/OBSOLETES" "OBSOLETES"
+     mcrpmfs_printOneMetaInfo "INFO/PROVIDES" "PROVIDES"
+     mcrpmfs_printOneMetaInfo "INFO/CONFLICTS" "CONFLICTS"
+@@ -271,8 +271,8 @@
+ 	INFO/EPOCH)		mcrpmfs_getOneTag "EPOCH" >"$2"; exit 0;;
+ 	INFO/LICENSE)		mcrpmfs_getOneTag "LICENSE" >"$2"; exit 0;;
+ 	INFO/RPMVERSION)	mcrpmfs_getRawOneTag "%{RPMVERSION}\n" >"$2"; exit 0;;
+-	INFO/REQUIRENAME)	mcrpmfs_getRawOneTag "[%{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]" >"$2"; exit 0;;
+-	INFO/PROVIDES)		mcrpmfs_getRawOneTag "[%{PROVIDES}\n]" >"$2"; exit 0;;
++	INFO/REQUIRES)		mcrpmfs_getRawOneTag "[%{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]" >"$2"; exit 0;;
++	INFO/PROVIDES)		mcrpmfs_getRawOneTag "[%{PROVIDES} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}\n]" >"$2"; exit 0;;
+ 	INFO/SCRIPTS/PREIN)	mcrpmfs_getRawOneTag "%{RPMTAG_PREIN}\n" >"$2"; exit 0;;
+ 	INFO/SCRIPTS/POSTIN)	mcrpmfs_getRawOneTag "%{RPMTAG_POSTIN}\n" >"$2"; exit 0;;
+ 	INFO/SCRIPTS/PREUN)	mcrpmfs_getRawOneTag "%{RPMTAG_PREUN}\n" >"$2"; exit 0;;

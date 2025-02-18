@@ -1,0 +1,16 @@
+diff --git a/lib/vfs/gc.c b/lib/vfs/gc.c
+index aff52f4..72d9308 100644
+--- a/lib/vfs/gc.c
++++ b/lib/vfs/gc.c
+@@ -264,7 +264,10 @@ vfs_expire (gboolean now)
+ 
+     for (stamp = stamps; stamp != NULL;)
+     {
+-        if (now || (timeoutcmp (&stamp->time, &lc_time)))
++        if (now
++            || (timeoutcmp (&stamp->time, &lc_time) != 0
++                && (stamp->v->nothingisopen == NULL
++                    || stamp->v->nothingisopen (stamp->id) != 0)))
+         {
+             st = stamp->next;
+             if (stamp->v->free)

@@ -1,0 +1,17 @@
+$ LC_MESSAGES=C mc -V
+GNU Midnight Commander 4.8.32
+Built with GLib 2.74.6
+Built with S-Lang 2.3.3 with terminfo database
+Built with libssh2 1.10.0
+With builtin editor
+With subshell support as default
+With support for background operations
+With mouse support on xterm and Linux console
+With support for X11 events
+With internationalization support
+With multiple codepages support
+With ext2fs attributes support
+Virtual File Systems:
+ cpiofs, tarfs, sfs, extfs, ftpfs, sftpfs, shell
+Data types:
+ char: 8; int: 32; long: 64; void *: 64; size_t: 64; off_t: 64;

@@ -1,0 +1,35 @@
+From 54dc86f4f09f772a14f4861f38d5bae26bf5c28d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 21 Dec 2020 18:11:39 +0000
+Subject: [PATCH] (treestore.c) fix copy-into-fixed-size-buffer warning
+
+Additional ignore common value greater than oldname maxsize
+
+found by Coverity
+coverity id #32616
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/treestore.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/treestore.c b/src/filemanager/treestore.c
+index 08354b217..630df628f 100644
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -264,12 +264,13 @@ tree_store_load_from (const char *name)
+ 
+                     common = atoi (s);
+                     different = strtok (NULL, "");
+-                    if (different != NULL)
++                    if (different != NULL && common < MC_MAXPATHLEN)
+                     {
+                         vfs_path_t *vpath;
+ 
+                         vpath = vfs_path_from_str (oldname);
+-                        strcpy (oldname + common, different);
++                        strncpy (oldname + common, different, MC_MAXPATHLEN - (size_t) common);
++                        oldname[MC_MAXPATHLEN - 1] = '\0';
+                         if (vfs_file_is_local (vpath))
+                         {
+                             vfs_path_t *tmp_vpath;

@@ -1,0 +1,11 @@
+--- mc-4.7.3/src/cmd.c	2010-07-09 15:04:49.697778498 +0400
++++ mc-4.7.3/src/cmd.c	2010-07-09 15:05:25.637775285 +0400
+@@ -324,7 +324,7 @@
+     command =
+         input_dialog (_("Filtered view"),
+                       _("Filter command and arguments:"),
+-                      MC_HISTORY_FM_FILTERED_VIEW, selection (current_panel)->fname);
++                      MC_HISTORY_FM_FILTERED_VIEW, cmdline->buffer);
+ 
+     if (command != NULL)
+     {

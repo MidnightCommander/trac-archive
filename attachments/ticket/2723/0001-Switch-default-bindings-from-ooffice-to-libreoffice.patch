@@ -1,0 +1,47 @@
+From 555edcd0fffbcba836030f946b234620732c19b7 Mon Sep 17 00:00:00 2001
+From: Jakob Gruber <jakob.gruber@gmail.com>
+Date: Sat, 28 Jan 2012 12:40:56 +0100
+Subject: [PATCH] Switch default bindings from ooffice to libreoffice
+
+LibreOffice has replaced OpenOffice.org in most distributions by now,
+update bindings accordingly.
+
+Signed-off-by: Jakob Gruber <jakob.gruber@gmail.com>
+---
+ misc/mc.ext.in |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 50bcbda..ce6f40f 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -514,11 +514,11 @@ regex/\.([hH][tT][mM][lL]?)$
+ 
+ # StarOffice 5.2
+ shell/.sdw
+-	Open=(ooffice %f &)
++	Open=(libreoffice %f &)
+ 
+-# StarOffice 6 and OpenOffice.org formats
++# StarOffice 6 and LibreOffice formats
+ regex/\.(odt|ott|sxw|stw|ods|ots|sxc|stc|odp|otp|sxi|sti|odg|otg|sxd|std|odb|odf|sxm|odm|sxg)$
+-	Open=(ooffice %f &)
++	Open=(libreoffice %f &)
+ 	View=%view{ascii} odt2txt %f
+ 
+ # AbiWord
+@@ -545,9 +545,9 @@ type/^Microsoft\ Excel
+ 	Open=(gnumeric %f >/dev/null 2>&1 &)
+ 	View=%view{ascii} xls2csv %f || strings %f
+ 
+-# Use OpenOffice.org to open any MS Office documents
++# Use LibreOffice to open any MS Office documents
+ type/^Microsoft\ Office\ Document
+-	Open=(ooffice %f &)
++	Open=(libreoffice %f &)
+ 
+ # Framemaker
+ type/^FrameMaker
+-- 
+1.7.8.4
+

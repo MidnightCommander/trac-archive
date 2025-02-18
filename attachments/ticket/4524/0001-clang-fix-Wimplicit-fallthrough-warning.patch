@@ -1,0 +1,33 @@
+From 51cd9cb8996fd5fef4d760f998a311214040382d Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 30 May 2024 21:13:10 +0200
+Subject: [PATCH] clang: fix `-Wimplicit-fallthrough` warning
+
+../../../lib/search/normal.c:75:9: warning: unannotated fall-through between switch labels [-Wimplicit-fallthrough]
+        default:
+        ^
+../../../lib/search/normal.c:75:9: note: insert 'break;' to avoid fall-through
+        default:
+        ^
+        break;
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ lib/search/normal.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/search/normal.c b/lib/search/normal.c
+index 9d86b44ad..c0a54add4 100644
+--- a/lib/search/normal.c
++++ b/lib/search/normal.c
+@@ -72,6 +72,7 @@ mc_search__normal_translate_to_regex (GString * str)
+         case '|':
+             g_string_insert_c (str, loop, '\\');
+             loop++;
++            MC_FALLTHROUGH;
+         default:
+             break;
+         }
+-- 
+2.39.3 (Apple Git-146)
+

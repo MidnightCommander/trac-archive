@@ -1,0 +1,485 @@
+From bb8fc03985d0ea59520da968d4b2cbbb923d741e Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 5 Dec 2009 23:36:18 +0000
+Subject: [PATCH]  fixing some memory alloc-calls
+
+---
+ edit/syntax.c                |    2 +-
+ src/complete.c               |    2 +-
+ src/dir.c                    |    6 +++---
+ src/man2hlp.c                |    6 +++---
+ src/mountlist.c              |   30 +++++++++++++++---------------
+ src/user.c                   |    4 ++--
+ src/viewer/nroff.c           |    2 +-
+ vfs/cpio.c                   |    6 +++---
+ vfs/mcfsutil.c               |    3 +++
+ vfs/mcserv.c                 |    2 +-
+ vfs/samba/lib/charset.c      |    2 +-
+ vfs/samba/lib/interface.c    |   10 ++++++----
+ vfs/samba/lib/util.c         |    6 +++---
+ vfs/samba/lib/util_str.c     |    7 ++++---
+ vfs/samba/libsmb/clientgen.c |    6 +++---
+ vfs/samba/param/params.c     |    2 +-
+ vfs/vfs.c                    |    2 +-
+ 17 files changed, 52 insertions(+), 46 deletions(-)
+
+diff --git a/edit/syntax.c b/edit/syntax.c
+index 9055d6a..f28eef9 100644
+--- a/edit/syntax.c
++++ b/edit/syntax.c
+@@ -1089,7 +1089,7 @@ edit_read_syntax_file (WEdit * edit, char ***pnames, const char *syntax_file,
+ /* 1: just collecting a list of names of rule sets */
+ /* Reallocate the list if required */
+ 	    if (count % NENTRIES == 0) {
+-		if ((tmpnames = (char**) g_realloc (*pnames, (count + NENTRIES
++		if ((tmpnames = (char**) g_try_realloc (*pnames, (count + NENTRIES
+ 		    + 1) * sizeof (char*))) != NULL)
+ 		    *pnames = tmpnames;
+ 		else
+diff --git a/src/complete.c b/src/complete.c
+index a719b98..3f741b1 100644
+--- a/src/complete.c
++++ b/src/complete.c
+@@ -873,7 +873,7 @@ static int insert_text (WInput *in, char *text, ssize_t size)
+     size = min (size, (ssize_t) strlen (text)) + start - end;
+     if (strlen (in->buffer) + size >= (size_t) in->current_max_size){
+     /* Expand the buffer */
+-    	char *narea = g_realloc (in->buffer, in->current_max_size 
++    	char *narea = g_try_realloc (in->buffer, in->current_max_size
+                 + size + in->field_width);
+ 	if (narea){
+ 	    in->buffer = narea;
+diff --git a/src/dir.c b/src/dir.c
+index 74af764..c32db60 100644
+--- a/src/dir.c
++++ b/src/dir.c
+@@ -265,7 +265,7 @@ set_zero_dir (dir_list *list)
+ {
+     /* Need to grow the *list? */
+     if (list->size == 0) {
+-	list->list = g_realloc (list->list, sizeof (file_entry) *
++	list->list = g_try_realloc (list->list, sizeof (file_entry) *
+ 			      (list->size + RESIZE_STEPS));
+ 	if (list->list == NULL)
+ 	    return FALSE;
+@@ -328,7 +328,7 @@ handle_dirent (dir_list *list, const char *filter, struct dirent *dp,
+     /* Need to grow the *list? */
+     if (next_free == list->size) {
+ 	list->list =
+-	    g_realloc (list->list,
++	    g_try_realloc (list->list,
+ 		       sizeof (file_entry) * (list->size + RESIZE_STEPS));
+ 	if (!list->list)
+ 	    return -1;
+@@ -390,7 +390,7 @@ handle_path (dir_list *list, const char *path,
+ 
+     /* Need to grow the *list? */
+     if (next_free == list->size){
+-	list->list = g_realloc (list->list, sizeof (file_entry) *
++	list->list = g_try_realloc (list->list, sizeof (file_entry) *
+ 			      (list->size + RESIZE_STEPS));
+ 	if (!list->list)
+ 	    return -1;
+diff --git a/src/man2hlp.c b/src/man2hlp.c
+index aa95df6..6018f11 100644
+--- a/src/man2hlp.c
++++ b/src/man2hlp.c
+@@ -354,7 +354,7 @@ handle_node (char *buffer, int is_sh)
+ 		if (!cnode) {
+ 		    cnode = &nodes;
+ 		} else {
+-		    cnode->next = malloc (sizeof (nodes));
++		    cnode->next = g_malloc (sizeof (nodes));
+ 		    cnode = cnode->next;
+ 		}
+ 		cnode->node = strdup (buffer);
+@@ -649,7 +649,7 @@ handle_link (char *buffer)
+ 	link_flag = 0;
+ 	/* Add to the linked list */
+ 	if (current_link) {
+-	    current_link->next = malloc (sizeof (links));
++	    current_link->next = g_malloc (sizeof (links));
+ 	    current_link = current_link->next;
+ 	    current_link->next = NULL;
+ 	} else {
+@@ -773,7 +773,7 @@ main (int argc, char **argv)
+ 			if (!cnode) {
+ 			    cnode = &nodes;
+ 			} else {
+-			    cnode->next = malloc (sizeof (nodes));
++			    cnode->next = g_malloc (sizeof (nodes));
+ 			    cnode = cnode->next;
+ 			}
+ 			cnode->node = strdup (lc_node + 2);
+diff --git a/src/mountlist.c b/src/mountlist.c
+index 847bf39..bf97da5 100644
+--- a/src/mountlist.c
++++ b/src/mountlist.c
+@@ -320,7 +320,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+     (void) all_fs;
+ 
+     /* Start the list off with a dummy entry. */
+-    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+     me->me_next = NULL;
+     mlist = mtail = me;
+ 
+@@ -340,7 +340,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 			    || !strcmp (mnt->mnt_type, "auto")))
+ 		continue;
+ 
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    me->me_devname = strdup (mnt->mnt_fsname);
+ 	    me->me_mountdir = strdup (mnt->mnt_dir);
+ 	    me->me_type = strdup (mnt->mnt_type);
+@@ -374,7 +374,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 	if (entries < 0)
+ 	    return NULL;
+ 	while (entries-- > 0) {
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    me->me_devname = strdup (fsp->f_mntfromname);
+ 	    me->me_mountdir = strdup (fsp->f_mntonname);
+ #ifdef HAVE_STRUCT_STATFS_F_FSTYPENAME
+@@ -402,7 +402,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 	if (entries < 0)
+ 	    return NULL;
+ 	for (; entries-- > 0; fsp++) {
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    me->me_devname = strdup (fsp->f_mntfromname);
+ 	    me->me_mountdir = strdup (fsp->f_mntonname);
+ 	    me->me_type = strdup (fsp->f_fstypename);
+@@ -423,7 +423,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 
+ 	while ((val = getmnt (&offset, &fsd, sizeof (fsd), NOSTAT_MANY,
+ 			      NULL)) > 0) {
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    me->me_devname = strdup (fsd.fd_req.devname);
+ 	    me->me_mountdir = strdup (fsd.fd_req.path);
+ 	    me->me_type = gt_names[fsd.fd_req.fstype];
+@@ -449,7 +449,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 	    return (NULL);
+ 
+ 	bufsize = (1 + numsys) * sizeof (struct statfs);
+-	stats = (struct statfs *) malloc (bufsize);
++	stats = (struct statfs *) g_malloc (bufsize);
+ 	numsys = getfsstat (stats, bufsize, MNT_WAIT);
+ 
+ 	if (numsys < 0) {
+@@ -457,7 +457,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 	    return (NULL);
+ 	}
+ 	for (counter = 0; counter < numsys; counter++) {
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    me->me_devname = strdup (stats[counter].f_mntfromname);
+ 	    me->me_mountdir = strdup (stats[counter].f_mntonname);
+ 	    me->me_type = mnt_names[stats[counter].f_type];
+@@ -484,11 +484,11 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 	    return NULL;
+ 
+ 	while (fread (&mnt, sizeof mnt, 1, fp) > 0) {
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ #ifdef GETFSTYP			/* SVR3.  */
+ 	    me->me_devname = strdup (mnt.mt_dev);
+ #else
+-	    me->me_devname = malloc (strlen (mnt.mt_dev) + 6);
++	    me->me_devname = g_malloc (strlen (mnt.mt_dev) + 6);
+ 	    strcpy (me->me_devname, "/dev/");
+ 	    strcpy (me->me_devname + 5, mnt.mt_dev);
+ #endif
+@@ -521,7 +521,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+     {
+ 	struct mntent **mnttbl = getmnttbl (), **ent;
+ 	for (ent = mnttbl; *ent; ent++) {
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    me->me_devname = strdup ((*ent)->mt_resource);
+ 	    me->me_mountdir = strdup ((*ent)->mt_directory);
+ 	    me->me_type = strdup ((*ent)->mt_fstype);
+@@ -548,7 +548,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 	    return NULL;
+ 
+ 	while ((ret = getmntent (fp, &mnt)) == 0) {
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    me->me_devname = strdup (mnt.mnt_special);
+ 	    me->me_mountdir = strdup (mnt.mnt_mountp);
+ 	    me->me_type = strdup (mnt.mnt_fstype);
+@@ -574,7 +574,7 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 
+ 	/* Ask how many bytes to allocate for the mounted filesystem info.  */
+ 	mntctl (MCTL_QUERY, sizeof bufsize, (struct vmount *) &bufsize);
+-	entries = malloc (bufsize);
++	entries = g_malloc (bufsize);
+ 
+ 	/* Get the list of mounted filesystems.  */
+ 	mntctl (MCTL_QUERY, bufsize, (struct vmount *) entries);
+@@ -582,14 +582,14 @@ read_filesystem_list (int need_fs_type, int all_fs)
+ 	for (thisent = entries; thisent < entries + bufsize;
+ 	     thisent += vmp->vmt_length) {
+ 	    vmp = (struct vmount *) thisent;
+-	    me = (struct mount_entry *) malloc (sizeof (struct mount_entry));
++	    me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	    if (vmp->vmt_flags & MNT_REMOTE) {
+ 		char *host, *path;
+ 
+ 		/* Prepend the remote pathname.  */
+ 		host = thisent + vmp->vmt_data[VMT_HOSTNAME].vmt_off;
+ 		path = thisent + vmp->vmt_data[VMT_OBJECT].vmt_off;
+-		me->me_devname = malloc (strlen (host) + strlen (path) + 2);
++		me->me_devname = g_malloc (strlen (host) + strlen (path) + 2);
+ 		strcpy (me->me_devname, host);
+ 		strcat (me->me_devname, ":");
+ 		strcat (me->me_devname, path);
+@@ -644,7 +644,7 @@ read_filesystem_list(int need_fs_type, int all_fs)
+ 		if (me->me_type) free(me->me_type);
+ 	}
+ 	else
+-		me = (struct mount_entry *)malloc(sizeof(struct mount_entry));
++		me = (struct mount_entry *) g_malloc (sizeof(struct mount_entry));
+ 
+ 	if (!getcwd(dir, _POSIX_PATH_MAX)) return (NULL);
+ 
+diff --git a/src/user.c b/src/user.c
+index 10e1dbc..d04c1bd 100644
+--- a/src/user.c
++++ b/src/user.c
+@@ -801,9 +801,9 @@ user_menu_cmd (WEdit *edit_widget)
+ 	    char ** new_entries;
+ 
+ 	    menu_limit += MAX_ENTRIES;
+-	    new_entries = g_realloc (entries, sizeof (new_entries[0]) * menu_limit);
++	    new_entries = g_try_realloc (entries, sizeof (new_entries[0]) * menu_limit);
+ 
+-	    if (new_entries == 0)
++	    if (new_entries == NULL)
+ 		break;
+ 
+ 	    entries = new_entries;
+diff --git a/src/viewer/nroff.c b/src/viewer/nroff.c
+index 73d4668..56fdc03 100644
+--- a/src/viewer/nroff.c
++++ b/src/viewer/nroff.c
+@@ -226,7 +226,7 @@ mcview_nroff_seq_new_num (mcview_t * view, off_t lc_index)
+ {
+     mcview_nroff_t *nroff;
+ 
+-    nroff = g_malloc0 (sizeof (mcview_nroff_t));
++    nroff = g_try_malloc0 (sizeof (mcview_nroff_t));
+     if (nroff == NULL)
+         return NULL;
+     nroff->index = lc_index;
+diff --git a/vfs/cpio.c b/vfs/cpio.c
+index 0af9cda..2bc3600 100644
+--- a/vfs/cpio.c
++++ b/vfs/cpio.c
+@@ -433,7 +433,7 @@ static ssize_t cpio_read_bin_head(struct vfs_class *me, struct vfs_s_super *supe
+ 		super->name);
+ 	return STATUS_FAIL;
+     }
+-    name = g_malloc(u.buf.c_namesize);
++    name = g_malloc (u.buf.c_namesize);
+     if((len = mc_read(super->u.arch.fd, name, u.buf.c_namesize)) < u.buf.c_namesize) {
+ 	g_free(name);
+ 	return STATUS_EOF;
+@@ -491,7 +491,7 @@ static ssize_t cpio_read_oldc_head(struct vfs_class *me, struct vfs_s_super *sup
+ 		    super->name);
+ 	return STATUS_FAIL;
+     }
+-    name = g_malloc(hd.c_namesize);
++    name = g_malloc (hd.c_namesize);
+     if((len = mc_read(super->u.arch.fd, name, hd.c_namesize)) == -1 ||
+        (unsigned long) len < hd.c_namesize) {
+ 	g_free (name);
+@@ -559,7 +559,7 @@ cpio_read_crc_head (struct vfs_class *me, struct vfs_s_super *super)
+ 	return STATUS_FAIL;
+     }
+ 
+-    name = g_malloc(hd.c_namesize);
++    name = g_malloc (hd.c_namesize);
+     len = mc_read (super->u.arch.fd, name, hd.c_namesize);
+ 
+     if ((len == -1) || ((unsigned long) len < hd.c_namesize)) {
+diff --git a/vfs/mcfsutil.c b/vfs/mcfsutil.c
+index d3c2e04..4e776ea 100644
+--- a/vfs/mcfsutil.c
++++ b/vfs/mcfsutil.c
+@@ -185,6 +185,9 @@ rpc_get (int sock, ...)
+ 
+ 	    /* Don't use glib functions here - this code is used by mcserv */
+ 	    text = malloc (len + 1);
++            if (!text)
++                return 0;
++
+ 	    if (socket_read_block (sock, text, len) == 0) {
+ 		free (text);
+ 		va_end (ap);
+diff --git a/vfs/mcserv.c b/vfs/mcserv.c
+index 5fedc55..877b5cb 100644
+--- a/vfs/mcserv.c
++++ b/vfs/mcserv.c
+@@ -514,7 +514,7 @@ do_readdir (void)
+ 	rpc_send (msock, RPC_BLOCK, length, dirent->d_name, RPC_END);
+ 	fname_len =
+ 	    strlen (mcfs_DIR.names[handle]) + strlen (dirent->d_name) + 2;
+-	fname = malloc (fname_len);
++	fname = g_malloc (fname_len);
+ 	snprintf (fname, fname_len, "%s/%s", mcfs_DIR.names[handle],
+ 		  dirent->d_name);
+ 	n = lstat (fname, &st);
+diff --git a/vfs/samba/lib/charset.c b/vfs/samba/lib/charset.c
+index 35f9126..8f70def 100644
+--- a/vfs/samba/lib/charset.c
++++ b/vfs/samba/lib/charset.c
+@@ -289,7 +289,7 @@ multiple of 4.\n", codepage_file_name));
+   }
+ 
+   /* Allocate space for the code page file and read it all in. */
+-  if((cp_p = (codepage_p)malloc( size  + 4 )) == NULL)
++  if ((cp_p = (codepage_p) malloc ( size  + 4 )) == NULL)
+   {
+     DEBUG(0,("load_client_codepage: malloc fail.\n"));
+     goto clean_and_exit;
+diff --git a/vfs/samba/lib/interface.c b/vfs/samba/lib/interface.c
+index 5acad19..f8e8687 100644
+--- a/vfs/samba/lib/interface.c
++++ b/vfs/samba/lib/interface.c
+@@ -151,8 +151,9 @@ static void interpret_interfaces(char *s, struct interface **interfaces,
+       if (i) continue;
+     }
+ 
+-    iface = (struct interface *)malloc(sizeof(*iface));
+-    if (!iface) return;
++    iface = (struct interface *) malloc (sizeof(*iface));
++    if (!iface) 
++      return;
+ 
+     iface->ip = ip;
+ 
+@@ -181,8 +182,9 @@ static void interpret_interfaces(char *s, struct interface **interfaces,
+   if (*interfaces) return;
+ 
+   /* setup a default interface */
+-  iface = (struct interface *)malloc(sizeof(*iface));
+-  if (!iface) return;
++  iface = (struct interface *) malloc (sizeof(*iface));
++  if (!iface) 
++    return;
+ 
+   iface->next = NULL;
+ 
+diff --git a/vfs/samba/lib/util.c b/vfs/samba/lib/util.c
+index da2fa83..e31f485 100644
+--- a/vfs/samba/lib/util.c
++++ b/vfs/samba/lib/util.c
+@@ -1648,9 +1648,9 @@ void *Realloc(void *p,size_t size)
+   }
+ 
+   if (!p)
+-    ret = (void *)malloc(size);
++    ret = (void *) malloc (size);
+   else
+-    ret = (void *)realloc(p,size);
++    ret = (void *) realloc (p,size);
+ 
+ #ifdef MEM_MAN
+   {
+@@ -2477,7 +2477,7 @@ void set_namearray(name_compare_entry **ppname_array, char *namelist)
+   if(num_entries == 0)
+     return;
+ 
+-  if(( (*ppname_array) = (name_compare_entry *)malloc( 
++  if(( (*ppname_array) = (name_compare_entry *) g_malloc (
+            (num_entries + 1) * sizeof(name_compare_entry))) == NULL)
+         {
+     DEBUG(0,("set_namearray: malloc fail\n"));
+diff --git a/vfs/samba/lib/util_str.c b/vfs/samba/lib/util_str.c
+index 74b5303..c241dfd 100644
+--- a/vfs/samba/lib/util_str.c
++++ b/vfs/samba/lib/util_str.c
+@@ -101,7 +101,8 @@ char **toktocliplist(int *ctok, char *sep)
+   *ctok=ictok;
+   s=last_ptr;
+ 
+-  if (!(ret=iret=malloc(ictok*sizeof(char *)))) return NULL;
++  if (!(ret = iret = g_malloc (ictok * sizeof(char *)))) 
++    return NULL;
+   
+   while(ictok--) {    
+     *iret++=s;
+@@ -951,7 +952,7 @@ BOOL string_init(char **dest,const char *src)
+   if (l == 0)
+     {
+       if (!null_string) {
+-        if((null_string = (char *)malloc(1)) == NULL) {
++        if ((null_string = (char *) malloc (1)) == NULL) {
+           DEBUG(0,("string_init: malloc fail for null_string.\n"));
+           return False;
+         }
+@@ -961,7 +962,7 @@ BOOL string_init(char **dest,const char *src)
+     }
+   else
+     {
+-      (*dest) = (char *)malloc(l+1);
++      (*dest) = (char *) g_malloc (l+1);
+       if ((*dest) == NULL) {
+ 	      DEBUG(0,("Out of memory in string_init\n"));
+ 	      return False;
+diff --git a/vfs/samba/libsmb/clientgen.c b/vfs/samba/libsmb/clientgen.c
+index 0dd0710..05cceb2 100644
+--- a/vfs/samba/libsmb/clientgen.c
++++ b/vfs/samba/libsmb/clientgen.c
+@@ -2364,7 +2364,7 @@ initialise a client structure
+ struct cli_state *cli_initialise(struct cli_state *cli)
+ {
+ 	if (!cli) {
+-		cli = (struct cli_state *)malloc(sizeof(*cli));
++		cli = (struct cli_state *) malloc (sizeof(*cli));
+ 		if (!cli)
+ 			return NULL;
+ 		ZERO_STRUCTP(cli);
+@@ -2386,8 +2386,8 @@ struct cli_state *cli_initialise(struct cli_state *cli)
+ 	cli->timeout = 20000; /* Timeout is in milliseconds. */
+ 	cli->bufsize = CLI_BUFFER_SIZE+4;
+ 	cli->max_xmit = cli->bufsize;
+-	cli->outbuf = (char *)malloc(cli->bufsize);
+-	cli->inbuf = (char *)malloc(cli->bufsize);
++	cli->outbuf = (char *) malloc (cli->bufsize);
++	cli->inbuf = (char *) malloc (cli->bufsize);
+ 	if (!cli->outbuf || !cli->inbuf)
+ 	{
+ 		return False;
+diff --git a/vfs/samba/param/params.c b/vfs/samba/param/params.c
+index 46bbfc3..49c6a4c 100644
+--- a/vfs/samba/param/params.c
++++ b/vfs/samba/param/params.c
+@@ -544,7 +544,7 @@ BOOL pm_process( const char *FileName,
+   else                                        /* If we don't have a buffer   */
+     {                                         /* allocate one, then parse,   */
+     bSize = BUFR_INC;                         /* then free.                  */
+-    bufr = (char *)malloc( bSize );
++    bufr = (char *) malloc ( bSize );
+     if( NULL == bufr )
+       {
+       DEBUG(0,("%s memory allocation failure.\n", func));
+diff --git a/vfs/vfs.c b/vfs/vfs.c
+index f8eb7a1..c489058 100644
+--- a/vfs/vfs.c
++++ b/vfs/vfs.c
+@@ -795,7 +795,7 @@ mc_readdir (DIR *dirp)
+          * structures, holding dirent size. But we don't use it in libc infrastructure.
+          * TODO: to make simpler homemade dirent-alike structure.
+          */
+-        mc_readdir_result = (struct dirent *)malloc(sizeof(struct dirent) + NAME_MAX + 1);
++        mc_readdir_result = (struct dirent *) g_malloc (sizeof(struct dirent) + NAME_MAX + 1);
+     }
+ 
+     if (!dirp) {
+-- 
+1.6.4
+

@@ -1,0 +1,32 @@
+From 9ca3806c421e5fedf0093eaa9498cfe611d92892 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 08:44:56 +0000
+Subject: [PATCH] (execute.c) Cleanup maybe-uninitialized compiler warning
+
+Found by GCC 6.2.0.
+
+execute.c:222:9: error: 'mtime' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+         mc_ungetlocalcopy (filename_vpath, *localcopy_vpath, *mtime != st.st_mtime);
+         ^
+execute.c:625:12: note: 'mtime' was declared here
+     time_t mtime;
+            ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/execute.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/execute.c b/src/execute.c
+index 1cf0075..d22e4a3 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -622,7 +622,7 @@ execute_external_editor_or_viewer (const char *command, const vfs_path_t * filen
+     vfs_path_t *localcopy_vpath = NULL;
+     const vfs_path_t *do_execute_vpath;
+     char *extern_cmd_options;
+-    time_t mtime;
++    time_t mtime = 0;
+ 
+     if (!execute_prepare_with_vfs_arg (filename_vpath, &localcopy_vpath, &mtime))
+         return;

@@ -1,0 +1,33 @@
+From 797ce5fb21b6ff964fc058aecafd795df64ae830 Mon Sep 17 00:00:00 2001
+From: Andrey Gursky <andrey.gursky@e-mail.ua>
+Date: Sat, 19 Dec 2015 03:59:01 +0100
+Subject: [PATCH 1/2] Fix preallocation if appending during file copy
+
+ctx->do_append is reseted:
+
+    appending = ctx->do_append;
+    ctx->do_append = FALSE;
+
+Use appending instead.
+
+https://www.midnight-commander.org/ticket/3577
+---
+ src/filemanager/file.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 0bacc54..3aa84aa 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -1738,7 +1738,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+     }
+ 
+     /* try preallocate space; if fail, try copy anyway */
+-    while (vfs_preallocate (dest_desc, file_size, ctx->do_append != 0 ? sb.st_size : 0) != 0)
++    while (vfs_preallocate (dest_desc, file_size, appending ? sb.st_size : 0) != 0)
+     {
+         if (ctx->skip_all)
+         {
+-- 
+2.6.2
+

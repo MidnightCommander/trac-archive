@@ -1,0 +1,168 @@
+From 1a29ec78a0d15f599ff59442bdacc2b2343232d7 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 28 Feb 2016 22:39:27 +0000
+Subject: [PATCH] (widget_options_t) Cleanup -Wassign-enum warnings
+
+warning looks like:
+
+wtools.c:213:13: warning: integer constant not in range of enumerated type 'widget_options_t' [-Wassign-enum]
+            QUICK_LABELED_INPUT (p_text, input_label_above, def_text, histname, &my_str,
+            ^
+../../lib/widget/quick.h:65:16: note: expanded from macro 'QUICK_LABELED_INPUT'
+    .options = 0,                                                               \
+               ^
+boxes.c:489:17: warning: integer constant not in range of enumerated type 'widget_options_t' [-Wassign-enum]
+                QUICK_START_GROUPBOX (N_("File operations")),
+                ^
+../../lib/widget/quick.h:115:16: note: expanded from macro 'QUICK_START_GROUPBOX'
+    .options = 0,                                                               \
+               ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/quick.h         | 28 ++++++++++++++--------------
+ lib/widget/widget-common.h |  1 +
+ 2 files changed, 15 insertions(+), 14 deletions(-)
+
+diff --git a/lib/widget/quick.h b/lib/widget/quick.h
+index 73482d6..f53529d 100644
+--- a/lib/widget/quick.h
++++ b/lib/widget/quick.h
+@@ -12,7 +12,7 @@
+ #define QUICK_CHECKBOX(txt, st, id_)                                            \
+ {                                                                               \
+     .widget_type = quick_checkbox,                                              \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = id_,                                                                  \
+     .u = {                                                                      \
+@@ -26,7 +26,7 @@
+ #define QUICK_BUTTON(txt, act, cb, id_)                                         \
+ {                                                                               \
+     .widget_type = quick_button,                                                \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = id_,                                                                  \
+     .u = {                                                                      \
+@@ -41,7 +41,7 @@
+ #define QUICK_INPUT(txt, hname, res, id_, is_passwd_, strip_passwd_, completion_flags_) \
+ {                                                                               \
+     .widget_type = quick_input,                                                 \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = id_,                                                                  \
+     .u = {                                                                      \
+@@ -62,7 +62,7 @@
+ #define QUICK_LABELED_INPUT(label_, label_loc, txt, hname, res, id_, is_passwd_, strip_passwd_, completion_flags_) \
+ {                                                                               \
+     .widget_type = quick_input,                                                 \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = id_,                                                                  \
+     .u = {                                                                      \
+@@ -83,7 +83,7 @@
+ #define QUICK_LABEL(txt, id_)                                                   \
+ {                                                                               \
+     .widget_type = quick_label,                                                 \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = id_,                                                                  \
+     .u = {                                                                      \
+@@ -97,7 +97,7 @@
+ #define QUICK_RADIO(cnt, items_, val, id_)                                      \
+ {                                                                               \
+     .widget_type = quick_radio,                                                 \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = id_,                                                                  \
+     .u = {                                                                      \
+@@ -112,7 +112,7 @@
+ #define QUICK_START_GROUPBOX(t)                                                 \
+ {                                                                               \
+     .widget_type = quick_start_groupbox,                                        \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+@@ -125,7 +125,7 @@
+ #define QUICK_STOP_GROUPBOX                                                     \
+ {                                                                               \
+     .widget_type = quick_stop_groupbox,                                         \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+@@ -140,7 +140,7 @@
+ #define QUICK_SEPARATOR(line_)                                                  \
+ {                                                                               \
+     .widget_type = quick_separator,                                             \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+@@ -154,7 +154,7 @@
+ #define QUICK_START_COLUMNS                                                     \
+ {                                                                               \
+     .widget_type = quick_start_columns,                                         \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+@@ -169,7 +169,7 @@
+ #define QUICK_NEXT_COLUMN                                                       \
+ {                                                                               \
+     .widget_type = quick_next_column,                                           \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+@@ -184,7 +184,7 @@
+ #define QUICK_STOP_COLUMNS                                                      \
+ {                                                                               \
+     .widget_type = quick_stop_columns,                                          \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+@@ -199,7 +199,7 @@
+ #define QUICK_START_BUTTONS(space_, line_)                                      \
+ {                                                                               \
+     .widget_type = quick_buttons,                                               \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+@@ -218,7 +218,7 @@
+ #define QUICK_END                                                               \
+ {                                                                               \
+     .widget_type = quick_end,                                                   \
+-    .options = 0,                                                               \
++    .options = W_NONE,                                                          \
+     .pos_flags = WPOS_KEEP_DEFAULT,                                             \
+     .id = NULL,                                                                 \
+     .u = {                                                                      \
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index 0398a1e..e9c92ac 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -60,6 +60,7 @@ typedef enum
+ /* Widget options */
+ typedef enum
+ {
++    W_NONE = (1 << 0),
+     W_WANT_HOTKEY = (1 << 1),
+     W_WANT_CURSOR = (1 << 2),
+     W_WANT_IDLE = (1 << 3),

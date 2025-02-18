@@ -1,0 +1,68 @@
+From c8cfcadfdae0430e1c30465a0eff11ed3c1271c8 Mon Sep 17 00:00:00 2001
+From: Francesco Cosoleto <cosoleto@gmail.com>
+Date: Thu, 28 Apr 2011 04:12:36 +0200
+Subject: [PATCH] Save input line content in history only if has changed
+
+It's possible users reuse the same content of a dialog or just
+enable/disable some options available, then saving the history is
+pointless.
+
+Signed-off-by: Francesco Cosoleto <cosoleto@gmail.com>
+---
+ lib/widget/input.c |   11 ++++++++++-
+ lib/widget/input.h |    1 +
+ 2 files changed, 11 insertions(+), 1 deletions(-)
+
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index e7f33b1..8a432a3 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -224,7 +224,12 @@ push_history (WInput * in, const char *text)
+         strip_password (t, i >= ELEMENTS);
+     }
+ 
++    if (in->history && in->history->data)
++        if (!strcmp(in->history->data, t))
++            return;
++
+     in->history = list_append_unique (in->history, t);
++    in->history_changed = TRUE;
+     in->need_push = FALSE;
+ }
+ 
+@@ -771,8 +776,11 @@ input_destroy (WInput * in)
+ 
+     if (in->history != NULL)
+     {
+-        if (!in->is_password && (((Widget *) in)->owner->ret_value != B_CANCEL))
++        if (in->history_changed && !in->is_password && (((Widget *) in)->owner->ret_value != B_CANCEL))
++        {
+             history_put (in->history_name, in->history);
++            in->history_changed = FALSE;
++        }
+ 
+         in->history = g_list_first (in->history);
+         g_list_foreach (in->history, (GFunc) g_free, NULL);
+@@ -884,6 +892,7 @@ input_new (int y, int x, const int *input_colors, int width, const char *def_tex
+     in->disable_update = 0;
+     in->mark = 0;
+     in->need_push = TRUE;
++    in->history_changed = FALSE;
+     in->is_password = FALSE;
+ 
+     strcpy (in->buffer, def_text);
+diff --git a/lib/widget/input.h b/lib/widget/input.h
+index 25b6c22..11d371f 100644
+--- a/lib/widget/input.h
++++ b/lib/widget/input.h
+@@ -58,6 +58,7 @@ typedef struct
+     gboolean is_password;       /* is this a password input line? */
+     char *buffer;               /* pointer to editing buffer */
+     GList *history;             /* the history */
++    int history_changed;        /* if the history has changed */
+     gboolean need_push;         /* need to push the current Input on hist? */
+     char **completions;         /* possible completions array */
+     input_complete_t completion_flags;
+-- 
+1.7.3.4
+

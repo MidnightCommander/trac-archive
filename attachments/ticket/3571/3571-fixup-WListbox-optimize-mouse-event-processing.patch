@@ -1,0 +1,48 @@
+From 25c1b70edf496531f7184316d6a5712bf4ca2000 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 5 Feb 2016 16:23:54 +0200
+Subject: [PATCH] fixup! WListbox: optimize mouse event processing.
+
+---
+ lib/widget/listbox.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index 84da74e..70fb6d2 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -497,6 +497,9 @@ static void
+ listbox_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+ {
+     WListbox *l = LISTBOX (w);
++    int old_pos;
++
++    old_pos = l->pos;
+ 
+     switch (msg)
+     {
+@@ -519,7 +522,8 @@ listbox_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+         break;
+ 
+     case MSG_MOUSE_CLICK:
+-        if ((event->count & GPM_DOUBLE) != 0)   /* Double click */
++        /* We don't call listbox_select_entry() here: MSG_MOUSE_DOWN/DRAG did this already. */
++        if (event->count == GPM_DOUBLE) /* Double click */
+             listbox_do_action (l);
+         break;
+ 
+@@ -527,8 +531,9 @@ listbox_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+         break;
+     }
+ 
+-    if (msg != MSG_MOUSE_UP && w->owner->state == DLG_ACTIVE)
+-        listbox_draw (l, TRUE);
++    /* If the selection has changed, we redraw the widget and notify the dialog. */
++    if (l->pos != old_pos)
++        listbox_on_change (l);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-- 
+2.5.0
+

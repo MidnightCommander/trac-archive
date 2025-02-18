@@ -1,0 +1,25 @@
+From 62ebea29222be980cb42b09082e10d47c3b2b3b7 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 13 Nov 2015 15:41:10 +0200
+Subject: [PATCH] panel.h: remove unused variable declaration.
+
+---
+ src/filemanager/panel.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/filemanager/panel.h b/src/filemanager/panel.h
+index c1b7f2a..0699e2f 100644
+--- a/src/filemanager/panel.h
++++ b/src/filemanager/panel.h
+@@ -146,8 +146,6 @@ typedef struct
+ 
+ extern panelized_panel_t panelized_panel;
+ 
+-extern panel_field_t panel_fields[];
+-
+ extern hook_t *select_file_hook;
+ 
+ extern mc_fhl_t *mc_filehighlight;
+-- 
+2.1.4
+

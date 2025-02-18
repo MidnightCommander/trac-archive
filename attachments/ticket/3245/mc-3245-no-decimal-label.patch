@@ -1,0 +1,731 @@
+diff --git a/po/az.po b/po/az.po
+index c18e42b..321b396 100644
+--- a/po/az.po
++++ b/po/az.po
+@@ -4088,7 +4088,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/be.po b/po/be.po
+index 3fda5b2..e7f3617 100644
+--- a/po/be.po
++++ b/po/be.po
+@@ -4293,8 +4293,8 @@ msgstr "Немагчыма нарадзіць даччын працэс"
+ msgid "Empty output from child filter"
+ msgstr "Даччына сіта не вярнула зьвестак"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Нумар радку (дзесятковы)"
++msgid "&Line number"
++msgstr "&Нумар радку"
+ 
+ msgid "Pe&rcents"
+ msgstr "&Адсоткі"
+diff --git a/po/bg.po b/po/bg.po
+index e3d089f..40449c4 100644
+--- a/po/bg.po
++++ b/po/bg.po
+@@ -4097,7 +4097,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/ca.po b/po/ca.po
+index 608c95b..3d30896 100644
+--- a/po/ca.po
++++ b/po/ca.po
+@@ -4111,7 +4111,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/cs.po b/po/cs.po
+index 41b960d..9af1524 100644
+--- a/po/cs.po
++++ b/po/cs.po
+@@ -4229,8 +4229,8 @@ msgstr "Nelze vytvořit proces potomka"
+ msgid "Empty output from child filter"
+ msgstr "Prázdný výstup z filtru potomka"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "Číslo řádku (dekadicky)"
++msgid "&Line number"
++msgstr "Číslo řádku"
+ 
+ msgid "Pe&rcents"
+ msgstr "Procenta"
+diff --git a/po/da.po b/po/da.po
+index 2333ec9..0263469 100644
+--- a/po/da.po
++++ b/po/da.po
+@@ -4225,8 +4225,8 @@ msgstr "Kan ikke spawn underproces"
+ msgid "Empty output from child filter"
+ msgstr "Tom uddata fra underfilter"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Linjenummer (decimal)"
++msgid "&Line number"
++msgstr "&Linjenummer"
+ 
+ msgid "Pe&rcents"
+ msgstr "&Procenter"
+diff --git a/po/de.po b/po/de.po
+index 7c62cfd..8133003 100644
+--- a/po/de.po
++++ b/po/de.po
+@@ -4254,8 +4254,8 @@ msgstr "Kann Kindprozess nicht hervorbringen"
+ msgid "Empty output from child filter"
+ msgstr "Der Filter gab nichts aus"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "Zei&lennummer (dezimal)"
++msgid "&Line number"
++msgstr "Zei&lennummer"
+ 
+ msgid "Pe&rcents"
+ msgstr "P&rozente"
+diff --git a/po/de_CH.po b/po/de_CH.po
+index d78e015..f244d42 100644
+--- a/po/de_CH.po
++++ b/po/de_CH.po
+@@ -4044,7 +4044,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/el.po b/po/el.po
+index 7034a46..27f0cb5 100644
+--- a/po/el.po
++++ b/po/el.po
+@@ -4184,7 +4184,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/en_GB.po b/po/en_GB.po
+index d0886a1..cc60ced 100644
+--- a/po/en_GB.po
++++ b/po/en_GB.po
+@@ -4044,7 +4044,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/eo.po b/po/eo.po
+index a0741d2..052d8f9 100644
+--- a/po/eo.po
++++ b/po/eo.po
+@@ -4300,8 +4300,8 @@ msgstr "Ne eblas krei idan procezon"
+ msgid "Empty output from child filter"
+ msgstr "Vaka eligo el ida filtrilo"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Linia numero (dekuma)"
++msgid "&Line number"
++msgstr "&Linia numero"
+ 
+ msgid "Pe&rcents"
+ msgstr "&Elcentoj"
+diff --git a/po/es.po b/po/es.po
+index 741aa6b..f546d4b 100644
+--- a/po/es.po
++++ b/po/es.po
+@@ -4310,8 +4310,8 @@ msgstr "Imposible ejecutar el proceso hijo"
+ msgid "Empty output from child filter"
+ msgstr "Salida del filtro vacía"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "número de &Línea (decimal)"
++msgid "&Line number"
++msgstr "número de &Línea"
+ 
+ msgid "Pe&rcents"
+ msgstr "po&Rcentaje del archivo"
+diff --git a/po/et.po b/po/et.po
+index 83ce9b9..5f3e1a9 100644
+--- a/po/et.po
++++ b/po/et.po
+@@ -4297,8 +4297,8 @@ msgstr "Alamprotsessi loomine nurjus"
+ msgid "Empty output from child filter"
+ msgstr "Alamprotsessi filter ei väljastanud mitte midagi"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Rea number (kümnendarv)"
++msgid "&Line number"
++msgstr "&Rea number"
+ 
+ msgid "Pe&rcents"
+ msgstr "P&rotsendid"
+diff --git a/po/eu.po b/po/eu.po
+index 6dd7737..c791916 100644
+--- a/po/eu.po
++++ b/po/eu.po
+@@ -4263,8 +4263,8 @@ msgstr "Ezin sortu ume prozesua"
+ msgid "Empty output from child filter"
+ msgstr "Ume iragazkiaren irteera hutsa"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Lerro zenbakia (hamartarra)"
++msgid "&Line number"
++msgstr "&Lerro zenbakia"
+ 
+ msgid "Pe&rcents"
+ msgstr "Eh&unekoak"
+diff --git a/po/fa.po b/po/fa.po
+index fca2446..a9e0caa 100644
+--- a/po/fa.po
++++ b/po/fa.po
+@@ -4049,7 +4049,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/fi.po b/po/fi.po
+index 8133557..9cd7aab 100644
+--- a/po/fi.po
++++ b/po/fi.po
+@@ -4060,7 +4060,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/fi_FI.po b/po/fi_FI.po
+index bcf3862..61e9002 100644
+--- a/po/fi_FI.po
++++ b/po/fi_FI.po
+@@ -4070,7 +4070,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/fr.po b/po/fr.po
+index 7cffd98..e1a412a 100644
+--- a/po/fr.po
++++ b/po/fr.po
+@@ -4222,8 +4222,8 @@ msgstr "Impossible de créer un processus fils"
+ msgid "Empty output from child filter"
+ msgstr "Sortie vide du processus fils"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Numéro de ligne (décimal)"
++msgid "&Line number"
++msgstr "&Numéro de ligne"
+ 
+ msgid "Pe&rcents"
+ msgstr "Pou&rcents"
+diff --git a/po/gl.po b/po/gl.po
+index 2a3b0d6..f0ef64e 100644
+--- a/po/gl.po
++++ b/po/gl.po
+@@ -4310,8 +4310,8 @@ msgstr "Non é posíbel executar o proceso fillo"
+ msgid "Empty output from child filter"
+ msgstr "Saída do filtro baleira"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "Número de &Liña (decimal)"
++msgid "&Line number"
++msgstr "Número de &Liña"
+ 
+ msgid "Pe&rcents"
+ msgstr "Pe&Rcentiles"
+diff --git a/po/hr.po b/po/hr.po
+index d2f5461..82283b0 100644
+--- a/po/hr.po
++++ b/po/hr.po
+@@ -4050,7 +4050,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/hu.po b/po/hu.po
+index 252d786..f32bc46 100644
+--- a/po/hu.po
++++ b/po/hu.po
+@@ -4311,8 +4311,8 @@ msgstr "Nem sikerült programot indítani"
+ msgid "Empty output from child filter"
+ msgstr "A szűrő kimenete üres."
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Sorszám (decimális)"
++msgid "&Line number"
++msgstr "&Sorszám"
+ 
+ msgid "Pe&rcents"
+ msgstr "Szá&zalék"
+diff --git a/po/ia.po b/po/ia.po
+index 171a2b5..c2c370e 100644
+--- a/po/ia.po
++++ b/po/ia.po
+@@ -4099,7 +4099,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/id.po b/po/id.po
+index e2e92c0..76e8266 100644
+--- a/po/id.po
++++ b/po/id.po
+@@ -4053,7 +4053,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/it.po b/po/it.po
+index 5f4f138..768391e 100644
+--- a/po/it.po
++++ b/po/it.po
+@@ -4296,8 +4296,8 @@ msgstr "Impossibile spawn del processo figlio"
+ msgid "Empty output from child filter"
+ msgstr "Risultato vuoto da filtro figlio"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "Numero di &linea (decimale)"
++msgid "&Line number"
++msgstr "Numero di &linea"
+ 
+ msgid "Pe&rcents"
+ msgstr "Pe%rcentuale"
+diff --git a/po/ja.po b/po/ja.po
+index 1df7b85..6cef72d 100644
+--- a/po/ja.po
++++ b/po/ja.po
+@@ -4097,8 +4097,8 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
+-msgstr "行番号(10進数)(&L)"
++msgid "&Line number"
++msgstr "行番号(&L)"
+ 
+ msgid "Pe&rcents"
+ msgstr ""
+diff --git a/po/ka.po b/po/ka.po
+index b7e0ae9..5d73a34 100644
+--- a/po/ka.po
++++ b/po/ka.po
+@@ -4048,7 +4048,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/kk.po b/po/kk.po
+index b5e2434..bec150f 100644
+--- a/po/kk.po
++++ b/po/kk.po
+@@ -4038,7 +4038,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/ko.po b/po/ko.po
+index 303fe9b..42115a6 100644
+--- a/po/ko.po
++++ b/po/ko.po
+@@ -4092,8 +4092,8 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "이 하위필터는 내보내기 충분"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "줄 번호 (10 진수)(&L)"
++msgid "&Line number"
++msgstr "줄 번호 (&L)"
+ 
+ msgid "Pe&rcents"
+ msgstr "퍼센트(&R)"
+diff --git a/po/lt.po b/po/lt.po
+index 1f973f6..29e9ed1 100644
+--- a/po/lt.po
++++ b/po/lt.po
+@@ -4108,7 +4108,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "Filtras nepateikė informacijos"
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/lv.po b/po/lv.po
+index 346be35..d83af7c 100644
+--- a/po/lv.po
++++ b/po/lv.po
+@@ -4097,7 +4097,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/mc.pot b/po/mc.pot
+index 10ff758..d90e859 100644
+--- a/po/mc.pot
++++ b/po/mc.pot
+@@ -5332,7 +5332,7 @@ msgid "Empty output from child filter"
+ msgstr ""
+ 
+ #: src/viewer/dialogs.c:179
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ #: src/viewer/dialogs.c:180
+diff --git a/po/mn.po b/po/mn.po
+index 6b2930c..89a6fa0 100644
+--- a/po/mn.po
++++ b/po/mn.po
+@@ -4089,7 +4089,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "Хүү шүүлтүүрийн гаралт хоосон байна"
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/nb.po b/po/nb.po
+index 5e6085a..098377c 100644
+--- a/po/nb.po
++++ b/po/nb.po
+@@ -4088,7 +4088,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/nl.po b/po/nl.po
+index 16ca96f..a9f28d3 100644
+--- a/po/nl.po
++++ b/po/nl.po
+@@ -4296,8 +4296,8 @@ msgstr "Kan geen kindproces opstarten"
+ msgid "Empty output from child filter"
+ msgstr "Geen uitvoer van kindfilter"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "Rege&lnummer (decimaal)"
++msgid "&Line number"
++msgstr "Rege&lnummer"
+ 
+ msgid "Pe&rcents"
+ msgstr "Pe&rcenten"
+diff --git a/po/pl.po b/po/pl.po
+index 3215d1b..c987506 100644
+--- a/po/pl.po
++++ b/po/pl.po
+@@ -4312,8 +4312,8 @@ msgstr "Nie można utworzyć procesu potomnego"
+ msgid "Empty output from child filter"
+ msgstr "Puste wyjście filtru potomnego"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Numer wiersza (dziesiętny)"
++msgid "&Line number"
++msgstr "&Numer wiersza"
+ 
+ msgid "Pe&rcents"
+ msgstr "P&rocenty"
+diff --git a/po/pt.po b/po/pt.po
+index 43f398a..81c5d8f 100644
+--- a/po/pt.po
++++ b/po/pt.po
+@@ -4308,8 +4308,8 @@ msgstr "Não é possível gerar processo child"
+ msgid "Empty output from child filter"
+ msgstr "Output vazio de filtro de child"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "Número de &linha (decimal)"
++msgid "&Line number"
++msgstr "Número de &linha"
+ 
+ msgid "Pe&rcents"
+ msgstr "Pe&rcentagens"
+diff --git a/po/pt_BR.po b/po/pt_BR.po
+index a79f9c5..5cc06d2 100644
+--- a/po/pt_BR.po
++++ b/po/pt_BR.po
+@@ -4210,7 +4210,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/ro.po b/po/ro.po
+index 0e8db21..bd37f86 100644
+--- a/po/ro.po
++++ b/po/ro.po
+@@ -4295,8 +4295,8 @@ msgstr "Nu se poate porni procesul copil"
+ msgid "Empty output from child filter"
+ msgstr "Ieșire vidă de la filtrul copil"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "Număr de &linie (zecimal)"
++msgid "&Line number"
++msgstr "Număr de &linie"
+ 
+ msgid "Pe&rcents"
+ msgstr "P&rocente"
+diff --git a/po/ru.po b/po/ru.po
+index 5ff268d..048c206 100644
+--- a/po/ru.po
++++ b/po/ru.po
+@@ -4313,8 +4313,8 @@ msgstr "Невозможно породить дочерний процесс"
+ msgid "Empty output from child filter"
+ msgstr "Дочерний фильтр не вернул данные"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Номер строки (десятичный)"
++msgid "&Line number"
++msgstr "&Номер строки"
+ 
+ msgid "Pe&rcents"
+ msgstr "П&роценты"
+diff --git a/po/sk.po b/po/sk.po
+index 5a0b4f5..effc53a 100644
+--- a/po/sk.po
++++ b/po/sk.po
+@@ -4114,7 +4114,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "Prázdny výstup z filtra potomka"
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/sl.po b/po/sl.po
+index 4d88cb7..6562822 100644
+--- a/po/sl.po
++++ b/po/sl.po
+@@ -4110,7 +4110,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "Prazen izhod iz podprograma - filtra"
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/sr.po b/po/sr.po
+index 2b4c5d0..f21fc56 100644
+--- a/po/sr.po
++++ b/po/sr.po
+@@ -4097,7 +4097,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "Дете-филтар није исписало ништа"
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/sv.po b/po/sv.po
+index badbb7a..7a4b380 100644
+--- a/po/sv.po
++++ b/po/sv.po
+@@ -4088,7 +4088,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "Tom utdata från barnfilter"
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/sv_SE.po b/po/sv_SE.po
+index ca541a8..bd2d59b 100644
+--- a/po/sv_SE.po
++++ b/po/sv_SE.po
+@@ -4043,7 +4043,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/szl.po b/po/szl.po
+index e8c5969..46a0dfd 100644
+--- a/po/szl.po
++++ b/po/szl.po
+@@ -4050,7 +4050,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/ta.po b/po/ta.po
+index cb63d2b..79fb7b2 100644
+--- a/po/ta.po
++++ b/po/ta.po
+@@ -4044,7 +4044,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/tr.po b/po/tr.po
+index c350b5f..75a09e8 100644
+--- a/po/tr.po
++++ b/po/tr.po
+@@ -4089,7 +4089,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/uk.po b/po/uk.po
+index 23f6628..9354beb 100644
+--- a/po/uk.po
++++ b/po/uk.po
+@@ -4301,8 +4301,8 @@ msgstr "Не вдалося створити процес-нащадок"
+ msgid "Empty output from child filter"
+ msgstr "Фільтр-нащадок не повернув даних"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "&Номер рядка (десяткове число)"
++msgid "&Line number"
++msgstr "&Номер рядка"
+ 
+ msgid "Pe&rcents"
+ msgstr "Ві&дсотки"
+diff --git a/po/vi.po b/po/vi.po
+index 182b13f..74024eb 100644
+--- a/po/vi.po
++++ b/po/vi.po
+@@ -4087,7 +4087,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr "Bộ lọc con trả lại kết quả rỗng"
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/wa.po b/po/wa.po
+index 3723914..68b911f 100644
+--- a/po/wa.po
++++ b/po/wa.po
+@@ -4070,7 +4070,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/po/zh_CN.po b/po/zh_CN.po
+index be0b5db..a2e58bd 100644
+--- a/po/zh_CN.po
++++ b/po/zh_CN.po
+@@ -4296,8 +4296,8 @@ msgstr "无法生成子进程"
+ msgid "Empty output from child filter"
+ msgstr "子过滤器输出为空"
+ 
+-msgid "&Line number (decimal)"
+-msgstr "行号(10进制&L)"
++msgid "&Line number"
++msgstr "行号(&L)"
+ 
+ msgid "Pe&rcents"
+ msgstr "百分比(&R)"
+diff --git a/po/zh_TW.po b/po/zh_TW.po
+index 9c70e23..acb6585 100644
+--- a/po/zh_TW.po
++++ b/po/zh_TW.po
+@@ -4083,7 +4083,7 @@ msgstr ""
+ msgid "Empty output from child filter"
+ msgstr ""
+ 
+-msgid "&Line number (decimal)"
++msgid "&Line number"
+ msgstr ""
+ 
+ msgid "Pe&rcents"
+diff --git a/src/viewer/dialogs.c b/src/viewer/dialogs.c
+index 9a18114..b93fc18 100644
+--- a/src/viewer/dialogs.c
++++ b/src/viewer/dialogs.c
+@@ -176,7 +176,7 @@ mcview_dialog_goto (mcview_t * view, off_t * offset)
+     } mcview_goto_type_t;
+ 
+     const char *mc_view_goto_str[] = {
+-        N_("&Line number (decimal)"),
++        N_("&Line number"),
+         N_("Pe&rcents"),
+         N_("&Decimal offset"),
+         N_("He&xadecimal offset")

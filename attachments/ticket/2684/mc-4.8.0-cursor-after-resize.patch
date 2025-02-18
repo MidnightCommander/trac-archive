@@ -1,0 +1,11 @@
+diff -ur mc-4.8.0.orig/src/filemanager/panel.c mc-4.8.0/src/filemanager/panel.c
+--- mc-4.8.0.orig/src/filemanager/panel.c	2011-10-18 13:39:19.000000000 +0200
++++ mc-4.8.0/src/filemanager/panel.c	2011-12-05 17:51:49.958540143 +0100
+@@ -3818,6 +3818,7 @@
+ 
+     panel_format_modified (p);
+     panel_update_cols (&(p->widget), p->frame_size);
++    select_item (p);
+ 
+     if (retcode)
+         message (D_ERROR, _("Warning"),

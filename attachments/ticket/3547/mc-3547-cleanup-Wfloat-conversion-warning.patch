@@ -1,0 +1,52 @@
+From ec4626a9063bce918d8de32157bda28952cccd8b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 27 Feb 2016 23:53:15 +0000
+Subject: [PATCH] cleanup -Wfloat-conversion warning
+
+wtools.c:591:23: error: implicit conversion turns floating-point number into integer: 'double' to 'guint64' (aka 'unsigned long') [-Werror,-Wfloat-conversion]
+    sm->delay = delay * G_USEC_PER_SEC;
+              ~ ~~~~~~^~~~~~~~~~~~~~~~
+
+filegui.c:347:51: error: implicit conversion turns floating-point number into integer: 'double' to 'int' [-Werror,-Wfloat-conversion]
+    eta_mins = (eta_secs - (eta_hours * 60 * 60)) / 60;
+             ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+filegui.c:348:22: error: implicit conversion turns floating-point number into integer: 'double' to 'int' [-Werror,-Wfloat-conversion]
+    eta_s = eta_secs - (eta_hours * 60 * 60 + eta_mins * 60);
+          ~ ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/wtools.c       | 2 +-
+ src/filemanager/filegui.c | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lib/widget/wtools.c b/lib/widget/wtools.c
+index 21727a1..c3c1284 100644
+--- a/lib/widget/wtools.c
++++ b/lib/widget/wtools.c
+@@ -588,7 +588,7 @@ status_msg_init (status_msg_t * sm, const char *title, double delay, status_msg_
+     sm->dlg = dlg_create (TRUE, 0, 0, 7, min (max (40, COLS / 2), COLS), dialog_colors,
+                           NULL, NULL, NULL, title, DLG_CENTER);
+     sm->start = start;
+-    sm->delay = delay * G_USEC_PER_SEC;
++    sm->delay = (guint64) (delay * G_USEC_PER_SEC);
+     sm->block = FALSE;
+ 
+     sm->init = init_cb;
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index 02089b2..5809454 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -343,9 +343,9 @@ static void
+ file_frmt_time (char *buffer, double eta_secs)
+ {
+     int eta_hours, eta_mins, eta_s;
+-    eta_hours = eta_secs / (60 * 60);
+-    eta_mins = (eta_secs - (eta_hours * 60 * 60)) / 60;
+-    eta_s = eta_secs - (eta_hours * 60 * 60 + eta_mins * 60);
++    eta_hours = (int) (eta_secs / (60 * 60));
++    eta_mins = (int) ((eta_secs - (eta_hours * 60 * 60)) / 60);
++    eta_s = (int) (eta_secs - (eta_hours * 60 * 60 + eta_mins * 60));
+     g_snprintf (buffer, BUF_TINY, _("%d:%02d.%02d"), eta_hours, eta_mins, eta_s);
+ }
+ 

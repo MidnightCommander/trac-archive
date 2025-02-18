@@ -1,0 +1,132 @@
+From f7f32827da1a069d378b58a896302a3eedd0f611 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 14 Jan 2023 10:20:30 +0000
+Subject: [PATCH] (lib.c) fix heap buffer overflow
+
+Normal start result in this AddressSanitizer hit.
+
+=================================================================
+==17167==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x60200005b251 at pc 0x5983b1c3be5f bp 0x7ffcc27f4310 sp 0x7ffcc27f4308
+WRITE of size 1 at 0x60200005b251 thread T0
+    #0 0x5983b1c3be5e in mc_search__change_case_str /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/lib.c:84:14
+    #1 0x5983b1c3c03f in mc_search__toupper_case_str /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/lib.c:200:12
+    #2 0x5983b1d1b434 in mc_search__cond_struct_new_regex_hex_add /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:130:11
+    #3 0x5983b1d1ad7f in mc_search__cond_struct_new_regex_accum_append /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:180:17
+    #4 0x5983b1d147c9 in mc_search__cond_struct_new_regex_ci_str /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:251:5
+    #5 0x5983b1d136fa in mc_search__cond_struct_new_init_regex /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:817:39
+    #6 0x5983b1c3d7f0 in mc_search__cond_struct_new /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/search.c:80:9
+    #7 0x5983b1c3d2e5 in mc_search_prepare /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/search.c:219:26
+    #8 0x5983b1c3d9c3 in mc_search_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/search.c:297:10
+    #9 0x5983b1c359f2 in mc_fhl_get_color_regexp /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/filehighlight/get-color.c:243:9
+    #10 0x5983b1c35385 in mc_fhl_get_color /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/filehighlight/get-color.c:278:19
+    #11 0x5983b1a1208f in file_compute_color /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:784:12
+    #12 0x5983b1a10bfd in format_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:814:17
+    #13 0x5983b1a0fb17 in repaint_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:954:15
+    #14 0x5983b1a0c0b6 in paint_dir /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:1071:9
+    #15 0x5983b19fab96 in panel_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3731:9
+    #16 0x5983b1d08775 in widget_draw /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/widget-common.c:539:19
+    #17 0x5983b1d078eb in widget_default_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/widget-common.c:841:17
+    #18 0x5983b1cb3c0b in widget_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:383:12
+    #19 0x5983b1cb286c in group_default_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/group.c:691:17
+    #20 0x5983b1caa8ab in widget_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:383:12
+    #21 0x5983b1cacd14 in dlg_init /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:540:5
+    #22 0x5983b1cada9d in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:601:5
+    #23 0x5983b19cddd9 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/filemanager.c:1827:16
+    #24 0x5983b1999605 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:455:21
+    #25 0x7d3944d620cb  (/lib64/libc.so.6+0x220cb)
+    #26 0x7d3944d6217b in __libc_start_main (/lib64/libc.so.6+0x2217b)
+    #27 0x5983b18d7d10 in _start (/usr/bin/mc+0x277d10)
+
+0x60200005b251 is located 0 bytes to the right of 1-byte region [0x60200005b250,0x60200005b251)
+allocated by thread T0 here:
+    #0 0x5983b195ee89 in malloc (/usr/bin/mc+0x2fee89)
+    #1 0x7d3945014ef9 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x54ef9)
+    #2 0x5983b1c3c03f in mc_search__toupper_case_str /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/lib.c:200:12
+    #3 0x5983b1d1b434 in mc_search__cond_struct_new_regex_hex_add /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:130:11
+    #4 0x5983b1d1ad7f in mc_search__cond_struct_new_regex_accum_append /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:180:17
+    #5 0x5983b1d147c9 in mc_search__cond_struct_new_regex_ci_str /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:251:5
+    #6 0x5983b1d136fa in mc_search__cond_struct_new_init_regex /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:817:39
+    #7 0x5983b1c3d7f0 in mc_search__cond_struct_new /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/search.c:80:9
+    #8 0x5983b1c3d2e5 in mc_search_prepare /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/search.c:219:26
+    #9 0x5983b1c3d9c3 in mc_search_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/search.c:297:10
+    #10 0x5983b1c359f2 in mc_fhl_get_color_regexp /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/filehighlight/get-color.c:243:9
+    #11 0x5983b1c35385 in mc_fhl_get_color /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/filehighlight/get-color.c:278:19
+    #12 0x5983b1a1208f in file_compute_color /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:784:12
+    #13 0x5983b1a10bfd in format_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:814:17
+    #14 0x5983b1a0fb17 in repaint_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:954:15
+    #15 0x5983b1a0c0b6 in paint_dir /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:1071:9
+    #16 0x5983b19fab96 in panel_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3731:9
+    #17 0x5983b1d08775 in widget_draw /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/widget-common.c:539:19
+    #18 0x5983b1d078eb in widget_default_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/widget-common.c:841:17
+    #19 0x5983b1cb3c0b in widget_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:383:12
+    #20 0x5983b1cb286c in group_default_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/group.c:691:17
+    #21 0x5983b1caa8ab in widget_set_state /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:383:12
+    #22 0x5983b1cacd14 in dlg_init /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:540:5
+    #23 0x5983b1cada9d in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:601:5
+    #24 0x5983b19cddd9 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/filemanager.c:1827:16
+    #25 0x5983b1999605 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:455:21
+    #26 0x7d3944d620cb  (/lib64/libc.so.6+0x220cb)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/lib.c:84:14 in mc_search__change_case_str
+Shadow bytes around the buggy address:
+  0x0c04800035f0: fa fa fd fa fa fa fd fd fa fa fd fa fa fa fd fa
+  0x0c0480003600: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0c0480003610: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fd
+  0x0c0480003620: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0c0480003630: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+=>0x0c0480003640: fa fa fd fa fa fa fd fa fa fa[01]fa fa fa fa fa
+  0x0c0480003650: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480003660: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480003670: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480003680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480003690: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==17167==ABORTING
+
+Found by clang 15
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/search/lib.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/search/lib.c b/lib/search/lib.c
+index 343e1f94d..4f5fa7f3c 100644
+--- a/lib/search/lib.c
++++ b/lib/search/lib.c
+@@ -75,7 +75,7 @@ mc_search__change_case_str (const char *charset, const GString * str, case_conv_
+ 
+     converted_str = mc_search__recode_str (str->str, str->len, charset, cp_display);
+ 
+-    dst_str = g_malloc (converted_str->len);
++    dst_str = g_malloc (converted_str->len + 1);
+     dst_len = converted_str->len + 1;   /* +1 is required for str_toupper/str_tolower */
+ 
+     for (src_ptr = converted_str->str, dst_ptr = dst_str;
+@@ -91,7 +91,7 @@ mc_search__change_case_str (const char *charset, const GString * str, case_conv_
+ #else
+     (void) charset;
+ 
+-    dst_str = g_malloc (str->len);
++    dst_str = g_malloc (str->len + 1);
+     dst_len = str->len + 1;     /* +1 is required for str_toupper/str_tolower */
+ 
+     for (src_ptr = str->str, dst_ptr = dst_str;

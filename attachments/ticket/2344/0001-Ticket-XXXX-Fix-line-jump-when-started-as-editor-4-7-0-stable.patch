@@ -1,0 +1,44 @@
+From c1957249250c934ae0cf62cd1e445ccd2bdb9581 Mon Sep 17 00:00:00 2001
+From: Yury V. Zaytsev <yury@shurup.com>
+Date: Wed, 8 Sep 2010 21:43:11 +0200
+Subject: [PATCH] Ticket #XXXX: Fix line jump when started as editor
+
+Two common line jump protocols supported by mc are:
+
+    * mcedit +lineno file
+    * mcedit file:lineno
+
+Unfortunately, in the implementation of the first protocol, if line
+number equals to zero, which is often used to position the cursor at the
+beginning of the file, it is completely ignored and file "+0" is opened
+instead.
+
+This patch fixes aforementioned issue.
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ src/main.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 2be2a7f..2ff2bce 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -2050,6 +2050,14 @@ mc_main__setup_by_args (int argc, char *argv[])
+ 	    try_plus_filename:
+ 		if (*tmp == '+' && g_ascii_isdigit ((gchar) tmp[1])) {
+ 		    int start_line = atoi (tmp);
++
++                    /*
++                     * If start_line is zero, position the cursor at the
++                     * beginning of the file as other editors (vi, nano)
++                     */
++                    if (start_line == 0)
++                        start_line++;
++
+ 		    if (start_line > 0) {
+ 			char *file = (argc > 1) ? argv[2] : NULL;
+ 			if (file) {
+-- 
+1.7.2.3
+

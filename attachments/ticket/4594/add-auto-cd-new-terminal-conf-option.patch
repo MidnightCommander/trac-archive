@@ -1,0 +1,81 @@
+see https://midnight-commander.org/ticket/3088
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 96ed7cb54..17832d520 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -1875,6 +1875,11 @@ to
+ .BR No .
+ This option is disabled by default.
+ .PP
++.I Auto cd new terminal.
++If this option is enabled, mc tells its current directory to the terminal.
++Some graphical terminal emulators use this information to open new windows
++or tabs in that directory.
++.PP
+ .I Auto save setup.
+ If this option is enabled, when you exit Midnight Commander, the
+ configurable options of Midnight Commander are saved in the
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 279926690..17199414c 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -579,11 +579,11 @@ configure_box (void)
+                                     &mc_global.widget.show_all_if_ambiguous, NULL),
+                     QUICK_CHECKBOX (N_("Rotating d&ash"), &nice_rotating_dash, NULL),
+                     QUICK_CHECKBOX (N_("Cd follows lin&ks"), &mc_global.vfs.cd_symlinks, NULL),
++                    QUICK_CHECKBOX (N_("Auto cd new terminal"), &auto_cd_new_terminal, NULL),  /* w/o hotkey */
+                     QUICK_CHECKBOX (N_("Sa&fe delete"), &safe_delete, NULL),
+                     QUICK_CHECKBOX (N_("Safe overwrite"), &safe_overwrite, NULL),       /* w/o hotkey */
+                     QUICK_CHECKBOX (N_("A&uto save setup"), &auto_save_setup, NULL),
+                     QUICK_SEPARATOR (FALSE),
+-                    QUICK_SEPARATOR (FALSE),
+                 QUICK_STOP_GROUPBOX,
+             QUICK_STOP_COLUMNS,
+             QUICK_BUTTONS_OK_CANCEL,
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 1f96c2dd1..97d88bd5e 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -1581,7 +1581,7 @@ update_xterm_title_path (void)
+ void
+ update_terminal_cwd (void)
+ {
+-    if (mc_global.tty.xterm_flag && vfs_current_is_local ())
++    if (mc_global.tty.xterm_flag && auto_cd_new_terminal && vfs_current_is_local ())
+     {
+         const gchar *host;
+         char *path, *path_uri;
+diff --git a/src/setup.c b/src/setup.c
+index eb729c603..3b0658448 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -112,6 +112,9 @@ gboolean confirm_view_dir = FALSE;
+ /* Ask file name before start the editor */
+ gboolean editor_ask_filename_before_edit = FALSE;
+ 
++/* Tell cwd to the terminal so it can open new tabs there */
++gboolean auto_cd_new_terminal = TRUE;
++
+ panel_view_mode_t startup_left_mode;
+ panel_view_mode_t startup_right_mode;
+ 
+@@ -366,6 +369,7 @@ static const struct
+     { "mcview_remember_file_position", &mcview_remember_file_position },
+     { "auto_fill_mkdir_name", &auto_fill_mkdir_name },
+     { "copymove_persistent_attr", &copymove_persistent_attr },
++    { "auto_cd_new_terminal", &auto_cd_new_terminal },
+     { NULL, NULL }
+ };
+ 
+diff --git a/src/setup.h b/src/setup.h
+index b6e675d75..bbee32669 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -100,6 +100,7 @@ extern gboolean use_file_to_check_type;
+ #endif
+ extern gboolean file_op_compute_totals;
+ extern gboolean editor_ask_filename_before_edit;
++extern gboolean auto_cd_new_terminal;
+ 
+ extern panels_options_t panels_options;
+ 

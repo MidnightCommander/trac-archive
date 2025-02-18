@@ -1,0 +1,31 @@
+diff --git a/src/filegui.c b/src/filegui.c
+index 63d02eb..6c698bf 100644
+--- a/src/filegui.c
++++ b/src/filegui.c
+@@ -610,6 +610,8 @@ init_replace (FileOpContext *ctx, enum OperationMode mode)
+     char buffer[BUF_SMALL];
+     const char *title;
+ 
++    const char *stripped_name = strip_home_and_password (ui->replace_filename);
++
+     if (mode == Foreground)
+ 	title = _(" File exists ");
+     else
+@@ -647,6 +649,8 @@ init_replace (FileOpContext *ctx, enum OperationMode mode)
+ 	rd_xlen = max (rd_xlen, l1 + l2 + 8);
+ 	rd_xlen = max (rd_xlen, str_term_width1 (title) + 2);
+ 
++	rd_xlen = max (rd_xlen, min(COLS, str_term_width1 (stripped_name) + 8));
++
+ 	/* Now place buttons */
+ 	l1 += 5;		/* start of first button in the row */
+ 	i = num;
+@@ -671,7 +675,7 @@ init_replace (FileOpContext *ctx, enum OperationMode mode)
+ 		    title, DLG_CENTER | DLG_REVERSE);
+ 
+     ADD_RD_LABEL (ui, 0,
+-		  str_trunc (strip_home_and_password (ui->replace_filename),
++		  str_trunc (stripped_name,
+ 				rd_xlen - 8), 0);
+     ADD_RD_LABEL (ui, 1, file_date (ui->s_stat->st_mtime),
+ 		  (off_t) ui->s_stat->st_size);

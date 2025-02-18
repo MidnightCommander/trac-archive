@@ -1,0 +1,34 @@
+From b64ef97e774381145a4b9be8652bff122d693965 Mon Sep 17 00:00:00 2001
+From: Evgeny Grin <k2k@narod.ru>
+Date: Sun, 21 May 2023 14:06:39 +0300
+Subject: [PATCH] FTBFS without ext2fs attributes support
+
+---
+ src/filemanager/info.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index 99d15848b..257a5391f 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -259,6 +259,7 @@ info_show_info (WInfo * info)
+     case 6:
+         widget_gotoyx (w, 6, 3);
+ 
++#ifdef ENABLE_EXT2FS_ATTR
+         {
+             vfs_path_t *vpath;
+             unsigned long attr;
+@@ -272,6 +273,9 @@ info_show_info (WInfo * info)
+ 
+             vfs_path_free (vpath, TRUE);
+         }
++#else
++        tty_print_string (_("Attributes: unavailable"));
++#endif
+         MC_FALLTHROUGH;
+     case 5:
+         widget_gotoyx (w, 5, 3);
+-- 
+2.40.1.windows.1
+

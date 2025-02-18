@@ -1,0 +1,175 @@
+diff a/lib/mcconfig.h b/lib/mcconfig.h
+--- a/lib/mcconfig.h
++++ b/lib/mcconfig.h
+@@ -99,6 +99,7 @@ const char *mc_config_get_cache_path (void);
+ const char *mc_config_get_home_dir (void);
+ const char *mc_config_get_path (void);
+ char *mc_config_get_full_path (const char *config_name);
++char *mc_file_get_full_path (const char *file_name);
+ vfs_path_t *mc_config_get_full_vpath (const char *config_name);
+ 
+ gboolean mc_config_migrate_from_old_place (GError ** mcerror, char **msg);
+diff --git a/lib/mcconfig/paths.c b/lib/mcconfig/paths.c
+index 916bff9..4aa1e89 100644
+--- a/lib/mcconfig/paths.c
++++ b/lib/mcconfig/paths.c
+@@ -528,6 +528,37 @@ mc_config_get_full_path (const char *config_name)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /**
++ * Get full path to existing file by short name.
++ *
++ * @param file_name file short name
++ * @return full path to file (NULL if not found)
++ */
++
++char *
++mc_file_get_full_path (const char *file_name)
++{
++    size_t rule_index;
++    char* full_path;
++
++    if (file_name == NULL)
++        return NULL;
++
++    if (!xdg_vars_initialized)
++        mc_config_init_config_paths (NULL);
++
++    for (rule_index = 0; mc_config_files_reference[rule_index].old_filename != NULL; rule_index++)
++    {
++        full_path = g_build_filename (*mc_config_files_reference[rule_index].new_basedir,
++                                     file_name, NULL);
++        if (exist_file(full_path))
++            return full_path;
++        g_free(full_path);
++    }
++    return NULL;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
+  * Get full path to config file by short name.
+  *
+  * @param config_name short name
+diff --git a/src/filemanager/usermenu.c b/src/filemanager/usermenu.c
+index bafb1a7..afde214 100644
+--- a/src/usermenu.c
++++ b/src/usermenu.c
+@@ -420,7 +420,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ /** FIXME: recode this routine on version 3.0, it could be cleaner */
+ 
+-static void
++static char*
+ execute_menu_command (const WEdit * edit_widget, const char *commands, gboolean show_prompt)
+ {
+     FILE *cmd_file;
+@@ -432,11 +432,28 @@
+     int col;
+     vfs_path_t *file_name_vpath;
+     gboolean run_view = FALSE;
++    const char* text_start;
++    char* new_menu;
+ 
+     /* Skip menu entry title line */
+     commands = strchr (commands, '\n');
+     if (commands == NULL)
+-        return;
++        return(NULL);
++
++    /* chain menu? */
++    text_start = commands+1;
++    while (*text_start == ' ' || *text_start == '\t') ++text_start;
++    if (*text_start == '>')
++    {
++        char*  line_end; 
++
++        ++text_start;
++        while (*text_start == ' ' || *text_start == '\t') ++text_start;
++        line_end = strchr (text_start, '\n');
++        if  (!line_end) return(NULL);
++        new_menu = g_strndup(text_start, line_end - text_start);
++        return(new_menu);
++     }
+ 
+     cmd_file_fd = mc_mkstemps (&file_name_vpath, "mcusr", SCRIPT_SUFFIX);
+ 
+@@ -445,7 +462,7 @@
+         message (D_ERROR, MSG_ERROR, _("Cannot create temporary command file\n%s"),
+                  unix_error_string (errno));
+         vfs_path_free (file_name_vpath);
+-        return;
++        return(NULL);
+     }
+     cmd_file = fdopen (cmd_file_fd, "w");
+     fputs ("#! /bin/sh\n", cmd_file);
+@@ -481,7 +498,7 @@
+                     fclose (cmd_file);
+                     mc_unlink (file_name_vpath);
+                     vfs_path_free (file_name_vpath);
+-                    return;
++                    return(NULL);
+                 }
+                 if (do_quote)
+                 {
+@@ -568,6 +585,7 @@
+     }
+     mc_unlink (file_name_vpath);
+     vfs_path_free (file_name_vpath);
++    return(NULL);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -934,6 +952,10 @@
+         menu = g_strdup (menu_file);
+     else
+         menu = g_strdup (edit_widget != NULL ? EDIT_LOCAL_MENU : MC_LOCAL_MENU);
++
++do /* process menu file */
++{
++    res = FALSE;
+     if (!exist_file (menu) || !menu_file_own (menu))
+     {
+         if (menu_file != NULL)
+@@ -982,6 +1004,8 @@
+         MC_PTR_FREE (menu);
+         return FALSE;
+     }
++    g_free (menu);
++    menu = NULL;
+ 
+     max_cols = 0;
+     selected = 0;
+@@ -1110,7 +1134,7 @@
+         }
+         if (selected >= 0)
+         {
+-            execute_menu_command (edit_widget, entries[selected], interactive);
++            menu = execute_menu_command (edit_widget, entries[selected], interactive);
+             res = TRUE;
+         }
+ 
+@@ -1118,9 +1142,22 @@
+     }
+ 
+     easy_patterns = old_patterns;
+-    MC_PTR_FREE (menu);
+     g_free (entries);
+     g_free (data);
++    if (menu) /* possible chain menu */
++    {
++        char* temp = mc_file_get_full_path (menu);
++        g_free (menu);
++        menu = temp;
++        if (!exist_file (menu))
++        {
++            g_free(menu);
++            menu = NULL;
++        }
++    }
++}
++while (menu);
++    do_refresh ();
+     return res;
+ }
+ 

@@ -1,0 +1,44 @@
+$ cat /etc/mc/mc.charsets
+ASCII           7-bit ASCII
+ISO-8859-1      ISO 8859-1
+ISO-8859-2      ISO 8859-2
+ISO-8859-5      ISO 8859-5
+CP1250          Windows 1250
+CP1251          Windows 1251
+CP437           CP 437
+CP850           CP 850
+CP852           CP 852
+CP866           CP 866
+KOI8-R          KOI8-R
+KOI8-U          KOI8-U
+UTF-8           UTF-8
+UCS-2LE         UNICODELITTLE
+UTF-16LE        UTF-16LE
+EUC-JP          EUCJP
+SHIFT-JIS       SJIS
+CP932           MS932
+ISO-2022-JP     JIS
+GB2312          EUCCN
+CP936           MS936
+ISO-2022-CN     CSISO2022CN
+BIG-5           BIG-FIVE
+
+$ find . -type f -print -exec xxd {} \;
+./ucs2le.txt
+00000000: 4100 4200 4300 0a00 4400 4500 4600 0a00  A.B.C...D.E.F...
+00000010: 4700 4800 4900 0a00 004e 8c4e 094e 0a00  G.H.I....N.N.N..
+00000020: db56 944e 6d51 0a00 034e 6b51 5d4e 0a00  .V.NmQ...NkQ]N..
+00000030: 6d51 944e db56 0a00                      mQ.N.V..
+./utf8.txt
+00000000: 4a4b 4c0a 4d4e 4f0a 5051 520a e4b8 80e4  JKL.MNO.PQR.....
+00000010: ba8c e4b8 890a e59b 9be4 ba94 e585 ad0a  ................
+00000020: e4b8 83e5 85ab e4b9 9d0a e4b8 89e4 ba8c  ................
+00000030: e4b8 800a                                ....
+./cp936.txt
+00000000: d2bb b6fe c8fd 0acb c4ce e5c1 f90a c6df  ................
+00000010: b0cb bec5 0ad2 bcb7 a1c8 fe0a            ............
+./cp932.txt
+00000000: 88ea 93f1 8e4f 0a8e 6c8c dc98 5a0a 8eb5  .....O..l...Z...
+00000010: 94aa 8be3 0a88 eb93 f38e 510a            ..........Q.
+
+

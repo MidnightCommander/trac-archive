@@ -1,0 +1,40 @@
+--- ../deba.in	2009-06-16 00:18:22.000000000 +0300
++++ deba.in	2009-12-29 15:57:04.000000000 +0200
+@@ -16,7 +16,7 @@
+ {
+        my($qarchive)=@_;
+        $qarchive = quote($qarchive);
+-       chop($date=`LC_ALL=C date "+%b %d %Y %H:%M"`);
++       chop($date=`LC_ALL=C date "+%m-%d-%Y %H:%M"`);
+        chop($info_size=`apt-cache show $qarchive | wc -c`);
+        $install_size=length($pressinstall);
+        $upgrade_size=length($pressupgrade);
+--- ../debd.in	2009-06-16 00:18:22.000000000 +0300
++++ debd.in	2009-12-29 15:57:10.000000000 +0200
+@@ -109,7 +109,7 @@
+ {
+        my($archive)=@_;
+        my $qarchive = quote($archive);
+-       chop($date=`LC_ALL=C date "+%b %d %Y %H:%M"`);
++       chop($date=`LC_ALL=C date "+%m-%d-%Y %H:%M"`);
+        chop($info_size=`dpkg -s $qarchive | wc -c`);
+        $repack_size=length($pressrepack);
+        $reinstall_size=length($pressreinstall);
+@@ -183,7 +183,7 @@
+                system("chmod a+x $qdestfile");
+            }
+         } elsif($filename =~ /^DEBIAN/) {
+-            $filename=~s!^DEBIAN/!!;
++            $qfilename=~s!^DEBIAN/!!;
+             system("cat /var/lib/dpkg/info/$qarchive.$qfilename > $qdestfile");
+        } elsif($filename eq "DPKG-REMOVE" || $filename eq "APT-REMOVE") {
+            if ( open(FILEOUT,">$destfile") ) {
+@@ -251,7 +251,7 @@
+        } elsif($filename eq "DPKG-RECONFIGURE") {
+            system("dpkg-reconfigure $qarchive");
+        } elsif($filename=~/^DEBIAN/) {
+-           $filename=~s!^DEBIAN!!;
++           $qfilename=~s!^DEBIAN!!;
+            system("/var/lib/dpkg/info/$qarchive.$qfilename");
+        } else {
+            $qfilename=~s!^CONTENTS!!;

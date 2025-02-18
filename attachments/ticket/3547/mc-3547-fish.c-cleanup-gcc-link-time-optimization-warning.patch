@@ -1,0 +1,62 @@
+From b1cd6d5441af1c10951ba9524bbbcdbf2f0db529 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 19 Dec 2015 13:23:23 +0000
+Subject: [PATCH]  fish.c: cleanup gcc link time optimization warning
+
+In function '__read_alias',
+    inlined from 'fish_linear_abort.isra.0' at fish.c:1047:15:
+/usr/include/bits/unistd.h:39:9: error: call to '__read_chk_warn' declared with attribute warning: read called with bigger length than size of the destination buffer [-Werror]
+  return __read_chk (__fd, __buf, __nbytes, __bos0 (__buf));
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/fish/fish.c | 23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index 1172f31..8c4401d 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -1034,28 +1034,33 @@ fish_linear_abort (struct vfs_class *me, vfs_file_handler_t * fh)
+ {
+     fish_fh_data_t *fish = (fish_fh_data_t *) fh->data;
+     struct vfs_s_super *super = FH_SUPER;
+-    char buffer[BUF_8K];
++    char *buf;
++    size_t bufsize = BUF_8K;
+     ssize_t n;
+ 
+     vfs_print_message ("%s", _("Aborting transfer..."));
+ 
+-    do
++    buf = g_malloc (bufsize * sizeof *buf);
++    while ((fish->total - fish->got) != 0)
+     {
+-        n = MIN ((off_t) sizeof (buffer), (fish->total - fish->got));
+-        if (n != 0)
++        if (bufsize > (size_t) (fish->total - fish->got))
+         {
+-            n = read (SUP->sockr, buffer, n);
+-            if (n < 0)
+-                return;
+-            fish->got += n;
++           g_free(buf);
++           bufsize = (size_t) (fish->total - fish->got);
++           buf = g_malloc (bufsize * sizeof *buf);
+         }
++        n = read (SUP->sockr, buf, bufsize);
++        if (n < 0)
++            goto ret;
++        fish->got += n;
+     }
+-    while (n != 0);
+ 
+     if (fish_get_reply (me, SUP->sockr, NULL, 0) != COMPLETE)
+         vfs_print_message ("%s", _("Error reported after abort."));
+     else
+         vfs_print_message ("%s", _("Aborted transfer would be successful."));
++  ret:
++    g_free(buf);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

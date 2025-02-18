@@ -1,0 +1,249 @@
+diff --git a/lib/util.c b/lib/util.c
+index b7787ab..3077fb4 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -1291,15 +1291,16 @@ Q_ (const char *s)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ gboolean
+-mc_util_make_backup_if_possible (const char *file_name, const char *backup_suffix)
++mc_util_make_backup_if_possible_from (const char *file_name, const char *backup_name, const char *backup_suffix)
+ {
+-    struct stat stat_buf;
+     char *backup_path;
++    struct stat stat_buf;
+     gboolean ret;
++
+     if (!exist_file (file_name))
+         return FALSE;
+ 
+-    backup_path = g_strdup_printf ("%s%s", file_name, backup_suffix);
++    backup_path = g_strdup_printf ("%s%s", backup_name, backup_suffix);
+ 
+     if (backup_path == NULL)
+         return FALSE;
+@@ -1314,7 +1315,6 @@ mc_util_make_backup_if_possible (const char *file_name, const char *backup_suffi
+         else
+             chmod (backup_path, S_IRUSR | S_IWUSR);
+     }
+-
+     g_free (backup_path);
+ 
+     return ret;
+@@ -1323,12 +1323,20 @@ mc_util_make_backup_if_possible (const char *file_name, const char *backup_suffi
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ gboolean
+-mc_util_restore_from_backup_if_possible (const char *file_name, const char *backup_suffix)
++mc_util_make_backup_if_possible (const char *file_name, const char *backup_suffix)
++{
++    return mc_util_make_backup_if_possible_from (file_name, file_name, backup_suffix);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++gboolean
++mc_util_restore_from_backup_if_possible_to (const char *file_name, const char *backup_name, const char *backup_suffix)
+ {
+     gboolean ret;
+     char *backup_path;
+ 
+-    backup_path = g_strdup_printf ("%s%s", file_name, backup_suffix);
++    backup_path = g_strdup_printf ("%s%s", backup_name, backup_suffix);
+     if (backup_path == NULL)
+         return FALSE;
+ 
+@@ -1341,6 +1349,14 @@ mc_util_restore_from_backup_if_possible (const char *file_name, const char *back
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ gboolean
++mc_util_restore_from_backup_if_possible (const char *file_name, const char *backup_suffix)
++{
++    return mc_util_restore_from_backup_if_possible_to (file_name, file_name, backup_suffix);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++gboolean
+ mc_util_unlink_backup_if_possible (const char *file_name, const char *backup_suffix)
+ {
+     char *backup_path;
+diff --git a/lib/util.h b/lib/util.h
+index f0c0ee2..e8ec8af 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -192,7 +192,9 @@ extern int ascii_alpha_to_cntrl (int ch);
+ const char *Q_ (const char *s);
+ 
+ gboolean mc_util_make_backup_if_possible (const char *, const char *);
++gboolean mc_util_make_backup_if_possible_from (const char *, const char *, const char *);
+ gboolean mc_util_restore_from_backup_if_possible (const char *, const char *);
++gboolean mc_util_restore_from_backup_if_possible_to (const char *, const char *, const char *);
+ gboolean mc_util_unlink_backup_if_possible (const char *, const char *);
+ 
+ char *guess_message_value (void);
+diff --git a/src/diffviewer/internal.h b/src/diffviewer/internal.h
+index 778ce14..1ee0e38 100644
+--- a/src/diffviewer/internal.h
++++ b/src/diffviewer/internal.h
+@@ -88,6 +88,8 @@ typedef struct WDiff
+ 
+     const char *args;           /* Args passed to diff */
+     const char *file[DIFF_COUNT];       /* filenames */
++    char *orig_file[DIFF_COUNT];        /* original filenames */
++    char *tempdir;                      /* temporary directory */
+     char *label[DIFF_COUNT];
+     FBUF *f[DIFF_COUNT];
+     const char *backup_sufix;
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index 59e1dd8..5e076bf 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -2194,18 +2194,70 @@ do_merge_hunk (WDiff * dview, action_direction_t merge_direction)
+ 
+     if (hunk > 0)
+     {
+-        int merge_file_fd;
++        int merge_file_fd, temp_file_fd;
+         FILE *merge_file;
+-        vfs_path_t *merge_file_name_vpath = NULL;
++        vfs_path_t *merge_file_name_vpath = NULL, *temp_file_vpath = NULL;
++        char *tmp_filename;
+ 
+         if (!dview->merged[n_merge])
+         {
+-            dview->merged[n_merge] = mc_util_make_backup_if_possible (dview->file[n_merge], "~~~");
++            temp_file_fd = mc_mkstemps (&temp_file_vpath, "mcdiff", NULL);
++            if (temp_file_fd == -1)
++            {
++                message (D_ERROR, MSG_ERROR, _("Cannot create temporary file\n%s"),
++                         unix_error_string (errno));
++                vfs_path_free (temp_file_vpath);
++                return;
++            }
++            mc_close (temp_file_fd);
++
++            /* save original file */
++            dview->orig_file[n_merge] = (char *) dview->file[n_merge];
++            dview->file[n_merge] = vfs_path_to_str (temp_file_vpath);
++            vfs_path_free (temp_file_vpath);
++
++            if (dview->tempdir == NULL)
++            {
++                dview->tempdir = g_build_filename (mc_tmpdir (), "mcdiffXXXXXX", (char *) NULL);
++                if (dview->tempdir == NULL || g_mkdtemp (dview->tempdir) == NULL)
++                {
++                    message (D_ERROR, MSG_ERROR, _("Cannot create temp directory\n%s"),
++                             unix_error_string (errno));
++                    if (dview->tempdir)
++                    {
++                        g_free (dview->tempdir);
++                        dview->tempdir = NULL;
++                    }
++                }
++            }
++            if (dview->tempdir)
++            {
++                char *base;
++
++                base = g_path_get_basename (dview->orig_file[n_merge]);
++                tmp_filename = g_build_filename (dview->tempdir, base, (char *) NULL);
++                g_free (base);
++                if (!rename (dview->file[n_merge], tmp_filename))
++                {
++                    g_free ((char *)dview->file[n_merge]);
++                    dview->file[n_merge] = tmp_filename;
++                }
++                else
++                {
++                    g_free (tmp_filename);
++                }
++            }
++
++            dview->merged[n_merge] = mc_util_make_backup_if_possible_from (dview->orig_file[n_merge],
++                                            dview->file[n_merge], "");
+             if (!dview->merged[n_merge])
+             {
+                 message (D_ERROR, MSG_ERROR,
+-                         _("Cannot create backup file\n%s%s\n%s"),
+-                         dview->file[n_merge], "~~~", unix_error_string (errno));
++                         _("Cannot create backup file\n%s\n%s"),
++                         dview->file[n_merge], unix_error_string (errno));
++                g_free ((char *) dview->file[n_merge]);
++                dview->file[n_merge] = dview->orig_file[n_merge];
++                dview->orig_file[n_merge] = NULL;
+                 return;
+             }
+         }
+@@ -2426,6 +2478,9 @@ dview_init (WDiff * dview, const char *args, const char *file1, const char *file
+     dview->file[DIFF_RIGHT] = file2;
+     dview->label[DIFF_LEFT] = g_strdup (label1);
+     dview->label[DIFF_RIGHT] = g_strdup (label2);
++    dview->orig_file[DIFF_LEFT] = NULL;
++    dview->orig_file[DIFF_RIGHT] = NULL;
++    dview->tempdir = NULL;
+     dview->f[DIFF_LEFT] = f[0];
+     dview->f[DIFF_RIGHT] = f[1];
+     dview->merged[DIFF_LEFT] = FALSE;
+@@ -2507,6 +2562,11 @@ dview_fini (WDiff * dview)
+         g_array_free (dview->a[DIFF_RIGHT], TRUE);
+         dview->a[DIFF_RIGHT] = NULL;
+     }
++    if (dview->tempdir)
++    {
++        rmdir (dview->tempdir);
++        g_free (dview->tempdir);
++    }
+ 
+     g_free (dview->label[DIFF_LEFT]);
+     g_free (dview->label[DIFF_RIGHT]);
+@@ -2999,12 +3059,22 @@ dview_save (WDiff * dview)
+ 
+     if (dview->merged[DIFF_LEFT])
+     {
+-        res = mc_util_unlink_backup_if_possible (dview->file[DIFF_LEFT], "~~~");
++        res = mc_util_restore_from_backup_if_possible_to (dview->orig_file[DIFF_LEFT],
++                        dview->file[DIFF_LEFT], "");
++        mc_util_unlink_backup_if_possible (dview->file[DIFF_LEFT], "");
++        g_free ((char *) dview->file[DIFF_LEFT]);
++        dview->file[DIFF_LEFT] = dview->orig_file[DIFF_LEFT];
++        dview->orig_file[DIFF_LEFT] = NULL;
+         dview->merged[DIFF_LEFT] = !res;
+     }
+     if (dview->merged[DIFF_RIGHT])
+     {
+-        res = mc_util_unlink_backup_if_possible (dview->file[DIFF_RIGHT], "~~~");
++        res = mc_util_restore_from_backup_if_possible_to (dview->orig_file[DIFF_RIGHT],
++                        dview->file[DIFF_RIGHT], "");
++        mc_util_unlink_backup_if_possible (dview->file[DIFF_RIGHT], "");
++        g_free ((char *) dview->file[DIFF_RIGHT]);
++        dview->file[DIFF_RIGHT] = dview->orig_file[DIFF_RIGHT];
++        dview->orig_file[DIFF_RIGHT] = NULL;
+         dview->merged[DIFF_RIGHT] = !res;
+     }
+     return res;
+@@ -3112,10 +3182,20 @@ dview_ok_to_exit (WDiff * dview)
+         res = TRUE;
+         break;
+     case 1:                    /* No */
+-        if (mc_util_restore_from_backup_if_possible (dview->file[DIFF_LEFT], "~~~"))
+-            res = mc_util_unlink_backup_if_possible (dview->file[DIFF_LEFT], "~~~");
+-        if (mc_util_restore_from_backup_if_possible (dview->file[DIFF_RIGHT], "~~~"))
+-            res = mc_util_unlink_backup_if_possible (dview->file[DIFF_RIGHT], "~~~");
++        if (dview->merged[DIFF_LEFT])
++        {
++            mc_util_unlink_backup_if_possible (dview->file[DIFF_LEFT], "");
++            g_free ((char *) dview->file[DIFF_LEFT]);
++            dview->file[DIFF_LEFT] = dview->orig_file[DIFF_LEFT];
++            dview->orig_file[DIFF_LEFT] = NULL;
++        }
++        if (dview->merged[DIFF_RIGHT])
++        {
++            mc_util_unlink_backup_if_possible (dview->file[DIFF_RIGHT], "");
++            g_free ((char *) dview->file[DIFF_RIGHT]);
++            dview->file[DIFF_RIGHT] = dview->orig_file[DIFF_RIGHT];
++            dview->orig_file[DIFF_RIGHT] = NULL;
++        }
+         /* fall through */
+     default:
+         res = TRUE;

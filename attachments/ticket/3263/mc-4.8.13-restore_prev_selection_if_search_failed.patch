@@ -1,0 +1,110 @@
+bugfix for ticket #3263 - mcview hex: Incorrect highlight when search string not found
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+diff -ruN mc-4.8.13/src/viewer/actions_cmd.c mc-4.8.13.patch/src/viewer/actions_cmd.c
+--- mc-4.8.13/src/viewer/actions_cmd.c	2014-09-02 13:34:09.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/actions_cmd.c	2015-02-16 16:00:00.000000000 +0200
+@@ -99,14 +99,16 @@
+ static void
+ mcview_search (mcview_t * view, gboolean start_search)
+ {
++    off_t want_search_start = view->search_start;
++
+     if (start_search)
+     {
+         if (mcview_dialog_search (view))
+         {
+             if (view->hex_mode)
+-                view->search_start = view->hex_cursor;
++                want_search_start = view->hex_cursor;
+ 
+-            mcview_do_search (view);
++            mcview_do_search (view,want_search_start);
+         }
+     }
+     else
+@@ -114,14 +116,14 @@
+         if (view->hex_mode)
+         {
+             if (!mcview_search_options.backwards)
+-                view->search_start = view->hex_cursor + 1;
++                want_search_start = view->hex_cursor + 1;
+             else if (view->hex_cursor > 0)
+-                view->search_start = view->hex_cursor - 1;
++                want_search_start = view->hex_cursor - 1;
+             else
+-                view->search_start = 0;
++                want_search_start = 0;
+         }
+ 
+-        mcview_do_search (view);
++        mcview_do_search (view,want_search_start);
+     }
+ }
+ 
+diff -ruN mc-4.8.13/src/viewer/internal.h mc-4.8.13.patch/src/viewer/internal.h
+--- mc-4.8.13/src/viewer/internal.h	2014-09-02 13:34:09.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/internal.h	2015-02-16 16:00:00.000000000 +0200
+@@ -326,7 +326,7 @@
+ mc_search_cbret_t mcview_search_cmd_callback (const void *user_data, gsize char_offset,
+                                               int *current_char);
+ mc_search_cbret_t mcview_search_update_cmd_callback (const void *user_data, gsize char_offset);
+-void mcview_do_search (mcview_t * view);
++void mcview_do_search (mcview_t * view, off_t);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+diff -ruN mc-4.8.13/src/viewer/search.c mc-4.8.13.patch/src/viewer/search.c
+--- mc-4.8.13/src/viewer/search.c	2014-09-02 11:23:58.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/search.c	2015-02-16 16:00:00.000000000 +0200
+@@ -262,16 +262,18 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-mcview_do_search (mcview_t * view)
++mcview_do_search (mcview_t * view, off_t want_search_start)
+ {
+     mcview_search_status_msg_t vsm;
+ 
+     off_t search_start = 0;
++    off_t orig_search_start = view->search_start;
+     gboolean isFound = FALSE;
+     gboolean need_search_again = TRUE;
+ 
+     size_t match_len;
+ 
++    view->search_start = want_search_start;
+     /* for avoid infinite search loop we need to increase or decrease start offset of search */
+ 
+     if (view->search_start != 0)
+@@ -352,6 +354,7 @@
+     {
+         int result;
+ 
++        view->search_start = orig_search_start;
+         mcview_update (view);
+ 
+         result =
+@@ -369,7 +372,7 @@
+         /* continue search form beginning */
+         off_t search_end;
+ 
+-        search_end = view->search_start;
++        search_end = orig_search_start;
+         /* search_start is 0 here */
+         view->update_activate = search_start;
+ 
+@@ -390,8 +393,11 @@
+     }
+ 
+     if (!isFound && view->search->error_str != NULL)
++    {
++        view->search_start = orig_search_start;
++        mcview_update (view);
+         query_dialog (_("Search"), view->search->error_str, D_NORMAL, 1, _("&Dismiss"));
+-
++    }
+     view->dirty++;
+ }
+ 

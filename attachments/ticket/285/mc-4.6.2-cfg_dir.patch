@@ -1,0 +1,67 @@
+diff -Nru a/edit/editwidget.c b/edit/editwidget.c
+--- a/edit/editwidget.c	2009-03-13 08:12:56.000000000 +0800
++++ b/edit/editwidget.c	2009-03-13 08:12:37.000000000 +0800
+@@ -170,13 +170,14 @@
+ int
+ edit_file (const char *_file, int line)
+ {
+-    static int made_directory = 0;
+     Dlg_head *edit_dlg;
+     WButtonBar *edit_bar;
+ 
+-    if (!made_directory) {
++    {
+ 	char *dir = mhl_str_dir_plus_file (home_dir, EDIT_DIR);
+-	made_directory = (mkdir (dir, 0700) != -1 || errno == EEXIST);
++	if (g_mkdir_with_parents (dir, 0700)) {
++	    return 0;
++	}
+ 	g_free (dir);
+     }
+ 
+diff -Nru a/src/profile.c b/src/profile.c
+--- a/src/profile.c	2009-02-02 03:30:21.000000000 +0800
++++ b/src/profile.c	2009-03-13 08:11:52.000000000 +0800
+@@ -29,6 +29,7 @@
+ 
+ #include <sys/types.h>
+ 
++#include "fileloc.h"
+ #include "global.h"
+ #include "profile.h"
+ 
+@@ -403,6 +404,13 @@
+     if (!p)
+ 	return;
+     dump_profile (p->link);
++    {
++	char *dir = concat_dir_and_file (home_dir, MC_USERCONF_DIR);
++	if (g_mkdir_with_parents (dir, 0700)) {
++	    return;
++	}
++	g_free (dir);
++    }
+     /* .ado: p->FileName can be empty, it's better to jump over */
+     if (p->FileName[0] != (char) 0)
+       if ((profile = fopen (p->FileName, "w")) != NULL){
+diff -Nru a/src/setup.h b/src/setup.h
+--- a/src/setup.h	2009-02-02 03:30:21.000000000 +0800
++++ b/src/setup.h	2009-03-13 08:12:26.000000000 +0800
+@@ -1,6 +1,7 @@
+ #ifndef MC_SETUP_H
+ #define MC_SETUP_H
+ 
++#include "fileloc.h"
+ #include "panel.h"
+ 
+ char *setup_init (void);
+@@ -26,7 +27,7 @@
+ extern int startup_right_mode;
+ extern int verbose;
+ 
+-#define PROFILE_NAME     ".mc/ini"
+-#define HOTLIST_FILENAME ".mc/hotlist"
++#define PROFILE_NAME     MC_USERCONF_DIR PATH_SEP_STR MC_CONFIG_FILE
++#define HOTLIST_FILENAME MC_USERCONF_DIR PATH_SEP_STR MC_HOTLIST_FILE
+ 
+ #endif

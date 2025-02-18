@@ -1,0 +1,257 @@
+From 3509b2581604dbfb477ecb1730b9f49cc754e14d Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 20 Mar 2010 14:04:16 +0000
+Subject: [PATCH]  getting rid of goto in lib/vfs/mc-vfs/extfs.c
+
+---
+ lib/vfs/mc-vfs/extfs.c |  141 +++++++++++++++++++++++-------------------------
+ 1 files changed, 67 insertions(+), 74 deletions(-)
+
+diff --git a/lib/vfs/mc-vfs/extfs.c b/lib/vfs/mc-vfs/extfs.c
+index c567bc6..2be42b9 100644
+--- a/lib/vfs/mc-vfs/extfs.c
++++ b/lib/vfs/mc-vfs/extfs.c
+@@ -1014,27 +1014,26 @@ extfs_internal_stat (struct vfs_class *me, const char *path, struct stat *buf, g
+     struct archive *archive;
+     char *q, *mpath;
+     struct entry *entry;
+-    int result = -1;
+ 
+     mpath = g_strdup (path);
+ 
+     q = extfs_get_path_mangle (me, mpath, &archive, FALSE);
+-    if (q == NULL)
+-        goto cleanup;
+-    entry = extfs_find_entry (archive->root_entry, q, FALSE, FALSE);
++    if (q == NULL) {
++        g_free (mpath);
++        return -1;
++    }
++    entry = extfs_find_entry (archive->root_entry, q, FALSE, FALSE);    
++    g_free (mpath);
+     if (entry == NULL)
+-        goto cleanup;
+-    if (resolve)
+-    {
++        return -1;
++
++    if (resolve) {
+         entry = extfs_resolve_symlinks (entry);
+         if (entry == NULL)
+-            goto cleanup;
++            return -1;
+     }
+     extfs_stat_move (buf, entry->inode);
+-    result = 0;
+-  cleanup:
+-    g_free (mpath);
+-    return result;
++    return 0;
+ }
+ 
+ static int
+@@ -1065,30 +1064,29 @@ extfs_readlink (struct vfs_class *me, const char *path, char *buf, size_t size)
+     char *q, *mpath;
+     size_t len;
+     struct entry *entry;
+-    int result = -1;
+ 
+     mpath = g_strdup (path);
+ 
+     q = extfs_get_path_mangle (me, mpath, &archive, FALSE);
+-    if (q == NULL)
+-        goto cleanup;
++    if (q == NULL) {
++        g_free (mpath);
++        return -1;
++    }
+     entry = extfs_find_entry (archive->root_entry, q, FALSE, FALSE);
++    g_free (mpath);
+     if (entry == NULL)
+-        goto cleanup;
+-    if (!S_ISLNK (entry->inode->mode))
+-    {
++        return -1;
++
++    if (!S_ISLNK (entry->inode->mode)) {
+         me->verrno = EINVAL;
+-        goto cleanup;
++        return -1;
+     }
+     len = strlen (entry->inode->linkname);
+     if (size < len)
+         len = size;
+     /* readlink() does not append a NUL character to buf */
+-    result = len;
+-    memcpy (buf, entry->inode->linkname, result);
+-  cleanup:
+-    g_free (mpath);
+-    return result;
++    memcpy (buf, entry->inode->linkname, len);
++    return len;
+ }
+ 
+ static int
+@@ -1125,34 +1123,33 @@ extfs_unlink (struct vfs_class *me, const char *file)
+     struct archive *archive;
+     char *q, *mpath;
+     struct entry *entry;
+-    int result = -1;
+ 
+     mpath = g_strdup (file);
+ 
+     q = extfs_get_path_mangle (me, mpath, &archive, FALSE);
+-    if (q == NULL)
+-        goto cleanup;
++    if (q == NULL) {
++        g_free (mpath);
++        return -1;
++    }
+     entry = extfs_find_entry (archive->root_entry, q, FALSE, FALSE);
++    g_free (mpath);
+     if (entry == NULL)
+-        goto cleanup;
++        return -1;
++
+     entry = extfs_resolve_symlinks (entry);
+     if (entry == NULL)
+-        goto cleanup;
+-    if (S_ISDIR (entry->inode->mode))
+-    {
++        return -1;
++
++    if (S_ISDIR (entry->inode->mode)) {
+         me->verrno = EISDIR;
+-        goto cleanup;
++        return -1;
+     }
+-    if (extfs_cmd (" rm ", archive, entry, ""))
+-    {
++    if (extfs_cmd (" rm ", archive, entry, "")) {
+         my_errno = EIO;
+-        goto cleanup;
++        return -1;
+     }
+     extfs_remove_entry (entry);
+-    result = 0;
+-  cleanup:
+-    g_free (mpath);
+-    return result;
++    return 0;
+ }
+ 
+ static int
+@@ -1161,43 +1158,41 @@ extfs_mkdir (struct vfs_class *me, const char *path, mode_t mode)
+     struct archive *archive;
+     char *q, *mpath;
+     struct entry *entry;
+-    int result = -1;
+ 
+     (void) mode;
+ 
+     mpath = g_strdup (path);
+ 
+     q = extfs_get_path_mangle (me, mpath, &archive, FALSE);
+-    if (q == NULL)
+-        goto cleanup;
++    if (q == NULL) {
++        g_free (mpath);
++        return -1;
++    }
+     entry = extfs_find_entry (archive->root_entry, q, FALSE, FALSE);
+-    if (entry != NULL)
+-    {
++    if (entry != NULL) {
++        g_free (mpath);
+         me->verrno = EEXIST;
+-        goto cleanup;
++        return -1;
+     }
+     entry = extfs_find_entry (archive->root_entry, q, TRUE, FALSE);
++    g_free (mpath);
+     if (entry == NULL)
+-        goto cleanup;
++        return -1;
++
+     entry = extfs_resolve_symlinks (entry);
+     if (entry == NULL)
+-        goto cleanup;
+-    if (!S_ISDIR (entry->inode->mode))
+-    {
++        return -1;
++
++    if (!S_ISDIR (entry->inode->mode)) {
+         me->verrno = ENOTDIR;
+-        goto cleanup;
++        return -1;
+     }
+-
+-    if (extfs_cmd (" mkdir ", archive, entry, ""))
+-    {
++    if (extfs_cmd (" mkdir ", archive, entry, "")) {
+         my_errno = EIO;
+         extfs_remove_entry (entry);
+-        goto cleanup;
++        return -1;
+     }
+-    result = 0;
+-  cleanup:
+-    g_free (mpath);
+-    return result;
++    return 0;
+ }
+ 
+ static int
+@@ -1206,35 +1201,33 @@ extfs_rmdir (struct vfs_class *me, const char *path)
+     struct archive *archive;
+     char *q, *mpath;
+     struct entry *entry;
+-    int result = -1;
+ 
+     mpath = g_strdup (path);
+ 
+     q = extfs_get_path_mangle (me, mpath, &archive, FALSE);
+-    if (q == NULL)
+-        goto cleanup;
++    if (q == NULL) {
++        g_free (mpath);
++        return -1;
++    }
+     entry = extfs_find_entry (archive->root_entry, q, FALSE, FALSE);
++    g_free (mpath);
+     if (entry == NULL)
+-        goto cleanup;
++        return -1;
++
+     entry = extfs_resolve_symlinks (entry);
+     if (entry == NULL)
+-        goto cleanup;
+-    if (!S_ISDIR (entry->inode->mode))
+-    {
++        return -1;
++
++    if (!S_ISDIR (entry->inode->mode)) {
+         me->verrno = ENOTDIR;
+-        goto cleanup;
++        return -1;
+     }
+-
+-    if (extfs_cmd (" rmdir ", archive, entry, ""))
+-    {
++    if (extfs_cmd (" rmdir ", archive, entry, "")) {
+         my_errno = EIO;
+-        goto cleanup;
++        return -1;
+     }
+     extfs_remove_entry (entry);
+-    result = 0;
+-  cleanup:
+-    g_free (mpath);
+-    return result;
++    return 0;
+ }
+ 
+ static int
+-- 
+1.6.4
+

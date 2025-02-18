@@ -1,0 +1,38 @@
+--- a/src/subshell/common.c	2017-11-25 12:20:33 +0000
++++ b/src/subshell/common.c	2018-08-15 13:14:43 +0000
+@@ -88,6 +88,10 @@
+ #include "subshell.h"
+ #include "internal.h"
+ 
++#ifdef HAVE_OPENPTY
++#include <pty.h>
++#endif
++
+ /*** global variables ****************************************************************************/
+ 
+ /* State of the subshell:
+@@ -1021,6 +1025,15 @@
+ 
+         /* FIXME: We may need to open a fresh pty each time on SVR4 */
+ 
++#ifdef HAVE_OPENPTY //TODO: clean this up. Should have a check for HAVE_OPENPTY or something
++        if (openpty(&mc_global.tty.subshell_pty, &subshell_pty_slave, NULL, NULL, NULL))
++        {
++            fprintf (stderr, "Cannot open master and slave sides of pty: %s\n", unix_error_string (errno));
++            mc_global.tty.use_subshell = FALSE;
++            return;
++        }
++#else
++        
+         mc_global.tty.subshell_pty = pty_open_master (pty_name);
+         if (mc_global.tty.subshell_pty == -1)
+         {
+@@ -1036,7 +1049,7 @@
+             mc_global.tty.use_subshell = FALSE;
+             return;
+         }
+-
++#endif /* #ifdef PASE */
+         /* Create a pipe for receiving the subshell's CWD */
+ 
+         if (mc_global.shell->type == SHELL_TCSH)

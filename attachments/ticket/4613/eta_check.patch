@@ -1,0 +1,25 @@
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index 5b76b649e..0cd2cf946 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -64,6 +64,7 @@
+ #include <ctype.h>
+ #include <stdio.h>
+ #include <string.h>
++#include <limits.h> /* INT_MAX */
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ 
+@@ -358,7 +359,11 @@ file_eta_prepare_for_show (char *buffer, double eta_secs, gboolean always_show)
+         eta_secs = 1.0;
+     }
+ 
+-    file_frmt_time (_fmt_buff, eta_secs);
++    if (eta_secs >= INT_MAX)
++       strcpy (_fmt_buff, "--");
++    else
++       file_frmt_time (_fmt_buff, eta_secs);
++
+     g_snprintf (buffer, BUF_TINY, _("ETA %s"), _fmt_buff);
+ }
+ 

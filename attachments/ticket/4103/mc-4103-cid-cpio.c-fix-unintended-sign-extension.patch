@@ -1,0 +1,34 @@
+From 543732edaa07ee06e02748424002a9561afac4f5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 21 Dec 2020 11:40:12 +0000
+Subject: [PATCH] (cpio.c) fix unintended sign extension
+
+If c_filesizes[0] is greater than 0x7fff implicit sign extension will happen on bit shift
+
+Found by Coverity
+Coverity id #32611
+Coverity id #32612
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/cpio/cpio.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/vfs/cpio/cpio.c b/src/vfs/cpio/cpio.c
+index 774fdf356..b508ec777 100644
+--- a/src/vfs/cpio/cpio.c
++++ b/src/vfs/cpio/cpio.c
+@@ -603,11 +603,11 @@ cpio_read_bin_head (struct vfs_class *me, struct vfs_s_super *super)
+ #ifdef HAVE_STRUCT_STAT_ST_RDEV
+     st.st_rdev = u.buf.c_rdev;
+ #endif
+-    st.st_size = (u.buf.c_filesizes[0] << 16) | u.buf.c_filesizes[1];
++    st.st_size = ((off_t) u.buf.c_filesizes[0] << 16) | u.buf.c_filesizes[1];
+ #ifdef HAVE_STRUCT_STAT_ST_MTIM
+     st.st_atim.tv_nsec = st.st_mtim.tv_nsec = st.st_ctim.tv_nsec = 0;
+ #endif
+-    st.st_atime = st.st_mtime = st.st_ctime = (u.buf.c_mtimes[0] << 16) | u.buf.c_mtimes[1];
++    st.st_atime = st.st_mtime = st.st_ctime = ((time_t) u.buf.c_mtimes[0] << 16) | u.buf.c_mtimes[1];
+ 
+     return cpio_create_entry (me, super, &st, name);
+ }

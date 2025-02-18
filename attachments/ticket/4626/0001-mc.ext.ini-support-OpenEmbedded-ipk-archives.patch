@@ -1,0 +1,79 @@
+From b56e23a7d3448ef2a67d456ed7afb1e019796454 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andr=C3=A9=20Draszik?= <andre.draszik@linaro.org>
+Date: Mon, 6 Jan 2025 15:08:15 +0000
+Subject: [PATCH] mc.ext.ini: support OpenEmbedded ipk archives
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Two types of ipk archives appear to exist:
+* OpenWRT
+* Openembedded / Yocto
+
+The former is a (gzip-compressed) tar archive, which appears to be
+modelled after the Debian package format (but not matching it
+exactly!), containing the three files debian-binary, data.tar, and
+control.tar (the latter two may be compressed).
+
+The latter is a proper Debian archive, which means it's an ar archive,
+with the files debian-binary, control.tar, and data.tar in exactly this
+order. control and data may also be compressed.
+
+While modelled after the Debian package format [1], OpenWRT ipk
+archives don't strictly adhere to it: Debian packages should be ar
+archives (not tar) and the order of files inside the archive matters
+(OpenWRT doesn't follow this).
+
+Midnight Commander is currently unable to display the Openembedded ipk
+archives as both use the .ipk suffix, and because one is a tar- and one
+is an ar archive, and because the ipk suffix is hooked up to
+Include=tar.gz, which (obviously) doesn't support ar archives.
+
+Update mc.ext.ini to also handle OpenEmbedded ipk packages by also
+inspecting the type, in addition to the suffix. Note that we can not
+unconditionally use the deb rule for both types because the OpenWRT
+package don't strictly conform to the Debian package format and
+dpkg-deb and friends complain.
+
+Link: https://manpages.debian.org/bookworm/dpkg-dev/deb.5.en.html [1]
+Signed-off-by: André Draszik <andre.draszik@linaro.org>
+---
+ misc/mc.ext.ini.in | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/misc/mc.ext.ini.in b/misc/mc.ext.ini.in
+index 5c69d81a6ac8..df2fde202bfc 100644
+--- a/misc/mc.ext.ini.in
++++ b/misc/mc.ext.ini.in
+@@ -207,10 +207,6 @@ View=%cd %p/patchsetfs://
+ Regex=\\.t([gp]?z|ar\\.g?[zZ])$
+ Include=tar.gz
+ 
+-[ipk]
+-Shell=.ipk
+-Include=tar.gz
+-
+ [gem]
+ Shell=.gem
+ Include=tar.gz
+@@ -928,6 +924,17 @@ View=%view{ascii} @EXTHELPERSDIR@/archive.sh view wim
+ Type=^ASCII mail text
+ Open=%cd %p/mailfs://
+ 
++[ipk-deb]
++Shell=.ipk
++Type=^Debian binary package
++Open=%cd %p/deb://
++View=%view{ascii} @EXTHELPERSDIR@/package.sh view deb
++
++[ipk-targz]
++Shell=.ipk
++Type=\(gzip compressed
++Include=tar.gz
++
+ 
+ ### Sources ###
+ 
+-- 
+2.47.1.613.gc27f4b7a9f-goog
+

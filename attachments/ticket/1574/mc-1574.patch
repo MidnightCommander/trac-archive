@@ -1,0 +1,38 @@
+From 5715b0aa0ed25551e25ed7f9183dac5c609e7ea2 Mon Sep 17 00:00:00 2001
+From: Aleksey Lim <alsroot@member.fsf.org>
+Date: Sun, 30 Aug 2009 17:07:47 +0000
+Subject: mc crashes while setting tty colors #1574
+
+---
+ src/tty/color.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/src/tty/color.c b/src/tty/color.c
+index 3cd8e12..e4fcb5e 100644
+--- a/src/tty/color.c
++++ b/src/tty/color.c
+@@ -83,6 +83,13 @@ configure_colors_string (const char *the_color_string)
+ 	char *e;
+ 
+ 	cfb = g_strsplit_set (*p, "=,", 3);
++	p++;
++
++	if (cfb[0] == NULL) {
++		g_strfreev (cfb);
++		continue;
++	}
++
+ 	/* append '=' to the entry name */
+ 	e = g_strdup_printf ("%s=", cfb[0]);
+ 	g_free (cfb[0]);
+@@ -102,7 +109,6 @@ configure_colors_string (const char *the_color_string)
+ 	    }
+ 
+ 	g_strfreev (cfb);
+-	p++;
+     }
+ 
+    g_strfreev (color_strings);
+-- 
+1.6.3.3
+

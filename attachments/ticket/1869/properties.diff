@@ -1,0 +1,18 @@
+3c3
+< # 
+---
+> #
+10,12c10,12
+<     keyword linestart \[\s\t\]\{"$%&'()\*\+,-./0123456789;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\}\[!"#$%&'()\*\+,-./0123456789;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\] cyan
+<     keyword = yellow
+<     keyword : yellow
+---
+>     keyword linestart \[\s\t\]\{"$%&'()\*\+,-./0123456789;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\}\[!"#$%&'()\*\+,-./0123456789;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\] yellow
+>     keyword = brightcyan
+>     keyword : brightcyan
+15d14
+<     
+20d18
+<     
+28d25
+<     

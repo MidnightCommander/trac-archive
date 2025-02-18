@@ -1,0 +1,49 @@
+diff --git a/src/editor/edit-widget.h b/src/editor/edit-widget.h
+index 18ab9b6..73d51d4 100644
+--- a/src/editor/edit-widget.h
++++ b/src/editor/edit-widget.h
+@@ -95,6 +95,7 @@ struct WEdit
+     int column1;                /* position of column highlight start */
+     int column2;                /* position of column highlight end */
+     long bracket;               /* position of a matching bracket */
++    gboolean mark_dragged;      /* flag to save if mouse was dragged to select something */
+ 
+     /* cache speedup for line lookups */
+     int caches_valid;
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 9a49bed..efc16db 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -159,10 +159,6 @@ edit_event (Gpm_Event * event, void *data)
+         goto update;
+     }
+ 
+-    /* A lone up mustn't do anything */
+-    if (edit->mark2 != -1 && event->type & (GPM_UP | GPM_DRAG))
+-        return MOU_NORMAL;
+-
+     if (event->type & (GPM_DOWN | GPM_UP))
+         edit_push_key_press (edit);
+ 
+@@ -195,13 +191,16 @@ edit_event (Gpm_Event * event, void *data)
+         edit_move_to_prev_col (edit, edit_bol (edit, edit->curs1));
+ 
+     if (event->type & GPM_DOWN)
++        edit->mark_dragged = FALSE; /* reset dragged flag */
++
++    if ((event->type & GPM_DRAG) && !edit->mark_dragged)
+     {
+-        edit_mark_cmd (edit, 1);        /* reset */
+-        edit->highlight = 0;
++        edit_mark_cmd (edit, 1); /* clear selection */
++        edit_mark_cmd (edit, 0); /* begin selection */
++        edit->mark_dragged = TRUE;
+     }
+-
+-    if (!(event->type & GPM_DRAG))
+-        edit_mark_cmd (edit, 0);
++    else if ((event->type & GPM_UP) && edit->mark_dragged)
++        edit_mark_cmd (edit, 0); /* end selection */
+ 
+   update:
+     edit_find_bracket (edit);

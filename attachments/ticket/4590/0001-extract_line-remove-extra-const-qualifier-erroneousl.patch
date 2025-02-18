@@ -1,0 +1,47 @@
+From 16eb6ecb4e39a04fb8ee8010737da13e906f4ffd Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 17 Oct 2024 09:19:59 +0200
+Subject: [PATCH] (extract_line): remove extra const qualifier erroneously
+ introduced in bb4e152
+
+```
+../../lib/util.c:637:7: warning: duplicate 'const' declaration specifier [-Wduplicate-decl-specifier]
+  637 | const const char *
+      |       ^
+```
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ lib/util.c | 2 +-
+ lib/util.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 3fb8c54e5..fdd758cf8 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -634,7 +634,7 @@ load_mc_home_file (const char *from, const char *filename, char **allocated_file
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-const const char *
++const char *
+ extract_line (const char *s, const char *top, size_t *len)
+ {
+     static char tmp_line[BUF_MEDIUM];
+diff --git a/lib/util.h b/lib/util.h
+index a5be42e9a..370c276d4 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -198,7 +198,7 @@ const char *get_group (gid_t gid);
+ const char *get_owner (uid_t uid);
+ 
+ /* Returns a copy of *s until a \n is found and is below top */
+-const const char *extract_line (const char *s, const char *top, size_t *len);
++const char *extract_line (const char *s, const char *top, size_t *len);
+ 
+ /* Process spawning */
+ int my_system (int flags, const char *shell, const char *command);
+-- 
+2.39.5 (Apple Git-154)
+

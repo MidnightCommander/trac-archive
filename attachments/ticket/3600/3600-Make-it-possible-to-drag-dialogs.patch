@@ -1,0 +1,222 @@
+From d615692585c59eab2cbfaf207a063323b08c79d4 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 26 Feb 2016 16:31:02 +0200
+Subject: [PATCH] Make it possible to drag dialogs.
+
+---
+ lib/widget/dialog.c | 107 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+ lib/widget/dialog.h |   6 ++-
+ 2 files changed, 111 insertions(+), 2 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index a53c046..96108f6 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -41,6 +41,7 @@
+ #include "lib/tty/key.h"
+ #include "lib/strutil.h"
+ #include "lib/widget.h"
++#include "lib/widget/mouse.h"
+ #include "lib/fileloc.h"        /* MC_HISTORY_FILE */
+ #include "lib/event.h"          /* mc_event_raise() */
+ 
+@@ -355,12 +356,14 @@ dlg_handle_key (WDialog * h, int d_key)
+     return MSG_NOT_HANDLED;
+ }
+ 
++
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static int
+ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+ {
+     Widget *wh = WIDGET (h);
++    gboolean mouse_post_processing = ((h->flags & DLG_MOUSE_POST_PROCESSING) != 0);
+ 
+     GList *p, *first;
+ 
+@@ -373,7 +376,7 @@ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+         return MOU_NORMAL;
+     }
+ 
+-    if (wh->mouse != NULL)
++    if (!mouse_post_processing && wh->mouse != NULL)
+     {
+         int mou;
+ 
+@@ -403,6 +406,15 @@ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+     }
+     while (p != first);
+ 
++    if (mouse_post_processing && wh->mouse != NULL)
++    {
++        int mou;
++
++        mou = wh->mouse (event, wh);
++        if (mou != MOU_UNHANDLED)
++            return mou;
++    }
++
+     return MOU_UNHANDLED;
+ }
+ 
+@@ -604,6 +616,15 @@ dlg_default_repaint (WDialog * h)
+ 
+     tty_setcolor (h->color[DLG_COLOR_NORMAL]);
+     dlg_erase (h);
++    if (h->is_dragging)
++    {
++        /* Give feedback to the user when dragging.
++         *
++         * @FIXME: Have skins define a dedicated color for dragging. We pick
++         * 'dtitle' because there doesn't seem to be something better.
++         * @TODO: Make WHLine too use this color (when owner is dragged). */
++        tty_setcolor (h->color[DLG_COLOR_TITLE]);
++    }
+     tty_draw_box (wh->y + space, wh->x + space, wh->lines - 2 * space, wh->cols - 2 * space, FALSE);
+ 
+     if (h->title != NULL)
+@@ -769,6 +790,51 @@ dlg_default_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, v
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++/**
++ * Default dialog mouse callback
++ *
++ * It lets you drag the dialog by dragging any "empty" space in it (any space
++ * that doesn't respond to the mouse, to be exact).
++ */
++
++static void
++dlg_default_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
++{
++    WDialog *h = DIALOG (w);
++    static int drag_start_x, drag_start_y;
++
++    if (!h->fullscreen)
++    {
++        switch (msg)
++        {
++        case MSG_MOUSE_DOWN:
++            h->is_dragging = TRUE;
++            drag_start_x = event->x;
++            drag_start_y = event->y;
++            /* Update the dialog frame (and, in future, HLines) so user sees feedback: */
++            do_refresh ();      /* FIXME: why doesn't `widget_redraw (w)` work? No need to paint the whole screen. */
++            break;
++        case MSG_MOUSE_UP:
++            h->is_dragging = FALSE;
++            /* Update the dialog frame: */
++            do_refresh ();
++            break;
++        case MSG_MOUSE_DRAG:
++            /* The is_idle() check isn't mandatory. It just prevents sluggish
++             * drag when the dialogs beneath are CPU-intensive to draw. */
++            if (is_idle ())
++            {
++                dlg_move (h, w->x + (event->x - drag_start_x), w->y + (event->y - drag_start_y));
++                do_refresh ();  /* Draw the whole screen. */
++            }
++            break;
++        default:
++            break;
++        }
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ 
+ WDialog *
+ dlg_create (gboolean modal, int y1, int x1, int lines, int cols,
+@@ -784,11 +850,18 @@ dlg_create (gboolean modal, int y1, int x1, int lines, int cols,
+                  mouse_handler);
+     widget_want_cursor (w, FALSE);
+ 
++    if (mouse_handler == NULL)
++    {
++        set_easy_mouse_callback (w, dlg_default_mouse_callback);
++        flags |= DLG_MOUSE_POST_PROCESSING;
++    }
++
+     new_d->state = DLG_CONSTRUCT;
+     new_d->modal = modal;
+     new_d->color = colors;
+     new_d->help_ctx = help_ctx;
+     new_d->flags = flags;
++    new_d->is_dragging = FALSE;
+     new_d->data = NULL;
+ 
+     dlg_set_size (new_d, lines, cols);
+@@ -1289,6 +1362,38 @@ dlg_destroy (WDialog * h)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ /**
++ * Moves a dialog to (x, y).
++ *
++ * We need to traverse the child widgets as well because their coordinates
++ * are in aboslute screen coordinates.
++ */
++void
++dlg_move (WDialog * h, int x, int y)
++{
++    Widget *wh = WIDGET (h);
++    int dx, dy;
++
++    dx = x - wh->x;
++    dy = y - wh->y;
++
++    wh->x = x;
++    wh->y = y;
++
++    {
++        GList *w;
++
++        for (w = h->widgets; w != NULL; w = g_list_next (w))
++        {
++            /* FIXME: exclude the WButtonBar (as in the Help dialog). */
++            WIDGET (w->data)->x += dx;
++            WIDGET (w->data)->y += dy;
++        }
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/**
+   * Write history to the ${XDG_CACHE_HOME}/mc/history file
+   */
+ void
+diff --git a/lib/widget/dialog.h b/lib/widget/dialog.h
+index 789e5e2..6d886af 100644
+--- a/lib/widget/dialog.h
++++ b/lib/widget/dialog.h
+@@ -37,7 +37,8 @@ typedef enum
+     DLG_CENTER = (1 << 0),      /* Center the dialog */
+     DLG_TRYUP = (1 << 1),       /* Try to move two lines up the dialog */
+     DLG_COMPACT = (1 << 2),     /* Suppress spaces around the frame */
+-    DLG_WANT_TAB = (1 << 3)     /* Should the tab key be sent to the dialog? */
++    DLG_WANT_TAB = (1 << 3),    /* Should the tab key be sent to the dialog? */
++    DLG_MOUSE_POST_PROCESSING = (1 << 4)        /* Whether mouse events are handed to the dialog *after* child widgets see them (instead of before). */
+ } dlg_flags_t;
+ 
+ /* Dialog state */
+@@ -94,6 +95,7 @@ struct WDialog
+     dlg_state_t state;
+     gboolean fullscreen;        /* Parents dialogs don't need refresh */
+     gboolean winch_pending;     /* SIGWINCH signal has been got. Resize dialog after rise */
++    gboolean is_dragging;       /* Whether the dialog is being dragged. */
+     int mouse_status;           /* For the autorepeat status of the mouse */
+ 
+     /* Internal variables */
+@@ -157,6 +159,8 @@ char *dlg_get_title (const WDialog * h, size_t len);
+ 
+ void dlg_redraw (WDialog * h);
+ 
++void dlg_move (WDialog * h, int x, int y);
++
+ void dlg_broadcast_msg (WDialog * h, widget_msg_t message);
+ 
+ /* Default callback for dialogs */
+-- 
+2.5.0
+

@@ -1,0 +1,79 @@
+From 28ee83c1f4f3901bbfd0316320006b3bbfaf8b42 Mon Sep 17 00:00:00 2001
+From: Adrian Bunk <bunk@stusta.de>
+Date: Sun, 7 Apr 2013 12:32:28 +0300
+Subject: configure.ac cleanups
+
+Remove tests whose results are not used:
+- AC_CHECK_HEADERS of unistd.h, fcntl.h, sys/time.h, sys/types.h
+- AC_HEADER_MAJOR
+- AC_HEADER_TIME
+- AC_HEADER_DIRENT
+- AC_CHECK_FUNCS of isascii, statfs, sysconf, tcgetattr,
+                    tcsetattr, ftruncate
+- AC_FUNC_STRCOLL
+
+AC_C_CONST is obsolete, today it is safe to assume all C compilers
+support at least C89.
+
+The INTERACTIVE UNIX that needed AC_ISC_POSIX is long dead.
+---
+ configure.ac |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 2c35d06..63fef7f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -156,13 +156,10 @@ dnl ############################################################################
+ dnl Check for header files
+ dnl ############################################################################
+ 
+-AC_CHECK_HEADERS([unistd.h string.h memory.h limits.h malloc.h \
+-	utime.h fcntl.h sys/statfs.h sys/vfs.h sys/time.h \
++AC_CHECK_HEADERS([string.h memory.h limits.h malloc.h \
++	utime.h sys/statfs.h sys/vfs.h \
+ 	sys/select.h sys/ioctl.h stropts.h arpa/inet.h \
+-	sys/socket.h sys/sysmacros.h sys/types.h sys/mkdev.h])
+-AC_HEADER_MAJOR
+-AC_HEADER_TIME
+-AC_HEADER_DIRENT
++	sys/socket.h sys/sysmacros.h sys/mkdev.h])
+ AC_HEADER_ASSERT
+ 
+ 
+@@ -170,7 +167,6 @@ dnl ############################################################################
+ dnl Check for types
+ dnl ############################################################################
+ 
+-AC_C_CONST
+ dnl Check largefile before type sizeof checks
+ AC_SYS_LARGEFILE
+ 
+@@ -226,15 +222,10 @@ dnl Check for functions
+ dnl ############################################################################
+ 
+ AC_CHECK_FUNCS([\
+-	isascii \
+-	statfs sysconf \
+-	tcgetattr tcsetattr \
+-	ftruncate \
+ 	strverscmp \
+ 	strncasecmp \
+ 	realpath
+ ])
+-AC_FUNC_STRCOLL
+ 
+ dnl getpt is a GNU Extension (glibc 2.1.x)
+ AC_CHECK_FUNCS(posix_openpt, , [AC_CHECK_FUNCS(getpt)])
+@@ -280,8 +271,6 @@ dnl ############################################################################
+ dnl OS specific flags
+ dnl ############################################################################
+ 
+-AC_ISC_POSIX
+-
+ case $host_os in
+ aux*)
+     # A/UX
+-- 
+1.7.10.4
+

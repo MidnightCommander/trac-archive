@@ -1,0 +1,143 @@
+From ba8645f061a671870b92420330a1d68430330412 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 14 Nov 2009 15:18:05 +0000
+Subject: [PATCH]  fixing_some_declarations
+
+---
+ edit/edit-impl.h |    6 +++---
+ edit/edit.c      |   10 +++++-----
+ edit/editcmd.c   |   11 ++++++-----
+ edit/editdraw.c  |    2 +-
+ edit/wordproc.c  |    2 +-
+ 5 files changed, 16 insertions(+), 15 deletions(-)
+
+diff --git a/edit/edit-impl.h b/edit/edit-impl.h
+index 4446f40..b6140d6 100644
+--- a/edit/edit-impl.h
++++ b/edit/edit-impl.h
+@@ -159,10 +159,10 @@ char *edit_get_byte_ptr (WEdit * edit, long byte_index);
+ char *edit_get_buf_ptr (WEdit * edit, long byte_index);
+ int edit_get_utf (WEdit * edit, long byte_index, int *char_width);
+ int edit_get_prev_utf (WEdit * edit, long byte_index, int *char_width);
+-int edit_count_lines (WEdit * edit, long current, int upto);
+-long edit_move_forward (WEdit * edit, long current, int lines, long upto);
++long edit_count_lines (WEdit * edit, long current, long upto);
++long edit_move_forward (WEdit * edit, long current, long lines, long upto);
+ long edit_move_forward3 (WEdit * edit, long current, int cols, long upto);
+-long edit_move_backward (WEdit * edit, long current, int lines);
++long edit_move_backward (WEdit * edit, long current, long lines);
+ void edit_scroll_screen_over_cursor (WEdit * edit);
+ void edit_render_keypress (WEdit * edit);
+ void edit_scroll_upward (WEdit * edit, unsigned long i);
+diff --git a/edit/edit.c b/edit/edit.c
+index 9a51b79..39699cf 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -1524,9 +1524,9 @@ long edit_bol (WEdit * edit, long current)
+ }
+ 
+ 
+-int edit_count_lines (WEdit * edit, long current, int upto)
++long edit_count_lines (WEdit * edit, long current, long upto)
+ {
+-    int lines = 0;
++    long lines = 0;
+     if (upto > edit->last_byte)
+ 	upto = edit->last_byte;
+     if (current < 0)
+@@ -1540,12 +1540,12 @@ int edit_count_lines (WEdit * edit, long current, int upto)
+ 
+ /* If lines is zero this returns the count of lines from current to upto. */
+ /* If upto is zero returns index of lines forward current. */
+-long edit_move_forward (WEdit * edit, long current, int lines, long upto)
++long edit_move_forward (WEdit * edit, long current, long lines, long upto)
+ {
+     if (upto) {
+ 	return edit_count_lines (edit, current, upto);
+     } else {
+-	int next;
++	long next;
+ 	if (lines < 0)
+ 	    lines = 0;
+ 	while (lines--) {
+@@ -1561,7 +1561,7 @@ long edit_move_forward (WEdit * edit, long current, int lines, long upto)
+ 
+ 
+ /* Returns offset of 'lines' lines up from current */
+-long edit_move_backward (WEdit * edit, long current, int lines)
++long edit_move_backward (WEdit * edit, long current, long lines)
+ {
+     if (lines < 0)
+ 	lines = 0;
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 48f1db6..5abfc27 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -87,7 +87,7 @@ static void
+ edit_search_cmd_search_create_bookmark(WEdit * edit)
+ {
+     int found = 0, books = 0;
+-    int l = 0, l_last = -1;
++    long l = 0, l_last = -1;
+     long q = 0;
+     gsize len = 0;
+ 
+@@ -1237,7 +1237,8 @@ edit_block_move_cmd (WEdit *edit)
+     edit_push_markers (edit);
+     current = edit->curs1;
+     if (column_highlighting) {
+-	int size, c1, c2, line;
++	long line;
++	int size, c1, c2;
+ 	line = edit->curs_line;
+ 	if (edit->mark2 < 0)
+ 	    edit_mark_cmd (edit, 0);
+@@ -1298,8 +1299,7 @@ static void
+ edit_delete_column_of_text (WEdit * edit)
+ {
+     long p, q, r, m1, m2;
+-    int b, c, d;
+-    int n;
++    long b, c, d, n;
+ 
+     eval_marks (edit, &m1, &m2);
+     n = edit_move_forward (edit, m1, 0, m2) + 1;
+@@ -1818,7 +1818,8 @@ edit_get_block (WEdit *edit, long start, long finish, int *l)
+ 	*l = 0;
+ 	/* copy from buffer, excluding chars that are out of the column 'margins' */
+ 	while (start < finish) {
+-	    int c, x;
++	    int c;
++	    long x;
+ 	    x = edit_move_forward3 (edit, edit_bol (edit, start), 0,
+ 				    start);
+ 	    c = edit_get_byte (edit, start);
+diff --git a/edit/editdraw.c b/edit/editdraw.c
+index a6620eb..e5f7d5c 100644
+--- a/edit/editdraw.c
++++ b/edit/editdraw.c
+@@ -614,7 +614,7 @@ render_edit_text (WEdit * edit, long start_row, long start_column, long end_row,
+ 		  long end_column)
+ {
+     long row = 0, curs_row;
+-    static int prev_curs_row = 0;
++    static long prev_curs_row = 0;
+     static long prev_curs = 0;
+ 
+     int force = edit->force;
+diff --git a/edit/wordproc.c b/edit/wordproc.c
+index e3c3055..bd74489 100644
+--- a/edit/wordproc.c
++++ b/edit/wordproc.c
+@@ -95,7 +95,7 @@ static int bad_line_start (WEdit * edit, long p)
+ static long
+ begin_paragraph (WEdit *edit, int force)
+ {
+-    int i;
++    long i;
+     for (i = edit->curs_line - 1; i >= 0; i--) {
+ 	if (line_is_blank (edit, i)) {
+ 	    i++;
+-- 
+1.6.4
+

@@ -1,0 +1,30 @@
+From 3a276afa0a429cd78423a20027b79055b687c26f Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Sat, 13 Jun 2009 10:13:22 +0200
+Subject: [PATCH 1/4] remove useless commands (which also happen to be bash-isms)
+
+---
+ maint/version.sh |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/maint/version.sh b/maint/version.sh
+index 4df9489..13cdc86 100755
+--- a/maint/version.sh
++++ b/maint/version.sh
+@@ -21,13 +21,11 @@ src_top_dir=
+ 
+ VERSION_FILE=${src_top_dir}/version.h
+ 
+-pushd ${src_top_dir} &>/dev/null
+ git_head=$(git rev-parse --verify HEAD 2>/dev/null)
+ [ -z "${git_head}" ] && exit
+ 
+ new_version="$(git describe 2>/dev/null)"
+ [ -z "${new_version}" ] && exit
+-popd &>/dev/null
+ 
+ 
+ saved_version=
+-- 
+1.6.3.1
+

@@ -1,0 +1,158 @@
+From c7ff70090cc2e6312df70b7a94974fb033790420 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sun, 8 Nov 2009 23:42:39 +0000
+Subject: [PATCH] Alt-d_Date-hotkey
+
+---
+ autogen.sh             |    2 ++
+ edit/edit.c            |    1 +
+ misc/mc.keymap.default |    7 +++----
+ misc/mc.keymap.emacs   |    7 +++----
+ src/keybind.c          |   11 +++++++----
+ 5 files changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/autogen.sh b/autogen.sh
+index c93fc2f..5240717 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -89,3 +89,5 @@ $srcdir/maint/version.sh "$srcdir"
+ if test -x $srcdir/configure.mc; then
+   $srcdir/configure.mc "$@"
+ fi
++
++echo -e "\n    $PWD/$0: $LINENO:  \n\n    D O N E \n"
+diff --git a/edit/edit.c b/edit/edit.c
+index e239c0c..9a51b79 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -3120,6 +3120,7 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+ 	break;
+     case CK_Edit_Save_Mode:
+ 	menu_save_mode_cmd ();
++	break;
+     case CK_Date:
+ 	{
+ 	    char s[BUF_MEDIUM];
+diff --git a/misc/mc.keymap.default b/misc/mc.keymap.default
+index 7b76a58..606e61e 100644
+--- a/misc/mc.keymap.default
++++ b/misc/mc.keymap.default
+@@ -30,7 +30,7 @@ EditScrollDown = ctrl-down
+ EditBeginPage = ctrl-home
+ EditEndPage = ctrl-end
+ EditDeleteWordLeft = alt-backspace
+-EditDeleteWordRight = alt-d
++EditDeleteWordRight = alt-delete
+ EditParagraphUp =
+ EditParagraphDown =
+ EditSave = f2
+@@ -105,7 +105,7 @@ EditInsertFile = f15
+ EditQuit = f10
+ EditToggleInsert = insert
+ EditHelp = f1
+-EditDate =
++EditDate = alt-d
+ EditRefresh = ctrl-l
+ EditGoto = alt-l
+ EditManPage =
+@@ -293,10 +293,9 @@ InputMoveRight = right; alt-right
+ InputWordRight = ctrl-right
+ InputForwardChar = ctrl-f
+ InputForwardWord = alt-f
+-
+ InputBackwardDelete = backspace
+ InputDeleteChar = delete
+-InputKillWord = alt-d
++InputKillWord = alt-delete
+ InputBackwardKillWord = alt-backspace
+ InputSetMark = 
+ InputKillRegion = ctrl-w
+diff --git a/misc/mc.keymap.emacs b/misc/mc.keymap.emacs
+index 8de5b3f..25d4fa9 100644
+--- a/misc/mc.keymap.emacs
++++ b/misc/mc.keymap.emacs
+@@ -30,7 +30,7 @@ EditScrollDown = ctrl-down
+ EditBeginPage = ctrl-home
+ EditEndPage = ctrl-end
+ EditDeleteWordLeft = alt-backspace
+-EditDeleteWordRight = alt-d
++EditDeleteWordRight = alt-delete
+ EditParagraphUp =
+ EditParagraphDown =
+ EditSave = f2
+@@ -104,7 +104,7 @@ EditInsertFile = f15
+ EditQuit = f10
+ EditToggleInsert = insert
+ EditHelp = f1
+-EditDate =
++EditDate = alt-d
+ EditRefresh = ctrl-l
+ EditGoto = alt-l
+ EditManPage =
+@@ -297,10 +297,9 @@ InputMoveRight = right; alt-right
+ InputWordRight = ctrl-right
+ InputForwardChar = ctrl-f
+ InputForwardWord = alt-f
+-
+ InputBackwardDelete = backspace
+ InputDeleteChar = delete
+-InputKillWord = alt-d
++InputKillWord = alt-delete
+ InputBackwardKillWord = alt-backspace
+ InputSetMark = 
+ InputKillRegion = ctrl-w
+diff --git a/src/keybind.c b/src/keybind.c
+index c898e8c..5600743 100644
+--- a/src/keybind.c
++++ b/src/keybind.c
+@@ -42,7 +42,6 @@
+ #include "tty/tty.h"		/* keys */
+ #include "wtools.h"
+ #include "strutil.h"
+-
+ #include "keybind.h"
+ 
+ static const name_keymap_t command_names[] = {
+@@ -501,6 +500,7 @@ const global_keymap_t default_editor_keymap[] = {
+ 
+     { ALT ('\n'),                           CK_Find_Definition,     "M-Enter" },
+     { ALT ('\t'),                           CK_Complete_Word,       "M-Tab" },
++    { ALT ('e'),                            CK_SelectCodepage,      "M-e" },
+     { ALT ('l'),                            CK_Goto,                "M-l" },
+     { ALT ('L'),                            CK_Goto,                "M-L" },
+     { ALT ('p'),                            CK_Paragraph_Format,    "M-p" },
+@@ -510,8 +510,10 @@ const global_keymap_t default_editor_keymap[] = {
+     { ALT ('>'),                            CK_End_Of_Text,         "M->" },
+     { ALT ('-'),                            CK_Load_Prev_File,      "M--" },
+     { ALT ('+'),                            CK_Load_Next_File,      "M-+" },
+-    { ALT ('d'),                            CK_Delete_Word_Right,   "M-d" },
++    { ALT ('D'),                            CK_Date,                "M-D" },
++    { ALT ('d'),                            CK_Date,                "M-d" },
+     { ALT (KEY_BACKSPACE),                  CK_Delete_Word_Left,    "M-BackSpace" },
++    { ALT (KEY_DC),                         CK_Delete_Word_Right,   "M-Delete" },
+     { ALT ('n'),                            CK_Toggle_Line_State,   "M-n" },
+     { ALT ('_'),                            CK_Toggle_Tab_TWS,      "M-_" },
+     { ALT ('k'),                            CK_Toggle_Bookmark,     "M-k" },
+@@ -525,7 +527,6 @@ const global_keymap_t default_editor_keymap[] = {
+     { XCTRL ('o'),                          CK_Shell,               "C-o" },
+     { XCTRL ('s'),                          CK_Toggle_Syntax,       "C-s" },
+     { XCTRL ('u'),                          CK_Undo,                "C-u" },
+-    { ALT ('e'),                            CK_SelectCodepage,      "M-e" },
+     { XCTRL ('q'),                          CK_Insert_Literal,      "C-q" },
+     { XCTRL ('r'),                          CK_Begin_End_Macro,     "C-r" },
+     { XCTRL ('r'),                          CK_Begin_Record_Macro,  "C-r" },
+@@ -749,8 +750,10 @@ const global_keymap_t default_input_keymap[] = {
+     /* Editing */
+     { KEY_BACKSPACE,          CK_InputBackwardDelete,   "BackSpace" },
+     { KEY_DC,                 CK_InputDeleteChar,       "Delete" },
+-    { ALT ('d'),              CK_InputKillWord,         "M-d" },
++    { ALT ('D'),              CK_Date,                  "M-D" },
++    { ALT ('d'),              CK_Date,                  "M-d" },
+     { ALT (KEY_BACKSPACE),    CK_InputBackwardKillWord, "M-BackSpace" },
++    { ALT (KEY_DC),           CK_InputKillWord,         "M-Delete" },
+ 
+     /* Region manipulation */
+     { XCTRL ('w'),            CK_InputKillRegion,       "C-w" },
+-- 
+1.6.4
+

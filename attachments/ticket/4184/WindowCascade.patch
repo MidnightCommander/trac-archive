@@ -1,0 +1,150 @@
+From e2c6f91335e82ef7c912db144b3b6ae202f7f71c Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Sat, 23 Jan 2021 21:26:07 -0600
+Subject: WindowCascade
+
+---
+ lib/keybind.c           |  1 +
+ lib/keybind.h           |  1 +
+ misc/mc.default.keymap  |  1 +
+ src/editor/editwidget.c | 68 +++++++++++++++++++++++++++++++++++++++++
+ src/keybind-defaults.c  |  1 +
+ 5 files changed, 72 insertions(+)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..6f63a072a 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -341,6 +341,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (WindowList),
+     ADD_KEYMAP_NAME (WindowNext),
+     ADD_KEYMAP_NAME (WindowPrev),
++    ADD_KEYMAP_NAME (WindowCascade),
+ #endif /* USE_INTERNAL_EDIT */
+ 
+     /* viewer */
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..0eae2c8bc 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -300,6 +300,7 @@ enum
+     CK_WindowList,
+     CK_WindowNext,
+     CK_WindowPrev,
++    CK_WindowCascade,
+     /* misc commands */
+     CK_SpellCheck,
+     CK_SpellCheckCurrentWord,
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 2931ddd0a..493d5346e 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -386,6 +386,7 @@ SpellCheckCurrentWord = ctrl-p
+ # WindowList =
+ # WindowNext =
+ # WindowPrev =
++WindowCascade = ctrl-alt-c
+ # ExtendedKeyMap =
+ 
+ [viewer]
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 3eafff2b8..26998d406 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -292,6 +292,71 @@ get_hotkey (int n)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static gboolean
++edit_window_leave_fullscreen_resize (Widget * w, int y, int x, int lines, int cols)
++{
++    WRect resize_rect;
++    gboolean ret = FALSE;
++
++    if (edit_widget_is_editor (w))
++    {
++        WEdit *e = (WEdit *) w;
++        if (e->fullscreen)
++            edit_toggle_fullscreen (e);
++        rect_init (&resize_rect, y, x, lines, cols);
++        e->force |= REDRAW_COMPLETELY;
++        send_message (WIDGET (e), NULL, MSG_RESIZE, 0, &resize_rect);
++        ret = TRUE;
++    }
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++edit_window_cascade (const WDialog * h)
++{
++    const WGroup *g = CONST_GROUP (h);
++    const Widget *wid = CONST_WIDGET (h);
++    int diff = 5;
++    int cur_y, cur_x, lines, cols;
++    GList *w;
++
++    cur_x = 0;
++    cur_y = 1;
++    lines = wid->lines - 2;
++    cols = wid->cols;
++
++    for (w = g->widgets; w != NULL; w = g_list_next (w))
++    {
++        if (w == g->current)
++            continue;
++        if (edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, cur_x, lines, cols))
++        {
++            cur_y += diff;
++            cur_x += diff;
++            lines -= diff;
++            cols -= diff;
++            /* Underflow – cycle back to the first size and position. */
++            if (lines < 7 || cols < 30)
++            {
++                /* Second and following series are more dense. */
++                diff -= diff > 1 ? 1 : 0;
++                /* Use a little degrading shift for the next series of windows. */
++                cur_x = 0 + diff - 1;
++                cur_y = 1 + diff - 1;
++                lines = wid->lines - diff - 1;
++                cols = wid->cols - diff + 1;
++            }
++        }
++    }
++    w = g->current;
++    edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, cur_x, lines, cols);
++    repaint_screen ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static void
+ edit_window_list (const WDialog * h)
+ {
+@@ -459,6 +524,9 @@ edit_dialog_command_execute (WDialog * h, long command)
+     case CK_WindowList:
+         edit_window_list (h);
+         break;
++    case CK_WindowCascade:
++        edit_window_cascade (h);
++        break;
+     case CK_WindowNext:
+         group_select_next_widget (g);
+         break;
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7b87c2f5a..bbc88f49a 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -471,6 +471,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"Sort", "alt-t"},
+     {"Mail", "alt-m"},
+     {"ExternalCommand", "alt-u"},
++    {"WindowCascade", "alt-shift-c"},
+ #ifdef HAVE_ASPELL
+     {"SpellCheckCurrentWord", "ctrl-p"},
+ #endif
+-- 
+2.28.0
+

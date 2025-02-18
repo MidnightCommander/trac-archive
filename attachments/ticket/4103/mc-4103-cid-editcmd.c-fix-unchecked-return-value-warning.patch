@@ -1,0 +1,29 @@
+From 056fcfa943f7453d855e810e56c99a9e72c8f413 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 08:38:02 +0000
+Subject: [PATCH] (editcmd.c) fix unchecked return value warning
+
+If function failed, fail early.
+
+found by Coverity
+coverity id #32538
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 27d7bff99..c9a6a3681 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1121,7 +1121,8 @@ pipe_mail (const edit_buffer_t * buf, char *to, char *subject, char *cc)
+         off_t i;
+ 
+         for (i = 0; i < buf->size; i++)
+-            fputc (edit_buffer_get_byte (buf, i), p);
++            if (fputc (edit_buffer_get_byte (buf, i), p) < 0)
++                break;
+         pclose (p);
+     }
+ }

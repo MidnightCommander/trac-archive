@@ -1,0 +1,296 @@
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index f9d3efe..753d8f5 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -313,4 +313,17 @@ void edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_inserti
+ 
+ /*** inline functions ****************************************************************************/
+ 
++
++
++enum {
++  WS_CK_FirstCommand = 103666,
++  WS_CK_BlockStart,
++  WS_CK_BlockEnd,
++  WS_CK_BlockToggleVis,
++  WS_CK_GoToBlockStart,
++  WS_CK_GoToBlockEnd,
++  WS_CK_LastCommand
++};
++
++
+ #endif /* MC__EDIT_IMPL_H */
+diff --git a/src/editor/edit-widget.h b/src/editor/edit-widget.h
+index fa866b4..bd23f5f 100644
+--- a/src/editor/edit-widget.h
++++ b/src/editor/edit-widget.h
+@@ -133,6 +133,9 @@ struct WEdit
+     /* line break */
+     LineBreaks lb;
+     gboolean extmod;
++    gchar wsextmod; /* wordstar mode cmd type */
++    gboolean wsmarkshidden;
++    gboolean wsblock;
+ 
+     char *labels[10];
+ 
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 0da86a6..81b7893 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -2269,6 +2269,11 @@ edit_init (WEdit * edit, int y, int x, int lines, int cols, const char *filename
+     edit->stat1.st_gid = getgid ();
+     edit->stat1.st_mtime = 0;
+ 
++    edit->extmod = FALSE;
++    edit->wsextmod = 0;
++    edit->wsmarkshidden = FALSE;
++    edit->wsblock = FALSE;
++
+     edit->over_col = 0;
+     edit->bracket = -1;
+     edit->force |= REDRAW_PAGE;
+@@ -3299,6 +3304,14 @@ edit_push_markers (WEdit * edit)
+ void
+ edit_set_markers (WEdit * edit, long m1, long m2, int c1, int c2)
+ {
++/*
++  if (m1 > m2 || (m1 == m2 && c1 > c2)) {
++    int ti = m1;
++    long tl = c1;
++    m1 = m2; m2 = ti;
++    c1 = c2; c2 = tl;
++  }
++*/
+     edit->mark1 = m1;
+     edit->mark2 = m2;
+     edit->column1 = c1;
+@@ -3312,6 +3325,8 @@ edit_set_markers (WEdit * edit, long m1, long m2, int c1, int c2)
+ void
+ edit_mark_cmd (WEdit * edit, int unmark)
+ {
++    edit->wsmarkshidden = FALSE;
++    edit->wsblock = FALSE;
+     edit_push_markers (edit);
+     if (unmark)
+     {
+@@ -3523,6 +3538,41 @@ edit_execute_key_command (WEdit * edit, unsigned long command, int char_for_inse
+         edit->force |= REDRAW_PAGE;
+ }
+ 
++
++static void edit_goto_line_pos (WEdit *edit, int line, int pos) {
++  edit->force |= REDRAW_PAGE; /*FIXME: determine what to redraw?*/
++  if (line < 0) line = 0;
++  if (line > edit->total_lines-1) line = edit->total_lines-1;
++  if (line >= edit->start_line+edit->widget.lines || line < edit->start_line) {
++    edit_move_display(edit, line-edit->widget.lines/2);
++  }
++  edit_move_to_line(edit, line);
++  edit_cursor_to_bol(edit);
++  if (pos > 0) {
++    int len = edit_eol(edit, edit->curs1)-edit->curs1;
++    if (pos > len) pos = len;
++    edit_cursor_move(edit, pos);
++  }
++  edit->search_start = edit->curs1;
++  edit->prev_col = edit_get_col(edit);
++  edit->over_col = 0;
++}
++
++
++static void edit_goto_pos (WEdit *edit, int pos) {
++  int line, cp, linebol;
++  //
++  if (pos > edit->last_byte) pos = edit->last_byte;
++  for (line = linebol = cp = 0; cp < pos; ++cp) {
++    if (edit_get_byte(edit, cp) == '\n') {
++      ++line;
++      linebol = cp+1;
++    }
++  }
++  edit_goto_line_pos(edit, line, pos-linebol);
++}
++
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+    This executes a command at a lower level than macro recording.
+@@ -3671,6 +3721,56 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+ 
+     switch (command)
+     {
++    case WS_CK_BlockStart:
++      edit->force |= REDRAW_PAGE; /*FIXME: determine what to redraw?*/
++      if (edit->wsblock && !edit->wsmarkshidden && edit->mark2 >= 0) {
++        /* we have 'endmark' */
++        edit->end_mark_curs = edit->curs1;
++        edit_set_markers(edit, edit->curs1, edit->mark2, edit->curs_col+edit->over_col, edit->column2);
++      } else {
++        /* we have no 'endmark' or block was hidden */
++        edit->end_mark_curs = edit->curs1;
++        edit_set_markers(edit, edit->curs1, edit->curs1, edit->curs_col+edit->over_col, edit->curs_col+edit->over_col);
++      }
++      edit->wsmarkshidden = FALSE;
++      edit->wsblock = TRUE;
++      edit->column_highlight = 0;
++      break;
++
++    case WS_CK_BlockEnd:
++      edit->force |= REDRAW_PAGE; /*FIXME: determine what to redraw?*/
++      if (edit->wsblock && !edit->wsmarkshidden && edit->mark2 >= 0) {
++        /* we have 'endmark' */
++        edit_set_markers(edit, edit->mark1, edit->curs1, edit->column1, edit->curs_col+edit->over_col);
++      } else {
++        /* we have no 'endmark' or block was hidden */
++        edit->wsmarkshidden = FALSE;
++        edit_set_markers(edit, edit->curs1, edit->curs1, edit->curs_col+edit->over_col, edit->curs_col+edit->over_col);
++      }
++      edit->wsmarkshidden = FALSE;
++      edit->wsblock = TRUE;
++      edit->column_highlight = 0;
++      break;
++
++    case WS_CK_BlockToggleVis:
++      if (edit->wsblock) {
++        edit->force |= REDRAW_PAGE;
++        edit->wsmarkshidden = !edit->wsmarkshidden;
++      }
++      break;
++
++    case WS_CK_GoToBlockStart:
++      if (!edit->wsmarkshidden && edit->mark1 >= 0) {
++        edit_goto_pos(edit, edit->mark1);
++      }
++      break;
++
++    case WS_CK_GoToBlockEnd:
++      if (!edit->wsmarkshidden && edit->mark2 >= 0) {
++        edit_goto_pos(edit, edit->mark2);
++      }
++      break;
++
+     case CK_TopOnScreen:
+     case CK_BottomOnScreen:
+     case CK_MarkToPageBegin:
+@@ -3961,6 +4061,12 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+         break;
+ 
+     case CK_Mark:
++      if (edit->wsblock) {
++        edit->wsblock = FALSE;
++        edit->wsmarkshidden = FALSE;
++        edit->mark1 = edit->mark2 = 1;
++        edit->column_highlight = 0;
++      } else
+         if (edit->mark2 >= 0)
+         {
+             if (edit->column_highlight)
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index a852ea5..e393350 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -979,7 +979,9 @@ pipe_mail (WEdit * edit, char *to, char *subject, char *cc)
+ static gboolean
+ is_break_char (char c)
+ {
+-    return (isspace (c) || strchr ("{}[]()<>=|/\\!?~'\",.;:#$%^&*", c));
++    /*return (isspace (c) || strchr ("{}[]()<>=|/\\!?~'\",.;:#$%^&*", c));*/
++    /*k8:*/
++    return (isspace (c) || strchr ("{}[]()<>=|/\\!?~'\",.;:#$%^&*+-@#", c));
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1888,6 +1890,12 @@ edit_load_cmd (WEdit * edit, edit_current_file_t what)
+ int
+ eval_marks (WEdit * edit, long *start_mark, long *end_mark)
+ {
++    if (edit->wsmarkshidden) {
++      *start_mark = *end_mark = 0;
++      edit->column2 = edit->column1 = 0;
++      return 1;
++    }
++
+     if (edit->mark1 != edit->mark2)
+     {
+         long start_bol, start_eol;
+diff --git a/src/editor/editkeys.c b/src/editor/editkeys.c
+index f4c34a8..2f7ec80 100644
+--- a/src/editor/editkeys.c
++++ b/src/editor/editkeys.c
+@@ -70,6 +70,53 @@
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++typedef struct {
++  long key;
++  long key1;
++  unsigned long cmd;
++} WSCommandDef;
++
++
++static const WSCommandDef wsQCommands[] = {
++  {  2, 'B', WS_CK_GoToBlockStart},
++  { 11, 'K', WS_CK_GoToBlockEnd},
++  {-1, -1, 0}
++};
++
++
++static const WSCommandDef wsKCommands[] = {
++  {  2, 'B', WS_CK_BlockStart},
++  { 11, 'K', WS_CK_BlockEnd},
++  {400, 'H', WS_CK_BlockToggleVis}, /*8*/
++  { 25, 'Y', CK_Remove},
++  {  3, 'C', CK_Copy},
++  { 22, 'V', CK_Move},
++  { 21, 'U', CK_BlockShiftLeft},
++  {  9, 'I', CK_BlockShiftRight},
++  { 23, 'W', CK_Store},
++  { 18, 'R', CK_Paste},
++  {  5, 'E', CK_DeleteToEnd},
++  {-1, -1, 0}
++};
++
++
++static unsigned long wsFindCommand (const WSCommandDef *list, long key) {
++  if (key >= 'a' && key <= 'z') key -= 32;
++  if (key >= 16384 && key <= 16384+26) key -= 16384;
++  for (; list->key > 0; ++list) {
++    if (key == list->key || key == list->key1) return list->cmd;
++  }
++  return 0;
++}
++
++
++static unsigned long edit_wordstar (gchar emode, long x_key) {
++  unsigned long cmd = wsFindCommand(emode==11?wsKCommands:wsQCommands, x_key);
++  if (cmd == 0) cmd = (unsigned long)CK_InsertChar;
++  return cmd;
++}
++
++
+ /*
+  * Translate the keycode into either 'command' or 'char_for_insertion'.
+  * 'command' is one of the editor commands from cmddef.h.
+@@ -81,8 +128,19 @@ edit_translate_key (WEdit * edit, long x_key, int *cmd, int *ch)
+     int char_for_insertion = -1;
+     int c;
+ 
++    if (!edit->extmod && edit->wsextmod) {
++      command = edit_wordstar(edit->wsextmod, x_key);
++      edit->wsextmod = 0;
++      goto fin;
++    }
++
++    if (!edit->extmod && (x_key-16384 == 11 || x_key-16384 == 17)) {
++      edit->wsextmod = x_key-16384;
++      goto fin;
++    }
++
+     /* an ordinary insertable character */
+-    if (!edit->extmod && x_key < 256)
++    if (!edit->extmod && !edit->wsextmod && x_key < 256)
+     {
+ #ifdef HAVE_CHARSET
+         if (edit->charpoint >= 4)
+

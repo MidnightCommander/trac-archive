@@ -1,0 +1,38 @@
+
+fix clang 3.6 compiler warnings
+
+patch 01: -Wundef
+patch 02: -Wunused-function
+patch 03: -Wnon-literal-null-conversion
+patch 04: -Wmissing-field-initializers
+patch 05: -Wabsolute-value
+patch 06: -Wtautological-pointer-compare
+patch 07: -Wformat
+
+edit.c:700:13: error: absolute value function 'abs' given an argument of type 'long' but has parameter of type 'int' which may cause truncation of value [-Wabsolute-value]
+editcmd.c:2350:21: error: absolute value function 'abs' given an argument of type 'long' but has parameter of type 'int' which may cause truncation of value [-Wabsolute-value]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -697,7 +697,7 @@
+     {
+         long n;
+ 
+-        n = abs (edit->line_numbers[i] - line);
++        n = labs (edit->line_numbers[i] - line);
+         if (n < m)
+         {
+             m = n;
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -2347,7 +2347,7 @@
+     {
+         long col_delta;
+ 
+-        col_delta = abs (edit->column2 - edit->column1);
++        col_delta = labs (edit->column2 - edit->column1);
+         edit_insert_column_of_text (edit, copy_buf, size, col_delta, &mark1, &mark2, &c1, &c2);
+     }
+     else

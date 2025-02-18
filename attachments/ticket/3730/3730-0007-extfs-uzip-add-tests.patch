@@ -1,0 +1,297 @@
+From 9b5295b18fbff1a55d8ae8c428e0f33eddfeb15c Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 20 Nov 2016 00:42:50 +0200
+Subject: [PATCH 07/11] extfs: uzip: add tests.
+
+---
+ tests/src/extfs-helpers-listcmd/Makefile.am        | 10 +++++
+ tests/src/extfs-helpers-listcmd/data/uzip.README   | 14 +++++++
+ .../data/uzip.with-zipinfo.env_vars                |  1 +
+ .../data/uzip.with-zipinfo.input                   | 43 ++++++++++++++++++++++
+ .../data/uzip.with-zipinfo.output                  | 40 ++++++++++++++++++++
+ .../data/uzip.without-zipinfo--mdy.env_vars        |  1 +
+ .../data/uzip.without-zipinfo--mdy.input           |  2 +
+ .../data/uzip.without-zipinfo--mdy.output          |  2 +
+ .../data/uzip.without-zipinfo--ymd.env_vars        |  1 +
+ .../data/uzip.without-zipinfo--ymd.input           | 40 ++++++++++++++++++++
+ .../data/uzip.without-zipinfo--ymd.output          | 40 ++++++++++++++++++++
+ 11 files changed, 194 insertions(+)
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.README
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.env_vars
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.output
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.env_vars
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.output
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.env_vars
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.output
+
+diff --git a/tests/src/extfs-helpers-listcmd/Makefile.am b/tests/src/extfs-helpers-listcmd/Makefile.am
+index 22273ca..e205882 100644
+--- a/tests/src/extfs-helpers-listcmd/Makefile.am
++++ b/tests/src/extfs-helpers-listcmd/Makefile.am
+@@ -22,6 +22,16 @@ mc_parse_ls_l_SOURCES = \
+ 	mc_parse_ls_l.c
+ 
+ data_files_to_distribute = \
++	data/uzip.README \
++	data/uzip.with-zipinfo.env_vars \
++	data/uzip.with-zipinfo.input \
++	data/uzip.with-zipinfo.output \
++	data/uzip.without-zipinfo--mdy.env_vars \
++	data/uzip.without-zipinfo--mdy.input \
++	data/uzip.without-zipinfo--mdy.output \
++	data/uzip.without-zipinfo--ymd.env_vars \
++	data/uzip.without-zipinfo--ymd.input \
++	data/uzip.without-zipinfo--ymd.output \
+ 	data/uzoo.README \
+ 	data/uzoo.input \
+ 	data/uzoo.output \
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.README b/tests/src/extfs-helpers-listcmd/data/uzip.README
+new file mode 100644
+index 0000000..135ec23
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.README
+@@ -0,0 +1,14 @@
++
++The input files were created thus:
++
++    cd ~/.gimp-2.8
++    echo hello > 'filename with spaces.txt'
++    zip a.zip *
++    unzip -Z -l -T a.zip > uzip.with-zipinfo.input
++    unzip -qq -v a.zip > uzip.without-zipinfo--ymd.input
++    rm a.zip
++
++uzip supports two date formats for "without-zipinfo" mode: ymd
++(YYYY-MM-DD) and mdy (MM-DD-YY). To create the
++'uzip.without-zipinfo--mdy.input' file, with MM-DD-YY dates, I simply
++altered two dates with an editor (one with year before 70, one after).
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.env_vars b/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.env_vars
+new file mode 100644
+index 0000000..0192895
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.env_vars
+@@ -0,0 +1 @@
++MC_TEST_EXTFS_HAVE_ZIPINFO=1
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.input b/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.input
+new file mode 100644
+index 0000000..bcdf94e
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.input
+@@ -0,0 +1,43 @@
++Archive:  a.zip
++Zip file size: 75222 bytes, number of entries: 40
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 brushes/
++-rw-------  3.0 unx      739 tx      164 defN 20160918.164557 colorrc
++-rw-------  3.0 unx     1863 tx      441 defN 20160918.164558 controllerrc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 curves/
++-rw-------  3.0 unx     1982 tx      423 defN 20160918.164557 dockrc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 dynamics/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 environ/
++-rw-r--r--  3.0 unx        6 tx        6 stor 20161123.071336 filename with spaces.txt
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 fonts/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 fractalexplorer/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 gfig/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 gflare/
++-rw-------  3.0 unx      355 tx      223 defN 20160108.011031 gimprc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 gimpressionist/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 gradients/
++-rw-r--r--  3.0 unx      430 tx      251 defN 20151225.001514 gtkrc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 interpreters/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 levels/
++-rw-r--r--  3.0 unx    76873 tx     8770 defN 20160918.164558 menurc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 modules/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 palettes/
++-rw-------  3.0 unx      102 tx       86 defN 20160918.164559 parasiterc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 patterns/
++-rw-r--r--  3.0 unx   277486 tx    48556 defN 20151225.001526 pluginrc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 plug-ins/
++-rw-rw-r--  3.0 unx      209 tx      143 defN 20160918.164437 print-page-setup
++-rw-rw-r--  3.0 unx      506 tx      295 defN 20160918.164437 print-settings
++-rw-------  3.0 unx       62 tx       43 defN 20160108.010813 profilerc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 scripts/
++-rw-------  3.0 unx     2370 tx      685 defN 20160918.164557 sessionrc
++-rw-rw-r--  3.0 unx    34747 tx     7545 defN 20160918.164559 tags.xml
++-rw-------  3.0 unx     4817 tx      589 defN 20160918.164559 templaterc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 templates/
++-rw-rw-r--  3.0 unx      310 tx      204 defN 20160918.164204 themerc
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 themes/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 tmp/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20160403.000739 tool-options/
++drwxr-xr-x  3.0 unx        0 bx        0 stor 20151225.001514 tool-presets/
++-rw-------  3.0 unx     3996 tx      528 defN 20160918.164558 toolrc
++-rw-------  3.0 unx     1178 tx      388 defN 20160918.164559 unitrc
++40 files, 408031 bytes uncompressed, 69340 bytes compressed:  83.0%
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.output b/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.output
+new file mode 100644
+index 0000000..1c10891
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.with-zipinfo.output
+@@ -0,0 +1,40 @@
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 brushes/
++-rw-------   1  <<uid>>  <<gid>>        739 2016-09-18 16:45:57 colorrc
++-rw-------   1  <<uid>>  <<gid>>       1863 2016-09-18 16:45:58 controllerrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 curves/
++-rw-------   1  <<uid>>  <<gid>>       1982 2016-09-18 16:45:57 dockrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 dynamics/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 environ/
++-rw-r--r--   1  <<uid>>  <<gid>>          6 2016-11-23 07:13:36 filename with spaces.txt
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 fonts/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 fractalexplorer/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 gfig/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 gflare/
++-rw-------   1  <<uid>>  <<gid>>        355 2016-01-08 01:10:31 gimprc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 gimpressionist/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 gradients/
++-rw-r--r--   1  <<uid>>  <<gid>>        430 2015-12-25 00:15:14 gtkrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 interpreters/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 levels/
++-rw-r--r--   1  <<uid>>  <<gid>>      76873 2016-09-18 16:45:58 menurc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 modules/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 palettes/
++-rw-------   1  <<uid>>  <<gid>>        102 2016-09-18 16:45:59 parasiterc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 patterns/
++-rw-r--r--   1  <<uid>>  <<gid>>     277486 2015-12-25 00:15:26 pluginrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 plug-ins/
++-rw-rw-r--   1  <<uid>>  <<gid>>        209 2016-09-18 16:44:37 print-page-setup
++-rw-rw-r--   1  <<uid>>  <<gid>>        506 2016-09-18 16:44:37 print-settings
++-rw-------   1  <<uid>>  <<gid>>         62 2016-01-08 01:08:13 profilerc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 scripts/
++-rw-------   1  <<uid>>  <<gid>>       2370 2016-09-18 16:45:57 sessionrc
++-rw-rw-r--   1  <<uid>>  <<gid>>      34747 2016-09-18 16:45:59 tags.xml
++-rw-------   1  <<uid>>  <<gid>>       4817 2016-09-18 16:45:59 templaterc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 templates/
++-rw-rw-r--   1  <<uid>>  <<gid>>        310 2016-09-18 16:42:04 themerc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 themes/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 tmp/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2016-04-03 00:07:39 tool-options/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:14 tool-presets/
++-rw-------   1  <<uid>>  <<gid>>       3996 2016-09-18 16:45:58 toolrc
++-rw-------   1  <<uid>>  <<gid>>       1178 2016-09-18 16:45:59 unitrc
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.env_vars b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.env_vars
+new file mode 100644
+index 0000000..9c8ce7f
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.env_vars
+@@ -0,0 +1 @@
++MC_TEST_EXTFS_HAVE_ZIPINFO=0
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.input b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.input
+new file mode 100644
+index 0000000..2eb60ef
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.input
+@@ -0,0 +1,2 @@
++       0  Stored        0   0% 12-25-15 00:15 00000000  brushes/
++     739  Defl:N      164  78% 09-16-78 16:45 2d7277eb  colorrc
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.output b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.output
+new file mode 100644
+index 0000000..a0912f7
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--mdy.output
+@@ -0,0 +1,2 @@
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 brushes/
++-rw-r--r--   1  <<uid>>  <<gid>>        739 1978-09-16 16:45:00 colorrc
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.env_vars b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.env_vars
+new file mode 100644
+index 0000000..9c8ce7f
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.env_vars
+@@ -0,0 +1 @@
++MC_TEST_EXTFS_HAVE_ZIPINFO=0
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.input b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.input
+new file mode 100644
+index 0000000..068101f
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.input
+@@ -0,0 +1,40 @@
++       0  Stored        0   0% 2015-12-25 00:15 00000000  brushes/
++     739  Defl:N      164  78% 2016-09-18 16:45 2d7277eb  colorrc
++    1863  Defl:N      441  76% 2016-09-18 16:45 4a229bae  controllerrc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  curves/
++    1982  Defl:N      423  79% 2016-09-18 16:45 0f21e877  dockrc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  dynamics/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  environ/
++       6  Stored        6   0% 2016-11-23 07:13 363a3020  filename with spaces.txt
++       0  Stored        0   0% 2015-12-25 00:15 00000000  fonts/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  fractalexplorer/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  gfig/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  gflare/
++     355  Defl:N      223  37% 2016-01-08 01:10 05197193  gimprc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  gimpressionist/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  gradients/
++     430  Defl:N      251  42% 2015-12-25 00:15 a3ed42bc  gtkrc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  interpreters/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  levels/
++   76873  Defl:N     8770  89% 2016-09-18 16:45 7d9cb346  menurc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  modules/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  palettes/
++     102  Defl:N       86  16% 2016-09-18 16:45 62252c7b  parasiterc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  patterns/
++  277486  Defl:N    48556  83% 2015-12-25 00:15 f846b075  pluginrc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  plug-ins/
++     209  Defl:N      143  32% 2016-09-18 16:44 1c6688d4  print-page-setup
++     506  Defl:N      295  42% 2016-09-18 16:44 ce580111  print-settings
++      62  Defl:N       43  31% 2016-01-08 01:08 d149fa62  profilerc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  scripts/
++    2370  Defl:N      685  71% 2016-09-18 16:45 b31b0c93  sessionrc
++   34747  Defl:N     7545  78% 2016-09-18 16:45 6f219ddd  tags.xml
++    4817  Defl:N      589  88% 2016-09-18 16:45 edb121a1  templaterc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  templates/
++     310  Defl:N      204  34% 2016-09-18 16:42 0b2c424e  themerc
++       0  Stored        0   0% 2015-12-25 00:15 00000000  themes/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  tmp/
++       0  Stored        0   0% 2016-04-03 00:07 00000000  tool-options/
++       0  Stored        0   0% 2015-12-25 00:15 00000000  tool-presets/
++    3996  Defl:N      528  87% 2016-09-18 16:45 f51984ae  toolrc
++    1178  Defl:N      388  67% 2016-09-18 16:45 b8420722  unitrc
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.output b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.output
+new file mode 100644
+index 0000000..7a51163
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzip.without-zipinfo--ymd.output
+@@ -0,0 +1,40 @@
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 brushes/
++-rw-r--r--   1  <<uid>>  <<gid>>        739 2016-09-18 16:45:00 colorrc
++-rw-r--r--   1  <<uid>>  <<gid>>       1863 2016-09-18 16:45:00 controllerrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 curves/
++-rw-r--r--   1  <<uid>>  <<gid>>       1982 2016-09-18 16:45:00 dockrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 dynamics/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 environ/
++-rw-r--r--   1  <<uid>>  <<gid>>          6 2016-11-23 07:13:00 filename with spaces.txt
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 fonts/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 fractalexplorer/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 gfig/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 gflare/
++-rw-r--r--   1  <<uid>>  <<gid>>        355 2016-01-08 01:10:00 gimprc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 gimpressionist/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 gradients/
++-rw-r--r--   1  <<uid>>  <<gid>>        430 2015-12-25 00:15:00 gtkrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 interpreters/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 levels/
++-rw-r--r--   1  <<uid>>  <<gid>>      76873 2016-09-18 16:45:00 menurc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 modules/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 palettes/
++-rw-r--r--   1  <<uid>>  <<gid>>        102 2016-09-18 16:45:00 parasiterc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 patterns/
++-rw-r--r--   1  <<uid>>  <<gid>>     277486 2015-12-25 00:15:00 pluginrc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 plug-ins/
++-rw-r--r--   1  <<uid>>  <<gid>>        209 2016-09-18 16:44:00 print-page-setup
++-rw-r--r--   1  <<uid>>  <<gid>>        506 2016-09-18 16:44:00 print-settings
++-rw-r--r--   1  <<uid>>  <<gid>>         62 2016-01-08 01:08:00 profilerc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 scripts/
++-rw-r--r--   1  <<uid>>  <<gid>>       2370 2016-09-18 16:45:00 sessionrc
++-rw-r--r--   1  <<uid>>  <<gid>>      34747 2016-09-18 16:45:00 tags.xml
++-rw-r--r--   1  <<uid>>  <<gid>>       4817 2016-09-18 16:45:00 templaterc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 templates/
++-rw-r--r--   1  <<uid>>  <<gid>>        310 2016-09-18 16:42:00 themerc
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 themes/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 tmp/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2016-04-03 00:07:00 tool-options/
++drwxr-xr-x   1  <<uid>>  <<gid>>          0 2015-12-25 00:15:00 tool-presets/
++-rw-r--r--   1  <<uid>>  <<gid>>       3996 2016-09-18 16:45:00 toolrc
++-rw-r--r--   1  <<uid>>  <<gid>>       1178 2016-09-18 16:45:00 unitrc
+-- 
+2.9.3
+

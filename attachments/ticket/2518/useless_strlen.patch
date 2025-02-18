@@ -1,0 +1,22 @@
+diff --git a/src/filemanager/treestore.c b/src/filemanager/treestore.c
+index 9c13872..20ca64f 100644
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -187,7 +187,7 @@ tree_store_load_from (char *name)
+     FILE *file;
+     char buffer[MC_MAXPATHLEN + 20], oldname[MC_MAXPATHLEN];
+     char *different;
+-    int len, common;
++    int common;
+     int do_load;
+ 
+     g_return_val_if_fail (name != NULL, FALSE);
+@@ -238,7 +238,7 @@ tree_store_load_from (char *name)
+ 
+             lc_name = decode (buffer + 2);
+ 
+-            len = strlen (lc_name);
++	    
+             if (lc_name[0] != PATH_SEP)
+             {
+                 /* Clear-text decompression */

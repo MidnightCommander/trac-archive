@@ -1,0 +1,35 @@
+From bc2b13ec8f644d304eeedac4a5389448a70992d6 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 21 Nov 2015 21:26:34 +0200
+Subject: [PATCH] "External Panelize" dialog should use WListbox's notification
+ notification.
+
+---
+ src/filemanager/panelize.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 9dfe126..171bf27 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -113,12 +113,14 @@ panelize_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+     switch (msg)
+     {
+     case MSG_INIT:
+-    case MSG_POST_KEY:
+-    case MSG_FOCUS:
+-        tty_setcolor (MENU_ENTRY_COLOR);
+         update_command ();
+         return MSG_HANDLED;
+ 
++    case MSG_ACTION:
++        if (sender != NULL)     /* The listbox tells us its item has changed. */
++            update_command ();
++        /* fall through */
++
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+     }
+-- 
+2.1.4
+

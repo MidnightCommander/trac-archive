@@ -1,0 +1,36 @@
+From 76cf69fa17fe615da2f768ef736f37403f89d0c8 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 19 Dec 2016 02:56:39 +0200
+Subject: [PATCH 1/2] Ticket #3744: extfs: u7z: make it testable.
+
+---
+ src/vfs/extfs/helpers/u7z | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/u7z b/src/vfs/extfs/helpers/u7z
+index 5caa90f..04f3f9c 100755
+--- a/src/vfs/extfs/helpers/u7z
++++ b/src/vfs/extfs/helpers/u7z
+@@ -19,6 +19,10 @@
+ 
+ P7ZIP=`which 7z 2>/dev/null` || P7ZIP=`which 7za 2>/dev/null` || P7ZIP=`which 7zr 2>/dev/null` || P7ZIP=""
+ 
++# Let the test framework hook in:
++P7ZIP=${MC_TEST_EXTFS_LIST_CMD:-$P7ZIP}
++STAT=${MC_TEST_EXTFS_U7Z_STAT:-stat}
++
+ mcu7zip_list ()
+ {
+         # Symlinks are not shown - no idea how to distinguish them
+@@ -35,7 +39,7 @@ mcu7zip_list ()
+         zero_size='           0'
+ 
+         # archive entries can have no datetime info, 7z will use archive file datetime
+-        date_archive=`stat -c %y "$1" 2>/dev/null | sed -n "s/${date_re}.*/${date_mc}/p" 2>/dev/null`
++        date_archive=`$STAT -c %y "$1" 2>/dev/null | sed -n "s/${date_re}.*/${date_mc}/p" 2>/dev/null`
+         [ "${date_archive}"x = x ] && date_archive=`ls -lan "$1" 2>/dev/null | awk '{print $6, $7, $8}' 2>/dev/null`
+         [ "${date_archive}"x = x ] && date_archive="01-01-1970 00:00:00"
+ 
+-- 
+2.9.3
+

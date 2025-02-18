@@ -1,0 +1,28 @@
+From 731c92cb685773a28aeedf95ec42f2a71e61331a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 23 Nov 2024 15:00:00 +0000
+Subject: [PATCH] (tar-internal.c): fix -Wunused-macros warning
+
+tar-internal.c:53:9: warning: macro is not used [-Wunused-macros]
+   53 | #define LG_8 3
+      |         ^
+
+Found by clang-18
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar-internal.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/vfs/tar/tar-internal.c b/src/vfs/tar/tar-internal.c
+index 1afb1369b..cfb46d0c9 100644
+--- a/src/vfs/tar/tar-internal.c
++++ b/src/vfs/tar/tar-internal.c
+@@ -50,7 +50,6 @@
+ #endif
+ 
+ /* Log base 2 of common values. */
+-#define LG_8 3
+ #define LG_256 8
+ 
+ /*** file scope type declarations ****************************************************************/

@@ -1,0 +1,206 @@
+#! /usr/bin/env python
+#Written by Nicolas Rybkin
+#18.07.2015
+import sys, os, time
+
+CHAR_MAP = {32: ' ', 33: '!', 34: '"', 35: '#', 37: '%', 38: '&', 39: "'",
+            40: '(', 41: ')', 42: '*', 43: '+', 44: ',', 45: '-', 46: '.',
+            47: '_', 48: '0', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5',
+            54: '6', 55: '7', 56: '8', 57: '9', 59: ';', 60: '<', 61: '=',
+            62: '>', 63: '?', 64: '@', 65: 'a', 66: 'b', 67: 'c', 68: 'd',
+            69: 'e', 70: 'f', 71: 'g', 72: 'h', 73: 'i', 74: 'j', 75: 'k',
+            76: 'l', 77: 'm', 78: 'n', 79: 'o', 80: 'p', 81: 'q', 82: 'r',
+            83: 's', 84: 't', 85: 'u', 86: 'v', 87: 'w', 88: 'x', 89: 'y',
+            90: 'z', 91: '[', 93: ']', 94: '^', 95: '_', 96: '`',
+            97: 'A', 98: 'B', 99: 'C',
+            100: 'D', 101: 'E', 102: 'F', 103: 'G', 104: 'H', 105: 'I',
+            106: 'J', 107: 'K', 108: 'L', 109: 'M', 110: 'N', 111: 'O',
+            112: 'P', 113: 'Q', 114: 'R', 115: 'S', 116: 'T', 117: 'U',
+            118: 'V', 119: 'W', 120: 'X', 121: 'Y', 122: 'Z', 193: 'A',
+            194: 'B', 195: 'C', 196: 'D', 197: 'E', 198: 'F', 199: 'G',
+            200: 'H', 201: 'I', 202: 'J', 203: 'K', 204: 'L', 205: 'M',
+            206: 'N', 207: 'O', 208: 'P', 209: 'Q', 210: 'R', 211: 'S',
+            212: 'T', 213: 'U', 214: 'V', 215: 'W', 216: 'X', 217: 'Y',
+            218: 'Z'}
+
+FILE_TYPES = {0x80 : 'del',
+	      0x81 : 'seq',
+	      0x82 : 'prg',
+	      0x83 : 'usr',
+	      0x84 : 'rel',
+	      'del': 0x80,
+	      'seq': 0x81,
+	      'prg': 0x82,
+	      'usr': 0x83,
+	      'rel': 0x84}
+
+def NameFilter(in_string):
+    out_string = ""
+    for i in xrange(len(in_string)):
+	try:
+	    out_string += CHAR_MAP[ord(in_string[i])]
+	except KeyError:
+	    out_string += "_"
+    return out_string
+
+tape_file = open(sys.argv[2], "r+b")
+tape_buffer = tape_file.read()
+if tape_buffer[:3] <> "C64":
+    sys.exit('Signature "C64" in the beginning of the file not found.')
+total_entries = ord(tape_buffer[0x22])+(ord(tape_buffer[0x23])<<8)
+used_entries = ord(tape_buffer[0x24])+(ord(tape_buffer[0x25])<<8)
+command = sys.argv[1].upper()
+if command == "LIST":
+    if not used_entries: exit()
+    imgtime = time.strftime("%m/%d/%Y %H:%M:%S",\
+	    time.localtime(os.stat(sys.argv[2]).st_mtime))
+    for ptr in xrange(0x40,0x40+(used_entries<<5),32):
+	if ord(tape_buffer[ptr]) == 1:
+	    print "-rw-r--r-- 1", 2*"1001", \
+		ord(tape_buffer[ptr+4])+(ord(tape_buffer[ptr+5])<<8)-\
+		ord(tape_buffer[ptr+2])+(ord(tape_buffer[ptr+3])<<8),\
+		imgtime,\
+		NameFilter(tape_buffer[ptr+16:ptr+32]).strip() + "."+\
+		FILE_TYPES[ord(tape_buffer[ptr+1])]
+elif command == "COPYOUT":
+    i = sys.argv[3].rfind(".")
+    if i == -1: sys.exit("Can't COPYOUT file. No type specified.")
+    file_type = FILE_TYPES[sys.argv[3][i+1:]]
+    file_name = sys.argv[3][:i].ljust(16," ")
+    file_found = False
+    for ptr in xrange(0x40,0x40+(used_entries<<5),32):
+	if tape_buffer[ptr] == "\x01" and\
+		NameFilter(tape_buffer[ptr+16:ptr+32]) == file_name and\
+		ord(tape_buffer[ptr+1]) == file_type:
+	    file_found = True
+	    break
+    if not file_found: sys.exit("File not found")
+    dest_file = open(sys.argv[4],"w")
+    source_buffer = tape_buffer[ptr+2] + tape_buffer[ptr+3]#start address
+    data_offset  =  ord(tape_buffer[ptr+8])       +\
+		    (ord(tape_buffer[ptr+9]) <<8) +\
+		    (ord(tape_buffer[ptr+10])<<16)+\
+		    (ord(tape_buffer[ptr+11])<<24)
+    data_len = ord(tape_buffer[ptr+4])+(ord(tape_buffer[ptr+5])<<8)-\
+		ord(tape_buffer[ptr+2])+(ord(tape_buffer[ptr+3])<<8)
+    source_buffer += tape_buffer[data_offset:data_offset+data_len]
+    dest_file.write(source_buffer)
+    dest_file.close()
+elif command == "COPYIN":
+    src_file = open(sys.argv[4],"r")
+    src_buffer = src_file.read()
+    src_file.close()
+    start_address = ord(src_buffer[0])+(ord(src_buffer[1])<<8)
+    src_buffer = src_buffer[2:]
+    end_address = start_address + len(src_buffer)
+    if used_entries == total_entries:
+	#expand
+	total_entries += 1
+	tape_buffer_ = tape_buffer[:0x22] +\
+	    chr(total_entries&0xFF)+chr(total_entries>>8)+\
+	    tape_buffer[0x24:0x40]
+	for ptr in xrange(0x40,0x40+(used_entries<<5),32):
+	    tape_buffer_ += tape_buffer[ptr:ptr+8]
+	    data_offset  =  ord(tape_buffer[ptr+8])       +\
+			    (ord(tape_buffer[ptr+9]) <<8) +\
+			    (ord(tape_buffer[ptr+10])<<16)+\
+			    (ord(tape_buffer[ptr+11])<<24)
+	    data_offset += 32
+	    for i in xrange(4):
+		tape_buffer_ += chr(data_offset&0xFF)
+		data_offset >>= 8
+	    tape_buffer_ += tape_buffer[ptr+12:ptr+32]
+	tape_buffer_ += 32*"\x00"
+	tape_buffer_ += tape_buffer[ptr+32:]
+	tape_buffer = tape_buffer_
+    ptr = 0x40+32*used_entries
+    data_ptr = len(tape_buffer)
+    i = sys.argv[3].rfind(".")
+    if i == -1: sys.exit("Can't COPYIN file. No type specified.")
+    file_type = FILE_TYPES[sys.argv[3][i+1:]]
+    file_name = NameFilter(sys.argv[3][:i]).ljust(16," ")
+    used_entries += 1
+    tape_buffer_ = tape_buffer[:0x22]+\
+		    chr(total_entries&0xFF)+chr(total_entries>>8)+\
+		    chr(used_entries&0xFF)+chr(used_entries>>8)+\
+		    tape_buffer[0x26:ptr]+\
+		    "\x01"+chr(file_type)+\
+		    chr(start_address&0xFF)+\
+		    chr(start_address>>8)+\
+		    chr(end_address&0xFF)+\
+		    chr(end_address>>8)+\
+		    "\x00\x00"
+    for i in xrange(4):
+	tape_buffer_ += chr(data_ptr&0xFF)
+	data_ptr >>= 8
+    tape_buffer_ += 4*"\x00" + file_name
+    data_offset  =  ord(tape_buffer[0x48])      +\
+		    (ord(tape_buffer[0x49])<<8) +\
+		    (ord(tape_buffer[0x4a])<<16)+\
+		    (ord(tape_buffer[0x4b])<<24)
+
+
+    tape_buffer_ += tape_buffer[data_offset:] + src_buffer
+    tape_file.seek(0)
+    tape_file.write(tape_buffer_)
+elif command == "RM":
+    i = sys.argv[3].rfind(".")
+    if i == -1: sys.exit("Can't COPYOUT file. No type specified.")
+    file_type = FILE_TYPES[sys.argv[3][i+1:]]
+    file_name = NameFilter(sys.argv[3][:i]).ljust(16," ")
+    file_found = False
+    for ptr in xrange(0x40,0x40+(used_entries<<5),32):
+	if tape_buffer[ptr+16:ptr+32] == file_name and\
+		ord(tape_buffer[ptr+1]) == file_type:
+	    file_found = True
+	    break
+    if not file_found: sys.exit("File not found")
+    data_offset  =  ord(tape_buffer[0x48])      +\
+		    (ord(tape_buffer[0x49])<<8) +\
+		    (ord(tape_buffer[0x4a])<<16)+\
+		    (ord(tape_buffer[0x4b])<<24)
+    file_offset  =  ord(tape_buffer[ptr+8])       +\
+		    (ord(tape_buffer[ptr+9])<<8)  +\
+		    (ord(tape_buffer[ptr+10])<<16)+\
+		    (ord(tape_buffer[ptr+11])<<24)
+	
+    used_entries -= 1
+    ptr_ = ptr
+    if used_entries:
+	next_file_offset=ord(tape_buffer[ptr+40])     +\
+			(ord(tape_buffer[ptr+41])<<8) +\
+			(ord(tape_buffer[ptr+42])<<16)+\
+			(ord(tape_buffer[ptr+43])<<24)
+	
+	free_mem = next_file_offset - file_offset
+	tape_buffer_ = tape_buffer[:ptr+32]
+	for ptr in xrange(ptr+32,0x40+((used_entries+1)<<5),32):
+	    tape_buffer_ += tape_buffer[ptr:ptr+8]
+	    offset = ord(tape_buffer[ptr+8])      +\
+		    (ord(tape_buffer[ptr+9])<<8)  +\
+		    (ord(tape_buffer[ptr+10])<<16)+\
+		    (ord(tape_buffer[ptr+11])<<24)
+	    offset -= free_mem
+	    for i in xrange(4):
+		tape_buffer_ += chr(offset&0xFF)
+		offset >>= 8
+	    tape_buffer_ += tape_buffer[ptr+12:ptr+32]
+	tape_buffer = tape_buffer_ + tape_buffer[ptr+32:]
+    else:
+	next_file_offset = len(tape_buffer)
+    tape_buffer =   tape_buffer[:0x24]+\
+		    chr(used_entries&0xFF)+chr(used_entries>>8)+\
+		    tape_buffer[0x26:ptr_]+\
+		    tape_buffer[ptr_+32:data_offset]+\
+		    32*"\x00"+\
+		    tape_buffer[data_offset:file_offset]+\
+		    tape_buffer[next_file_offset:]
+
+    tape_file.seek(0)
+    tape_file.truncate(len(tape_buffer))
+    tape_file.write(tape_buffer)
+
+elif command == "RMDIR" or command == "MKDIR":
+    sys.exit("Command "+command+" not supported.")
+
+tape_file.close()

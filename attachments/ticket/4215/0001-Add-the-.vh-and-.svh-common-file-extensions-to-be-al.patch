@@ -1,0 +1,26 @@
+From d50b6768f02d905d21a2f32352869f54b66dffcb Mon Sep 17 00:00:00 2001
+From: Purdea Andrei <andrei.purdea@intel.com>
+Date: Thu, 11 Mar 2021 13:28:36 +0200
+Subject: [PATCH] Add the .vh and .svh common file extensions to be also picked
+ up by the verilog/systemverilog syntax highlighter.
+
+---
+ misc/syntax/Syntax.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 43f02e8c4..5bde4573f 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -235,7 +235,7 @@ include cabal.syntax
+ file ..\*\\.(?i:n)$ Nemerle\sProgram
+ include nemerle.syntax
+ 
+-file ..\*\\.(?i:(v|sv))$ Verilog/SystemVerilog\sDevice\sDescription
++file ..\*\\.(?i:(v|sv|vh|svh))$ Verilog/SystemVerilog\sDevice\sDescription
+ include verilog.syntax
+ 
+ file ..\*\\.(?i:hdl|vhdl?)$ VHDL\sDevice\sDescription
+-- 
+2.21.3
+

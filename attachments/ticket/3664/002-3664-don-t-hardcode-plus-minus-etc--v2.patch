@@ -1,0 +1,210 @@
+From 097c1d3a9b0ff0ce895d2c8589765455390c8824 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 17 Jul 2016 20:32:50 +0300
+Subject: [PATCH] Ticket #3664: (midnight_callback): don't hardcode +, -, \, *.
+
+---
+ lib/tty/key.c              | 33 +++++++++++++++++++++++++++++
+ lib/tty/key.h              |  1 +
+ misc/mc.default.keymap     |  6 +++---
+ misc/mc.emacs.keymap       |  6 +++---
+ src/filemanager/midnight.c | 53 +++++++++++++++++++++-------------------------
+ src/keybind-defaults.c     |  7 +++---
+ src/setup.c                |  5 +++--
+ 7 files changed, 71 insertions(+), 40 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 344141c..4a9afdf 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -2275,6 +2275,39 @@ application_keypad_mode (void)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Returns TRUE if a user has asked to prefer the keypad version of a key.
++ *
++ * That is, if the user has asked for "+ - / *" to be effective (in some
++ * situations) only if typed via the keypad.
++ *
++ * @see application_keypad_mode(), numeric_keypad_mode().
++ */
++gboolean
++tty_has_alternate_key_representation (int keycode)
++{
++    if (mc_global.tty.alternate_plus_minus
++        && (mc_global.tty.console_flag != '\0' || mc_global.tty.xterm_flag))
++    {
++        /* Yes, "application mode" is active. The following keys have a
++         * different representation when typed via the keypad. */
++        switch (keycode)
++        {
++        case '+':
++        case '-':
++        case '/': /* Note: This is slash. It's not the *backslash* used (by default) to Unselect files. */
++        case '*':
++            return TRUE;
++        default:
++            break;
++        }
++    }
++
++    return FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ enable_bracketed_paste (void)
+ {
+diff --git a/lib/tty/key.h b/lib/tty/key.h
+index 7b866ac..b050924 100644
+--- a/lib/tty/key.h
++++ b/lib/tty/key.h
+@@ -106,6 +106,7 @@ int get_key_code (int nodelay);
+ /* Set keypad mode (xterm and linux console only) */
+ void numeric_keypad_mode (void);
+ void application_keypad_mode (void);
++gboolean tty_has_alternate_key_representation (int keycode);
+ 
+ /* Bracketed paste mode */
+ void enable_bracketed_paste (void);
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 7d61ff8..877b879 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -35,9 +35,9 @@ PutOtherPath = alt-shift-a
+ PutCurrentSelected = alt-enter; ctrl-enter
+ PutCurrentFullSelected = ctrl-shift-enter
+ ViewFiltered = alt-exclamation
+-Select = kpplus
+-Unselect = kpminus
+-SelectInvert = kpasterisk
++Select = kpplus; plus
++Unselect = kpminus; minus; backslash
++SelectInvert = kpasterisk; asterisk
+ ScreenList = alt-prime
+ # OptionsLayout =
+ # OptionsAppearance =
+diff --git a/misc/mc.emacs.keymap b/misc/mc.emacs.keymap
+index 8b4842a..7d7ba18 100644
+--- a/misc/mc.emacs.keymap
++++ b/misc/mc.emacs.keymap
+@@ -35,9 +35,9 @@ PutOtherPath = alt-shift-a
+ PutCurrentSelected = alt-enter; ctrl-enter
+ PutCurrentFullSelected = ctrl-shift-enter
+ ViewFiltered = alt-exclamation
+-Select = kpplus
+-Unselect = kpminus
+-SelectInvert = kpasterisk
++Select = kpplus; plus
++Unselect = kpminus; minus; backslash
++SelectInvert = kpasterisk; asterisk
+ ScreenList = alt-prime
+ # OptionsLayout =
+ # OptionsAppearance =
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index e312b2c..edf2e54 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -1491,39 +1491,34 @@ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+             cmdline->point = 0;
+         }
+ 
+-        if ((!mc_global.tty.alternate_plus_minus
+-             || !(mc_global.tty.console_flag != '\0' || mc_global.tty.xterm_flag)) && !quote
+-            && !current_panel->searching)
++        /*
++         * Handle '+' (Select), '-' '\\' (Unselect), '*' (SelectInvert), and
++         * possibly other punctuation keys, "when they're typed as the first
++         * character on the command-line".
++         */
++        if ((parm < 128) && g_ascii_ispunct ((char) parm)       /* "< 128" because g_ascii_ispunct() accepts char, not int. */
++            && !tty_has_alternate_key_representation (parm) && !quote && !current_panel->searching)
+         {
+-            if (!only_leading_plus_minus)
++            /*
++             * The idea here is that punctuation marks are unlikely to start
++             * a shell command. Therefore we only activate them when the
++             * command-line is still empty. Or when the user (by turning off the
++             * 'only_leading_plus_minus' option) asks to make them dominant.
++             */
++            if (!only_leading_plus_minus || !command_prompt || input_is_empty (cmdline))
+             {
+-                /* Special treatement, since the input line will eat them */
+-                if (parm == '+')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Select, NULL);
++                command = keybind_lookup_keymap_command (main_map, parm);
++                if (command != CK_IgnoreKey)
++                {
++                    cb_ret_t res;
+ 
+-                if (parm == '\\' || parm == '-')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Unselect,
+-                                         NULL);
++                    /* First try the panel, then the filemanager. */
++                    res = send_message (current_panel, NULL, MSG_ACTION, command, NULL);
++                    if (res == MSG_NOT_HANDLED)
++                       res = midnight_execute_cmd (NULL, command);
+ 
+-                if (parm == '*')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_SelectInvert,
+-                                         NULL);
+-            }
+-            else if (!command_prompt || cmdline->buffer[0] == '\0')
+-            {
+-                /* Special treatement '+', '-', '\', '*' only when this is
+-                 * first char on input line
+-                 */
+-                if (parm == '+')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Select, NULL);
+-
+-                if (parm == '\\' || parm == '-')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Unselect,
+-                                         NULL);
+-
+-                if (parm == '*')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_SelectInvert,
+-                                         NULL);
++                    return res;
++                }
+             }
+         }
+         return MSG_NOT_HANDLED;
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 38b4afb..8b2561f 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -127,9 +127,10 @@ static const global_keymap_ini_t default_main_keymap[] = {
+     {"SplitVertHoriz", "alt-comma"},
+     {"ExtendedKeyMap", "ctrl-x"},
+     /* Select/unselect group */
+-    {"Select", "kpplus"},
+-    {"Unselect", "kpminus"},
+-    {"SelectInvert", "kpasterisk"},
++    /* Note: ASCII punctuation keys (like plus, but unlike kpplus) are only effective when they're the first char typed on the command-line. */
++    {"Select", "kpplus; plus"},
++    {"Unselect", "kpminus; minus; backslash"},
++    {"SelectInvert", "kpasterisk; asterisk"},
+     /* List of screens */
+     {"ScreenList", "alt-prime"},
+     {NULL, NULL}
+diff --git a/src/setup.c b/src/setup.c
+index 951edb8..f707af8 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -153,8 +153,9 @@ int easy_patterns = 1;
+ /* It true saves the setup when quitting */
+ int auto_save_setup = 1;
+ 
+-/* If true, then the +, - and \ keys have their special meaning only if the
+- * command line is emtpy, otherwise they behave like regular letters
++/* If true, then the +, -, \ and * keys have their special meaning only if the
++ * command line is empty, otherwise they're *always* special (and you'll have
++ * to quote them (C-q) whenever you want to use them in the command line.
+  */
+ int only_leading_plus_minus = 1;
+ 
+-- 
+2.5.0
+

@@ -1,0 +1,495 @@
+diff --git a/lib/search.h b/lib/search.h
+index ae38518..f59ee9d 100644
+--- a/lib/search.h
++++ b/lib/search.h
+@@ -91,6 +91,7 @@ typedef struct mc_search_struct
+     off_t start_buffer;
+     /* some data for regexp */
+     int num_results;
++    gboolean is_utf8;
+     mc_search_matchinfo_t *regex_match_info;
+     GString *regex_buffer;
+ #ifdef SEARCH_TYPE_PCRE
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index 97f5fa9..2d4e5fd 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -384,40 +384,56 @@ mc_search_regex__get_token_by_num (const mc_search_t * lc_mc_search, gsize lc_in
+ 
+ static gboolean
+ mc_search_regex__replace_handle_esc_seq (const GString * replace_str, const gsize current_pos,
+-                                         gsize * skip_len, int *ret, char *next_char)
++                                         gsize * skip_len, int *ret)
+ {
+     char *curr_str = &(replace_str->str[current_pos]);
+-
+-    *next_char = *(curr_str + 1);
++    char c = *(curr_str + 1);
+ 
+     if (replace_str->len > current_pos + 2)
+     {
+-        if (*next_char == '{')
++        if (c == '{')
+         {
+             for (*skip_len = 2; /* \{ */
+                  current_pos + *skip_len < replace_str->len
+-                 && (*(curr_str + *skip_len)) != '}'; (*skip_len)++);
+-            if (current_pos + *skip_len < replace_str->len)     /* } */
++                 && *(curr_str + *skip_len) >= '0'
++                 && *(curr_str + *skip_len) <= '7'; (*skip_len)++);
++            if (current_pos + *skip_len < replace_str->len &&
++                *(curr_str + *skip_len) == '}')
++            {
+                 (*skip_len)++;
+-            *ret = REPLACE_PREPARE_T_ESCAPE_SEQ;
+-            return FALSE;
++                *ret = REPLACE_PREPARE_T_ESCAPE_SEQ;
++                return FALSE;
++            }
++            else
++            {
++                *ret = REPLACE_PREPARE_T_NOTHING_SPECIAL;
++                return TRUE;
++            }
+         }
+ 
+-        if (*next_char == 'x')
++        if (c == 'x')
+         {
+             *skip_len = 2;      /* \x */
+-            *next_char = *(curr_str + 2);
+-            if (*next_char == '{')
++            c = *(curr_str + 2);
++            if (c == '{')
+             {
+                 for (*skip_len = 3;     /* \x{ */
+                      current_pos + *skip_len < replace_str->len
+-                     && (*(curr_str + *skip_len)) != '}'; (*skip_len)++);
+-                if (current_pos + *skip_len < replace_str->len)
++                     && g_ascii_isxdigit ((guchar) *(curr_str + *skip_len)); (*skip_len)++);
++                if (current_pos + *skip_len < replace_str->len &&
++                    *(curr_str + *skip_len) == '}')
++                {
+                     (*skip_len)++;
+-                *ret = REPLACE_PREPARE_T_ESCAPE_SEQ;
+-                return FALSE;
++                    *ret = REPLACE_PREPARE_T_ESCAPE_SEQ;
++                    return FALSE;
++                }
++                else
++                {
++                    *ret = REPLACE_PREPARE_T_NOTHING_SPECIAL;
++                    return TRUE;
++                }
+             }
+-            else if (!g_ascii_isxdigit ((guchar) * next_char))
++            else if (!g_ascii_isxdigit ((guchar) c))
+             {
+                 *skip_len = 2;  /* \x without number behind */
+                 *ret = REPLACE_PREPARE_T_NOTHING_SPECIAL;
+@@ -425,8 +441,8 @@ mc_search_regex__replace_handle_esc_seq (const GString * replace_str, const gsiz
+             }
+             else
+             {
+-                *next_char = *(curr_str + 3);
+-                if (!g_ascii_isxdigit ((guchar) * next_char))
++                c = *(curr_str + 3);
++                if (!g_ascii_isxdigit ((guchar) c))
+                     *skip_len = 3;      /* \xH */
+                 else
+                     *skip_len = 4;      /* \xHH */
+@@ -436,7 +452,7 @@ mc_search_regex__replace_handle_esc_seq (const GString * replace_str, const gsiz
+         }
+     }
+ 
+-    if (strchr ("ntvbrfa", *next_char) != NULL)
++    if (strchr ("ntvbrfa", c) != NULL)
+     {
+         *skip_len = 2;
+         *ret = REPLACE_PREPARE_T_ESCAPE_SEQ;
+@@ -489,8 +505,6 @@ mc_search_regex__process_replace_str (const GString * replace_str, const gsize c
+ 
+     if ((*curr_str == '\\') && (replace_str->len > current_pos + 1))
+     {
+-        char next_char;
+-
+         if (strutils_is_char_escaped (replace_str->str, curr_str))
+         {
+             *skip_len = 1;
+@@ -505,12 +519,12 @@ mc_search_regex__process_replace_str (const GString * replace_str, const gsize c
+         }
+ 
+         if (!mc_search_regex__replace_handle_esc_seq
+-            (replace_str, current_pos, skip_len, &ret, &next_char))
++            (replace_str, current_pos, skip_len, &ret))
+             return ret;
+ 
+         ret = REPLACE_PREPARE_T_REPLACE_FLAG;
+         *skip_len += 2;
+-        switch (next_char)
++        switch (*(curr_str + 1))
+         {
+         case 'U':
+             *replace_flags |= REPLACE_T_UPP_TRANSFORM;
+@@ -604,10 +618,11 @@ mc_search_regex__process_append_str (GString * dest_str, const char *from, gsize
+ 
+ static void
+ mc_search_regex__process_escape_sequence (GString * dest_str, const char *from, gsize len,
+-                                          replace_transform_type_t * replace_flags)
++                                          replace_transform_type_t * replace_flags, gboolean is_utf8)
+ {
+     gsize i = 0;
+-    char c = 0;
++    unsigned int c = 0;
++    char b;
+ 
+     if (len == (gsize) (-1))
+         len = strlen (from);
+@@ -634,7 +649,7 @@ mc_search_regex__process_escape_sequence (GString * dest_str, const char *from,
+                 break;
+         }
+     }
+-    else if (from[i] >= '0' && from[i] <= '9')
++    else if (from[i] >= '0' && from[i] <= '7')
+         for (; i < len && from[i] >= '0' && from[i] <= '7'; i++)
+             c = c * 8 + from[i] - '0';
+     else
+@@ -667,7 +682,38 @@ mc_search_regex__process_escape_sequence (GString * dest_str, const char *from,
+             return;
+         }
+     }
+-    g_string_append_len (dest_str, &c, 1);
++    if (c < 0x80 || !is_utf8)
++    {
++        b = (char)c;
++        g_string_append_len (dest_str, &b, 1);
++    }
++    else if (c < 0x800)
++    {
++        b = 0xC0|(c>>6);
++        g_string_append_len (dest_str, &b, 1);
++        b = 0x80|(c&0x3F);
++        g_string_append_len (dest_str, &b, 1);
++    }
++    else if (c < 0x10000)
++    {
++        b = 0xE0|(c>>12);
++        g_string_append_len (dest_str, &b, 1);
++        b = 0x80|((c>>6)&0x3F);
++        g_string_append_len (dest_str, &b, 1);
++        b = 0x80|(c&0x3F);
++        g_string_append_len (dest_str, &b, 1);
++    }
++    else if (c < 0x10FFFF)
++    {
++        b = 0xF0|(c>>16);
++        g_string_append_len (dest_str, &b, 1);
++        b = 0x80|((c>>12)&0x3F);
++        g_string_append_len (dest_str, &b, 1);
++        b = 0x80|((c>>6)&0x3F);
++        g_string_append_len (dest_str, &b, 1);
++        b = 0x80|(c&0x3F);
++        g_string_append_len (dest_str, &b, 1);
++    }
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -744,6 +790,7 @@ mc_search__cond_struct_new_init_regex (const char *charset, mc_search_t * lc_mc_
+         }
+     }
+ #endif /* SEARCH_TYPE_GLIB */
++    lc_mc_search->is_utf8 = str_isutf8(charset) ? TRUE : FALSE;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -914,7 +961,7 @@ mc_search_regex_prepare_replace_str (mc_search_t * lc_mc_search, GString * repla
+                                                  &replace_flags);
+             /* call process_escape_sequence without starting '\\' */
+             mc_search_regex__process_escape_sequence (ret, replace_str->str + loop + 1, len - 1,
+-                                                      &replace_flags);
++                                                      &replace_flags, lc_mc_search->is_utf8);
+             prev_str = replace_str->str + loop + len;
+             loop += len - 1;
+             continue;
+diff --git a/lib/tests/search/regex_process_escape_sequence.c b/lib/tests/search/regex_process_escape_sequence.c
+index cc74d04..126cd9b 100644
+--- a/lib/tests/search/regex_process_escape_sequence.c
++++ b/lib/tests/search/regex_process_escape_sequence.c
+@@ -27,9 +27,9 @@
+ #include "regex.c" /* for testing static functions*/
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-#define test_helper_valid_data(from, etalon, dest_str, replace_flags) { \
++#define test_helper_valid_data(from, etalon, dest_str, replace_flags, utf) { \
+     dest_str = g_string_new(""); \
+-    mc_search_regex__process_escape_sequence (dest_str, from, -1, &replace_flags); \
++    mc_search_regex__process_escape_sequence (dest_str, from, -1, &replace_flags, utf); \
+     fail_if (strcmp(dest_str->str, etalon), "dest_str(%s) != %s", dest_str->str, etalon); \
+     g_string_free(dest_str, TRUE); \
+ }
+@@ -41,36 +41,18 @@ START_TEST (test_regex_process_escape_sequence_valid)
+     GString *dest_str;
+     replace_transform_type_t replace_flags = REPLACE_T_NO_TRANSFORM;
+ 
+-    test_helper_valid_data("{101}", "A", dest_str, replace_flags);
+-    test_helper_valid_data("x42", "B", dest_str, replace_flags);
+-    test_helper_valid_data("x{4344}", "CD", dest_str, replace_flags);
+-
+-    test_helper_valid_data("n", "\n", dest_str, replace_flags);
+-    test_helper_valid_data("t", "\t", dest_str, replace_flags);
+-    test_helper_valid_data("v", "\v", dest_str, replace_flags);
+-    test_helper_valid_data("b", "\b", dest_str, replace_flags);
+-    test_helper_valid_data("r", "\r", dest_str, replace_flags);
+-    test_helper_valid_data("f", "\f", dest_str, replace_flags);
+-    test_helper_valid_data("a", "\a", dest_str, replace_flags);
+-}
+-END_TEST
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-START_TEST (test_regex_process_escape_sequence_invalid)
+-{
+-    GString *dest_str;
+-    replace_transform_type_t replace_flags = REPLACE_T_NO_TRANSFORM;
+-
+-    test_helper_valid_data("{101", "{101", dest_str, replace_flags);
+-    test_helper_valid_data("101}", "101}", dest_str, replace_flags);
+-    test_helper_valid_data("{ab}", "{ab}", dest_str, replace_flags);
+-    test_helper_valid_data("xqw", "xqw", dest_str, replace_flags);
+-    test_helper_valid_data("x{41", "x{41", dest_str, replace_flags);
+-    test_helper_valid_data("x{qwer}", "x{qwer}", dest_str, replace_flags);
+-    test_helper_valid_data("s", "s", dest_str, replace_flags);
+-    test_helper_valid_data("Q", "Q", dest_str, replace_flags);
+-    test_helper_valid_data("1", "1", dest_str, replace_flags);
++    test_helper_valid_data("{101}", "A", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("x42", "B", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("x{444}", "D", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("x{444}", "ф", dest_str, replace_flags, TRUE);
++
++    test_helper_valid_data("n", "\n", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("t", "\t", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("v", "\v", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("b", "\b", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("r", "\r", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("f", "\f", dest_str, replace_flags, FALSE);
++    test_helper_valid_data("a", "\a", dest_str, replace_flags, FALSE);
+ }
+ END_TEST
+ 
+@@ -87,7 +69,6 @@ main (void)
+ 
+     /* Add new tests here: *************** */
+     tcase_add_test (tc_core, test_regex_process_escape_sequence_valid);
+-    tcase_add_test (tc_core, test_regex_process_escape_sequence_invalid);
+     /* *********************************** */
+ 
+     suite_add_tcase (s, tc_core);
+diff --git a/lib/tests/search/regex_replace_esc_seq.c b/lib/tests/search/regex_replace_esc_seq.c
+index 4fc965a..bdd15ab 100644
+--- a/lib/tests/search/regex_replace_esc_seq.c
++++ b/lib/tests/search/regex_replace_esc_seq.c
+@@ -27,13 +27,22 @@
+ #include "regex.c" /* for testing static functions*/
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-#define test_helper_check_valid_data( a, b, c, d, e, f, g, h ) \
++#define test_helper_check_valid_data( a, b, c, d, e, f ) \
+ { \
+     fail_unless( a == b, "ret_value != %s", (b) ? "TRUE": "FALSE" ); \
+     fail_unless( c == d, "skip_len(%d) != %d", c, d ); \
+     if (f!=0) fail_unless( e == f, "ret(%d) != %d", e, f ); \
+-    fail_unless( g == h, "next_char('%c':%d) != %d", g, g, h ); \
+-} \
++}
++
++#define test_helper_handle_esc_seq( pos, r, skip, flag ) \
++{ \
++    skip_len = 0;\
++    test_helper_check_valid_data(\
++        mc_search_regex__replace_handle_esc_seq( replace_str, pos, &skip_len, &ret ), r,\
++        skip_len, skip,\
++        ret, flag\
++    ); \
++}
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -42,108 +51,20 @@ START_TEST (test_regex_replace_esc_seq_prepare_valid)
+     GString *replace_str;
+     gsize skip_len;
+     int ret;
+-    char next_char;
+ 
+     replace_str = g_string_new("bla-bla\\{123}bla-bla\\xabc234 bla-bla\\x{456abcd}bla-bla\\xtre\\n\\t\\v\\b\\r\\f\\a");
+ 
+-    /* \\{123} */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 7, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 6,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, '{'
+-    );
+-
+-    /* \\xab */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 20, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 4,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 'b'
+-    );
+-
+-    /* \\x{456abcd}  */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 36, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 11,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, '{'
+-    );
+-
+-    /* \\xtre */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 54, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_NOTHING_SPECIAL,
+-        next_char, 't'
+-    );
+-
+-    /* \\n */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 59, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 'n'
+-    );
+-
+-    /* \\t */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 61, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 't'
+-    );
+-
+-    /* \\v */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 63, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 'v'
+-    );
+-
+-    /* \\b */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 65, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 'b'
+-    );
+-
+-    /* \\r */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 67, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 'r'
+-    );
+-
+-    /* \\f */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 69, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 'f'
+-    );
+-
+-    /* \\a */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 71, &skip_len, &ret, &next_char ), FALSE,
+-        skip_len, 2,
+-        ret, REPLACE_PREPARE_T_ESCAPE_SEQ,
+-        next_char, 'a'
+-    );
++    test_helper_handle_esc_seq( 7,  FALSE, 6, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\{123} */
++    test_helper_handle_esc_seq( 20, FALSE, 4, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\xab */
++    test_helper_handle_esc_seq( 36, FALSE, 11, REPLACE_PREPARE_T_ESCAPE_SEQ );      /* \\x{456abcd}  */
++    test_helper_handle_esc_seq( 54, FALSE, 2, REPLACE_PREPARE_T_NOTHING_SPECIAL );  /* \\xtre */
++    test_helper_handle_esc_seq( 59, FALSE, 2, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\n */
++    test_helper_handle_esc_seq( 61, FALSE, 2, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\t */
++    test_helper_handle_esc_seq( 63, FALSE, 2, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\v */
++    test_helper_handle_esc_seq( 65, FALSE, 2, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\b */
++    test_helper_handle_esc_seq( 67, FALSE, 2, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\r */
++    test_helper_handle_esc_seq( 69, FALSE, 2, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\f */
++    test_helper_handle_esc_seq( 71, FALSE, 2, REPLACE_PREPARE_T_ESCAPE_SEQ );       /* \\a */
+ 
+     g_string_free(replace_str, TRUE);
+ }
+@@ -157,53 +78,14 @@ START_TEST (test_regex_replace_esc_seq_prepare_invalid)
+     GString *replace_str;
+     gsize skip_len;
+     int ret;
+-    char next_char;
+ 
+     replace_str = g_string_new("\\{123 \\x{qwerty} \\12} \\x{456a-bcd}bla-bla\\satre");
+ 
+-    /* \\{123 */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 0, &skip_len, &ret, &next_char ), TRUE,
+-        skip_len, 0,
+-        0, 0,
+-        next_char, '{'
+-    );
+-
+-    /* \\x{qwerty} */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 6, &skip_len, &ret, &next_char ), TRUE,
+-        skip_len, 0,
+-        0, 0,
+-        next_char, 'x'
+-    );
+-    /* \\12} */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 17, &skip_len, &ret, &next_char ), TRUE,
+-        skip_len, 0,
+-        0, 0,
+-        next_char, '1'
+-    );
+-
+-    /* \\x{456a-bcd} */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 22, &skip_len, &ret, &next_char ), TRUE,
+-        skip_len, 0,
+-        0, 0,
+-        next_char, 'x'
+-    );
+-
+-    /* \\satre */
+-    skip_len=0;
+-    test_helper_check_valid_data(
+-        mc_search_regex__replace_handle_esc_seq ( replace_str, 41, &skip_len, &ret, &next_char ), TRUE,
+-        skip_len, 0,
+-        0, 0,
+-        next_char, 's'
+-    );
++    test_helper_handle_esc_seq( 0, TRUE, 5, REPLACE_PREPARE_T_NOTHING_SPECIAL );    /* \\{123 */
++    test_helper_handle_esc_seq( 6, TRUE, 3, REPLACE_PREPARE_T_NOTHING_SPECIAL );    /* \\x{qwerty} */
++    test_helper_handle_esc_seq( 17, TRUE, 0, REPLACE_PREPARE_T_NOTHING_SPECIAL );   /* \\12} */
++    test_helper_handle_esc_seq( 22, TRUE, 7, REPLACE_PREPARE_T_NOTHING_SPECIAL );   /* \\x{456a-bcd} */
++    test_helper_handle_esc_seq( 41, TRUE, 0, REPLACE_PREPARE_T_NOTHING_SPECIAL );   /* \\satre */
+ 
+     g_string_free(replace_str, TRUE);
+ }

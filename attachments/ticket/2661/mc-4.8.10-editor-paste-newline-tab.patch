@@ -1,0 +1,120 @@
+diff -ur mc-4.8.10.orig/lib/tty/key.c mc-4.8.10/lib/tty/key.c
+--- mc-4.8.10.orig/lib/tty/key.c	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/lib/tty/key.c	2013-09-16 19:00:49.547172530 +0200
+@@ -326,6 +326,7 @@
+     {KEY_M_SHIFT | KEY_M_CTRL | KEY_DOWN, ESC_STR "[1;6B", MCKEY_NOACTION},
+     {KEY_M_SHIFT | KEY_M_CTRL | KEY_RIGHT, ESC_STR "[1;6C", MCKEY_NOACTION},
+     {KEY_M_SHIFT | KEY_M_CTRL | KEY_LEFT, ESC_STR "[1;6D", MCKEY_NOACTION},
++    {KEY_M_SHIFT | '\t', ESC_STR "[Z", MCKEY_NOACTION},
+ 
+     /* putty */
+     {KEY_M_SHIFT | KEY_M_CTRL | KEY_UP, ESC_STR "[[1;6A", MCKEY_NOACTION},
+@@ -1008,18 +1009,10 @@
+     if (c == KEY_SCANCEL)
+         c = '\t';
+ 
+-    /* Convert Shift+Tab and Ctrl+Tab to Back Tab
+-     * only if modifiers directly from X11
+-     */
+-#ifdef HAVE_TEXTMODE_X11_SUPPORT
+-    if (x11_window != 0)
+-#endif /* HAVE_TEXTMODE_X11_SUPPORT */
+-    {
+-        if ((c == '\t') && (mod & (KEY_M_SHIFT | KEY_M_CTRL)))
+-        {
+-            c = KEY_BTAB;
+-            mod = 0;
+-        }
++    /* Convert Back Tab to Shift+Tab */
++    if (c == KEY_BTAB) {
++        c = '\t';
++        mod = KEY_M_SHIFT;
+     }
+ 
+     /* F0 is the same as F10 for out purposes */
+diff -ur mc-4.8.10.orig/lib/widget/dialog.c mc-4.8.10/lib/widget/dialog.c
+--- mc-4.8.10.orig/lib/widget/dialog.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/lib/widget/dialog.c	2013-09-16 19:01:09.107173341 +0200
+@@ -493,7 +493,7 @@
+             dlg_one_down (h);
+             return;
+         }
+-        else if (d_key == KEY_BTAB)
++        else if ((d_key & ~(KEY_M_SHIFT | KEY_M_CTRL)) == '\t')
+         {
+             dlg_one_up (h);
+             return;
+diff -ur mc-4.8.10.orig/misc/mc.default.keymap mc-4.8.10/misc/mc.default.keymap
+--- mc-4.8.10.orig/misc/mc.default.keymap	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/misc/mc.default.keymap	2013-09-16 18:43:54.999130469 +0200
+@@ -227,14 +227,14 @@
+ WordLeft = ctrl-left; ctrl-z
+ WordRight = ctrl-right; ctrl-x
+ Enter = enter
+-Return = shift-enter
++Return = shift-enter; ctrl-enter; ctrl-shift-enter
+ BackSpace = backspace; ctrl-h
+ Delete = delete; ctrl-d
+ PageUp = pgup
+ PageDown = pgdn
+ Home = home
+ End = end
+-Tab = tab
++Tab = tab; shift-tab; ctrl-tab; ctrl-shift-tab
+ Undo = ctrl-u
+ Redo = alt-r
+ Top = ctrl-home; alt-lt
+diff -ur mc-4.8.10.orig/misc/mc.emacs.keymap mc-4.8.10/misc/mc.emacs.keymap
+--- mc-4.8.10.orig/misc/mc.emacs.keymap	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/misc/mc.emacs.keymap	2013-09-16 18:43:54.499130449 +0200
+@@ -227,14 +227,14 @@
+ WordLeft = ctrl-left; alt-b
+ WordRight = ctrl-right; alt-f
+ Enter = enter
+-Return = shift-enter
++Return = shift-enter; ctrl-enter; ctrl-shift-enter
+ BackSpace = backspace
+ Delete = delete
+ PageUp = pgup; alt-v
+ PageDown = pgdn; ctrl-v
+ Home = home; ctrl-a
+ End = end; ctrl-e
+-Tab = tab
++Tab = tab; shift-tab ctrl-tab; ctrl-shift-tab
+ Undo = ctrl-u
+ # Redo =
+ Top = ctrl-home; alt-lt
+diff -ur mc-4.8.10.orig/misc/mc.keymap mc-4.8.10/misc/mc.keymap
+--- mc-4.8.10.orig/misc/mc.keymap	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/misc/mc.keymap	2013-09-16 18:43:54.751130459 +0200
+@@ -227,14 +227,14 @@
+ WordLeft = ctrl-left; ctrl-z
+ WordRight = ctrl-right; ctrl-x
+ Enter = enter
+-Return = shift-enter
++Return = shift-enter; ctrl-enter; ctrl-shift-enter
+ BackSpace = backspace; ctrl-h
+ Delete = delete; ctrl-d
+ PageUp = pgup
+ PageDown = pgdn
+ Home = home
+ End = end
+-Tab = tab
++Tab = tab; shift-tab; ctrl-tab; ctrl-shift-tab
+ Undo = ctrl-u
+ Redo = alt-r
+ Top = ctrl-home; alt-lt
+diff -ur mc-4.8.10.orig/src/keybind-defaults.c mc-4.8.10/src/keybind-defaults.c
+--- mc-4.8.10.orig/src/keybind-defaults.c	2013-06-25 23:29:14.000000000 +0200
++++ mc-4.8.10/src/keybind-defaults.c	2013-09-16 19:02:40.539177132 +0200
+@@ -320,8 +320,8 @@
+ #ifdef USE_INTERNAL_EDIT
+ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"Enter", "enter"},
+-    {"Return", "shift-enter"},  /* useful for pasting multiline text */
+-    {"Tab", "tab"},
++    {"Return", "shift-enter; ctrl-enter; ctrl-shift-enter"},  /* useful for pasting multiline text */
++    {"Tab", "tab; shift-tab; ctrl-tab; ctrl-shift-tab"},  /* ditto */
+     {"BackSpace", "backspace; ctrl-h"},
+     {"Delete", "delete; ctrl-d"},
+     {"Left", "left"},

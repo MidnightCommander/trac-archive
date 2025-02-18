@@ -1,0 +1,138 @@
+From 4a1cbf8cf50fc664f30ecb3ab86d9349e8e0d77e Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 16:55:44 +0000
+Subject: [PATCH] strutil/strutil8bit.c: cleanup -Wcast-qual warning
+
+strutil8bit.c: In function 'str_8bit_vfs_convert_to':
+strutil8bit.c:280:39: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         result = str_nconvert (coder, (char *) string, size, buffer);
+                                       ^
+strutil8bit.c: In function 'str_8bit_create_search_needle':
+strutil8bit.c:559:12: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return (char *) needle;
+            ^
+strutil8bit.c: In function 'str_8bit_search_first':
+strutil8bit.c:598:30: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_text = (case_sen) ? (char *) text : str_8bit_strdown (text);
+                              ^
+strutil8bit.c:599:32: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_search = (case_sen) ? (char *) search : str_8bit_strdown (search);
+                                ^
+strutil8bit.c: In function 'str_8bit_search_last':
+strutil8bit.c:628:30: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_text = (case_sen) ? (char *) text : str_8bit_strdown (text);
+                              ^
+strutil8bit.c:629:32: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_search = (case_sen) ? (char *) search : str_8bit_strdown (search);
+                                ^
+strutil8bit.c: In function 'str_8bit_create_key':
+strutil8bit.c:780:25: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return (case_sen) ? (char *) text : str_8bit_strdown (text);
+                         ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/strutil/strutil8bit.c | 34 ++++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 20 deletions(-)
+
+diff --git a/lib/strutil/strutil8bit.c b/lib/strutil/strutil8bit.c
+index 2e0db80..66b8754 100644
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -277,7 +277,7 @@ str_8bit_vfs_convert_to (GIConv coder, const char *string, int size, GString * b
+     if (coder == str_cnv_not_convert)
+         g_string_append_len (buffer, string, size);
+     else
+-        result = str_nconvert (coder, (char *) string, size, buffer);
++        result = str_nconvert (coder, string, size, buffer);
+ 
+     return result;
+ }
+@@ -556,7 +556,7 @@ static char *
+ str_8bit_create_search_needle (const char *needle, int case_sen)
+ {
+     (void) case_sen;
+-    return (char *) needle;
++    return g_strdup (needle);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -565,7 +565,7 @@ static void
+ str_8bit_release_search_needle (char *needle, int case_sen)
+ {
+     (void) case_sen;
+-    (void) needle;
++    g_free (needle);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -595,8 +595,8 @@ str_8bit_search_first (const char *text, const char *search, int case_sen)
+     char *fold_search;
+     const char *match;
+ 
+-    fold_text = (case_sen) ? (char *) text : str_8bit_strdown (text);
+-    fold_search = (case_sen) ? (char *) search : str_8bit_strdown (search);
++    fold_text = (case_sen) ? g_strdup (text) : str_8bit_strdown (text);
++    fold_search = (case_sen) ? g_strdup (search) : str_8bit_strdown (search);
+ 
+     match = g_strstr_len (fold_text, -1, fold_search);
+     if (match != NULL)
+@@ -607,11 +607,8 @@ str_8bit_search_first (const char *text, const char *search, int case_sen)
+         match = text + offset;
+     }
+ 
+-    if (!case_sen)
+-    {
+-        g_free (fold_text);
+-        g_free (fold_search);
+-    }
++    g_free (fold_text);
++    g_free (fold_search);
+ 
+     return match;
+ }
+@@ -625,8 +622,8 @@ str_8bit_search_last (const char *text, const char *search, int case_sen)
+     char *fold_search;
+     const char *match;
+ 
+-    fold_text = (case_sen) ? (char *) text : str_8bit_strdown (text);
+-    fold_search = (case_sen) ? (char *) search : str_8bit_strdown (search);
++    fold_text = (case_sen) ? g_strdup (text) : str_8bit_strdown (text);
++    fold_search = (case_sen) ? g_strdup (search) : str_8bit_strdown (search);
+ 
+     match = g_strrstr_len (fold_text, -1, fold_search);
+     if (match != NULL)
+@@ -637,11 +634,8 @@ str_8bit_search_last (const char *text, const char *search, int case_sen)
+         match = text + offset;
+     }
+ 
+-    if (!case_sen)
+-    {
+-        g_free (fold_text);
+-        g_free (fold_search);
+-    }
++    g_free (fold_text);
++    g_free (fold_search);
+ 
+     return match;
+ }
+@@ -777,7 +771,7 @@ str_8bit_fix_string (char *text)
+ static char *
+ str_8bit_create_key (const char *text, int case_sen)
+ {
+-    return (case_sen) ? (char *) text : str_8bit_strdown (text);
++    return (case_sen) ? g_strdup (text) : str_8bit_strdown (text);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -796,8 +790,8 @@ str_8bit_key_collate (const char *t1, const char *t2, int case_sen)
+ static void
+ str_8bit_release_key (char *key, int case_sen)
+ {
+-    if (!case_sen)
+-        g_free (key);
++    (void) case_sen;
++    g_free (key);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

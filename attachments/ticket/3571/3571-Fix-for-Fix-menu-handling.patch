@@ -1,0 +1,43 @@
+From 878cdfa311095dd0aae29346dc183c55f852d8bb Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 24 Mar 2016 14:52:14 +0200
+Subject: [PATCH] Fix for "Fix menu handling".
+
+---
+ lib/widget/dialog.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index 5855750..8fa00fc 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -1101,7 +1101,7 @@ dlg_set_top_or_bottom_widget (void *w, gboolean set_top)
+         abort ();               /* widget is not in dialog, this should not happen */
+ 
+     /* unfocus prevoius widget and focus current one before widget reordering */
+-    if (h->state == DLG_ACTIVE)
++    if (set_top && h->state == DLG_ACTIVE)
+         do_select_widget (h, l, SELECT_EXACT);
+ 
+     /* widget reordering */
+@@ -1110,7 +1110,6 @@ dlg_set_top_or_bottom_widget (void *w, gboolean set_top)
+         h->widgets = g_list_concat (h->widgets, l);
+     else
+         h->widgets = g_list_concat (l, h->widgets);
+-    h->current = l;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1126,8 +1125,7 @@ dlg_set_top_widget (void *w)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+- * Set widget at bottom of widget list (and make it current, albeit
+- * typically you'd want to switch to some other widget right after).
++ * Set widget at bottom of widget list.
+  */
+ 
+ void
+-- 
+2.5.0
+

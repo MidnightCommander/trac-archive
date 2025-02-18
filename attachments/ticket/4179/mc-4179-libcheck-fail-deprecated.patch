@@ -1,0 +1,40 @@
+From e3fda87df915fde1d2ac95f2fde604f30c38ea9d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 28 Dec 2020 17:58:59 +0000
+Subject: [PATCH] libcheck: replace deprecated fail() function
+
+libcheck fail() is deprecated since 0.10.0
+also fix -Wformat-extra-args warnings
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ tests/lib/mcconfig/config_string.c | 2 +-
+ tests/lib/vfs/vfs_parse_ls_lga.c   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/lib/mcconfig/config_string.c b/tests/lib/mcconfig/config_string.c
+index da479de59..26f9254a9 100644
+--- a/tests/lib/mcconfig/config_string.c
++++ b/tests/lib/mcconfig/config_string.c
+@@ -56,7 +56,7 @@ config_object__reopen (void)
+ 
+     if (!mc_config_save_file (mc_config, &error))
+     {
+-        fail ("Unable to save config file: %s", error->message);
++        ck_abort_msg ("Unable to save config file: %s", error->message);
+         g_error_free (error);
+     }
+ 
+diff --git a/tests/lib/vfs/vfs_parse_ls_lga.c b/tests/lib/vfs/vfs_parse_ls_lga.c
+index b1b203af5..1968190a6 100644
+--- a/tests/lib/vfs/vfs_parse_ls_lga.c
++++ b/tests/lib/vfs/vfs_parse_ls_lga.c
+@@ -365,7 +365,7 @@ END_TEST
+     if (! vfs_parse_ls_lga (ls_output,\
+     &ent[ent_index]->ino->st, &ent[ent_index]->name, &ent[ent_index]->ino->linkname, &filepos))\
+     {\
+-        fail ("An error occurred while parse ls output");\
++        ck_abort_msg ("An error occurred while parse ls output");\
+         return;\
+     }\
+     vfs_s_store_filename_leading_spaces (ent[ent_index], filepos);\

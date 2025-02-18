@@ -1,0 +1,67 @@
+From 32834fb4ded7cba0a727309d74a990507272eca0 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 8 Jan 2019 07:34:42 +0000
+Subject: [PATCH] autoconf: Cleanup AC_ERROR obsolete warning
+
+configure.ac:437: warning: The macro `AC_ERROR' is obsolete.
+configure.ac:454: warning: The macro `AC_ERROR' is obsolete.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ m4.include/mc-with-internal-edit.m4 | 2 +-
+ m4.include/vfs/mc-vfs-sftp.m4       | 2 +-
+ m4.include/vfs/mc-vfs-undelfs.m4    | 2 +-
+ m4.include/vfs/socket.m4            | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/m4.include/mc-with-internal-edit.m4 b/m4.include/mc-with-internal-edit.m4
+index 471886499..a801e1d68 100644
+--- a/m4.include/mc-with-internal-edit.m4
++++ b/m4.include/mc-with-internal-edit.m4
+@@ -31,7 +31,7 @@ AC_DEFUN([mc_WITH_INTERNAL_EDIT], [
+ 
+     if test x$with_internal_edit != xno -a x$enable_aspell != xno; then
+             AC_CHECK_HEADERS([aspell.h], [], [
+-                AC_ERROR([Could not find aspell development headers])
++                AC_MSG_ERROR([Could not find aspell development headers])
+             ], [])
+ 
+             if test x"$g_module_supported" != x; then
+diff --git a/m4.include/vfs/mc-vfs-sftp.m4 b/m4.include/vfs/mc-vfs-sftp.m4
+index c238df3ed..a8ed0192e 100644
+--- a/m4.include/vfs/mc-vfs-sftp.m4
++++ b/m4.include/vfs/mc-vfs-sftp.m4
+@@ -13,7 +13,7 @@ AC_DEFUN([mc_VFS_SFTP],
+         else
+             if test x"$enable_vfs_sftp" = x"yes"; then
+                 dnl user explicitly requested feature
+-                AC_ERROR([libssh2 >= 1.2.5 library not found])
++                AC_MSG_ERROR([libssh2 >= 1.2.5 library not found])
+             fi
+             enable_vfs_sftp="no"
+         fi
+diff --git a/m4.include/vfs/mc-vfs-undelfs.m4 b/m4.include/vfs/mc-vfs-undelfs.m4
+index 646cd9374..9b817f3e5 100644
+--- a/m4.include/vfs/mc-vfs-undelfs.m4
++++ b/m4.include/vfs/mc-vfs-undelfs.m4
+@@ -68,7 +68,7 @@ AC_DEFUN([mc_VFS_UNDELFS],
+ 	    AC_MSG_NOTICE([using ext2fs file recovery code])
+ 	    MCLIBS="$MCLIBS $EXT2FS_UNDEL_LIBS"
+ 	else
+-	    AC_ERROR([Ext2 libraries not found])
++	    AC_MSG_ERROR([Ext2 libraries not found])
+ 	fi
+     fi
+     AM_CONDITIONAL(ENABLE_VFS_UNDELFS, [test "$enable_vfs" = "yes" -a x"$enable_vfs_undelfs" = x"yes"])
+diff --git a/m4.include/vfs/socket.m4 b/m4.include/vfs/socket.m4
+index 1aeafbebe..3cbfe056c 100644
+--- a/m4.include/vfs/socket.m4
++++ b/m4.include/vfs/socket.m4
+@@ -8,6 +8,6 @@ AC_DEFUN([AC_REQUIRE_SOCKET],
+ #include <sys/socket.h>
+ 		       ])
+     else
+-	AC_ERROR([Couldnt find socket functions])
++	AC_MSG_ERROR([Couldnt find socket functions])
+     fi
+ ])

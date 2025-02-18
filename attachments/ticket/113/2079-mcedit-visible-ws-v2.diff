@@ -1,0 +1,174 @@
+Index: edit/editdraw.c
+===================================================================
+RCS file: /sources/mc/mc/edit/editdraw.c,v
+retrieving revision 1.46
+diff -U2 -r1.46 editdraw.c
+--- edit/editdraw.c	5 Sep 2005 02:14:29 -0000	1.46
++++ edit/editdraw.c	30 Jan 2006 16:22:54 -0000
+@@ -52,4 +52,5 @@
+ #define MOD_MARKED		(1 << 10)
+ #define MOD_CURSOR		(1 << 11)
++#define MOD_WHITESPACE		(1 << 12)
+ 
+ #define FONT_OFFSET_X 0
+@@ -244,10 +245,25 @@
+ 	}
+ 
+-	if (style & MOD_BOLD) {
+-	    set_color (EDITOR_BOLD_COLOR);
+-	} else if (style & MOD_MARKED) {
+-	    set_color (EDITOR_MARKED_COLOR);
++	if (style & MOD_WHITESPACE) {
++	    if (style & MOD_MARKED) {
++		textchar = ' ';
++		set_color (EDITOR_MARKED_COLOR);
++	    } else {
++#if 0
++		if (color != EDITOR_NORMAL_COLOR) {
++		    textchar = ' ';
++		    lowlevel_set_color (color);
++		} else
++#endif
++		    set_color (EDITOR_WHITESPACE_COLOR);
++	    }
+ 	} else {
+-	    lowlevel_set_color (color);
++	    if (style & MOD_BOLD) {
++		set_color (EDITOR_BOLD_COLOR);
++	    } else if (style & MOD_MARKED) {
++		set_color (EDITOR_MARKED_COLOR);
++	    } else {
++		lowlevel_set_color (color);
++	    }
+ 	}
+ 
+@@ -257,4 +273,6 @@
+ }
+ 
++int visible_tabs = 1, visible_tws = 1;
++
+ /* b is a pointer to the beginning of the line */
+ static void
+@@ -264,5 +282,5 @@
+     static unsigned int line[MAX_LINE_LEN];
+     unsigned int *p = line;
+-    long m1 = 0, m2 = 0, q, c1, c2;
++    long m1 = 0, m2 = 0, q, c1, c2, tws;
+     int col, start_col_real;
+     unsigned int c;
+@@ -287,4 +305,11 @@
+ 
+ 	if (row <= edit->total_lines - edit->start_line) {
++	    if (use_colors && visible_tws) {
++		tws = edit_eol (edit, b);
++		while (tws > b && ((c = edit_get_byte (edit, tws - 1)) == ' '
++				   || c == '\t'))
++		    tws--;
++	    }
++
+ 	    while (col <= end_col - edit->start_col) {
+ 		*p = 0;
+@@ -313,5 +338,4 @@
+ 		    *p |= book_mark << 16;
+ 		}
+-		q++;
+ 		switch (c) {
+ 		case '\n':
+@@ -321,10 +345,36 @@
+ 		case '\t':
+ 		    i = TAB_SIZE - ((int) col % TAB_SIZE);
+-		    *p |= ' ';
+-		    c = *(p++) & ~MOD_CURSOR;
+ 		    col += i;
+-		    while (--i)
+-			*(p++) = c;
++		    if (use_colors && visible_tabs) {
++			c = (*p & ~MOD_CURSOR) | MOD_WHITESPACE;
++			if (i > 2) {
++			    *(p++) |= '<' | MOD_WHITESPACE;
++			    while (--i > 1)
++				*(p++) = c | '-';
++			    *(p++) = c | '>';
++			} else if (i > 1) {
++			    *(p++) |= '<' | MOD_WHITESPACE;
++			    *(p++) = c | '>';
++			} else
++			    *(p++) |= '>' | MOD_WHITESPACE;
++		    } else if (use_colors && visible_tws && q >= tws) {
++			*p |= '.' | MOD_WHITESPACE;
++			c = *(p++) & ~MOD_CURSOR;
++			while (--i)
++			    *(p++) = c;
++		    } else {
++			*p |= ' ';
++			c = *(p++) & ~MOD_CURSOR;
++			while (--i)
++			    *(p++) = c;
++		    }
+ 		    break;
++		case ' ':
++		    if (use_colors && visible_tws && q >= tws) {
++			*(p++) |= '.' | MOD_WHITESPACE;
++			col++;
++			break;
++		    }
++		    /* fallthrough */
+ 		default:
+ 		    c = convert_to_display_c (c);
+@@ -352,4 +402,5 @@
+ 		    break;
+ 		}
++		q++;
+ 	    }
+ 	}
+Index: src/color.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/color.c,v
+retrieving revision 1.41
+diff -U2 -r1.41 color.c
+--- src/color.c	8 Feb 2005 09:04:03 -0000	1.41
++++ src/color.c	21 May 2005 19:02:05 -0000
+@@ -100,7 +100,8 @@
+     { "editbold=",       0, 0 },	/* search->found */
+     { "editmarked=",     0, 0 },	/* marked/selected */
++    { "editwhitespace=", 0, 0 },	/* whitespace */
+ 
+-/* error dialog colors start at 37 */
+-    { "errdhotnormal=",  0, 0 }, /* Error dialog normal/hot */ /* 37 */
++/* error dialog colors start at 38 */
++    { "errdhotnormal=",  0, 0 }, /* Error dialog normal/hot */ /* 38 */
+     { "errdhotfocus=",   0, 0 }, /* Error dialog focused/hot */
+ };
+@@ -165,4 +166,5 @@
+ "editbold=yellow,blue:"
+ "editmarked=black,cyan:"
++"editwhitespace=brightblue,blue:"
+ "errdhotnormal=yellow,red:"
+ "errdhotfocus=yellow,lightgray";
+Index: src/color.h
+===================================================================
+RCS file: /cvsroot/mc/mc/src/color.h,v
+retrieving revision 1.21
+diff -U2 -r1.21 color.h
+--- src/color.h	3 Dec 2004 19:17:47 -0000	1.21
++++ src/color.h	21 May 2005 19:02:05 -0000
+@@ -72,5 +72,6 @@
+ 
+ /*
+- * editor colors - only 3 for normal, search->found, and select, respectively
++ * editor colors - only 4 for normal, search->found, select, and whitespace
++ * respectively
+  * Last is defined to view color.
+  */
+@@ -79,8 +80,9 @@
+ #define EDITOR_BOLD_COLOR            IF_COLOR (35, A_BOLD)
+ #define EDITOR_MARKED_COLOR          IF_COLOR (36, A_REVERSE)
++#define EDITOR_WHITESPACE_COLOR      IF_COLOR (37, 0 /* irrelevant */)
+ 
+ /* Error dialog colors */
+-#define ERROR_HOT_NORMAL   IF_COLOR (37, 0)
+-#define ERROR_HOT_FOCUS    IF_COLOR (38, 0)
++#define ERROR_HOT_NORMAL   IF_COLOR (38, 0)
++#define ERROR_HOT_FOCUS    IF_COLOR (39, 0)
+ 
+ #ifdef HAVE_SLANG

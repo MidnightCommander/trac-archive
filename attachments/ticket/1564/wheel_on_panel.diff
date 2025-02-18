@@ -1,0 +1,22 @@
+diff -ur mc.git/src/screen.c mc.gpm/src/screen.c
+--- mc.git/src/screen.c	2009-08-25 21:00:40.000000000 +0200
++++ mc.gpm/src/screen.c	2009-08-27 00:34:37.000000000 +0200
+@@ -2547,11 +2547,17 @@
+ 
+     /* Mouse wheel events */
+     if ((event->buttons & GPM_B_UP) && (event->type & GPM_DOWN)) {
+-	prev_page (panel);
++	if ( panel->top_file > 0 )
++	    prev_page (panel);
++	else			/* We are in first page */
++	    move_up (panel);
+ 	return MOU_NORMAL;
+     }
+     if ((event->buttons & GPM_B_DOWN) && (event->type & GPM_DOWN)) {
+-	next_page (panel);
++	if ( panel->top_file + lines < panel->count )
++	    next_page (panel);
++	else			/* We are in last page */
++	    move_down (panel);
+ 	return MOU_NORMAL;
+     }

@@ -1,0 +1,26 @@
+From c345b72923b8027556c1208e647a8771105ed794 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Fri, 3 Apr 2009 00:10:10 +0200
+Subject: [PATCH] make hotkeys which involve alt-gr work in the linux console
+
+this is pretty much a hack. the real solution is waaay more complex
+---
+ lib/tty/key.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 4abfc71d7..39dca1167 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -984,7 +984,7 @@ get_modifier (void)
+         /* Translate Linux modifiers into mc modifiers */
+         if ((modifiers & SHIFT_PRESSED) != 0)
+             result |= KEY_M_SHIFT;
+-        if ((modifiers & (ALTL_PRESSED | ALTR_PRESSED)) != 0)
++        if ((modifiers & ALTL_PRESSED) != 0)
+             result |= KEY_M_ALT;
+         if ((modifiers & CONTROL_PRESSED) != 0)
+             result |= KEY_M_CTRL;
+-- 
+2.28.0.1.g7ba5ae0684
+

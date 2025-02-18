@@ -1,0 +1,32 @@
+diff -uri mc-4.8.17/lib/tty/key.c mc-4.8.17.new/lib/tty/key.c
+--- mc-4.8.17/lib/tty/key.c	2016-05-07 17:42:52.000000000 +0200
++++ mc-4.8.17.new/lib/tty/key.c	2016-06-02 17:07:56.933302780 +0200
+@@ -129,6 +129,7 @@
+     {KEY_DOWN, "down", N_("Down arrow"), "Down"},
+     {KEY_LEFT, "left", N_("Left arrow"), "Left"},
+     {KEY_RIGHT, "right", N_("Right arrow"), "Right"},
++    {KEY_KP5, "kp5", N_("keypad 5"), "KP5"},
+     {KEY_IC, "insert", N_("Insert"), "Ins"},
+     {KEY_DC, "delete", N_("Delete"), "Del"},
+     {KEY_HOME, "home", N_("Home"), "Home"},
+@@ -280,6 +281,7 @@
+     {ESC_CHAR, ESC_STR ESC_STR, MCKEY_NOACTION},
+     {MCKEY_BRACKETED_PASTING_START, ESC_STR "[200~", MCKEY_NOACTION},
+     {MCKEY_BRACKETED_PASTING_END, ESC_STR "[201~", MCKEY_NOACTION},
++    {KEY_KP5, ESC_STR "[G", MCKEY_NOACTION},
+     {0, NULL, MCKEY_NOACTION},
+ };
+ 
+diff -uri mc-4.8.17/lib/tty/tty-slang.h mc-4.8.17.new/lib/tty/tty-slang.h
+--- mc-4.8.17/lib/tty/tty-slang.h	2016-05-07 17:42:52.000000000 +0200
++++ mc-4.8.17.new/lib/tty/tty-slang.h	2016-06-02 17:08:49.885301252 +0200
+@@ -34,7 +34,7 @@
+     KEY_BACKSPACE = 400,
+     KEY_END, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
+     KEY_HOME, KEY_A1, KEY_C1, KEY_NPAGE, KEY_PPAGE, KEY_IC,
+-    KEY_ENTER, KEY_DC, KEY_SCANCEL, KEY_BTAB
++    KEY_ENTER, KEY_DC, KEY_SCANCEL, KEY_BTAB, KEY_KP5
+ };
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+

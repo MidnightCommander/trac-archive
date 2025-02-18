@@ -1,0 +1,567 @@
+From 20c769b06373ebb0956643478fb8f33dea6ae190 Mon Sep 17 00:00:00 2001
+From: Ilia Maslakov <il.smind@gmail.com>
+Date: Wed, 25 Feb 2009 21:53:52 +0000
+Subject: [PATCH] Add stack navigation structure. Add hotkeys A-'-' backward A-'=' forward navigation to files.
+ add edit/etags.c edit/etags.h
+
+---
+ edit/Makefile.am  |    2 +-
+ edit/edit.c       |   35 ++++++++++
+ edit/edit.h       |   10 +++
+ edit/editcmd.c    |  185 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ edit/editcmddef.h |    5 +-
+ edit/editkeys.c   |    4 +-
+ edit/etags.c      |   88 +++++++++++++++++++++++++
+ edit/etags.h      |    9 +++
+ src/main.c        |   18 +++++
+ src/main.h        |    9 +++
+ 10 files changed, 360 insertions(+), 5 deletions(-)
+ create mode 100644 edit/etags.c
+ create mode 100644 edit/etags.h
+
+diff --git a/edit/Makefile.am b/edit/Makefile.am
+index 2fd8a4a..ce82871 100644
+--- a/edit/Makefile.am
++++ b/edit/Makefile.am
+@@ -10,6 +10,6 @@ libedit_a_SOURCES = \
+ 	bookmark.c edit.c editcmd.c editwidget.c editdraw.c editkeys.c \
+ 	editmenu.c editoptions.c editcmddef.h edit.h edit-widget.h \
+ 	editlock.c editlock.h syntax.c usermap.h usermap.c wordproc.c \
+-	choosesyntax.c
++	choosesyntax.c etags.c etats.h
+ 
+ EXTRA_DIST = ChangeLog
+diff --git a/edit/edit.c b/edit/edit.c
+index 51810f7..2b88204 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -646,6 +646,31 @@ edit_reload (WEdit *edit, const char *filename)
+     return 1;
+ }
+ 
++/*
++ * Load a new file into the editor and set line.  If it fails, preserve the old file.
++ * To do it, allocate a new widget, initialize it and, if the new file
++ * was loaded, copy the data to the old widget.
++ * Return 1 on success, 0 on failure.
++ */
++int
++edit_reload_line (WEdit *edit, const char *filename, long line)
++{
++    WEdit *e;
++    int lines = edit->num_widget_lines;
++    int columns = edit->num_widget_columns;
++
++    e = g_malloc0 (sizeof (WEdit));
++    e->widget = edit->widget;
++    if (!edit_init (e, lines, columns, filename, line)) {
++	g_free (e);
++	return 0;
++    }
++    edit_clean (edit);
++    memcpy (edit, e, sizeof (WEdit));
++    g_free (e);
++    return 1;
++}
++
+ 
+ /*
+    Recording stack for undo:
+@@ -2480,6 +2505,13 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+ 	edit_insert_file_cmd (edit);
+ 	break;
+ 
++    case CK_Load_Prev_File:
++	edit_load_back_cmd (edit);
++	break;
++    case CK_Load_Next_File:
++	edit_load_forward_cmd (edit);
++	break;
++
+     case CK_Toggle_Syntax:
+ 	if ((option_syntax_highlighting ^= 1) == 1)
+ 	    edit_load_syntax (edit, NULL, option_syntax_type);
+@@ -2501,6 +2533,9 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+     case CK_Complete_Word:
+ 	edit_complete_word_cmd (edit);
+ 	break;
++    case CK_Find_Definition:
++	edit_get_match_keyword_cmd (edit);
++	break;
+ 
+     case CK_Exit:
+ 	dlg_stop (edit->widget.parent);
+diff --git a/edit/edit.h b/edit/edit.h
+index 3e5f563..85fd07a 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -103,6 +103,14 @@
+ #define TAB_SIZE		option_tab_spacing
+ #define HALF_TAB_SIZE		((int) option_tab_spacing / 2)
+ 
++/* max count stack files */
++#define MAX_HISTORY_MOVETO     50
++
++typedef struct edit_stack_type {
++    long line;
++    char *filename;
++}edit_stack_type;
++
+ struct macro {
+     short command;
+     short ch;
+@@ -175,6 +183,8 @@ int edit_save_block (WEdit * edit, const char *filename, long start, long finish
+ int edit_save_block_cmd (WEdit * edit);
+ int edit_insert_file_cmd (WEdit * edit);
+ int edit_insert_file (WEdit * edit, const char *filename);
++int edit_load_back_cmd (WEdit * edit);
++int edit_load_forward_cmd (WEdit * edit);
+ void edit_block_process_cmd (WEdit * edit, const char *shell_cmd, int block);
+ void freestrs (void);
+ void edit_refresh_cmd (WEdit * edit);
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 257ab6e..a69cb89 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -1,4 +1,4 @@
+-/* editor high level editing commands.
++/* editor high level editing commands
+ 
+    Copyright (C) 1996, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006,
+    2007 Free Software Foundation, Inc.
+@@ -45,6 +45,7 @@
+ #include "editlock.h"
+ #include "editcmddef.h"
+ #include "edit-widget.h"
++#include "etags.h"
+ 
+ #include "../src/color.h"	/* dialog_colors */
+ #include "../src/tty.h"		/* LINES */
+@@ -2795,6 +2796,7 @@ static void
+ edit_completion_dialog (WEdit * edit, int max_len, int word_len,
+ 			struct selection *compl, int num_compl)
+ {
++
+     int start_x, start_y, offset, i;
+     char *curr = NULL;
+     Dlg_head *compl_dlg;
+@@ -2883,8 +2885,8 @@ edit_complete_word_cmd (WEdit *edit)
+     /* prepare match expression */
+     bufpos = &edit->buffers1[word_start >> S_EDIT_BUF_SIZE]
+ 	[word_start & M_EDIT_BUF_SIZE];
+-    match_expr = g_strdup_printf ("%.*s[a-zA-Z_0-9]+", word_len, bufpos);
+ 
++    match_expr = g_strdup_printf ("%.*s[a-zA-Z_0-9]+", word_len, bufpos);
+     /* init search: backward, regexp, whole word, case sensitive */
+     edit_set_search_parameters (0, 1, 1, 1, 1);
+ 
+@@ -2969,3 +2971,182 @@ edit_begin_end_macro_cmd(WEdit *edit)
+ 	    edit_execute_key_command (edit, command, -1);
+     }
+ }
++
++int
++edit_load_forward_cmd (WEdit *edit)
++{
++    if (edit->modified) {
++        if (edit_query_dialog2
++            (_("Warning"),
++             _(" Current text was modified without a file save. \n"
++               " Continue discards these changes. "), _("C&ontinue"),
++             _("&Cancel"))) {
++            edit->force |= REDRAW_COMPLETELY;
++            return 0;
++        }
++    }
++    if ( edit_stack_iterator + 1 < MAX_HISTORY_MOVETO ) {
++        if ( edit_history_moveto[edit_stack_iterator + 1].line < 1 ) {
++            return 1;
++        }
++        edit_stack_iterator++;
++        if ( edit_history_moveto[edit_stack_iterator].filename ) {
++            edit_reload_line (edit, edit_history_moveto[edit_stack_iterator].filename,
++                              edit_history_moveto[edit_stack_iterator].line);
++            return 0;
++        } else {
++            return 1;
++        }
++    } else {
++        return 1;
++    }
++}
++
++int
++edit_load_back_cmd (WEdit *edit)
++{
++    if (edit->modified) {
++        if (edit_query_dialog2
++            (_("Warning"),
++             _(" Current text was modified without a file save. \n"
++               " Continue discards these changes. "), _("C&ontinue"),
++             _("&Cancel"))) {
++            edit->force |= REDRAW_COMPLETELY;
++            return 0;
++        }
++    }
++    if ( edit_stack_iterator > 0 ) {
++        edit_stack_iterator--;
++        if ( edit_history_moveto[edit_stack_iterator].filename ) {
++            edit_reload_line (edit, edit_history_moveto[edit_stack_iterator].filename,
++                              edit_history_moveto[edit_stack_iterator].line);
++            return 0;
++        } else {
++            return 1;
++        }
++    } else {
++        return 1;
++    }
++}
++
++
++/* let the user select where function definition */
++static void
++edit_select_definition_dialog (WEdit * edit, int max_len, int word_len,
++                               struct def_hash_type *def_hash, int num_lines)
++{
++
++    int start_x, start_y, offset, i;
++    char *curr = NULL;
++    struct def_hash_type *curr_def;
++    Dlg_head *def_dlg;
++    WListbox *def_list;
++    int def_dlg_h;      /* dialog height */
++    int def_dlg_w;      /* dialog width */
++
++    /* calculate the dialog metrics */
++    def_dlg_h = num_lines + 2;
++    def_dlg_w = max_len + 4;
++    start_x = edit->curs_col + edit->start_col - (def_dlg_w / 2);
++    start_y = edit->curs_row + EDIT_TEXT_VERTICAL_OFFSET + 1;
++
++    if (start_x < 0)
++        start_x = 0;
++    if (def_dlg_w > COLS)
++        def_dlg_w = COLS;
++    if (def_dlg_h > LINES - 2)
++        def_dlg_h = LINES - 2;
++
++    offset = start_x + def_dlg_w - COLS;
++    if (offset > 0)
++        start_x -= offset;
++    offset = start_y + def_dlg_h - LINES;
++    if (offset > 0)
++        start_y -= (offset + 1);
++
++    /* create the dialog */
++    def_dlg = create_dlg (start_y, start_x, def_dlg_h, def_dlg_w,
++                          dialog_colors, NULL, "[Definitions]", NULL,
++                          DLG_COMPACT);
++
++    /* create the listbox */
++    def_list = listbox_new (1, 1, def_dlg_w - 2, def_dlg_h - 2, NULL);
++
++    /* add the dialog */
++    add_widget (def_dlg, def_list);
++
++    char *label_def = NULL;
++
++    /* fill the listbox with the completions */
++    for (i = 0; i < num_lines; i++) {
++        label_def = g_strdup_printf ("%s:%i", def_hash[i].filename, def_hash[i].line);
++        listbox_add_item (def_list, LISTBOX_APPEND_AT_END, 0, label_def, &def_hash[i]);
++        g_free(label_def);
++    }
++    /* pop up the dialog */
++    run_dlg (def_dlg);
++
++    /* apply the choosen completion */
++    if (def_dlg->ret_value == B_ENTER) {
++        listbox_get_current (def_list, &curr, &curr_def);
++        if ( curr ) {
++            if ( edit_stack_iterator+1 < MAX_HISTORY_MOVETO ) {
++                g_free( edit_history_moveto[edit_stack_iterator].filename );
++                edit_history_moveto[edit_stack_iterator].filename = g_strdup(edit->filename);
++                edit_history_moveto[edit_stack_iterator].line = edit->start_line + edit->curs_row + 1;
++                edit_stack_iterator++;
++                mc_log("%s:%i iterator=%i\n", curr_def->filename, curr_def->line, edit_stack_iterator);
++                g_free( edit_history_moveto[edit_stack_iterator].filename );
++                edit_history_moveto[edit_stack_iterator].filename = g_strdup(curr_def->filename);
++                edit_history_moveto[edit_stack_iterator].line = curr_def->line;
++                edit_reload_line (edit, edit_history_moveto[edit_stack_iterator].filename,
++                                              edit_history_moveto[edit_stack_iterator].line);
++            }
++        }
++    }
++
++    /* clear definition hash */
++    for ( int i = 0; i < MAX_DEFINITIONS; i++) {
++        g_free(def_hash[i].filename);
++    }
++
++    /* destroy dialog before return */
++    destroy_dlg (def_dlg);
++}
++
++
++void
++edit_get_match_keyword_cmd (WEdit *edit)
++{
++    int word_len = 0, num_def = 0, max_len;
++    long word_start = 0;
++    unsigned char *bufpos;
++    char *match_expr;
++    struct def_hash_type def_hash[MAX_DEFINITIONS];
++
++    for ( int i = 0; i < MAX_DEFINITIONS; i++) {
++        def_hash[i].filename = NULL;
++    }
++
++    /* search start of word to be completed */
++    if (!edit_find_word_start (edit, &word_start, &word_len))
++        return;
++
++    /* prepare match expression */
++    mc_log("edit_get_match_keyword_cmd\n");
++    bufpos = &edit->buffers1[word_start >> S_EDIT_BUF_SIZE]
++                            [word_start & M_EDIT_BUF_SIZE];
++    match_expr = g_strdup_printf ("%.*s", word_len, bufpos);
++
++    mc_log("%s \n", match_expr);
++
++    set_def_hash("TAGS", match_expr, (struct def_hash_type *) &def_hash, &num_def);
++    max_len = 50;
++    word_len = 0;
++    if ( num_def > 0 ) {
++        edit_select_definition_dialog (edit, max_len, word_len,
++                                       (struct def_hash_type *) &def_hash,
++                                       num_def);
++    }
++    g_free (match_expr);
++}
+diff --git a/edit/editcmddef.h b/edit/editcmddef.h
+index 2135376..3521d8b 100644
+--- a/edit/editcmddef.h
++++ b/edit/editcmddef.h
+@@ -42,6 +42,8 @@
+ #define CK_Load			102
+ #define CK_New			103
+ #define CK_Save_As		104
++#define CK_Load_Prev_File	111
++#define CK_Load_Next_File	112
+ 
+ /* block commands */
+ #define CK_Mark			201
+@@ -96,8 +98,9 @@
+ #define CK_Terminal		422
+ #define CK_Terminal_App		423
+ #define CK_ExtCmd		424
+-
+ #define CK_User_Menu		425
++#define CK_Find_Definition	426
++
+ /* application control */
+ #define CK_Save_Desktop		451
+ #define CK_New_Window		452
+diff --git a/edit/editkeys.c b/edit/editkeys.c
+index 2cc6add..91306ca 100644
+--- a/edit/editkeys.c
++++ b/edit/editkeys.c
+@@ -99,7 +99,7 @@ static const edit_key_map_type common_key_map[] = {
+     { KEY_RIGHT, CK_Right },
+     { KEY_UP, CK_Up },
+ 
+-    { ALT ('\n'), CK_Return },
++    { ALT ('\n'), CK_Find_Definition },
+     { ALT ('\t'), CK_Complete_Word },
+     { ALT ('l'), CK_Goto },
+     { ALT ('L'), CK_Goto },
+@@ -108,6 +108,8 @@ static const edit_key_map_type common_key_map[] = {
+     { ALT ('u'), CK_ExtCmd },
+     { ALT ('<'), CK_Beginning_Of_Text },
+     { ALT ('>'), CK_End_Of_Text },
++    { ALT ('-'), CK_Load_Prev_File },
++    { ALT ('='), CK_Load_Next_File },
+     { ALT (KEY_BACKSPACE), CK_Delete_Word_Left },
+ 
+     { XCTRL ('k'), CK_Delete_To_Line_End },
+diff --git a/edit/etags.c b/edit/etags.c
+new file mode 100644
+index 0000000..f0dac2b
+--- /dev/null
++++ b/edit/etags.c
+@@ -0,0 +1,88 @@
++/*find . -type f -name "*.[ch]" | etags -l c --declarations - */
++#include <stdlib.h>
++#include <stdio.h>
++#include <inttypes.h>
++#include <string.h>
++#include <glib.h>
++#include <ctype.h>
++#include "etags.h"
++
++long get_pos_from(char *str)
++{
++    static char buf[16];
++    int i, j;
++    j = 0;
++    int len = strlen( str );
++    for ( i = 0; i < len && i < 16; i++ ) {
++        char c = (char) str[i];
++        if ( isdigit (c) ) {
++            buf[j++] = c;
++            buf[j] = '\0';
++        } else {
++            return atol((char *)buf);
++        }
++    }
++    return 0;
++}
++
++int set_def_hash(char *tagfile, char *match_func, struct def_hash_type *def_hash, int *num)
++{
++    FILE *f;
++    static char buf[4048];
++    int len;
++
++    f = fopen (tagfile, "r");
++    int i;
++    if (!f)
++        return 1;
++
++    len = strlen( match_func );
++    int pos;
++    char *filename = NULL;
++    long line;
++    enum {start, in_filename, in_define} state=start;
++
++    while (fgets (buf, sizeof (buf), f)) {
++
++        switch ( state ) {
++        case start:
++            if ( buf[0] == 0x0C ) {
++                state = in_filename;
++            }
++            break;
++        case in_filename:
++            pos = strcspn(buf, ",");
++            if ( filename ) {
++                g_free(filename);
++            }
++            filename = malloc(pos + 2);
++            g_strlcpy ( filename, (char *)buf, pos + 1 );
++            state = in_define;
++            break;
++        case in_define:
++            if ( buf[0] == 0x0C ) {
++                state = in_filename;
++                break;
++            }
++            /* check if the filename matches the define pos */
++            if ( strstr ( buf, match_func ) ) {
++                int l = (int)strlen( buf );
++                for ( i = 0; i < l; i++) {
++                    if ( ( buf[i] == 0x7F || buf[i] == 0x01 ) && isdigit(buf[i+1]) ) {
++                        line = get_pos_from(&buf[i+1]);
++                        state = start;
++                        if ( *num < MAX_DEFINITIONS ) {
++                            def_hash[*num].filename_len = strlen(filename);
++                            def_hash[*num].filename = g_strdup(filename);
++                            def_hash[*num].line = line;
++                            (*num)++;
++                        }
++                    }
++                }
++            }
++            break;
++        }
++    }
++    g_free(filename);
++    return 0;
++}
+diff --git a/edit/etags.h b/edit/etags.h
+new file mode 100644
+index 0000000..f2f8403
+--- /dev/null
++++ b/edit/etags.h
+@@ -0,0 +1,9 @@
++#define MAX_DEFINITIONS 50
++
++struct def_hash_type {
++   int filename_len;
++   unsigned char *filename;
++   long line;
++};
++long get_pos_from(char *str);
++int set_def_hash(char *tagfile, char *match_func, struct def_hash_type *def_hash, int *num);
+diff --git a/src/main.c b/src/main.c
+index 4dcee7c..66a8d81 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -279,6 +279,11 @@ char *mc_home = NULL;
+ 
+ char cmd_buf[512];
+ 
++#ifdef USE_INTERNAL_EDIT
++int edit_stack_iterator = 0;
++struct edit_stack_type edit_history_moveto[MAX_HISTORY_MOVETO];
++#endif
++
+ static void
+ reload_panelized (WPanel *panel)
+ {
+@@ -2135,6 +2140,13 @@ main (int argc, char *argv[])
+ 
+     vfs_init ();
+ 
++#ifdef USE_INTERNAL_EDIT
++    for ( int i = 0; i < MAX_HISTORY_MOVETO; i++ ) {
++        edit_history_moveto[i].filename = NULL;
++        edit_history_moveto[i].line = -1;
++    }
++#endif
++
+ #ifdef HAVE_SLANG
+     SLtt_Ignore_Beep = 1;
+ #endif
+@@ -2255,5 +2267,11 @@ main (int argc, char *argv[])
+     g_free (this_dir);
+     g_free (other_dir);
+ 
++#ifdef USE_INTERNAL_EDIT
++    for ( int i = 0; i < MAX_HISTORY_MOVETO; i++ ) {
++        g_free(edit_history_moveto[i].filename);
++    }
++#endif
++
+     return 0;
+ }
+diff --git a/src/main.h b/src/main.h
+index 1500548..d858cb2 100644
+--- a/src/main.h
++++ b/src/main.h
+@@ -5,6 +5,10 @@
+ #include "panel.h"
+ #include "widget.h"
+ 
++#ifdef USE_INTERNAL_EDIT
++#include "../edit/edit.h"
++#endif
++
+ /* Toggling functions */
+ void toggle_fast_reload (void);
+ void toggle_mix_all_files (void);
+@@ -38,6 +42,11 @@ extern int mou_auto_repeat;
+ extern char *other_dir;
+ extern int mouse_move_pages;
+ 
++#ifdef USE_INTERNAL_EDIT
++extern int edit_stack_iterator;
++struct edit_stack_type edit_history_moveto[MAX_HISTORY_MOVETO];
++#endif
++
+ #ifdef HAVE_CHARSET
+ extern int source_codepage;
+ extern int display_codepage;
+-- 
+1.6.1.2
+

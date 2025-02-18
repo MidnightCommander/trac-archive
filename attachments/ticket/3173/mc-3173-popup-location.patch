@@ -1,0 +1,42 @@
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index 424e4c9..30cad1e 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -700,7 +700,7 @@ dlg_set_position (WDialog * h, int y1, int x1, int y2, int x2)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-/** this function sets only size, leaving positioning to automatic methods */
++/** sets dialog size and position */
+ 
+ void
+ dlg_set_size (WDialog * h, int lines, int cols)
+@@ -714,8 +714,13 @@ dlg_set_size (WDialog * h, int lines, int cols)
+         x = (COLS - cols) / 2;
+     }
+ 
+-    if ((h->flags & DLG_TRYUP) && (y > 3))
+-        y -= 2;
++    if (h->flags & DLG_TRYUP)
++    {
++        if (y > 3)
++            y -= 2;
++        else if (y == 3)
++            y = 2;
++    }
+ 
+     dlg_set_position (h, y, x, y + lines, x + cols);
+ }
+diff --git a/lib/widget/listbox-window.c b/lib/widget/listbox-window.c
+index 94bb57c..1651cc7 100644
+--- a/lib/widget/listbox-window.c
++++ b/lib/widget/listbox-window.c
+@@ -106,7 +106,7 @@ create_listbox_window_centered (int center_y, int center_x, int lines, int cols,
+ 
+     listbox->dlg =
+         dlg_create (TRUE, ypos, xpos, lines + space, cols + space,
+-                    listbox_colors, NULL, NULL, help, title, DLG_TRYUP);
++                    listbox_colors, NULL, NULL, help, title, DLG_CENTER | DLG_TRYUP);
+ 
+     listbox->list = listbox_new (2, 2, lines, cols, FALSE, NULL);
+     add_widget (listbox->dlg, listbox->list);

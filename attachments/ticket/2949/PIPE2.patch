@@ -1,0 +1,100 @@
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index c3c6704..4f53d6e 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -340,7 +340,7 @@ tilde_expand (const char *directory)
+ void
+ open_error_pipe (void)
+ {
+-    if (pipe (error_pipe) < 0)
++    if (mc_pipe(error_pipe) < 0)
+     {
+         message (D_NORMAL, _("Warning"), _("Pipe failed"));
+     }
+diff --git a/src/background.c b/src/background.c
+index a68fe86..a628b90 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -514,10 +514,10 @@ do_background (struct FileOpContext *ctx, char *info)
+     int back_comm[2];           /* back connection */
+     pid_t pid;
+ 
+-    if (pipe (comm) == -1)
++    if (mc_pipe(comm) == -1)
+         return -1;
+ 
+-    if (pipe (back_comm) == -1)
++    if (mc_pipe(back_comm) == -1)
+         return -1;
+ 
+     pid = fork ();
+diff --git a/src/cons.handler.c b/src/cons.handler.c
+index 610db28..c2bea27 100644
+--- a/src/cons.handler.c
++++ b/src/cons.handler.c
+@@ -148,7 +148,7 @@ handle_console_linux (console_action_t action)
+         status = close (pipefd1[1]);
+         status = close (pipefd2[0]);
+         /* Create two pipes for communication */
+-        if (!((pipe (pipefd1) == 0) && ((pipe (pipefd2)) == 0)))
++        if (!((mc_pipe(pipefd1) == 0) && ((mc_pipe(pipefd2)) == 0)))
+         {
+             mc_global.tty.console_flag = '\0';
+             break;
+diff --git a/src/subshell.c b/src/subshell.c
+index 510cf4d..00ca85c 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -850,7 +850,7 @@ init_subshell (void)
+                 return;
+             }
+         }
+-        else /* subshell_type is BASH or ZSH */ if (pipe (subshell_pipe))
++        else /* subshell_type is BASH or ZSH */ if (mc_pipe(subshell_pipe))
+         {
+             perror (__FILE__ ": couldn't create pipe");
+             mc_global.tty.use_subshell = FALSE;
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index 5c84175..b1d2a4c 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -312,7 +312,7 @@ fish_pipeopen (struct vfs_s_super *super, const char *path, const char *argv[])
+     int fileset1[2], fileset2[2];
+     int res;
+ 
+-    if ((pipe (fileset1) < 0) || (pipe (fileset2) < 0))
++    if ((mc_pipe(fileset1) < 0) || (mc_pipe(fileset2) < 0))
+         vfs_die ("Cannot pipe(): %m.");
+ 
+     res = fork ();
+diff --git a/lib/global.h b/lib/global.h
+index f13dfc0..0655c1e 100644
+--- a/lib/global.h
++++ b/lib/global.h
+@@ -269,7 +269,7 @@ typedef struct
+         gboolean alternate_plus_minus;
+ 
+         /* Set if the window has changed it's size */
+-        SIG_ATOMIC_VOLATILE_T winch_flag;
++        volatile sig_atomic_t winch_flag;
+     } tty;
+ 
+     struct
+@@ -283,6 +283,17 @@ typedef struct
+     } vfs;
+ } mc_global_t;
+ 
++#if defined(linux) /* compiler definition */
++  #include <linux/version.h> 
++     #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,28)               
++          #define mc_pipe(fd)  pipe2(fd, O_DIRECT)                        
++     #else   
++          #define mc_pipe(fd) pipe(fd)                        
++     #endif
++#else
++     #define mc_pipe(fd) pipe(fd)
++#endif
++
+ /*** global variables defined in .c file *********************************************************/
+ 
+ extern mc_global_t mc_global;

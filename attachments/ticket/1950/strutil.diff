@@ -1,0 +1,28 @@
+diff --git a/lib/strutil/strutilutf8.c b/lib/strutil/strutilutf8.c
+index f58536b..05ede73 100644
+--- a/lib/strutil/strutilutf8.c
++++ b/lib/strutil/strutilutf8.c
+@@ -38,12 +38,18 @@
+ static const char replch[] = "\xEF\xBF\xBD";
+ 
+ static int
+-str_unichar_iscombiningmark (gunichar uni)
++str_unichar_iscombiningmark(gunichar uni)
+ {
+-    int type = g_unichar_type (uni);
+-    return (type == G_UNICODE_COMBINING_MARK)
+-	|| (type == G_UNICODE_ENCLOSING_MARK)
+-	|| (type == G_UNICODE_NON_SPACING_MARK);
++	GUnicodeType type = g_unichar_type(uni);
++
++	switch (type) {
++	case G_UNICODE_COMBINING_MARK:   break;
++	case G_UNICODE_ENCLOSING_MARK:   break;
++	case G_UNICODE_NON_SPACING_MARK: break;
++	default: 
++	     type = G_UNICODE_CONTROL;   break;
++	}
++  return((int) type);
+ }
+ 
+ static void

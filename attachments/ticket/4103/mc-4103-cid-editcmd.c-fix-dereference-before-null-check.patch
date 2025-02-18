@@ -1,0 +1,38 @@
+From acb13517556f8a34e5ef3426d686375ddc8d46fd Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 13 Dec 2020 12:50:56 +0000
+Subject: [PATCH] (editcmd.c) fix dereference before null check
+
+Fix dereference before null check
+
+Found by Coverity
+Coverity id #32609
+Coverity id #313667
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 3fec8cd97..27d7bff99 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3538,7 +3538,7 @@ edit_get_match_keyword_cmd (WEdit * edit)
+         path = ptr;
+         g_free (tagfile);
+         tagfile = mc_build_filename (path, TAGS_NAME, (char *) NULL);
+-        if (exist_file (tagfile))
++        if (tagfile != NULL && exist_file (tagfile))
+             break;
+     }
+     while (strcmp (path, PATH_SEP_STR) != 0);
+@@ -3630,7 +3630,7 @@ edit_suggest_current_word (WEdit * edit)
+                     edit_insert (edit, *new_word);
+                 g_free (cp_word);
+             }
+-            else if (retval == B_ADD_WORD && match_word != NULL)
++            else if (retval == B_ADD_WORD)
+                 aspell_add_to_dict (match_word->str, (int) word_len);
+         }
+ 

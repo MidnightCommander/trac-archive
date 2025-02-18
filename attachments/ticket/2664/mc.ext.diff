@@ -1,0 +1,20 @@
+--- mc.old.ext	2011-11-03 20:27:24.000000000 +0200
++++ mc.ext	2011-11-03 20:28:02.000000000 +0200
+@@ -424,7 +424,7 @@
+ 	Open=if [ "$DISPLAY" = "" ]; then mpg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
+ 	View=%view{ascii} mpg123 -vtn1 %f 2>&1 | sed -n '/^Title/,/^Comment/p;/^MPEG/,/^Audio/p'
+ 
+-regex/\.([oO][gG][gG|aA|vV|xX])$
++regex/\.([oO][gG][gG|aA|xX])$
+ 	Open=if [ "$DISPLAY" = "" ]; then ogg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
+ 	View=%view{ascii} ogginfo %s
+ 
+@@ -478,7 +478,7 @@
+ regex/\.([fF][lL][iIcCvV])$
+ 	Include=video
+ 
+-regex/\.([oO][gG][mM])$
++regex/\.([oO][gG][vV])$
+ 	Include=video
+ 
+ regex/\.([rR][aA]?[mM])$

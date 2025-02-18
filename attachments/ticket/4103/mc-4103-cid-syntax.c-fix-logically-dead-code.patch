@@ -1,0 +1,29 @@
+From 0f023b6ceb2b6b01773b6e9b1c78e952d29036d7 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 21 Dec 2020 10:10:38 +0000
+Subject: [PATCH] (syntax.c) fix Logically dead code
+
+Statement cannot be NULL at this state
+
+Found by Coverity
+Coverity id #32572
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/syntax.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/editor/syntax.c b/src/editor/syntax.c
+index 93aa7512c..f7c7b1fb0 100644
+--- a/src/editor/syntax.c
++++ b/src/editor/syntax.c
+@@ -1287,9 +1287,6 @@ edit_read_syntax_file (WEdit * edit, GPtrArray * pnames, const char *syntax_file
+         /* Looking for 'include ...' lines before first 'file ...' ones */
+         if (!found && strcmp (args[0], "include") == 0)
+         {
+-            if (g != NULL)
+-                continue;
+-
+             if (args[1] == NULL || (g = open_include_file (args[1])) == NULL)
+             {
+                 result = line;

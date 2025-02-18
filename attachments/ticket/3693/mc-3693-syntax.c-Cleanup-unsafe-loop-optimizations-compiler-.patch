@@ -1,0 +1,45 @@
+From e6146633d6fe5866a78a9469dae51cd7565224e3 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 10:33:40 +0000
+Subject: [PATCH] (syntax.c) Cleanup unsafe-loop-optimizations compiler warning
+
+Found by GCC 6.2.0.
+
+syntax.c: In function 'edit_get_rule':
+syntax.c:572:9: error: cannot optimize possibly infinite loops [-Werror=unsafe-loop-optimizations]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/syntax.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/editor/syntax.c b/src/editor/syntax.c
+index 20130d6..056060a 100644
+--- a/src/editor/syntax.c
++++ b/src/editor/syntax.c
+@@ -569,21 +569,21 @@ edit_get_rule (WEdit * edit, off_t byte_index)
+ 
+     if (byte_index > edit->last_get_rule)
+     {
+-        for (i = edit->last_get_rule + 1; i <= byte_index; i++)
++        for (i = edit->last_get_rule; i < byte_index; i++)
+         {
+             off_t d = SYNTAX_MARKER_DENSITY;
+ 
+-            apply_rules_going_right (edit, i);
++            apply_rules_going_right (edit, i + 1);
+ 
+             if (edit->syntax_marker != NULL)
+                 d += ((syntax_marker_t *) edit->syntax_marker->data)->offset;
+ 
+-            if (i > d)
++            if (i + 1 > d)
+             {
+                 syntax_marker_t *s;
+ 
+                 s = g_new (syntax_marker_t, 1);
+-                s->offset = i;
++                s->offset = i + 1;
+                 s->rule = edit->rule;
+                 edit->syntax_marker = g_slist_prepend (edit->syntax_marker, s);
+             }

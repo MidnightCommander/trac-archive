@@ -1,0 +1,26 @@
+Architecture set to: x86_64-apple-macosx-.
+(lldb) bt
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+  * frame #0: 0x00007fff72f560fe libsystem_kernel.dylib`__select + 10
+    frame #1: 0x0000000107662b21 mc`feed_subshell(how=0, fail_on_error=0) at common.c:781:13
+    frame #2: 0x000000010766400e mc`do_subshell_chdir(vpath=0x00007f839ff0b330, update_prompt=0) at common.c:1675:13
+    frame #3: 0x0000000107615299 mc`subshell_chdir(vpath=0x00007f839ff0b330) at panel.c:3243:9
+    frame #4: 0x0000000107613561 mc`panel_do_cd_int(panel=0x00007f839ff094f0, new_dir_vpath=0x00007f839ff0b290, cd_type=cd_exact) at panel.c:3284:5
+    frame #5: 0x0000000107613433 mc`panel_do_cd(panel=0x00007f839ff094f0, new_dir_vpath=0x00007f839ff0b290, cd_type=cd_exact) at panel.c:4645:9
+    frame #6: 0x00000001076148d6 mc`panel_cd(panel=0x00007f839ff094f0, new_dir_vpath=0x00007f839ff0b290, exact=cd_exact) at panel.c:5049:11
+    frame #7: 0x0000000107618f7d mc`do_enter_on_file_entry(panel=0x00007f839ff094f0, fe=0x00007f83a1009200) at panel.c:2803:14
+    frame #8: 0x00000001076176c8 mc`do_enter(panel=0x00007f839ff094f0) at panel.c:2863:12
+    frame #9: 0x0000000107615559 mc`panel_execute_cmd(panel=0x00007f839ff094f0, command=1) at panel.c:3455:9
+    frame #10: 0x00000001076153ad mc`panel_key(panel=0x00007f839ff094f0, key=10) at panel.c:3617:16
+    frame #11: 0x000000010761159d mc`panel_callback(w=0x00007f839ff094f0, sender=0x0000000000000000, msg=MSG_KEY, parm=10, data=0x0000000000000000) at panel.c:3698:16
+    frame #12: 0x000000010769a06a mc`send_message(w=0x00007f839ff094f0, sender=0x0000000000000000, msg=MSG_KEY, parm=10, data=0x0000000000000000) at widget-common.h:243:15
+    frame #13: 0x000000010769921d mc`group_handle_key(g=0x00007f839fc0ebf0, key=10) at group.c:438:19
+    frame #14: 0x0000000107698b54 mc`group_default_callback(w=0x00007f839fc0ebf0, sender=0x0000000000000000, msg=MSG_KEY, parm=10, data=0x0000000000000000) at group.c:567:16
+    frame #15: 0x0000000107697b2a mc`dlg_key_event(h=0x00007f839fc0ebf0, d_key=10) at dialog.c:251:19
+    frame #16: 0x0000000107697760 mc`dlg_process_event(h=0x00007f839fc0ebf0, key=10, event=0x00007ffee862f6a0) at dialog.c:549:9
+    frame #17: 0x0000000107697e25 mc`frontend_dlg_run(h=0x00007f839fc0ebf0) at dialog.c:320:9
+    frame #18: 0x0000000107697c6e mc`dlg_run(h=0x00007f839fc0ebf0) at dialog.c:583:5
+    frame #19: 0x00000001075ff39d mc`do_nc at filemanager.c:1838:16
+    frame #20: 0x00000001075d0a75 mc`main(argc=1, argv=0x00007ffee862f848) at main.c:455:21
+    frame #21: 0x00007fff72e0ccc9 libdyld.dylib`start + 1
+    frame #22: 0x00007fff72e0ccc9 libdyld.dylib`start + 1

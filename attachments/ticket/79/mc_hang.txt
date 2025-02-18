@@ -1,0 +1,22 @@
+Sampling process 24299 for 3 seconds with 1 millisecond of run time between samples
+Sampling completed, processing symbols...
+Analysis of sampling mc (pid 24299) every 1 millisecond
+Call graph:
+    2543 Thread_34556   DispatchQueue_1: com.apple.main-thread  (serial)
+      2543 start
+        2543 main
+          2543 do_nc
+            2543 run_dlg
+              2543 dlg_process_event
+                2543 panel_callback
+                  2543 do_cd
+                    2543 _do_panel_cd
+                      2543 do_subshell_chdir
+                        2543 feed_subshell
+                          2543 __sigsuspend
+
+Total number in stack (recursive counted multiple, when >=5):
+
+Sort by top of stack, same collapsed (when >= 5):
+        __sigsuspend        2543
+Sample analysis of process 24299 written to file /dev/stdout

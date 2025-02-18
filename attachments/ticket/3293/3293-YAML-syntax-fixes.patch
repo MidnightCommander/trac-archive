@@ -1,0 +1,77 @@
+From 50e65c1f21084e4a2162ba48eaad080f1ba430e2 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 4 Dec 2016 23:32:23 +0200
+Subject: [PATCH] Ticket #3293: YAML syntax fixes.
+
+---
+ misc/syntax/Syntax.in   |  2 +-
+ misc/syntax/yaml.syntax | 38 +++++++++++++++++++++++++++++---------
+ 2 files changed, 30 insertions(+), 10 deletions(-)
+
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 2877b96..92abe3a 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -271,7 +271,7 @@ include cuda.syntax
+ file .\*\\.(cl)$ OpenCL\sProgram
+ include opencl.syntax
+ 
+-file ..\*\\.(yml|YML)$ YAML\sFile
++file ..\*\\.(ya?ml|YML)$ YAML\sFile
+ include yaml.syntax
+ 
+ file .\* unknown
+diff --git a/misc/syntax/yaml.syntax b/misc/syntax/yaml.syntax
+index b6e6473..e416e3c 100644
+--- a/misc/syntax/yaml.syntax
++++ b/misc/syntax/yaml.syntax
+@@ -1,17 +1,37 @@
+ # YAML syntax highlighting
+-#
+-# Author: Roman Belda <romanbelda.cz@gmail.com>
+-# http://romanbelda.cz
+ 
+-caseinsensitive
++# Reference:
++#   https://en.wikipedia.org/wiki/YAML
++#   http://yaml.org/refcard.html
+ 
+-context default brown
+-    keyword #*\n green
++context default
++    spellcheck
++    keyword #*\n brown
+     keyword {{*}} brightred
+-    keyword *: yellow
++    keyword linestart --- brightcyan
++    keyword linestart \[\s\]-\s brightcyan
++    # "YAML requires that colons and commas used as list separators be followed by a space [...]"
++    keyword ,\{\s\n\} brightcyan
++    keyword , red
++    # Below, we can get by with just "*:\{\s\n\}", but we prefer to restrict the
++    # key names in order not to grab too much (e.g., "{one: 1, two: 2}", "one: 1  # possibilities: 1 or 2").
++    keyword \{0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[\s-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\]:\{\s\n\} yellow
++    keyword [ brightcyan
++    keyword ] brightcyan
++    keyword { brightcyan
++    keyword } brightcyan
++    keyword whole true brightmagenta
++    keyword whole false brightmagenta
++    keyword whole null brightmagenta
+ 
+-context " "\n brightgreen
++context " " green
++    spellcheck
+     keyword {{*}} brightred
++    keyword \\" brightgreen
++    keyword \\\\ brightgreen
++    keyword \\\{xuU\}\[0123456789\] brightgreen
++    keyword \\\{0abfnrtve_NLP\} brightgreen
+ 
+-context ' '\n brightgreen
++context ' ' green
++    spellcheck
+     keyword {{*}} brightred
+-- 
+2.9.3
+

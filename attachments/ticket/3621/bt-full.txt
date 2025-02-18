@@ -1,0 +1,136 @@
+(gdb) bt full
+#0  vfs_s_insert_entry (me=me@entry=0x70c2c0 <vfs_cpiofs_ops>, dir=dir@entry=0x0, ent=0x7d1490)
+    at direntry.c:974
+No locals.
+#1  0x000000000040a377 in cpio_create_entry (me=me@entry=0x70c2c0 <vfs_cpiofs_ops>,
+    super=super@entry=0x7d8ab0, st=st@entry=0x7ffea735e020, name=<optimized out>,
+    name@entry=0x7d1450 "/proc/self/fd/0") at cpio.c:493
+        arch = 0x7d8ca0
+        inode = 0x7d14b0
+        root = 0x0
+        entry = <optimized out>
+        tn = 0x7d145e "0"
+#2  0x0000000000495e12 in cpio_read_crc_head (super=<optimized out>, me=<optimized out>) at cpio.c:720
+        arch = <optimized out>
+        hd = {c_magic = 29121, c_ino = 972, c_mode = 41471, c_uid = 0, c_gid = 0, c_nlink = 1,
+          c_mtime = 1457501844, c_filesize = 11, c_dev = 3, c_devmin = 1, c_rdev = 0, c_rdevmin = 0,
+          c_namesize = 16, c_chksum = 0}
+        u = {st = {st_dev = 769, st_ino = 972, st_nlink = 1, st_mode = 41471, st_uid = 0, st_gid = 0,
+            __pad0 = 808464432, st_rdev = 0, st_size = 11, st_blksize = 3472348087436980272,
+            st_blocks = 3472331594762563632, st_atim = {tv_sec = 1457501844,
+              tv_nsec = 3472328296227680304}, st_mtim = {tv_sec = 1457501844,
+              tv_nsec = 3472328300522647600}, st_ctim = {tv_sec = 1457501844,
+              tv_nsec = 7380385434744090482}, __glibc_reserved = {206953539119, 7238537148778243119,
+              3976739150266134121}},
+          buf = "\001\003\000\000\000\000\000\000\314\003\000\000\000\000\000\000\001\000\000\000\000\000\000\000\377\241\000\000\000\000\000\000\000\000\000\000\060\060\060\060\000\000\000\000\000\000\000\000\v\000\000\000\000\000\000\000\060\060\060\060\060B0000000300\224\266\337V\000\000\000\000\060\060\060\060\060\060\060\060\224\266\337V\000\000\000\000\060\060\060\060\061\060\060\060\224\266\337V\000\000"}
+        len = <optimized out>
+        name = <optimized out>
+#3  cpio_read_head (super=0x7d8ab0, me=0x70c2c0 <vfs_cpiofs_ops>) at cpio.c:293
+No locals.
+#4  cpio_open_archive (super=0x7d8ab0, vpath=0x7d8a40, vpath_element=0x7d8760) at cpio.c:739
+No locals.
+#5  0x0000000000459922 in vfs_s_get_path (vpath=vpath@entry=0x7d87f0,
+    archive=archive@entry=0x7ffea735e1b8, flags=flags@entry=0) at direntry.c:1133
+        vpath_archive = 0x7d8a40
+        retval = 0x7d87c0 ""
+        result = -1
+        super = <optimized out>
+        path_element = 0x7d8760
+        subclass = 0x70c200 <cpio_subclass>
+#6  0x0000000000459d8b in vfs_s_inode_from_path (vpath=vpath@entry=0x7d87f0, flags=flags@entry=5)
+---Type <return> to continue, or q <return> to quit---
+    at direntry.c:378
+        super = 0x78bb60
+        ino = <optimized out>
+        q = <optimized out>
+        path_element = <optimized out>
+#7  0x0000000000459f53 in vfs_s_opendir (vpath=0x7d87f0) at direntry.c:407
+        dir = <optimized out>
+        info = <optimized out>
+        path_element = 0x7d8760
+#8  0x0000000000459fb9 in vfs_s_chdir (vpath=<optimized out>) at direntry.c:474
+        data = <optimized out>
+#9  0x0000000000424557 in mc_chdir (vpath=0x7d86a0) at interface.c:687
+        old_vfs = <optimized out>
+        old_vfsid = <optimized out>
+        result = <optimized out>
+        path_element = 0x7d8760
+        cd_vpath = 0x7d87f0
+#10 0x000000000043241a in _do_panel_cd (cd_type=<optimized out>, new_dir_vpath=<optimized out>,
+    panel=0x786200) at panel.c:3250
+No locals.
+#11 do_panel_cd (panel=0x786200, new_dir_vpath=<optimized out>, cd_type=<optimized out>)
+    at panel.c:4628
+No locals.
+#12 0x00000000004339ff in do_cd (new_dir_vpath=new_dir_vpath@entry=0x7d86a0,
+    exact=exact@entry=cd_parse_command) at panel.c:5028
+        res = <optimized out>
+        _new_dir_vpath = 0x7d86a0
+#13 0x0000000000417465 in exec_extension_cd () at ext.c:400
+        q = <optimized out>
+        p_vpath = 0x7d86a0
+#14 exec_extension (start_line=0, lc_data=<optimized out>, filename_vpath=0x7d8680, target=0x0)
+    at ext.c:436
+        script_vpath = 0x0
+        cmd_file_fd = <optimized out>
+        cmd_file = <optimized out>
+        cmd = 0x0
+#15 regex_command_for (target=target@entry=0x0, filename_vpath=filename_vpath@entry=0x7d8680,
+    action=action@entry=0x4a9265 "Open", script_vpath=script_vpath@entry=0x0) at ext.c:1019
+        p = <optimized out>
+        q = <optimized out>
+        r = <optimized out>
+        c = <optimized out>
+---Type <return> to continue, or q <return> to quit---
+        filename = 0x7d86e6 "initrd-4.1.19-std-def-alt1.img"
+        file_len = 30
+        found = <optimized out>
+        error_flag = <optimized out>
+        mystat = {st_dev = 2050, st_ino = 290, st_nlink = 1, st_mode = 33152, st_uid = 0, st_gid = 0,
+          __pad0 = 0, st_rdev = 0, st_size = 4550699, st_blksize = 4096, st_blocks = 8896, st_atim = {
+            tv_sec = 1457985467, tv_nsec = 463425869}, st_mtim = {tv_sec = 1457501851,
+            tv_nsec = 194627852}, st_ctim = {tv_sec = 1457501851, tv_nsec = 235627471},
+          __glibc_reserved = {0, 0, 0}}
+        view_at_line_number = 0
+        include_target = <optimized out>
+        include_target_len = 0
+        have_type = 1
+#16 0x0000000000433b62 in regex_command (action=0x4a9265 "Open", filename_vpath=0x7d8680) at ext.h:30
+No locals.
+#17 do_enter_on_file_entry (fe=0x7c3368) at panel.c:2777
+        full_name_vpath = 0x7d8680
+        ok = <optimized out>
+#18 0x00000000004350df in do_enter (panel=0x786200, panel=0x786200) at panel.c:2832
+No locals.
+#19 panel_execute_cmd (panel=panel@entry=0x786200, command=1) at panel.c:3426
+        res = 1
+#20 0x0000000000435a0d in panel_key (key=<optimized out>, panel=0x786200) at panel.c:3588
+        i = <optimized out>
+#21 panel_callback (w=0x786200, sender=<optimized out>, msg=<optimized out>, parm=<optimized out>,
+    data=<optimized out>) at panel.c:3672
+        panel = 0x786200
+        bb = <optimized out>
+#22 0x0000000000415cfe in send_message (data=0x0, parm=10, msg=MSG_KEY, sender=0x0, w=<optimized out>)
+    at ../../lib/widget/widget-common.h:168
+        ret = MSG_NOT_HANDLED
+#23 dlg_key_event (d_key=10, h=0x780d60) at dialog.c:515
+        handled = <optimized out>
+#24 dlg_process_event (h=0x780d60, key=10, t=<optimized out>) at dialog.c:1236
+No locals.
+#25 0x0000000000416328 in frontend_dlg_run (h=0x780d60) at dialog.c:570
+        d_key = <optimized out>
+        t = {buttons = 0 '\000', modifiers = 254 '\376', vc = 120, dx = 0, dy = 0, x = -1, y = 109,
+          type = (unknown: 0), clicks = 7193344, margin = (unknown: 0), wdx = 4520, wdy = 110}
+#26 dlg_run (h=0x780d60) at dialog.c:1267
+No locals.
+#27 0x000000000042e586 in create_panels_and_run_mc () at midnight.c:955
+---Type <return> to continue, or q <return> to quit---
+No locals.
+#28 do_nc () at midnight.c:1815
+        ret = <optimized out>
+#29 0x000000000040aa66 in main (argc=1, argv=0x7ffea735e848) at main.c:403
+        mcerror = 0x0
+        config_migrated = <optimized out>
+        config_migrate_msg = 0x13000000401 <error: Cannot access memory at address 0x13000000401>
+        exit_code = 1
+

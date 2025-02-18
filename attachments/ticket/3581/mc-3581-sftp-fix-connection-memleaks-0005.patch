@@ -1,0 +1,25 @@
+From 04f6e1ccedc8013959dabe65de176a978031611a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 17:37:27 +0000
+Subject: [PATCH 05/05] sftp: fix connection memleaks (cosmetic)
+
+add FIXME for deprected libssh2_session_startup() since libssh2 1.2.8
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/connection.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index 03a5b7e..ba60076 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -388,6 +388,8 @@ sftpfs_open_connection (struct vfs_s_super *super, GError ** mcerror)
+     /* ... start it up. This will trade welcome banners, exchange keys,
+      * and setup crypto, compression, and MAC layers
+      */
++    /* FIXME: Starting in libssh2 version 1.2.8  this function is considered deprecated.
++       Use libssh2_session_handshake instead. */
+     rc = libssh2_session_startup (super_data->session, super_data->socket_handle);
+     if (rc != 0)
+     {

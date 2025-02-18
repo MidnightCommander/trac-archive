@@ -1,0 +1,79 @@
+From 80dbae3775b61318d17509f7684d87c4e5c6840e Mon Sep 17 00:00:00 2001
+From: Brian Lowe <mc-hobbit@groupbcl.ca>
+Date: Sun, 22 Jan 2017 13:47:56 -0600
+Subject: [PATCH] Ticket #3742: remove reference to $MC_* variables and change
+ 'temporal' to 'temporary'
+
+---
+ misc/mc.ext.in | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index a14a984..87c6ced 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -3,7 +3,7 @@
+ # Empty lines and lines starting with "#" are ignored.
+ #
+ # IMPORTANT: mc scans this file only at startup or after updating it using the
+-# mc "Edit extension file" command (F9-c-e). If you edit the file otherwise
++# mc "Edit extension file" command (F9-c-e).  If you edit the file otherwise
+ # while mc is running, you will need to (F9-c-e) and exit the editor for your
+ # changes to take effect, or exit mc and restart.
+ #
+@@ -15,8 +15,8 @@
+ #
+ #    shell
+ #       DESC is, when starting with a dot, an extension (no wildcards.)
+-#       All the files matching '*DESC'. Example: .tar matches *.tar; if it
+-#       doesn't start with a dot, it matches only a file of that name.
++#       All the files matching '*DESC'.  Example: .tar matches *.tar; if
++#       it doesn't start with a dot, it matches only a file of that name.
+ #
+ #    shell/i
+ #       DESC is, when starting with a dot, an extension (no wildcards.)
+@@ -72,25 +72,25 @@
+ #    %%
+ #       The '%' character
+ #
+-#    %p or $MC_EXT_BASENAME
++#    %p
+ #       Name of the current file (without path, but 'pwd' is its path.)
+ #
+-#    %f or $MC_EXT_FILENAME
++#    %f
+ #       Name of the current file. Unlike %p, if file is located on a non-local
+ #       virtual filesystem (e.g. tarfs or ftpfs,) then the file will be
+ #       temporarily copied into a local directory and %f will be the full path
+-#       to this local temporal file.  If you don't want to get a local copy and
+-#       want to get the virtual fs path (like ftp://ftp.cvut.cz/pub/linux), 
++#       to this local temporary file.  If you don't want to get a local copy
++#       and want to get the virtual fs path (like ftp://ftp.cvut.cz/pub/linux), 
+ #       then use %d/%p instead of %f.
+ #
+-#    %d or $MC_EXT_CURRENTDIR
++#    %d
+ #       Name of the current directory (pwd, without trailing slash)
+ #
+-#    %s or $MC_EXT_SELECTED
++#    %s
+ #       Space separated list of tagged files (if any) or the name of the
+ #       current file.
+ #
+-#    %t or $MC_EXT_ONLYTAGGED
++#    %t
+ #       Space-spearted list of tagged files
+ #
+ #    %u
+@@ -121,7 +121,7 @@
+ #
+ #    %var{VARNAME:default}
+ #       Expands to the value of the VARNAME variable in the environment if it's
+-#       set, otherwise the value in "default" is used. This is similar to the
++#       set, otherwise the value in "default" is used.  This is similar to the
+ #       Bourne shell ${VAR-default} construct.
+ #
+ # Rules are applied from top to bottom, thus the order is important.  If some
+-- 
+2.5.5
+

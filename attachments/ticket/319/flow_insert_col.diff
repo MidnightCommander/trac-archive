@@ -1,0 +1,132 @@
+!diff -urN mc-4.6.2_MDC/edit/ChangeLog mc-2009-03-31/edit/ChangeLog
+!--- mc-4.6.2_MDC/edit/ChangeLog	2009-02-01 19:30:21.000000000 +0000
+!+++ mc-2009-03-31/edit/ChangeLog	2009-03-31 07:48:20.000000000 +0100
+!@@ -1,3 +1,16 @@
+!+2009-03-31  Vit Rosin   <vit_r@list.ru>
+!+        flow column insertion:
+!+        * edit.c (edit_insert_file):
+!+        When chars are inserted place cursor after inserted chars.
+!+        * edit.h (edit_copy_to_X_buf_cmd): Add new argument.
+!+        * editcmd.c (edit_copy_to_X_buf_cmd):
+!+        Add saving the insert-start clmn.
+!+        * edit.c (edit_execute_key_command):
+!+        If after insertion next key press is <Up-arrow>, <Down-arrow>,
+!+        <PageUp>, <PageDown>, <BeginText> or <EndText>, -
+!+        move cursor to the insert-start clmn.
+!+        Any other key press resets the insert-start clmn.
+!+        Its _NOT_ patch yet, - to test and discuss only.
+! 2007-11-02  Vladimir Nadvornik  <nadvornik@suse.cz>
+! 
+! 	* editlock.c (lock_build_name): Check the return value of getpwuid().
+diff -urN mc-4.6.2_MDC/edit/edit.c mc-2009-03-31/edit/edit.c
+--- mc-4.6.2_MDC/edit/edit.c	2009-02-01 19:30:21.000000000 +0000
++++ mc-2009-03-31/edit/edit.c	2009-03-31 07:38:29.000000000 +0100
+@@ -70,6 +70,7 @@
+ int option_edit_left_extreme = 0;
+ int option_edit_top_extreme = 0;
+ int option_edit_bottom_extreme = 0;
++int flow_insert_col = -1;
+ 
+ const char *option_whole_chars_search = "0123456789abcdefghijklmnopqrstuvwxyz_";
+ char *option_backup_ext = NULL;
+@@ -267,11 +268,9 @@
+     char *p;
+     if ((p = edit_get_filter (filename))) {
+ 	FILE *f;
+-	long current = edit->curs1;
+ 	f = (FILE *) popen (p, "r");
+ 	if (f) {
+ 	    edit_insert_stream (edit, f);
+-	    edit_cursor_move (edit, current - edit->curs1);
+ 	    if (pclose (f) > 0) {
+ 	        GString *errmsg = g_string_new (NULL);
+ 		g_string_sprintf (errmsg, _(" Error reading from pipe: %s "), p);
+@@ -291,7 +290,6 @@
+ 	g_free (p);
+     } else {
+ 	int i, file, blocklen;
+-	long current = edit->curs1;
+ 	unsigned char *buf;
+ 	if ((file = mc_open (filename, O_RDONLY | O_BINARY)) == -1)
+ 	    return 0;
+@@ -300,7 +298,6 @@
+ 	    for (i = 0; i < blocklen; i++)
+ 		edit_insert (edit, buf[i]);
+ 	}
+-	edit_cursor_move (edit, current - edit->curs1);
+ 	g_free (buf);
+ 	mc_close (file);
+ 	if (blocklen)
+@@ -2125,6 +2122,23 @@
+ 	edit_push_key_press (edit);
+ 
+     edit_execute_cmd (edit, command, char_for_insertion);
++        
++    if (CK_Beginning_Of_Text == command || CK_End_Of_Text == command
++            || CK_Page_Up == command || CK_Page_Down == command
++            || CK_Up == command || CK_Down == command) {
++        if (flow_insert_col >= 0) {
++            edit->force |= REDRAW_COMPLETELY;
++            edit_update_screen (edit);
++            if ((edit_eol (edit, edit->curs1) - edit_bol (edit, edit->curs1)) > flow_insert_col) {
++                edit_cursor_move (edit, flow_insert_col - edit->curs_col);
++                edit->force |= REDRAW_COMPLETELY;
++                edit_update_screen (edit);
++            }
++        }
++    } else if (CK_XStore != command && CK_XCut != command 
++            && CK_XPaste != command) {
++        flow_insert_col = -1;
++    }
+     if (column_highlighting)
+ 	edit->force |= REDRAW_PAGE;
+ }
+@@ -2453,10 +2467,11 @@
+ 	break;
+ 
+     case CK_XStore:
+-	edit_copy_to_X_buf_cmd (edit);
++	edit_copy_to_X_buf_cmd (edit, &flow_insert_col);
+ 	break;
+     case CK_XCut:
+ 	edit_cut_to_X_buf_cmd (edit);
++	flow_insert_col = edit_get_col (edit);
+ 	break;
+     case CK_XPaste:
+ 	edit_paste_from_X_buf_cmd (edit);
+diff -urN mc-4.6.2_MDC/edit/editcmd.c mc-2009-03-31/edit/editcmd.c
+--- mc-4.6.2_MDC/edit/editcmd.c	2009-02-01 19:30:21.000000000 +0000
++++ mc-2009-03-31/edit/editcmd.c	2009-03-31 06:02:09.000000000 +0100
+@@ -2291,7 +2291,7 @@
+     edit_error_dialog (_(" Error "), _(" This function is not implemented. "));
+ }
+ 
+-int edit_copy_to_X_buf_cmd (WEdit * edit)
++int edit_copy_to_X_buf_cmd (WEdit * edit, int *flow_insert_col)
+ {
+     long start_mark, end_mark;
+     if (eval_marks (edit, &start_mark, &end_mark))
+@@ -2300,6 +2300,11 @@
+ 	edit_error_dialog (_(" Copy to clipboard "), get_sys_error (_(" Unable to save to file. ")));
+ 	return 1;
+     }
++    if (start_mark == edit->mark1)
++        *flow_insert_col = edit->column1;
++    else
++        *flow_insert_col = edit->column2;
++
+     edit_mark_cmd (edit, 1);
+     return 0;
+ }
+diff -urN mc-4.6.2_MDC/edit/edit.h mc-2009-03-31/edit/edit.h
+--- mc-4.6.2_MDC/edit/edit.h	2009-02-01 19:30:21.000000000 +0000
++++ mc-2009-03-31/edit/edit.h	2009-03-31 06:06:25.000000000 +0100
+@@ -197,7 +197,7 @@
+ int edit_load_macro_cmd (WEdit * edit, struct macro macro[], int *n, int k);
+ void edit_delete_macro_cmd (WEdit * edit);
+ 
+-int edit_copy_to_X_buf_cmd (WEdit * edit);
++int edit_copy_to_X_buf_cmd (WEdit * edit, int *flow_insert_col);
+ int edit_cut_to_X_buf_cmd (WEdit * edit);
+ void edit_paste_from_X_buf_cmd (WEdit * edit);
+ 

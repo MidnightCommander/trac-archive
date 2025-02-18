@@ -1,0 +1,13 @@
+--- origsrc/mc-4.8.10/src/filemanager/filegui.c	2013-08-02 17:02:39.000000000 +0200
++++ src/mc-4.8.10/src/filemanager/filegui.c	2013-08-04 08:22:15.839636500 +0200
+@@ -284,9 +284,9 @@ statvfs_works (void)
+     if (statvfs_works_cache < 0)
+         statvfs_works_cache = (uname (&name) == 0 && 0 <= str_verscmp (name.release, "2.6.36"));
+     return statvfs_works_cache;
+-}
+ #endif
+ #endif
++}
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ static gboolean

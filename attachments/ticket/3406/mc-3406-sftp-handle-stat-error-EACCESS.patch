@@ -1,0 +1,51 @@
+From 52bdabe75e3811ecc10637cf08715c08df78da14 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 7 Jan 2016 19:04:06 +0000
+Subject: [PATCH] sftp handle LIBSSH2_FX_PERMISSION_DENIED as EACCES
+
+when libssh2_sftp_stat_ex(LIBSSH2_SFTP_STAT|LIBSSH2_SFTP_LSTAT) returns with
+LIBSSH2_ERROR_SFTP_PROTOCOL (-31) and LIBSSH2_FX_PERMISSION_DENIED (3)
+handle this error case like local stat/lstat() returns EACCES
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/internal.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/vfs/sftpfs/internal.c b/src/vfs/sftpfs/internal.c
+index f060ecf..a05ca8b 100644
+--- a/src/vfs/sftpfs/internal.c
++++ b/src/vfs/sftpfs/internal.c
+@@ -166,6 +166,10 @@ sftpfs_lstat (const vfs_path_t * vpath, struct stat *buf, GError ** mcerror)
+         if (res >= 0)
+             break;
+ 
++        if (res == LIBSSH2_ERROR_SFTP_PROTOCOL &&
++            libssh2_sftp_last_error(super_data->sftp_session)  == LIBSSH2_FX_PERMISSION_DENIED)
++            return EACCES;
++
+         if (res != LIBSSH2_ERROR_EAGAIN)
+         {
+             sftpfs_ssherror_to_gliberror (super_data, res, mcerror);
+@@ -244,6 +248,10 @@ sftpfs_stat (const vfs_path_t * vpath, struct stat *buf, GError ** mcerror)
+         if (res >= 0)
+             break;
+ 
++        if (res == LIBSSH2_ERROR_SFTP_PROTOCOL &&
++            libssh2_sftp_last_error(super_data->sftp_session)  == LIBSSH2_FX_PERMISSION_DENIED)
++            return EACCES;
++
+         if (res != LIBSSH2_ERROR_EAGAIN)
+         {
+             sftpfs_ssherror_to_gliberror (super_data, res, mcerror);
+@@ -450,6 +458,10 @@ sftpfs_chmod (const vfs_path_t * vpath, mode_t mode, GError ** mcerror)
+         if (res >= 0)
+             break;
+ 
++        if (res == LIBSSH2_ERROR_SFTP_PROTOCOL &&
++            libssh2_sftp_last_error(super_data->sftp_session)  == LIBSSH2_FX_PERMISSION_DENIED)
++            return EACCES;
++
+         if (res != LIBSSH2_ERROR_EAGAIN)
+         {
+             sftpfs_ssherror_to_gliberror (super_data, res, mcerror);

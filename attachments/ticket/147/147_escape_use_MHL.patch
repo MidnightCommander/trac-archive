@@ -1,0 +1,213 @@
+diff --git a/mhl/escape.h b/mhl/escape.h
+index 2533388..9921d52 100644
+--- a/mhl/escape.h
++++ b/mhl/escape.h
+@@ -6,6 +6,14 @@
+ #include <string.h>
+ #include <stdlib.h>
+ 
++#ifndef FALSE
++#	define FALSE 0
++#endif
++
++#ifndef TRUE
++#	define TRUE 1
++#endif
++
+ #define mhl_shell_escape_toesc(x)	\
+     (((x)==' ')||((x)=='!')||((x)=='#')||((x)=='$')||((x)=='%')||	\
+      ((x)=='(')||((x)==')')||((x)=='\'')||((x)=='&')||((x)=='~')||	\
+@@ -16,6 +24,14 @@
+ #define mhl_shell_escape_nottoesc(x)	\
+     (((x)!=0) && (!mhl_shell_escape_toesc((x))))
+ 
++/** To be compatible with the general posix command lines we have to escape
++ strings for the command line
++
++ /params const char * in
++ string for escaping
++ /returns
++ return escaped string (later need to free)
++ */
+ static inline char* mhl_shell_escape_dup(const char* src)
+ {
+     if ((src==NULL)||(!(*src)))
+@@ -48,7 +64,14 @@ static inline char* mhl_shell_escape_dup(const char* src)
+     }
+ }
+ 
+-/* shell-unescape within a given buffer (writing to it!) */
++/** Unescape paths or other strings for e.g the internal cd
++    shell-unescape within a given buffer (writing to it!)
++
++ /params const char * in
++ string for unescaping
++ /returns
++ return unescaped string 
++*/
+ static inline char* mhl_shell_unescape_buf(char* text)
+ {
+     if (!text)
+@@ -109,4 +132,21 @@ static inline char* mhl_shell_unescape_buf(char* text)
+     return text;
+ }
+ 
++/** Check if char in pointer contain escape'd chars
++
++ /params const char * in
++ string for checking
++ /returns
++ return TRUE if string contain escaped chars
++ otherwise return FALSE
++ */
++static inline int
++mhl_shell_is_char_escaped ( const char *in ) {
++    if (in == NULL || !*in || in[0] != '\\') return FALSE;
++    if (mhl_shell_escape_toesc(in[1])){
++	return TRUE;
++    }
++    return FALSE;
++}
++
+ #endif
+diff --git a/src/command.c b/src/command.c
+index 3141f8d..baa0e6e 100644
+--- a/src/command.c
++++ b/src/command.c
+@@ -28,6 +28,7 @@
+ #include <string.h>
+ 
+ #include "mhl/memory.h"
++#include "mhl/escape.h"
+ 
+ #include "global.h"		/* home_dir */
+ #include "tty.h"
+@@ -66,7 +67,7 @@ examine_cd (char *path)
+     const char *t;
+ 
+     /* Tilde expansion */
+-    path = unescape_string(path);
++    path = mhl_shell_unescape_buf(path);
+     path_tilde = tilde_expand (path);
+ 
+     /* Leave space for further expansion */
+@@ -138,7 +139,7 @@ examine_cd (char *path)
+     }
+     g_free (q);
+     g_free (path_tilde);
+-    mhl_mem_free(path);
++//    mhl_mem_free(path);
+     return result;
+ }
+ 
+diff --git a/src/complete.c b/src/complete.c
+index 294f263..b350307 100644
+--- a/src/complete.c
++++ b/src/complete.c
+@@ -32,6 +32,7 @@
+ #include <unistd.h>
+ 
+ #include "mhl/memory.h"
++#include "mhl/escape.h"
+ 
+ #include "global.h"
+ #include "tty.h"
+@@ -74,7 +75,7 @@ filename_completion_function (char *text, int state)
+         g_free (filename);
+         g_free (users_dirname);
+ 
+-	text = unescape_string(text);
++	text = mhl_shell_unescape_buf(text);
+ 	if ((*text) && (temp = strrchr (text, PATH_SEP))){
+ 	    filename = g_strdup (++temp);
+ 	    dirname = g_strndup (text, temp - text);
+@@ -82,7 +83,6 @@ filename_completion_function (char *text, int state)
+ 	    dirname = g_strdup (".");
+ 	    filename = g_strdup (text);
+ 	}
+-	mhl_mem_free(text);
+ 
+         /* We aren't done yet.  We also support the "~user" syntax. */
+ 
+@@ -956,7 +956,7 @@ complete_engine (WInput *in, int what_to_do)
+     }
+     if (in->completions){
+     	if (what_to_do & DO_INSERTION || ((what_to_do & DO_QUERY) && !in->completions[1])) {
+-    	    complete = escape_string(in->completions [0]);
++    	    complete = mhl_shell_escape_dup(in->completions [0]);
+     	    if (insert_text (in, complete, strlen (complete))){
+     	        if (in->completions [1])
+     	    	    beep ();
+@@ -976,7 +976,7 @@ complete_engine (WInput *in, int what_to_do)
+ 
+     	    for (p=in->completions + 1; *p; count++, p++) {
+ 		q = *p;
+-		*p = escape_string(*p);
++		*p = mhl_shell_escape_dup(*p);
+ 		mhl_mem_free(q);
+ 		if ((i = strlen (*p)) > maxlen)
+ 		    maxlen = i;
+diff --git a/src/file.c b/src/file.c
+index d2a80b0..dad06dd 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -51,6 +51,7 @@
+ #include <unistd.h>
+ 
+ #include "mhl/memory.h"
++#include "mhl/escape.h"
+ 
+ #include "global.h"
+ #include "tty.h"
+@@ -179,7 +180,7 @@ do_transform_source (FileOpContext *ctx, const char *source)
+     for (next_reg = 1, j = 0, k = 0; j < strlen (ctx->dest_mask); j++) {
+ 	switch (ctx->dest_mask[j]) {
+ 	case '\\':
+-	    if (is_escaped_string (&ctx->dest_mask[j])){
++	    if (mhl_shell_is_char_escaped (&ctx->dest_mask[j])){
+ 		fntarget[k++] = ctx->dest_mask[j++];
+ 		fntarget[k++] = ctx->dest_mask[j];
+ 		break;
+@@ -1973,12 +1974,8 @@ panel_operate (void *source_panel, FileOperation operation,
+ 		    char *temp2 = concat_dir_and_file (dest, temp);
+ 		    char *temp3;
+ 
+-		    temp3 = source_with_path;
+-		    source_with_path = unescape_string(source_with_path);
+-		    mhl_mem_free(temp3);
+-		    temp3 = temp2;
+-		    temp2 = unescape_string(temp2);
+-		    mhl_mem_free(temp3);
++		    source_with_path = mhl_shell_unescape_buf(source_with_path);
++		    temp2 = mhl_shell_unescape_buf(temp2);
+ 
+ 		    switch (operation) {
+ 		    case OP_COPY:
+diff --git a/src/util.c b/src/util.c
+index c5612cf..1f97e85 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -35,6 +35,8 @@
+ #include <sys/stat.h>
+ #include <unistd.h>
+ 
++#include "mhl/escape.h"
++
+ #include "global.h"
+ #include "profile.h"
+ #include "main.h"		/* mc_home */
+diff --git a/src/util.h b/src/util.h
+index 706a892..4e9a113 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -14,10 +14,6 @@ extern char *str_unconst (const char *);
+ extern const char *cstrcasestr (const char *haystack, const char *needle);
+ extern const char *cstrstr (const char *haystack, const char *needle);
+ 
+-char *unescape_string ( const char * );
+-char *escape_string ( const char * );
+-int is_escaped_string ( const char * );
+-
+ void str_replace(char *s, char from, char to);
+ int  is_printable (int c);
+ void msglen (const char *text, /*@out@*/ int *lines, /*@out@*/ int *columns);

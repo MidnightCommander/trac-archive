@@ -1,0 +1,30 @@
+From de83a8ee8f4f81c16a6fcd0c018f6a69b0014a60 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 12:04:56 +0000
+Subject: [PATCH] (path.c) Cleanup -Wformat-signedness warning
+
+Cleanup -Wformat-signedness warning.
+
+path.c: In function 'vfs_path_deserialize':
+path.c:1165:54: error: format '%zd' expects argument of type 'signed size_t', but argument 2 has type 'size_t {aka long unsigned int}' [-Wformat=]
+         groupname = g_strdup_printf ("path-element-%zd", element_index);
+                                                      ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/vfs/path.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/vfs/path.c b/lib/vfs/path.c
+index 6292fd9..5488528 100644
+--- a/lib/vfs/path.c
++++ b/lib/vfs/path.c
+@@ -1145,7 +1145,7 @@ vfs_path_t *
+ vfs_path_deserialize (const char *data, GError ** mcerror)
+ {
+     mc_config_t *cpath;
+-    size_t element_index = 0;
++    ssize_t element_index = 0;
+     vfs_path_t *vpath;
+ 
+     mc_return_val_if_error (mcerror, FALSE);

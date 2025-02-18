@@ -1,0 +1,250 @@
+diff --git a/lib/skin.h b/lib/skin.h
+index e7f2efd..904266b 100644
+--- a/lib/skin.h
++++ b/lib/skin.h
+@@ -104,10 +104,9 @@
+ #define DFF_CHH_COLOR             mc_skin_color__cache[61]
+ #define DFF_CHD_COLOR             mc_skin_color__cache[62]
+ #define DFF_DEL_COLOR             mc_skin_color__cache[63]
+-#define DFF_FOLDER_COLOR          mc_skin_color__cache[64]
+-#define DFF_ERROR_COLOR           mc_skin_color__cache[65]
++#define DFF_ERROR_COLOR           mc_skin_color__cache[64]
+ 
+-#define MC_SKIN_COLOR_CACHE_COUNT 66
++#define MC_SKIN_COLOR_CACHE_COUNT 65
+ 
+ /*** enums ***************************************************************************************/
+ 
+diff --git a/lib/skin/colors.c b/lib/skin/colors.c
+index 1f6219e..7ca9d47 100644
+--- a/lib/skin/colors.c
++++ b/lib/skin/colors.c
+@@ -256,7 +256,6 @@ mc_skin_color_cache_init (void)
+     DFF_CHH_COLOR = mc_skin_color_get ("diffviewer", "changednew");
+     DFF_CHD_COLOR = mc_skin_color_get ("diffviewer", "changed");
+     DFF_DEL_COLOR = mc_skin_color_get ("diffviewer", "removed");
+-    DFF_FOLDER_COLOR = mc_skin_color_get ("diffviewer", "folder");
+     DFF_ERROR_COLOR = mc_skin_color_get ("diffviewer", "error");
+ }
+ 
+diff --git a/misc/skins/dark.ini b/misc/skins/dark.ini
+index 07db093..f586b84 100644
+--- a/misc/skins/dark.ini
++++ b/misc/skins/dark.ini
+@@ -125,7 +125,6 @@
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-    folder = blue;black
+     error = red;lightgray
+ 
+ [widget-common]
+diff --git a/misc/skins/darkfar.ini b/misc/skins/darkfar.ini
+index 68bb6b5..1f05f6b 100644
+--- a/misc/skins/darkfar.ini
++++ b/misc/skins/darkfar.ini
+@@ -125,7 +125,6 @@
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-    folder = blue;black
+     error = red;
+ 
+ [widget-common]
+diff --git a/misc/skins/default.ini b/misc/skins/default.ini
+index 8a99567..117b4db 100644
+--- a/misc/skins/default.ini
++++ b/misc/skins/default.ini
+@@ -125,7 +125,6 @@
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-    folder = blue;black
+     error = red;lightgray
+ 
+ [widget-common]
+diff --git a/misc/skins/double-lines.ini b/misc/skins/double-lines.ini
+index 26b20fc..7a2f7c9 100644
+--- a/misc/skins/double-lines.ini
++++ b/misc/skins/double-lines.ini
+@@ -125,7 +125,6 @@
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-    folder = blue;black
+     error = red;lightgray
+ 
+ [widget-common]
+diff --git a/misc/skins/featured.ini b/misc/skins/featured.ini
+index b6aa472..b986f6e 100644
+--- a/misc/skins/featured.ini
++++ b/misc/skins/featured.ini
+@@ -127,7 +127,6 @@
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-    folder = blue;black
+     error = red;lightgray
+ 
+ [widget-common]
+diff --git a/misc/skins/gotar.ini b/misc/skins/gotar.ini
+index c1ed9b9..c0aa35b 100644
+--- a/misc/skins/gotar.ini
++++ b/misc/skins/gotar.ini
+@@ -123,7 +123,6 @@
+     changednew = yellow;
+     changed = ;brown
+     removed = ;blue
+-    folder = brightblue;
+     error = white;red
+ 
+ [widget-panel]
+diff --git a/misc/skins/mc46.ini b/misc/skins/mc46.ini
+index 6c79c0e..ed80535 100644
+--- a/misc/skins/mc46.ini
++++ b/misc/skins/mc46.ini
+@@ -116,7 +116,6 @@
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-    folder = blue;black
+     error = red;lightgray
+ 
+ [widget-common]
+diff --git a/misc/skins/modarcon16-defbg.ini b/misc/skins/modarcon16-defbg.ini
+index edc860b..87c3078 100644
+--- a/misc/skins/modarcon16-defbg.ini
++++ b/misc/skins/modarcon16-defbg.ini
+@@ -160,7 +160,6 @@
+     changed = color15;color6
+     added = color0;color7
+     removed = color8;color0
+-    folder = color11;color0;bold
+     error = color15;color1
+ 
+ [widget-common]
+diff --git a/misc/skins/modarcon16.ini b/misc/skins/modarcon16.ini
+index bab113c..468602c 100644
+--- a/misc/skins/modarcon16.ini
++++ b/misc/skins/modarcon16.ini
+@@ -160,7 +160,6 @@
+     changed = color15;color6
+     added = color0;color7
+     removed = color8;color0
+-    folder = color11;color0;bold
+     error = color15;color1
+ 
+ [widget-common]
+diff --git a/misc/skins/modarcon16root-defbg.ini b/misc/skins/modarcon16root-defbg.ini
+index 18d40e3..749c875 100644
+--- a/misc/skins/modarcon16root-defbg.ini
++++ b/misc/skins/modarcon16root-defbg.ini
+@@ -160,7 +160,6 @@
+     changed = color15;color3
+     added = color0;color7
+     removed = color8;color0
+-    folder = color11;color0;bold
+     error = color15;color1
+ 
+ [widget-common]
+diff --git a/misc/skins/modarcon16root.ini b/misc/skins/modarcon16root.ini
+index c0ee27a..b507988 100644
+--- a/misc/skins/modarcon16root.ini
++++ b/misc/skins/modarcon16root.ini
+@@ -160,7 +160,6 @@
+     changed = color15;color3
+     added = color0;color7
+     removed = color8;color0
+-    folder = color11;color0;bold
+     error = color15;color1
+ 
+ [widget-common]
+diff --git a/misc/skins/modarin256-defbg.ini b/misc/skins/modarin256-defbg.ini
+index 3d452d6..48791e9 100644
+--- a/misc/skins/modarin256-defbg.ini
++++ b/misc/skins/modarin256-defbg.ini
+@@ -160,7 +160,6 @@
+     changed = color231;color39
+     added = color232;color81
+     removed = ;color234
+-    folder = color232;color185
+     error = color231;color160
+ 
+ [widget-common]
+diff --git a/misc/skins/modarin256.ini b/misc/skins/modarin256.ini
+index bc10144..7176f0f 100644
+--- a/misc/skins/modarin256.ini
++++ b/misc/skins/modarin256.ini
+@@ -160,7 +160,6 @@
+     changed = color231;color39
+     added = color232;color81
+     removed = ;color235
+-    folder = color232;color185
+     error = color231;color160
+ 
+ [widget-common]
+diff --git a/misc/skins/modarin256root-defbg.ini b/misc/skins/modarin256root-defbg.ini
+index c0d6d94..da55024 100644
+--- a/misc/skins/modarin256root-defbg.ini
++++ b/misc/skins/modarin256root-defbg.ini
+@@ -160,7 +160,6 @@
+     changed = color231;color96
+     added = color232;color218
+     removed = ;color234
+-    folder = color232;color185
+     error = color231;color160
+ 
+ [widget-common]
+diff --git a/misc/skins/modarin256root.ini b/misc/skins/modarin256root.ini
+index 3168c2e..ba36eca 100644
+--- a/misc/skins/modarin256root.ini
++++ b/misc/skins/modarin256root.ini
+@@ -160,7 +160,6 @@
+     changed = color231;color96
+     added = color232;color218
+     removed = ;color235
+-    folder = color232;color185
+     error = color231;color160
+ 
+ [widget-common]
+diff --git a/misc/skins/nicedark.ini b/misc/skins/nicedark.ini
+index 57ef2ab..22a60fa 100644
+--- a/misc/skins/nicedark.ini
++++ b/misc/skins/nicedark.ini
+@@ -125,7 +125,6 @@
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-    folder = blue;black
+     error = red;lightgray
+ 
+ [widget-common]
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index f0b3082..456f7c8 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -176,7 +176,6 @@
+     changednew = rgb400;rgb553
+     changed = ;rgb553
+     removed = ;rgb511
+-    folder = ;rgb530
+     error = rgb554;rgb320
+ 
+ [widget-common]
+diff --git a/misc/skins/xoria256.ini b/misc/skins/xoria256.ini
+index 31209bb..656f996 100644
+--- a/misc/skins/xoria256.ini
++++ b/misc/skins/xoria256.ini
+@@ -162,12 +162,9 @@
+ [diffviewer]
+     changedline = ;color60
+     changednew = black;color174
+-
+     added = black;color181
+     changed = black;color151
+     removed = ;color235
+-
+-    folder = ;color60
+     error = rgb554;rgb320
+ 
+ [widget-common]

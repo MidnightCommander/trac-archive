@@ -1,0 +1,269 @@
+From 1c00292b84c015b1be83ea23005cfbc020a70659 Mon Sep 17 00:00:00 2001
+From: SZABO Gergely <sub.o.gero@gmail.com>
+Date: Mon, 5 Oct 2009 23:58:46 +0200
+Subject: [PATCH] Ticket #1370: Fixes for Hungarian translation
+
+Fixes involving Highlighting group files.
+Added translations based on latest POT file.
+---
+ po/hu.po |  106 +++++++++++++++++++++++++------------------------------------
+ 1 files changed, 44 insertions(+), 62 deletions(-)
+
+diff --git a/po/hu.po b/po/hu.po
+index 19dc79a..195cc80 100644
+--- a/po/hu.po
++++ b/po/hu.po
+@@ -10,7 +10,7 @@ msgstr ""
+ "Project-Id-Version: hu\n"
+ "Report-Msgid-Bugs-To: mc-devel@gnome.org\n"
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+-"PO-Revision-Date: 2005-10-01 00:47+0200\n"
++"PO-Revision-Date: 2009-10-05 23:34+0100\n"
+ "Last-Translator: Gergely Szabo <sub.o.gero@gmail.com>\n"
+ "Language-Team: Hungarian <debian-l10n-hungarian@lists.debian.org>\n"
+ "MIME-Version: 1.0\n"
+@@ -667,9 +667,8 @@ msgstr "Tabulátor mérete: "
+ msgid "Cursor beyond end of line"
+ msgstr "Kurzor a sor vége mögött"
+ 
+-#, fuzzy
+ msgid "Pers&istent selection"
+-msgstr "Tartós kijelölés"
++msgstr "Tartós& kijelölés"
+ 
+ msgid "Synta&x highlighting"
+ msgstr "&Szintaktikus szövegkiemelés"
+@@ -898,9 +897,8 @@ msgstr "Rajzolás 7 bites ASCII karakterekkel"
+ msgid "Resets soft keys on HP terminals"
+ msgstr "HP terminál puhabillentyűk alaphelyzetbe"
+ 
+-#, fuzzy
+ msgid "Load definitions of key bindings from specified file"
+-msgstr "FTP-párbeszéd naplózása megadott fájlba"
++msgstr "Forróbillentyűk betöltése a megadott fájlból"
+ 
+ msgid "Requests to run in black and white"
+ msgstr "Fekete-fehér üzemmód kérése."
+@@ -912,7 +910,7 @@ msgid "Specifies a color configuration"
+ msgstr "Színösszeállítás megadása."
+ 
+ msgid "Show mc with specified skin"
+-msgstr ""
++msgstr "MC a megadott mázzal"
+ 
+ #. TRANSLATORS: don't translate keywords and names of colors
+ msgid ""
+@@ -1039,11 +1037,9 @@ msgstr "Saját extra adat&sor:"
+ msgid "&Reverse"
+ msgstr "&Fordított sorrend"
+ 
+-#, fuzzy
+ msgid "Case sensi&tive"
+ msgstr "&Kis-/nagybetű számít"
+ 
+-#, fuzzy
+ msgid "Executable &first"
+ msgstr "Futtatható fent"
+ 
+@@ -1345,10 +1341,10 @@ msgid " Which extension file you want to edit? "
+ msgstr " Melyik kiterjesztésfájlt kívánja szerkeszteni? "
+ 
+ msgid "Highlighting groups file edit"
+-msgstr "Szintaxisfájl szerkesztéses"
++msgstr "Fájltípuskiemelő-csoportok szerkesztéses"
+ 
+ msgid " Which highlighting file you want to edit? "
+-msgstr " Melyik szintaxisfájlt kívánja szerkeszteni? "
++msgstr " Melyik típuskiemelő fájlt kívánja szerkeszteni? "
+ 
+ msgid " Compare directories "
+ msgstr " Könyvtárak összehasonlítása "
+@@ -2592,9 +2588,8 @@ msgstr "Kiter&jesztésfájl szerkesztése"
+ msgid "Edit &menu file"
+ msgstr "Me&nüfájl szerkesztése"
+ 
+-#, fuzzy
+ msgid "Edit hi&ghlighting group file"
+-msgstr "&Szintaxisfájl szerkesztése"
++msgstr "&Fájltípuskiemelés szerkesztése"
+ 
+ msgid "&Configuration..."
+ msgstr "&Alapbeállítások..."
+@@ -2928,12 +2923,16 @@ msgid ""
+ "Unable to load '%s' skin.\n"
+ "Default skin has been loaded"
+ msgstr ""
++"Az \"%s\" máz nem betöthető"
++"Alapértelemezett máz betöltve"
+ 
+ #, c-format
+ msgid ""
+ "Unable to parse '%s' skin.\n"
+ "Default skin has been loaded"
+ msgstr ""
++"Az \"%s\" máz nem értelmezhető"
++"Alapértelemezett máz betöltve"
+ 
+ msgid ""
+ "GNU Midnight Commander is already\n"
+@@ -3003,7 +3002,7 @@ msgid ""
+ "Cannot open the %s file for writing:\n"
+ "%s\n"
+ msgstr ""
+-"Nem sikerült megnyitni a(z) \"%s\" fájlt írásra:\n"
++"A(z) \"%s\" fájl nem megnyitható írásra:\n"
+ "%s\n"
+ 
+ #, c-format
+@@ -3193,116 +3192,99 @@ msgstr "\"Delete\" - numer."
+ msgid "Enter on keypad"
+ msgstr "\"Enter\" - numer."
+ 
+-#, fuzzy
+ msgid "Function key 21"
+-msgstr "F1  funkcióbill."
++msgstr "F21  funkcióbill."
+ 
+-#, fuzzy
+ msgid "Function key 22"
+-msgstr "F2  funkcióbill."
++msgstr "F22  funkcióbill."
+ 
+-#, fuzzy
+ msgid "Function key 23"
+-msgstr "F2  funkcióbill."
++msgstr "F23  funkcióbill."
+ 
+-#, fuzzy
+ msgid "Function key 24"
+-msgstr "F2  funkcióbill."
++msgstr "F24  funkcióbill."
+ 
+ msgid "Plus"
+-msgstr ""
++msgstr "Plusz"
+ 
+-#, fuzzy
+ msgid "Minus"
+-msgstr "Menü"
++msgstr "Mínusz"
+ 
+ msgid "Asterisk"
+-msgstr ""
++msgstr "Csillag"
+ 
+ msgid "Dot"
+-msgstr ""
++msgstr "Pont"
+ 
+ msgid "Less than"
+-msgstr ""
++msgstr "Kisebb"
+ 
+ msgid "Great than"
+-msgstr ""
++msgstr "Nagyobb"
+ 
+ msgid "Equal"
+-msgstr ""
++msgstr "Egyenlő"
+ 
+-# ez is egy prompt (azert a ":")
+-#, fuzzy
+ msgid "Comma"
+-msgstr "Parancs:"
++msgstr "Vessző"
+ 
+ msgid "Apostrophe"
+-msgstr ""
++msgstr "Aposztróf"
+ 
+-#, fuzzy
+ msgid "Colon"
+-msgstr "Darab"
++msgstr "Kettőspont"
+ 
+ msgid "Exclamation mark"
+-msgstr ""
++msgstr "Felkiáltójel"
+ 
+ msgid "Question mark"
+-msgstr ""
++msgstr "Kérdőjel"
+ 
+-# ha már létezik a célfájl
+-#, fuzzy
+ msgid "Ampersand"
+-msgstr "&Hozzáírás"
++msgstr "És jel"
+ 
+ msgid "Dollar sign"
+-msgstr ""
++msgstr "Dollárjel"
+ 
+ msgid "Quotation mark"
+-msgstr ""
++msgstr "Idézőjel"
+ 
+-#, fuzzy
+ msgid "Caret"
+-msgstr "Cél"
++msgstr "Hatványjel"
+ 
+ msgid "Tilda"
+-msgstr ""
++msgstr "Hullám"
+ 
+-#, fuzzy
+ msgid "Prime"
+-msgstr "Előző"
++msgstr "Tompa ékezet"
+ 
+-#, fuzzy
++ fuzzy
+ msgid "Underline"
+-msgstr " Sor száma: "
++msgstr "Aláhúzás"
+ 
+ msgid "Understrike"
+-msgstr ""
++msgstr "Aláhúzás"
+ 
+ msgid "Pipe"
+-msgstr ""
++msgstr "Cső"
+ 
+-#, fuzzy
+ msgid "Enter"
+-msgstr "Tulaj"
++msgstr "Enter"
+ 
+-#, fuzzy
+ msgid "Tab key"
+-msgstr "Tab - numerikus"
++msgstr "Tabulátor"
+ 
+-#, fuzzy
+ msgid "Space key"
+-msgstr "Szóköz - numerikus"
++msgstr "Szóköz"
+ 
+-#, fuzzy
+ msgid "Slash key"
+-msgstr "\"/\" - numerikus"
++msgstr "Per jel"
+ 
+-#, fuzzy
+ msgid "Backslash key"
+-msgstr "\"Backspace\" gomb"
++msgstr "\"Backslash\" gomb"
+ 
+ msgid "Number sign #"
+-msgstr ""
++msgstr "Kettőskereszt"
+ 
+ msgid "Ctrl"
+ msgstr "Ctrl"
+-- 
+1.6.0.4
+

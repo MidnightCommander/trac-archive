@@ -1,0 +1,62 @@
+--- lt.po.orig	2011-07-26 22:11:21.000000000 +0300
++++ lt.po	2011-07-26 22:22:01.252178323 +0300
+@@ -2006,7 +2006,7 @@
+ 
+ #, c-format
+ msgid "Cannot overwrite directory \"%s\""
+-msgstr ""
++msgstr "Nepavyko perrašyti aplanko \"%s\""
+ 
+ #, c-format
+ msgid ""
+@@ -2019,24 +2019,32 @@
+ "Cannot remove file \"%s\"\n"
+ "%s"
+ msgstr ""
++"Nepavyko pašalinti failo \"%s\"\n"
++"%s"
+ 
+ #, c-format
+ msgid ""
+ "Cannot delete file \"%s\"\n"
+ "%s"
+ msgstr ""
++"Nepavyko pašalinti failo \"%s\"\n"
++"%s"
+ 
+ #, c-format
+ msgid ""
+ "Cannot remove directory \"%s\"\n"
+ "%s"
+ msgstr ""
++"Nepavyko pašalinti aplanko \"%s\"\n"
++"%s"
+ 
+ #, c-format
+ msgid ""
+ "Cannot overwrite directory \"%s\"\n"
+ "%s"
+ msgstr ""
++"Nepavyko perrašyti aplanko \"%s\"\n"
++"%s"
+ 
+ #, c-format
+ msgid ""
+@@ -2069,7 +2077,7 @@
+ msgstr ""
+ 
+ msgid "Reget failed, about to overwrite file"
+-msgstr ""
++msgstr "Pratęsti nepavyko, failas bus perrašytas"
+ 
+ #, c-format
+ msgid ""
+@@ -2228,7 +2236,7 @@
+ msgstr "Perrašyti visas paskirtis?"
+ 
+ msgid "&Reget"
+-msgstr "Iš nau&jo"
++msgstr "P&ratęsti"
+ 
+ msgid "A&ppend"
+ msgstr "&Papildyti"

@@ -1,0 +1,324 @@
+diff -ruN mc-4.6.1.orig/FAQ mc-4.6.1/FAQ
+--- mc-4.6.1.orig/FAQ	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/FAQ	2008-12-31 11:54:51.000000000 +0100
+@@ -884,7 +884,7 @@
+ 
+    There is a WWW page for Midnight Commander.  The URL is:
+ 
+-     http://www.ibiblio.org/mc/
++     http://www.midnight-commander.org/
+ 
+ 11.4 Are the mailing lists archived anywhere?
+ 
+diff -ruN mc-4.6.1.orig/README mc-4.6.1/README
+--- mc-4.6.1.orig/README	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/README	2008-12-31 11:52:38.000000000 +0100
+@@ -144,7 +144,7 @@
+ 
+ There is a webpage for GNU Midnight Commander at
+ 
+-http://www.ibiblio.org/mc/
++http://www.midnight-commander.org/
+ 
+ This page also has current information about mailing lists and some
+ useful advices how to report bugs.
+diff -ruN mc-4.6.1.orig/doc/es/mc.1.in mc-4.6.1/doc/es/mc.1.in
+--- mc-4.6.1.orig/doc/es/mc.1.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/es/mc.1.in	2008-12-31 11:55:57.000000000 +0100
+@@ -3268,7 +3268,7 @@
+ .PP
+ .nf
+ La página web de Midnight Commander está en:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .PP
+ La presente documentación recoge información relativa a la versión 4.6.1
+diff -ruN mc-4.6.1.orig/doc/hu/mc.1.in mc-4.6.1/doc/hu/mc.1.in
+--- mc-4.6.1.orig/doc/hu/mc.1.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/hu/mc.1.in	2008-12-31 11:55:59.000000000 +0100
+@@ -3161,7 +3161,7 @@
+ .nf
+ A Midnight Commander World Wide Web oldalának címe a
+ következõ:
+-	        http://www.ibiblio.org/mc/
++	        http://www.midnight-commander.org/
+ .fi
+ .\"NODE "AUTHORS"
+ .SH "Szerzõk"
+diff -ruN mc-4.6.1.orig/doc/it/mc.1.in mc-4.6.1/doc/it/mc.1.in
+--- mc-4.6.1.orig/doc/it/mc.1.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/it/mc.1.in	2008-12-31 11:56:01.000000000 +0100
+@@ -3184,7 +3184,7 @@
+ .PP
+ .nf
+ La pagina Web del Midnight Commander:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .\"NODE "AUTHORS"
+ .SH "AUTORI"
+diff -ruN mc-4.6.1.orig/doc/mc.1.in mc-4.6.1/doc/mc.1.in
+--- mc-4.6.1.orig/doc/mc.1.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/mc.1.in	2008-12-31 11:55:46.000000000 +0100
+@@ -3300,7 +3300,7 @@
+ .PP
+ .nf
+ The Midnight Commander page on the World Wide Web:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .\"NODE "AUTHORS"
+ .SH "AUTHORS"
+diff -ruN mc-4.6.1.orig/doc/mcserv.8.in mc-4.6.1/doc/mcserv.8.in
+--- mc-4.6.1.orig/doc/mcserv.8.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/mcserv.8.in	2008-12-31 11:55:48.000000000 +0100
+@@ -60,7 +60,7 @@
+ .PP
+ .nf
+ The Midnight Commander page on the  World Wide Web:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .PP
+ .SH AUTHORS
+diff -ruN mc-4.6.1.orig/doc/pl/mc.1.in mc-4.6.1/doc/pl/mc.1.in
+--- mc-4.6.1.orig/doc/pl/mc.1.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/pl/mc.1.in	2008-12-31 11:56:03.000000000 +0100
+@@ -2862,7 +2862,7 @@
+ .PP
+ .nf
+ Strona Midnight Commander w sieci World Wide Web:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .PP
+ .\"NODE "AUTHORS"
+diff -ruN mc-4.6.1.orig/doc/ru/mc.1.in mc-4.6.1/doc/ru/mc.1.in
+--- mc-4.6.1.orig/doc/ru/mc.1.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/ru/mc.1.in	2008-12-31 11:56:05.000000000 +0100
+@@ -3723,7 +3723,7 @@
+ .PP
+ .nf
+ óÔÒÁÎÉÃÁ, ĞÏÓ×ÑİÅÎÎÁÑ Midnight Commander, × World Wide Web:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .PP
+ äÁÎÎÁÑ ÓÔÒÁÎÉÃÁ ÏĞÅÒÁÔÉ×ÎÏÇÏ ÒÕËÏ×ÏÄÓÔ×Á ÓÏÄÅÒÖÉÔ ÉÎÆÏÒÍÁÃÉÀ, ÁËÔÕÁÌØÎÕÀ
+diff -ruN mc-4.6.1.orig/doc/sr/mc.1.in mc-4.6.1/doc/sr/mc.1.in
+--- mc-4.6.1.orig/doc/sr/mc.1.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/sr/mc.1.in	2008-12-31 11:55:52.000000000 +0100
+@@ -3314,7 +3314,7 @@
+ .PP
+ .nf
+ ÁâàĞİØæĞ ¿ŞİŞûİŞÓ İĞàÕÔİØÚĞ İĞ ¼ÕòãİĞàŞÔİŞø ÜàÕÖØ:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .\"NODE "AUTHORS"
+ .SH "°ÃÂ¾À¸"
+diff -ruN mc-4.6.1.orig/doc/sr/mcserv.8.in mc-4.6.1/doc/sr/mcserv.8.in
+--- mc-4.6.1.orig/doc/sr/mcserv.8.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/doc/sr/mcserv.8.in	2008-12-31 11:55:54.000000000 +0100
+@@ -59,7 +59,7 @@
+ .PP
+ .nf
+ ÁâàĞİØæĞ ¿ŞİŞûİŞÓ İĞàÕÔİØÚĞ İĞ ¼ÕòãİĞàŞÔİŞø ÜàÕÖØ:
+-	http://www.ibiblio.org/mc/
++	http://www.midnight-commander.org/
+ .fi
+ .PP
+ .SH ÁÂ²°À°¾Æ¸
+diff -ruN mc-4.6.1.orig/lib/mc.hint mc-4.6.1/lib/mc.hint
+--- mc-4.6.1.orig/lib/mc.hint	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint	2008-12-31 11:55:12.000000000 +0100
+@@ -6,7 +6,7 @@
+ Hint: Tired of these messages?  Turn them off from the Options/Layout menu.
+ Hint: Selecting directories: add a slash to the end of the matching pattern.
+ Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-Hint: The homepage of GNU Midnight Commander: http://www.ibiblio.org/mc/
++Hint: The homepage of GNU Midnight Commander: http://www.midnight-commander.org/
+ Hint: Please send any bug reports to mc-devel@gnome.org
+ Hint: Tab changes your current panel.
+ Hint: VFS coolness: tap enter on a tar file to examine its contents.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.cs mc-4.6.1/lib/mc.hint.cs
+--- mc-4.6.1.orig/lib/mc.hint.cs	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.cs	2008-12-31 11:55:27.000000000 +0100
+@@ -6,7 +6,7 @@
+ Tip: Nechcete ji¾ vidìt tipy? Vypnìte je v Nastavení/Zobrazení/Dal¹í nastavení.
+ Tip: Adresáøe vyberete pøidáním lomítka na konec vzorku.
+ Tip: Pokud Vá¹ terminál nezná nebo nemá funkèní klávesy, pou¾ijte Esc+èíslo.
+-Tip: Domácí stránka programu Midnight Commander je http://www.ibiblio.org/mc/
++Tip: Domácí stránka programu Midnight Commander je http://www.midnight-commander.org/
+ Tip: Zprávy o chybách posílejte na mc-devel@gnome.org (anglicky).
+ Tip: Pomocí klávesy Tab zmìníte aktuální panel.
+ Tip: Stiskem Enter na souboru .tar nebo .tar.gz si prohlédnete obsah.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.es mc-4.6.1/lib/mc.hint.es
+--- mc-4.6.1.orig/lib/mc.hint.es	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.es	2008-12-31 11:55:20.000000000 +0100
+@@ -7,8 +7,8 @@
+ Ayudita: ¿Harto de mensajitos? Se quitan en el menú Opciones/Presentación.
+ Ayudita: Para seleccionar directorios añadir "/" tras el patrón a buscar.
+ Ayudita: Si no funcionan las teclas de función, ESC+número sirve.
+-Ayudita: El web del Midnight Commander está en http://www.ibiblio.org/mc/
+-Ayudita: El sitio oficial del Midnight Commander es http://www.ibiblio.org/mc/
++Ayudita: El web del Midnight Commander está en http://www.midnight-commander.org/
++Ayudita: El sitio oficial del Midnight Commander es http://www.midnight-commander.org/
+ Ayudita: Comunique cualquier defecto a mc-devel@gnome.org
+ Ayudita: El tabulador cambia de panel.
+ Ayudita: ¡El mejor VFS! Al <entrar> en un archivo comprimido se ve su contenido.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.hu mc-4.6.1/lib/mc.hint.hu
+--- mc-4.6.1.orig/lib/mc.hint.hu	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.hu	2008-12-31 11:55:14.000000000 +0100
+@@ -6,7 +6,7 @@
+ Tipp: Az itt megjelenõ üzenetek kikapcsolhatók a "Beállítások/Megjelenés"-nél.
+ Tipp: Könyvtárak kijelölése a minta végére / jelet írva lehetséges.
+ Tipp: Ha a terminálon nincsenek funkcióbillentyûk, használja ezt: Esc <szám>
+-Tipp: A Midnight Commander honlapja: http://www.ibiblio.org/mc/
++Tipp: A Midnight Commander honlapja: http://www.midnight-commander.org/
+ Tipp: Hibabejelentéseket a következõ címre lehet küldeni: mc-devel@gnome.org
+ Tipp: A Tab billentyûvel lehet panelt váltani.
+ Tipp: VFS-funkció: egy Tar-fájlon Entert nyomva megjelenik annak tartalma.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.it mc-4.6.1/lib/mc.hint.it
+--- mc-4.6.1.orig/lib/mc.hint.it	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.it	2008-12-31 11:55:36.000000000 +0100
+@@ -6,8 +6,8 @@
+ Dritta: stanco di questi messaggi? Disattivali dal menu Opzioni/Aspetto.
+ Dritta: selezione directory: inserisci uno slash alla fine della selezione.
+ Dritta: se al tuo terminale mancano i tasti funzione usa ESC+numero tasto.
+-Dritta: l'URL del Midnight Commander è: http://www.ibiblio.org/mc/
+-Dritta: la home page del Midnight Commander: http://www.ibiblio.org/mc/
++Dritta: l'URL del Midnight Commander è: http://www.midnight-commander.org/
++Dritta: la home page del Midnight Commander: http://www.midnight-commander.org/
+ Dritta: prego spedire i bug report a mc-devel@gnome.org
+ Dritta: tab cambia il pannello corrente.
+ Dritta: magico VFS; premi invio su un file tar per esaminarne il contenuto.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.nl mc-4.6.1/lib/mc.hint.nl
+--- mc-4.6.1.orig/lib/mc.hint.nl	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.nl	2008-12-31 11:55:24.000000000 +0100
+@@ -6,8 +6,8 @@
+ Hint: Moe van deze hints?  Zet ze uit in het Opties/Vormgeving menu.
+ Hint: Directories selecteren: zet een slash aan het eind van het zoekpatroon.
+ Hint: Als je terminal geen functietoetsen ondersteunt, gebruik dan ESC+nummer.
+-Hint: Er is een Midnight Commander URL: http://www.ibiblio.org/mc/
+-Hint: Midnight Commander home page: http://www.ibiblio.org/mc/
++Hint: Er is een Midnight Commander URL: http://www.midnight-commander.org/
++Hint: Midnight Commander home page: http://www.midnight-commander.org/
+ Hint: Stuur bug rapporten naar mc-devel@gnome.org
+ Hint: Tab verandert huidig paneel.
+ Hint: VFS coolheid: druk op enter op een tar file om zijn inhoud te onderzoeken.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.pl mc-4.6.1/lib/mc.hint.pl
+--- mc-4.6.1.orig/lib/mc.hint.pl	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.pl	2008-12-31 11:55:31.000000000 +0100
+@@ -6,8 +6,8 @@
+ Porada: Zmêczony poradami? Wy³±cz je w menu Opcje|Uk³ad...
+ Porada: Wybieranie katalogów: dodaj uko¶nik na koñcu wzorca dopasowania.
+ Porada: Je¶li w twoim terminalu brak klawiszy funkcyjnych, u¿yj Esc+numer.
+-Porada: Witryna Midnight Commandera jest pod adresem http://www.ibiblio.org/mc/
+-Porada: Strona domowa Midnight Commandera pod adresem http://www.ibiblio.org/mc/
++Porada: Witryna Midnight Commandera jest pod adresem http://www.midnight-commander.org/
++Porada: Strona domowa Midnight Commandera pod adresem http://www.midnight-commander.org/
+ Porada: Opis b³êdów (w jêzyku angielskim) wysy³aj na mc-devel@gnome.org
+ Porada: Za pomoc± klawisza Tab zmienia siê bie¿±cy panel.
+ Porada: VFS: naci¶nij Enter na archiwum tar, aby obejrzeæ jego zawarto¶æ.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.ru mc-4.6.1/lib/mc.hint.ru
+--- mc-4.6.1.orig/lib/mc.hint.ru	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.ru	2008-12-31 11:55:10.000000000 +0100
+@@ -6,7 +6,7 @@
+ óÏ×ÅÔ: õÓÔÁÌÉ ÏÔ ÜÔÉÈ ÓÏÏÂİÅÎÉÊ?  ïÔËÌÀŞÉÔÅ ÉÈ × ÍÅÎÀ îÁÓÔÒÏÊËÉ/÷ÎÅÛÎÉÊ ×ÉÄ.
+ óÏ×ÅÔ: ïÔÍÅÔËÁ ËÁÔÁÌÏÇÏ×: ÄÏÂÁ×ØÔÅ ËÏÓÕÀ ŞÅÒÔÕ × ËÏÎÅÃ ÓÏÏÔ×ÅÔÓÔ×ÕÀİÅÇÏ ÛÁÂÌÏÎÁ.
+ óÏ×ÅÔ: åÓÌÉ ×ÁÛ ÔÅÒÍÉÎÁÌ ÂÅÚ ÆÕÎËÃ. ËÌÁ×ÉÛ, ×ÁÍ ĞÏÍÏÖÅÔ ESC + ÃÉÆÒÁ.
+-óÏ×ÅÔ: äÏÍÁÛÎÑÑ ÓÔÒÁÎÉÃÁ Midnight Commander: http://www.ibiblio.org/mc/
++óÏ×ÅÔ: äÏÍÁÛÎÑÑ ÓÔÒÁÎÉÃÁ Midnight Commander: http://www.midnight-commander.org/
+ óÏ×ÅÔ: ğÏÖÁÌÕÊÓÔÁ, ÛÌÉÔÅ ÌÀÂÙÅ ÓÏÏÂİÅÎÉÑ ÏÂ ÏÛÉÂËÁÈ ÎÁ mc-devel@gnome.org
+ óÏ×ÅÔ: Tab ÓÍÅÎÑÅÔ ÔÅËÕİÕÀ ĞÁÎÅÌØ.
+ óÏ×ÅÔ: õÄÏÂÓÔ×Ï ÷æó: ÎÁÖÁÔØ Enter ÎÁ ÆÁÊÌÅ TAR ÄÌÑ ĞÏÌÕŞÅÎÉÑ ÅÇÏ ÓÏÄÅÒÖÉÍÏÇÏ.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.sr mc-4.6.1/lib/mc.hint.sr
+--- mc-4.6.1.orig/lib/mc.hint.sr	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.sr	2008-12-31 11:55:16.000000000 +0100
+@@ -6,7 +6,7 @@
+ ÁĞÒÕâ: ÁØâØ áâÕ ŞÒØå ßŞàãÚĞ? ¸áÚùãçØâÕ Øå Ø× ÜÕİØøĞ ¸×ÑŞàØ/¿ŞÓÛÕÔ.
+ ÁĞÒÕâ: ¾×İĞçĞÒĞúÕ ÔØàÕÚâŞàØøãÜĞ: ÔŞÔĞøâÕ ÚŞáã æàâã İĞ ÚàĞø ŞÑàĞáæĞ ×Ğ ßàÕâàĞÓã.
+ ÁĞÒÕâ: °ÚŞ ÒĞè âÕàÜØİĞÛ İÕ ßŞáÕÔãøÕ äãİÚæØøáÚÕ âĞáâÕàÕ, ÚŞàØáâØâÕ ÚŞÜÑØİĞæØøã ESC+ÑàŞø.
+-ÁĞÒÕâ: ´ŞÜĞûĞ áâàĞİØæĞ ³½Ã-ŞÒŞÓ ¿ŞİŞûİŞÓ İĞàÕÔİØÚĞ: http://www.ibiblio.org/mc/
++ÁĞÒÕâ: ´ŞÜĞûĞ áâàĞİØæĞ ³½Ã-ŞÒŞÓ ¿ŞİŞûİŞÓ İĞàÕÔİØÚĞ: http://www.midnight-commander.org/
+ ÁĞÒÕâ: ¼ŞÛØÜŞ ÔĞ ßŞèĞùÕâÕ ßàØøĞÒÕ ÓàÕèĞÚĞ İĞ mc-devel@gnome.org
+ ÁĞÒÕâ: ÂĞáâÕà `Tab' ÜÕúĞ âÕÚãûÕ ŞÚİŞ.
+ ÁĞÒÕâ: ÄĞ×Şİ ²Á´-Ğ: ÚãæİØâÕ `enter' İĞÔ ÔĞâŞâÕÚŞÜ ÒàáâÕ tar ÔĞ ÑØáâÕ ßàÕÓÛÕÔĞÛØ úÕİ áĞÔàÖĞø.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.uk mc-4.6.1/lib/mc.hint.uk
+--- mc-4.6.1.orig/lib/mc.hint.uk	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.uk	2008-12-31 11:55:43.000000000 +0100
+@@ -6,8 +6,8 @@
+ ğÏÒÁÄÁ: îÁÂÒÉÄÌÉ Ã¦ ĞÏÒÁÄÉ?  ÷¦ÄËÌÀŞ¦ÔØ §È Õ ÍÅÎÀ Options|Layout.
+ ğÏÒÁÄÁ: ÷¦ÄÍ¦ÔËÁ ËÁÔÁÌÏÇ¦×: ÄÏÄÁÊÔÅ ĞÏÈÉÌÕ ÒÉÓËÕ × Ë¦ÎÅÃØ ×¦ÄĞÏ×¦ÄÎÏÇÏ ÛÁÂÌÏÎÕ.
+ ğÏÒÁÄÁ: ñËİÏ ×ÁÛÏÍÕ ÔÅÒÍ¦ÎÁÌÕ ÂÒÁËÕ¤ ÆÕÎËÃ. ËÌÁ×¦Û, ×ÉËÏÒÉÓÔÏ×ÕÊÔÅ ESC+ÃÉÆÒÁ.
+-ğÏÒÁÄÁ: óÁÊÔ Midnight Commander × ¶ÎÔÅÒÎÅÔ¦: http://www.ibiblio.org/mc/
+-ğÏÒÁÄÁ: äÏÍÁÛÎÑ ÓÔÏÒ¦ÎËÁ Midnight Commander: http://www.ibiblio.org/mc/
++ğÏÒÁÄÁ: óÁÊÔ Midnight Commander × ¶ÎÔÅÒÎÅÔ¦: http://www.midnight-commander.org/
++ğÏÒÁÄÁ: äÏÍÁÛÎÑ ÓÔÏÒ¦ÎËÁ Midnight Commander: http://www.midnight-commander.org/
+ ğÏÒÁÄÁ: âÕÄØ ÌÁÓËÁ, ÛÌ¦ÔØ ĞÏ×¦ÄÏÍÌÅÎÎÑ ĞÒÏ ĞÏÍÉÌËÉ ÎÁ mc-devel@gnome.org
+ ğÏÒÁÄÁ: Tab ÚÍ¦ÎÀ¤ ĞÏÔÏŞÎÕ ĞÁÎÅÌØ.
+ ğÏÒÁÄÁ: úÒÕŞÎ¦ÓÔØ ÷æó: ÎÁÔÉÓÎ¦ÔØ Enter ÎÁ ÆÁÊÌ¦ TAR ÄÌÑ ÏÄÅÒÖÁÎÎÑ ÊÏÇÏ ÚÍ¦ÓÔÕ.
+diff -ruN mc-4.6.1.orig/lib/mc.hint.zh mc-4.6.1/lib/mc.hint.zh
+--- mc-4.6.1.orig/lib/mc.hint.zh	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.hint.zh	2008-12-31 11:55:06.000000000 +0100
+@@ -6,8 +6,8 @@
+ ´£¥Ü¡G¬O§_¹ï³o¨Ç°T®§¹½­Â¤F¡H¥i¦b¡u¿ï¶µ/°t¸m¡v¿ï³æ¤¤Ãö³¬¥¦¡C
+ ´£¥Ü¡G¿ï¾Ü¥Ø¿ı¡G¦b­n§ä´Mªº¼Ë¦¡«á¥[¤J "/"¡C
+ ´£¥Ü¡G¦pªG§Aªº²×ºİ¾÷¨S¦³¥\¯àÁä¡A¥i¥H¨Ï¥Î ESC + ¼Æ¦r«öÁä¡C
+-´£¥Ü¡GMidnight Commander URL¡Ghttp://www.ibiblio.org/mc/
+-´£¥Ü¡GMidnight Commander ºô­¶¡Ghttp://www.ibiblio.org/mc/
++´£¥Ü¡GMidnight Commander URL¡Ghttp://www.midnight-commander.org/
++´£¥Ü¡GMidnight Commander ºô­¶¡Ghttp://www.midnight-commander.org/
+ ´£¥Ü¡G½Ğ°e¥X¿ù»~³ø§i¨ì mc-devel@gnome.org
+ ´£¥Ü¡GTab ·|¤Á´«¨Ï¥Î¤¤ªº­±ªO¡C
+ ´£¥Ü¡GVFS ªº¦n³B¡G¦b tar ÀÉ®×¤W«ö enter ¥i¬d¬İ¥¦ªº¤º®e¡C
+diff -ruN mc-4.6.1.orig/mc.qpg mc-4.6.1/mc.qpg
+--- mc-4.6.1.orig/mc.qpg	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/mc.qpg	2008-12-31 11:53:35.000000000 +0100
+@@ -162,7 +162,7 @@
+                <QPM:ProductIconLarge></QPM:ProductIconLarge>
+                <QPM:ProductDescriptionShort>GNU Midnight Commander (also referred to as mc) - is a user shell with text-mode full-screen interface.</QPM:ProductDescriptionShort>
+                <QPM:ProductDescriptionLong>GNU Midnight Commander (also referred to as mc) - is a user shell with text-mode full-screen interface. It can be run on the OS console, in xterm and other terminal emulators.</QPM:ProductDescriptionLong>
+-               <QPM:ProductDescriptionURL>http://www.ibiblio.org/mc/</QPM:ProductDescriptionURL>
++               <QPM:ProductDescriptionURL>http://www.midnight-commander.org/</QPM:ProductDescriptionURL>
+                <QPM:ProductDescriptionEmbedURL></QPM:ProductDescriptionEmbedURL>
+             </QPM:ProductDescription>
+ 
+diff -ruN mc-4.6.1.orig/mc.qpg.in mc-4.6.1/mc.qpg.in
+--- mc-4.6.1.orig/mc.qpg.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/mc.qpg.in	2008-12-31 11:54:59.000000000 +0100
+@@ -162,7 +162,7 @@
+                <QPM:ProductIconLarge></QPM:ProductIconLarge>
+                <QPM:ProductDescriptionShort>GNU Midnight Commander (also referred to as mc) - is a user shell with text-mode full-screen interface.</QPM:ProductDescriptionShort>
+                <QPM:ProductDescriptionLong>GNU Midnight Commander (also referred to as mc) - is a user shell with text-mode full-screen interface. It can be run on the OS console, in xterm and other terminal emulators.</QPM:ProductDescriptionLong>
+-               <QPM:ProductDescriptionURL>http://www.ibiblio.org/mc/</QPM:ProductDescriptionURL>
++               <QPM:ProductDescriptionURL>http://www.midnight-commander.org/</QPM:ProductDescriptionURL>
+                <QPM:ProductDescriptionEmbedURL></QPM:ProductDescriptionEmbedURL>
+             </QPM:ProductDescription>
+ 
+diff -ruN mc-4.6.1.orig/mc.spec mc-4.6.1/mc.spec
+--- mc-4.6.1.orig/mc.spec	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/mc.spec	2008-12-31 11:54:56.000000000 +0100
+@@ -21,7 +21,7 @@
+ Copyright: GPL
+ Group:     Applications/File
+ Source0:   ftp://ftp.ibiblio.org/pub/Linux/utils/file/managers/mc/mc-%{ver}.tar.gz
+-URL:       http://www.ibiblio.org/mc/
++URL:       http://www.midnight-commander.org/
+ BuildRoot: /var/tmp/mc-%{PACKAGE_VERSION}-root
+ BuildRequires: glib-devel
+ %{!?_with_included_slang:%{!?_with_ncurses:BuildRequires: slang-devel}}
+diff -ruN mc-4.6.1.orig/mc.spec.in mc-4.6.1/mc.spec.in
+--- mc-4.6.1.orig/mc.spec.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/mc.spec.in	2008-12-31 11:55:01.000000000 +0100
+@@ -21,7 +21,7 @@
+ Copyright: GPL
+ Group:     Applications/File
+ Source0:   ftp://ftp.ibiblio.org/pub/Linux/utils/file/managers/mc/mc-%{ver}.tar.gz
+-URL:       http://www.ibiblio.org/mc/
++URL:       http://www.midnight-commander.org/
+ BuildRoot: /var/tmp/mc-%{PACKAGE_VERSION}-root
+ BuildRequires: glib-devel
+ %{!?_with_included_slang:%{!?_with_ncurses:BuildRequires: slang-devel}}

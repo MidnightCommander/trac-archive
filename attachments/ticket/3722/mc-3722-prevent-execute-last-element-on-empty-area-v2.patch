@@ -1,0 +1,52 @@
+From 2ccc6c56eebbfb66f3274087d608986a0cc31a2b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 7 Dec 2016 12:16:17 +0000
+Subject: [PATCH] Prevent execute last item on empty area
+
+As pointed out by egmont (#3722) prevent execute of last item when
+clicking on empty area by accident.
+
+V2: handle brief mode
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/panel.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index a1b474b..e586915 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3906,12 +3906,28 @@ panel_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+     case MSG_MOUSE_CLICK:
+         if ((event->count & GPM_DOUBLE) != 0)
+         {
+-            int y, lines;
++            int top_file = panel->top_file;
++            int left_border_pos = 0;
+ 
+-            y = event->y - 2;
+-            lines = panel_lines (panel);
++            /* compute top_file/left_border_pos for brief mode */
++            if (panel->list_type == list_brief && panel->list_cols > 1)
++            {
++                int width, cur_col;
++
++                width = (w->cols - 2) / panel->list_cols;
++                cur_col = event->x / width;
++                top_file = cur_col * panel_lines (panel) + panel->top_file;
++                left_border_pos = cur_col * width;
++            }
+ 
+-            if (y >= 0 && y < lines)
++                /* ignore left border */
++            if (event->x > left_border_pos &&
++                /* ignore right border */
++                event->x < w->cols - 1 &&
++                /* ignore top border */
++                event->y > 1 &&
++                /* ignore bottom empty area */
++                event->y < panel->dir.len - top_file + 2)
+                 do_enter (panel);
+         }
+         break;

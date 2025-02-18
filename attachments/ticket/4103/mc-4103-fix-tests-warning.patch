@@ -1,0 +1,26 @@
+From 41e837b10a0fcbd83d2810e45567ef659be4faea Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 26 Dec 2020 15:58:38 +0000
+Subject: [PATCH] (cd_to) fix tests Makefile warning
+
+tests/src/filemanager/Makefile.am:38: warning: variable 'do_cd_command_SOURCES' is defined but no program or
+tests/src/filemanager/Makefile.am:38: library has 'do_cd_command' as canonical name (possible typo)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ tests/src/filemanager/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/src/filemanager/Makefile.am b/tests/src/filemanager/Makefile.am
+index f7411401d..7d2f40dcc 100644
+--- a/tests/src/filemanager/Makefile.am
++++ b/tests/src/filemanager/Makefile.am
+@@ -35,7 +35,7 @@ TESTS = \
+ 
+ check_PROGRAMS = $(TESTS)
+ 
+-do_cd_command_SOURCES = \
++cd_to_SOURCES = \
+ 	cd_to.c
+ 
+ examine_cd_SOURCES = \

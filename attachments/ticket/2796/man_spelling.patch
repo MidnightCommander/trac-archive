@@ -1,0 +1,37 @@
+Last-Update: 2012-04-30
+Author: Dmitry Smirnov <onlyjob@member.fsf.org>
+Forwarded: yes
+Description: correct spelling in man page (lintianisation)
+
+
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -443,7 +443,7 @@
+ .PP
+ If you are describing case insensitive language you need to use
+ .B caseinsensitive
+-derective. It should be specified at the begining of syntax file.
++directive. It should be specified at the beginning of syntax file.
+ .PP
+ Because of the simplicity of the implementation, there are a few
+ intricacies that will not be dealt with correctly but these are a minor
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -585,7 +585,7 @@
+ the mouse.
+ .\"NODE "  Quick search"
+ .SH "  Quick search"
+-The Quick search mode allows to perform fast file search in file panel.
++The Quick search mode allows you to perform fast file search in file panel.
+ Press
+ .I C\-s
+ or
+@@ -3280,7 +3280,7 @@
+ .\"NODE "  EXTernal File System"
+ .SH "  EXTernal File System"
+ .B extfs
+-allows to integrate numerous features and file types into GNU Midnight
++allows you to integrate numerous features and file types into GNU Midnight
+ Commander in an easy way, by writing scripts.
+ .PP
+ Extfs filesystems can be divided into two categories:

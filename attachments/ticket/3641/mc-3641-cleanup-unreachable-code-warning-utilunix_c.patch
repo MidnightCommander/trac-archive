@@ -1,0 +1,30 @@
+From fc400c29f3c64a845f9e9ae361b2ee4f279fb705 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 20:23:26 +0000
+Subject: [PATCH] (utilunix.c) Cleanup unreachable-code warning
+
+Compiler with my_exit() 'noreturn' knowledge will complain about 
+never reachable break statement.
+
+Reported by clang compiler.
+
+(Maybe there is a better code sequence)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/utilunix.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index de42179..e99332f 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -453,7 +453,7 @@ my_systemv (const char *command, char *const argv[])
+             execvp (command, argv);
+             my_exit (127);      /* Exec error */
+         }
+-        break;
++        /* no break here, or unreachable-code warning by no returning my_exit() */
+     default:
+         status = 0;
+         break;

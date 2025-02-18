@@ -1,0 +1,66 @@
+From b8f33769c090f9493e51023e7673c9f9c5df32d2 Mon Sep 17 00:00:00 2001
+From: Sergey Naumov <snaumov@quantenna.com>
+Date: Wed, 4 Oct 2017 11:56:43 +0300
+Subject: [PATCH] editor: add %c (cursor offset from BOF) support for macros
+
+---
+ src/editor/edit.c          | 9 +++++++++
+ src/editor/edit.h          | 1 +
+ src/filemanager/usermenu.c | 9 +++++++++
+ 3 files changed, 19 insertions(+)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index eaab3c4..258307e 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -2829,6 +2829,15 @@ edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++/** returns the current offset of the cursor from the beginning of a file */
++
++off_t
++edit_get_curs_offt (const WEdit * edit)
++{
++	return edit->buffer.curs1;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ /** returns the current column position of the cursor */
+ 
+ long
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index e02589f..b8b2e19 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -70,6 +70,7 @@ gboolean edit_file (const vfs_path_t * file_vpath, long line);
+ gboolean edit_files (const GList * files);
+ 
+ const char *edit_get_file_name (const WEdit * edit);
++off_t edit_get_curs_offt (const WEdit * edit);
+ long edit_get_curs_col (const WEdit * edit);
+ const char *edit_get_syntax_type (const WEdit * edit);
+ 
+diff --git a/src/filemanager/usermenu.c b/src/filemanager/usermenu.c
+index e2b7c9d..7a75a7a 100644
+--- a/src/filemanager/usermenu.c
++++ b/src/filemanager/usermenu.c
+@@ -800,6 +800,15 @@ expand_format (const WEdit * edit_widget, char c, gboolean do_quote)
+             result = qstr;
+             goto ret;
+         }
++    case 'c':
++#ifdef USE_INTERNAL_EDIT
++	if (edit_widget != NULL)
++	{
++		result = g_strdup_printf ("%u", (unsigned int)edit_get_curs_offt (edit_widget));
++		goto ret;
++	}
++#endif
++	break;
+     case 'i':                  /* indent equal number cursor position in line */
+ #ifdef USE_INTERNAL_EDIT
+         if (edit_widget != NULL)
+-- 
+2.7.4
+

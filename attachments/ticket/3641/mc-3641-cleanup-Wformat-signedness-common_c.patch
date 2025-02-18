@@ -1,0 +1,29 @@
+From 28fdf300e16671bf06501d096f955ad530345182 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 12:09:47 +0000
+Subject: [PATCH] (common.c) Cleanup -Wformat-signedness warning
+
+Cleanup -Wformat-signedness warning.
+
+common.c:330:26: error: format '%d' expects argument of type 'int', but argument 3 has type 'unsigned int' [-Werror=format=]
+         fprintf (stderr, __FILE__ ": unimplemented subshell type %d\r\n", mc_global.shell->type);
+                          ^~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/subshell/common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 98968fa..a1f054e 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -327,7 +327,7 @@ init_subshell_child (const char *pty_name)
+         break;
+ 
+     default:
+-        fprintf (stderr, __FILE__ ": unimplemented subshell type %d\r\n", mc_global.shell->type);
++        fprintf (stderr, __FILE__ ": unimplemented subshell type %u\r\n", mc_global.shell->type);
+         my_exit (FORK_FAILURE);
+     }
+ 

@@ -1,0 +1,38 @@
+From 0bb1574a5d1f3b350f8e666679f6f205a8143be5 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Wed, 30 Jun 2010 00:46:03 +0200
+Subject: [PATCH] fix crash
+
+---
+ lib/strutil/strutil8bit.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/lib/strutil/strutil8bit.c b/lib/strutil/strutil8bit.c
+index 644f355..8f3cb70 100644
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -577,17 +577,15 @@ str_8bit_release_search_needle (char *needle, int case_sen)
+ static char *
+ str_8bit_strdown (const char *str)
+ {
+-    char *rets;
++    char *rets, *p;
+ 
+     rets = g_strdup (str);
+     if (rets == NULL)
+         return NULL;
+ 
+-    while (*rets != '\0')
+-    {
+-        *rets = char_tolower (*rets);
+-        rets++;
+-    }
++    for (p = rets; *p != '\0'; p++)
++        *p = char_tolower (*p);
++
+     return rets;
+ }
+ 
+-- 
+1.7.1.15.g43acf
+

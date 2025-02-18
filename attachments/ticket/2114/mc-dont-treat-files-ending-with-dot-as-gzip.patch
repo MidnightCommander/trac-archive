@@ -1,0 +1,12 @@
+diff -u -r -p mc-4.7.0.2/misc/mc.ext.in mc.gzip/misc/mc.ext.in
+--- mc-4.7.0.2/misc/mc.ext.in	2010-01-29 09:09:27.000000000 +0100
++++ mc.gzip/misc/mc.ext.in	2010-03-18 11:46:02.000000000 +0100
+@@ -622,7 +622,7 @@ type/^gzip
+ 	Open=gzip -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} gzip -dc %f 2>/dev/null
+ 
+-regex/\.(gz|Z)?$
++regex/\.(gz|Z)$
+ 	View=%view{ascii} gzip -dc %f 2>/dev/null
+ 
+ # bzip2

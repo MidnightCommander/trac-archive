@@ -1,0 +1,135 @@
+diff --git a/lib/skin.h b/lib/skin.h
+index 024e0c506..8709e8e9d 100644
+--- a/lib/skin.h
++++ b/lib/skin.h
+@@ -87,28 +87,29 @@
+  * Last is defined to view color.
+  */
+ #define EDITOR_NORMAL_COLOR       mc_skin_color__cache[49]
+-#define EDITOR_BOLD_COLOR         mc_skin_color__cache[50]
+-#define EDITOR_MARKED_COLOR       mc_skin_color__cache[51]
+-#define EDITOR_WHITESPACE_COLOR   mc_skin_color__cache[52]
+-#define EDITOR_RIGHT_MARGIN_COLOR mc_skin_color__cache[53]
+-#define EDITOR_BACKGROUND         mc_skin_color__cache[54]
+-#define EDITOR_FRAME              mc_skin_color__cache[55]
+-#define EDITOR_FRAME_ACTIVE       mc_skin_color__cache[56]
+-#define EDITOR_FRAME_DRAG         mc_skin_color__cache[57]
++#define EDITOR_ABNORMAL_COLOR     mc_skin_color__cache[50]
++#define EDITOR_BOLD_COLOR         mc_skin_color__cache[51]
++#define EDITOR_MARKED_COLOR       mc_skin_color__cache[52]
++#define EDITOR_WHITESPACE_COLOR   mc_skin_color__cache[53]
++#define EDITOR_RIGHT_MARGIN_COLOR mc_skin_color__cache[54]
++#define EDITOR_BACKGROUND         mc_skin_color__cache[55]
++#define EDITOR_FRAME              mc_skin_color__cache[56]
++#define EDITOR_FRAME_ACTIVE       mc_skin_color__cache[57]
++#define EDITOR_FRAME_DRAG         mc_skin_color__cache[58]
+ /* color of left 8 char status per line */
+-#define LINE_STATE_COLOR          mc_skin_color__cache[58]
+-#define BOOK_MARK_COLOR           mc_skin_color__cache[59]
+-#define BOOK_MARK_FOUND_COLOR     mc_skin_color__cache[60]
++#define LINE_STATE_COLOR          mc_skin_color__cache[59]
++#define BOOK_MARK_COLOR           mc_skin_color__cache[60]
++#define BOOK_MARK_FOUND_COLOR     mc_skin_color__cache[61]
+ 
+ /* Diff colors */
+-#define DFF_ADD_COLOR             mc_skin_color__cache[61]
+-#define DFF_CHG_COLOR             mc_skin_color__cache[62]
+-#define DFF_CHH_COLOR             mc_skin_color__cache[63]
+-#define DFF_CHD_COLOR             mc_skin_color__cache[64]
+-#define DFF_DEL_COLOR             mc_skin_color__cache[65]
+-#define DFF_ERROR_COLOR           mc_skin_color__cache[66]
+-
+-#define MC_SKIN_COLOR_CACHE_COUNT 67
++#define DFF_ADD_COLOR             mc_skin_color__cache[62]
++#define DFF_CHG_COLOR             mc_skin_color__cache[63]
++#define DFF_CHH_COLOR             mc_skin_color__cache[64]
++#define DFF_CHD_COLOR             mc_skin_color__cache[65]
++#define DFF_DEL_COLOR             mc_skin_color__cache[66]
++#define DFF_ERROR_COLOR           mc_skin_color__cache[67]
++
++#define MC_SKIN_COLOR_CACHE_COUNT 68
+ 
+ /*** enums ***************************************************************************************/
+ 
+diff --git a/lib/skin/colors-old.c b/lib/skin/colors-old.c
+index 314c8cb85..12cac4a09 100644
+--- a/lib/skin/colors-old.c
++++ b/lib/skin/colors-old.c
+@@ -60,6 +60,7 @@ static const mc_skin_colors_old_t old_colors[] = {
+     {"dhotnormal", "dialog", "dhotnormal"},
+     {"disabled", "core", "disabled"},
+     {"dnormal", "dialog", "_default_"},
++    {"editabnormal", "editor", "editabnormal"},
+     {"editbg", "editor", "editbg"},
+     {"editbold", "editor", "editbold"},
+     {"editframe", "editor", "editframe"},
+diff --git a/lib/skin/colors.c b/lib/skin/colors.c
+index 1d4f905d6..cd52c6b93 100644
+--- a/lib/skin/colors.c
++++ b/lib/skin/colors.c
+@@ -298,6 +298,7 @@ mc_skin_color_cache_init (void)
+     VIEW_SELECTED_COLOR = mc_skin_color_get ("viewer", "viewselected");
+ 
+     EDITOR_NORMAL_COLOR = mc_skin_color_get ("editor", "_default_");
++    EDITOR_ABNORMAL_COLOR = mc_skin_color_get ("editor", "editabnormal");
+     EDITOR_BOLD_COLOR = mc_skin_color_get ("editor", "editbold");
+     EDITOR_MARKED_COLOR = mc_skin_color_get ("editor", "editmarked");
+     EDITOR_WHITESPACE_COLOR = mc_skin_color_get ("editor", "editwhitespace");
+diff --git a/misc/skins/default.ini b/misc/skins/default.ini
+index 145eb998b..67bd72ebf 100644
+--- a/misc/skins/default.ini
++++ b/misc/skins/default.ini
+@@ -112,6 +112,7 @@
+ #    editframe = lightgray;
+     editframeactive = white;
+     editframedrag = green;
++    editabnormal = green;cyan
+ 
+ [viewer]
+     _default_ = lightgray;blue
+diff --git a/src/args.c b/src/args.c
+index e725fa7d8..ee97e5ee8 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -344,7 +344,7 @@ mc_args_new_color_group (void)
+                                                      "                 errdhotfocus\n"
+                                                      "   Menus:        menunormal, menuhot, menusel, menuhotsel, menuinactive\n"
+                                                      "   Popup menus:  pmenunormal, pmenusel, pmenutitle\n"
+-                                                     "   Editor:       editnormal, editbold, editmarked, editwhitespace,\n"
++                                                     "   Editor:       editnormal, editabnormal,editbold, editmarked, editwhitespace,\n"
+                                                      "                 editlinestate, editbg, editframe, editframeactive\n"
+                                                      "                 editframedrag\n"
+                                                      "   Viewer:       viewnormal,viewbold, viewunderline, viewselected\n"
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index b4ec402f0..73e7de3cb 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -455,7 +455,6 @@ print_to_widget (WEdit * edit, long row, int start_col, int start_col_real,
+     {
+         int style;
+         unsigned int textchar;
+-        int color;
+ 
+         if (cols_to_skip != 0)
+         {
+@@ -465,8 +464,6 @@ print_to_widget (WEdit * edit, long row, int start_col, int start_col_real,
+ 
+         style = p->style & 0xFF00;
+         textchar = p->ch;
+-        /* If non-printable - use black background */
+-        color = (style & MOD_ABNORMAL) != 0 ? 0 : p->style >> 16;
+ 
+         if ((style & MOD_WHITESPACE) != 0)
+         {
+@@ -482,8 +479,10 @@ print_to_widget (WEdit * edit, long row, int start_col, int start_col_real,
+             tty_setcolor (EDITOR_BOLD_COLOR);
+         else if ((style & MOD_MARKED) != 0)
+             tty_setcolor (EDITOR_MARKED_COLOR);
++        else if ((style & MOD_ABNORMAL) != 0)
++            tty_setcolor (EDITOR_ABNORMAL_COLOR);
+         else
+-            tty_lowlevel_setcolor (color);
++            tty_lowlevel_setcolor (p->style >> 16);
+ 
+         if (show_right_margin)
+         {

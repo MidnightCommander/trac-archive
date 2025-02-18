@@ -1,0 +1,1851 @@
+From 8ff2a2b88b4a2a56d4f84ab3622a9aae36181142 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 13 Mar 2016 17:14:25 +0000
+Subject: [PATCH] mc.hint: remove duplicate files
+
+Remove redundant mc.hint.* files, mc will fallback to default mc.hint file.
+
+Save space and fix RPMlint warning found by OBS Framework (build.opensuse.org)
+
+mc.x86_64: W: files-duplicate
+/usr/share/mc/hints/mc.hint.ar:
+/usr/share/mc/hints/mc.hint.az:
+/usr/share/mc/hints/mc.hint.ca:
+/usr/share/mc/hints/mc.hint.de_CH:
+/usr/share/mc/hints/mc.hint.fi:
+/usr/share/mc/hints/mc.hint.fr_CA:
+/usr/share/mc/hints/mc.hint.hr:
+/usr/share/mc/hints/mc.hint.ia:
+/usr/share/mc/hints/mc.hint.ja:
+/usr/share/mc/hints/mc.hint.ka:
+/usr/share/mc/hints/mc.hint.kk:
+/usr/share/mc/hints/mc.hint.ko:
+/usr/share/mc/hints/mc.hint.lt:
+/usr/share/mc/hints/mc.hint.sl:
+/usr/share/mc/hints/mc.hint.sv:
+/usr/share/mc/hints/mc.hint.sv_SE:
+/usr/share/mc/hints/mc.hint.szl:
+/usr/share/mc/hints/mc.hint.te:
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ doc/hints/l10n/mc.hint.ar    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.az    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.ca    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.de_CH | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.fi    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.fr_CA | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.hr    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.ia    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.ja    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.ka    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.kk    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.ko    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.lt    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.sl    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.sv    | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.sv_SE | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.szl   | 93 --------------------------------------------
+ doc/hints/l10n/mc.hint.te    | 93 --------------------------------------------
+ 18 files changed, 1674 deletions(-)
+ delete mode 100644 doc/hints/l10n/mc.hint.ar
+ delete mode 100644 doc/hints/l10n/mc.hint.az
+ delete mode 100644 doc/hints/l10n/mc.hint.ca
+ delete mode 100644 doc/hints/l10n/mc.hint.de_CH
+ delete mode 100644 doc/hints/l10n/mc.hint.fi
+ delete mode 100644 doc/hints/l10n/mc.hint.fr_CA
+ delete mode 100644 doc/hints/l10n/mc.hint.hr
+ delete mode 100644 doc/hints/l10n/mc.hint.ia
+ delete mode 100644 doc/hints/l10n/mc.hint.ja
+ delete mode 100644 doc/hints/l10n/mc.hint.ka
+ delete mode 100644 doc/hints/l10n/mc.hint.kk
+ delete mode 100644 doc/hints/l10n/mc.hint.ko
+ delete mode 100644 doc/hints/l10n/mc.hint.lt
+ delete mode 100644 doc/hints/l10n/mc.hint.sl
+ delete mode 100644 doc/hints/l10n/mc.hint.sv
+ delete mode 100644 doc/hints/l10n/mc.hint.sv_SE
+ delete mode 100644 doc/hints/l10n/mc.hint.szl
+ delete mode 100644 doc/hints/l10n/mc.hint.te
+
+diff --git a/doc/hints/l10n/mc.hint.ar b/doc/hints/l10n/mc.hint.ar
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.ar
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.az b/doc/hints/l10n/mc.hint.az
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.az
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.ca b/doc/hints/l10n/mc.hint.ca
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.ca
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.de_CH b/doc/hints/l10n/mc.hint.de_CH
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.de_CH
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.fi b/doc/hints/l10n/mc.hint.fi
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.fi
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.fr_CA b/doc/hints/l10n/mc.hint.fr_CA
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.fr_CA
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.hr b/doc/hints/l10n/mc.hint.hr
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.hr
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.ia b/doc/hints/l10n/mc.hint.ia
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.ia
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.ja b/doc/hints/l10n/mc.hint.ja
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.ja
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.ka b/doc/hints/l10n/mc.hint.ka
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.ka
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.kk b/doc/hints/l10n/mc.hint.kk
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.kk
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.ko b/doc/hints/l10n/mc.hint.ko
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.ko
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.lt b/doc/hints/l10n/mc.hint.lt
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.lt
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.sl b/doc/hints/l10n/mc.hint.sl
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.sl
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.sv b/doc/hints/l10n/mc.hint.sv
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.sv
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.sv_SE b/doc/hints/l10n/mc.hint.sv_SE
+deleted file mode 100644
+index 9e88c5a..0000000
+--- a/doc/hints/l10n/mc.hint.sv_SE
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.szl b/doc/hints/l10n/mc.hint.szl
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.szl
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-
+diff --git a/doc/hints/l10n/mc.hint.te b/doc/hints/l10n/mc.hint.te
+deleted file mode 100644
+index ce52ac8..0000000
+--- a/doc/hints/l10n/mc.hint.te
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Hint: Use C-x t to copy tagged file names to the command line.
+-
+-Hint: Use C-x p to copy the current pathname to the command line.
+-
+-Hint: Completion: use M-Tab (or Esc+Tab).  Type it twice to get a list.
+-
+-Hint: Use M-p and M-n to access the command history.
+-
+-Hint: Need to quote a character? Use Control-q and the character.
+-
+-Hint: Tired of these messages? Turn them off from the Options/Layout menu.
+-
+-Hint: Selecting directories: add a slash to the end of the matching pattern.
+-
+-Hint: If your terminal lacks functions keys, use the ESC+number sequence.
+-
+-Hint: The homepage of GNU Midnight Commander:
+-http://www.midnight-commander.org/
+-
+-Hint: Please send any bug reports to mc-devel@gnome.org
+-
+-Hint: Tab changes your current panel.
+-
+-Hint: VFS coolness: tap enter on a tar file to examine its contents.
+-
+-Hint: We also have a nice manual page.
+-
+-Hint: Do you want Lynx-style navigation? Set it in the Configuration dialog.
+-
+-Hint: % macros work even on the command line.
+-
+-Hint: M-! will allow you to execute programs and see the output in the
+-viewer.
+-
+-Hint: The file listing format can be customized; do "man mc" for details.
+-
+-Hint: %D/%T expands to the tagged files in the opposite directory.
+-
+-Hint: Want your plain shell? Press C-o, and get back to MC with C-o again.
+-
+-Hint: Setting the CDPATH variable can save you keystrokes in cd commands.
+-
+-Hint: If you want to see your .* files, say so in the Configuration dialog.
+-
+-Hint: Want to see your *~ backup files? Set it in the Configuration dialog.
+-
+-Hint: Completion works on all input lines in all dialogs. Just press M-Tab.
+-
+-Hint: On slow terminals the -s flag may help.
+-
+-Hint: Find File: you can work on the files found using the Panelize button.
+-
+-Hint: Want to do complex searches? Use the External Panelize command.
+-
+-Hint: To change directory halfway through typing a command, use M-c (quick
+-cd).
+-
+-Note: Shell commands will not work when you are on a non-local file system.
+-
+-Hint: Bring text back from the dead with C-y.
+-
+-Hint: Are some of your keys not working? Look at Options/Learn keys.
+-
+-Hint: To look at the output of a command in the viewer, use M-!
+-
+-Hint: F13 (or Shift-F3) invokes the viewer in raw mode.
+-
+-Hint: You may specify the editor for F4 with the shell variable EDITOR.
+-
+-Hint: You may specify the external viewer with the shell vars VIEWER or
+-PAGER.
+-
+-Hint: You can disable all requests for confirmation in Options/Confirmation.
+-
+-Hint: Leap to frequently used directories in a single bound with C-.
+-
+-Hint: You can do anonymous FTP with mc by typing 'cd ftp://machine.edu'
+-
+-Hint: FTP is built in the Midnight Commander, check the File/FTP link menu.
+-
+-Hint: M-t changes quickly the listing mode.
+-
+-Hint: You can specify the username when doing ftps: 'cd
+-ftp://user@machine.edu'
+-
+-Hint: You can browse RPM files by tapping enter on top of an rpm file.
+-
+-Hint: To mark directories on the select dialog box, append a slash.
+-
+-Hint: To use the mouse cut and paste may require holding the shift key
+-
+-Hint: Key frequently visited ftp sites in the hotlist: type C-.
+-

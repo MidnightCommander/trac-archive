@@ -1,0 +1,32 @@
+From 60f9131cceb4f94548c6bb94ccd3af395037db71 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 08:51:17 +0000
+Subject: [PATCH] (main.c) Cleanup maybe-uninitialized compiler warning
+
+Found by GCC 6.2.0.
+
+main.c:400:9: error: 'config_migrate_msg' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+         g_free (config_migrate_msg);
+         ^
+main.c:222:11: note: 'config_migrate_msg' was declared here
+     char *config_migrate_msg;
+           ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/main.c b/src/main.c
+index c413b25..9b8770f 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -219,7 +219,7 @@ main (int argc, char *argv[])
+ {
+     GError *mcerror = NULL;
+     gboolean config_migrated = FALSE;
+-    char *config_migrate_msg;
++    char *config_migrate_msg = NULL;
+     int exit_code = EXIT_FAILURE;
+ 
+     mc_global.timer = mc_timer_new ();

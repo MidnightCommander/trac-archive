@@ -1,0 +1,131 @@
+wholechars abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_01234567890.-
+context default
+    keyword = white
+    keyword : yellow
+    keyword ! red
+    keyword # brown
+    keyword \/\/ brown
+    keyword ${ green
+    keyword } green
+    keyword whole domainlist brightcyan
+    keyword whole begin brightcyan
+    keyword whole acl brightcyan
+
+    keyword whole warn cyan
+    keyword whole accept cyan
+    keyword whole reject cyan
+    keyword whole drop cyan
+    keyword whole deny cyan
+    
+    keyword whole condition brightcyan
+    keyword whole set brightcyan
+    keyword whole verify brightcyan
+    keyword whole sender brightcyan
+    keyword whole recipient brightcyan
+    keyword whole hosts brightcyan
+    keyword whole domain brightcyan    
+    keyword whole transport brightcyan
+    keyword whole driver brightcyan
+    keyword whole log_message brightcyan
+    keyword whole message brightcyan
+    keyword whole add_header brightcyan
+    keyword whole authenticated brightcyan
+    keyword whole callout brightcyan
+    keyword whole local_parts brightcyan
+    keyword whole domains brightcyan
+    keyword whole endpass brightcyan
+    keyword whole no_more brightcyan
+    keyword whole primary_hostname brightcyan
+    keyword whole relay_from_hosts brightcyan
+    keyword whole hostlist brightcyan
+    keyword whole auth_advertise_hosts brightcyan
+    keyword whole daemon_smtp_ports brightcyan
+    keyword whole smtp_receive_timeout brightcyan
+    keyword whole log_selector brightcyan
+    keyword whole spamd_address brightcyan
+    keyword whole av_scanner brightcyan
+    keyword whole qualify_domain brightcyan
+    keyword whole allow_domain_literals brightcyan
+    keyword whole never_users brightcyan
+    keyword whole ignore_bounce_errors_after brightcyan
+    keyword whole ignore_fromline_hosts brightcyan
+    keyword whole ignore_fromline_local brightcyan
+    keyword whole timeout_frozen_after brightcyan
+
+    keyword whole message_size_limit brightcyan
+    keyword whole split_spool_directory brightcyan
+    keyword whole remote_max_parallel brightcyan
+    keyword whole return_size_limit brightcyan
+
+    keyword whole spf brightcyan
+    keyword whole helo_allow_chars brightcyan
+    keyword whole auto_thaw brightcyan
+    
+    keyword whole senders brightcyan
+    keyword whole decode brightcyan
+    keyword whole spam brightcyan
+    keyword whole malware brightcyan
+    keyword whole demime brightcyan
+    keyword whole data brightcyan
+    keyword whole mode brightcyan
+    keyword whole user brightcyan
+    keyword whole group brightcyan
+    keyword whole allow_fail brightcyan
+    keyword whole allow_defer brightcyan
+    keyword whole file_transport brightcyan
+    keyword whole pipe_transport brightcyan
+    keyword whole reply_transport brightcyan
+
+    keyword whole public_name brightcyan
+    keyword whole return_path_add brightcyan
+    keyword whole quota brightcyan
+    keyword whole delivery_date_add brightcyan
+    keyword whole check_string brightcyan
+    keyword whole directory brightcyan
+    keyword whole directory_mode brightcyan
+    keyword whole envelope_to_add brightcyan
+    keyword whole return_output brightcyan
+    keyword whole create_directory brightcyan
+    keyword whole address_retry_include_sender brightcyan
+    keyword whole hide brightcyan
+    keyword whole mysql_servers brightcyan
+    
+    keyword wholeright smtp_* brightcyan
+    keyword wholeright rfc1413_* brightcyan
+    keyword wholeright recipients_max* brightcyan
+    keyword wholeright system_filter* brightcyan
+    keyword wholeright maildir_* brightcyan
+    keyword wholeright message_* brightcyan
+    keyword wholeright quota_warn_* brightcyan
+    keyword wholeright server_* brightcyan
+    
+    
+    keyword wholeright dkim_* brightcyan
+    keyword wholeright tls_* brightcyan
+
+    keyword wholeright acl_m* brightgreen
+    keyword wholeright acl_c* brightgreen
+
+    keyword wholeright acl_* yellow
+    
+context " " green
+    spellcheck
+
+context exclusive # \n brown
+
+context exclusive = \n magenta
+wholechars abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_01234567890
+    keyword \\\n red
+    keyword \\ red
+    keyword \/\/ brown
+    keyword "*" green
+    keyword '*' green
+    keyword \/\/*\n brown
+    keyword wholeright $* brightgreen
+
+context exclusive \/\/ \n brown
+
+    
+context exclusive ${ } green
+    spellcheck
+    

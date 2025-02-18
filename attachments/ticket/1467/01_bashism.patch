@@ -1,0 +1,27 @@
+Fix bashism
+Index: mc-4.6.2~git20090529/vfs/extfs/u7z
+===================================================================
+--- mc-4.6.2~git20090529.orig/vfs/extfs/u7z	2009-05-29 21:32:48.000000000 +0200
++++ mc-4.6.2~git20090529/vfs/extfs/u7z	2009-05-29 22:20:23.000000000 +0200
+@@ -45,8 +45,8 @@
+ 	#first we check if we have old p7zip archive with prefix ./ in filename
+ 	$P7ZIP l "$1" "$2" | grep -q "0 files" && \
+ 	EXFNAME=*./"$2" || EXFNAME="$2"
+-	$P7ZIP d "$1" "$EXFNAME" 2>&1 | grep -q E_NOTIMPL &> /dev/null && \
+-	{ echo -e "Function not implemented...\n7z cannot delete from solid archive." >&2 ; exit 1 ; }
++	$P7ZIP d "$1" "$EXFNAME" 2>&1 | grep -q E_NOTIMPL > /dev/null 2>&1 && \
++	{ printf "Function not implemented...\n7z cannot delete from solid archive." >&2 ; exit 1 ; }
+ }
+ 
+ mcu7zip_rmdir ()
+@@ -54,8 +54,8 @@
+ 	#first we check if we have old p7zip archive with prefix ./ in filename
+ 	$P7ZIP l "$1" "$2" | grep -q "0 files" && \
+ 	EXFNAME=*./"$2" || EXFNAME="$2"
+-	$P7ZIP d "$1" "$EXFNAME"/ 2>&1 | grep -q E_NOTIMPL &> /dev/null && \
+-	{ echo -e "Function not implemented...\n7z cannot delete from solid archive." >&2 ; exit 1 ; }
++	$P7ZIP d "$1" "$EXFNAME"/ 2>&1 | grep -q E_NOTIMPL > /dev/null 2>&1 && \
++	{ printf "Function not implemented...\n7z cannot delete from solid archive." >&2 ; exit 1 ; }
+ }
+ 
+ # override any locale for dates

@@ -1,0 +1,34 @@
+diff -rNu mc-4.6.2~git20080311/doc/mc.1.in mc-4.6.2~git20080311.patched/doc/mc.1.in
+--- mc-4.6.2~git20080311/doc/mc.1.in	2008-02-19 20:25:27.000000000 +0300
++++ mc-4.6.2~git20080311.patched/doc/mc.1.in	2009-01-16 22:44:27.694649019 +0300
+@@ -2131,8 +2131,9 @@
+ you can specify startup
+ commands for the subshell in your ~/.mc/bashrc file and
+ special keyboard maps in the ~/.mc/inputrc file.
+-.B tcsh
+-users may specify startup commands in the ~/.mc/tcshrc file.
++.B zsh
++users may create ~/.mc/zsh and put all zsh rc files there, as
++it will be passed to zsh as $ZDOTDIR (see zsh(1)).
+ .PP
+ When the subshell code is used, you can suspend applications at any
+ time with the sequence C-o and jump back to the Midnight Commander, if
+diff -rNu mc-4.6.2~git20080311/src/subshell.c mc-4.6.2~git20080311.patched/src/subshell.c
+--- mc-4.6.2~git20080311/src/subshell.c	2008-02-19 20:25:27.000000000 +0300
++++ mc-4.6.2~git20080311.patched/src/subshell.c	2009-01-16 22:33:08.510648931 +0300
+@@ -248,9 +248,13 @@
+ 
+ 	break;
+ 
+-	/* TODO: Find a way to pass initfile to TCSH and ZSH */
+-    case TCSH:
+     case ZSH:
++	if (access (".mc/zsh", X_OK) == 0)
++	    putenv ("ZDOTDIR=.mc/zsh");
++	break;
++
++	/* TODO: Find a way to pass initfile to TCSH */
++    case TCSH:
+ 	break;
+ 
+     default:

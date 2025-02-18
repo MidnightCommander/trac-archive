@@ -1,0 +1,19 @@
+diff --git a/src/option.c b/src/option.c
+index 176a2cb..5ee9f2c 100644
+--- a/src/option.c
++++ b/src/option.c
+@@ -79,12 +79,13 @@ static struct {
+    {N_("show &Hidden files"), &show_dot_files,    toggle_show_hidden,    0 },
+    {N_("show &Backup files"), &show_backups,      toggle_show_backup,    0 },
+    {N_("Use SI si&ze units"), &kilobyte_si,       toggle_kilobyte_si,    0 },
++   {N_("Reverse files only"), &reverse_files_only,TOGGLE_VARIABLE,       0 },
+    { 0, 0, 0, 0 }
+ };
+ 
+ /* Make sure this corresponds to the check_options structure */
+ #define OTHER_OPTIONS 13
+-#define PANEL_OPTIONS 7
++#define PANEL_OPTIONS 8
+ 
+ static WRadio *pause_radio;
+ 

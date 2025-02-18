@@ -1,0 +1,109 @@
+From 73a62e10fdc5f205fdcbc5bb825281ef79a3f68a Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Wed, 17 Feb 2021 10:38:06 -0600
+Subject: Support for glob patterns in open file dialog
+
+---
+ src/editor/edit-impl.h  |  2 +-
+ src/editor/editcmd.c    | 43 +++++++++++++++++++++++++++++++++--------
+ src/editor/editwidget.c |  2 +-
+ 3 files changed, 37 insertions(+), 10 deletions(-)
+
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 3ad04dbea..efae19de9 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -185,7 +185,7 @@ WEdit *edit_init (WEdit * edit, int y, int x, int lines, int cols,
+                   const vfs_path_t * filename_vpath, long line);
+ gboolean edit_clean (WEdit * edit);
+ gboolean edit_ok_to_exit (WEdit * edit);
+-gboolean edit_load_cmd (WDialog * h);
++gboolean edit_load_cmd (WDialog * h, const void *data);
+ gboolean edit_load_file_from_history (WDialog * h);
+ gboolean edit_load_syntax_file (WDialog * h);
+ gboolean edit_load_menu_file (WDialog * h);
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 0d2caa923..a55810f30 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -44,6 +44,7 @@
+ #include <errno.h>
+ #include <sys/stat.h>
+ #include <stdlib.h>
++#include <glob.h>
+ 
+ #include "lib/global.h"
+ #include "lib/tty/tty.h"
+@@ -2063,22 +2064,48 @@ edit_save_confirm_cmd (WEdit * edit)
+   */
+ 
+ gboolean
+-edit_load_cmd (WDialog * h)
++edit_load_cmd (WDialog * h, const void *data)
+ {
+     char *exp;
+     gboolean ret = TRUE;        /* possible cancel */
+ 
+-    exp = input_expand_dialog (_("Load"), _("Enter file name:"),
+-                               MC_HISTORY_EDIT_LOAD, INPUT_LAST_TEXT,
+-                               INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
++    if (data != NULL)
++        exp = g_strdup ((char *) data);
++    else
++        exp = input_expand_dialog (_("Load"), _("Enter file name:"),
++                                   MC_HISTORY_EDIT_LOAD, INPUT_LAST_TEXT,
++                                   INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
+ 
+     if (exp != NULL && *exp != '\0')
+     {
+-        vfs_path_t *exp_vpath;
++        if (g_strstr_len (exp, -1, "*") || g_strstr_len (exp, -1, "?")
++            || g_strstr_len (exp, -1, "["))
++        {
++            int gret;
++            gsize idx;
++            glob_t globbuf = { 0 };
++            gret = glob (exp, GLOB_MARK | GLOB_BRACE | GLOB_NOMAGIC | GLOB_TILDE | GLOB_TILDE_CHECK,
++                         NULL, &globbuf);
++            if (gret != 0)
++                message (D_ERROR, _("Problem opening files"),
++                         _("Pattern `%s` did not match any files"), exp);
+ 
+-        exp_vpath = vfs_path_from_str (exp);
+-        ret = edit_load_file_from_filename (h, exp_vpath);
+-        vfs_path_free (exp_vpath);
++            /* Are any results returned? */
++            for (idx = 0; idx < globbuf.gl_pathc; idx++)
++                if (globbuf.gl_pathv != NULL && globbuf.gl_pathv[idx] != NULL)
++                    edit_load_cmd (h, globbuf.gl_pathv[idx]);
++
++            if (globbuf.gl_pathc > 0)
++                globfree (&globbuf);
++        }
++        else
++        {
++            vfs_path_t *exp_vpath;
++
++            exp_vpath = vfs_path_from_str (exp);
++            ret = edit_load_file_from_filename (h, exp_vpath);
++            vfs_path_free (exp_vpath);
++        }
+     }
+ 
+     g_free (exp);
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 18ac00e66..10ceaff83 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -391,7 +391,7 @@ edit_dialog_command_execute (WDialog * h, long command)
+         edit_add_window (h, wh->y + 1, wh->x, wh->lines - 2, wh->cols, NULL, 0);
+         break;
+     case CK_EditFile:
+-        edit_load_cmd (h);
++        edit_load_cmd (h, NULL);
+         break;
+     case CK_History:
+         edit_load_file_from_history (h);
+-- 
+2.28.0
+

@@ -1,0 +1,300 @@
+diff -urp mc-4.7.5.4/src/viewer/coord_cache.c mc-4.7.5.4.new/src/viewer/coord_cache.c
+--- mc-4.7.5.4/src/viewer/coord_cache.c	2011-02-08 12:46:09.000000000 +0100
++++ mc-4.7.5.4.new/src/viewer/coord_cache.c	2011-10-09 23:20:06.000000000 +0200
+@@ -435,13 +435,13 @@ mcview_ccache_lookup (mcview_t * view, c
+ 
+     tty_disable_interrupt_key ();
+ 
++    coord->cc_line = current.cc_line;
+     if (lookup_what == CCACHE_OFFSET)
+     {
+         coord->cc_offset = current.cc_offset;
+     }
+     else
+     {
+-        coord->cc_line = current.cc_line;
+         coord->cc_column = current.cc_column;
+         coord->cc_nroff_column = current.cc_nroff_column;
+     }
+diff -urp mc-4.7.5.4/src/viewer/dialogs.c mc-4.7.5.4.new/src/viewer/dialogs.c
+--- mc-4.7.5.4/src/viewer/dialogs.c	2011-02-08 12:46:09.000000000 +0100
++++ mc-4.7.5.4.new/src/viewer/dialogs.c	2011-10-10 00:37:38.000000000 +0200
+@@ -274,9 +274,13 @@ mcview_dialog_goto (mcview_t * view, off
+                 *offset = addr * mcview_get_filesize (view) / 100;
+                 if (!view->hex_mode)
+                     *offset = mcview_bol (view, *offset, 0);
++                view->dpy_lines_status = LINE_COUNT_UNKNOWN;
++                view->dpy_start_line = 0;
+                 break;
+             case MC_VIEW_GOTO_OFFSET_DEC:
+             case MC_VIEW_GOTO_OFFSET_HEX:
++                view->dpy_lines_status = LINE_COUNT_UNKNOWN;
++                view->dpy_start_line = 0;
+                 *offset = addr;
+                 if (!view->hex_mode)
+                     *offset = mcview_bol (view, *offset, 0);
+diff -urp mc-4.7.5.4/src/viewer/display.c mc-4.7.5.4.new/src/viewer/display.c
+--- mc-4.7.5.4/src/viewer/display.c	2011-09-12 11:33:00.000000000 +0200
++++ mc-4.7.5.4.new/src/viewer/display.c	2011-10-09 23:43:19.000000000 +0200
+@@ -135,6 +135,7 @@ mcview_display_status (mcview_t * view)
+     const screen_dimen height = view->status_area.height;
+     const char *file_label;
+     screen_dimen file_label_width;
++    screen_dimen extra_space = 0;
+ 
+     if (height < 1)
+         return;
+@@ -148,12 +149,28 @@ mcview_display_status (mcview_t * view)
+     if (width > 40)
+     {
+         char buffer[BUF_TINY];
+-        widget_move (view, top, width - 32);
+         if (view->hex_mode)
++        {
++            widget_move (view, top, width - 32);
+             tty_printf ("0x%08" PRIxMAX, (uintmax_t) view->hex_cursor);
++        }
+         else
+         {
+             size_trunc_len (buffer, 5, mcview_get_filesize (view), 0, panels_options.kilobyte_si);
++            if (width - file_label_width - 32 > 6)
++            {
++                extra_space = width-file_label_width-32-4;
++                widget_move (view, top, width - 32 - extra_space);
++                tty_printf ("C:%ld L:", (ulong) view->dpy_text_column);
++                if (view->dpy_lines_status == LINE_COUNT_UNKNOWN)
++                    tty_print_string("~? ");
++                else if (view->dpy_lines_status == LINE_COUNT_BACKWARD)
++                    tty_print_string("EOF");
++                tty_printf ("%ld+%ld=%ld /%ld", (long) view->dpy_start_line, (ulong) view->dpy_visible_lines, (long) (view->dpy_start_line+view->dpy_visible_lines), view->dpy_lines_total);
++                if (view->dpy_lines_status != LINE_COUNT_SET)
++                    tty_print_string("+");
++            }
++            widget_move (view, top, width - 32);
+             tty_printf ("%9" PRIuMAX "/%s%s %s", (uintmax_t) view->dpy_end,
+                         buffer, mcview_may_still_grow (view) ? "+" : " ",
+ #ifdef HAVE_CHARSET
+@@ -166,7 +183,7 @@ mcview_display_status (mcview_t * view)
+     }
+     widget_move (view, top, left);
+     if (width > 40)
+-        tty_print_string (str_fit_to_term (file_label, width - 34, J_LEFT_FIT));
++        tty_print_string (str_fit_to_term (file_label, width - 34 - extra_space, J_LEFT_FIT));
+     else
+         tty_print_string (str_fit_to_term (file_label, width - 5, J_LEFT_FIT));
+     if (width > 26)
+diff -urp mc-4.7.5.4/src/viewer/internal.h mc-4.7.5.4.new/src/viewer/internal.h
+--- mc-4.7.5.4/src/viewer/internal.h	2011-09-12 11:33:00.000000000 +0200
++++ mc-4.7.5.4.new/src/viewer/internal.h	2011-10-09 23:41:39.000000000 +0200
+@@ -138,6 +138,16 @@ typedef struct mcview_struct
+     screen_dimen dpy_frame_size;        /* Size of the frame surrounding the real viewer */
+     off_t dpy_start;            /* Offset of the displayed data */
+     off_t dpy_end;              /* Offset after the displayed data */
++    off_t dpy_start_line;       /* Line number of beginning of the displayed data */
++    off_t dpy_visible_lines;    /* Number of lines of the displayed data */
++    off_t dpy_lines_total;      /* Number of lines of entire file */
++    enum
++    {
++        LINE_COUNT_UNKNOWN = -2,
++        LINE_COUNT_BACKWARD = -1,
++        LINE_COUNT_GROWING = 0,
++        LINE_COUNT_SET = 1
++    } dpy_lines_status;         /* Line counter status */
+     off_t dpy_text_column;      /* Number of skipped columns in non-wrap
+                                  * text mode */
+     off_t hex_cursor;           /* Hexview cursor position in file */
+diff -urp mc-4.7.5.4/src/viewer/lib.c mc-4.7.5.4.new/src/viewer/lib.c
+--- mc-4.7.5.4/src/viewer/lib.c	2011-09-12 11:33:00.000000000 +0200
++++ mc-4.7.5.4.new/src/viewer/lib.c	2011-10-09 23:45:09.000000000 +0200
+@@ -202,6 +202,10 @@ mcview_init (mcview_t * view)
+     view->dpy_start = 0;
+     view->dpy_text_column = 0;
+     view->dpy_end = 0;
++    view->dpy_start_line = 0;
++    view->dpy_visible_lines = 0;
++    view->dpy_lines_total = 0;
++    view->dpy_lines_status = LINE_COUNT_GROWING;
+     view->hex_cursor = 0;
+     view->cursor_col = 0;
+     view->cursor_row = 0;
+diff -urp mc-4.7.5.4/src/viewer/mcviewer.c mc-4.7.5.4.new/src/viewer/mcviewer.c
+--- mc-4.7.5.4/src/viewer/mcviewer.c	2011-09-12 11:33:00.000000000 +0200
++++ mc-4.7.5.4.new/src/viewer/mcviewer.c	2011-10-10 01:03:02.000000000 +0200
+@@ -390,6 +390,10 @@ mcview_load (mcview_t * view, const char
+   finish:
+     view->command = g_strdup (command);
+     view->dpy_start = 0;
++    view->dpy_start_line = 0;
++    view->dpy_visible_lines = 0;
++    view->dpy_lines_total = 0;
++    view->dpy_lines_status = LINE_COUNT_GROWING;
+     view->search_start = 0;
+     view->search_end = 0;
+     view->dpy_text_column = 0;
+@@ -407,6 +411,7 @@ mcview_load (mcview_t * view, const char
+         load_file_position (canon_fname, &line, &col, &new_offset, &view->saved_bookmarks);
+         new_offset = min (new_offset, mcview_get_filesize (view));
+         view->dpy_start = mcview_bol (view, new_offset, 0);
++        view->dpy_lines_status = LINE_COUNT_UNKNOWN;
+         g_free (canon_fname);
+     }
+     else if (start_line > 0)
+diff -urp mc-4.7.5.4/src/viewer/move.c mc-4.7.5.4.new/src/viewer/move.c
+--- mc-4.7.5.4/src/viewer/move.c	2011-02-08 12:46:09.000000000 +0100
++++ mc-4.7.5.4.new/src/viewer/move.c	2011-10-09 23:56:05.000000000 +0200
+@@ -128,6 +128,7 @@ mcview_move_up (mcview_t * view, off_t l
+                          * and move down all but the last rows */
+                         new_offset = view->dpy_start - (off_t) last_row_length;
+                     }
++                    view->dpy_start_line--;
+                 }
+                 else
+                 {
+@@ -143,6 +144,7 @@ mcview_move_up (mcview_t * view, off_t l
+                 /* if unwrapped -> current BOL equals dpy_start, just find BOL of previous line */
+                 new_offset = view->dpy_start - 1;
+                 view->dpy_start = mcview_bol (view, new_offset, 0);
++                view->dpy_start_line--;
+             }
+         }
+     }
+@@ -193,7 +195,11 @@ mcview_move_down (mcview_t * view, off_t
+                 else
+                     new_offset = mcview_eol (view, view->dpy_start, last_byte);
+                 if (new_offset < last_byte)
++                {
+                     view->dpy_start = new_offset;
++                    if(new_offset == mcview_bol (view, new_offset, new_offset - (off_t) 1))
++                        view->dpy_start_line++;
++                }
+                 if (view->dpy_end >= last_byte)
+                     break;
+             }
+@@ -210,7 +216,11 @@ mcview_move_down (mcview_t * view, off_t
+                 else
+                     new_offset = mcview_eol (view, view->dpy_start, last_byte);
+                 if (new_offset < last_byte)
++                {
+                     view->dpy_start = new_offset;
++                    if(new_offset == mcview_bol (view, new_offset, new_offset - (off_t) 1))
++                        view->dpy_start_line++;
++                }
+             }
+         }
+     }
+@@ -298,9 +308,12 @@ void
+ mcview_moveto_top (mcview_t * view)
+ {
+     view->dpy_start = 0;
++    view->dpy_start_line = 0;
+     view->hex_cursor = 0;
+     view->dpy_text_column = 0;
+     mcview_movement_fixups (view, TRUE);
++    if (view->dpy_lines_status != LINE_COUNT_SET)
++        view->dpy_lines_status = LINE_COUNT_GROWING;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -327,6 +340,12 @@ mcview_moveto_bottom (mcview_t * view)
+         const off_t datalines = view->data_area.height;
+ 
+         view->dpy_start = filesize;
++        if (view->dpy_lines_status != LINE_COUNT_SET) {
++            view->dpy_lines_status = LINE_COUNT_BACKWARD;
++            view->dpy_start_line = 0;
++        }
++        else
++            view->dpy_start_line=view->dpy_lines_total;
+         mcview_move_up (view, datalines);
+     }
+ }
+@@ -447,6 +466,7 @@ mcview_coord_to_offset (mcview_t * view,
+     coord.cc_nroff_column = column;
+     mcview_ccache_lookup (view, &coord, CCACHE_OFFSET);
+     *ret_offset = coord.cc_offset;
++    view->dpy_start_line = coord.cc_line;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff -urp mc-4.7.5.4/src/viewer/plain.c mc-4.7.5.4.new/src/viewer/plain.c
+--- mc-4.7.5.4/src/viewer/plain.c	2011-09-12 11:33:00.000000000 +0200
++++ mc-4.7.5.4.new/src/viewer/plain.c	2011-10-10 00:54:31.000000000 +0200
+@@ -84,6 +84,7 @@ mcview_display_text (mcview_t * view)
+ 
+     /* Find the first displayable changed byte */
+     from = view->dpy_start;
++    view->dpy_visible_lines = 0;
+     while ((curr != NULL) && (curr->offset < from))
+         curr = curr->next;
+ 
+@@ -101,12 +102,28 @@ mcview_display_text (mcview_t * view)
+ 
+             c = mcview_get_utf (view, from, &cw, &read_res);
+             if (!read_res)
++            {
++                if (view->dpy_lines_status == LINE_COUNT_GROWING)
++                    view->dpy_lines_status = LINE_COUNT_SET;
++                if (view->dpy_lines_status == LINE_COUNT_UNKNOWN) {
++                    view->dpy_lines_status = LINE_COUNT_BACKWARD;
++                    view->dpy_start_line = -view->dpy_visible_lines;
++                }
+                 break;
++            }
+         }
+         else
+ #endif
+         if (!mcview_get_byte (view, from, &c))
++            {
++            if (view->dpy_lines_status == LINE_COUNT_GROWING)
++                view->dpy_lines_status = LINE_COUNT_SET;
++            if (view->dpy_lines_status == LINE_COUNT_UNKNOWN) {
++                view->dpy_lines_status = LINE_COUNT_BACKWARD;
++                view->dpy_start_line = -view->dpy_visible_lines;
++            }
+             break;
++        }
+ 
+         last_row = FALSE;
+         from++;
+@@ -130,6 +147,7 @@ mcview_display_text (mcview_t * view)
+         {
+             col = 0;
+             row++;
++            view->dpy_visible_lines++;
+             continue;
+         }
+ 
+@@ -193,6 +211,20 @@ mcview_display_text (mcview_t * view)
+ #endif
+     }
+ 
++    if (view->dpy_lines_status != LINE_COUNT_BACKWARD && view->dpy_start_line+view->dpy_visible_lines>view->dpy_lines_total)
++        view->dpy_lines_total = view->dpy_start_line+view->dpy_visible_lines;
++    else if (view->dpy_lines_status != LINE_COUNT_BACKWARD && view->dpy_lines_total<-view->dpy_start_line+view->dpy_visible_lines)
++        view->dpy_lines_total = -view->dpy_start_line+view->dpy_visible_lines;
++    else if (view->dpy_lines_total<-view->dpy_start_line)
++        view->dpy_lines_total = -view->dpy_start_line;
++    if (view->dpy_start == 0)
++    {
++        view->dpy_start_line = 0;
++        if (view->dpy_lines_status == LINE_COUNT_BACKWARD)
++            view->dpy_lines_status = LINE_COUNT_SET;
++        if (view->dpy_lines_status == LINE_COUNT_UNKNOWN)
++            view->dpy_lines_status = LINE_COUNT_GROWING;
++    }
+     view->dpy_end = from;
+     if (mcview_show_eof != NULL && mcview_show_eof[0] != '\0')
+     {
+diff -urp mc-4.7.5.4/src/viewer/search.c mc-4.7.5.4.new/src/viewer/search.c
+--- mc-4.7.5.4/src/viewer/search.c	2011-07-25 14:16:44.000000000 +0200
++++ mc-4.7.5.4.new/src/viewer/search.c	2011-10-10 01:48:37.000000000 +0200
+@@ -325,6 +325,9 @@ mcview_do_search (mcview_t * view)
+     }
+     while (mcview_may_still_grow (view));
+ 
++    view->dpy_lines_status = LINE_COUNT_UNKNOWN;
++    view->dpy_start_line = 0;
++
+     if (view->search_start != 0 && !isFound && need_search_again
+         && !mcview_search_options.backwards)
+     {

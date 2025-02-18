@@ -1,0 +1,131 @@
+diff --git a/lib/skin.h b/lib/skin.h
+index 8d32180..0518e8a 100644
+--- a/lib/skin.h
++++ b/lib/skin.h
+@@ -79,35 +79,36 @@
+ #define VIEW_BOLD_COLOR           mc_skin_color__cache[45]
+ #define VIEW_UNDERLINED_COLOR     mc_skin_color__cache[46]
+ #define VIEW_SELECTED_COLOR       mc_skin_color__cache[47]
++#define VIEW_FADE_COLOR           mc_skin_color__cache[48]
+ 
+ /*
+  * editor colors - only 4 for normal, search->found, select, and whitespace
+  * respectively
+  * Last is defined to view color.
+  */
+-#define EDITOR_NORMAL_COLOR       mc_skin_color__cache[48]
+-#define EDITOR_BOLD_COLOR         mc_skin_color__cache[49]
+-#define EDITOR_MARKED_COLOR       mc_skin_color__cache[50]
+-#define EDITOR_WHITESPACE_COLOR   mc_skin_color__cache[51]
+-#define EDITOR_RIGHT_MARGIN_COLOR mc_skin_color__cache[52]
+-#define EDITOR_BACKGROUND         mc_skin_color__cache[53]
+-#define EDITOR_FRAME              mc_skin_color__cache[54]
+-#define EDITOR_FRAME_ACTIVE       mc_skin_color__cache[55]
+-#define EDITOR_FRAME_DRAG         mc_skin_color__cache[56]
++#define EDITOR_NORMAL_COLOR       mc_skin_color__cache[49]
++#define EDITOR_BOLD_COLOR         mc_skin_color__cache[50]
++#define EDITOR_MARKED_COLOR       mc_skin_color__cache[51]
++#define EDITOR_WHITESPACE_COLOR   mc_skin_color__cache[52]
++#define EDITOR_RIGHT_MARGIN_COLOR mc_skin_color__cache[53]
++#define EDITOR_BACKGROUND         mc_skin_color__cache[54]
++#define EDITOR_FRAME              mc_skin_color__cache[55]
++#define EDITOR_FRAME_ACTIVE       mc_skin_color__cache[56]
++#define EDITOR_FRAME_DRAG         mc_skin_color__cache[57]
+ /* color of left 8 char status per line */
+-#define LINE_STATE_COLOR          mc_skin_color__cache[57]
+-#define BOOK_MARK_COLOR           mc_skin_color__cache[58]
+-#define BOOK_MARK_FOUND_COLOR     mc_skin_color__cache[59]
++#define LINE_STATE_COLOR          mc_skin_color__cache[58]
++#define BOOK_MARK_COLOR           mc_skin_color__cache[59]
++#define BOOK_MARK_FOUND_COLOR     mc_skin_color__cache[60]
+ 
+ /* Diff colors */
+-#define DFF_ADD_COLOR             mc_skin_color__cache[60]
+-#define DFF_CHG_COLOR             mc_skin_color__cache[61]
+-#define DFF_CHH_COLOR             mc_skin_color__cache[62]
+-#define DFF_CHD_COLOR             mc_skin_color__cache[63]
+-#define DFF_DEL_COLOR             mc_skin_color__cache[64]
+-#define DFF_ERROR_COLOR           mc_skin_color__cache[65]
+-
+-#define MC_SKIN_COLOR_CACHE_COUNT 66
++#define DFF_ADD_COLOR             mc_skin_color__cache[61]
++#define DFF_CHG_COLOR             mc_skin_color__cache[62]
++#define DFF_CHH_COLOR             mc_skin_color__cache[63]
++#define DFF_CHD_COLOR             mc_skin_color__cache[64]
++#define DFF_DEL_COLOR             mc_skin_color__cache[65]
++#define DFF_ERROR_COLOR           mc_skin_color__cache[66]
++
++#define MC_SKIN_COLOR_CACHE_COUNT 67
+ 
+ /*** enums ***************************************************************************************/
+ 
+diff --git a/lib/skin/colors.c b/lib/skin/colors.c
+index 61e3a80..18ecbed 100644
+--- a/lib/skin/colors.c
++++ b/lib/skin/colors.c
+@@ -237,6 +237,7 @@ mc_skin_color_cache_init (void)
+     VIEW_BOLD_COLOR = mc_skin_color_get ("viewer", "viewbold");
+     VIEW_UNDERLINED_COLOR = mc_skin_color_get ("viewer", "viewunderline");
+     VIEW_SELECTED_COLOR = mc_skin_color_get ("viewer", "viewselected");
++    VIEW_FADE_COLOR = mc_skin_color_get ("viewer", "viewfade");
+ 
+     EDITOR_NORMAL_COLOR = mc_skin_color_get ("editor", "_default_");
+     EDITOR_BOLD_COLOR = mc_skin_color_get ("editor", "editbold");
+diff --git a/misc/skins/gray-green-purple256.ini b/misc/skins/gray-green-purple256.ini
+index 964b26f..8b3734d 100644
+--- a/misc/skins/gray-green-purple256.ini
++++ b/misc/skins/gray-green-purple256.ini
+@@ -120,6 +120,7 @@
+     viewbold = rgb000;;bold
+     viewunderline = ;;underline
+     viewselected = rgb303;rgb141;bold
++    viewfade = gray11
+ 
+ [diffviewer]
+     added = ;rgb340
+diff --git a/misc/skins/gray-orange-blue256.ini b/misc/skins/gray-orange-blue256.ini
+index f8426f1..024db09 100644
+--- a/misc/skins/gray-orange-blue256.ini
++++ b/misc/skins/gray-orange-blue256.ini
+@@ -120,6 +120,7 @@
+     viewbold = rgb000;;bold
+     viewunderline = ;;underline
+     viewselected = rgb004;rgb530;bold
++    viewfade = gray11
+ 
+ [diffviewer]
+     added = ;rgb340
+diff --git a/src/viewer/ascii.c b/src/viewer/ascii.c
+index d04a544..3c772a3 100644
+--- a/src/viewer/ascii.c
++++ b/src/viewer/ascii.c
+@@ -616,6 +616,9 @@ mcview_display_line (mcview_t * view, mcview_state_machine_t * state, int row,
+ 
+         state_saved = *state;
+         n = mcview_next_combining_char_sequence (view, state, cs, 1 + MAX_COMBINING_CHARS, &color);
++        if (state->paraline > 0 && color == VIEW_NORMAL_COLOR)
++            color = VIEW_FADE_COLOR;
++
+         if (n == 0)
+         {
+             if (linewidth != NULL)
+@@ -666,6 +669,7 @@ mcview_display_line (mcview_t * view, mcview_state_machine_t * state, int row,
+             && col > 0)
+         {
+             *state = state_saved;
++            state->paraline++;
+             if (paragraph_ended != NULL)
+                 *paragraph_ended = FALSE;
+             if (linewidth != NULL)
+diff --git a/src/viewer/internal.h b/src/viewer/internal.h
+index 9a507ad..329c964 100644
+--- a/src/viewer/internal.h
++++ b/src/viewer/internal.h
+@@ -95,6 +95,7 @@ typedef struct
+     off_t offset;               /* The file offset at which this is the state. */
+     off_t unwrapped_column;     /* Columns if the paragraph wasn't wrapped, */
+     /* used for positioning TABs in wrapped lines */
++    off_t paraline;             /* Line number within the paragraph, 0-based */
+     gboolean nroff_underscore_is_underlined;    /* whether _\b_ is underlined rather than bold */
+     gboolean print_lonely_combining;    /* whether lonely combining marks are printed on a dotted circle */
+ } mcview_state_machine_t;

@@ -1,0 +1,53 @@
+diff -urN -x '*~' mc-4.8.10.orig/src/vfs/extfs/helpers/urar.in mc-4.8.10/src/vfs/extfs/helpers/urar.in
+--- mc-4.8.10.orig/src/vfs/extfs/helpers/urar.in	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/vfs/extfs/helpers/urar.in	2013-11-25 04:44:14.000000000 +0100
+@@ -42,14 +42,41 @@
+      $UNRAR v -c- -cfg- "$1" | @AWK@ -v uid=`id -u` -v gid=`id -g` '
+ BEGIN { flag=0 }
+ /^-----------/ { flag++; if (flag > 1) exit 0; next }
+-flag==1 {
+-    split($5, a, "-")
+-    if (index($1, "D") != 0)
+-	$1="drwxr-xr-x"
+-    else
+-	if (index($1, ".") != 0)
+-	    $1="-rw-r--r--"
+-    printf "%s 1 %s %s %d %02d/%02d/%02d %s ./%s\n", $1, uid, gid, $2, a[2], a[1], a[3], $6, $8
++flag == 1 {
++    name=""; delete fields; delete seps;
++
++    ### split line, save n-fields and save seperators in "seps"
++    ### tested with busybox awk
++    nameparts = split($0, fields, " ");
++    split($0, seps, "[^ \t]+");
++    sub("^  ", "", seps[8]);
++
++    ### split date for reformatting
++    split(fields[5], date, "-");
++
++    ### check/adjust rights
++    if (index(fields[1], "D") != 0) {
++        fields[1] = "drwxr-xr-x";
++    } else {
++        if (index(fields[1], ".") != 0) {
++            fields[1] = "-rw-r--r--";
++        }
++    }
++
++    ### join filename from fields 8 .. nameparts (saved above)
++    for(i = 8; i <= nameparts; i++) {
++        name=name seps[i] fields[i];
++    }
++    name=name seps[i];
++
++    ### remove padding blanks from short names
++    if (length(name)<13) {
++        sub(" *$", "", name);
++    }
++
++    printf("%s 1 %s %s %d %02d/%02d/%02d %s ./%s\n", 
++           fields[1], uid, gid, fields[2], date[2],
++           date[1], date[3], fields[6], name);
+ }'
+ }
+ 

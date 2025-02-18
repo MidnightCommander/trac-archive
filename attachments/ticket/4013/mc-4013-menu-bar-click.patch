@@ -1,0 +1,13 @@
+diff --git a/lib/widget/menu.c b/lib/widget/menu.c
+index e75f0738e..b7476b62b 100644
+--- a/lib/widget/menu.c
++++ b/lib/widget/menu.c
+@@ -692,7 +692,7 @@ menubar_get_menu_by_x_coord (const WMenuBar * menubar, int x)
+     GList *menu;
+ 
+     for (i = 0, menu = menubar->menu;
+-         menu != NULL && x > MENU (menu->data)->start_x; i++, menu = g_list_next (menu))
++         menu != NULL && x >= MENU (menu->data)->start_x; i++, menu = g_list_next (menu))
+         ;
+ 
+     /* Don't set the invalid value -1 */

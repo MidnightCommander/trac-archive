@@ -1,0 +1,51 @@
+
+fix clang 3.6 compiler warnings
+
+patch 01: -Wundef
+patch 02: -Wunused-function
+patch 03: -Wnon-literal-null-conversion
+patch 04: -Wmissing-field-initializers
+patch 05: -Wabsolute-value
+patch 06: -Wtautological-pointer-compare
+patch 07: -Wformat
+
+lib/util.c:345:34: warning: comparison of array 'global_scope' not equal to a null pointer is always true [-Wtautological-pointer-compare]
+libsmb/namequery.c:548:9: warning: comparison of array 'name_resolve_list' equal to a null pointer is always false [-Wtautological-pointer-compare]
+libsmb/nmblib.c:78:36: warning: comparison of array 'res->rdata' equal to a null pointer is always false [-Wtautological-pointer-compare]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/vfs/smbfs/helpers/lib/util.c
++++ b/src/vfs/smbfs/helpers/lib/util.c
+@@ -342,7 +342,7 @@
+     p[0] = '\0';
+ 
+     /* Add the scope string. */
+-    for (i = 0, len = 0; NULL != global_scope; i++, len++)
++    for (i = 0, len = 0;; i++, len++)
+     {
+         switch (global_scope[i])
+         {
+
+--- a/src/vfs/smbfs/helpers/libsmb/namequery.c
++++ b/src/vfs/smbfs/helpers/libsmb/namequery.c
+@@ -545,7 +545,7 @@
+     }
+ 
+     pstrcpy (name_resolve_list, lp_name_resolve_order ());
+-    if (name_resolve_list == NULL || *name_resolve_list == '\0')
++    if (name_resolve_list[0] == '\0' || *name_resolve_list == '\0')
+         pstrcpy (name_resolve_list, "host");
+     ptr = name_resolve_list;
+ 
+--- a/src/vfs/smbfs/helpers/libsmb/nmblib.c
++++ b/src/vfs/smbfs/helpers/libsmb/nmblib.c
+@@ -75,7 +75,7 @@
+     DEBUGADD (4, ("    %s: nmb_name=%s rr_type=%d rr_class=%d ttl=%d\n",
+                   hdr, nmb_namestr (&res->rr_name), res->rr_type, res->rr_class, res->ttl));
+ 
+-    if (res->rdlength == 0 || res->rdata == NULL)
++    if (res->rdlength == 0 || res->rdata[0] == '\0')
+         return;
+ 
+     for (i = 0; i < res->rdlength; i += 16)

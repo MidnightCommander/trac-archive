@@ -1,0 +1,344 @@
+From 738bab54f4a9a64b788508ccc9a7bdc808ea1795 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 26 Nov 2015 00:28:08 +0200
+Subject: [PATCH] High-level mouse API.
+
+---
+ lib/widget/Makefile.am     |   1 +
+ lib/widget/mouse.c         | 194 +++++++++++++++++++++++++++++++++++++++++++++
+ lib/widget/mouse.h         |  66 +++++++++++++++
+ lib/widget/widget-common.c |   2 +
+ lib/widget/widget-common.h |  11 +++
+ 5 files changed, 274 insertions(+)
+ create mode 100644 lib/widget/mouse.c
+ create mode 100644 lib/widget/mouse.h
+
+diff --git a/lib/widget/Makefile.am b/lib/widget/Makefile.am
+index 40058c9..c918ec8 100644
+--- a/lib/widget/Makefile.am
++++ b/lib/widget/Makefile.am
+@@ -17,6 +17,7 @@ libmcwidget_la_SOURCES = \
+ 	listbox.c listbox.h \
+ 	label.c label.h \
+ 	menu.c menu.h \
++	mouse.c mouse.h \
+ 	quick.c quick.h \
+ 	radio.c radio.h \
+ 	widget-common.c widget-common.h \
+diff --git a/lib/widget/mouse.c b/lib/widget/mouse.c
+new file mode 100644
+index 0000000..70b6676
+--- /dev/null
++++ b/lib/widget/mouse.c
+@@ -0,0 +1,194 @@
++/*
++   Widgets for the Midnight Commander
++
++   Copyright (C) 1994-2015
++   Free Software Foundation, Inc.
++
++   Authors:
++   Human beings.
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file mouse.c
++ *  \brief Header: High-level mouse API
++ */
++
++#include <config.h>
++
++#include "lib/global.h"
++#include "lib/widget.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++static int last_buttons_down;
++
++/* --------------------------------------------------------------------------------------------- */
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * Constructs a mouse event structure. The is the high-level type used
++ * with "easy callbacks".
++ */
++static void
++init_mouse_event (mouse_event_t * event, mouse_msg_t msg, const Gpm_Event * global_gpm,
++                  const Widget * w)
++{
++    event->msg = msg;
++    event->x = global_gpm->x - w->x - 1;        /* '-1' because Gpm_Event is 1-based. */
++    event->y = global_gpm->y - w->y - 1;
++    event->count = global_gpm->type & (GPM_SINGLE | GPM_DOUBLE | GPM_TRIPLE);
++    event->buttons = global_gpm->buttons;
++    event->result.abort = FALSE;
++    event->result.repeat = FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * This is the low-level mouse handler that's in use when you install
++ * an "easy callback".
++ *
++ * It receives a Gpm_Event event and translates it into a higher level
++ * protocol with which it feeds your "easy callback".
++ *
++ * Tip: for details on the C mouse API, see MC's lib/tty/mouse.h,
++ * or GPM's excellent 'info' manual:
++ *
++ *    http://www.fifi.org/cgi-bin/info2www?(gpm)Event+Types
++ */
++static int
++easy_mouse_translator (Gpm_Event * event, void *data)
++{
++    Widget *w = WIDGET (data);
++
++    gboolean in_widget;
++    gboolean run_click = FALSE;
++    mouse_msg_t msg = 0;
++
++    in_widget = mouse_global_in_widget (event, w);
++
++    /*
++     * Very special widgets may want to control area outside their bounds.
++     * For such widgets you will have to turn on the 'forced_capture' flag.
++     * You'll also need, in your mouse handler, to inform the system of
++     * events you want to pass on by setting 'event->result.abort' to TRUE.
++     */
++    if (w->Mouse.forced_capture)
++        in_widget = TRUE;
++
++    if ((event->type & GPM_DOWN) != 0)
++    {
++        if (in_widget)
++        {
++            if ((event->buttons & GPM_B_UP) != 0)
++                msg = MSG_MOUSE_SCROLL_UP;
++            else if ((event->buttons & GPM_B_DOWN) != 0)
++                msg = MSG_MOUSE_SCROLL_DOWN;
++            else
++            {
++                /* Handle normal buttons: anything but the mouse wheel's.
++                 *
++                 * (Note that turning on capturing for the mouse wheel
++                 * buttons doesn't make sense as they don't generate a
++                 * mouse_up event, which means we'd never get uncaptured.)
++                 */
++                w->Mouse.capture = TRUE;
++                msg = MSG_MOUSE_DOWN;
++
++                last_buttons_down = event->buttons;
++            }
++        }
++    }
++    else if ((event->type & GPM_UP) != 0)
++    {
++        /* We trigger the mouse_up event even when !in_widget. That's
++         * because, for example, a paint application should stop drawing
++         * lines when the button is released even outside the canvas. */
++        if (w->Mouse.capture)
++        {
++            w->Mouse.capture = FALSE;
++            msg = MSG_MOUSE_UP;
++
++            if (in_widget)
++                run_click = TRUE;
++
++            /*
++             * When using xterm, event->buttons reports the buttons' state
++             * after the event occurred (meaning that event->buttons is zero,
++             * because the mouse button is now released). When using GPM,
++             * however, that field reports the button(s) that was released.
++             *
++             * The following makes xterm behave effectively like GPM:
++             */
++            if (event->buttons == 0)
++                event->buttons = last_buttons_down;
++        }
++    }
++    else if ((event->type & GPM_DRAG) != 0)
++    {
++        if (w->Mouse.capture)
++            msg = MSG_MOUSE_DRAG;
++    }
++    else if ((event->type & GPM_MOVE) != 0)
++    {
++        if (in_widget)
++            msg = MSG_MOUSE_MOVE;
++    }
++
++    if (msg != 0)
++    {
++        mouse_event_t local;
++
++        init_mouse_event (&local, msg, event, w);
++
++        w->Mouse.callback (w, msg, &local);
++        if (run_click)
++            w->Mouse.callback (w, MSG_MOUSE_CLICK, &local);
++
++        if (!local.result.abort)
++            return local.result.repeat ? MOU_REPEAT : MOU_NORMAL;
++    }
++
++    return MOU_UNHANDLED;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++/**
++ * Use this to install an "easy mouse callback".
++ *
++ * (The mouse callback widget_init() accepts is a low-level one; you can
++ * pass NULL to it. In the future we'll probably do the opposite: have
++ * widget_init() accept the "easy" callback.)
++ */
++void
++set_easy_mouse_callback (Widget * w, easy_mouse_callback cb)
++{
++    w->mouse = easy_mouse_translator;
++    w->Mouse.callback = cb;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/mouse.h b/lib/widget/mouse.h
+new file mode 100644
+index 0000000..ba4c97e
+--- /dev/null
++++ b/lib/widget/mouse.h
+@@ -0,0 +1,66 @@
++/** \file mouse.h
++ *  \brief Header: Hight-level mouse API.
++ *
++ * This is a thin layer over the low-level mouse protocol in lib/tty/mouse.h.
++ * The latter is oblivious to the regions on the screen and is therefore a
++ * bit hard to use in widgets. This layer translates the low level Gpm_Event
++ * into something that's easy to work with in widgets.
++ */
++
++#ifndef MC__WIDGET_MOUSE_H
++#define MC__WIDGET_MOUSE_H
++
++/*** enums ***************************************************************************************/
++
++/* Mouse messages */
++typedef enum
++{
++    /*
++     * Notes:
++     * (1) "anywhere" means "inside or outside the widget".
++     * (2) the mouse wheel is not considered "mouse button".
++     */
++    MSG_MOUSE_DOWN = 1,         /* When mouse button is pressed down inside the widget. */
++    MSG_MOUSE_UP,               /* When mouse button, previously pressed inside the widget, is released anywhere. */
++    MSG_MOUSE_CLICK,            /* When mouse button, previously pressed inside the widget, is released inside the widget. */
++    MSG_MOUSE_DRAG,             /* When a drag, initiated by button press inside the widget, occurs anywhere. */
++    MSG_MOUSE_MOVE,             /* (Not currently implemented in MC.) */
++    MSG_MOUSE_SCROLL_UP,        /* When mouse wheel is rotated away from the user. */
++    MSG_MOUSE_SCROLL_DOWN       /* When mouse wheel is rotated towards the user. */
++} mouse_msg_t;
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++/* Mouse event structure. */
++typedef struct
++{
++    mouse_msg_t msg;
++
++    int x, y;                   /* Local to the widget. */
++    int buttons;                /* Bitwise-or of: GPM_B_LEFT, GPM_B_MIDDLE, GPM_B_RIGHT */
++    int count;                  /* One of: GPM_SINGLE, GPM_DOUBLE, GPM_TRIPLE */
++
++    /* A mechanism for the callback to report back: */
++    struct
++    {
++        gboolean abort;
++        gboolean repeat;
++    } result;
++} mouse_event_t;
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++/* A callback to respond to mouse events.
++ * Note: We embed "easy" in it to distinguish it from the old-style callbacks we still use. */
++typedef void (*easy_mouse_callback) (Widget *, mouse_msg_t msg, mouse_event_t *);
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++/* Installs an easy callback on a widget. */
++void set_easy_mouse_callback (Widget * w, easy_mouse_callback cb);
++
++/*** inline functions ****************************************************************************/
++
++#endif /* MC__WIDGET_MOUSE_H */
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index 3571ed2..5499de8 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -149,6 +149,8 @@ widget_init (Widget * w, int y, int x, int lines, int cols,
+     w->mouse = mouse_handler;
+     w->set_options = widget_default_set_options_callback;
+     w->owner = NULL;
++    w->Mouse.capture = FALSE;
++    w->Mouse.forced_capture = FALSE;
+ 
+     /* Almost all widgets want to put the cursor in a suitable place */
+     w->options = W_WANT_CURSOR;
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index 0398a1e..6072445 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -7,6 +7,7 @@
+ #define MC__WIDGET_INTERNAL_H
+ 
+ #include "lib/tty/mouse.h"
++#include "lib/widget/mouse.h"   /* typedef easy_mouse_callback */
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+@@ -105,6 +106,16 @@ struct Widget
+     mouse_h mouse;
+     void (*set_options) (Widget * w, widget_options_t options, gboolean enable);
+     struct WDialog *owner;
++
++    /* Mouse-related fields. */
++    struct
++    {
++        easy_mouse_callback callback;
++        gboolean capture;       /* Whether the widget "owns" the mouse. */
++        gboolean forced_capture;        /* Overrides the above. Set explicitly by the programmer. */
++    } Mouse;
++    /* "Mouse" capitalized -- as we already have a lowercase "mouse" here.
++     * @FIXME: rename "mouse" to something else. */
+ };
+ 
+ /* structure for label (caption) with hotkey, if original text does not contain
+-- 
+2.1.4
+

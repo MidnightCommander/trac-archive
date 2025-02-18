@@ -1,0 +1,27 @@
+From a4def5280bd28501d99008c54b24d04736cf12e0 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 24 Apr 2016 17:37:26 +0000
+Subject: [PATCH] Cleanup cppcheck warning at direntry.c
+
+Cleanup following cppcheck warnings:
+
+[src/filemanager/layout.c:231]: (style) Clarify calculation precedence for '&' and '?'.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/layout.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index a95c501..6b6eda1 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -228,7 +228,7 @@ update_split (const WDialog * h)
+         check_options[0].widget->state = panels_layout.vertical_equal ? 1 : 0;
+     widget_redraw (WIDGET (check_options[0].widget));
+ 
+-    tty_setcolor (check_options[0].widget->state & C_BOOL ? DISABLED_COLOR : COLOR_NORMAL);
++    tty_setcolor ((check_options[0].widget->state & C_BOOL) ? DISABLED_COLOR : COLOR_NORMAL);
+ 
+     widget_move (h, 6, 5);
+     if (panels_layout.horizontal_split)

@@ -1,0 +1,11 @@
+--- mc-4.8.2/lib/search/regex.c.case	2011-11-27 08:11:03.000000000 -0600
++++ mc-4.8.2/lib/search/regex.c	2012-03-27 10:16:31.000000000 -0500
+@@ -748,7 +748,7 @@
+     if (str_isutf8 (charset) && mc_global.utf8_display)
+     {
+         pcre_options |= PCRE_UTF8;
+-        if (lc_mc_search->is_case_sensitive)
++        if (!lc_mc_search->is_case_sensitive)
+             pcre_options |= PCRE_CASELESS;
+     }
+     else

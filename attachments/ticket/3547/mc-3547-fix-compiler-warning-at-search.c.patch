@@ -1,0 +1,39 @@
+From 8c21e63dbcca4167942a99b76a89f0bbb376e1f6 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 20 Nov 2015 20:54:52 +0000
+Subject: [PATCH] fix compiler warning at search.c
+
+search.c:56:12: warning: implicit conversion changes signedness: 'int' to 'mc_search_type_t' [-Wsign-conversion]
+    {NULL, -1}
+    ~      ^~
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/search.h        | 1 +
+ lib/search/search.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/search.h b/lib/search.h
+index d8d9003..c0d56d0 100644
+--- a/lib/search.h
++++ b/lib/search.h
+@@ -41,6 +41,7 @@ typedef enum
+ 
+ typedef enum
+ {
++    MC_SEARCH_T_INVALID = -1,
+     MC_SEARCH_T_NORMAL,
+     MC_SEARCH_T_REGEX,
+     MC_SEARCH_T_HEX,
+diff --git a/lib/search/search.c b/lib/search/search.c
+index e891832..af3bbe8 100644
+--- a/lib/search/search.c
++++ b/lib/search/search.c
+@@ -53,7 +53,7 @@ static const mc_search_type_str_t mc_search__list_types[] = {
+     {N_("Re&gular expression"), MC_SEARCH_T_REGEX},
+     {N_("He&xadecimal"), MC_SEARCH_T_HEX},
+     {N_("Wil&dcard search"), MC_SEARCH_T_GLOB},
+-    {NULL, -1}
++    {NULL, MC_SEARCH_T_INVALID}
+ };
+ 
+ /*** file scope functions ************************************************************************/

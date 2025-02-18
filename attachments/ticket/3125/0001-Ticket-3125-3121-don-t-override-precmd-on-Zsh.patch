@@ -1,0 +1,29 @@
+From 53cd3c08133402d696928e362e61e3f1eafa9d6f Mon Sep 17 00:00:00 2001
+From: Igor Urazov <z0rc3r@gmail.com>
+Date: Mon, 16 Dec 2013 21:46:06 +0200
+Subject: [PATCH] Ticket #3125, #3121: don't override precmd on Zsh
+
+Do not override global precmd() funcation on Zsh. Define new
+_mc_precmd() function and add it to precmd_functions array instead. This
+also effectively fixes race condition with pwd call on Zsh, which may lead to
+empty prompt in mc.
+---
+ src/subshell.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/subshell.c b/src/subshell.c
+index dbee581..80ce405 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -892,7 +892,7 @@ init_subshell (void)
+ 
+     case ZSH:
+         g_snprintf (precmd, sizeof (precmd),
+-                    " precmd(){ pwd>&%d;kill -STOP $$ }\n", subshell_pipe[WRITE]);
++                    " _mc_precmd(){ pwd>&%d;kill -STOP $$ }; precmd_functions+=_mc_precmd\n", subshell_pipe[WRITE]);
+         break;
+ 
+     case TCSH:
+-- 
+1.8.5.1
+

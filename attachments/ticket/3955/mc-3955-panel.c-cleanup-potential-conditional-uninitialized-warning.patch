@@ -1,0 +1,33 @@
+From 19d1974b02a44b3a0f3910cad4cda8ccd16f71ba Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 5 Jan 2019 15:24:56 +0000
+Subject: [PATCH] panel.c: cleanup potential conditional uninitialized warning
+
+Found by Clang 6.0.1
+
+panel.c:1751:23: error: variable 'klen' may be uninitialized when used here [-Werror,-Wconditional-uninitialized]
+            format += klen;
+                      ^~~~
+panel.c:1715:20: note: initialize the variable 'klen' to silence this warning
+        size_t klen;
+                   ^
+                    = 0
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/panel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 1662d9e3a..64e880eef 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1712,7 +1712,7 @@ parse_display_format (WPanel * panel, const char *format, char **error, gboolean
+         align_crt_t justify;    /* Which mode. */
+         gboolean set_justify = TRUE;    /* flag: set justification mode? */
+         gboolean found = FALSE;
+-        size_t klen;
++        size_t klen = 0;
+ 
+         darr = g_new0 (format_item_t, 1);
+         home = g_slist_append (home, darr);

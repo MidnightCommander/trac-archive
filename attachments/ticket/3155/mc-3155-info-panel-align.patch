@@ -1,0 +1,4473 @@
+diff --git a/po/az.po b/po/az.po
+index 75f48f5..5c27489 100644
+--- a/po/az.po
++++ b/po/az.po
+@@ -2878,31 +2878,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "yerli olmayan vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Avadanlıq:\t%s"
++msgid "Device:     %s"
++msgstr "Avadanlıq:  %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Fayl sistemi: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Çatılıb:\t%s"
++msgid "Accessed:   %s"
++msgstr "Çatılıb:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Düzəldilib:\t%s"
++msgid "Modified:   %s"
++msgstr "Düzəldilib: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,8 +2910,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Böyüklük:    %s"
++msgid "Size:       %s"
++msgstr "Böyüklük:   %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2920,20 +2920,20 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Yiyə :     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Yiyə:       %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Bağlar :   %d"
++msgid "Links:      %d"
++msgstr "Bağlar:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Mod :      %s ( %04o )"
++msgid "Mode:       %s (%04o)"
++msgstr "Mod:        %s ( %04o )"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Yeri:   %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Yeri:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Bərabər böl"
+diff --git a/po/be.po b/po/be.po
+index 16fe834..13b8418 100644
+--- a/po/be.po
++++ b/po/be.po
+@@ -2871,7 +2871,7 @@ msgid "No node information"
+ msgstr "Няма зьвестак пра вузел"
+ 
+ msgid "Free nodes:"
+-msgstr "Вузлы:"
++msgstr "Вузлы:      "
+ 
+ msgid "No space information"
+ msgstr "Няма зьвестак пра прастору"
+@@ -2881,14 +2881,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Прастора:    %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr "Від:         %s"
+ 
+ msgid "non-local vfs"
+ msgstr "нелякальная УФС"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Прылада:     %s"
+ 
+ #, c-format
+@@ -2896,16 +2896,16 @@ msgid "Filesystem: %s"
+ msgstr "Файл. сыст.: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Зьвярталіся: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Рэдаґавалі:  %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Зьмянілі:    %s"
+ 
+ #, c-format
+@@ -2913,7 +2913,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Від прылады: мажор %lu, мінор %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Памер:       %s"
+ 
+ #, c-format
+@@ -2925,19 +2925,19 @@ msgstr[2] " (%ld блёкаў)"
+ msgstr[3] " (%ld блёкаў)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Уладальнік:  %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Спасылкі:    %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Дазволы:     %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Месца:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/bg.po b/po/bg.po
+index e50b6fb..c3906c1 100644
+--- a/po/bg.po
++++ b/po/bg.po
+@@ -2876,17 +2876,17 @@ msgstr "Няма информация за пространството"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "Свободно пространство %s/%s (%d%%)"
++msgstr "Свободно пространство: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Вид: %s"
++msgid "Type:       %s"
++msgstr "Вид:          %s"
+ 
+ msgid "non-local vfs"
+ msgstr "не-локална vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Устройство:   %s"
+ 
+ #, c-format
+@@ -2894,24 +2894,24 @@ msgid "Filesystem: %s"
+ msgstr "Файлова с-ма: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Отварян:      %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Променян:     %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Променено: %s"
++msgid "Changed:    %s"
++msgstr "Променено:    %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Размер:       %s"
+ 
+ #, c-format
+@@ -2921,19 +2921,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Собственик:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Връзки:       %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Режим:        %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Разположен:   %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/ca.po b/po/ca.po
+index b9482fe..0f90f10 100644
+--- a/po/ca.po
++++ b/po/ca.po
+@@ -2883,14 +2883,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Tipus:   %s"
++msgid "Type:       %s"
++msgstr "Tipus:      %s"
+ 
+ msgid "non-local vfs"
+ msgstr "VFS no-local"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Dispositiu: %s"
+ 
+ #, c-format
+@@ -2898,25 +2898,25 @@ msgid "Filesystem: %s"
+ msgstr "Muntat a:   %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Accedit:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Modificat:  %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Modificat:   %s"
++msgid "Changed:    %s"
++msgstr "Modificat:  %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Mida:      %s"
++msgid "Size:       %s"
++msgstr "Mida:       %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2925,19 +2925,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Propietari: %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Enllaços:   %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Mode:       %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Ubicació:   %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/cs.po b/po/cs.po
+index 7ccab42..dadc24b 100644
+--- a/po/cs.po
++++ b/po/cs.po
+@@ -2880,14 +2880,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Typ:       %s"
++msgid "Type:       %s"
++msgstr "Typ:        %s"
+ 
+ msgid "non-local vfs"
+ msgstr "vzdálený vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Zařízení:   %s"
+ 
+ #, c-format
+@@ -2895,16 +2895,16 @@ msgid "Filesystem: %s"
+ msgstr "Systém souborů: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Přístup:   %s"
++msgid "Accessed:   %s"
++msgstr "Přístup:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Změněn:   %s"
++msgid "Modified:   %s"
++msgstr "Změněn:     %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "I-uzel změněn: %s"
+ 
+ #, c-format
+@@ -2912,8 +2912,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Typ zařízení: větší %lu, menší %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Velikost:  %s"
++msgid "Size:       %s"
++msgstr "Velikost:   %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2923,20 +2923,20 @@ msgstr[1] " (%ld bloky)"
+ msgstr[2] " (%ld bloků)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Vlastník:  %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Vlastník:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Odkazů:    %d"
++msgid "Links:      %d"
++msgstr "Odkazů:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Práva:     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Práva:      %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Poloha:    %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Poloha:     %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Rozdělení na &poloviny"
+diff --git a/po/da.po b/po/da.po
+index 87cf5cb..0ac7348 100644
+--- a/po/da.po
++++ b/po/da.po
+@@ -2879,14 +2879,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Type:      %s"
++msgid "Type:       %s"
++msgstr "Type:       %s"
+ 
+ msgid "non-local vfs"
+ msgstr "vfs der ikke er lokal"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Enhed:      %s"
+ 
+ #, c-format
+@@ -2894,25 +2894,25 @@ msgid "Filesystem: %s"
+ msgstr "Filsystem:  %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Læst:      %s"
++msgid "Accessed:   %s"
++msgstr "Læst:       %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Ændret:    %s"
++msgid "Modified:   %s"
++msgstr "Ændret:     %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Ændret:    %s"
++msgid "Changed:    %s"
++msgstr "Ændret:     %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Enhedstype: Stor %lu, lille %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Størrelse: %s"
++msgid "Size:       %s"
++msgstr "Størrelse:  %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2921,20 +2921,20 @@ msgstr[0] " (%ld blok)"
+ msgstr[1] " (%ld blokke)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Ejer:      %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Ejer:       %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Henvisninger: %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Tilstand:  %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Tilstand:   %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Sted:      %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Sted:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Ens opdeling"
+diff --git a/po/de.po b/po/de.po
+index cf699a6..0020a96 100644
+--- a/po/de.po
++++ b/po/de.po
+@@ -2880,14 +2880,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Freier Platz: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr "Typ:          %s"
+ 
+ msgid "non-local vfs"
+ msgstr "nicht-lokales vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Gerät:        %s"
+ 
+ #, c-format
+@@ -2895,24 +2895,24 @@ msgid "Filesystem: %s"
+ msgstr "Dateisystem:  %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Zugegriffen:  %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Geändert:     %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Ändern in: %s"
++msgid "Changed:    %s"
++msgstr "Ändern in:    %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Gerätetyp: %lu/%lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Größe:        %s"
+ 
+ #, c-format
+@@ -2922,19 +2922,19 @@ msgstr[0] " (%ld Block)"
+ msgstr[1] " (%ld Blöcke)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Eigentümer:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Links:        %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Modus:        %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Ort:          %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/de_CH.po b/po/de_CH.po
+index 88cd7cc..713689f 100644
+--- a/po/de_CH.po
++++ b/po/de_CH.po
+@@ -2877,14 +2877,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2892,16 +2892,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,7 +2909,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2919,19 +2919,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/el.po b/po/el.po
+index 4c8d45c..8335f48 100644
+--- a/po/el.po
++++ b/po/el.po
+@@ -2880,14 +2880,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Ελεύθερος χώρος: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr "Τύπος:      %s"
+ 
+ msgid "non-local vfs"
+ msgstr "μη τοπικό vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Συσκευή:    %s"
+ 
+ #, c-format
+@@ -2895,25 +2895,25 @@ msgid "Filesystem: %s"
+ msgstr "Σύστημα αρχείων: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Προσπελάστηκε:  %s"
++msgid "Accessed:   %s"
++msgstr "Προσπελάστηκε: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Τροποποιήθηκε:  %s"
++msgid "Modified:   %s"
++msgstr "Τροποποιήθηκε: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Άλλαξε:   %s"
++msgid "Changed:    %s"
++msgstr "Άλλαξε:     %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Μέγεθος:      %s"
++msgid "Size:       %s"
++msgstr "Μέγεθος:    %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2922,20 +2922,20 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Ιδιοκτήτης:     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Ιδιοκτήτης: %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Δεσμοί:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Λειτουργία:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Λειτουργία: %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Τοποθεσίαα:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Τοποθεσίαα: %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Ίσος διαχωρισμός"
+diff --git a/po/en_GB.po b/po/en_GB.po
+index 80d67ea..6ef0bdf 100644
+--- a/po/en_GB.po
++++ b/po/en_GB.po
+@@ -2877,14 +2877,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2892,16 +2892,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,7 +2909,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2919,19 +2919,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/eo.po b/po/eo.po
+index 0932e7f..57f6c48 100644
+--- a/po/eo.po
++++ b/po/eo.po
+@@ -2868,7 +2868,7 @@ msgid "No node information"
+ msgstr "Neniuj nodaj informoj"
+ 
+ msgid "Free nodes:"
+-msgstr "Liberaj nodoj:"
++msgstr "Liberaj nodoj: "
+ 
+ msgid "No space information"
+ msgstr "Neniuj spacaj informoj"
+@@ -2878,14 +2878,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Restanta spaco: %s el %s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Tipo:      %s"
++msgid "Type:       %s"
++msgstr "Tipo:       %s"
+ 
+ msgid "non-local vfs"
+ msgstr "fora virtuala dosiersistemo"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Aparato:    %s"
+ 
+ #, c-format
+@@ -2893,25 +2893,25 @@ msgid "Filesystem: %s"
+ msgstr "Dosiersistemo: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Atingita:  %s"
++msgid "Accessed:   %s"
++msgstr "Atingita:   %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Modifita:  %s"
++msgid "Modified:   %s"
++msgstr "Modifita:   %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Ŝanĝita:   %s"
++msgid "Changed:    %s"
++msgstr "Ŝanĝita:    %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Aparata tipo: granda %lu, malgranda %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Grando:      %s"
++msgid "Size:       %s"
++msgstr "Grando:     %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2920,20 +2920,20 @@ msgstr[0] " (%ld bloko)"
+ msgstr[1] " (%ld blokoj)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Estro:     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Estro:      %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Ligiloj:     %d"
++msgid "Links:      %d"
++msgstr "Ligiloj:    %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Permesoj:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Permesoj:   %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Loko:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Loko:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Same granda"
+diff --git a/po/es.po b/po/es.po
+index f90db5a..2392b74 100644
+--- a/po/es.po
++++ b/po/es.po
+@@ -2883,14 +2883,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Espacio libre: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr "  Tipo:        %s"
+ 
+ msgid "non-local vfs"
+ msgstr "VFS no-local"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "  Origen:      %s"
+ 
+ #, c-format
+@@ -2898,16 +2898,16 @@ msgid "Filesystem: %s"
+ msgstr "Sistema en     %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Accedido:      %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Modificado:    %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Cambiado:      %s"
+ 
+ #, c-format
+@@ -2915,7 +2915,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Dispositivo    major: %lu, minor: %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Tamaño:        %s"
+ 
+ #, c-format
+@@ -2925,19 +2925,19 @@ msgstr[0] " (%ld bloque)"
+ msgstr[1] " (%ld bloques)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Dueño:         %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Nº enlaces:    %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Modo:          %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Ubicado:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/et.po b/po/et.po
+index 9d28b7a..b0d82de 100644
+--- a/po/et.po
++++ b/po/et.po
+@@ -2878,14 +2878,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Vaba ruum: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr "Tüüp: %s"
+ 
+ msgid "non-local vfs"
+ msgstr "kaug VFS"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Seade: %s"
+ 
+ #, c-format
+@@ -2893,16 +2893,16 @@ msgid "Filesystem: %s"
+ msgstr "Failisüsteem: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Kasutatud: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Muudetud: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Muudeti: %s"
+ 
+ #, c-format
+@@ -2910,7 +2910,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Seadme tüüp: %lu, %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Suurus: %s"
+ 
+ #, c-format
+@@ -2920,19 +2920,19 @@ msgstr[0] "(%ld plokk)"
+ msgstr[1] "(%ld plokki)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Omanik: %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Viidad: %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Režiim: %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Asukoht: %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/eu.po b/po/eu.po
+index b98d28f..6f68928 100644
+--- a/po/eu.po
++++ b/po/eu.po
+@@ -2876,43 +2876,43 @@ msgstr "Ez dago leku-informaziorik"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "Leku askea: %s/%s (%d%%)"
++msgstr "Leku askea:  %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Mota:      %s"
++msgid "Type:       %s"
++msgstr "Mota:        %s"
+ 
+ msgid "non-local vfs"
+ msgstr "vfs ez-lokala"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Gailua:    %s"
++msgid "Device:     %s"
++msgstr "Gailua:      %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Fitxategi-sistema: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Atzipena:  %s"
++msgid "Accessed:   %s"
++msgstr "Atzipena:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Aldaketa:  %s"
++msgid "Modified:   %s"
++msgstr "Aldaketa:    %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Aldatuta:   %s"
++msgid "Changed:    %s"
++msgstr "Aldatuta:    %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Gailu mota: handiena %lu, txikiena %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Neurria:  %s"
++msgid "Size:       %s"
++msgstr "Neurria:     %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2921,20 +2921,20 @@ msgstr[0] " (bloke %ld)"
+ msgstr[1] " (%ld bloke)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Jabea:     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Jabea:       %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Estekak:   %d"
++msgid "Links:      %d"
++msgstr "Estekak:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Modua:     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Modua:       %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Kokalekua:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Kokalekua:   %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&zatiketa berdina"
+diff --git a/po/fa.po b/po/fa.po
+index d2b212a..a8defeb 100644
+--- a/po/fa.po
++++ b/po/fa.po
+@@ -2880,14 +2880,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2895,16 +2895,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2912,7 +2912,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2921,19 +2921,19 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/fi.po b/po/fi.po
+index 321bb42..272373b 100644
+--- a/po/fi.po
++++ b/po/fi.po
+@@ -2878,14 +2878,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2893,16 +2893,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,7 +2910,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2920,19 +2920,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/fi_FI.po b/po/fi_FI.po
+index b777dc3..4100993 100644
+--- a/po/fi_FI.po
++++ b/po/fi_FI.po
+@@ -2767,14 +2767,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2782,16 +2782,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2799,7 +2799,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2809,19 +2809,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/fr.po b/po/fr.po
+index 8b75c8b..23350ce 100644
+--- a/po/fr.po
++++ b/po/fr.po
+@@ -2864,7 +2864,7 @@ msgstr "Midnight Commander %s"
+ 
+ #, c-format
+ msgid "File: %s"
+-msgstr "Fichier: %s"
++msgstr "Fichier : %s"
+ 
+ msgid "No node information"
+ msgstr "Pas d'information sur les I-noeuds"
+@@ -2877,43 +2877,43 @@ msgstr "Pas d'information sur l'espace"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "Espace libre : %s/%s (%d%%)"
++msgstr "Espace libre :  %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Type :      %s"
++msgid "Type:       %s"
++msgstr "Type :          %s"
+ 
+ msgid "non-local vfs"
+ msgstr "VFS non local"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Périphérique : %s"
++msgid "Device:     %s"
++msgstr "Périphérique :  %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Système de fichiers: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Accédé: %s"
++msgid "Accessed:   %s"
++msgstr "Accédé :        %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Modifié: %s"
++msgid "Modified:   %s"
++msgstr "Modifié :       %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Modifié :   %s"
++msgid "Changed:    %s"
++msgstr "Modifié :       %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Type périph. : majeur %lu, mineur %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Taille: %s"
++msgid "Size:       %s"
++msgstr "Taille :        %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2922,20 +2922,20 @@ msgstr[0] " (%ld bloc)"
+ msgstr[1] "(%ld blocs)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Propriétaire : %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Propriétaire :  %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Liens: %d"
++msgid "Links:      %d"
++msgstr "Liens :         %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Mode :     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Mode :          %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Emplacement : %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Emplacement :   %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Séparer en d&eux parties égales"
+diff --git a/po/fr_CA.po b/po/fr_CA.po
+index 2a17ef3..56fd0c0 100644
+--- a/po/fr_CA.po
++++ b/po/fr_CA.po
+@@ -2877,14 +2877,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2892,16 +2892,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,7 +2909,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2919,19 +2919,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/gl.po b/po/gl.po
+index 4f5bfa0..f67646f 100644
+--- a/po/gl.po
++++ b/po/gl.po
+@@ -2882,40 +2882,40 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Espazo libre: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Tipo:      %s"
++msgid "Type:       %s"
++msgstr "Tipo:         %s"
+ 
+ msgid "non-local vfs"
+ msgstr "VFS non-local"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Dispositivo:   %s"
++msgid "Device:     %s"
++msgstr "Dispositivo:  %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Sistema de ficheiros: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Accedido:  %s"
++msgid "Accessed:   %s"
++msgstr "Accedido:     %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Modificado:  %s"
++msgid "Modified:   %s"
++msgstr "Modificado:   %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Cambiado:   %s"
++msgid "Changed:    %s"
++msgstr "Cambiado:     %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Tipo disp.: maior %lu, menor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Tamaño:     %s"
++msgid "Size:       %s"
++msgstr "Tamaño:       %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2924,19 +2924,19 @@ msgstr[0] " (%ld bloque)"
+ msgstr[1] " (%ld bloques)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Propietario:      %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Propietario:  %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Ligazóns: %d"
++msgid "Links:      %d"
++msgstr "Ligazóns:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Modo:       %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Modo:         %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Ubicación:    %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/hr.po b/po/hr.po
+index 725910e..1d9c87d 100644
+--- a/po/hr.po
++++ b/po/hr.po
+@@ -2878,14 +2878,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2893,16 +2893,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,7 +2910,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2921,19 +2921,19 @@ msgstr[1] ""
+ msgstr[2] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/hu.po b/po/hu.po
+index 9f7ce2f..56c6682 100644
+--- a/po/hu.po
++++ b/po/hu.po
+@@ -2878,17 +2878,17 @@ msgstr "Nincs adat a tárolóhelyről"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "Szabad hely: %s/%s (%d%%)"
++msgstr "Szabad hely:  %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr "Fájlr.-típus: %s"
+ 
+ msgid "non-local vfs"
+ msgstr "távoli VFS"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Eszköz:       %s"
+ 
+ #, c-format
+@@ -2896,16 +2896,16 @@ msgid "Filesystem: %s"
+ msgstr "Fájlrendszer: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Elérés ideje: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Módosítás:    %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Változtatás:  %s"
+ 
+ #, c-format
+@@ -2913,7 +2913,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Eszköztípus:  fő: %lu, al: %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Méret:        %s"
+ 
+ #, c-format
+@@ -2923,19 +2923,19 @@ msgstr[0] "(%ld blokk)"
+ msgstr[1] "(%ld blokk)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Tulajdonos:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Linkek száma: %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Típus+jogok:  %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Hely:         %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/ia.po b/po/ia.po
+index 912060c..4745d60 100644
+--- a/po/ia.po
++++ b/po/ia.po
+@@ -2880,14 +2880,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2895,16 +2895,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Accedite:   %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Modificate: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2912,7 +2912,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Dimension:  %s"
+ 
+ #, c-format
+@@ -2922,19 +2922,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Position:   %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/id.po b/po/id.po
+index d1a510f..1b87eb0 100644
+--- a/po/id.po
++++ b/po/id.po
+@@ -2877,14 +2877,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2892,16 +2892,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,7 +2909,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2918,19 +2918,19 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/it.po b/po/it.po
+index c52f6df..3bd5422 100644
+--- a/po/it.po
++++ b/po/it.po
+@@ -4083,7 +4083,7 @@ msgstr "Nessuna info sui nodi"
+ 
+ #: ../src/filemanager/info.c:156
+ msgid "Free nodes:"
+-msgstr "Nodi liberi:"
++msgstr "Nodi liberi:  "
+ 
+ #: ../src/filemanager/info.c:164
+ msgid "No space information"
+@@ -4096,8 +4096,8 @@ msgstr "Spazio libero: %s/%s (%d%%)"
+ 
+ #: ../src/filemanager/info.c:178
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Tipo:      %s"
++msgid "Type:       %s"
++msgstr "Tipo:          %s"
+ 
+ #: ../src/filemanager/info.c:179
+ msgid "non-local vfs"
+@@ -4105,31 +4105,31 @@ msgstr "vfs non-locale"
+ 
+ #: ../src/filemanager/info.c:185
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Periferica: %s"
++msgid "Device:     %s"
++msgstr "Periferica:    %s"
+ 
+ #: ../src/filemanager/info.c:190
+ #, c-format
+ msgid "Filesystem: %s"
+-msgstr "Filesystem: %s"
++msgstr "Filesystem:    %s"
+ 
+ #: ../src/filemanager/info.c:196
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Aperto:     %s"
++msgid "Accessed:   %s"
++msgstr "Aperto:        %s"
+ 
+ #: ../src/filemanager/info.c:201
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Modificato: %s"
++msgid "Modified:   %s"
++msgstr "Modificato:    %s"
+ 
+ #. The field st_ctime is changed by writing or by setting inode
+ #. information (i.e., owner, group, link count, mode, etc.).
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #: ../src/filemanager/info.c:209
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Cambiato:  %s"
++msgid "Changed:    %s"
++msgstr "Cambiato:      %s"
+ 
+ #: ../src/filemanager/info.c:217
+ #, c-format
+@@ -4138,8 +4138,8 @@ msgstr "Tipo dis.: major %lu, minor %lu"
+ 
+ #: ../src/filemanager/info.c:224
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Dimensione: %s"
++msgid "Size:       %s"
++msgstr "Dimensione:    %s"
+ 
+ #: ../src/filemanager/info.c:226
+ #, c-format
+@@ -4150,23 +4150,23 @@ msgstr[1] " (%ld blocchi)"
+ 
+ #: ../src/filemanager/info.c:233
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Proprietà:  %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Proprietà:     %s/%s"
+ 
+ #: ../src/filemanager/info.c:237
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Collegamenti:   %d"
++msgid "Links:      %d"
++msgstr "Collegamenti:  %d"
+ 
+ #: ../src/filemanager/info.c:241
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Permessi:   %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Permessi:      %s (%04o)"
+ 
+ #: ../src/filemanager/info.c:246
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Posizione:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Posizione:     %Xh:%Xh"
+ 
+ #. *INDENT-OFF*
+ #: ../src/filemanager/layout.c:170
+diff --git a/po/ja.po b/po/ja.po
+index 797c44a..39d019a 100644
+--- a/po/ja.po
++++ b/po/ja.po
+@@ -2877,34 +2877,34 @@ msgstr "空き領域情報がありません"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "空き容量: %s/%s (%d%%)"
++msgstr "空き容量:   %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "ローカルでないvfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "デバイス:  %s"
++msgid "Device:     %s"
++msgstr "デバイス:   %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "ファイルシステム: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "アクセス:  %s"
++msgid "Accessed:   %s"
++msgstr "アクセス:   %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "更新:      %s"
++msgid "Modified:   %s"
++msgstr "更新:       %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2912,8 +2912,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "サイズ:    %s"
++msgid "Size:       %s"
++msgstr "サイズ:     %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2921,20 +2921,20 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "所有者:    %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "所有者:     %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "リンク数:  %d"
++msgid "Links:      %d"
++msgstr "リンク数:   %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "モード     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "モード      %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "位置:      %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "位置:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "同じ大きさに分割(&E)"
+diff --git a/po/ka.po b/po/ka.po
+index abb2cb7..44b4838 100644
+--- a/po/ka.po
++++ b/po/ka.po
+@@ -2877,14 +2877,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2892,16 +2892,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,8 +2909,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "ზომა:      %s"
++msgid "Size:       %s"
++msgstr "ზომა:       %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2918,19 +2918,19 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/kk.po b/po/kk.po
+index 403d7cc..d679176 100644
+--- a/po/kk.po
++++ b/po/kk.po
+@@ -2876,14 +2876,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2891,16 +2891,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2908,7 +2908,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2917,19 +2917,19 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/ko.po b/po/ko.po
+index b273616..09cc8e3 100644
+--- a/po/ko.po
++++ b/po/ko.po
+@@ -2877,14 +2877,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "원격 vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "디바이스: %s"
+ 
+ #, c-format
+@@ -2892,25 +2892,25 @@ msgid "Filesystem: %s"
+ msgstr "파일체계: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "액세스일: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "수정일: %s"
++msgid "Modified:   %s"
++msgstr "수정일:   %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "변경됨:  %s"
++msgid "Changed:    %s"
++msgstr "변경됨:   %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Dev. type: 주요 %lu, 기여 %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "크기: %s"
++msgid "Size:       %s"
++msgstr "크기:     %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2918,20 +2918,20 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "소유자: %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "소유자:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "링크: %d"
++msgid "Links:      %d"
++msgstr "링크:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "모드: %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "모드:     %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "위치: %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "위치:     %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "같은 너비로(&E)"
+diff --git a/po/lt.po b/po/lt.po
+index 0003ac3..5efd2da 100644
+--- a/po/lt.po
++++ b/po/lt.po
+@@ -2880,31 +2880,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "nevietinė VFS"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Įtaisas:   %s"
++msgid "Device:     %s"
++msgstr "Įtaisas:    %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Failų sistema: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Pasiekta:  %s"
++msgid "Accessed:   %s"
++msgstr "Pasiekta:   %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Keista:    %s"
++msgid "Modified:   %s"
++msgstr "Keista:     %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2912,8 +2912,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Įreng. tipas: major %lu, minor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Dydis:     %s"
++msgid "Size:       %s"
++msgstr "Dydis:      %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2923,19 +2923,19 @@ msgstr[1] " (%ld blokai)"
+ msgstr[2] " (%ld blokų)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Savininkas: %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Nuorodos:   %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Režimas:    %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Vieta:      %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/lv.po b/po/lv.po
+index e6ce71d..aafd0ca 100644
+--- a/po/lv.po
++++ b/po/lv.po
+@@ -2879,31 +2879,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "ne-vietējā vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Iekārta:    %s"
++msgid "Device:     %s"
++msgstr "Iekārta:     %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Failsistēma: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Apmeklēts:  %s"
++msgid "Accessed:   %s"
++msgstr "Apmeklēts:   %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Modificēts:  %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2911,8 +2911,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Lielums:      %s"
++msgid "Size:       %s"
++msgstr "Lielums:     %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2922,20 +2922,20 @@ msgstr[1] ""
+ msgstr[2] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Īpašnieks:     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Īpašnieks:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Saites:     %d"
++msgid "Links:      %d"
++msgstr "Saites:      %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Režīms:      %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Vieta:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Vieta:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Vienāds sadalījums"
+diff --git a/po/mc.pot b/po/mc.pot
+index 63db4a6..1f44fea 100644
+--- a/po/mc.pot
++++ b/po/mc.pot
+@@ -3827,7 +3827,7 @@ msgstr ""
+ 
+ #: src/filemanager/info.c:178
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:179
+@@ -3836,7 +3836,7 @@ msgstr ""
+ 
+ #: src/filemanager/info.c:185
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:190
+@@ -3846,18 +3846,18 @@ msgstr ""
+ 
+ #: src/filemanager/info.c:196
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:201
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #: src/filemanager/info.c:209
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:217
+@@ -3867,7 +3867,7 @@ msgstr ""
+ 
+ #: src/filemanager/info.c:224
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:226
+@@ -3879,22 +3879,22 @@ msgstr[1] ""
+ 
+ #: src/filemanager/info.c:233
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:237
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:241
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #: src/filemanager/info.c:246
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ #: src/filemanager/layout.c:170
+diff --git a/po/mn.po b/po/mn.po
+index ffaa377..0c7ecc8 100644
+--- a/po/mn.po
++++ b/po/mn.po
+@@ -2878,31 +2878,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "локал биш vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Төхөөрөмж:%s"
++msgid "Device:     %s"
++msgstr "Төхөөрөмж:  %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Файлсистем: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Хандагдсан: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Засагдсан:   %s"
++msgid "Modified:   %s"
++msgstr "Засагдсан:  %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,8 +2910,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Хэмжээ:    %s"
++msgid "Size:       %s"
++msgstr "Хэмжээ:     %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2920,20 +2920,20 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Эзэмшигч:  %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Эзэмшигч:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Холбоосууд:    %d"
++msgid "Links:      %d"
++msgstr "Холбоосууд: %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Горим:     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Горим:      %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Байршил: %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Байршил:    %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Адил хэмжээ"
+diff --git a/po/nb.po b/po/nb.po
+index fe73d3d..93ea571 100644
+--- a/po/nb.po
++++ b/po/nb.po
+@@ -2878,31 +2878,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "ikke-lokalt vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Enhet:     %s"
++msgid "Device:     %s"
++msgstr "Enhet:      %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Filsystem:  %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Aksessert: %s"
++msgid "Accessed:   %s"
++msgstr "Aksessert:  %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Endret:    %s"
++msgid "Modified:   %s"
++msgstr "Endret:     %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,8 +2910,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Størrelse: %s"
++msgid "Size:       %s"
++msgstr "Størrelse:  %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2920,20 +2920,20 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Eier:      %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Eier:       %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Lenker:    %d"
++msgid "Links:      %d"
++msgstr "Lenker:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Modus:     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Modus:      %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Sted:      %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Sted:       %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "lik deling"
+diff --git a/po/nl.po b/po/nl.po
+index ff3eed9..272da21 100644
+--- a/po/nl.po
++++ b/po/nl.po
+@@ -2883,31 +2883,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Vrij ruimte: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Type:      %s"
++msgid "Type:       %s"
++msgstr "Type:        %s"
+ 
+ msgid "non-local vfs"
+ msgstr "non-lokaal vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Apparaat:     %s"
++msgid "Device:     %s"
++msgstr "Apparaat:    %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Bestandssysteem: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Benaderd: %s"
++msgid "Accessed:   %s"
++msgstr "Benaderd:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Veranderd:  %s"
++msgid "Modified:   %s"
++msgstr "Veranderd:   %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Veranderd:   %s"
+ 
+ #, c-format
+@@ -2915,7 +2915,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Dev. type: major %lu, minor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Grootte:     %s"
+ 
+ #, c-format
+@@ -2925,20 +2925,20 @@ msgstr[0] " (%ld blok)"
+ msgstr[1] " (%ld blokken)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Eigenaar:  %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Eigenaar:    %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Links:     %d"
++msgid "Links:      %d"
++msgstr "Links:       %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Modus:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Modus:       %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Locatie:       %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Locatie:     %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Gelijkmatig verd&elen"
+diff --git a/po/pl.po b/po/pl.po
+index 73c1f1f..986f64a 100644
+--- a/po/pl.po
++++ b/po/pl.po
+@@ -2870,50 +2870,50 @@ msgid "No node information"
+ msgstr "Brak informacji o węźle"
+ 
+ msgid "Free nodes:"
+-msgstr "Wolne węzły:"
++msgstr "Wolne węzły:   "
+ 
+ msgid "No space information"
+ msgstr "Brak informacji o miejscu"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "Wolne miejsce: %s/%s (%d%%)"
++msgstr "Wolne miejsce:  %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Typ:      %s"
++msgid "Type:       %s"
++msgstr "Typ:            %s"
+ 
+ msgid "non-local vfs"
+ msgstr "zdalny VFS"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Urządzenie:    %s"
++msgid "Device:     %s"
++msgstr "Urządzenie:     %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+-msgstr "System plików: %s"
++msgstr "System plików:  %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Ostatni dostęp:  %s"
++msgid "Accessed:   %s"
++msgstr "Ostatni dostęp: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Zmodyfikowany:  %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Zmieniony:   %s"
++msgid "Changed:    %s"
++msgstr "Zmieniony:      %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Urządzenie: numer %lu, podnumer %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Rozmiar:      %s"
++msgid "Size:       %s"
++msgstr "Rozmiar:        %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2923,20 +2923,20 @@ msgstr[1] " (%ld bloki)"
+ msgstr[2] " (%ld bloków)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Właściciel:     %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Dowiązania:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Tryb:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Tryb:           %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Położenie:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Położenie:      %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Równy &podział"
+diff --git a/po/pt.po b/po/pt.po
+index a7bb225..1fef702 100644
+--- a/po/pt.po
++++ b/po/pt.po
+@@ -2871,7 +2871,7 @@ msgid "No node information"
+ msgstr "Nenhuma informação de nó"
+ 
+ msgid "Free nodes:"
+-msgstr "Nós livres:"
++msgstr "Nós livres:  "
+ 
+ msgid "No space information"
+ msgstr "Nenhuma informação de espaço"
+@@ -2881,14 +2881,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Espaço livre: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr "Tipo:         %s"
+ 
+ msgid "non-local vfs"
+ msgstr "vfs não local"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Dispositivo:  %s"
+ 
+ #, c-format
+@@ -2896,16 +2896,16 @@ msgid "Filesystem: %s"
+ msgstr "Sist. Fich.:  %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Acedido:      %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Modificado:   %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Alterado:     %s"
+ 
+ #, c-format
+@@ -2913,7 +2913,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Dev. tipo: maior %lu, menor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Tamanho:      %s"
+ 
+ #, c-format
+@@ -2923,19 +2923,19 @@ msgstr[0] " (%ld bloco)"
+ msgstr[1] " (%ld blocos)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Proprietário: %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Ligações:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Modo:         %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Localização:  %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/pt_BR.po b/po/pt_BR.po
+index 6f94f06..eedfd5e 100644
+--- a/po/pt_BR.po
++++ b/po/pt_BR.po
+@@ -2881,31 +2881,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "vfs não local"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Dispositivo:  %s"
++msgid "Device:     %s"
++msgstr "Dispositivo: %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Sistema de arquivos: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Acessado: %s"
++msgid "Accessed:   %s"
++msgstr "Acessado:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Modificado: %s"
++msgid "Modified:   %s"
++msgstr "Modificado:  %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2913,7 +2913,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2923,19 +2923,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Dono:    %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Dono:        %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Ligações:    %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Modo:     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Modo:        %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Localização: %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/ro.po b/po/ro.po
+index af6142e9..e8ca4c1 100644
+--- a/po/ro.po
++++ b/po/ro.po
+@@ -2879,17 +2879,17 @@ msgstr "Nu există date despre spațiul folosit"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "Spațiu liber: %s/%s (%d%%)"
++msgstr "Spațiu liber:  %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Tip:      %s"
++msgid "Type:       %s"
++msgstr "Tip:        %s"
+ 
+ msgid "non-local vfs"
+ msgstr "vfs non-local"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Dispozitiv: %s"
+ 
+ #, c-format
+@@ -2897,16 +2897,16 @@ msgid "Filesystem: %s"
+ msgstr "Sistem fișiere: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Accesat:   %s"
++msgid "Accessed:   %s"
++msgstr "Accesat:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Modificat: %s"
++msgid "Modified:   %s"
++msgstr "Modificat:  %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Schimbat:   %s"
+ 
+ #, c-format
+@@ -2914,8 +2914,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Dev. tip: major %lu, minor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Mărime:    %s"
++msgid "Size:       %s"
++msgstr "Mărime:     %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2925,20 +2925,20 @@ msgstr[1] " (%ld blocuri)"
+ msgstr[2] " (%ld de blocuri)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Propr.:    %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Propr.:     %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Legături:  %d"
++msgid "Links:      %d"
++msgstr "Legături:   %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Mod:       %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Mod:        %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Locație:   %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Locație:    %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Împărțire &egală"
+diff --git a/po/ru.po b/po/ru.po
+index e1d5e7b..0f6a26a 100644
+--- a/po/ru.po
++++ b/po/ru.po
+@@ -3057,14 +3057,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Своб. место: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Тип:       %s"
++msgid "Type:       %s"
++msgstr "Тип: %s"
+ 
+ msgid "non-local vfs"
+ msgstr "нелокальная ВФС"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "Устройство: %s"
+ 
+ #, c-format
+@@ -3072,16 +3072,16 @@ msgid "Filesystem: %s"
+ msgstr "ФС: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Обращение: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Модифицирован: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "Изменён: %s"
+ 
+ #, c-format
+@@ -3089,7 +3089,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Тип устройства: major %lu, minor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "Размер: %s"
+ 
+ #, c-format
+@@ -3100,19 +3100,19 @@ msgstr[1] "(%ld блока)"
+ msgstr[2] "(%ld блоков)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Владелец: %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Ссылок: %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Права: %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Положение: %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/sk.po b/po/sk.po
+index 5b95d27..11a5d05 100644
+--- a/po/sk.po
++++ b/po/sk.po
+@@ -2880,43 +2880,43 @@ msgstr "Žiadne informácie o mieste"
+ 
+ #, c-format
+ msgid "Free space: %s/%s (%d%%)"
+-msgstr "Voľné miesto: %s/%s (%d%%)"
++msgstr "Voľné miesto:  %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Typ:       %s"
++msgid "Type:       %s"
++msgstr "Typ:           %s"
+ 
+ msgid "non-local vfs"
+ msgstr "nie je lokálny vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Zariadenie:  %s"
++msgid "Device:     %s"
++msgstr "Zariadenie:    %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Súborový systém: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Posl. prístup:  %s"
++msgid "Accessed:   %s"
++msgstr "Posl. prístup: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Zmenený:  %s"
++msgid "Modified:   %s"
++msgstr "Zmenený:       %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Zmenené:   %s"
++msgid "Changed:    %s"
++msgstr "Zmenené:       %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Typ zariad.: major %lu, minor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Veľkosť:     %s"
++msgid "Size:       %s"
++msgstr "Veľkosť:       %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2926,20 +2926,20 @@ msgstr[1] " (%ld blocks)"
+ msgstr[2] " (%ld blokov)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Vlastník    %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Vlastník       %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Odkazy:    %d"
++msgid "Links:      %d"
++msgstr "Odkazy:        %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Režim:    %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Režim:         %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Umiestnenie:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Umiestnenie:   %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Rovnako rozd&eliť"
+diff --git a/po/sl.po b/po/sl.po
+index 8a83701..cca10c3 100644
+--- a/po/sl.po
++++ b/po/sl.po
+@@ -2882,31 +2882,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "ne-krajeven navidezni datotečni sistem (vfs)"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Naprava:   %s"
++msgid "Device:     %s"
++msgstr "Naprava:     %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Datotečni sistem: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Dostopan:  %s"
++msgid "Accessed:   %s"
++msgstr "Dostopan:    %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Modificiran %s"
++msgid "Modified:   %s"
++msgstr "Modificiran: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2914,8 +2914,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Velikost:  %s"
++msgid "Size:       %s"
++msgstr "Velikost:    %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2926,20 +2926,20 @@ msgstr[2] ""
+ msgstr[3] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Lastnik:   %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Lastnik:     %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Povezave:  %d"
++msgid "Links:      %d"
++msgstr "Povezave:    %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Način:     %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Način:       %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Lokacija:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Lokacija:    %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Enakomerni razrez"
+diff --git a/po/sr.po b/po/sr.po
+index 3fd86fe..08ab0b5 100644
+--- a/po/sr.po
++++ b/po/sr.po
+@@ -2864,7 +2864,7 @@ msgstr "Поноћни наредник %s"
+ 
+ #, c-format
+ msgid "File: %s"
+-msgstr "Датотека:           %s"
++msgstr "Датотека:         %s"
+ 
+ msgid "No node information"
+ msgstr "Нема података о чворовима"
+@@ -2880,40 +2880,40 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Слободан простор:  %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Врста:             %s"
++msgid "Type:       %s"
++msgstr "Врста:           %s"
+ 
+ msgid "non-local vfs"
+ msgstr "не-месни всд"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Уређај:            %s"
++msgid "Device:     %s"
++msgstr "Уређај:          %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+-msgstr "Систем датотека:   %s"
++msgstr "Систем датотека: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Датум приступа:    %s"
++msgid "Accessed:   %s"
++msgstr "Датум приступа:  %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Датум промене:     %s"
++msgid "Modified:   %s"
++msgstr "Датум промене:   %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Датум измене:      %s"
++msgid "Changed:    %s"
++msgstr "Датум измене:    %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Врста уређаја:     навећи %lu, најмањи %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Величина:          %s"
++msgid "Size:       %s"
++msgstr "Величина:        %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2923,20 +2923,20 @@ msgstr[1] " (%ld блока)"
+ msgstr[2] " (%ld блокова)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Власник:           %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Власник:         %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Број веза:         %d"
++msgid "Links:      %d"
++msgstr "Број веза:       %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Дозволе:           %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Дозволе:         %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Место:             %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Место:           %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Подједнака подела"
+diff --git a/po/sv.po b/po/sv.po
+index 66ff1c0..841ac0b 100644
+--- a/po/sv.po
++++ b/po/sv.po
+@@ -2879,31 +2879,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "icke-lokalt vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Enhet:    %s"
++msgid "Device:     %s"
++msgstr "Enhet:      %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Filsystem:  %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Accessad:  %s"
++msgid "Accessed:   %s"
++msgstr "Accessad:   %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Modifierad: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2911,8 +2911,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Storlek:   %s"
++msgid "Size:       %s"
++msgstr "Storlek:    %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2921,20 +2921,20 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Ägare:     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Ägare:      %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Länkar:    %d"
++msgid "Links:      %d"
++msgstr "Länkar:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Läge:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Läge:       %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Placering: %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Placering:  %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Dela på mitten"
+diff --git a/po/sv_SE.po b/po/sv_SE.po
+index afe26da..b523d94 100644
+--- a/po/sv_SE.po
++++ b/po/sv_SE.po
+@@ -2876,14 +2876,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2891,16 +2891,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2908,7 +2908,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2918,19 +2918,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/szl.po b/po/szl.po
+index 1f87553..1028752 100644
+--- a/po/szl.po
++++ b/po/szl.po
+@@ -2878,14 +2878,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2893,16 +2893,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,7 +2910,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2921,19 +2921,19 @@ msgstr[1] ""
+ msgstr[2] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/ta.po b/po/ta.po
+index e83feba..ec5a114 100644
+--- a/po/ta.po
++++ b/po/ta.po
+@@ -2878,14 +2878,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2893,16 +2893,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,7 +2910,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2920,19 +2920,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/te.po b/po/te.po
+index dbb4ff0..be049e1 100644
+--- a/po/te.po
++++ b/po/te.po
+@@ -2877,14 +2877,14 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2892,16 +2892,16 @@ msgid "Filesystem: %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr ""
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,7 +2909,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2919,19 +2919,19 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr ""
+ 
+ msgid "&Equal split"
+diff --git a/po/tr.po b/po/tr.po
+index 635b4ad..4fca557 100644
+--- a/po/tr.po
++++ b/po/tr.po
+@@ -2881,31 +2881,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Tip (    %s"
++msgid "Type:       %s"
++msgstr "Tip:           %s"
+ 
+ msgid "non-local vfs"
+ msgstr "yerel olmayan vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Aygıt: %s"
++msgid "Device:     %s"
++msgstr "Aygıt:         %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Dosya sistemi: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "Erişim:        %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "Değişim:       %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2913,8 +2913,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Aygıt tipi: majör %lu, minör %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Boyut:      %s"
++msgid "Size:       %s"
++msgstr "Boyut:         %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2923,19 +2923,19 @@ msgstr[0] ""
+ msgstr[1] " (%ld blok)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "Sahibi:        %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Bağlar:        %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "Kip:           %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "Konum:         %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/po/uk.po b/po/uk.po
+index b847e23..abe2a14 100644
+--- a/po/uk.po
++++ b/po/uk.po
+@@ -2881,40 +2881,40 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "Вільне місце: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "Тип:      %s"
++msgid "Type:       %s"
++msgstr "Тип:          %s"
+ 
+ msgid "non-local vfs"
+ msgstr "не локальна ВФС"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Пристрій:    %s"
++msgid "Device:     %s"
++msgstr "Пристрій:     %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Файлова система: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Останній доступ:  %s"
++msgid "Accessed:   %s"
++msgstr "Останній доступ: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Змінено:  %s"
++msgid "Modified:   %s"
++msgstr "Змінено:      %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
+-msgstr "Змінено:   %s"
++msgid "Changed:    %s"
++msgstr "Змінено:      %s"
+ 
+ #, c-format
+ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Тип пристрою: major %lu, minor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Розмір:      %s"
++msgid "Size:       %s"
++msgstr "Розмір:       %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2924,20 +2924,20 @@ msgstr[1] "(блоків: %ld)"
+ msgstr[2] "(блоків: %ld)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Власник:     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Власник:      %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Посилань:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Права:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Права:        %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Розташування:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Розташування: %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Рівні розміри"
+diff --git a/po/vi.po b/po/vi.po
+index c646ca8..1d937a1 100644
+--- a/po/vi.po
++++ b/po/vi.po
+@@ -2877,31 +2877,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "không phải vfs cục bộ"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Thiết bị:     %s"
++msgid "Device:     %s"
++msgstr "Thiết bị:   %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Hệ thống tập tin: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Truy cập:     %s"
++msgid "Accessed:   %s"
++msgstr "Truy cập:   %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Sửa đổi:      %s"
++msgid "Modified:   %s"
++msgstr "Sửa đổi:    %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,8 +2909,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "Dạng thiết bị: major %lu, minor %lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Kích thước:   %s"
++msgid "Size:       %s"
++msgstr "Kích thước: %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2918,20 +2918,20 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] " (%ld khối)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Chủ sở hữu:   %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Chủ sở hữu: %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "Liên kết:     %d"
++msgid "Links:      %d"
++msgstr "Liên kết:   %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Quyền hạn:    %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Quyền hạn:  %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Vị trí:       %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Vị trí:     %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "&Kích thước bằng nhau"
+diff --git a/po/wa.po b/po/wa.po
+index 6a92aee..b3ebce6 100644
+--- a/po/wa.po
++++ b/po/wa.po
+@@ -2878,31 +2878,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "vfs nén locå"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "Éndjin:    %s"
++msgid "Device:     %s"
++msgstr "Éndjin:     %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "Sistinme di fitchîs: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
+-msgstr "Eployî:  %s"
++msgid "Accessed:   %s"
++msgstr "Eployî:     %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
+-msgstr "Candjî:  %s"
++msgid "Modified:   %s"
++msgstr "Candjî:     %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2910,8 +2910,8 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
+-msgstr "Grandeu: %s"
++msgid "Size:       %s"
++msgstr "Grandeu:    %s"
+ 
+ #, c-format
+ msgid " (%ld block)"
+@@ -2920,20 +2920,20 @@ msgstr[0] ""
+ msgstr[1] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
+-msgstr "Da:     %s/%s"
++msgid "Owner:      %s/%s"
++msgstr "Da:         %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "Loyéns:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "Môde:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "Môde:       %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "Eplaeçmint:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "Eplaeçmint: %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "Pårti e deus bokets les &minmes"
+diff --git a/po/zh_CN.po b/po/zh_CN.po
+index b683e11..3f9d4d4 100644
+--- a/po/zh_CN.po
++++ b/po/zh_CN.po
+@@ -2872,7 +2872,7 @@ msgid "No node information"
+ msgstr "没有节点信息"
+ 
+ msgid "Free nodes:"
+-msgstr "空闲结点: "
++msgstr "空闲结点:"
+ 
+ msgid "No space information"
+ msgstr "没有空间信息"
+@@ -2882,31 +2882,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr "空余空间: %s/%s (%d%%)"
+ 
+ #, c-format
+-msgid "Type:      %s"
+-msgstr "类型: %s"
++msgid "Type:       %s"
++msgstr "类型:     %s"
+ 
+ msgid "non-local vfs"
+ msgstr "非本地 vfs"
+ 
+ #, c-format
+-msgid "Device:    %s"
+-msgstr "设备: %s"
++msgid "Device:     %s"
++msgstr "设备:     %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+ msgstr "文件系统: %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "最后访问时间: %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "最后修改时间: %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr "创建时间: %s"
+ 
+ #, c-format
+@@ -2914,7 +2914,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr "设备类型: 主要%lu，次要%lu"
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr "文件大小: %s"
+ 
+ #, c-format
+@@ -2923,20 +2923,20 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] " (%ld 块)"
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "所有者:   %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
+-msgstr "链接:   %d"
++msgid "Links:      %d"
++msgstr "链接:     %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
+-msgstr "模式:   %s (%04o)"
++msgid "Mode:       %s (%04o)"
++msgstr "模式:     %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
+-msgstr "位置:   %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
++msgstr "位置:     %Xh:%Xh"
+ 
+ msgid "&Equal split"
+ msgstr "平分(&E)"
+diff --git a/po/zh_TW.po b/po/zh_TW.po
+index 67432c8..931d245 100644
+--- a/po/zh_TW.po
++++ b/po/zh_TW.po
+@@ -2877,31 +2877,31 @@ msgid "Free space: %s/%s (%d%%)"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Type:      %s"
++msgid "Type:       %s"
+ msgstr ""
+ 
+ msgid "non-local vfs"
+ msgstr "非本地的虛擬檔案系統"
+ 
+ #, c-format
+-msgid "Device:    %s"
++msgid "Device:     %s"
+ msgstr "裝置：      %s"
+ 
+ #, c-format
+ msgid "Filesystem: %s"
+-msgstr "檔案系統：    %s"
++msgstr "檔案系統：  %s"
+ 
+ #, c-format
+-msgid "Accessed:  %s"
++msgid "Accessed:   %s"
+ msgstr "存取：      %s"
+ 
+ #, c-format
+-msgid "Modified:  %s"
++msgid "Modified:   %s"
+ msgstr "更動：      %s"
+ 
+ #. TRANSLATORS: Time of last status change as in stat(2) man.
+ #, c-format
+-msgid "Changed:   %s"
++msgid "Changed:    %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2909,7 +2909,7 @@ msgid "Dev. type: major %lu, minor %lu"
+ msgstr ""
+ 
+ #, c-format
+-msgid "Size:      %s"
++msgid "Size:       %s"
+ msgstr ""
+ 
+ #, c-format
+@@ -2918,19 +2918,19 @@ msgid_plural " (%ld blocks)"
+ msgstr[0] ""
+ 
+ #, c-format
+-msgid "Owner:     %s/%s"
++msgid "Owner:      %s/%s"
+ msgstr "擁有者：    %s/%s"
+ 
+ #, c-format
+-msgid "Links:     %d"
++msgid "Links:      %d"
+ msgstr "連結：      %d"
+ 
+ #, c-format
+-msgid "Mode:      %s (%04o)"
++msgid "Mode:       %s (%04o)"
+ msgstr "模式：      %s (%04o)"
+ 
+ #, c-format
+-msgid "Location:  %Xh:%Xh"
++msgid "Location:   %Xh:%Xh"
+ msgstr "位置：      %Xh:%Xh"
+ 
+ msgid "&Equal split"
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index 1e0a726..371074d 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -175,14 +175,14 @@ info_show_info (WInfo * info)
+ 
+     case 14:
+         widget_move (w, 14, 3);
+-        tty_printf (_("Type:      %s"),
++        tty_printf (_("Type:       %s"),
+                     myfs_stats.typename ? myfs_stats.typename : _("non-local vfs"));
+         if (myfs_stats.type != 0xffff && myfs_stats.type != -1)
+             tty_printf (" (%Xh)", myfs_stats.type);
+ 
+     case 13:
+         widget_move (w, 13, 3);
+-        str_printf (buff, _("Device:    %s"), str_trunc (myfs_stats.device, w->cols - i18n_adjust));
++        str_printf (buff, _("Device:     %s"), str_trunc (myfs_stats.device, w->cols - i18n_adjust));
+         tty_print_string (buff->str);
+         g_string_set_size (buff, 0);
+     case 12:
+@@ -193,12 +193,12 @@ info_show_info (WInfo * info)
+         g_string_set_size (buff, 0);
+     case 11:
+         widget_move (w, 11, 3);
+-        str_printf (buff, _("Accessed:  %s"), file_date (st.st_atime));
++        str_printf (buff, _("Accessed:   %s"), file_date (st.st_atime));
+         tty_print_string (buff->str);
+         g_string_set_size (buff, 0);
+     case 10:
+         widget_move (w, 10, 3);
+-        str_printf (buff, _("Modified:  %s"), file_date (st.st_mtime));
++        str_printf (buff, _("Modified:   %s"), file_date (st.st_mtime));
+         tty_print_string (buff->str);
+         g_string_set_size (buff, 0);
+     case 9:
+@@ -206,7 +206,7 @@ info_show_info (WInfo * info)
+         /* The field st_ctime is changed by writing or by setting inode
+            information (i.e., owner, group, link count, mode, etc.).  */
+         /* TRANSLATORS: Time of last status change as in stat(2) man. */
+-        str_printf (buff, _("Changed:   %s"), file_date (st.st_ctime));
++        str_printf (buff, _("Changed:    %s"), file_date (st.st_ctime));
+         tty_print_string (buff->str);
+         g_string_set_size (buff, 0);
+ 
+@@ -221,7 +221,7 @@ info_show_info (WInfo * info)
+         {
+             char buffer[10];
+             size_trunc_len (buffer, 9, st.st_size, 0, panels_options.kilobyte_si);
+-            tty_printf (_("Size:      %s"), buffer);
++            tty_printf (_("Size:       %s"), buffer);
+ #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+             tty_printf (ngettext (" (%ld block)", " (%ld blocks)",
+                                   (unsigned long) st.st_blocks), (unsigned long) st.st_blocks);
+@@ -230,20 +230,20 @@ info_show_info (WInfo * info)
+ 
+     case 7:
+         widget_move (w, 7, 3);
+-        tty_printf (_("Owner:     %s/%s"), get_owner (st.st_uid), get_group (st.st_gid));
++        tty_printf (_("Owner:      %s/%s"), get_owner (st.st_uid), get_group (st.st_gid));
+ 
+     case 6:
+         widget_move (w, 6, 3);
+-        tty_printf (_("Links:     %d"), (int) st.st_nlink);
++        tty_printf (_("Links:      %d"), (int) st.st_nlink);
+ 
+     case 5:
+         widget_move (w, 5, 3);
+-        tty_printf (_("Mode:      %s (%04o)"),
++        tty_printf (_("Mode:       %s (%04o)"),
+                     string_perm (st.st_mode), (unsigned) st.st_mode & 07777);
+ 
+     case 4:
+         widget_move (w, 4, 3);
+-        tty_printf (_("Location:  %Xh:%Xh"), (int) st.st_dev, (int) st.st_ino);
++        tty_printf (_("Location:   %Xh:%Xh"), (int) st.st_dev, (int) st.st_ino);
+ 
+     case 3:
+         {

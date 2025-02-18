@@ -1,0 +1,333 @@
+From e6f9635425c94c37593858f0f15da4f1f54b3ba3 Mon Sep 17 00:00:00 2001
+From: Andrey Gursky <andrey.gursky@e-mail.ua>
+Date: Mon, 7 Dec 2015 00:39:05 +0100
+Subject: [PATCH] Ticket #3575: preserve timestamps with nanosecond precisions
+ during file copy
+
+MC truncates timestamps during file copy and drops sub-second precision.
+
+Make use of utimensat(), introduced in Linux kernel 2.6.22 (and since
+2.6.26 compatible with POSIX-1.2008).
+
+Signed-off-by: Andrey Gursky <andrey.gursky@e-mail.ua>
+---
+ configure.ac               |  3 +++
+ lib/vfs/interface.c        |  2 +-
+ lib/vfs/vfs.h              | 14 ++++++++++---
+ src/filemanager/file.c     | 28 ++++++++++++++++++--------
+ src/vfs/fish/fish.c        | 49 ++++++++++++++++++++++++++++++++++++++--------
+ src/vfs/local/local.c      | 10 ++++++++--
+ src/vfs/sfs/sfs.c          | 11 +++++++++--
+ src/vfs/sftpfs/vfs_class.c |  2 +-
+ src/vfs/smbfs/smbfs.c      |  6 +++++-
+ 9 files changed, 99 insertions(+), 26 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 91be803..a5a850f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -228,6 +228,9 @@ AC_CHECK_FUNCS([\
+ 	realpath
+ ])
+ 
++dnl utimensat is supported since glibc 2.6 and specified in POSIX.1-2008
++AC_CHECK_FUNCS([utimensat])
++
+ dnl getpt is a GNU Extension (glibc 2.1.x)
+ AC_CHECK_FUNCS(posix_openpt, , [AC_CHECK_FUNCS(getpt)])
+ AC_CHECK_FUNCS(grantpt, , [AC_CHECK_LIB(pt, grantpt)])
+diff --git a/lib/vfs/interface.c b/lib/vfs/interface.c
+index 550fbef..74d3343 100644
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -247,7 +247,7 @@ int mc_##name inarg \
+ 
+ MC_NAMEOP (chmod, (const vfs_path_t *vpath, mode_t mode), (vpath, mode))
+ MC_NAMEOP (chown, (const vfs_path_t *vpath, uid_t owner, gid_t group), (vpath, owner, group))
+-MC_NAMEOP (utime, (const vfs_path_t *vpath, struct utimbuf * times), (vpath, times))
++MC_NAMEOP (utime, (const vfs_path_t *vpath, const timesbuf_st *times), (vpath, times))
+ MC_NAMEOP (readlink, (const vfs_path_t *vpath, char *buf, size_t bufsiz), (vpath, buf, bufsiz))
+ MC_NAMEOP (unlink, (const vfs_path_t *vpath), (vpath))
+ MC_NAMEOP (mkdir, (const vfs_path_t *vpath, mode_t mode), (vpath, mode))
+diff --git a/lib/vfs/vfs.h b/lib/vfs/vfs.h
+index ab6f7a2..ade1bb7 100644
+--- a/lib/vfs/vfs.h
++++ b/lib/vfs/vfs.h
+@@ -10,7 +10,9 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <dirent.h>
+-#ifdef HAVE_UTIME_H
++#ifdef HAVE_UTIMENSAT
++#include <sys/time.h>
++#elif defined( HAVE_UTIME_H )
+ #include <utime.h>
+ #endif
+ #include <stdio.h>
+@@ -97,6 +99,12 @@ typedef void (*fill_names_f) (const char *);
+ 
+ typedef void *vfsid;
+ 
++#ifdef HAVE_UTIMENSAT
++typedef struct timespec timesbuf_st[2];
++#else
++typedef struct utimbuf timesbuf_st;
++#endif
++
+ /*** enums ***************************************************************************************/
+ 
+ /* Flags of VFS classes */
+@@ -167,7 +175,7 @@ typedef struct vfs_class
+ 
+     int (*chmod) (const vfs_path_t * vpath, mode_t mode);
+     int (*chown) (const vfs_path_t * vpath, uid_t owner, gid_t group);
+-    int (*utime) (const vfs_path_t * vpath, struct utimbuf * times);
++    int (*utime) (const vfs_path_t * vpath, const timesbuf_st *times);
+ 
+     int (*readlink) (const vfs_path_t * vpath, char *buf, size_t size);
+     int (*symlink) (const vfs_path_t * vpath1, const vfs_path_t * vpath2);
+@@ -281,7 +289,7 @@ int vfs_preallocate (int dest_desc, off_t src_fsize, off_t dest_fsize);
+  */
+ ssize_t mc_read (int handle, void *buffer, size_t count);
+ ssize_t mc_write (int handle, const void *buffer, size_t count);
+-int mc_utime (const vfs_path_t * vpath, struct utimbuf *times);
++int mc_utime (const vfs_path_t * vpath, const timesbuf_st *times);
+ int mc_readlink (const vfs_path_t * vpath, char *buf, size_t bufsiz);
+ int mc_close (int handle);
+ off_t mc_lseek (int fd, off_t offset, int whence);
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 0bacc54..aa6780f 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -663,6 +663,20 @@ warn_same_file (const char *fmt, const char *a, const char *b)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++static void
++get_times( const struct stat *sb, timesbuf_st *times)
++{
++#ifdef HAVE_UTIMENSAT
++    (*times)[0] = sb->st_atim;
++    (*times)[1] = sb->st_mtim;
++#else
++    times->actime  = sb->st_atime;
++    times->modtime = sb->st_mtime;
++#endif
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ /* {{{ Query/status report routines */
+ 
+ static FileProgressStatus
+@@ -1487,7 +1501,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+     int n_read, n_written;
+     mode_t src_mode = 0;        /* The mode of the source file */
+     struct stat sb, sb2;
+-    struct utimbuf utb;
++    timesbuf_st times;
+     gboolean dst_exists = FALSE, appending = FALSE;
+     off_t file_size = -1;
+     FileProgressStatus return_status, temp_status;
+@@ -1681,8 +1695,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+     src_mode = sb.st_mode;
+     src_uid = sb.st_uid;
+     src_gid = sb.st_gid;
+-    utb.actime = sb.st_atime;
+-    utb.modtime = sb.st_mtime;
++    get_times(&sb, &times);
+     file_size = sb.st_size;
+ 
+     open_flags = O_WRONLY;
+@@ -1992,7 +2005,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+                 src_mode = 0100666 & ~src_mode;
+                 mc_chmod (dst_vpath, (src_mode & ctx->umask_kill));
+             }
+-            mc_utime (dst_vpath, &utb);
++            mc_utime (dst_vpath, &times);
+         }
+     }
+ 
+@@ -2254,12 +2267,11 @@ copy_dir_dir (file_op_total_context_t * tctx, file_op_context_t * ctx, const cha
+ 
+     if (ctx->preserve)
+     {
+-        struct utimbuf utb;
++        timesbuf_st times;
+ 
+         mc_chmod (dst_vpath, cbuf.st_mode & ctx->umask_kill);
+-        utb.actime = cbuf.st_atime;
+-        utb.modtime = cbuf.st_mtime;
+-        mc_utime (dst_vpath, &utb);
++        get_times(&cbuf, &times);
++        mc_utime (dst_vpath, &times);
+     }
+     else
+     {
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index 1172f31..35ec623 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -1320,11 +1320,42 @@ fish_chown (const vfs_path_t * vpath, uid_t owner, gid_t group)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static time_t
++get_atime(const timesbuf_st *times)
++{
++    time_t ret;
++
++#ifdef HAVE_UTIMENSAT
++    ret = (*times)[0].tv_sec;
++#else
++    ret = times->actime;
++#endif
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static time_t
++get_mtime(const timesbuf_st *times)
++{
++    time_t ret;
++
++#ifdef HAVE_UTIMENSAT
++    ret = (*times)[1].tv_sec;
++#else
++    ret = times->modtime;
++#endif
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static int
+-fish_utime (const vfs_path_t * vpath, struct utimbuf *times)
++fish_utime (const vfs_path_t *vpath, const timesbuf_st *times)
+ {
+     gchar *shell_commands = NULL;
+-    char utcmtime[16], utcatime[16];
++    char utcatime[16], utcmtime[16];
++    time_t atime, mtime;
+     struct tm *gmt;
+ 
+     char buf[BUF_LARGE];
+@@ -1340,21 +1371,23 @@ fish_utime (const vfs_path_t * vpath, struct utimbuf *times)
+         return -1;
+     rpath = strutils_shell_escape (crpath);
+ 
+-    gmt = gmtime (&times->modtime);
+-    g_snprintf (utcmtime, sizeof (utcmtime), "%04d%02d%02d%02d%02d.%02d",
++    atime = get_atime(times);
++    gmt = gmtime(&atime);
++    g_snprintf (utcatime, sizeof (utcatime), "%04d%02d%02d%02d%02d.%02d",
+                 gmt->tm_year + 1900, gmt->tm_mon + 1, gmt->tm_mday,
+                 gmt->tm_hour, gmt->tm_min, gmt->tm_sec);
+ 
+-    gmt = gmtime (&times->actime);
+-    g_snprintf (utcatime, sizeof (utcatime), "%04d%02d%02d%02d%02d.%02d",
++    mtime = get_mtime(times);
++    gmt = gmtime(&mtime);
++    g_snprintf (utcmtime, sizeof (utcmtime), "%04d%02d%02d%02d%02d.%02d",
+                 gmt->tm_year + 1900, gmt->tm_mon + 1, gmt->tm_mday,
+                 gmt->tm_hour, gmt->tm_min, gmt->tm_sec);
+ 
+     shell_commands =
+         g_strconcat (SUP->scr_env, "FISH_FILENAME=%s FISH_FILEATIME=%ld FISH_FILEMTIME=%ld ",
+                      "FISH_TOUCHATIME=%s FISH_TOUCHMTIME=%s;\n", SUP->scr_utime, (char *) NULL);
+-    g_snprintf (buf, sizeof (buf), shell_commands, rpath, (long) times->actime,
+-                (long) times->modtime, utcatime, utcmtime);
++    g_snprintf (buf, sizeof (buf), shell_commands, rpath, (long) atime, (long) mtime,
++                utcatime, utcmtime);
+     g_free (shell_commands);
+     g_free (rpath);
+     return fish_send_command (path_element->class, super, buf, OPT_FLUSH);
+diff --git a/src/vfs/local/local.c b/src/vfs/local/local.c
+index 7ea70f2..75ed258 100644
+--- a/src/vfs/local/local.c
++++ b/src/vfs/local/local.c
+@@ -169,12 +169,18 @@ local_chown (const vfs_path_t * vpath, uid_t owner, gid_t group)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static int
+-local_utime (const vfs_path_t * vpath, struct utimbuf *times)
++local_utime (const vfs_path_t * vpath, const timesbuf_st *times)
+ {
++    int ret;
+     const vfs_path_element_t *path_element;
+ 
+     path_element = vfs_path_get_by_index (vpath, -1);
+-    return utime (path_element->path, times);
++#ifdef HAVE_UTIMENSAT
++    ret = utimensat (AT_FDCWD, path_element->path, *times, 0);
++#else
++    ret = utime (path_element->path, times);
++#endif
++    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/vfs/sfs/sfs.c b/src/vfs/sfs/sfs.c
+index 90b36ec..d6f554c 100644
+--- a/src/vfs/sfs/sfs.c
++++ b/src/vfs/sfs/sfs.c
+@@ -319,9 +319,16 @@ sfs_chown (const vfs_path_t * vpath, uid_t owner, gid_t group)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static int
+-sfs_utime (const vfs_path_t * vpath, struct utimbuf *times)
++sfs_utime (const vfs_path_t * vpath, const timesbuf_st *times)
+ {
+-    return utime (sfs_redirect (vpath), times);
++    int ret;
++
++#ifdef HAVE_UTIMENSAT
++    ret = utimensat (AT_FDCWD, sfs_redirect (vpath), *times, 0);
++#else
++    ret = utime (sfs_redirect (vpath), times);
++#endif
++    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/vfs/sftpfs/vfs_class.c b/src/vfs/sftpfs/vfs_class.c
+index 3504c26..d542cdd 100644
+--- a/src/vfs/sftpfs/vfs_class.c
++++ b/src/vfs/sftpfs/vfs_class.c
+@@ -330,7 +330,7 @@ sftpfs_cb_readlink (const vfs_path_t * vpath, char *buf, size_t size)
+  */
+ 
+ static int
+-sftpfs_cb_utime (const vfs_path_t * vpath, struct utimbuf *times)
++sftpfs_cb_utime (const vfs_path_t * vpath, const timesbuf_st *times)
+ {
+     (void) vpath;
+     (void) times;
+diff --git a/src/vfs/smbfs/smbfs.c b/src/vfs/smbfs/smbfs.c
+index cf507e6..bf1874f 100644
+--- a/src/vfs/smbfs/smbfs.c
++++ b/src/vfs/smbfs/smbfs.c
+@@ -995,14 +995,18 @@ smbfs_chown (const vfs_path_t * vpath, uid_t owner, gid_t group)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static int
+-smbfs_utime (const vfs_path_t * vpath, struct utimbuf *times)
++smbfs_utime (const vfs_path_t * vpath, const timesbuf_st *times)
+ {
+     const vfs_path_element_t *path_element;
+ 
+     (void) times;
+ 
+     path_element = vfs_path_get_by_index (vpath, -1);
++#ifdef HAVE_UTIMENSAT
++    DEBUG (3, ("smbfs_utimensat(path:%s)\n", path_element->path));
++#else
+     DEBUG (3, ("smbfs_utime(path:%s)\n", path_element->path));
++#endif
+     my_errno = EOPNOTSUPP;
+     return -1;
+ }
+-- 
+2.6.2
+

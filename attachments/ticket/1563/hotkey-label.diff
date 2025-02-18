@@ -1,0 +1,110 @@
+diff --git a/src/keybind.c b/src/keybind.c
+index 7917650..5599faf 100644
+--- a/src/keybind.c
++++ b/src/keybind.c
+@@ -711,7 +711,7 @@ int lookup_action (char *keyname)
+ }
+ 
+ void
+-keymap_add(GArray *keymap, int key, int cmd)
++keymap_add(GArray *keymap, int key, int cmd, char *caption)
+ {
+     global_key_map_t new_bind, *map;
+     map = &(g_array_index(keymap, global_key_map_t, 0));
+@@ -719,6 +719,7 @@ keymap_add(GArray *keymap, int key, int cmd)
+     if (key !=0 && cmd !=0) {
+         new_bind.key = key;
+         new_bind.command = cmd;
++        new_bind.caption = g_strdup (caption);
+         g_array_append_val(keymap, new_bind);
+     }
+ 
+@@ -727,5 +728,8 @@ keymap_add(GArray *keymap, int key, int cmd)
+ void
+ keybind_cmd_bind(GArray *keymap, char *keybind, int action)
+ {
+-    keymap_add(keymap, lookup_key(keybind), action);
++    char *caplion
++    int key = lookup_key(keybind, caplion);
++    keymap_add(keymap, lookup_key(keybind), action, caplion);
++    g_free (caplion);
+ }
+diff --git a/src/keybind.h b/src/keybind.h
+index 7a36661..7ddb79d 100644
+--- a/src/keybind.h
++++ b/src/keybind.h
+@@ -20,6 +20,7 @@ typedef struct key_config_t {
+ typedef struct global_key_map_t {
+     long key;
+     long command;
++    char *caption;
+ } global_key_map_t;
+ 
+ int lookup_action (char *keyname);
+diff --git a/src/tty/key.c b/src/tty/key.c
+index 5d000ce..0b91e94 100644
+--- a/src/tty/key.c
++++ b/src/tty/key.c
+@@ -1249,14 +1249,16 @@ lookup_keyname (char *keyname)
+ 
+ /* Return the code associated with the symbolic name keyname */
+ int
+-lookup_key (char *keyname)
++lookup_key (char *keyname, char **label)
+ {
+     int k = -1;
+     char **keys;
+     guint keys_count = -1;
+     int key = 0;
+     int i = 0;
+-
++    char buf[BUF_TINY];
++    int buf_pos = 0;
++    char *p;
+     if (keyname == NULL)
+         return 0;
+ 
+@@ -1269,11 +1271,19 @@ lookup_key (char *keyname)
+ 
+             if (key & KEY_M_SHIFT) {
+                 if (k < 127) {
++                    if (buf_pos > 0)
++                        buf[++buf_pos] = '-';
++                    }
++                    buf[++buf_pos] = 'S';
+                     k = (gchar) g_ascii_toupper ((gchar) k);
+                     continue;
+                 }
+             }
+             if (key & KEY_M_CTRL) {
++                if (buf_pos > 0)
++                    buf[++buf_pos] = '-';
++                }
++                buf[++buf_pos] = 'C';
+                 if (k < 256)
+                     k = XCTRL (k);
+                 else
+@@ -1283,8 +1293,14 @@ lookup_key (char *keyname)
+                     if (key < 127)
+                         key = (gchar) g_ascii_tolower ((gchar) key);
+                     k = key;
+-                } else
++                } else {
++                    buf[++buf_pos] = '-';
+                     k |= key;
++                }
++
++                for (p = keys[i]; *p; p++)
++                    buf[++buf_pos] = *p;
++                buf[buf_pos] = '\0';
+             }
+         }
+     }
+@@ -1292,6 +1308,7 @@ lookup_key (char *keyname)
+     if (k == -1)
+         return 0;
+ 
++    *label = g_strdup (buf);
+     return k;
+ }
+ 

@@ -1,0 +1,32 @@
+From 5a24f52e4d04205f0e203b727694c2993474a404 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 6 Dec 2016 22:27:59 +0200
+Subject: [PATCH 2/3] Ticket #400: hex search: make it possible to search for
+ 0x0A bytes.
+
+---
+ lib/search/hex.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/lib/search/hex.c b/lib/search/hex.c
+index 8b5470e..f196d7f 100644
+--- a/lib/search/hex.c
++++ b/lib/search/hex.c
+@@ -143,6 +143,14 @@ mc_search__cond_struct_new_init_hex (const char *charset, mc_search_t * lc_mc_se
+         g_string_free (mc_search_cond->str, TRUE);
+         mc_search_cond->str = tmp;
+         mc_search__cond_struct_new_init_regex (charset, lc_mc_search, mc_search_cond);
++        /**
++         * If the user searches for a 0x0A byte (newline), we turn
++         * slurp_mode on. Otherwise we make sure it's off.
++         */
++        lc_mc_search->slurp_mode = (strstr (mc_search_cond->str->str, "\\x0A") != NULL);
++        /* Note: If the newline is at the end of the pattern it can be found
++         * even without slurp_mode. We can add this optimization check if we
++         * really want to. */
+     }
+     else
+     {
+-- 
+2.9.3
+

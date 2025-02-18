@@ -1,0 +1,157 @@
+Index: vfs/smbfs.c
+===================================================================
+RCS file: /cvsroot/mc/mc/vfs/smbfs.c,v
+retrieving revision 1.94
+diff -u -p -r1.94 smbfs.c
+--- vfs/smbfs.c	11 Nov 2005 02:22:02 -0000	1.94
++++ vfs/smbfs.c	30 Mar 2006 09:06:44 -0000
+@@ -911,8 +911,57 @@ smbfs_symlink (struct vfs_class *me, con
+ 
+ /* Extract the hostname and username from the path */
+ /* path is in the form: [user@]hostname/share/remote-dir */
+-#define smbfs_get_host_and_username(path, host, user, port, pass) \
+-	vfs_split_url (*path, host, user, port, pass, SMB_PORT, 0)
++static char *
++smbfs_get_host_and_username (const char *path, char **host, char **service, char **user, int *port,
++			 char **pass) {
++    char *remote_path;
++
++    remote_path = vfs_split_url (path, host, user, port, pass,
++				 SMB_PORT, URL_ALLOW_ANON);
++
++    if (strcmp (*host, remote_path) == 0)	/* if host & path are same: */
++	*service = g_strdup (IPC);		/* setup for browse */
++    else {			/* get share name from path, path starts with server name */
++	char *p;
++	if ((p = strchr (remote_path, '/'))) {	/* get share aka                            */
++	    *service = g_strdup (++p);		/* service name from path               */
++
++	    /* now check for trailing directory/filenames   */
++	    p = strchr (*service, '/');
++	    if (p)
++		*p = 0;				/* cut off dir/files: sharename only */
++	    p = *service;
++	    if (!*p) {
++		g_free (*service);
++		*service = g_strdup (IPC);	/* setup for browse */
++	    }
++	} else
++	    *service = g_strdup (IPC);
++	DEBUG (6, ("smbfs_get_host_and_username: service from path:%s\n", *service));
++    }
++
++    if (*user == NULL) {
++	struct smb_authinfo key;
++	struct smb_authinfo *value;
++	GSList *list;
++
++	key.host = *host;
++	key.share = *service;
++	list = g_slist_find_custom (auth_list, &key, 
++				     smbfs_auth_cmp_host_and_share);
++
++	if (list == NULL)
++	    list = g_slist_find_custom (auth_list, &key,
++					smbfs_auth_cmp_host);
++
++	if (list != NULL) {
++	    value = list->data;
++	    *user = g_strdup (value->user);
++	}
++    }
++
++    return remote_path;
++}
+ 
+ /***************************************************** 
+ 	return a connection to a SMB server
+@@ -1075,34 +1124,16 @@ smbfs_get_free_bucket (void)
+ /* This routine keeps track of open connections */
+ /* Returns a connected socket to host */
+ static smbfs_connection *
+-smbfs_open_link (char *host, char *path, const char *user, int *port,
+-		 char *this_pass)
++smbfs_open_link (char *host, char *service, char *path, const char *user,
++		 int *port, char *this_pass)
+ {
+     int i;
+     smbfs_connection *bucket;
+-    pstring service;
+     struct in_addr *dest_ip = NULL;
+ 
+     DEBUG (3, ("smbfs_open_link(host:%s, path:%s)\n", host, path));
+ 
+-    if (strcmp (host, path) == 0)	/* if host & path are same: */
+-	pstrcpy (service, IPC);		/* setup for browse */
+-    else {			/* get share name from path, path starts with server name */
+-	char *p;
+-	if ((p = strchr (path, '/')))	/* get share aka                            */
+-	    pstrcpy (service, ++p);	/* service name from path               */
+-	else
+-	    pstrcpy (service, "");
+-	/* now check for trailing directory/filenames   */
+-	p = strchr (service, '/');
+-	if (p)
+-	    *p = 0;		/* cut off dir/files: sharename only */
+-	if (!*service)
+-	    pstrcpy (service, IPC);	/* setup for browse */
+-	DEBUG (6, ("smbfs_open_link: service from path:%s\n", service));
+-    }
+-
+-    if (got_user)
++    if (user == NULL && got_user)
+ 	user = username;	/* global from getenv */
+ 
+     /* Is the link actually open? */
+@@ -1179,7 +1210,7 @@ smbfs_open_link (char *host, char *path,
+ static char *
+ smbfs_get_path (smbfs_connection ** sc, const char *path)
+ {
+-    char *user, *host, *remote_path, *pass;
++    char *user, *host, *remote_path, *pass, *service;
+     int port = SMB_PORT;
+ 
+     DEBUG (3, ("smbfs_get_path(%s)\n", path));
+@@ -1191,13 +1222,14 @@ smbfs_get_path (smbfs_connection ** sc, 
+ 	path++;			/* probably came from server browsing */
+ 
+     if ((remote_path =
+-	 smbfs_get_host_and_username (&path, &host, &user, &port, &pass)))
++	 smbfs_get_host_and_username (path, &host, &service, &user, &port, &pass)))
+ 	if ((*sc =
+-	     smbfs_open_link (host, remote_path, user, &port, pass)) == NULL) {
++	     smbfs_open_link (host, service, remote_path, user, &port, pass)) == NULL) {
+ 	    g_free (remote_path);
+ 	    remote_path = NULL;
+ 	}
+     g_free (host);
++    g_free (service);
+     g_free (user);
+     if (pass)
+ 	wipe_password (pass);
+@@ -1743,7 +1775,7 @@ smbfs_free (vfsid id)
+ static void
+ smbfs_forget (const char *path)
+ {
+-    char *host, *user, *p;
++    char *host, *user, *p, *service;
+     int port, i;
+ 
+     if (strncmp (path, URL_HEADER, HEADER_LEN))
+@@ -1755,7 +1787,7 @@ smbfs_forget (const char *path)
+     if (path[0] == '/' && path[1] == '/')
+ 	path += 2;
+ 
+-    if ((p = smbfs_get_host_and_username (&path, &host, &user, &port, NULL))) {
++    if ((p = smbfs_get_host_and_username (path, &host, &service, &user, &port, NULL))) {
+ 	g_free (p);
+ 	for (i = 0; i < SMBFS_MAX_CONNECTIONS; i++) {
+ 	    if (smbfs_connections[i].cli
+@@ -1773,6 +1805,7 @@ smbfs_forget (const char *path)
+ 	}
+     }
+     g_free (host);
++    g_free (service);
+     g_free (user);
+ }
+ 

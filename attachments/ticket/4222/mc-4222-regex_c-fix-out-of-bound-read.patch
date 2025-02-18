@@ -1,0 +1,65 @@
+From e45690fb3df5dddd14a58a9d72a53586ae38db2d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 16 Mar 2021 11:04:23 +0000
+Subject: [PATCH] (regex.c) fix out of bound read at g_utf8_get_char_validated()
+
+Fix out of bound read at g_utf8_get_char_validated()
+because we told g_utf8_get_char_validated() to expect nul-terminated string.
+
+Test case: search for "test" in
+https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20201218.tar.xz
+
+Found by clang-11
+
+==10142==ERROR: AddressSanitizer: SEGV on unknown address 0x60c001e00000 (pc 0x7ffb352111c0 bp 0x7ffcb5745150 sp 0x7ffcb57450e8 T0)
+==10142==The signal is caused by a READ memory access.
+    #0 0x7ffb352111c0 in g_utf8_get_char_validated (/usr/lib64/libglib-2.0.so.0+0x811c0)
+    #1 0x851e6d in mc_search__g_regex_match_full_safe /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:297:22
+    #2 0x851824 in mc_search__regex_found_cond_one /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:328:10
+    #3 0x84b955 in mc_search__regex_found_cond /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:377:13
+    #4 0x84aa07 in mc_search__run_regex /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/regex.c:955:17
+    #5 0x848969 in mc_search__run_normal /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/normal.c:104:12
+    #6 0x77270c in mc_search_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/search/search.c:308:15
+    #7 0x514fd9 in search_content /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1123:20
+    #8 0x511917 in do_search /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1405:26
+    #9 0x512028 in find_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1597:9
+    #10 0x7e285f in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:243:15
+    #11 0x7e36d8 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:307:17
+    #12 0x7e34c5 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:583:5
+    #13 0x510aa1 in run_process /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1755:11
+    #14 0x50c29e in do_find /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1789:20
+    #15 0x5098e7 in find_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1917:17
+    #16 0x504735 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/filemanager.c:1251:9
+    #17 0x502e00 in midnight_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/filemanager.c:1604:21
+    #18 0x7eaa5c in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:243:15
+    #19 0x7e7ae9 in group_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/group.c:442:19
+    #20 0x7e6a4f in group_default_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/group.c:567:16
+    #21 0x7e31bf in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:251:19
+    #22 0x7e2c12 in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:549:9
+    #23 0x7e3746 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:320:9
+    #24 0x7e34c5 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:583:5
+    #25 0x502866 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/filemanager.c:1838:16
+    #26 0x4ceb15 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:455:21
+    #27 0x7ffb34f16b49 in __libc_start_main (/lib64/libc.so.6+0x23b49)
+    #28 0x4230f9 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4230f9)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/search/regex.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index b8721cb2e..809e1f985 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -288,8 +288,9 @@ mc_search__g_regex_match_full_safe (const GRegex * regex,
+     }
+ 
+     /* Correctly handle embedded NULs while copying */
+-    p = string_safe = g_malloc (string_len);
++    p = string_safe = g_malloc (string_len + 1);
+     memcpy (string_safe, string, string_len);
++    string_safe[string_len] = '\0';
+     end = p + string_len;
+ 
+     while (p < end)

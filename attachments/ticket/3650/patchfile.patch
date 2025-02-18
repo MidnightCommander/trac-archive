@@ -1,0 +1,190 @@
+diff -uNr mc-4.8.17.orig/src/filemanager/file.c mc-4.8.17/src/filemanager/file.c
+--- mc-4.8.17.orig/src/filemanager/file.c	2016-05-07 18:42:52.000000000 +0300
++++ mc-4.8.17/src/filemanager/file.c	2016-05-31 19:13:41.000000000 +0300
+@@ -1,3 +1,4 @@
++
+ /*
+    File management.
+ 
+@@ -59,6 +60,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <utime.h>
+ 
+ #include "lib/global.h"
+ #include "lib/tty/tty.h"
+@@ -83,6 +85,7 @@
+ #include "midnight.h"           /* current_panel */
+ #include "layout.h"             /* rotate_dash() */
+ #include "ioblksize.h"          /* io_blksize() */
++#include "src/vfs/extfs/extfs.h"/* for copy to extfs */
+ 
+ #include "file.h"
+ 
+@@ -1497,6 +1500,8 @@
+     int open_flags;
+     vfs_path_t *src_vpath = NULL, *dst_vpath = NULL;
+     char *buf = NULL;
++    struct vfs_class *vfs;
++    struct pseudofile *fsinfo = NULL;
+ 
+     /* FIXME: We should not be using global variables! */
+     ctx->do_reget = 0;
+@@ -1934,6 +1939,18 @@
+         break;
+     }
+ 
++/* if destination fs is extfs do chown(), chmod() and utime() on
++   local file copy before close destination file */
++    if ((vfs = vfs_class_find_by_handle (dest_desc, (void *) &fsinfo)) 
++		!= NULL && !strcmp (vfs->name, "extfs"))
++	{
++		chown (fsinfo->entry->inode->local_filename, src_uid, src_gid);
++		chmod (fsinfo->entry->inode->local_filename, (src_mode &
++													  ctx->umask_kill));
++		utime (fsinfo->entry->inode->local_filename, &utb);
++	}
++/*---------------------------------------------------------------------*/
++
+     while (dest_desc != -1 && mc_close (dest_desc) < 0 && !ctx->skip_all)
+     {
+         temp_status = file_error (_("Cannot close target file \"%s\"\n%s"), dst_path);
+diff -uNr mc-4.8.17.orig/src/vfs/extfs/extfs.c mc-4.8.17/src/vfs/extfs/extfs.c
+--- mc-4.8.17.orig/src/vfs/extfs/extfs.c	2016-05-07 18:42:52.000000000 +0300
++++ mc-4.8.17/src/vfs/extfs/extfs.c	2016-05-31 18:56:56.000000000 +0300
+@@ -75,61 +75,6 @@
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+-struct inode
+-{
+-    nlink_t nlink;
+-    struct entry *first_in_subdir;      /* only used if this is a directory */
+-    struct entry *last_in_subdir;
+-    ino_t inode;                /* This is inode # */
+-    dev_t dev;                  /* This is an internal identification of the extfs archive */
+-    struct archive *archive;    /* And this is an archive structure */
+-    dev_t rdev;
+-    mode_t mode;
+-    uid_t uid;
+-    gid_t gid;
+-    off_t size;
+-    time_t mtime;
+-    char *linkname;
+-    time_t atime;
+-    time_t ctime;
+-    char *local_filename;
+-};
+-
+-struct entry
+-{
+-    struct entry *next_in_dir;
+-    struct entry *dir;
+-    char *name;
+-    struct inode *inode;
+-};
+-
+-struct pseudofile
+-{
+-    struct archive *archive;
+-    gboolean has_changed;
+-    int local_handle;
+-    struct entry *entry;
+-};
+-
+-struct archive
+-{
+-    int fstype;
+-    char *name;
+-    char *local_name;
+-    struct stat local_stat;
+-    dev_t rdev;
+-    int fd_usage;
+-    ino_t inode_counter;
+-    struct entry *root_entry;
+-    struct archive *next;
+-};
+-
+-typedef struct
+-{
+-    char *path;
+-    char *prefix;
+-    gboolean need_archive;
+-} extfs_plugin_info_t;
+ 
+ /*** file scope variables ************************************************************************/
+ 
+@@ -422,6 +367,7 @@
+         }
+ 
+         tmp = name_quote (vfs_path_get_last_path_str (name_vpath), FALSE);
++
+     }
+ 
+     cmd = g_strconcat (info->path, info->prefix, " list ",
+diff -uNr mc-4.8.17.orig/src/vfs/extfs/extfs.h mc-4.8.17/src/vfs/extfs/extfs.h
+--- mc-4.8.17.orig/src/vfs/extfs/extfs.h	2016-03-12 18:45:48.000000000 +0300
++++ mc-4.8.17/src/vfs/extfs/extfs.h	2016-05-31 02:27:27.000000000 +0300
+@@ -6,6 +6,61 @@
+ /*** enums ***************************************************************************************/
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
++struct inode
++{
++    nlink_t nlink;
++    struct entry *first_in_subdir;      /* only used if this is a directory */
++    struct entry *last_in_subdir;
++    ino_t inode;                /* This is inode # */
++    dev_t dev;                  /* This is an internal identification of the extfs archive */
++    struct archive *archive;    /* And this is an archive structure */
++    dev_t rdev;
++    mode_t mode;
++    uid_t uid;
++    gid_t gid;
++    off_t size;
++    time_t mtime;
++    char *linkname;
++    time_t atime;
++    time_t ctime;
++    char *local_filename;
++};
++
++struct entry
++{
++    struct entry *next_in_dir;
++    struct entry *dir;
++    char *name;
++    struct inode *inode;
++};
++
++struct pseudofile
++{
++    struct archive *archive;
++    gboolean has_changed;
++    int local_handle;
++    struct entry *entry;
++};
++
++struct archive
++{
++    int fstype;
++    char *name;
++    char *local_name;
++    struct stat local_stat;
++    dev_t rdev;
++    int fd_usage;
++    ino_t inode_counter;
++    struct entry *root_entry;
++    struct archive *next;
++};
++
++typedef struct
++{
++    char *path;
++    char *prefix;
++    gboolean need_archive;
++} extfs_plugin_info_t;
+ 
+ /*** global variables defined in .c file *********************************************************/
+ 

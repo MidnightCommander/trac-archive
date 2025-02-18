@@ -1,0 +1,57 @@
+From c8ebf8408d108181fdc95c288552d0a43684c449 Mon Sep 17 00:00:00 2001
+From: Pavel Roskin <plroskin@gmail.com>
+Date: Fri, 17 Feb 2023 15:05:54 -0800
+Subject: [PATCH] skin julia256.ini: Minor improvements
+
+Set "errdhotfocus" to a higher contrast color combination. Yellow is barely
+visible on lightgray. The cursor stands on the the focused hotkey. If the
+cursor is an underscore, the high contrast is obviously needed. If the focus
+is a full box, it normally inverts both the background and the foreground, so
+poor contrast remains poor. Red on lightgray is consistent with other colors
+of the skin.
+
+Set "menutitle" to yellow on blue. Otherwise, the title is not
+distinguishable from the menu entries. Both "parent" skins, default and
+xoria256, use distinctive color for the popup menu title.
+
+Set "editrightmargin" to the same color as the panels. White on blue is
+extremely distracting in contrast to black background to the left of the
+margin.
+---
+ misc/skins/julia256.ini | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/misc/skins/julia256.ini b/misc/skins/julia256.ini
+index e942fc615..18ed248a4 100644
+--- a/misc/skins/julia256.ini
++++ b/misc/skins/julia256.ini
+@@ -55,7 +55,7 @@
+     _default_ = white;red
+     errdfocus = black;lightgray
+     errdhotnormal = yellow;red
+-    errdhotfocus = yellow;lightgray
++    errdhotfocus = red;lightgray
+     errdtitle = yellow;red
+ 
+ [filehighlight]
+@@ -85,7 +85,7 @@
+ [popupmenu]
+     _default_ = lightgray;blue
+     menusel = black;cyan
+-    menutitle = lightgray;blue
++    menutitle = yellow;blue
+ 
+ [buttonbar]
+     hotkey = red;lightgray
+@@ -110,7 +110,7 @@
+     editlinestate = white;cyan
+     bookmark = white;red
+     bookmarkfound = black;green
+-    editrightmargin = white;blue
++    editrightmargin = lightgray;color237
+ #    editbg =
+     editframe = gray;
+     editframeactive = lightgray;
+-- 
+2.27.0
+

@@ -1,0 +1,156 @@
+From 47dd46a1c232762bb8f9d327cca1f59b8e9a79f7 Mon Sep 17 00:00:00 2001
+From: Ilia Maslakov <il.smind@gmail.com>
+Date: Sun, 22 Mar 2009 22:53:21 +0000
+Subject: [PATCH] Add edit_move_block_to_left, edit_move_block_to_right procedure for shift block.
+  Tab: if block selected, shift block to right,
+  M-Tab(complete):  if block selected, shift block to left.
+ Remove "static" from insert_spaces_tab.
+
+---
+ edit/edit.c    |   29 +++++++++++++++-------
+ edit/editcmd.c |   71 +++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 90 insertions(+), 10 deletions(-)
+
+diff --git a/edit/edit.c b/edit/edit.c
+index 2b88204..a236987 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -1900,7 +1900,7 @@ edit_delete_line (WEdit *edit)
+     };
+ }
+ 
+-static void insert_spaces_tab (WEdit * edit, int half)
++void insert_spaces_tab (WEdit * edit, int half)
+ {
+     int i;
+     edit_update_curs_col (edit);
+@@ -2377,13 +2377,19 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+ 	break;
+ 
+     case CK_Tab:
+-	edit_tab_cmd (edit);
+-	if (option_auto_para_formatting) {
+-	    format_paragraph (edit, 0);
+-	    edit->force |= REDRAW_PAGE;
+-	} else
+-	    check_and_wrap_line (edit);
+-	break;
++        /* if text marked shift block */
++        if (edit->mark1 != edit->mark2) {
++            edit_move_block_to_right (edit);
++        } else {
++            edit_tab_cmd (edit);
++            if (option_auto_para_formatting) {
++                format_paragraph (edit, 0);
++                edit->force |= REDRAW_PAGE;
++            } else {
++                check_and_wrap_line (edit);
++            }
++        }
++        break;
+ 
+     case CK_Toggle_Insert:
+ 	edit->overwrite = (edit->overwrite == 0);
+@@ -2531,7 +2537,12 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+ 	edit_replace_cmd (edit, 1);
+ 	break;
+     case CK_Complete_Word:
+-	edit_complete_word_cmd (edit);
++        /* if text marked shift block */
++        if (edit->mark1 != edit->mark2) {
++            edit_move_block_to_left (edit);
++        } else {
++            edit_complete_word_cmd (edit);
++        }
+ 	break;
+     case CK_Find_Definition:
+ 	edit_get_match_keyword_cmd (edit);
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index d3f8ecf..b4de907 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -1183,7 +1183,6 @@ int edit_block_delete_cmd (WEdit * edit)
+     return edit_block_delete (edit);
+ }
+ 
+-
+ #define INPUT_INDEX 9
+ #define SEARCH_DLG_WIDTH 58
+ #define SEARCH_DLG_HEIGHT 10
+@@ -3189,3 +3188,73 @@ edit_get_match_keyword_cmd (WEdit *edit)
+     }
+     g_free (match_expr);
+ }
++
++void
++edit_move_block_to_right (WEdit * edit)
++{
++    long start_mark, end_mark;
++    long cur_bol, start_bol;
++
++    if ( eval_marks (edit, &start_mark, &end_mark) )
++        return;
++
++    start_bol = edit_bol (edit, start_mark);
++    cur_bol = edit_bol (edit, end_mark - 1);
++    do {
++        edit_cursor_move (edit, cur_bol - edit->curs1);
++        if ( option_fill_tabs_with_spaces ) {
++            if ( option_fake_half_tabs ) {
++                insert_spaces_tab (edit, 1);
++            } else {
++                insert_spaces_tab (edit, 0);
++            }
++        } else {
++            edit_insert (edit, '\t');
++        }
++        edit_cursor_move (edit, edit_bol (edit, cur_bol) - edit->curs1);
++        if ( cur_bol == 0 ) {
++            break;
++        }
++        cur_bol = edit_bol (edit, cur_bol - 1);
++    } while (cur_bol >= start_bol) ;
++    edit->force |= REDRAW_PAGE;
++}
++
++void
++edit_move_block_to_left (WEdit * edit)
++{
++    long start_mark, end_mark;
++    long cur_bol, start_bol;
++    int i, del_tab_width;
++    int next_char;
++
++    if ( eval_marks (edit, &start_mark, &end_mark) )
++        return;
++
++    start_bol = edit_bol (edit, start_mark);
++    cur_bol = edit_bol (edit, end_mark - 1);
++    do {
++        edit_cursor_move (edit, cur_bol - edit->curs1);
++        if (option_fake_half_tabs) {
++            del_tab_width = HALF_TAB_SIZE;
++        } else {
++            del_tab_width = option_tab_spacing;
++        }
++        next_char = edit_get_byte (edit, edit->curs1);
++        if ( next_char == '\t' ) {
++            edit_delete (edit);
++        } else if ( next_char == ' ' ) {
++            for (i = 1; i <= del_tab_width; i++) {
++                if ( next_char == ' ' ) {
++                    edit_delete (edit);
++                }
++                next_char = edit_get_byte (edit, edit->curs1);
++            }
++        }
++        if ( cur_bol == 0 ) {
++            break;
++        }
++        cur_bol = edit_bol (edit, cur_bol - 1);
++    } while (cur_bol >= start_bol) ;
++    edit->force |= REDRAW_PAGE;
++}
+-- 
+1.6.1.2
+

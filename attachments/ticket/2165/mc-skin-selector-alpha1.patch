@@ -1,0 +1,301 @@
+diff --git a/lib/keybind.c b/lib/keybind.c
+index 9e101b3..f95cf0e 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -176,6 +176,7 @@ static name_keymap_t command_names[] = {
+     {"Jobs", CK_Jobs},
+ #endif
+     {"OptionsLayout", CK_OptionsLayout},
++    {"OptionsAppearance", CK_OptionsAppearance},
+     {"Link", CK_Link},
+     {"PanelListingChange", CK_PanelListingChange},
+     {"PanelListing", CK_PanelListing},
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 5bfb81b..d8ed810 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -155,6 +155,7 @@ enum
+     CK_PanelInfo,
+     CK_Jobs,
+     CK_OptionsLayout,
++    CK_OptionsAppearance,
+     CK_Link,
+     CK_PanelListing,
+     CK_ListMode,
+diff --git a/lib/skin.h b/lib/skin.h
+index e67c49a..9dae7ed 100644
+--- a/lib/skin.h
++++ b/lib/skin.h
+@@ -129,7 +129,7 @@ extern mc_skin_t mc_skin__default;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-gboolean mc_skin_init (GError **);
++gboolean mc_skin_init (const gchar *, GError **);
+ void mc_skin_deinit (void);
+ 
+ int mc_skin_color_get (const gchar *, const gchar *);
+diff --git a/lib/skin/common.c b/lib/skin/common.c
+index 1737a4b..5a11542 100644
+--- a/lib/skin/common.c
++++ b/lib/skin/common.c
+@@ -60,7 +60,7 @@ mc_skin_hash_destroy_value (gpointer data)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static char *
++char *
+ mc_skin_get_default_name (void)
+ {
+     char *tmp_str;
+@@ -80,13 +80,14 @@ mc_skin_get_default_name (void)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static void
+-mc_skin_reinit (void)
++void
++mc_skin_reinit (const gchar *skin_override)
+ {
++    GError *error = NULL;
+     mc_skin_deinit ();
+-    mc_skin__default.name = mc_skin_get_default_name ();
+-    mc_skin__default.colors = g_hash_table_new_full (g_str_hash, g_str_equal,
+-                                                     g_free, mc_skin_hash_destroy_value);
++    tty_color_free_all_tmp ();
++    tty_color_free_all_non_tmp ();
++    mc_skin_init (skin_override, &error);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -94,12 +95,12 @@ mc_skin_reinit (void)
+ static void
+ mc_skin_try_to_load_default (void)
+ {
+-    mc_skin_reinit ();
++    mc_skin_reinit (NULL);
+     g_free (mc_skin__default.name);
+     mc_skin__default.name = g_strdup ("default");
+     if (!mc_skin_ini_file_load (&mc_skin__default))
+     {
+-        mc_skin_reinit ();
++        mc_skin_reinit (NULL);
+         mc_skin_set_hardcoded_skin (&mc_skin__default);
+     }
+ 
+@@ -110,13 +111,14 @@ mc_skin_try_to_load_default (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ gboolean
+-mc_skin_init (GError ** error)
++mc_skin_init (const gchar *skin_override, GError ** error)
+ {
+     gboolean is_good_init = TRUE;
+ 
+     mc_skin__default.have_256_colors = FALSE;
+ 
+-    mc_skin__default.name = mc_skin_get_default_name ();
++    mc_skin__default.name =
++        skin_override != NULL ? g_strdup(skin_override) : mc_skin_get_default_name ();
+ 
+     mc_skin__default.colors = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                      g_free, mc_skin_hash_destroy_value);
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index 12e899f..9338cca 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -780,8 +780,7 @@ dlg_create (gboolean modal, int y1, int x1, int lines, int cols,
+ 
+     new_d->state = DLG_CONSTRUCT;
+     new_d->modal = modal;
+-    if (colors != NULL)
+-        memmove (new_d->color, colors, sizeof (dlg_colors_t));
++    new_d->color = colors;
+     new_d->help_ctx = help_ctx;
+     new_d->flags = flags;
+     new_d->data = NULL;
+diff --git a/lib/widget/dialog.h b/lib/widget/dialog.h
+index 20cb8b7..17795bb 100644
+--- a/lib/widget/dialog.h
++++ b/lib/widget/dialog.h
+@@ -83,7 +83,7 @@ struct WDialog
+     gboolean modal;             /* type of dialog: modal or not */
+     dlg_flags_t flags;          /* User flags */
+     const char *help_ctx;       /* Name of the help entry */
+-    dlg_colors_t color;         /* Color set. Unused in viewer and editor */
++    const int *color;           /* Color set. Unused in viewer and editor */
+     char *title;                /* Title of the dialog */
+ 
+     /* Set and received by the user */
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index bd15ae9..6e9438f 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -104,6 +104,8 @@ static int listing_user_hotkey = 'u';
+ static unsigned long panel_listing_types_id, panel_user_format_id;
+ static unsigned long mini_user_status_id, mini_user_format_id;
+ 
++static unsigned long skin_name_id;
++
+ #ifdef HAVE_CHARSET
+ static int new_display_codepage;
+ static unsigned long disp_bits_name_id;
+@@ -516,6 +518,110 @@ configure_box (void)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static void
++skin_apply (const gchar *skin_override)
++{
++    mc_skin_reinit (skin_override);
++    mc_fhl_free (&mc_filehighlight);
++    mc_filehighlight = mc_fhl_new (TRUE);
++    dlg_set_default_colors ();
++    panel_deinit ();
++    panel_init ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static cb_ret_t
++skin_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    return dlg_default_callback (w, sender, msg, parm, data);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static int
++sel_skin_button (WButton * button, int action)
++{
++    int result;
++    WListbox *skin_list;
++    WDialog *skin_dlg;
++    int lxx, lyy;
++    int b_pos;
++
++    lxx = (COLS - 74) / 2 + 35;
++    lyy = (LINES - 13) / 2;
++    skin_dlg =
++        dlg_create (TRUE, lyy, lxx, 13, 21, dialog_colors, skin_callback, NULL,
++                    "[skin]" /* ??? help section maybe ?? */, _("Skin"), DLG_COMPACT);
++
++    skin_list = listbox_new (1, 1, 11, 19, FALSE, NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_AT_END, 0, "default", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "dark", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "darkfar", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "double-lines", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "featured", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "gotar", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "mc46", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "nicedark", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "modarin256", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "modarin256root", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "sand256", NULL);
++    listbox_add_item (skin_list, LISTBOX_APPEND_SORTED, 0, "xoria256", NULL);
++    listbox_select_entry (skin_list, 0);
++
++    b_pos = skin_list->pos;
++    add_widget (skin_dlg, skin_list);
++
++    result = dlg_run (skin_dlg);
++    if (result == B_ENTER /* && b_pos != skin_list->pos */) {
++        char *skin_name;
++        listbox_get_current (skin_list, &skin_name, NULL);
++        skin_apply (skin_name);
++
++        Widget *w;
++        w = dlg_find_by_id (WIDGET (button)->owner, skin_name_id);
++        button_set_text (BUTTON (w), g_strdup(skin_name));
++    }
++    dlg_destroy (skin_dlg);
++    return 0;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++appearance_box (void)
++{
++    char *default_skin_name = mc_skin_get_default_name();
++
++    quick_widget_t quick_widgets[] = {
++        /* *INDENT-OFF* */
++        QUICK_START_COLUMNS,
++            QUICK_LABEL (N_("Skin:"), NULL),
++        QUICK_NEXT_COLUMN,
++            QUICK_BUTTON (default_skin_name, B_USER, sel_skin_button, &skin_name_id),
++        QUICK_STOP_COLUMNS,
++        QUICK_BUTTONS_OK_CANCEL,
++        QUICK_END
++        /* *INDENT-ON* */
++    };
++
++    quick_dialog_t qdlg = {
++        -1, -1, 50,
++        _("Appearance"), "[Appearance]",
++        quick_widgets, NULL, NULL
++    };
++
++    if (quick_dialog (&qdlg) == B_ENTER) {
++        // save...
++    } else {
++        skin_apply (NULL);
++    }
++
++    g_free (default_skin_name);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ panel_options_box (void)
+ {
+diff --git a/src/filemanager/boxes.h b/src/filemanager/boxes.h
+index 08c86a3..9859a73 100644
+--- a/src/filemanager/boxes.h
++++ b/src/filemanager/boxes.h
+@@ -19,6 +19,7 @@
+ /*** declarations of public functions ************************************************************/
+ 
+ void configure_box (void);
++void appearance_box (void);
+ void panel_options_box (void);
+ int panel_listing_box (WPanel * p, char **user, char **mini, int *use_msformat, int num);
+ const panel_field_t *sort_box (dir_sort_options_t * op, const panel_field_t * sort_field);
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index f3ba774..987d9bd 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -337,6 +337,8 @@ create_options_menu (void)
+     entries =
+         g_list_prepend (entries, menu_entry_create (_("C&onfirmation..."), CK_OptionsConfirm));
+     entries =
++        g_list_prepend (entries, menu_entry_create (_("&Appearance..."), CK_OptionsAppearance));
++    entries =
+         g_list_prepend (entries, menu_entry_create (_("&Display bits..."), CK_OptionsDisplayBits));
+     entries = g_list_prepend (entries, menu_entry_create (_("Learn &keys..."), CK_LearnKeys));
+ #ifdef ENABLE_VFS
+@@ -1250,6 +1252,9 @@ midnight_execute_cmd (Widget * sender, unsigned long command)
+     case CK_OptionsLayout:
+         layout_box ();
+         break;
++    case CK_OptionsAppearance:
++        appearance_box ();
++        break;
+     case CK_LearnKeys:
+         learn_keys ();
+         break;
+diff --git a/src/main.c b/src/main.c
+index f4005cc..87981f5 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -371,7 +371,7 @@ main (int argc, char *argv[])
+ 
+     tty_init_colors (mc_global.tty.disable_colors, mc_args__force_colors);
+ 
+-    mc_skin_init (&error);
++    mc_skin_init (NULL, &error);
+     if (error != NULL)
+     {
+         message (D_ERROR, _("Warning"), "%s", error->message);

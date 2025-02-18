@@ -1,0 +1,21 @@
+--- src/util.c	2009-09-03 02:27:43.000000000 +0400
++++ util.__.c	2009-09-03 09:25:18.000000000 +0400
+@@ -922,13 +922,13 @@
+ 
+     /* XZ compression magic */
+     if (magic[0] == 0xFD
+-	&& magic[1] == 0x37 && magic[2] == 0x7A && magic[3] == 0x58) {
+-	if (mc_read (fd, (char *) magic + 4, 2) == 2) {
+-            if (magic[4] == 0x5A && magic[5] == 0x00) {
++	&& magic[1] == 0x37
++	 && magic[2] == 0x7A
++	  && magic[3] == 0x58
++	   && magic[4] == 0x5A
++	    && magic[5] == 0x00) {
+                 return COMPRESSION_XZ;
+-            }
+         }
+-    }
+ 
+     return COMPRESSION_NONE;
+ }

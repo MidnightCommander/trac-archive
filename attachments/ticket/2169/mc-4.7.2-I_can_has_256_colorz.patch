@@ -1,0 +1,1033 @@
+diff -urN mc-4.7.2.orig/doc/man/mc.1.in mc-4.7.2/doc/man/mc.1.in
+--- mc-4.7.2.orig/doc/man/mc.1.in	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/doc/man/mc.1.in	2010-05-05 23:30:46.000000000 +0200
+@@ -3327,7 +3327,7 @@
+ The format for the color definition is:
+ .PP
+ .nf
+-  <keyword>=<foregroundcolor>,<backgroundcolor>:<keyword>= ...
++  <keyword>=<FGcolor>,<BGcolor>,<Attributes>:<keyword>=...
+ .fi
+ .PP
+ The colors are optional, and the keywords are: normal, selected, marked,
+@@ -3374,14 +3374,23 @@
+ .PP
+ The possible colors are: black, gray, red, brightred, green,
+ brightgreen, brown, yellow, blue, brightblue, magenta, brightmagenta,
+-cyan, brightcyan, lightgray and white. And there is a special keyword
+-for transparent background. It is 'default'. The 'default' can only be
+-used for background color. Example:
++cyan, brightcyan, lightgray and white. The special keyword "default" means
++the terminal's default. Another special keyword "base" means mc's main
++colors.  When 256 colors are available, they can be specified either as
++color16 to color255, or as rgb000 to rgb555 and gray0 to gray23. Example:
+ .PP
+ .nf
+ [Colors]
+ base_color=normal=white,default:marked=magenta,default
+ .fi
++.PP
++Attributes can be any of bold, underline, reverse and blink, appended by a
++plus sign if more than one are desired.  The special word "none" menas no
++attributes, without attempting to fall back to base_color.  Example:
++.PP
++.nf
++menuhotsel=yellow;black;bold+underline
++.fi
+ 
+ .\"NODE "Skins"
+ .SH "Skins"
+@@ -3614,11 +3623,12 @@
+ .SH "  Color pair definitions"
+ Any parameter in skin\-file contain definition of color pair.
+ .PP
+-Color pairs described as two colors separated by ';'. First color
+-sets the foreground color, second color sets background color.
+-One of the colors may be omitted, in this case color will be
+-taken from default color pair (global color pair  or
+-from default color pair of this section).
++Color pairs described as two colors and the optional attributes
++separated by ';'. First field sets the foreground color, second
++field sets background color, third field sets the attributes.
++Any of the fields may be omitted, in this case value will be
++taken from default color pair (global color pair or from default
++color pair of this section).
+ .PP
+ Example:
+ .br
+@@ -3626,14 +3636,14 @@
+ [core]
+     # green on black
+     _default_=green;black
+-    # green (default)  on blue
++    # green (default) on blue
+     selected=;blue
+-    # yellow on black (default)
+-    marked=yellow;
++    # underlined yellow on black (default)
++    marked=yellow;;underline
+ .fi
+ 
+ .PP
+-Possible colors (names) described in
++Possible colors (names) and attributes are described in
+ .\"LINK2"
+ Colors\&.
+ .\"Colors"
+diff -urN mc-4.7.2.orig/doc/man/mcedit.1.in mc-4.7.2/doc/man/mcedit.1.in
+--- mc-4.7.2.orig/doc/man/mcedit.1.in	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/doc/man/mcedit.1.in	2010-05-05 23:30:46.000000000 +0200
+@@ -33,7 +33,7 @@
+ Force ANSI color mode on terminals that don't seem to have color
+ support.
+ .TP
+-.I "\-C <keyword>=<FGcolor>,<BGcolor>:<keyword>= ..."
++.I "\-C <keyword>=<FGcolor>,<BGcolor>,<Attributes>:<keyword>= ..."
+ Specify a different color set.  See the
+ .B Colors
+ section in mc(1) for more information.
+@@ -249,12 +249,14 @@
+ .I delim
+ .RI [ foreground ]
+ .RI [ background ]
++.RI [ attributes ]
+ .PP
+ The first context is an exception.  It must start with the command
+ .PP
+ .B context default
+ .RI [ foreground ]
+ .RI [ background ]
++.RI [ attributes ]
+ .PP
+ otherwise
+ .B mcedit
+@@ -294,6 +296,7 @@
+ .RB [ linestart ]
+ .I string foreground
+ .RI [ background ]
++.RI [ attributes ]
+ .PP
+ Context or keyword strings are interpreted, so that you can include tabs
+ and spaces with the sequences \\t and \\s.  Newlines and backslashes are
+@@ -331,7 +334,14 @@
+ .PP
+ The possible colors are: black, gray, red, brightred, green,
+ brightgreen, brown, yellow, blue, brightblue, magenta, brightmagenta,
+-cyan, brightcyan, lightgray and white.  If the syntax file is shared
++cyan, brightcyan, lightgray and white. The special keyword "default" means
++the terminal's default. Another special keyword "base" means mc's main
++colors, it is useful as a placeholder if you want to specify attributes
++without modifying the background color. When 256 colors are available,
++they can be specified either as color16 to color255, or as rgb000 to rgb555
++and gray0 to gray23.
++.PP
++If the syntax file is shared
+ with
+ .BR cooledit ,
+ it is possible to specify different colors for
+@@ -349,6 +359,9 @@
+ .B cooledit
+ colors.
+ .PP
++Attributes can be any of bold, underline, reverse and blink, appended by a
++plus sign if more than one are desired.
++.PP
+ Comments may be put on a separate line starting with the hash sign (#).
+ .PP
+ If you are describing case insensitive language you need to use
+diff -urN mc-4.7.2.orig/doc/man/mcview.1.in mc-4.7.2/doc/man/mcview.1.in
+--- mc-4.7.2.orig/doc/man/mcview.1.in	2010-03-13 21:29:13.000000000 +0100
++++ mc-4.7.2/doc/man/mcview.1.in	2010-05-05 23:30:46.000000000 +0200
+@@ -23,7 +23,7 @@
+ .B mcview
+ defaults to black and white.
+ .TP
+-.I "\-C <keyword>=<FGcolor>,<BGcolor>:<keyword>= ..."
++.I "\-C <keyword>=<FGcolor>,<BGcolor>,<Attributes>:<keyword>= ..."
+ Specify a different color set.  See the
+ .B Colors
+ section in mc(1) for more information.
+diff -urN mc-4.7.2.orig/lib/skin/colors-old.c mc-4.7.2/lib/skin/colors-old.c
+--- mc-4.7.2.orig/lib/skin/colors-old.c	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/lib/skin/colors-old.c	2010-05-05 23:30:46.000000000 +0200
+@@ -125,7 +125,7 @@
+ 
+     for (; *colors; colors++)
+     {
+-        key_val = g_strsplit_set (*colors, "=,", 3);
++        key_val = g_strsplit_set (*colors, "=,", 4);
+ 
+         if (!key_val)
+             continue;
+@@ -137,7 +137,9 @@
+             continue;
+         }
+ 
+-        if (key_val[2] != NULL)
++        if (key_val[3] != NULL)
++            skin_val = g_strdup_printf ("%s;%s;%s", key_val[1], key_val[2], key_val[3]);
++        else if (key_val[2] != NULL)
+             skin_val = g_strdup_printf ("%s;%s", key_val[1], key_val[2]);
+         else
+             skin_val = g_strdup_printf ("%s;", key_val[1]);
+diff -urN mc-4.7.2.orig/lib/skin/colors.c mc-4.7.2/lib/skin/colors.c
+--- mc-4.7.2.orig/lib/skin/colors.c	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/lib/skin/colors.c	2010-05-05 23:30:46.000000000 +0200
+@@ -141,36 +141,18 @@
+         return NULL;
+     }
+ 
+-    switch (items_count)
+-    {
+-    case 0:
+-        tmp = mc_skin_color_get_with_defaults (group, "_default_");
+-        if (tmp)
+-        {
+-            mc_skin_color->fgcolor = g_strdup (tmp->fgcolor);
+-            mc_skin_color->bgcolor = g_strdup (tmp->bgcolor);
+-        }
+-        else
+-        {
+-            g_strfreev (values);
+-            g_free (mc_skin_color);
+-            return NULL;
+-        }
+-        break;
+-    case 1:
+-        mc_skin_color->fgcolor = (values[0]) ? g_strstrip (g_strdup (values[0])) : NULL;
+-        tmp = mc_skin_color_get_with_defaults (group, "_default_");
+-        mc_skin_color->bgcolor = (tmp != NULL) ? g_strdup (tmp->bgcolor) : NULL;
+-        break;
+-    case 2:
+-        mc_skin_color->fgcolor = (values[0]) ? g_strstrip (g_strdup (values[0])) : NULL;
+-        mc_skin_color->bgcolor = (values[1]) ? g_strstrip (g_strdup (values[1])) : NULL;
+-        break;
+-    }
++    tmp = mc_skin_color_get_with_defaults (group, "_default_");
++    mc_skin_color->fgcolor = (items_count > 0 && values[0][0]) ? g_strstrip (g_strdup (values[0])) :
++        (tmp != NULL) ? g_strdup (tmp->fgcolor) : NULL;
++    mc_skin_color->bgcolor = (items_count > 1 && values[1][0]) ? g_strstrip (g_strdup (values[1])) :
++        (tmp != NULL) ? g_strdup (tmp->bgcolor) : NULL;
++    mc_skin_color->attrs = (items_count > 2 && values[2][0]) ? g_strstrip (g_strdup (values[2])) :
++        (tmp != NULL) ? g_strdup (tmp->attrs) : NULL;
++
+     g_strfreev (values);
+ 
+     mc_skin_color->pair_index =
+-        tty_try_alloc_color_pair2 (mc_skin_color->fgcolor, mc_skin_color->bgcolor, FALSE);
++        tty_try_alloc_color_pair2 (mc_skin_color->fgcolor, mc_skin_color->bgcolor, mc_skin_color->attrs, FALSE);
+ 
+     return mc_skin_color;
+ }
+@@ -186,8 +168,9 @@
+     {
+         mc_skin_color->fgcolor = g_strdup ("default");
+         mc_skin_color->bgcolor = g_strdup ("default");
++        mc_skin_color->attrs = NULL;
+         mc_skin_color->pair_index =
+-            tty_try_alloc_color_pair2 (mc_skin_color->fgcolor, mc_skin_color->bgcolor, FALSE);
++            tty_try_alloc_color_pair2 (mc_skin_color->fgcolor, mc_skin_color->bgcolor, mc_skin_color->attrs, FALSE);
+         mc_skin_color_add_to_hash (mc_skin, "skin", "terminal_default_color", mc_skin_color);
+     }
+ }
+@@ -314,7 +297,7 @@
+     if (mc_skin_color == NULL)
+         return FALSE;
+ 
+-    tty_color_set_defaults (mc_skin_color->fgcolor, mc_skin_color->bgcolor);
++    tty_color_set_defaults (mc_skin_color->fgcolor, mc_skin_color->bgcolor, mc_skin_color->attrs);
+     mc_skin_color_add_to_hash (mc_skin, "core", "_default_", mc_skin_color);
+ 
+     for (; *groups != NULL; groups++)
+diff -urN mc-4.7.2.orig/lib/skin/common.c mc-4.7.2/lib/skin/common.c
+--- mc-4.7.2.orig/lib/skin/common.c	2010-03-30 21:21:02.000000000 +0200
++++ mc-4.7.2/lib/skin/common.c	2010-05-05 23:30:46.000000000 +0200
+@@ -62,6 +62,7 @@
+     mc_skin_color_t *mc_skin_color = (mc_skin_color_t *) data;
+     g_free (mc_skin_color->fgcolor);
+     g_free (mc_skin_color->bgcolor);
++    g_free (mc_skin_color->attrs);
+     g_free (mc_skin_color);
+ }
+ 
+diff -urN mc-4.7.2.orig/lib/skin/internal.h mc-4.7.2/lib/skin/internal.h
+--- mc-4.7.2.orig/lib/skin/internal.h	2010-03-30 21:21:02.000000000 +0200
++++ mc-4.7.2/lib/skin/internal.h	2010-05-05 23:30:46.000000000 +0200
+@@ -13,6 +13,7 @@
+ typedef struct mc_skin_color_struct {
+     gchar *fgcolor;
+     gchar *bgcolor;
++    gchar *attrs;
+     int pair_index;
+ } mc_skin_color_t;
+ 
+diff -urN mc-4.7.2.orig/lib/tty/color-internal.c mc-4.7.2/lib/tty/color-internal.c
+--- mc-4.7.2.orig/lib/tty/color-internal.c	2010-03-30 21:21:02.000000000 +0200
++++ mc-4.7.2/lib/tty/color-internal.c	2010-05-05 23:30:46.000000000 +0200
+@@ -47,22 +47,22 @@
+ /*** file scope variables ************************************************************************/
+ 
+ mc_tty_color_table_t const color_table[] = {
+-    { "black",         COLOR_BLACK   },
+-    { "gray",          COLOR_BLACK   | A_BOLD },
+-    { "red",           COLOR_RED     },
+-    { "brightred",     COLOR_RED     | A_BOLD },
+-    { "green",         COLOR_GREEN   },
+-    { "brightgreen",   COLOR_GREEN   | A_BOLD },
+-    { "brown",         COLOR_YELLOW  },
+-    { "yellow",        COLOR_YELLOW  | A_BOLD },
+-    { "blue",          COLOR_BLUE    },
+-    { "brightblue",    COLOR_BLUE    | A_BOLD },
+-    { "magenta",       COLOR_MAGENTA },
+-    { "brightmagenta", COLOR_MAGENTA | A_BOLD },
+-    { "cyan",          COLOR_CYAN    },
+-    { "brightcyan",    COLOR_CYAN    | A_BOLD },
+-    { "lightgray",     COLOR_WHITE },
+-    { "white",         COLOR_WHITE   | A_BOLD },
++    { "black",         COLOR_BLACK       },
++    { "gray",          COLOR_BLACK + 8   },
++    { "red",           COLOR_RED         },
++    { "brightred",     COLOR_RED + 8     },
++    { "green",         COLOR_GREEN       },
++    { "brightgreen",   COLOR_GREEN + 8   },
++    { "brown",         COLOR_YELLOW      },
++    { "yellow",        COLOR_YELLOW + 8  },
++    { "blue",          COLOR_BLUE        },
++    { "brightblue",    COLOR_BLUE + 8    },
++    { "magenta",       COLOR_MAGENTA     },
++    { "brightmagenta", COLOR_MAGENTA + 8 },
++    { "cyan",          COLOR_CYAN        },
++    { "brightcyan",    COLOR_CYAN + 8    },
++    { "lightgray",     COLOR_WHITE       },
++    { "white",         COLOR_WHITE + 8   },
+     { "default",       -1 }, /* default color of the terminal */
+     /* special colors */
+     { "A_REVERSE",      SPEC_A_REVERSE },
+@@ -73,22 +73,65 @@
+     { NULL, 0}
+ };
+ 
++mc_tty_color_table_t const attributes_table[] = {
++    { "bold",      A_BOLD      },
++    { "underline", A_UNDERLINE },
++    { "reverse",   A_REVERSE   },
++    { "blink",     A_BLINK     },
++    /* End of list */
++    { NULL, 0}
++};
++
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static int
++parse_256_color_name (const char *color_name)
++{
++    int i;
++    char dummy;
++    if (sscanf(color_name, "color%d%c", &i, &dummy) == 1 && i >= 0 && i < 256) {
++        return i;
++    }
++    if (sscanf(color_name, "gray%d%c", &i, &dummy) == 1 && i >= 0 && i < 24) {
++        return 232 + i;
++    }
++    if (strncmp(color_name, "rgb", 3) == 0 &&
++        color_name[3] >= '0' && color_name[3] < '6' &&
++        color_name[4] >= '0' && color_name[4] < '6' &&
++        color_name[5] >= '0' && color_name[5] < '6' &&
++        color_name[6] == '\0') {
++        return 16 + 36 * (color_name[3] - '0') + 6 * (color_name[4] - '0') + (color_name[5] - '0');
++    }
++    return -1;
++}
++
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ const char *
+-tty_color_get_valid_name (const char *color_name)
++tty_color_get_name_by_index (int idx)
+ {
++    static char **color_N_names = NULL;
+     int i;
+ 
+-    if (color_name != NULL)
+-        for (i = 0; color_table[i].name != NULL; i++)
+-            if (strcmp (color_name, color_table[i].name) == 0)
+-                return color_table[i].name;
+-    return NULL;
++    /* Find the real English name of the first 16 colors, */
++    /* as well as the A_* special values. */
++    for (i = 0; color_table[i].name != NULL; i++)
++        if (idx == color_table[i].value)
++            return color_table[i].name;
++    /* Create and return the strings "color16" to "color255". */
++    if (idx >= 16 && idx < 256) {
++        if (color_N_names == NULL) {
++            color_N_names = g_try_malloc0(240 * sizeof(char *));
++        }
++        if (color_N_names[idx - 16] == NULL) {
++            color_N_names[idx - 16] = g_try_malloc(9);
++            sprintf(color_N_names[idx - 16], "color%d", idx);
++        }
++        return color_N_names[idx - 16];
++    }
++    return "default";
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -98,11 +141,37 @@
+ {
+     int i;
+ 
+-    if (color_name != NULL)
++    if (color_name != NULL) {
+         for (i = 0; color_table[i].name != NULL; i++)
+             if (strcmp (color_name, color_table[i].name) == 0)
+                 return color_table[i].value;
++        return parse_256_color_name(color_name);
++    }
+     return -1;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++int
++tty_attr_get_bits (const char *attrs)
++{
++    int attr_bits = 0;
++    gchar **attr_list;
++    int i, j;
++
++    if (attrs != NULL) {
++        attr_list = g_strsplit(attrs, "+", -1);
++        for (i = 0; attr_list[i] != NULL; i++) {
++            for (j = 0; attributes_table[j].name != NULL; j++) {
++                if (strcmp(attr_list[i], attributes_table[j].name) == 0) {
++                    attr_bits |= attributes_table[j].value;
++                    break;
++                }
++            }
++        }
++        g_strfreev(attr_list);
++    }
++    return attr_bits;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff -urN mc-4.7.2.orig/lib/tty/color-internal.h mc-4.7.2/lib/tty/color-internal.h
+--- mc-4.7.2.orig/lib/tty/color-internal.h	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/lib/tty/color-internal.h	2010-05-05 23:30:46.000000000 +0200
+@@ -21,10 +21,9 @@
+ 
+ typedef struct mc_color_pair_struct
+ {
+-    const char *cfg;
+-    const char *cbg;
+     int ifg;
+     int ibg;
++    int attr;
+     size_t pair_index;
+     gboolean is_temp;
+ } tty_color_pair_t;
+@@ -38,8 +37,9 @@
+ } tty_special_color_t;
+ /* *INDENT-ON* */
+ 
+-const char *tty_color_get_valid_name (const char *);
++const char *tty_color_get_name_by_index (int);
+ int tty_color_get_index_by_name (const char *);
++int tty_attr_get_bits (const char *);
+ 
+ void tty_color_init_lib (gboolean, gboolean);
+ void tty_color_deinit_lib (void);
+diff -urN mc-4.7.2.orig/lib/tty/color-ncurses.c mc-4.7.2/lib/tty/color-ncurses.c
+--- mc-4.7.2.orig/lib/tty/color-ncurses.c	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.2/lib/tty/color-ncurses.c	2010-05-05 23:30:46.000000000 +0200
+@@ -57,26 +57,24 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static int
+-mc_tty_color_save_attr_lib (int color_pair, int color_attr)
++static void
++mc_tty_color_save_attr (int color_pair, int color_attr)
+ {
+     int *attr, *key;
+     attr = g_try_new0 (int, 1);
+     if (attr == NULL)
+-        return color_attr;
++        return;
+ 
+     key = g_try_new (int, 1);
+     if (key == NULL) {
+         g_free (attr);
+-        return color_attr;
++        return;
+     }
+ 
+     *key = color_pair;
++    *attr = color_attr;
+ 
+-    if (color_attr != -1)
+-        *attr = color_attr & (A_BOLD | A_REVERSE | A_UNDERLINE);
+     g_hash_table_replace (mc_tty_color_color_pair_attrs, (gpointer) key, (gpointer) attr);
+-    return color_attr & (~(*attr));
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -95,14 +93,13 @@
+ 
+ static void
+ mc_tty_color_pair_init_special (tty_color_pair_t * mc_color_pair,
+-                                int fg1, int bg1, int fg2, int bg2, int mask)
++                                int fg1, int bg1, int fg2, int bg2, int attr)
+ {
+     if (has_colors () && !mc_tty_color_disable)
+-        init_pair (mc_color_pair->pair_index,
+-                    mc_tty_color_save_attr_lib (mc_color_pair->pair_index, fg1 | mask), bg1);
++        init_pair (mc_color_pair->pair_index, fg1, bg1);
+     else
+-        init_pair (mc_color_pair->pair_index,
+-                    mc_tty_color_save_attr_lib (mc_color_pair->pair_index, fg2 | mask), bg2);
++        init_pair (mc_color_pair->pair_index, fg2, bg2);
++    mc_tty_color_save_attr (mc_color_pair->pair_index, attr);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -138,8 +135,14 @@
+ void
+ tty_color_try_alloc_pair_lib (tty_color_pair_t * mc_color_pair)
+ {
+-    if (mc_color_pair->ifg <= (int) SPEC_A_REVERSE) {
+-        switch (mc_color_pair->ifg) {
++    int ifg, ibg, attr;
++
++    ifg = mc_color_pair->ifg;
++    ibg = mc_color_pair->ibg;
++    attr = mc_color_pair->attr;
++
++    if (ifg <= (int) SPEC_A_REVERSE) {
++        switch (ifg) {
+         case SPEC_A_REVERSE:
+             mc_tty_color_pair_init_special (mc_color_pair,
+                                             COLOR_BLACK, COLOR_WHITE,
+@@ -162,13 +165,14 @@
+             break;
+         }
+     } else {
+-        int mask_fg = (mc_color_pair->ifg == -1) ? mc_color_pair->ifg : 0xff;
+-        int mask_bg = (mc_color_pair->ibg == -1) ? mc_color_pair->ibg : 0xff;
++        /* In 8 color mode, change bright colors into bold */
++        if (COLORS == 8 && ifg >= 8 && ifg < 16) {
++            ifg &= 0x07;
++            attr |= A_BOLD;
++        }
+ 
+-        init_pair (mc_color_pair->pair_index,
+-                   mc_tty_color_save_attr_lib (mc_color_pair->pair_index,
+-                                               mc_color_pair->ifg) & mask_fg,
+-                   mc_color_pair->ibg & mask_bg);
++        init_pair (mc_color_pair->pair_index, ifg, ibg);
++        mc_tty_color_save_attr (mc_color_pair->pair_index, attr);
+     }
+ }
+ 
+diff -urN mc-4.7.2.orig/lib/tty/color-slang.c mc-4.7.2/lib/tty/color-slang.c
+--- mc-4.7.2.orig/lib/tty/color-slang.c	2010-05-05 19:11:21.000000000 +0200
++++ mc-4.7.2/lib/tty/color-slang.c	2010-05-05 23:30:46.000000000 +0200
+@@ -133,9 +133,10 @@
+             break;
+         }
+     } else {
+-        fg = (mc_color_pair->cfg) ? mc_color_pair->cfg : "default";
+-        bg = (mc_color_pair->cbg) ? mc_color_pair->cbg : "default";
++        fg = tty_color_get_name_by_index(mc_color_pair->ifg);
++        bg = tty_color_get_name_by_index(mc_color_pair->ibg);
+         SLtt_set_color (mc_color_pair->pair_index, (char *) "", (char *) fg, (char *) bg);
++        SLtt_add_color_attribute (mc_color_pair->pair_index, mc_color_pair->attr);
+     }
+ }
+ 
+diff -urN mc-4.7.2.orig/lib/tty/color-slang.h mc-4.7.2/lib/tty/color-slang.h
+--- mc-4.7.2.orig/lib/tty/color-slang.h	2010-03-30 21:21:02.000000000 +0200
++++ mc-4.7.2/lib/tty/color-slang.h	2010-05-05 23:30:46.000000000 +0200
+@@ -20,11 +20,20 @@
+ };
+ 
+ /* When using Slang with color, we have all the indexes free but
+- * those defined here (A_BOLD, A_UNDERLINE, A_REVERSE, A_BOLD_REVERSE)
++ * those defined here (A_BOLD, A_UNDERLINE, A_REVERSE, A_BLINK)
+  */
+ 
+ #ifndef A_BOLD
+ #define A_BOLD SLTT_BOLD_MASK
+ #endif /* A_BOLD */
++#ifndef A_UNDERLINE
++#define A_UNDERLINE SLTT_ULINE_MASK
++#endif /* A_UNDERLINE */
++#ifndef A_REVERSE
++#define A_REVERSE SLTT_REV_MASK
++#endif /* A_REVERSE */
++#ifndef A_BLINK
++#define A_BLINK SLTT_BLINK_MASK
++#endif /* A_BLINK */
+ 
+ #endif /* MC_COLOR_SLANG_H */
+diff -urN mc-4.7.2.orig/lib/tty/color.c mc-4.7.2/lib/tty/color.c
+--- mc-4.7.2.orig/lib/tty/color.c	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/lib/tty/color.c	2010-05-05 23:30:46.000000000 +0200
+@@ -46,6 +46,7 @@
+ 
+ static char *tty_color_defaults__fg = NULL;
+ static char *tty_color_defaults__bg = NULL;
++static char *tty_color_defaults__attrs = NULL;
+ 
+ /* Set if we are actually using colors */
+ gboolean use_colors = FALSE;
+@@ -155,6 +156,7 @@
+     tty_color_deinit_lib ();
+     g_free (tty_color_defaults__fg);
+     g_free (tty_color_defaults__bg);
++    g_free (tty_color_defaults__attrs);
+ 
+     g_hash_table_destroy (mc_tty_color__hashtable);
+ }
+@@ -170,23 +172,24 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ int
+-tty_try_alloc_color_pair2 (const char *fg, const char *bg, gboolean is_temp_color)
++tty_try_alloc_color_pair2 (const char *fg, const char *bg, const char *attrs, gboolean is_temp_color)
+ {
+     gchar *color_pair;
+     tty_color_pair_t *mc_color_pair;
+-    const char *c_fg, *c_bg;
++    int ifg, ibg, attr;
+ 
+-    if (fg == NULL)
++    if (fg == NULL || !strcmp(fg, "base"))
+         fg = tty_color_defaults__fg;
+-
+-    if (bg == NULL)
+-    {
++    if (bg == NULL || !strcmp(bg, "base"))
+         bg = tty_color_defaults__bg;
+-    }
+-    c_fg = tty_color_get_valid_name (fg);
+-    c_bg = tty_color_get_valid_name (bg);
++    if (attrs == NULL || !strcmp(attrs, "base"))
++        attrs = tty_color_defaults__attrs;
++
++    ifg = tty_color_get_index_by_name (fg);
++    ibg = tty_color_get_index_by_name (bg);
++    attr = tty_attr_get_bits (attrs);
+ 
+-    color_pair = g_strdup_printf ("%s.%s", c_fg, c_bg);
++    color_pair = g_strdup_printf ("%d.%d.%d", ifg, ibg, attr);
+     if (color_pair == NULL)
+         return 0;
+ 
+@@ -207,10 +210,9 @@
+     }
+ 
+     mc_color_pair->is_temp = is_temp_color;
+-    mc_color_pair->cfg = c_fg;
+-    mc_color_pair->cbg = c_bg;
+-    mc_color_pair->ifg = tty_color_get_index_by_name (c_fg);
+-    mc_color_pair->ibg = tty_color_get_index_by_name (c_bg);
++    mc_color_pair->ifg = ifg;
++    mc_color_pair->ibg = ibg;
++    mc_color_pair->attr = attr;
+     mc_color_pair->pair_index = tty_color_get_next__color_pair_number ();
+ 
+     tty_color_try_alloc_pair_lib (mc_color_pair);
+@@ -223,9 +225,9 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ int
+-tty_try_alloc_color_pair (const char *fg, const char *bg)
++tty_try_alloc_color_pair (const char *fg, const char *bg, const char *attrs)
+ {
+-    return tty_try_alloc_color_pair2 (fg, bg, TRUE);
++    return tty_try_alloc_color_pair2 (fg, bg, attrs, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -247,13 +249,15 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-tty_color_set_defaults (const char *fgcolor, const char *bgcolor)
++tty_color_set_defaults (const char *fgcolor, const char *bgcolor, const char *attrs)
+ {
+     g_free (tty_color_defaults__fg);
+     g_free (tty_color_defaults__fg);
++    g_free (tty_color_defaults__attrs);
+ 
+     tty_color_defaults__fg = (fgcolor != NULL) ? g_strdup (fgcolor) : NULL;
+     tty_color_defaults__bg = (bgcolor != NULL) ? g_strdup (bgcolor) : NULL;
++    tty_color_defaults__attrs = (attrs != NULL) ? g_strdup (attrs) : NULL;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff -urN mc-4.7.2.orig/lib/tty/color.h mc-4.7.2/lib/tty/color.h
+--- mc-4.7.2.orig/lib/tty/color.h	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.2/lib/tty/color.h	2010-05-05 23:30:46.000000000 +0200
+@@ -27,8 +27,8 @@
+ void tty_colors_done (void);
+ 
+ gboolean tty_use_colors (void);
+-int tty_try_alloc_color_pair (const char *, const char *);
+-int tty_try_alloc_color_pair2 (const char *, const char *, gboolean);
++int tty_try_alloc_color_pair (const char *, const char *, const char *);
++int tty_try_alloc_color_pair2 (const char *, const char *, const char *, gboolean);
+ 
+ void tty_color_free_all_tmp (void);
+ void tty_color_free_all_non_tmp (void);
+@@ -37,7 +37,7 @@
+ void tty_lowlevel_setcolor (int color);
+ void tty_set_normal_attrs (void);
+ 
+-void tty_color_set_defaults (const char *, const char *);
++void tty_color_set_defaults (const char *, const char *, const char *);
+ 
+ #define ALLOC_COLOR_PAIR_INDEX 1
+ 
+diff -urN mc-4.7.2.orig/lib/tty/tty-slang.c mc-4.7.2/lib/tty/tty-slang.c
+--- mc-4.7.2.orig/lib/tty/tty-slang.c	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/lib/tty/tty-slang.c	2010-05-05 23:30:46.000000000 +0200
+@@ -284,7 +284,7 @@
+ 
+     tty_reset_prog_mode ();
+     load_terminfo_keys ();
+-    SLtt_Blink_Mode = 0;
++    SLtt_Blink_Mode = 1;
+ 
+     tty_start_interrupt_key ();
+ 
+diff -urN mc-4.7.2.orig/misc/skins/Makefile.am mc-4.7.2/misc/skins/Makefile.am
+--- mc-4.7.2.orig/misc/skins/Makefile.am	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/misc/skins/Makefile.am	2010-05-05 23:30:46.000000000 +0200
+@@ -6,7 +6,8 @@
+ 	double-lines.ini \
+ 	featured.ini \
+ 	gotar.ini \
+-	nicedark.ini
++	nicedark.ini \
++	sand256.ini
+ 
+ EXTRA_DIST = \
+     $(skin_DATA)
+diff -urN mc-4.7.2.orig/misc/skins/Makefile.in mc-4.7.2/misc/skins/Makefile.in
+--- mc-4.7.2.orig/misc/skins/Makefile.in	2010-05-05 21:40:42.000000000 +0200
++++ mc-4.7.2/misc/skins/Makefile.in	2010-05-05 23:30:46.000000000 +0200
+@@ -318,7 +318,8 @@
+ 	double-lines.ini \
+ 	featured.ini \
+ 	gotar.ini \
+-	nicedark.ini
++	nicedark.ini \
++	sand256.ini
+ 
+ EXTRA_DIST = \
+     $(skin_DATA)
+diff -urN mc-4.7.2.orig/misc/skins/sand256.ini mc-4.7.2/misc/skins/sand256.ini
+--- mc-4.7.2.orig/misc/skins/sand256.ini	1970-01-01 01:00:00.000000000 +0100
++++ mc-4.7.2/misc/skins/sand256.ini	2010-05-05 23:30:46.000000000 +0200
+@@ -0,0 +1,174 @@
++# This skin demonstrates how to use 256 colors in mc.
++#
++# As a prerequisite, you will need to:
++#   1) Have a terminal emulator that supports 256 colors (a few examples:
++#      xterm, Gnome terminal and other VTE derivatives, KDE's Konsole;
++#      iTerm for Mac OS X, PuTTY for Windows).
++#   2) Adjust your TERM variable accordingly, e.g.: export TERM=xterm-256color
++#      Verify by running tput colors
++#
++# Each of the 256 colors has two names, you can use whichever you prefer.
++#
++# One possibility is to use the names "color0" to "color255" to access every
++# color directly based on their number.
++#
++# The first 16 colors ("color0" to "color15") can also be specified by their
++# names (these names are already being used by mc for 8/16 color terminals):
++#   black      gray
++#   red        brightred
++#   green      brightgreen
++#   brown      yellow
++#   blue       brightblue
++#   magenta    brightmagenta
++#   cyan       brightcyan
++#   lightgray  white
++# Note that with 8/16 color terminal settings (such as TERM=xterm), colors
++# of the second column can only be used for the foreground, and their actual
++# interpretation varies across terminals. Some terminals show the colors
++# from the first column instead (that is, you only have 8 colors), but make
++# them bold. Others show the brighter version (16 foreground colors). Yet
++# others make them bold and bright at the same time. Switching to 256 colors
++# should end this ambiguity: you should have 16 separate colors according to
++# their names, none of them are bold by default but any of them can be
++# switched to bold, and all of them are available for background, too. This
++# is the intended behavior, the actual behavior might vary across terminals.
++#
++# Colors of the 6x6x6 cube ("color16" to "color231") can alternatively be
++# referred to as "rgb000" to "rgb555", all three digits ranging from 0 to 5,
++# corresponding to the R, G and B color components.
++#
++# The 24 grayscale colors ("color232" to "color255") have the aliases "gray0"
++# to "gray23".
++#
++# In addition to the 256 colors, the special word "default" means the
++# default foreground or background color of your terminal, while "base" means
++# mc's main colors. A missing value means falling back to the _default_ of the
++# given section.
++#
++# Following the foreground and background colors, the third (optional) value
++# can specify special attributes to enable. Valid values are bold, underline,
++# reverse and blink. Append more with a plus sign, e.g. "underline+bold".
++# Leaving the field empty makes it fall back to the attributes of _default_.
++# Use any other word (e.g. "none") to prevent fallback and disable all flags.
++
++[skin]
++    description=Sand skin using 256 colors
++
++[Lines]
++    horiz=─
++    vert=│
++    lefttop=┌
++    righttop=┐
++    leftbottom=└
++    rightbottom=┘
++    topmiddle=─
++    bottommiddle=─
++    leftmiddle=├
++    rightmiddle=┤
++    cross=┼
++    dhoriz=─
++    dvert=│
++    dlefttop=┌
++    drighttop=┐
++    dleftbottom=└
++    drightbottom=┘
++    dtopmiddle=─
++    dbottommiddle=─
++    dleftmiddle=├
++    drightmiddle=┤
++
++[core]
++    _default_=black;rgb554
++    selected=;rgb452
++    marked=rgb400
++    markselect=rgb400;rgb452
++    gauge=;rgb452
++    input=;rgb452
++    reverse=;rgb452
++
++[dialog]
++    _default_=black;rgb553
++    dfocus=;rgb452
++    dhotnormal=;;underline
++    dhotfocus=;rgb452;underline
++
++[error]
++    _default_=rgb554;rgb320;bold
++    errdhotnormal=;;bold+underline
++    errdhotfocus=black;rgb452;underline
++
++[filehighlight]
++    directory=
++    executable=rgb030
++    symlink=rgb202
++    # 404 Not Found :)
++    stalelink=rgb404
++    device=rgb231
++    special=rgb331
++    core=rgb430
++    temp=gray15
++    archive=rgb012
++    doc=rgb103
++    source=rgb310
++    media=rgb024
++    graph=rgb033
++    database=rgb421
++
++[menu]
++    _default_=black;rgb452
++    menuhot=;;underline
++    menusel=;rgb551
++    menuhotsel=;rgb551;underline
++    menuinactive=
++
++[buttonbar]
++    hotkey=black;rgb554
++    button=black;rgb452
++
++[help]
++    _default_=black;rgb553
++    helpitalic=green
++    helpbold=red
++    helplink=blue;;underline
++    helpslink=blue;;reverse
++
++[editor]
++    _default_=black;rgb554
++    editbold=rgb400
++    editmarked=;rgb452
++    editwhitespace=rgb400;rgb553
++    editlinestate=;rgb553
++    bookmark=;rgb551
++    bookmarkfound=;rgb530
++    editrightmargin=rgb400;rgb553
++
++[viewer]
++    viewunderline=;;underline
++
++[diffviewer]
++    added=;rgb450
++    changedline=blue;rgb553
++    changednew=rgb400;rgb553
++    changed=;rgb553
++    removed=;rgb511
++    folder=;rgb530
++    error=rgb554;rgb320
++
++[widget-common]
++    sort-sign-up = ↓
++    sort-sign-down = ↑
++
++[widget-panel]
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
++
++[widget-scollbar]
++    first-vert-char=↑
++    last-vert-char=↓
++    first-horiz-char=«
++    last-horiz-char=»
++    current-char=■
++    background-char=▒
+diff -urN mc-4.7.2.orig/src/args.c mc-4.7.2/src/args.c
+--- mc-4.7.2.orig/src/args.c	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/src/args.c	2010-05-05 23:30:46.000000000 +0200
+@@ -312,8 +312,8 @@
+ 
+     mc_args__loc__colors_string = g_strdup_printf ("%s%s",
+                                                    /* TRANSLATORS: don't translate keywords and names of colors */
+-                                                   _("--colors KEYWORD={FORE},{BACK}\n\n"
+-                                                     "{FORE} and {BACK} can be omitted, and the default will be used\n"
++                                                   _("--colors KEYWORD={FORE},{BACK},{ATTR}:KEYWORD2=...\n\n"
++                                                     "{FORE}, {BACK} and {ATTR} can be omitted, and the default will be used\n"
+                                                      "\n" "Keywords:\n"
+                                                      "   Global:       errors, reverse, gauge, input, viewunderline\n"
+                                                      "   File display: normal, selected, marked, markselect\n"
+@@ -322,13 +322,17 @@
+                                                      "   Menus:        menunormal, menuhot, menusel, menuhotsel, menuinactive\n"
+                                                      "   Editor:       editnormal, editbold, editmarked, editwhitespace,\n"
+                                                      "                 editlinestate\n"),
+-                                                   /* TRANSLATORS: don't translate keywords and names of colors */
++                                                   /* TRANSLATORS: don't translate keywords and names of colors and attributes */
+                                                    _
+                                                    ("   Help:         helpnormal, helpitalic, helpbold, helplink, helpslink\n"
+-                                                    "\n" "Colors:\n"
++                                                    "\n" "Standard colors:\n"
+                                                     "   black, gray, red, brightred, green, brightgreen, brown,\n"
+                                                     "   yellow, blue, brightblue, magenta, brightmagenta, cyan,\n"
+-                                                    "   brightcyan, lightgray and white\n\n"));
++                                                    "   brightcyan, lightgray and white\n\n"
++                                                    "Extended colors, when 256 colors are available:\n"
++                                                    "   color16 to color255, or rgb000 to rgb555 and gray0 to gray23\n\n"
++                                                    "Attributes:\n"
++                                                    "   bold, underline, reverse, blink; append more with '+'\n"));
+ 
+     return g_option_group_new ("color", mc_args__loc__colors_string,
+                                _("Color options"), NULL, NULL);
+diff -urN mc-4.7.2.orig/src/editor/syntax.c mc-4.7.2/src/editor/syntax.c
+--- mc-4.7.2.orig/src/editor/syntax.c	2010-05-05 20:30:03.000000000 +0200
++++ mc-4.7.2/src/editor/syntax.c	2010-05-05 23:30:46.000000000 +0200
+@@ -736,14 +736,16 @@
+ #define check_not_a {if(*a){result=line;break;}}
+ 
+ static int
+-this_try_alloc_color_pair (const char *fg, const char *bg)
++this_try_alloc_color_pair (const char *fg, const char *bg, const char *attrs)
+ {
+-    char f[80], b[80], *p;
++    char f[80], b[80], a[80], *p;
+ 
+     if (bg != NULL && *bg == '\0')
+         bg = NULL;
+     if (fg != NULL && *fg == '\0')
+         fg = NULL;
++    if (attrs != NULL && *attrs == '\0')
++        attrs = NULL;
+     if (fg != NULL)
+     {
+         g_strlcpy (f, fg, sizeof (f));
+@@ -760,7 +762,19 @@
+             *p = '\0';
+         bg = b;
+     }
+-    return tty_try_alloc_color_pair (fg, bg);
++    if (attrs != NULL)
++    {
++        g_strlcpy (a, attrs, sizeof (a));
++        p = strchr (a, '/');
++        if (p != NULL)
++            *p = '\0';
++        // get_args() mangles the + signs, unmangle 'em
++        p = a;
++        while ((p = strchr (p, SYNTAX_TOKEN_PLUS)) != NULL)
++            *p++ = '+';
++        attrs = a;
++    }
++    return tty_try_alloc_color_pair (fg, bg, attrs);
+ }
+ 
+ static char *error_file_name = NULL;
+@@ -812,8 +826,8 @@
+ edit_read_syntax_rules (WEdit * edit, FILE * f, char **args, int args_size)
+ {
+     FILE *g = NULL;
+-    char *fg, *bg;
+-    char last_fg[32] = "", last_bg[32] = "";
++    char *fg, *bg, *attrs;
++    char last_fg[32] = "", last_bg[32] = "", last_attrs[64] = "";
+     char whole_right[512];
+     char whole_left[512];
+     char *l = 0;
+@@ -992,9 +1006,13 @@
+             bg = *a;
+             if (*a)
+                 a++;
++            attrs = *a;
++            if (*a)
++                a++;
+             g_strlcpy (last_fg, fg ? fg : "", sizeof (last_fg));
+             g_strlcpy (last_bg, bg ? bg : "", sizeof (last_bg));
+-            c->keyword[0]->color = this_try_alloc_color_pair (fg, bg);
++            g_strlcpy (last_attrs, attrs ? attrs : "", sizeof (last_attrs));
++            c->keyword[0]->color = this_try_alloc_color_pair (fg, bg, attrs);
+             c->keyword[0]->keyword = g_strdup (" ");
+             check_not_a;
+ 
+@@ -1061,11 +1079,16 @@
+             bg = *a;
+             if (*a)
+                 a++;
++            attrs = *a;
++            if (*a)
++                a++;
+             if (!fg)
+                 fg = last_fg;
+             if (!bg)
+                 bg = last_bg;
+-            k->color = this_try_alloc_color_pair (fg, bg);
++            if (!attrs)
++                attrs = last_attrs;
++            k->color = this_try_alloc_color_pair (fg, bg, attrs);
+             check_not_a;
+ 
+             if (++num_words >= alloc_words_per_context)

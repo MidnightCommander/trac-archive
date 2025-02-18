@@ -1,0 +1,204 @@
+GNU gdb (Fedora Linux) 15.1-1.fc41
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from mc...
+Reading symbols from /usr/lib/debug/usr/bin/mc-4.8.33-1.fc41.x86_64.debug...
+[?2004h(gdb) run
+[?2004lStarting program: /usr/bin/mc 
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.fedoraproject.org/>
+[?2004hEnable debuginfod for this session? (y or [n]) y
+[?2004lDebuginfod has been enabled.
+To make this setting permanent, add 'set debuginfod enabled on' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[Detaching after fork from child process 228391]
+
+Program received signal SIGSEGV, Segmentation fault.
+decode_timespec (parse_fraction=1, arg=0x5555557a0f49 "1722614839.1582844", arg_lim=0x7fffffffd850) at vfs/tar/tar-xheader.c:269
+269	        if (parse_fraction && *p == '.')
+[?2004h[?2004l[?2004h(gdb) bt full
+[?2004l#0  decode_timespec (parse_fraction=1, arg=0x5555557a0f49 "1722614839.1582844", arg_lim=0x7fffffffd850) at vfs/tar/tar-xheader.c:269
+        overflow = 0
+        s = <optimized out>
+        ns = 0
+        p = 0x0
+        r = <optimized out>
+        ns = <optimized out>
+        overflow = <optimized out>
+        s = <optimized out>
+        p = <optimized out>
+        r = <optimized out>
+        digits = <optimized out>
+        trailing_nonzero = <optimized out>
+#1  decode_time.isra.0 (ts=ts@entry=0x7fffffffd880, arg=0x5555557a0f49 "1722614839.1582844", keyword=<optimized out>) at vfs/tar/tar-xheader.c:322
+        arg_lim = 0x5555557a0f53 ".1582844"
+        t = <optimized out>
+#2  0x00005555555d0069 in mtime_decoder (st=0x55555565a860 <current_stat_info>, keyword=<optimized out>, arg=<optimized out>, size=<optimized out>)
+    at vfs/tar/tar-xheader.c:485
+        ts = {tv_sec = 93823560581120, tv_nsec = 93824992734005}
+#3  0x00005555555ceb92 in decx (data=data@entry=0x55555565a860 <current_stat_info>, keyword=keyword@entry=0x5555557a0f43 "mtime", 
+    value=value@entry=0x5555557a0f49 "1722614839.1582844", size=size@entry=18) at vfs/tar/tar-xheader.c:664
+        kp = {pattern = 0x5555557a0f43 "mtime", value = 0x5555557a0f49 "1722614839.1582844"}
+#4  0x00005555556147d5 in decode_record.isra.0 (ptr=ptr@entry=0x7fffffffd9a0, handler=handler@entry=0x5555555ceb60 <decx>, 
+    data=data@entry=0x55555565a860 <current_stat_info>, xhdr=<optimized out>) at vfs/tar/tar-xheader.c:622
+        start = 0x5555557a0f40 "28 mtime"
+        p = 0x5555557a0f48 ""
+        len = <optimized out>
+        len_lim = 0x5555557a0f42 " mtime"
+        keyword = 0x5555557a0f43 "mtime"
+        nextp = 0x5555557a0f5c ""
+        len_max = <optimized out>
+        ret = <optimized out>
+#5  0x000055555558e82d in tar_xheader_decode (st=0x55555565a860 <current_stat_info>) at vfs/tar/tar-xheader.c:879
+        p = 0x5555557a0f40 "28 mtime"
+        status = <optimized out>
+#6  tar_read_header (me=0x5555556564a0 <tarfs_subclass.lto_priv>, archive=archive@entry=0x55555579de50) at vfs/tar/tar.c:792
+        inode = 0x0
+        recent_long_name = <optimized out>
+        h = 0x55555579e330
+        file_name = 0x55555579d830 "pavucontrol-6.1/"
+        link_name = <optimized out>
+        recent_long_link = <optimized out>
+        arch = 0x55555579de50
+        header = 0x55555579e330
+        next_long_name = 0x0
+        next_long_link = 0x0
+        status = HEADER_SUCCESS
+        recent_long_name = 0x0
+        recent_long_link = 0x0
+#7  0x000055555558f07b in tar_open_archive (archive=0x55555579de50, vpath=0x5555557a0740, vpath_element=0x55555579dc90) at vfs/tar/tar.c:988
+        prev_status = <optimized out>
+        arch = 0x55555579de50
+        status = <optimized out>
+#8  0x00005555555f1afe in vfs_s_get_path (vpath=vpath@entry=0x55555579dc70, archive=archive@entry=0x7fffffffdac0, flags=flags@entry=0) at ../lib/vfs/direntry.c:1202
+        vpath_archive = 0x5555557a0740
+        retval = 0x55555579dc50 ""
+        result = -1
+        super = 0x55555579de50
+        path_element = 0x55555579dc90
+        subclass = 0x5555556564a0 <tarfs_subclass.lto_priv>
+#9  0x00005555555f1c40 in vfs_s_inode_from_path (vpath=vpath@entry=0x55555579dc70, flags=flags@entry=5) at ../lib/vfs/direntry.c:401
+        super = 0x2
+        ino = <optimized out>
+        q = <optimized out>
+        me = <optimized out>
+#10 0x00005555555f1d58 in vfs_s_opendir (vpath=0x55555579dc70) at ../lib/vfs/direntry.c:429
+        dir = <optimized out>
+        info = <optimized out>
+        me = <optimized out>
+#11 0x00005555555f1df2 in vfs_s_chdir (vpath=<optimized out>) at ../lib/vfs/direntry.c:499
+        data = <optimized out>
+#12 0x00005555555f2a24 in mc_chdir (vpath=0x55555579dac0) at ../lib/vfs/interface.c:646
+        old_vfs = <optimized out>
+        old_vfsid = <optimized out>
+        result = <optimized out>
+        me = 0x5555556564a0 <tarfs_subclass.lto_priv>
+        path_element = <optimized out>
+        cd_vpath = 0x55555579dc70
+#13 0x0000555555579ddd in panel_do_cd_int (cd_type=cd_type@entry=cd_parse_command, new_dir_vpath=new_dir_vpath@entry=0x55555579dac0, panel=panel@entry=0x555555716ea0, 
+    new_dir_vpath=new_dir_vpath@entry=0x55555579dac0, cd_type=cd_type@entry=cd_parse_command) at filemanager/panel.c:3413
+        olddir_vpath = <optimized out>
+#14 0x000055555557c3b6 in panel_do_cd (panel=0x555555716ea0, new_dir_vpath=<optimized out>, cd_type=cd_parse_command) at filemanager/panel.c:4851
+        r = <optimized out>
+        r = <optimized out>
+#15 panel_cd (panel=0x555555716ea0, new_dir_vpath=<optimized out>, exact=cd_parse_command) at filemanager/panel.c:5411
+        res = <optimized out>
+        _new_dir_vpath = <optimized out>
+#16 0x00005555555662b7 in exec_extension_cd (panel=0x555555716ea0) at filemanager/ext.c:424
+        q = <optimized out>
+        p_vpath = 0x55555579dac0
+#17 exec_extension (panel=<optimized out>, target=0x0, filename_vpath=0x555555732790, lc_data=<optimized out>, start_line=0) at filemanager/ext.c:457
+        shell_string = 0x55555579daa0
+        export_variables = <optimized out>
+        script_vpath = 0x0
+        cmd_file_fd = <optimized out>
+        cmd_file = <optimized out>
+        cmd = 0x0
+        shell_string = <optimized out>
+        export_variables = <optimized out>
+        script_vpath = <optimized out>
+        cmd_file_fd = <optimized out>
+        cmd_file = <optimized out>
+        cmd = <optimized out>
+        ret = <optimized out>
+        end_line = <optimized out>
+#18 regex_command_for (target=0x0, filename_vpath=0x555555732790, action=<optimized out>, script_vpath=0x0) at filemanager/ext.c:1088
+        sv = <optimized out>
+        action_value = <optimized out>
+        filename = <optimized out>
+        filename_len = <optimized out>
+        found = <optimized out>
+        error_flag = <optimized out>
+        ret = 0
+        mystat = {st_dev = 2066, st_ino = 7351292, st_nlink = 1, st_mode = 33188, st_uid = 1000, st_gid = 1000, __pad0 = 0, st_rdev = 0, st_size = 210713, 
+          st_blksize = 4096, st_blocks = 416, st_atim = {tv_sec = 1728570325, tv_nsec = 82140349}, st_mtim = {tv_sec = 1722614849, tv_nsec = 0}, st_ctim = {
+            tv_sec = 1728570324, tv_nsec = 493118711}, __glibc_reserved = {0, 0, 0}}
+        view_at_line_number = 0
+        have_type = <optimized out>
+        group_iter = <optimized out>
+        include_group = <optimized out>
+        current_group = <optimized out>
+        TYPE_UNUSED = TYPE_UNUSED
+        TYPE_NOT_FOUND = TYPE_NOT_FOUND
+        TYPE_FOUND = TYPE_FOUND
+#19 0x0000555555618f1a in regex_command (filename_vpath=0x555555732790, action=0x55555562c4ca "Open") at filemanager/ext.h:30
+No locals.
+#20 do_enter_on_file_entry.isra.0 (panel=0x555555716ea0, fe=0x555555724aa0) at filemanager/panel.c:2949
+        fname = 0x55555573eff0 "pavucontrol-6.1.tar.gz"
+        fname_quoted = <optimized out>
+        full_name_vpath = 0x555555732790
+        ok = <optimized out>
+#21 0x000055555557d8b9 in do_enter (panel=0x555555716ea0) at filemanager/panel.c:3002
+No locals.
+#22 panel_execute_cmd (panel=0x555555716ea0, command=1) at filemanager/panel.c:3599
+        res = 1
+#23 0x00005555555fad7a in send_message (w=<optimized out>, sender=0x0, msg=MSG_KEY, parm=10, data=0x0) at ../lib/widget/../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#24 group_handle_key (g=0x5555557075a0, key=10) at ../lib/widget/group.c:507
+        handled = <optimized out>
+        handled = <optimized out>
+#25 group_default_callback (w=0x5555557075a0, sender=<optimized out>, msg=<optimized out>, parm=10, data=<optimized out>) at ../lib/widget/group.c:637
+        g = 0x5555557075a0
+#26 0x00005555555fd525 in dlg_key_event (h=0x5555557075a0, d_key=10) at ../lib/widget/dialog.c:252
+        w = 0x5555557075a0
+        g = 0x5555557075a0
+        handled = <optimized out>
+        w = <optimized out>
+        g = <optimized out>
+        handled = <optimized out>
+#27 dlg_process_event (h=0x5555557075a0, key=10, event=<optimized out>) at ../lib/widget/dialog.c:539
+No locals.
+#28 0x00005555555fd8b1 in frontend_dlg_run (h=0x5555557075a0) at ../lib/widget/dialog.c:321
+        d_key = <optimized out>
+        wh = 0x5555557075a0
+        event = {buttons = 64 '@', modifiers = 60 '<', vc = 21875, dx = 21845, dy = 0, x = -1, y = 0, type = 0, clicks = 4, margin = GPM_TOP, wdx = 5632, wdy = 21093}
+#29 0x000055555555b41a in dlg_run (h=0x5555557075a0) at ../lib/widget/dialog.c:573
+No locals.
+#30 do_nc () at filemanager/filemanager.c:1814
+        ret = <optimized out>
+        ret = <optimized out>
+#31 main (argc=<optimized out>, argv=<optimized out>) at /usr/src/debug/mc-4.8.33-1.fc41.x86_64/src/main.c:469
+        mcerror = 0x0
+        exit_code = 1
+        tmpdir = 0x55555568f4e0 <buffer> "/tmp/mc-J80EV2"
+[?2004h(gdb) q
+[?2004l[?2004hA debugging session is active.
+
+	Inferior 1 [process 228388] will be killed.
+
+Quit anyway? (y or n) y
+[?2004l

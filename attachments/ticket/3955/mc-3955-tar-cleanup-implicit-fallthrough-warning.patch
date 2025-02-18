@@ -1,0 +1,31 @@
+From c5e1ade7ebe516317d60dc15d868336757bdf72a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 11 Jan 2019 16:46:01 +0000
+Subject: [PATCH] tar.c: cleanup -Wimplicit-fallthrough warning
+
+Found by GCC8
+
+tar.c:786:13: error: this statement may fall through [-Werror=implicit-fallthrough=]
+             switch (prev_status)
+             ^~~~~~
+tar.c:811:9: note: here
+         case STATUS_EOFMARK:   /* If error after 0's */
+         ^~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index 13852d6b7..a2237b4c5 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -806,6 +806,7 @@ tar_open_archive (struct vfs_s_super *archive, const vfs_path_t * vpath,
+             default:
+                 break;
+             }
++            MC_FALLTHROUGH;
+ 
+             /* Record of zeroes */
+         case STATUS_EOFMARK:   /* If error after 0's */

@@ -1,0 +1,183 @@
+diff --git a/src/command.c b/src/command.c
+index b204b8d..ba0a5b3 100644
+--- a/src/command.c
++++ b/src/command.c
+@@ -64,6 +64,9 @@ examine_cd (char *path)
+     const char *t;
+ 
+     /* Tilde expansion */
++    p = path;
++    path = unescape_string(path);
++    g_free(p);
+     path_tilde = tilde_expand (path);
+ 
+     /* Leave space for further expansion */
+diff --git a/src/complete.c b/src/complete.c
+index 1742b85..3ac0c21 100644
+--- a/src/complete.c
++++ b/src/complete.c
+@@ -40,6 +40,7 @@
+ #include "wtools.h"
+ #include "complete.h"
+ #include "main.h"
++#include "util.h"
+ #include "key.h"		/* XCTRL and ALT macros */
+ 
+ typedef char *CompletionFunction (char *, int);
+@@ -911,6 +912,7 @@ query_callback (Dlg_head *h, dlg_msg_t msg, int parm)
+ static int
+ complete_engine (WInput *in, int what_to_do)
+ {
++    char *complete = NULL;
+     if (in->completions && in->point != end)
+     	free_completions (in);
+     if (!in->completions){
+@@ -924,13 +926,15 @@ complete_engine (WInput *in, int what_to_do)
+     }
+     if (in->completions){
+     	if (what_to_do & DO_INSERTION || ((what_to_do & DO_QUERY) && !in->completions[1])) {
+-    	    if (insert_text (in, in->completions [0], strlen (in->completions [0]))){
++    	    complete = escape_string(in->completions [0]);
++    	    if (insert_text (in, complete, strlen (complete))){
+     	        if (in->completions [1])
+     	    	    beep ();
+ 		else
+ 		    free_completions (in);
+ 	    } else
+ 	        beep ();
++	    g_free(complete);
+         }
+     	if ((what_to_do & DO_QUERY) && in->completions && in->completions [1]) {
+     	    int maxlen = 0, i, count = 0;
+@@ -940,9 +944,11 @@ complete_engine (WInput *in, int what_to_do)
+     	    Dlg_head *query_dlg;
+     	    WListbox *query_list;
+     	    
+-    	    for (p=in->completions + 1; *p; count++, p++)
++    	    for (p=in->completions + 1; *p; count++, p++) {
++/*	    *p = escape_string(*p); */
+     	    	if ((i = strlen (*p)) > maxlen)
+     	    	    maxlen = i;
++			}
+     	    start_x = in->widget.x;
+     	    start_y = in->widget.y;
+     	    if (start_y - 2 >= count) {
+diff --git a/src/file.c b/src/file.c
+index a19633a..27ff6c2 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -63,6 +63,7 @@
+ #include "widget.h"
+ #include "wtools.h"
+ #include "background.h"		/* we_are_background */
++#include "util.h"
+ 
+ /* Needed for current_panel, other_panel and WTree */
+ #include "dir.h"
+@@ -791,7 +792,7 @@ copy_file_file (FileOpContext *ctx, const char *src_path, const char *dst_path,
+ 	    }
+ 	}
+ 
+-	if (!appending) {
++	if (!appending && ctx->preserve) {
+ 	    while (mc_chmod (dst_path, (src_mode & ctx->umask_kill))) {
+ 		temp_status = file_error (
+ 			_(" Cannot chmod target file \"%s\" \n %s "), dst_path);
+@@ -1870,8 +1871,14 @@ panel_operate (void *source_panel, FileOperation operation,
+ 		char *temp2 = concat_dir_and_file (dest, temp);
+ 		g_free (dest);
+ 		dest = temp2;
+-		temp = NULL;
+-
++		temp = NULL; /* where g_free(temp) ?*/
++
++		temp2 = source_with_path;
++		source_with_path = unescape_string(source_with_path);
++		g_free(temp2);
++		temp2 = dest;
++		dest = unescape_string(dest);
++		g_free(temp2);
+ 		switch (operation) {
+ 		case OP_COPY:
+ 		    /*
+@@ -1962,6 +1969,14 @@ panel_operate (void *source_panel, FileOperation operation,
+ 		    value = transform_error;
+ 		else {
+ 		    char *temp2 = concat_dir_and_file (dest, temp);
++		    char *temp3;
++
++			temp3 = source_with_path;
++			source_with_path = unescape_string(source_with_path);
++			g_free(temp3);
++			temp3 = temp2;
++			temp2 = unescape_string(temp2);
++			g_free(temp3);
+ 
+ 		    switch (operation) {
+ 		    case OP_COPY:
+diff --git a/src/util.c b/src/util.c
+index da6d1b2..b076168 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -1525,3 +1525,48 @@ Q_ (const char *s)
+     return (sep != NULL) ? sep + 1 : result;
+ }
+ 
++/* Unescape paths or other strings for e.g the internal cd  */
++char *
++unescape_string(const char *in) {
++    GString *str;
++    const char * src;
++    char *result;
++
++    str = g_string_new("");
++
++    for (src = in; *src != '\0'; src++) {
++        if (src[0] == '\\' && strchr(" !#$%&'()*;<>?[]`{|}~", src[1])) {
++            g_string_append_c(str, src[1]);
++            src++;
++        } else {
++            g_string_append_c(str, src[0]);
++        }
++    }
++
++    result = str->str;
++    g_string_free(str, FALSE);
++    return result;
++}
++/* To be compatible with the general posix command lines we have to escape *
++ * strings for the command line											   */
++char *
++escape_string ( const char * in ) {
++	GString *str;
++	const char * src;
++	char *result;
++
++	str = g_string_new("");
++
++	for (src = in;src[0] != '\0';src++) {
++		if ( (src[-1] != '\\') && strchr(" !#$%&'()*;<>?[]`{|}~",src[0])) {
++			g_string_append_c(str,'\\');
++			g_string_append_c(str,src[0]);
++		} else {
++			g_string_append_c(str,src[0]);
++		}
++	}
++
++	result = str->str;
++	g_string_free(str, FALSE);
++	return result;
++}
+diff --git a/src/util.h b/src/util.h
+index 4e9a113..9c69e99 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -14,6 +14,8 @@ extern char *str_unconst (const char *);
+ extern const char *cstrcasestr (const char *haystack, const char *needle);
+ extern const char *cstrstr (const char *haystack, const char *needle);
+ 
++char *unescape_string ( const char * in );
++char *escape_string ( const char * in );
+ void str_replace(char *s, char from, char to);
+ int  is_printable (int c);
+ void msglen (const char *text, /*@out@*/ int *lines, /*@out@*/ int *columns);

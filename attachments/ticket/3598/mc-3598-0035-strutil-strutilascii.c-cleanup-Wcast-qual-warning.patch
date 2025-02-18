@@ -1,0 +1,125 @@
+From f6a3e9a544c5365627450e036b855ae83f70b781 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 16:59:00 +0000
+Subject: [PATCH] strutil/strutilascii.c: cleanup -Wcast-qual warning
+
+strutilascii.c: In function 'str_ascii_create_search_needle':
+strutilascii.c:557:12: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return (char *) needle;
+            ^
+strutilascii.c: In function 'str_ascii_search_first':
+strutilascii.c:579:30: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_text = (case_sen) ? (char *) text : g_ascii_strdown (text, -1);
+                              ^
+strutilascii.c:580:32: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_search = (case_sen) ? (char *) search : g_ascii_strdown (search, -1);
+                                ^
+strutilascii.c: In function 'str_ascii_search_last':
+strutilascii.c:609:30: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_text = (case_sen) ? (char *) text : g_ascii_strdown (text, -1);
+                              ^
+strutilascii.c:610:32: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fold_search = (case_sen) ? (char *) search : g_ascii_strdown (search, -1);
+                                ^
+strutilascii.c: In function 'str_ascii_create_key':
+strutilascii.c:677:12: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return (char *) text;
+            ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/strutil/strutilascii.c | 31 ++++++++++++-------------------
+ 1 file changed, 12 insertions(+), 19 deletions(-)
+
+diff --git a/lib/strutil/strutilascii.c b/lib/strutil/strutilascii.c
+index 66526fb..cf6f279 100644
+--- a/lib/strutil/strutilascii.c
++++ b/lib/strutil/strutilascii.c
+@@ -554,7 +554,7 @@ static char *
+ str_ascii_create_search_needle (const char *needle, int case_sen)
+ {
+     (void) case_sen;
+-    return (char *) needle;
++    return g_strdup (needle);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -563,8 +563,7 @@ static void
+ str_ascii_release_search_needle (char *needle, int case_sen)
+ {
+     (void) case_sen;
+-    (void) needle;
+-
++    g_free (needle);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -576,8 +575,8 @@ str_ascii_search_first (const char *text, const char *search, int case_sen)
+     char *fold_search;
+     const char *match;
+ 
+-    fold_text = (case_sen) ? (char *) text : g_ascii_strdown (text, -1);
+-    fold_search = (case_sen) ? (char *) search : g_ascii_strdown (search, -1);
++    fold_text = (case_sen) ? g_strdup (text) : g_ascii_strdown (text, -1);
++    fold_search = (case_sen) ? g_strdup (search) : g_ascii_strdown (search, -1);
+ 
+     match = g_strstr_len (fold_text, -1, fold_search);
+     if (match != NULL)
+@@ -588,11 +587,8 @@ str_ascii_search_first (const char *text, const char *search, int case_sen)
+         match = text + offset;
+     }
+ 
+-    if (!case_sen)
+-    {
+-        g_free (fold_text);
+-        g_free (fold_search);
+-    }
++    g_free (fold_text);
++    g_free (fold_search);
+ 
+     return match;
+ }
+@@ -606,8 +602,8 @@ str_ascii_search_last (const char *text, const char *search, int case_sen)
+     char *fold_search;
+     const char *match;
+ 
+-    fold_text = (case_sen) ? (char *) text : g_ascii_strdown (text, -1);
+-    fold_search = (case_sen) ? (char *) search : g_ascii_strdown (search, -1);
++    fold_text = (case_sen) ? g_strdup (text) : g_ascii_strdown (text, -1);
++    fold_search = (case_sen) ? g_strdup (search) : g_ascii_strdown (search, -1);
+ 
+     match = g_strrstr_len (fold_text, -1, fold_search);
+     if (match != NULL)
+@@ -618,11 +614,8 @@ str_ascii_search_last (const char *text, const char *search, int case_sen)
+         match = text + offset;
+     }
+ 
+-    if (!case_sen)
+-    {
+-        g_free (fold_text);
+-        g_free (fold_search);
+-    }
++    g_free (fold_text);
++    g_free (fold_search);
+ 
+     return match;
+ }
+@@ -674,7 +667,7 @@ static char *
+ str_ascii_create_key (const char *text, int case_sen)
+ {
+     (void) case_sen;
+-    return (char *) text;
++    return g_strdup (text);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -690,8 +683,8 @@ str_ascii_key_collate (const char *t1, const char *t2, int case_sen)
+ static void
+ str_ascii_release_key (char *key, int case_sen)
+ {
+-    (void) key;
+     (void) case_sen;
++    g_free (key);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

@@ -1,0 +1,229 @@
+From 9be005282085687cb1fab67bf8237cd51da59d0b Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 23 Nov 2016 10:53:47 +0200
+Subject: [PATCH 11/11] extfs: lslR: add tests.
+
+---
+ tests/src/extfs-helpers-listcmd/Makefile.am        | 10 +++++++++
+ .../extfs-helpers-listcmd/data/lslR.1.spaces.args  |  1 +
+ .../extfs-helpers-listcmd/data/lslR.1.spaces.input | 23 +++++++++++++++++++
+ .../data/lslR.1.spaces.output                      |  9 ++++++++
+ .../data/lslR.2.spaces-iso.args                    |  1 +
+ .../data/lslR.2.spaces-iso.input                   | 23 +++++++++++++++++++
+ .../data/lslR.2.spaces-iso.output                  |  9 ++++++++
+ .../data/lslR.3.spaces-iso-noslash.args            |  1 +
+ .../data/lslR.3.spaces-iso-noslash.input           | 17 ++++++++++++++
+ .../data/lslR.3.spaces-iso-noslash.output          |  6 +++++
+ tests/src/extfs-helpers-listcmd/data/lslR.README   | 26 ++++++++++++++++++++++
+ 11 files changed, 126 insertions(+)
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.args
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.output
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.args
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.output
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.args
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.output
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/lslR.README
+
+diff --git a/tests/src/extfs-helpers-listcmd/Makefile.am b/tests/src/extfs-helpers-listcmd/Makefile.am
+index aec7d0a..5712646 100644
+--- a/tests/src/extfs-helpers-listcmd/Makefile.am
++++ b/tests/src/extfs-helpers-listcmd/Makefile.am
+@@ -22,6 +22,16 @@ mc_parse_ls_l_SOURCES = \
+ 	mc_parse_ls_l.c
+ 
+ data_files_to_distribute = \
++	data/lslR.1.spaces.args \
++	data/lslR.1.spaces.input \
++	data/lslR.1.spaces.output \
++	data/lslR.2.spaces-iso.args \
++	data/lslR.2.spaces-iso.input \
++	data/lslR.2.spaces-iso.output \
++	data/lslR.3.spaces-iso-noslash.args \
++	data/lslR.3.spaces-iso-noslash.input \
++	data/lslR.3.spaces-iso-noslash.output \
++	data/lslR.README \
+ 	data/urar.README \
+ 	data/urar.v4,v3.env_vars \
+ 	data/urar.v4,v3.input \
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.args b/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.args
+new file mode 100644
+index 0000000..2308cee
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.args
+@@ -0,0 +1 @@
++--drop-ids --drop-mtime
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.input b/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.input
+new file mode 100644
+index 0000000..908077a
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.input
+@@ -0,0 +1,23 @@
++.:
++total 12
++drwxr-xr-x 3 serhiy serhiy 4096 Dec 29 19:12  1 2
++drwxr-xr-x 2 serhiy serhiy 4096 Dec 29 19:08 1 2
++drwxr-xr-x 2 serhiy serhiy 4096 Dec 29 19:12 1 2 
++
++./ 1 2:
++total 4
++-rw-r--r-- 1 serhiy serhiy    0 Dec 29 19:08 b
++drwxr-xr-x 2 serhiy serhiy 4096 Dec 29 19:12 z
++
++./ 1 2/z:
++total 0
++
++./1 2:
++total 0
++-rw-r--r-- 1 serhiy serhiy 0 Dec 29 19:08 a
++
++./1 2 :
++total 0
++-rw-r--r-- 1 serhiy serhiy 0 Dec 29 19:09  d
++-rw-r--r-- 1 serhiy serhiy 0 Dec 29 19:08 c
++-rw-r--r-- 1 serhiy serhiy 0 Dec 29 19:09 x:
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.output b/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.output
+new file mode 100644
+index 0000000..dd6e5f1
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.1.spaces.output
+@@ -0,0 +1,9 @@
++drwxr-xr-x   3       4096 ./ 1 2
++drwxr-xr-x   2       4096 ./1 2
++drwxr-xr-x   2       4096 ./1 2 
++-rw-r--r--   1          0 ./ 1 2/b
++drwxr-xr-x   2       4096 ./ 1 2/z
++-rw-r--r--   1          0 ./1 2/a
++-rw-r--r--   1          0 ./1 2 / d
++-rw-r--r--   1          0 ./1 2 /c
++-rw-r--r--   1          0 ./1 2 /x:
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.args b/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.args
+new file mode 100644
+index 0000000..9f52292
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.args
+@@ -0,0 +1 @@
++--drop-ids
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.input b/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.input
+new file mode 100644
+index 0000000..569586d
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.input
+@@ -0,0 +1,23 @@
++.:
++total 12
++drwxr-xr-x 3 serhiy serhiy 4096 2009-12-29 19:12  1 2
++drwxr-xr-x 2 serhiy serhiy 4096 2009-12-29 19:08 1 2
++drwxr-xr-x 2 serhiy serhiy 4096 2009-12-29 19:12 1 2 
++
++./ 1 2:
++total 4
++-rw-r--r-- 1 serhiy serhiy    0 2009-12-29 19:08 b
++drwxr-xr-x 2 serhiy serhiy 4096 2009-12-29 19:12 z
++
++./ 1 2/z:
++total 0
++
++./1 2:
++total 0
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:08 a
++
++./1 2 :
++total 0
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:08 c
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:09  d
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:09 x:
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.output b/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.output
+new file mode 100644
+index 0000000..60f0bdd
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.2.spaces-iso.output
+@@ -0,0 +1,9 @@
++drwxr-xr-x   3       4096 2009-12-29 19:12:00 ./ 1 2
++drwxr-xr-x   2       4096 2009-12-29 19:08:00 ./1 2
++drwxr-xr-x   2       4096 2009-12-29 19:12:00 ./1 2 
++-rw-r--r--   1          0 2009-12-29 19:08:00 ./ 1 2/b
++drwxr-xr-x   2       4096 2009-12-29 19:12:00 ./ 1 2/z
++-rw-r--r--   1          0 2009-12-29 19:08:00 ./1 2/a
++-rw-r--r--   1          0 2009-12-29 19:08:00 ./1 2 /c
++-rw-r--r--   1          0 2009-12-29 19:09:00 ./1 2 / d
++-rw-r--r--   1          0 2009-12-29 19:09:00 ./1 2 /x:
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.args b/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.args
+new file mode 100644
+index 0000000..9f52292
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.args
+@@ -0,0 +1 @@
++--drop-ids
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.input b/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.input
+new file mode 100644
+index 0000000..28e5c22
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.input
+@@ -0,0 +1,17 @@
++ 1 2:
++total 4
++-rw-r--r-- 1 serhiy serhiy    0 2009-12-29 19:08 b
++drwxr-xr-x 2 serhiy serhiy 4096 2009-12-29 19:12 z
++
++ 1 2/z:
++total 0
++
++1 2:
++total 0
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:08 a
++
++1 2 :
++total 0
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:08 c
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:09  d
++-rw-r--r-- 1 serhiy serhiy 0 2009-12-29 19:09 x:
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.output b/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.output
+new file mode 100644
+index 0000000..d32336e
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.3.spaces-iso-noslash.output
+@@ -0,0 +1,6 @@
++-rw-r--r--   1          0 2009-12-29 19:08:00 ./ 1 2/b
++drwxr-xr-x   2       4096 2009-12-29 19:12:00 ./ 1 2/z
++-rw-r--r--   1          0 2009-12-29 19:08:00 1 2/a
++-rw-r--r--   1          0 2009-12-29 19:08:00 1 2 /c
++-rw-r--r--   1          0 2009-12-29 19:09:00 1 2 / d
++-rw-r--r--   1          0 2009-12-29 19:09:00 1 2 /x:
+diff --git a/tests/src/extfs-helpers-listcmd/data/lslR.README b/tests/src/extfs-helpers-listcmd/data/lslR.README
+new file mode 100644
+index 0000000..7f01b73
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/lslR.README
+@@ -0,0 +1,26 @@
++
++The inputs were taken from:
++
++    http://www.midnight-commander.org/ticket/1921
++
++These inputs are supposed to cover:
++
++- "spaces": spaces in dir/file names.
++
++- "iso": ISO date. The ticket claims this is enabled in en_US.UTF-8
++  locale, but that's untrue. Nevertheless, it's a useful format (the
++  default 'ls' dates are relative and therefore somewhat useless in lslR
++  files) so we don't mind covering it here.
++
++- "noshalsh": directories not starting with "./".
++
++Argument files:
++
++The output produced must be constant anytime. Therefore:
++
++- For the one input using non-ISO date we must use --drop-mtime.
++  Otherwise, because these are relative dates, next year the output
++  will show a different year.
++
++- For all inputs we use --drop-ids for the case we have user "serhiy" on
++  our system (and we aren't running as that user).
+-- 
+2.9.3
+

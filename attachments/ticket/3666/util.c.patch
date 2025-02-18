@@ -1,0 +1,57 @@
+diff --git a/lib/util.c b/lib/util.c
+index 304351d..284219c 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -346,26 +346,37 @@ size_trunc (uintmax_t size, gboolean use_si)
+ {
+     static char x[BUF_TINY];
+     uintmax_t divisor = 1;
+-    const char *xtra = _("B");
++    const char *scaled_symbol = _("B");
++    double scaled_size;
+ 
+-    if (size > 999999999UL)
++    if ((use_si && size >= 1000000000UL) || size >= (1024UL * 1024UL * 1024UL))
++    {
++        divisor = use_si ? (1000 * 1000 * 1000) : (1024 * 1024 * 1024);
++        scaled_symbol = use_si ? _("GB") : _("GiB");
++    }
++    else if ((use_si && size >= 1000000UL) || size >= (1024UL * 1024UL))
++    {
++        divisor = use_si ? (1000 * 1000) : (1024 * 1024);
++        scaled_symbol = use_si ? _("MB") : _("MiB");
++    }
++    else if ((use_si && size >= 1000UL) || size >= 1024UL)
+     {
+         divisor = use_si ? 1000 : 1024;
+-        xtra = use_si ? _("kB") : _("KiB");
++        scaled_symbol = use_si ? _("kB") : _("KiB");
++    }
++    else
++    {
++        g_snprintf (x, sizeof (x), "%" PRIuMAX " %s", size, scaled_symbol);
++        return x;
++    }
+ 
+-        if (size / divisor > 999999999UL)
+-        {
+-            divisor = use_si ? (1000 * 1000) : (1024 * 1024);
+-            xtra = use_si ? _("MB") : _("MiB");
++   scaled_size = 1.0 * size / divisor;
++
++   if (scaled_size < 0.05 || scaled_size >= 10.0)
++       g_snprintf (x, sizeof (x), "%.0f %s", scaled_size, scaled_symbol);
++   else
++       g_snprintf (x, sizeof (x), "%.1f %s" PRIuMAX , scaled_size, scaled_symbol);
+ 
+-            if (size / divisor > 999999999UL)
+-            {
+-                divisor = use_si ? (1000 * 1000 * 1000) : (1024 * 1024 * 1024);
+-                xtra = use_si ? _("GB") : _("GiB");
+-            }
+-        }
+-    }
+-    g_snprintf (x, sizeof (x), "%.0f %s", 1.0 * size / divisor, xtra);
+     return x;
+ }
+ 

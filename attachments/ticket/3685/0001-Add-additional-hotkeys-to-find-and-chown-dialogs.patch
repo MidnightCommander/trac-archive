@@ -1,0 +1,66 @@
+From 77847bd6c58d4c95c965f053dffad82086bd51aa Mon Sep 17 00:00:00 2001
+From: Kamil W <istonar3@gmail.com>
+Date: Mon, 26 Sep 2016 19:06:40 +0200
+Subject: [PATCH] Add additional hotkeys to find and chown dialogs
+
+---
+ src/filemanager/chown.c | 4 ++--
+ src/filemanager/find.c  | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/filemanager/chown.c b/src/filemanager/chown.c
+index 69e2daa..fa51786 100644
+--- a/src/filemanager/chown.c
++++ b/src/filemanager/chown.c
+@@ -216,7 +216,7 @@ init_chown (void)
+         dlg_create (TRUE, 0, 0, lines, cols, WPOS_CENTER, FALSE, dialog_colors, chown_callback,
+                     NULL, "[Chown]", _("Chown command"));
+ 
+-    add_widget (ch_dlg, groupbox_new (2, 3, GH, GW, _("User name")));
++    add_widget (ch_dlg, groupbox_new (2, 3, GH, GW, _("&User name")));
+     l_user = listbox_new (3, 4, GH - 2, GW - 2, FALSE, NULL);
+     add_widget (ch_dlg, l_user);
+     /* add field for unknown names (numbers) */
+@@ -227,7 +227,7 @@ init_chown (void)
+         listbox_add_item (l_user, LISTBOX_APPEND_SORTED, 0, l_pass->pw_name, NULL, FALSE);
+     endpwent ();
+ 
+-    add_widget (ch_dlg, groupbox_new (2, 4 + GW, GH, GW, _("Group name")));
++    add_widget (ch_dlg, groupbox_new (2, 4 + GW, GH, GW, _("&Group name")));
+     l_group = listbox_new (3, 5 + GW, GH - 2, GW - 2, FALSE, NULL);
+     add_widget (ch_dlg, l_group);
+     /* add field for unknown names (numbers) */
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index 1db7ccc..b019972 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -568,7 +568,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+     gboolean return_value;
+ 
+     /* file name */
+-    const char *file_name_label = N_("File name:");
++    const char *file_name_label = N_("File na&me:");
+     const char *file_recurs_label = N_("&Find recursively");
+     const char *file_pattern_label = N_("&Using shell patterns");
+ #ifdef HAVE_CHARSET
+@@ -578,7 +578,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+     const char *file_skip_hidden_label = N_("S&kip hidden");
+ 
+     /* file content */
+-    const char *content_content_label = N_("Content:");
++    const char *content_content_label = N_("Cont&ent:");
+     const char *content_use_label = N_("Sea&rch for content");
+     const char *content_regexp_label = N_("Re&gular expression");
+     const char *content_case_label = N_("Case sens&itive");
+@@ -669,7 +669,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+     cw = (cols - 7) / 2;
+     y1 = 2;
+ 
+-    add_widget (find_dlg, label_new (y1++, x1, _("Start at:")));
++    add_widget (find_dlg, label_new (y1++, x1, _("Sta&rt at:")));
+     in_start =
+         input_new (y1, x1, input_colors, cols - b0 - 7, in_start_dir, "start",
+                    INPUT_COMPLETE_CD | INPUT_COMPLETE_FILENAMES);
+-- 
+1.9.1
+

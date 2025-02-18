@@ -1,0 +1,237 @@
+From 9ba5748264989fc456b0c6ce69b2d09beb0ac4cd Mon Sep 17 00:00:00 2001
+From: Michael Osipov <1983-01-06@gmx.net>
+Date: Fri, 29 Jul 2016 10:11:57 +0200
+Subject: [PATCH] Update/add missing translations for file sizes in ar, be, fr,
+ fr_CA, ro, and uk
+
+Arabic is completely missing the ids. French and Romain use the term octet (o).
+Ukranian and Belarusian apply Cyrillic text.
+---
+ po/ar.po    | 21 +++++++++++++++++++++
+ po/be.po    | 14 +++++++-------
+ po/fr.po    | 14 +++++++-------
+ po/fr_CA.po | 14 +++++++-------
+ po/ro.po    | 14 +++++++-------
+ po/uk.po    | 14 +++++++-------
+ 6 files changed, 56 insertions(+), 35 deletions(-)
+
+diff --git a/po/ar.po b/po/ar.po
+index 8ebdedb..51a7fa6 100644
+--- a/po/ar.po
++++ b/po/ar.po
+@@ -428,6 +428,27 @@ msgid ""
+ "Check the TERM environment variable.\n"
+ msgstr ""
+ 
++msgid "B"
++msgstr ""
++
++msgid "kB"
++msgstr ""
++
++msgid "KiB"
++msgstr ""
++
++msgid "MB"
++msgstr ""
++
++msgid "MiB"
++msgstr ""
++
++msgid "GB"
++msgstr ""
++
++msgid "GiB"
++msgstr ""
++
+ msgid "Cannot create pipe descriptor"
+ msgstr ""
+ 
+diff --git a/po/be.po b/po/be.po
+index 143c547..8c37cdb 100644
+--- a/po/be.po
++++ b/po/be.po
+@@ -452,25 +452,25 @@ msgstr ""
+ "Спраўдзіце зьменную асяродзьдзя «TERM».\n"
+ 
+ msgid "B"
+-msgstr ""
++msgstr "Б"
+ 
+ msgid "kB"
+-msgstr ""
++msgstr "кБ"
+ 
+ msgid "KiB"
+-msgstr ""
++msgstr "КіБ"
+ 
+ msgid "MB"
+-msgstr ""
++msgstr "МБ"
+ 
+ msgid "MiB"
+-msgstr ""
++msgstr "МіБ"
+ 
+ msgid "GB"
+-msgstr ""
++msgstr "ГБ"
+ 
+ msgid "GiB"
+-msgstr ""
++msgstr "ГіБ"
+ 
+ msgid "Cannot create pipe descriptor"
+ msgstr ""
+diff --git a/po/fr.po b/po/fr.po
+index 53eb641..b17fd5d 100644
+--- a/po/fr.po
++++ b/po/fr.po
+@@ -444,25 +444,25 @@ msgstr ""
+ "Vérifiez la variable d'environnement TERM.\n"
+ 
+ msgid "B"
+-msgstr ""
++msgstr "o"
+ 
+ msgid "kB"
+-msgstr ""
++msgstr "ko"
+ 
+ msgid "KiB"
+-msgstr ""
++msgstr "Kio"
+ 
+ msgid "MB"
+-msgstr ""
++msgstr "Mo"
+ 
+ msgid "MiB"
+-msgstr ""
++msgstr "Mio"
+ 
+ msgid "GB"
+-msgstr ""
++msgstr "Go"
+ 
+ msgid "GiB"
+-msgstr ""
++msgstr "Gio"
+ 
+ msgid "Cannot create pipe descriptor"
+ msgstr ""
+diff --git a/po/fr_CA.po b/po/fr_CA.po
+index 5a4e0ce..56cf1f7 100644
+--- a/po/fr_CA.po
++++ b/po/fr_CA.po
+@@ -430,25 +430,25 @@ msgid ""
+ msgstr ""
+ 
+ msgid "B"
+-msgstr ""
++msgstr "o"
+ 
+ msgid "kB"
+-msgstr ""
++msgstr "ko"
+ 
+ msgid "KiB"
+-msgstr ""
++msgstr "Kio"
+ 
+ msgid "MB"
+-msgstr ""
++msgstr "Mo"
+ 
+ msgid "MiB"
+-msgstr ""
++msgstr "Mio"
+ 
+ msgid "GB"
+-msgstr ""
++msgstr "Go"
+ 
+ msgid "GiB"
+-msgstr ""
++msgstr "Gio"
+ 
+ msgid "Cannot create pipe descriptor"
+ msgstr ""
+diff --git a/po/ro.po b/po/ro.po
+index 93327cb..a0e3ee6 100644
+--- a/po/ro.po
++++ b/po/ro.po
+@@ -454,25 +454,25 @@ msgstr ""
+ "Verificați variabila de mediu TERM.\n"
+ 
+ msgid "B"
+-msgstr ""
++msgstr "o"
+ 
+ msgid "kB"
+-msgstr ""
++msgstr "ko"
+ 
+ msgid "KiB"
+-msgstr ""
++msgstr "Kio"
+ 
+ msgid "MB"
+-msgstr ""
++msgstr "Mo"
+ 
+ msgid "MiB"
+-msgstr ""
++msgstr "Mio"
+ 
+ msgid "GB"
+-msgstr ""
++msgstr "Go"
+ 
+ msgid "GiB"
+-msgstr ""
++msgstr "Gio"
+ 
+ msgid "Cannot create pipe descriptor"
+ msgstr ""
+diff --git a/po/uk.po b/po/uk.po
+index b34d1e2..89087a9 100644
+--- a/po/uk.po
++++ b/po/uk.po
+@@ -453,25 +453,25 @@ msgstr ""
+ "Перевірте змінну оточення TERM.\n"
+ 
+ msgid "B"
+-msgstr ""
++msgstr "Б"
+ 
+ msgid "kB"
+-msgstr ""
++msgstr "кБ"
+ 
+ msgid "KiB"
+-msgstr ""
++msgstr "КіБ"
+ 
+ msgid "MB"
+-msgstr ""
++msgstr "МБ"
+ 
+ msgid "MiB"
+-msgstr ""
++msgstr "МіБ"
+ 
+ msgid "GB"
+-msgstr ""
++msgstr "ГБ"
+ 
+ msgid "GiB"
+-msgstr ""
++msgstr "ГіБ"
+ 
+ msgid "Cannot create pipe descriptor"
+ msgstr ""
+-- 
+2.9.2
+

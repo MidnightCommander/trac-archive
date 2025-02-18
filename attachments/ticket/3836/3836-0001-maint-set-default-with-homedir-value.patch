@@ -1,0 +1,27 @@
+From f3b0bd1fdc9767de706ef3f3913bff1a89d6f939 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Sat, 8 Jul 2017 12:54:57 +0200
+Subject: [PATCH] Ticket #3836: maint - set default `--with-homedir` value to
+ `.mc` instead of `yes`
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ configure.ac |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index 387110d..debccfa 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -369,6 +369,8 @@ AC_ARG_WITH([homedir],
+     [
+ 	if test "x$withval" = "xXDG"; then
+ 	    with_homedir=XDG
++	elif test "x$withval" = "xyes"; then
++	    with_homedir=.mc
+ 	else
+ 	    with_homedir=$withval
+ 	fi
+-- 
+1.7.10
+

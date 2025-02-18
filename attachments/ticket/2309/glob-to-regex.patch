@@ -1,0 +1,64 @@
+--- a/lib/search/glob.c
++++ b/lib/search/glob.c
+@@ -55,26 +55,36 @@
+ 
+     buff = g_string_sized_new (32);
+ 
+-    for (loop = 0; loop < astr->len; loop++)
++    for (loop = 0; loop < astr->len; loop++) {
+         switch (str[loop])
+         {
+         case '*':
+             if (!strutils_is_char_escaped (str, &(str[loop])))
++            {
+                 g_string_append (buff, inside_group ? ".*" : "(.*)");
++                continue;
++            }
+             break;
+         case '?':
+             if (!strutils_is_char_escaped (str, &(str[loop])))
++            {
+                 g_string_append (buff, inside_group ? "." : "(.)");
++                continue;
++            }
+             break;
+         case ',':
+             if (!strutils_is_char_escaped (str, &(str[loop])))
+-                g_string_append_c (buff, '|');
++            {
++                g_string_append_c (buff, inside_group ? '|' : ',');
++                continue;
++            }
+             break;
+         case '{':
+             if (!strutils_is_char_escaped (str, &(str[loop])))
+             {
+                 g_string_append_c (buff, '(');
+                 inside_group = TRUE;
++                continue;
+             }
+             break;
+         case '}':
+@@ -82,6 +92,7 @@
+             {
+                 g_string_append_c (buff, ')');
+                 inside_group = FALSE;
++                continue;
+             }
+             break;
+         case '+':
+@@ -91,12 +102,9 @@
+         case ')':
+         case '^':
+             g_string_append_c (buff, '\\');
+-            /* fall through */
+-        default:
+-            g_string_append_c (buff, str[loop]);
+-            break;
+         }
+-
++        g_string_append_c (buff, str[loop]);
++    }
+     return buff;
+ }
+ 

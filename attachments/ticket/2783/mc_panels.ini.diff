@@ -1,0 +1,32 @@
+--- panels.ini.bak	2012-04-22 20:41:24.642415674 +0530
++++ panels.ini	2012-04-22 23:13:09.558877060 +0530
+@@ -5,8 +5,8 @@ reverse=0
+ case_sensitive=1
+ exec_first=0
+ sort_order=name
+-list_mode=user
+-user_format=half type name | size
++list_mode=full
++user_format=half type name | size | perm
+ user_status0=half type name | size | perm
+ user_status1=half type name | size | perm
+ user_status2=half type name | size | perm
+@@ -19,8 +19,8 @@ reverse=0
+ case_sensitive=1
+ exec_first=0
+ sort_order=name
+-list_mode=user
+-user_format=half type name | size
++list_mode=full
++user_format=half type name | size | perm
+ user_status0=half type name | size | perm
+ user_status1=half type name | size | perm
+ user_status2=half type name | size | perm
+@@ -28,5 +28,5 @@ user_status3=half type name | size | per
+ user_mini_status=0
+ 
+ [Dirs]
+-current_is_left=0
+-other_dir=/home/user
++current_is_left=1
++other_dir=/home/user/downloads

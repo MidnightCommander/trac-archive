@@ -1,0 +1,14 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index a093f88..0ca1d57 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -440,6 +440,9 @@ regex/\.([aA][sS][fFxX])$
+ regex/\.([dD][iI][vV][xX])$
+ 	Include=video
+ 
++regex/\.([mM][kK][vV])$
++	Include=video
++
+ regex/\.([mM][oO][vV]|[qQ][tT])$
+ 	Include=video
+ 

@@ -1,0 +1,25 @@
+From a22b1803c4c14df7dfd8b277ee8194fdbe185f16 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Wed, 24 Feb 2010 17:40:36 +0000
+Subject: [PATCH] lib/vfs/mc-vfs/vfs.c _vfs_get_cwd missing g_free
+
+---
+ lib/vfs/mc-vfs/vfs.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/lib/vfs/mc-vfs/vfs.c b/lib/vfs/mc-vfs/vfs.c
+index 24e8410..4a00c1f 100644
+--- a/lib/vfs/mc-vfs/vfs.c
++++ b/lib/vfs/mc-vfs/vfs.c
+@@ -956,6 +956,8 @@ _vfs_get_cwd (void)
+ 	    g_free (current_dir);
+                     current_dir = sys_cwd;
+                     return sys_cwd;
++                    } else {
++                        g_free (sys_cwd);
+                      }/* Otherwise we return current_dir below */
+             }
+     }
+-- 
+1.6.4
+

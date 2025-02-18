@@ -1,0 +1,63 @@
+
+Файл: я.я               Строка 1 Позиция 1 0 байт                           100*** glibc detected *** mc: double free or corruption (!prev): 0x0000000000896d10 ***
+======= Backtrace: =========
+/lib/libc.so.6[0x7fb50c0680bd]
+/lib/libc.so.6(cfree+0x76)[0x7fb50c069a76]
+/lib/libc.so.6[0x7fb50c0177c5]
+/lib/libc.so.6(iconv_close+0xf)[0x7fb50c016d8f]
+mc(view_load+0x32)[0x45a832]
+mc[0x45af52]
+mc[0x45b1b9]
+mc[0x45c82e]
+mc[0x45d27c]
+mc(dlg_process_event+0x20b)[0x4285fb]
+mc(run_dlg+0xb6)[0x4288e6]
+mc(mc_internal_viewer+0x100)[0x45b380]
+mc(view_file_at_line+0x166)[0x424746]
+mc[0x424839]
+mc[0x45c840]
+mc[0x45d27c]
+mc(dlg_process_event+0x20b)[0x4285fb]
+mc(run_dlg+0xb6)[0x4288e6]
+mc(main+0xd17)[0x43f167]
+/lib/libc.so.6(__libc_start_main+0xf4)[0x7fb50c0165e4]
+mc[0x41cf09]
+======= Memory map: ========
+00400000-004e6000 r-xp 00000000 03:06 3090553                            /usr/bin/mc
+006e5000-006e6000 r--p 000e5000 03:06 3090553                            /usr/bin/mc
+006e6000-006ee000 rw-p 000e6000 03:06 3090553                            /usr/bin/mc
+006ee000-008ce000 rw-p 006ee000 00:00 0                                  [heap]
+7fb504000000-7fb504021000 rw-p 7fb504000000 00:00 0 
+7fb504021000-7fb508000000 ---p 7fb504021000 00:00 0 
+7fb50a350000-7fb50a366000 r-xp 00000000 03:06 3387122                    /lib64/libgcc_s.so.1
+7fb50a366000-7fb50a565000 ---p 00016000 03:06 3387122                    /lib64/libgcc_s.so.1
+7fb50a565000-7fb50a566000 r--p 00015000 03:06 3387122                    /lib64/libgcc_s.so.1
+7fb50a566000-7fb50a567000 rw-p 00016000 03:06 3387122                    /lib64/libgcc_s.so.1
+7fb50a567000-7fb50a569000 r-xp 00000000 03:06 213863                     /usr/lib64/gconv/CP1251.so
+7fb50a569000-7fb50a768000 ---p 00002000 03:06 213863                     /usr/lib64/gconv/CP1251.so
+7fb50a768000-7fb50a769000 r--p 00001000 03:06 213863                     /usr/lib64/gconv/CP1251.so
+7fb50a769000-7fb50a76a000 rw-p 00002000 03:06 213863                     /usr/lib64/gconv/CP1251.so
+7fb50a76a000-7fb50a80c000 rw-p 7fb50d062000 00:00 0 
+7fb50a80c000-7fb50a811000 r-xp 00000000 03:06 3799480                    /usr/lib64/libXdmcp.so.6.0.0
+7fb50a811000-7fb50aa10000 ---p 00005000 03:06 3799480                    /usr/lib64/libXdmcp.so.6.0.0
+7fb50aa10000-7fb50aa11000 r--p 00004000 03:06 3799480                    /usr/lib64/libXdmcp.so.6.0.0
+7fb50aa11000-7fb50aa12000 rw-p 00005000 03:06 3799480                    /usr/lib64/libXdmcp.so.6.0.0
+7fb50aa12000-7fb50aa14000 r-xp 00000000 03:06 3665972                    /usr/lib64/libXau.so.6.0.0
+7fb50aa14000-7fb50ac13000 ---p 00002000 03:06 3665972                    /usr/lib64/libXau.so.6.0.0
+7fb50ac13000-7fb50ac14000 r--p 00001000 03:06 3665972                    /usr/lib64/libXau.so.6.0.0
+7fb50ac14000-7fb50ac15000 rw-p 00002000 03:06 3665972                    /usr/lib64/libXau.so.6.0.0
+7fb50ac15000-7fb50ad17000 r-xp 00000000 03:06 3124094                    /usr/lib64/libX11.so.6.2.0
+7fb50ad17000-7fb50af16000 ---p 00102000 03:06 3124094                    /usr/lib64/libX11.so.6.2.0
+7fb50af16000-7fb50af18000 r--p 00101000 03:06 3124094                    /usr/lib64/libX11.so.6.2.0
+7fb50af18000-7fb50af1d000 rw-p 00103000 03:06 3124094                    /usr/lib64/libX11.so.6.2.0
+7fb50af1d000-7fb50af27000 r-xp 00000000 03:06 999848                     /lib64/libnss_files-2.9.so
+7fb50af27000-7fb50b126000 ---p 0000a000 03:06 999848                     /lib64/libnss_files-2.9.so
+7fb50b126000-7fb50b127000 r--p 00009000 03:06 999848                     /lib64/libnss_files-2.9.so
+7fb50b127000-7fb50b128000 rw-p 0000a000 03:06 999848                     /lib64/libnss_files-2.9.so
+7fb50b128000-7fb50b132000 r-xp 00000000 03:06 999876                     /lib64/libnss_nis-2.9.so
+7fb50b132000-7fb50b331000 ---p 0000a000 03:06 999876                     /lib64/libnss_nis-2.9.so
+7fb50b331000-7fb50b332000 r--p 00009000 03:06 999876                     /lib64/libnss_nis-2.9.so
+7fb50b332000-7fb50b333000 rw-p 0000a000 03:06 999876                     /lib64/libnss_nis-2.9.so
+7fb50b333000-7fb50b347000 r-xp 00000000 03:06 999872                     /lib64/libnsl-2.9.so
+7fb50b347000-7fАварийный останов
+

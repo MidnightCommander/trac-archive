@@ -1,0 +1,13 @@
+--- src/vfs/local/Makefile.am.orig      2023-08-19 01:00:20.902677000 +0200
++++ src/vfs/local/Makefile.am   2023-08-19 00:58:25.496346000 +0200
+@@ -1,6 +1,10 @@
+ 
+ AM_CPPFLAGS = $(GLIB_CFLAGS) -I$(top_srcdir)
+ 
++if ENABLE_EXT2FS_ATTR
++AM_CPPFLAGS += @EXT2FS_CFLAGS@ @E2P_CFLAGS@
++endif
++
+ noinst_LTLIBRARIES = libvfs-local.la
+ 
+ libvfs_local_la_SOURCES = \

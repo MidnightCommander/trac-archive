@@ -1,0 +1,31 @@
+From d35cad4139d9913c0502a58822dbbd219bac92f6 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 30 Dec 2020 16:37:41 +0000
+Subject: [PATCH] (configure.ac) fix deprecated AM_PROG_MKDIR_P warning
+
+Lets minor bump gettext version to 0.18.2 (release 2012-12-25) to get rid of following warning:
+    configure.ac:269: warning: The 'AM_PROG_MKDIR_P' macro is deprecated, and its use is discouraged.
+    configure.ac:269: You should use the Autoconf-provided 'AC_PROG_MKDIR_P' macro instead,
+    configure.ac:269: and use '$(MKDIR_P)' instead of '$(mkdir_p)'in your Makefile.am files.
+
+RHEL6 EOL since 2020-11-30 (extra payable ELS to 2024-06-30) include gettext-0.17-18
+Ubuntu 14.04 LTS until EOL 2020-04 include gettext-0.18.3.1
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4f542b567..29d2dea11 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -275,7 +275,7 @@ dnl ############################################################################
+ AC_CHECK_FUNCS([setlocale])
+ 
+ AM_GNU_GETTEXT([external], [need-ngettext])
+-AM_GNU_GETTEXT_VERSION([0.18.1])
++AM_GNU_GETTEXT_VERSION([0.18.2])
+ 
+ mc_I18N
+ 

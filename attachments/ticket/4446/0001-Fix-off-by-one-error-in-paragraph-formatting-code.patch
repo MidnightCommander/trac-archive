@@ -1,0 +1,44 @@
+From b600ada6bcdf2cf2aba704d1f49209c39497f866 Mon Sep 17 00:00:00 2001
+From: Pavel Roskin <plroskin@gmail.com>
+Date: Fri, 17 Feb 2023 16:34:19 -0800
+Subject: [PATCH] Fix off-by-one error in paragraph formatting code
+
+The default margin is 72 characters, but the editor would keep 73 character
+long lines without breaking them.
+
+The visual length of strings was calculated incorrectly. The way "for" loop
+was implemented, the byte length would be incremented before exiting the
+loop. That would correspond to a character that doesn't fit the line.
+
+Increment the byte length in a separate statement.
+---
+ src/editor/format.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/format.c b/src/editor/format.c
+index abf79f49b..0084b1ee2 100644
+--- a/src/editor/format.c
++++ b/src/editor/format.c
+@@ -219,16 +219,17 @@ static inline off_t
+ line_pixel_length (unsigned char *t, off_t b, off_t l, gboolean utf8)
+ {
+     off_t xn, x;                /* position counters */
+-    off_t char_length;          /* character length in bytes */
++    off_t char_length = 0;      /* character length in bytes */
+ 
+ #ifndef HAVE_CHARSET
+     (void) utf8;
+ #endif
+ 
+-    for (xn = 0, x = 0; xn <= l; x = xn, b += char_length)
++    for (xn = 0, x = 0; xn <= l; x = xn)
+     {
+         char *tb;
+ 
++        b += char_length;
+         tb = (char *) t + b;
+         char_length = 1;
+ 
+-- 
+2.27.0
+

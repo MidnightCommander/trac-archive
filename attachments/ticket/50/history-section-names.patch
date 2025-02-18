@@ -1,0 +1,507 @@
+Index: src/cmd.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/cmd.c,v
+retrieving revision 1.164
+diff -u -p -r1.164 cmd.c
+--- src/cmd.c	4 Feb 2006 11:12:28 -0000	1.164
++++ src/cmd.c	19 Sep 2006 07:58:25 -0000
+@@ -229,7 +228,7 @@ view_file_cmd (void)
+ 
+     filename =
+ 	input_expand_dialog (_(" View file "), _(" Filename:"),
+-			     selection (current_panel)->fname);
++			     " View file ", selection (current_panel)->fname);
+     if (!filename)
+ 	return;
+ 
+@@ -252,6 +251,7 @@ filtered_view_cmd (void)
+     command =
+ 	input_dialog (_(" Filtered view "),
+ 		      _(" Filter command and arguments:"),
++		      " Filtered view ",
+ 		      selection (current_panel)->fname);
+     if (!command)
+ 	return;
+@@ -350,7 +350,8 @@ mkdir_cmd (void)
+ 
+     dir =
+ 	input_expand_dialog (_("Create a new Directory"),
+-			     _(" Enter directory name:"), "");
++			     _(" Enter directory name:"), 
++			     "Create a new Directory", "");
+     if (!dir)
+ 	return;
+ 
+@@ -422,7 +423,7 @@ set_panel_filter (WPanel *p)
+ 	
+     reg_exp = input_dialog_help (_(" Filter "),
+ 				 _(" Set expression for filtering filenames"),
+-				 "[Filter...]", x);
++				 "[Filter...]", " Filter ", x);
+     if (!reg_exp)
+ 	return;
+     set_panel_filter_to (p, reg_exp);
+@@ -468,14 +469,14 @@ void reverse_selection_cmd (void)
+ }
+ 
+ static void
+-select_unselect_cmd (const char *title, int cmd)
++select_unselect_cmd (const char *title, const char *history_name, int cmd)
+ {
+     char *reg_exp, *reg_exp_t;
+     int i;
+     int c;
+     int dirflag = 0;
+ 
+-    reg_exp = input_dialog (title, "", easy_patterns ? "*" : ".");
++    reg_exp = input_dialog (title, "", history_name, easy_patterns ? "*" : ".");
+     if (!reg_exp)
+ 	return;
+     if (!*reg_exp) {
+@@ -521,12 +522,12 @@ select_unselect_cmd (const char *title, 
+ 
+ void select_cmd (void)
+ {
+-    select_unselect_cmd (_(" Select "), 1);
++    select_unselect_cmd (_(" Select "), " Select ", 1);
+ }
+ 
+ void unselect_cmd (void)
+ {
+-    select_unselect_cmd (_(" Unselect "), 0);
++    select_unselect_cmd (_(" Unselect "), " Unselect ", 0);
+ }
+ 
+ /* Check if the file exists */
+@@ -903,7 +904,7 @@ do_link (int symbolic_link, const char *
+ 
+     if (!symbolic_link) {
+ 	src = g_strdup_printf (_("Link %s to:"), name_trunc (fname, 46));
+-	dest = input_expand_dialog (_(" Link "), src, "");
++	dest = input_expand_dialog (_(" Link "), src, " Link ", "");
+ 	if (!dest || !*dest)
+ 	    goto cleanup;
+ 	save_cwds_stat ();
+@@ -972,7 +988,7 @@ void edit_symlink_cmd (void)
+ 	i = readlink (p, buffer, MC_MAXPATHLEN - 1);
+ 	if (i > 0) {
+ 	    buffer [i] = 0;
+-	    dest = input_expand_dialog (_(" Edit symlink "), q, buffer);
++	    dest = input_expand_dialog (_(" Edit symlink "), q, " Edit symlink ", buffer);
+ 	    if (dest) {
+ 		if (*dest && strcmp (buffer, dest)) {
+ 		    save_cwds_stat ();
+@@ -1085,7 +1101,8 @@ get_random_hint (int force)
+ 
+ #if defined(USE_NETCODE) || defined(USE_EXT2FSLIB)
+ static void
+-nice_cd (const char *text, const char *xtext, const char *help, const char *prefix, int to_home)
++nice_cd (const char *text, const char *xtext, const char *help,
++	 const char *history_name, const char *prefix, int to_home)
+ {
+     char *machine;
+     char *cd_path;
+@@ -1093,9 +1110,7 @@ nice_cd (const char *text, const char *x
+     if (!SELECTED_IS_PANEL)
+ 	return;
+ 
+-    machine = input_dialog_help (text,
+-				 xtext,
+-				 help, "");
++    machine = input_dialog_help (text, xtext, help, history_name, "");
+     if (!machine)
+ 	return;
+ 
+@@ -1125,27 +1140,30 @@ static const char *machine_str = N_(" En
+ void netlink_cmd (void)
+ {
+     nice_cd (_(" Link to a remote machine "), _(machine_str),
+-	     "[Network File System]", "/#mc:", 1);
++	     "[Network File System]", " Link to a remote machine ",
++	     "/#mc:", 1);
+ }
+ #endif /* WITH_MCFS */
+ 
+ void ftplink_cmd (void)
+ {
+     nice_cd (_(" FTP to machine "), _(machine_str),
+-	     "[FTP File System]", "/#ftp:", 1);
++	     "[FTP File System]", " FTP to machine ", "/#ftp:", 1);
+ }
+ 
+ void fishlink_cmd (void)
+ {
+     nice_cd (_(" Shell link to machine "), _(machine_str),
+-	     "[FIle transfer over SHell filesystem]", "/#sh:", 1);
++	     "[FIle transfer over SHell filesystem]", " Shell link to machine ",
++	     "/#sh:", 1);
+ }
+ 
+ #ifdef WITH_SMBFS
+ void smblink_cmd (void)
+ {
+     nice_cd (_(" SMB link to machine "), _(machine_str),
+-	     "[SMB File System]", "/#smb:", 0);
++	     "[SMB File System]", " SMB link to machine ",
++	     "/#smb:", 0);
+ }
+ #endif /* WITH_SMBFS */
+ #endif /* USE_NETCODE */
+@@ -1156,7 +1174,8 @@ void undelete_cmd (void)
+     nice_cd (_(" Undelete files on an ext2 file system "),
+ 	     _(" Enter device (without /dev/) to undelete\n "
+ 	       "  files on: (F1 for details)"),
+-	     "[Undelete File System]", "/#undel:", 0);
++	     "[Undelete File System]", " Undelete files on an ext2 file system ",
++	     "/#undel:", 0);
+ }
+ #endif /* USE_EXT2FSLIB */
+ 
+Index: src/ext.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/ext.c,v
+retrieving revision 1.79
+diff -u -p -r1.79 ext.c
+--- src/ext.c	31 Jul 2005 20:29:35 -0000	1.79
++++ src/ext.c	19 Sep 2006 07:58:25 -0000
+@@ -113,7 +113,7 @@ exec_extension (const char *filename, co
+ 	    if (*data == '}') {
+ 		char *parameter;
+ 		parameter_found = 0;
+-		parameter = input_dialog (_(" Parameter "), prompt, "");
++		parameter = input_dialog (_(" Parameter "), prompt, " Parameter ", "");
+ 		if (!parameter) {
+ 		    /* User canceled */
+ 		    fclose (cmd_file);
+Index: src/hotlist.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/hotlist.c,v
+retrieving revision 1.85
+diff -u -p -r1.85 hotlist.c
+--- src/hotlist.c	8 Aug 2006 12:17:14 -0000	1.85
++++ src/hotlist.c	19 Sep 2006 07:58:25 -0000
+@@ -1041,7 +1041,7 @@ void add2hotlist_cmd (void)
+     strip_password (label_string, 1);
+ 
+     prompt = g_strdup_printf (cp, path_trunc (current_panel->cwd, COLS-2*UX-(l+8)));
+-    label = input_dialog (_(" Add to hotlist "), prompt, label_string);
++    label = input_dialog (_(" Add to hotlist "), prompt, " Add to hotlist ", label_string);
+     g_free (prompt);
+ 
+     if (!label || !*label) {
+Index: src/panelize.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/panelize.c,v
+retrieving revision 1.51
+diff -u -p -r1.51 panelize.c
+--- src/panelize.c	27 May 2005 03:35:15 -0000	1.51
++++ src/panelize.c	19 Sep 2006 07:58:25 -0000
+@@ -225,6 +225,7 @@ add2panelize_cmd (void)
+     if (pname->buffer && (*pname->buffer)) {
+ 	label = input_dialog (_(" Add to external panelize "), 
+ 		_(" Enter command label: "), 
++		" Add to external panelize ",
+ 			      "");
+ 	if (!label)
+ 	    return;
+Index: src/user.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/user.c,v
+retrieving revision 1.76
+diff -u -p -r1.76 user.c
+--- src/user.c	10 May 2006 12:14:28 -0000	1.76
++++ src/user.c	19 Sep 2006 07:58:25 -0000
+@@ -603,7 +603,7 @@ execute_menu_command (WEdit *edit_widget
+ 	    if (*commands == '}'){
+ 		char *tmp;
+ 		*parameter = 0;
+-		parameter = input_dialog (_(" Parameter "), prompt, "");
++		parameter = input_dialog (_(" Parameter "), prompt, " Parameter ", "");
+ 		if (!parameter || !*parameter){
+ 		    /* User canceled */
+ 		    fclose (cmd_file);
+Index: src/view.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/view.c,v
+retrieving revision 1.356
+diff -u -p -r1.356 view.c
+--- src/view.c	3 Aug 2006 05:51:23 -0000	1.356
++++ src/view.c	19 Sep 2006 07:58:26 -0000
+@@ -2730,7 +2730,7 @@ view_moveto_line_cmd (WView *view)
+     g_snprintf (prompt, sizeof (prompt),
+ 		_(" The current line number is %d.\n"
+ 		  " Enter the new line number:"), (int) (line + 1));
+-    answer = input_dialog (_(" Goto line "), prompt, "");
++    answer = input_dialog (_(" Goto line "), prompt, " Goto line ", "");
+     if (answer != NULL && answer[0] != '\0') {
+ 	errno = 0;
+ 	line = strtoul (answer, &answer_end, 10);
+@@ -2751,7 +2751,7 @@ view_moveto_addr_cmd (WView *view)
+     g_snprintf (prompt, sizeof (prompt),
+ 		_(" The current address is 0x%lx.\n"
+ 		  " Enter the new address:"), view->hex_cursor);
+-    line = input_dialog (_(" Goto Address "), prompt, "");
++    line = input_dialog (_(" Goto Address "), prompt, " Goto Address ", "");
+     if (line != NULL) {
+ 	if (*line != '\0') {
+ 	    addr = strtoul (line, &error, 0);
+@@ -2781,7 +2781,7 @@ regexp_search (WView *view, int directio
+ 
+     defval = (view->search_exp != NULL) ? view->search_exp : "";
+ 
+-    regexp = input_dialog (_("Search"), _(" Enter regexp:"), defval);
++    regexp = input_dialog (_("Search"), _(" Enter regexp:"), "Search", defval);
+     if (regexp == NULL || regexp[0] == '\0')
+ 	goto cleanup;
+ 
+Index: src/wtools.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/wtools.c,v
+retrieving revision 1.85
+diff -u -p -r1.85 wtools.c
+--- src/wtools.c	14 Sep 2006 09:12:49 -0000	1.85
++++ src/wtools.c	19 Sep 2006 07:58:26 -0000
+@@ -433,11 +433,15 @@ int quick_dialog (QuickDialog *qd)
+  *
+  * If the arguments "header" and "text" should be translated,
+  * that MUST be done by the caller of fg_input_dialog_help().
++ *
++ * The argument "history_name" holds the name of a section
++ * in the history file. Data entered in the input field of
++ * the dialog box will be stored there.
+  * 
+  */
+ static char *
+ fg_input_dialog_help (const char *header, const char *text, const char *help,
+-			const char *def_text)
++		      const char *history_name, const char *def_text)
+ {
+     QuickDialog Quick_input;
+     QuickWidget quick_widgets[] = {
+@@ -457,10 +461,10 @@ fg_input_dialog_help (const char *header
+     char histname[64] = "inp|";
+     char *p_text;
+ 
+-    /* we need a unique name for histname because widget.c:history_tool()
+-       needs a unique name for each dialog - using the header is ideal */
+-    g_strlcpy (histname + 3, header, 61);
+-    quick_widgets[2].histname = histname;
++    if (history_name != NULL && *history_name != '\0') {
++	g_strlcpy (histname + 3, history_name, 61);
++	quick_widgets[2].histname = histname;
++    }
+ 
+     msglen (text, &lines, &cols);
+     len = max ((int) strlen (header), cols) + 4;
+@@ -524,32 +528,36 @@ fg_input_dialog_help (const char *header
+  * that MUST be done by the caller of these wrappers.
+  */
+ char *
+-input_dialog_help (const char *header, const char *text, const char *help, const char *def_text)
++input_dialog_help (const char *header, const char *text, const char *help,
++		   const char *history_name, const char *def_text)
+ {
+ #ifdef WITH_BACKGROUND
+     if (we_are_background)
+-	return parent_call_string ((void *) fg_input_dialog_help, 4,
++	return parent_call_string ((void *) fg_input_dialog_help, 5,
+ 				   strlen (header), header, strlen (text),
+ 				   text, strlen (help), help,
++				   strlen (history_name), history_name,
+ 				   strlen (def_text), def_text);
+     else
+ #endif				/* WITH_BACKGROUND */
+-	return fg_input_dialog_help (header, text, help, def_text);
++	return fg_input_dialog_help (header, text, help, history_name, def_text);
+ }
+ 
+ /* Show input dialog with default help, background safe */
+-char *input_dialog (const char *header, const char *text, const char *def_text)
++char *input_dialog (const char *header, const char *text,
++		    const char *history_name, const char *def_text)
+ {
+-    return input_dialog_help (header, text, "[Input Line Keys]", def_text);
++    return input_dialog_help (header, text, "[Input Line Keys]", history_name, def_text);
+ }
+ 
+ char *
+-input_expand_dialog (const char *header, const char *text, const char *def_text)
++input_expand_dialog (const char *header, const char *text, 
++		     const char *history_name, const char *def_text)
+ {
+     char *result;
+     char *expanded;
+ 
+-    result = input_dialog (header, text, def_text);
++    result = input_dialog (header, text, history_name, def_text);
+     if (result) {
+ 	expanded = tilde_expand (result);
+ 	g_free (result);
+Index: src/tree.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/tree.c,v
+retrieving revision 1.69
+diff -u -p -r1.69 tree.c
+--- src/tree.c	15 Aug 2005 22:36:53 -0000	1.69
++++ src/tree.c	19 Sep 2006 07:58:26 -0000
+@@ -597,7 +597,7 @@ static void tree_copy (WTree *tree, cons
+ 	return;
+     g_snprintf (cmd_buf, sizeof(cmd_buf), _("Copy \"%s\" directory to:"),
+ 	     name_trunc (tree->selected_ptr->name, 50));
+-    dest = input_expand_dialog (_(" Copy "), cmd_buf, default_dest);
++    dest = input_expand_dialog (_(" Copy "), cmd_buf, " Copy ", default_dest);
+ 
+     if (!dest)
+ 	return;
+@@ -640,7 +640,7 @@ static void tree_move (WTree *tree, cons
+ 	return;
+     g_snprintf (cmd_buf, sizeof (cmd_buf), _("Move \"%s\" directory to:"),
+ 	     name_trunc (tree->selected_ptr->name, 50));
+-    dest = input_expand_dialog (_(" Move "), cmd_buf, default_dest);
++    dest = input_expand_dialog (_(" Move "), cmd_buf, " Move ", default_dest);
+     if (!dest)
+ 	return;
+     if (!*dest){
+Index: src/wtools.h
+===================================================================
+RCS file: /cvsroot/mc/mc/src/wtools.h,v
+retrieving revision 1.28
+diff -u -p -r1.28 wtools.h
+--- src/wtools.h	3 Feb 2006 14:42:36 -0000	1.28
++++ src/wtools.h	19 Sep 2006 07:58:26 -0000
+@@ -57,9 +57,12 @@ int quick_dialog_skip (QuickDialog *qd, 
+ /* Pass this as def_text to request a password */
+ #define INPUT_PASSWORD ((char *) -1)
+ 
+-char *input_dialog (const char *header, const char *text, const char *def_text);
+-char *input_dialog_help (const char *header, const char *text, const char *help, const char *def_text);
+-char *input_expand_dialog (const char *header, const char *text, const char *def_text);
++char *input_dialog (const char *header, const char *text,
++		    const char *history_name, const char *def_text);
++char *input_dialog_help (const char *header, const char *text, const char *help,
++			 const char *history_name, const char *def_text);
++char *input_expand_dialog (const char *header, const char *text,
++			   const char *history_name, const char *def_text);
+ 
+ void query_set_sel (int new_sel);
+ 
+Index: edit/editcmd.c
+===================================================================
+RCS file: /cvsroot/mc/mc/edit/editcmd.c,v
+retrieving revision 1.151
+diff -u -p -r1.151 editcmd.c
+--- edit/editcmd.c	17 Mar 2006 15:41:21 -0000	1.151
++++ edit/editcmd.c	19 Sep 2006 07:58:26 -0000
+@@ -57,9 +57,6 @@
+ #include "../src/charsets.h"
+ #include "../src/selcodepage.h"
+ 
+-#define edit_get_load_file(f,h) input_expand_dialog (h, _(" Enter file name: "), f)
+-#define edit_get_save_file(f,h) input_expand_dialog (h, _(" Enter file name: "), f)
+-
+ struct selection {
+    unsigned char * text;
+    int len;
+@@ -505,7 +502,8 @@ edit_save_as_cmd (WEdit *edit)
+     int save_lock = 0;
+     int different_filename = 0;
+ 
+-    exp = edit_get_save_file (edit->filename, _(" Save As "));
++    exp = input_expand_dialog (_(" Save As "), _(" Enter file name: "),
++			       " Save As ", edit->filename);
+     edit_push_action (edit, KEY_PRESS + edit->start_display);
+ 
+     if (exp) {
+@@ -887,7 +885,8 @@ edit_load_cmd (WEdit *edit)
+ 	}
+     }
+ 
+-    exp = edit_get_load_file (edit->filename, _(" Load "));
++    exp = input_expand_dialog (_(" Load "), _(" Enter file name: "),
++		    	       " Load ", edit->filename);
+ 
+     if (exp) {
+ 	if (*exp)
+@@ -2316,7 +2315,8 @@ edit_goto_cmd (WEdit *edit)
+     char s[32];
+ 
+     g_snprintf (s, sizeof (s), "%ld", line);
+-    f = input_dialog (_(" Goto line "), _(" Enter line: "), line ? s : "");
++    f = input_dialog (_(" Goto line "), _(" Enter line: "), " Goto line ",
++		      line ? s : "");
+     if (!f)
+ 	return;
+ 
+@@ -2350,8 +2350,9 @@ edit_save_block_cmd (WEdit *edit)
+     if (eval_marks (edit, &start_mark, &end_mark))
+ 	return 1;
+     exp =
+-	edit_get_save_file (catstrs (home_dir, PATH_SEP_STR CLIP_FILE, (char *) NULL),
+-			    _(" Save Block "));
++	input_expand_dialog (_(" Save Block "), _(" Enter file name: "),
++			     " Save Block ", 
++			    catstrs (home_dir, PATH_SEP_STR CLIP_FILE, (char *) NULL));
+     edit_push_action (edit, KEY_PRESS + edit->start_display);
+     if (exp) {
+ 	if (!*exp) {
+@@ -2379,8 +2380,9 @@ edit_save_block_cmd (WEdit *edit)
+ int
+ edit_insert_file_cmd (WEdit *edit)
+ {
+-    char *exp = edit_get_load_file (catstrs (home_dir, PATH_SEP_STR CLIP_FILE, (char *) NULL),
+-				    _(" Insert File "));
++    char *exp = input_expand_dialog (_(" Insert File "), _(" Enter file name: "),
++				     " Insert File ",
++				     catstrs (home_dir, PATH_SEP_STR CLIP_FILE, (char *) NULL));
+     edit_push_action (edit, KEY_PRESS + edit->start_display);
+     if (exp) {
+ 	if (!*exp) {
+@@ -2419,7 +2421,7 @@ int edit_sort_cmd (WEdit * edit)
+ 
+     exp = input_dialog (_(" Run Sort "),
+ 	_(" Enter sort options (see manpage) separated by whitespace: "),
+-	(old != NULL) ? old : "");
++	" Run Sort ", (old != NULL) ? old : "");
+ 
+     if (!exp)
+ 	return 1;
+@@ -2460,7 +2462,8 @@ edit_ext_cmd (WEdit *edit)
+ 
+     exp =
+ 	input_dialog (_("Paste output of external command"),
+-		      _("Enter shell command(s):"), NULL);
++		      _("Enter shell command(s):"),
++		      "Paste output of external command", NULL);
+ 
+     if (!exp)
+ 	return 1;
+Index: vfs/ftpfs.c
+===================================================================
+RCS file: /cvsroot/mc/mc/vfs/ftpfs.c,v
+retrieving revision 1.192
+diff -u -p -r1.192 ftpfs.c
+--- vfs/ftpfs.c	8 Mar 2006 14:54:11 -0000	1.192
++++ vfs/ftpfs.c	19 Sep 2006 07:58:27 -0000
+@@ -498,7 +498,7 @@ ftpfs_login_server (struct vfs_class *me
+ 		p = g_strdup_printf (_
+ 				     ("FTP: Account required for user %s"),
+ 				     SUP.user);
+-		op = input_dialog (p, _("Account:"), "");
++		op = input_dialog (p, _("Account:"), (char *) NULL, "");
+ 		g_free (p);
+ 		if (op == NULL)
+ 		    ERRNOR (EPERM, 0);
+Index: vfs/utilvfs.c
+===================================================================
+RCS file: /cvsroot/mc/mc/vfs/utilvfs.c,v
+retrieving revision 1.43
+diff -u -p -r1.43 utilvfs.c
+--- vfs/utilvfs.c	27 Jan 2006 22:20:24 -0000	1.43
++++ vfs/utilvfs.c	19 Sep 2006 07:58:27 -0000
+@@ -842,5 +842,5 @@ vfs_die (const char *m)
+ char *
+ vfs_get_password (const char *msg)
+ {
+-    return input_dialog (msg, _("Password:"), INPUT_PASSWORD);
++    return input_dialog (msg, _("Password:"), (char *) NULL, INPUT_PASSWORD);
+ }

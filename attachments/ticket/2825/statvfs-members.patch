@@ -1,0 +1,17 @@
+--- mc-4.8.1.3/m4.include/fstypename.m4.old	2011-12-01 19:27:42.000000000 +0100
++++ mc-4.8.1.3/m4.include/fstypename.m4	2012-06-06 16:32:13.000000000 +0200
+@@ -20,4 +20,14 @@
+       #include <sys/param.h>
+       #include <sys/mount.h>
+     ])
++  AC_CHECK_MEMBERS([struct statvfs.f_fstypename],,,
++    [
++      #include <sys/types.h>
++      #include <sys/statvfs.h>
++    ])
++  AC_CHECK_MEMBERS([struct statvfs.f_fbasetype],,,
++    [
++      #include <sys/types.h>
++      #include <sys/statvfs.h>
++    ])
+ ])

@@ -1,0 +1,14 @@
+diff -ur mc-4.7.0.3.orig/src/editor/edit.c mc-4.7.0.3/src/editor/edit.c
+--- mc-4.7.0.3.orig/src/editor/edit.c	2010-03-03 00:34:53.000000000 +0100
++++ mc-4.7.0.3/src/editor/edit.c	2010-03-03 00:59:09.000000000 +0100
+@@ -2615,7 +2615,9 @@
+     /* An ordinary key press */
+     if (char_for_insertion >= 0) {
+ 	if (edit->overwrite) {
+-	    if (edit_get_byte (edit, edit->curs1) != '\n')
++	    /* If UTF-8, only remove a whole character when the first byte is inserted. */
++	    if (edit_get_byte (edit, edit->curs1) != '\n' &&
++               (!edit->utf8 || (char_for_insertion & 0xC0) != 0x80))
+ 		edit_delete (edit, 0);
+ 	}
+         if ( option_cursor_beyond_eol && edit->over_col > 0 )

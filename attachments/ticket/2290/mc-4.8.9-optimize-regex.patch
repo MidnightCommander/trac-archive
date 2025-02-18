@@ -1,0 +1,75 @@
+diff -uNr mc-4.8.9/lib/search/regex.c mc-4.8.9.regex/lib/search/regex.c
+--- mc-4.8.9/lib/search/regex.c	2013-04-16 15:28:47.000000000 +0400
++++ mc-4.8.9.regex/lib/search/regex.c	2013-08-04 15:26:29.862822413 +0400
+@@ -806,28 +806,49 @@
+         g_string_set_size (lc_mc_search->regex_buffer, 0);
+         lc_mc_search->start_buffer = current_pos;
+ 
+-        while (TRUE)
+-        {
+-            int current_chr = '\n';     /* stop search symbol */
+-
+-            ret = mc_search__get_char (lc_mc_search, user_data, current_pos, &current_chr);
+-            if (ret == MC_SEARCH_CB_ABORT)
+-                break;
+-
+-            if (ret == MC_SEARCH_CB_INVALID)
+-                continue;
+-
+-            current_pos++;
+-
+-            if (ret == MC_SEARCH_CB_SKIP)
+-                continue;
+-
+-            virtual_pos++;
+-
+-            g_string_append_c (lc_mc_search->regex_buffer, (char) current_chr);
+-
+-            if ((char) current_chr == '\n' || virtual_pos > end_search)
+-                break;
++        if (lc_mc_search->search_fn == NULL) {
++            /* optimization for standard case (for search from file manager)
++             *  where there is no MC_SEARCH_CB_INVALID or MC_SEARCH_CB_SKIP
++             *  return codes, so we can copy line at regex buffer all at once
++             */
++            char current_chr;
++            while (TRUE) {
++                current_chr = ((char *)user_data)[current_pos];
++                if (current_chr == 0)
++                    break;
++
++                current_pos++;
++
++                if (current_chr == '\n' || current_pos > end_search)
++                    break;
++            }
++            /* use virtual_pos as index of start of current chunk */
++            g_string_append_len (lc_mc_search->regex_buffer, ((char *)user_data + virtual_pos), current_pos - virtual_pos);
++            virtual_pos = current_pos;
++        } else {
++            while (TRUE)
++            {
++                int current_chr = '\n';     /* stop search symbol */
++
++                ret = mc_search__get_char (lc_mc_search, user_data, current_pos, &current_chr);
++                if (ret == MC_SEARCH_CB_ABORT)
++                    break;
++
++                if (ret == MC_SEARCH_CB_INVALID)
++                    continue;
++
++                current_pos++;
++
++                if (ret == MC_SEARCH_CB_SKIP)
++                    continue;
++
++                virtual_pos++;
++
++                g_string_append_c (lc_mc_search->regex_buffer, (char) current_chr);
++
++                if ((char) current_chr == '\n' || virtual_pos > end_search)
++                    break;
++            }
+         }
+ 
+         switch (mc_search__regex_found_cond (lc_mc_search, lc_mc_search->regex_buffer))

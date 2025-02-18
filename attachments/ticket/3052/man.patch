@@ -1,0 +1,46 @@
+Last-Update: 2013-08-03
+Author: Dmitry Smirnov <onlyjob@member.fsf.org>
+Description: fix man page "macro `\' not defined" warnings
+
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -3109,10 +3109,9 @@
+ for the second time, for the first time MC just beeps.
+ .PP
+ Apply escaping of
+ .BR ? ", " * " and " &
+-symbols (as
+-.BR \\? ", " \\* ", " \\& )
++symbols (as \fB\\?\fR, \fB\\*\fR, \fB\\&\fR )
+ in filenames to disallow use them as metasymbols in regular expressions
+ when substitution is performed in the input line.
+ 
+ .\"NODE "Virtual File System"
+--- a/doc/man/es/mc.1.in
++++ b/doc/man/es/mc.1.in
+@@ -2948,10 +2948,9 @@
+ por segunda vez; con la primera Midnight Commander solo emite un pitido.
+ .PP
+ Aplica escapes a los símbolos
+ .BR ? ", " * " y " &
+-(como
+-.BR \\? ", " \\* ", " \\& )
++(como \fB\\?\fR, \fB\\*\fR, \fB\\&\fR )
+ en los nombres de archivo para evitar su interpretación en expresiones
+ regulares al realizar sustituciones en la línea de entrada.
+ .\"NODE "Virtual File System"
+ .SH "Sistemas de Archivos Virtuales (VFS)"
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -3402,10 +3402,9 @@
+ второй раз, при первом нажатии MC только издает звуковой сигнал.
+ .PP
+ Используйте экранирование символов
+ .BR ? ", " * " и " &
+-(как
+-.BR \\? ", " \\* ", " \\& )
++(как \fB\\?\fR, \fB\\*\fR, \fB\\&\fR )
+ в именах файлов, чтобы они не рассматривались как метасимволы в регулярных
+ выражениях при подстановках в полях ввода.
+ 
+ .\"NODE "Virtual File System"

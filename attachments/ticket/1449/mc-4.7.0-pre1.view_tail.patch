@@ -1,0 +1,145 @@
+diff -Naur mc-4.7.0-pre1~/src/view.c mc-4.7.0-pre1/src/view.c
+--- mc-4.7.0-pre1~/src/view.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/view.c	2009-08-09 22:47:23.000000000 +0300
+@@ -194,6 +194,8 @@
+     gboolean text_nroff_mode;	/* Nroff-style highlighting */
+     gboolean text_wrap_mode;	/* Wrap text lines to fit them on the screen */
+     gboolean magic_mode;	/* Preprocess the file using external programs */
++    gboolean monitor_mode;	/* Monitor mode a la "tail -f" */
++    offset_type monitor_size;	/* Last known size */
+ 
+     /* Additional editor state */
+     gboolean hexedit_lownibble;	/* Are we editing the last significant nibble? */
+@@ -1149,6 +1151,9 @@
+ 	    do {
+ 		nread = mc_read (view->ds_vfs_pipe, p, bytesfree);
+ 	    } while (nread == -1 && errno == EINTR);
++	    if (nread == 0 && view->monitor_mode) {
++		return;
++	    }
+ 	    if (nread == -1 || nread == 0) {
+ 		view->growbuf_finished = TRUE;
+ 		(void) mc_close (view->ds_vfs_pipe);
+@@ -1515,7 +1520,7 @@
+     struct cache_line *line;
+ 
+     if (view->growbuf_in_use)
+-	view_growbuf_read_until (view, OFFSETTYPE_MAX);
++	view_growbuf_read_until (view, view->monitor_mode ? view_get_filesize(view) + 1024 * 1024 : OFFSETTYPE_MAX);
+ 
+     filesize = view_get_filesize (view);
+     last_offset = offset_doz(filesize, 1);
+@@ -1527,6 +1532,20 @@
+ 	view_move_up (view, lines_up);
+ 	view->hex_cursor = last_offset;
+     } else {
++	if (view->monitor_mode && view->monitor_size != filesize) {
++	    view->monitor_size = filesize;
++#if 0
++	    /* XXX way too heavy */
++	    view_reset_cache_lines (view);
++#else
++	    /* XXX dangerous trick */
++	    view->lines_end = NULL;
++	    view->nroff_lines_end = NULL;
++	    if (view->first_showed_line != NULL) {
++		view_load_cache_line (view, view->first_showed_line);
++	    }
++#endif
++	}
+         line = view_get_last_line (view);
+         if (!view->text_wrap_mode)
+             line = view_get_start_of_whole_line (view, line);
+@@ -1858,6 +1877,32 @@
+     view->dirty++;
+ }
+ 
++static void
++view_toggle_monitor_mode (WView *view)
++{
++    char *filename, *command;
++
++    int line_number = 0;
++    struct cache_line *line = view_get_first_showed_line (view);
++    if (line != NULL) {
++	line_number = line->number + 1;
++    }
++
++    view->monitor_size = 0;
++    view->monitor_mode = !view->monitor_mode;
++    filename = g_strdup (view->filename);
++    command = g_strdup (view->command);
++
++    view_done (view);
++    view_load (view, command, filename, line_number);
++    g_free (filename);
++    g_free (command);
++    view->dpy_bbar_dirty = TRUE;
++    view->dirty++;
++
++    set_idle_proc(view->widget.parent, view->monitor_mode);
++}
++
+ /* {{{ Miscellaneous functions }}} */
+ 
+ static void
+@@ -2016,7 +2061,7 @@
+ 	    goto finish;
+ 	}
+ 
+-	if (st.st_size == 0 || mc_lseek (fd, 0, SEEK_SET) == -1) {
++	if (view->monitor_mode || st.st_size == 0 || mc_lseek (fd, 0, SEEK_SET) == -1) {
+ 	    /* Must be one of those nice files that grow (/proc) */
+ 	    view_set_datasource_vfs_pipe (view, fd);
+ 	} else {
+@@ -2103,6 +2148,11 @@
+ 
+     if (height < 1 || right < 4)
+ 	return;
++    if (view->monitor_mode) {
++	widget_move (view, top, right - 4);
++	tty_print_string("tail");
++	return;
++    }
+     if (view_may_still_grow (view))
+ 	return;
+     filesize = view_get_filesize (view);
+@@ -3668,6 +3718,12 @@
+ 	view->dirty++;
+ 	return MSG_HANDLED;
+ 
++    case 'F':
++	if (!view_is_in_panel(view)) {
++	    view_toggle_monitor_mode(view);
++	}
++	return MSG_HANDLED;
++
+ 	/*  Use to indicate parent that we want to see the next/previous file */
+ 	/* Does not work in panel mode */
+     case XCTRL ('f'):
+@@ -3799,6 +3855,25 @@
+     case DLG_RESIZE:
+ 	view_adjust_size (h);
+ 	return MSG_HANDLED;
++    case DLG_IDLE: {
++	int c;
++	Gpm_Event event;
++	WView *view = (WView *)find_widget_type(h, view_callback);
++	/* XXX can't handle file truncations */
++	view_moveto_bottom(view);
++	view_update(view);
++	event.x = -1;
++	c = get_event (&event, h->mouse_status == MOU_REPEAT, 0);
++	if (c != EV_NONE) {
++	    dlg_process_event (h, c, &event);
++	    if (!h->running) {
++		set_idle_proc(h, 0);
++	    }
++	} else {
++	    sleep(1);
++	}
++	return MSG_HANDLED;
++    }
+ 
+     default:
+ 	return default_dlg_callback (h, msg, parm);

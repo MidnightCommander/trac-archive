@@ -1,0 +1,60 @@
+$ echo $LANG
+en_US.UTF-8
+
+$ cat /etc/mc/mc.charsets
+ASCII           7-bit ASCII
+UTF-8           UTF-8
+UCS-2LE         UNICODELITTLE
+UTF-16LE        UTF-16LE
+CP932           MS932
+CP936           MS936
+
+$ find . -type f -print -exec xxd {} \;
+./ucs2le.txt
+00000000: 4100 4200 4300 4400 4500 4600 0a00 4700  A.B.C.D.E.F...G.
+00000010: 4800 4900 4a00 4b00 4c00 0a00 4d00 4e00  H.I.J.K.L...M.N.
+00000020: 4f00 5000 5100 5200 0a00 5800 5500 4300  O.P.Q.R...X.U.C.
+00000030: 5300 3200 5800 0a00 004e 8c4e 094e db56  S.2.X....N.N.N.V
+00000040: 944e 0a00 6d51 034e 6b51 5d4e 4153 0a00  .N..mQ.NkQ]NAS..
+00000050: 4153 004e 4153 8c4e 4153 094e 0a00 f158  AS.NAS.NAS.N...X
+00000060: 105f c253 8680 0d4f 0a00 7896 066f 4c63  ._.S...O..x..oLc
+00000070: 9673 fe62 0a00 f958 308d c153 8680 0d4f  .s.b...X0..S...O
+00000080: 0a00 4696 d267 4c63 9673 fe62 0a00       ..F..gLc.s.b..
+./utf8.txt
+00000000: 4142 4344 4546 0a47 4849 4a4b 4c0a 4d4e  ABCDEF.GHIJKL.MN
+00000010: 4f50 5152 0a58 5554 4638 580a e4b8 80e4  OPQR.XUTF8X.....
+00000020: ba8c e4b8 89e5 9b9b e4ba 940a e585 ade4  ................
+00000030: b883 e585 abe4 b99d e58d 810a e58d 81e4  ................
+00000040: b880 e58d 81e4 ba8c e58d 81e4 b889 0ae5  ................
+00000050: a3b1 e5bc 90e5 8f82 e882 86e4 bc8d 0ae9  ................
+00000060: 99b8 e6bc 86e6 8d8c e78e 96e6 8bbe 0ae5  ................
+00000070: a3b9 e8b4 b0e5 8f81 e882 86e4 bc8d 0ae9  ................
+00000080: 9986 e69f 92e6 8d8c e78e 96e6 8bbe 0a    ...............
+./cp936.txt
+00000000: 4142 4344 4546 0a47 4849 4a4b 4c0a 4d4e  ABCDEF.GHIJKL.MN
+00000010: 4f50 5152 0a58 4350 3933 3658 0ad2 bbb6  OPQR.XCP936X....
+00000020: fec8 fdcb c4ce e50a c1f9 c6df b0cb bec5  ................
+00000030: caae 0aca aed2 bbca aeb6 feca aec8 fd0a  ................
+00000040: d2bc b7a1 c8fe cbc1 cee9 0ac2 bdc6 e2b0  ................
+00000050: c6be c1ca b00a                           ......
+./cp932.txt
+00000000: 4142 4344 4546 0a47 4849 4a4b 4c0a 4d4e  ABCDEF.GHIJKL.MN
+00000010: 4f50 5152 0a58 4350 3933 3278 0a88 ea93  OPQR.XCP932x....
+00000020: f18e 4f8e 6c8c dc0a 985a 8eb5 94aa 8be3  ..O.l....Z......
+00000030: 8f5c 0a8f 5c88 ea8f 5c93 f18f 5c8e 4f0a  .\..\...\...\.O.
+00000040: 88eb 93f3 8e51 e3e6 8cde 0a97 a48e bd8e  .....Q..........
+00000050: 4a8b e88f 450a 98cf 98c0 0a              J...E......
+
+$ mc -V
+GNU Midnight Commander unknown
+Built with GLib 2.48.2
+Using the ncursesw library
+With builtin Editor
+With subshell support as default
+With support for background operations
+With mouse support on xterm
+With internationalization support
+With multiple codepages support
+Virtual File Systems: cpiofs, tarfs, sfs, extfs, ftpfs, sftpfs, fish
+Data types: char: 8; int: 32; long: 32; void *: 32; size_t: 32; off_t: 64;
+

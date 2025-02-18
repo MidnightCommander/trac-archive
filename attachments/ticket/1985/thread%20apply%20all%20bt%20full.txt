@@ -1,0 +1,124 @@
+Thread 1 (process 28359):
+#0  strcmp () at ../sysdeps/i386/i686/strcmp.S:39
+No locals.
+#1  0x080c1d4a in extfs_which (me=<value optimized out>, path=<value optimized out>) at extfs.c:1380
+        i = <value optimized out>
+#2  0x080c289c in extfs_get_path_mangle (me=0x81621e0, inname=0x82187a0 "/tmp/1/test@test.rar#urar/test@test", archive=<value optimized out>,
+    do_not_open=<value optimized out>) at extfs.c:465
+        local = 0x0
+        op = 0x0
+        archive_name = 0x82187a0 "/tmp/1/test@test.rar#urar/test@test"
+        result = -1
+        parc = <value optimized out>
+        fstype = -1073751992
+#3  0x080c3681 in extfs_internal_stat (me=0x81621e0, path=<value optimized out>, buf=0xbfffd848, resolve=<value optimized out>) at extfs.c:968
+        archive = <value optimized out>
+        q = <value optimized out>
+        entry = <value optimized out>
+        path2 = 0x82187a0 "/tmp/1/test@test.rar#urar/test@test"
+        result = -1
+#4  0x080bcd54 in mc_lstat (filename=<value optimized out>, buf=<value optimized out>) at vfs.c:899
+        vfs = 0x81621e0
+        result = <value optimized out>
+        path = 0x81e8788 "/tmp/1/test@test.rar#urar/test@test"
+#5  0x08078994 in handle_dirent (list=<value optimized out>, filter=<value optimized out>, dp=0x81f8838, buf1=<value optimized out>,
+    next_free=<value optimized out>, link_to_dir=<value optimized out>, stale_link=<value optimized out>) at dir.c:302
+No locals.
+#6  0x080793a3 in do_load_dir (path=<value optimized out>, list=<value optimized out>, sort=<value optimized out>, lc_reverse=<value optimized out>,
+    lc_case_sensitive=<value optimized out>, exec_ff=<value optimized out>, filter=<value optimized out>) at dir.c:433
+        dp = 0x81f8838
+        status = <value optimized out>
+        link_to_dir = 134570775
+        stale_link = -1073751864
+        next_free = <value optimized out>
+        st = {st_dev = 12, __pad1 = 0, __st_ino = 473539, st_mode = 16877, st_nlink = 2, st_uid = 0, st_gid = 0, st_rdev = 0, __pad2 = 0, st_size = 60,
+          st_blksize = 4096, st_blocks = 0, st_atim = {tv_sec = 1264850833, tv_nsec = 304826722}, st_mtim = {tv_sec = 1264850831, tv_nsec = 77743161},
+          st_ctim = {tv_sec = 1264850831, tv_nsec = 77743161}, st_ino = 473539}
+#7  0x08090186 in _do_panel_cd (panel=0x81f9108, new_dir=<value optimized out>, cd_type=<value optimized out>) at main.c:496
+        directory = <value optimized out>
+        olddir = <value optimized out>
+        temp =
+    "\001\000\000\000\000\000\000\000\377\003", '\000' <repeats 24 times>, "j\000p\334\377\277\000\000\000\000\000\000\000\000:PH\005\001\000\000\000\000\000\000\000[\020ⷤa\351\267\066\351 \b\000\000\000\000\030\333\377\277\333\035ⷠ\332\377\277\234\332\377\277\240\333\377\277\000\000\000\000\000\000\000\000\002\000\000\000\224\332\377\277\230\332\377\277\204\332\377\277\260\353\377\277\000\000\000\000\000P\375\267\243>зT\333\377\277rL!\b\f\332\377\277\000P\375\267\000\020\000\000\254\276\037\b\361\276\037\b\002\000\000\000\244\333\377\277\250\333\377\277'\b\342\267\004\354\377\277\020\351 \b.\000\000\000\256\332\377\277\000\000\000\000\000\000\000\000\376\377\377\377\020\351 \b\000\000\000\000\000\000\000\000\003\000\000\000\234\333\377\277\230\333\377\277\000\000\000\000\004\000\000\000\001", '\000' <repeats 11 times>, "\004 @\000\000\000\000\000\001\000\000\000\260\333\377\277\316\332\377\277\000\000\000\000\240\333\377\277\004 @", '\000' <repeats 17 times>, ".\000\000\000\000\000\000\000\312J\037\b\376\377\377\377.\000\000\000\000\000\000\000\023\351 \b\376\377\377\377\000\000\000\000"...
+        translated_url = 0x8206728 ""
+#8  0x080904b8 in do_panel_cd (panel=<value optimized out>, new_dir=<value optimized out>, cd_type=<value optimized out>) at main.c:518
+        r = <value optimized out>
+#9  0x08090502 in do_cd (new_dir=<value optimized out>, exact=<value optimized out>) at main.c:527
+No locals.
+#10 0x0807aac9 in exec_extension (filename=<value optimized out>, lc_data=<value optimized out>, move_dir=<value optimized out>,
+    start_line=<value optimized out>) at ext.c:273
+        q = <value optimized out>
+        fn = <value optimized out>
+        file_name = 0x0
+        cmd_file_fd = <value optimized out>
+        cmd_file = <value optimized out>
+        cmd = 0x0
+        expand_prefix_found = <value optimized out>
+        parameter_found = <value optimized out>
+        lc_prompt =
+    "\000\326\336\267\016\000\000\000\000\000\000\000\373\372\r\b4\373\022\b\360b!\bX<\037\b\270\356\377\277\232\326\336\267\244a\351\267\000\000\000\000X<\037\b\337b\340\267\260i \bX<\037\b\016\000\000\000\244a\351\267pi \b\026\000\000\000\270\356\377\277"
+        run_view = <value optimized out>
+        changed_hex_mode = 0
+        changed_nroff_flag = 0
+        written_nonspace = <value optimized out>
+        is_cd = <value optimized out>
+        buffer =
+    "test@test.rar#urar\000\b0\354\377\277\001\000\000\000\003\000\000\000\273i \b\214\352\377\277\063\000\000\000\026\000\000\000:PH\005\000\004\000\000C\000\000\000۸\356\267$q\366\267\334\352\377\277C\000\000\000\270\352\377\277\301\323\356\267\334\352\377\277\344\352\377\277\353\267$q\366\267$q\366\267\334\352\377\277\350\356\377\277-\324\356\267\334\352\377\277\000\004\000\000\060\230\017\b\024\357\377\277\005\000\000\000\063\000\000\000\026\000\000\000_\213\353\267\na\367\267<\353\377\277\b\000\000\000\001\000\000\000\240\353\377\277\001\000\000\000\b\000\000\000\340o\367\267\320\354\377\277\200d\370\267\353\267\036\243ʷ<\353\377\277\063\000\000\000H\357\377\277\235\233\353\267\063\000\000\000\026\000\000\000\270\263ڷ\001\000\000\000\354\201\036\b\342\030\327\267n\000\000\000\036\243ʷ|\000\000\000[\000\000\000\036\243ʷ:PH\005\000\000\000\000\000\000\000\000\335\346ⷤa\351\267\004\000\000\000\271i \b\370\354\377\277\233\207㷹i \b\002\000\000\000\060\354\377\277\004", '\000' <repeats 15 times>"\364, \237ڷ\200\263ڷ\260J\037\b\270\353\377\277^\267ʷ\000\000\000\000"...
+        p = <value optimized out>
+        localcopy = <value optimized out>
+        do_local_copy = <value optimized out>
+        localmtime = <value optimized out>
+        mystat = {st_dev = 135329618, __pad1 = 61420, __st_ino = 135329618, st_mode = 2, st_nlink = 0, st_uid = 1, st_gid = 135759292, st_rdev =
+    4294967295, __pad2 = 1, st_size = -5194925651831821664, st_blksize = -1209537856, st_blocks = 3221220428, st_atim = {tv_sec = 0, tv_nsec = 0},
+          st_mtim = {tv_sec = -1, tv_nsec = -1}, st_ctim = {tv_sec = -1208813749, tv_nsec = 453312}, st_ino = 1}
+        __PRETTY_FUNCTION__ = "exec_extension"
+#11 0x0807b3b8 in regex_command (filename=<value optimized out>, action=<value optimized out>, move_dir=<value optimized out>) at ext.c:610
+        p = <value optimized out>
+        q = <value optimized out>
+        c = <value optimized out>
+        found = <value optimized out>
+        error_flag = <value optimized out>
+        ret = 0
+        mystat = {st_dev = 12, __pad1 = 0, __st_ino = 432708, st_mode = 33204, st_nlink = 1, st_uid = 500, st_gid = 500, st_rdev = 0, __pad2 = 0, st_size =
+    131, st_blksize = 4096, st_blocks = 8, st_atim = {tv_sec = 1264850861, tv_nsec = 648157800}, st_mtim = {tv_sec = 1264820958, tv_nsec = 400730379},
+          st_ctim = {tv_sec = 1264850831, tv_nsec = 77743161}, st_ino = 432708}
+        include_target = <value optimized out>
+        include_target_len = <value optimized out>
+        have_type = <value optimized out>
+#12 0x08055512 in do_enter_on_file_entry (fe=0x8206d94) at screen.c:2320
+        full_name = 0x0
+#13 0x08057ab4 in do_enter (w=<value optimized out>, msg=<value optimized out>, parm=<value optimized out>) at screen.c:2366
+No locals.
+#14 cmd_do_enter (w=<value optimized out>, msg=<value optimized out>, parm=<value optimized out>) at screen.c:2626
+No locals.
+#15 panel_execute_cmd (w=<value optimized out>, msg=<value optimized out>, parm=<value optimized out>) at screen.c:2655
+        res = 1
+#16 panel_key (w=<value optimized out>, msg=<value optimized out>, parm=<value optimized out>) at screen.c:2778
+        old_searching = 0
+        i = <value optimized out>
+        res = 135724656
+#17 panel_callback (w=<value optimized out>, msg=<value optimized out>, parm=<value optimized out>) at screen.c:2862
+        panel = <value optimized out>
+        bb = <value optimized out>
+#18 0x08050ca5 in send_message (h=<value optimized out>, key=<value optimized out>, event=<value optimized out>) at ../src/dialog.h:236
+No locals.
+#19 dlg_key_event (h=<value optimized out>, key=<value optimized out>, event=<value optimized out>) at dialog.c:719
+        handled = <value optimized out>
+#20 dlg_process_event (h=<value optimized out>, key=<value optimized out>, event=<value optimized out>) at dialog.c:823
+No locals.
+#21 0x080510d8 in frontend_run_dlg (h=<value optimized out>) at dialog.c:855
+        d_key = <value optimized out>
+        event = {buttons = 10 '\n', modifiers = 0 '\000', vc = 0, dx = -15284, dy = 2063, x = -1, y = 0, type = 0, clicks = 136285000, margin = 5, wdx = 0,
+          wdy = 0}
+#22 run_dlg (h=<value optimized out>) at dialog.c:870
+No locals.
+#23 0x0808f43d in setup_panels_and_run_mc () at main.c:1790
+No locals.
+#24 do_nc () at main.c:1888
+        midnight_colors = {6, 6, 6, 6}
+#25 0x0808fa60 in main (argc=1, argv=0xbffff3b4) at main.c:2215
+        s = {st_dev = 2051, __pad1 = 0, __st_ino = 508016, st_mode = 16893, st_nlink = 3, st_uid = 500, st_gid = 500, st_rdev = 0, __pad2 = 0, st_size =
+    4096, st_blksize = 4096, st_blocks = 8, st_atim = {tv_sec = 1161717568, tv_nsec = 0}, st_mtim = {tv_sec = 1264853192, tv_nsec = 614173321}, st_ctim = {
+            tv_sec = 1264853192, tv_nsec = 614173321}, st_ino = 508016}
+        mc_dir = 0x81f49d8 "\b=\037\b"
+        error = 0x0
+        isInitialized = 136268248

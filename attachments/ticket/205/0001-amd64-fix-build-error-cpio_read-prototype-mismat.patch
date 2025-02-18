@@ -1,0 +1,58 @@
+From eebc77fa72a6107bb6abf10b40e6994f786d0f5f Mon Sep 17 00:00:00 2001
+From: Mikhail S. Pobolovets <styx.mp@gmail.com>
+Date: Thu, 22 Jan 2009 23:29:54 +0200
+Subject: [PATCH] amd64: fix build error: 'cpio_read' prototype mismatch
+
+Build breakage seems caused by cleanup commit 183a66f7f50282c62511af0f5c0fc73ff9cbe3fb
+
+    gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I..    -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include   -g -O2 -Wall -MT cpio.o -MD -MP -MF .deps/cpio.Tpo -c -o cpio.o cpio.c
+    cpio.c:633: error: conflicting types for 'cpio_read'
+    cpio.c:101: error: previous declaration of 'cpio_read' was here
+    cpio.c: In function 'init_cpiofs':
+    cpio.c:674: warning: assignment from incompatible pointer type
+
+Signed-off-by: Mikhail S. Pobolovets <styx.mp@gmail.com>
+Signed-off-by: Sergei Trofimovich <slyfox@inbox.ru>
+---
+ vfs/cpio.c |    2 +-
+ vfs/vfs.c  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/vfs/cpio.c b/vfs/cpio.c
+index 167d742..11bf2a3 100644
+--- a/vfs/cpio.c
++++ b/vfs/cpio.c
+@@ -630,7 +630,7 @@ cpio_super_same (struct vfs_class *me, struct vfs_s_super *parc,
+     return 1;
+ }
+ 
+-static int cpio_read(void *fh, char *buffer, int count)
++static ssize_t cpio_read(void *fh, char *buffer, int count)
+ {
+     off_t begin = FH->ino->data_offset;
+     int fd = FH_SUPER->u.arch.fd;
+diff --git a/vfs/vfs.c b/vfs/vfs.c
+index 21b5404..e6901ec 100644
+--- a/vfs/vfs.c
++++ b/vfs/vfs.c
+@@ -377,7 +377,7 @@ MC_NAMEOP (mknod, (const char *path, mode_t mode, dev_t dev), (vfs, mpath, mode,
+ 
+ 
+ #define MC_HANDLEOP(name, inarg, callarg) \
+-int mc_##name inarg \
++ssize_t mc_##name inarg \
+ { \
+     struct vfs_class *vfs; \
+     int result; \
+@@ -390,7 +390,7 @@ int mc_##name inarg \
+     return result; \
+ }
+ 
+-MC_HANDLEOP(read, (int handle, void *buffer, int count), (vfs_info (handle), buffer, count) )
++MC_HANDLEOP (read, (int handle, void *buffer, int count), (vfs_info (handle), buffer, count))
+ MC_HANDLEOP (write, (int handle, const void *buf, int nbyte), (vfs_info (handle), buf, nbyte))
+ 
+ 
+-- 
+1.6.1
+

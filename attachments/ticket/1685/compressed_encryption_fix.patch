@@ -1,0 +1,35 @@
+diff --git a/src/vfs/extfs/helpers/urar.in b/src/vfs/extfs/helpers/urar.in
+index 5453d31..b35cd03 100644
+--- a/src/vfs/extfs/helpers/urar.in
++++ b/src/vfs/extfs/helpers/urar.in
+@@ -35,7 +35,7 @@ fi
+ 
+ mcrar4fs_list ()
+ {
+-     $UNRAR v -c- -cfg- "$1" | @AWK@ -v uid=`id -u` -v gid=`id -g` '
++     $UNRAR v -c- -p- -cfg- "$1" | @AWK@ -v uid=`id -u` -v gid=`id -g` '
+ BEGIN { flag=0 }
+ /^-------/ { flag++; if (flag > 1) exit 0; next }
+ flag==1 {
+@@ -53,7 +53,7 @@ flag==1 {
+ 
+ mcrar5fs_list ()
+ {
+-    $UNRAR vt -c- -cfg- "$1" | @AWK@ -F ':' -v uid=`id -u` -v gid=`id -g` '
++    $UNRAR vt -c- -p- -cfg- "$1" | @AWK@ -F ':' -v uid=`id -u` -v gid=`id -g` '
+     {
+         ### remove space after the ":" of the field name
+         sub ("^ ", "", $2);
+diff --git a/src/vfs/extfs/helpers/uzip.in b/src/vfs/extfs/helpers/uzip.in
+index 22466db..60a1158 100644
+--- a/src/vfs/extfs/helpers/uzip.in
++++ b/src/vfs/extfs/helpers/uzip.in
+@@ -32,7 +32,7 @@ my $cmd_addlink = "$app_zip -g -y";
+ # Command used to delete a file from the archive
+ my $cmd_delete = "$app_zip -d";
+ # Command used to extract a file to standard out
+-my $cmd_extract = "$app_unzip -p";
++my $cmd_extract = "$app_unzip -p -P \"\"";
+ 
+ # -rw-r--r--  2.2 unx     2891 tx     1435 defN 20000330.211927 ./edit.html
+ # (perm) (?) (?) (size) (?) (zippedsize) (method) (yyyy)(mm)(dd).(HH)(MM)(SS) (fname)

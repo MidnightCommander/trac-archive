@@ -1,0 +1,28 @@
+From 95c9da7cfb289ba787e61e8d081004978636ff1c Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 Dec 2024 19:00:00 +0000
+Subject: [PATCH] (quick.c) fix potential leak of memory
+
+/tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/quick.c:150:9: warning: Potential leak of memory pointed to by 'label.quick_widget' [clang-analyzer-unix.Malloc]
+  150 |         return;
+      |         ^
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/quick.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/widget/quick.c b/lib/widget/quick.c
+index 8be8c493b..da34e6d5e 100644
+--- a/lib/widget/quick.c
++++ b/lib/widget/quick.c
+@@ -147,6 +147,7 @@ quick_create_labeled_input (GArray *widgets, int *y, int x, quick_widget_t *quic
+         break;
+ 
+     default:
++        g_free (label.quick_widget);
+         return;
+     }
+ 

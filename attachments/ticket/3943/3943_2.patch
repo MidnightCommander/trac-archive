@@ -1,0 +1,30 @@
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index c653b82..db6ce0c 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1349,6 +1349,8 @@ adjust_top_file (WPanel * panel)
+ {
+     int items;
+ 
++    panel->selected = CLAMP (panel->selected, 0, panel->dir.len - 1);
++
+     items = panel_items (panel);
+ 
+     if (panel->dir.len <= items)
+@@ -4498,16 +4500,6 @@ set_panel_formats (WPanel * p)
+ void
+ select_item (WPanel * panel)
+ {
+-    /* Although currently all over the code we set the selection and
+-       top file to decent values before calling select_item, I could
+-       forget it someday, so it's better to do the actual fitting here */
+-
+-    if (panel->selected < 0)
+-        panel->selected = 0;
+-
+-    if (panel->selected > panel->dir.len - 1)
+-        panel->selected = panel->dir.len - 1;
+-
+     adjust_top_file (panel);
+ 
+     panel->dirty = 1;

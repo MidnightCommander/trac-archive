@@ -1,0 +1,19 @@
+diff -Naur mc-4.7.5.2.orig/src/filemanager/file.c mc-4.7.5.2/src/filemanager/file.c
+--- mc-4.7.5.2.orig/src/filemanager/file.c	2011-04-11 13:04:51.000000000 +0400
++++ mc-4.7.5.2/src/filemanager/file.c	2011-07-14 22:38:44.542345641 +0400
+@@ -1580,13 +1580,13 @@
+                     }
+                 }
+             }
+-            else
++/*            else
+             {
+                 src_mode = umask (-1);
+                 umask (src_mode);
+                 src_mode = 0100666 & ~src_mode;
+                 mc_chmod (dst_path, (src_mode & ctx->umask_kill));
+-            }
++            }*/
+             mc_utime (dst_path, &utb);
+         }
+     }

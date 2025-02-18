@@ -1,0 +1,33 @@
+From 84cf65aab34313b706dd3e03b2aef7ca665d3ad5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 28 Dec 2020 18:08:29 +0000
+Subject: [PATCH] (hex_translate_to_regex.c) fix maybe-uninitialized warning
+
+hex_translate_to_regex.c: In function 'test_hex_translate_to_regex_fn':
+hex_translate_to_regex.c:172:9: error: 'error' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+  172 |         mctest_assert_int_eq (error, data->expected_error);
+      |         ^
+hex_translate_to_regex.c:154:33: note: 'error' was declared here
+  154 |     mc_search_hex_parse_error_t error;
+      |                                 ^
+
+Found by gcc-9.3.0
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ tests/lib/search/hex_translate_to_regex.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/lib/search/hex_translate_to_regex.c b/tests/lib/search/hex_translate_to_regex.c
+index c40ee3122..7e09630fa 100644
+--- a/tests/lib/search/hex_translate_to_regex.c
++++ b/tests/lib/search/hex_translate_to_regex.c
+@@ -151,7 +151,7 @@ START_PARAMETRIZED_TEST (test_hex_translate_to_regex, test_hex_translate_to_rege
+ /* *INDENT-ON* */
+ {
+     GString *tmp, *dest_str;
+-    mc_search_hex_parse_error_t error;
++    mc_search_hex_parse_error_t error = MC_SEARCH_HEX_E_OK;
+ 
+     /* given */
+     tmp = g_string_new (data->input_value);

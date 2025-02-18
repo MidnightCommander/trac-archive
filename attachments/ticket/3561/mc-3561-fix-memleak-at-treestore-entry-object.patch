@@ -1,0 +1,48 @@
+From c4070c0c27b3f4a155d5dbf3f6687baf70c69af4 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 22 Nov 2015 16:11:45 +0000
+Subject: [PATCH] fix memleak at treestore entry object
+
+found by Clang/LeakSanitizer
+
+Direct leak of 105 byte(s) in 7 object(s) allocated from:
+    #0 0x4c9d50 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c9d50)
+    #1 0x7f985f383494 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x66494)
+    #2 0x7f985f3a9f01 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8cf01)
+    #3 0x7f986003bfc0 in vfs_path_clone /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:933:22
+    #4 0x55348d in tree_store_add_entry /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/treestore.c:450:17
+    #5 0x552fd0 in tree_store_mark_checked /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/treestore.c:774:19
+    #6 0x5f96c4 in handle_dirent /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/dir.c:173:9
+    #7 0x5f9144 in dir_list_load /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/dir.c:658:14
+    #8 0x538cbf in _do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3269:5
+    #9 0x538a5e in do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4627:9
+    #10 0x53a924 in do_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:5027:11
+    #11 0x54fa10 in tree_chdir_sel /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/tree.c:583:13
+    #12 0x54e982 in tree_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/tree.c:1078:9
+    #13 0x54e793 in tree_key /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/tree.c:1138:17
+    #14 0x7f98600479a0 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:515:19
+    #15 0x7f9860047e12 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #16 0x7f9860047b15 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #17 0x52d8dd in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757:9
+    #18 0x4fb287 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:463:21
+    #19 0x7f985e4569e3 in __libc_start_main (/lib64/libc.so.6+0x209e3)
+    #20 0x427248 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427248)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/treestore.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/treestore.c b/src/filemanager/treestore.c
+index 52d1f84..dfb47be 100644
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -530,7 +530,7 @@ remove_entry (tree_entry * entry)
+         ts.tree_last = entry->prev;
+ 
+     /* Free the memory used by the entry */
+-    g_free (entry->name);
++    vfs_path_free (entry->name);
+     g_free (entry);
+ 
+     return ret;

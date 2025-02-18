@@ -1,0 +1,32 @@
+From 81846d943c6f69bbea40b63df5d7f266bdc70b01 Mon Sep 17 00:00:00 2001
+From: Sven Wegener <sven.wegener@stealer.net>
+Date: Thu, 13 May 2010 00:43:17 +0200
+Subject: [PATCH] Use off_t for free space calculation
+
+This is needed to show correct free space information for todays large
+filesystems on 32bit systems.
+
+Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
+---
+ src/mountlist.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/mountlist.h b/src/mountlist.h
+index cf878f8..a71dbf5 100644
+--- a/src/mountlist.h
++++ b/src/mountlist.h
+@@ -29,10 +29,10 @@ struct my_statfs
+     char *typename;
+     const char *mpoint;
+     const char *device;
+-    int avail;
+-    int total;
+-    int nfree;
+-    int nodes;
++    off_t avail;
++    off_t total;
++    off_t nfree;
++    off_t nodes;
+ };
+ 
+ void init_my_statfs (void);

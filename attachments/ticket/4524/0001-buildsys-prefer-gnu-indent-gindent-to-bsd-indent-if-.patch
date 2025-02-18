@@ -1,0 +1,42 @@
+From efe851851508264af057c146383ce7d8285804e1 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 30 May 2024 20:53:00 +0200
+Subject: [PATCH] buildsys: prefer gnu indent (gindent) to bsd indent if
+ available
+
+BSD indent does not have `--gnu-style` flag ;-)
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ Makefile.am  | 2 +-
+ configure.ac | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index ec5b4dc3b..3295f8130 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -115,7 +115,7 @@ cppcheck-split-all: \
+     cppcheck-unusedFunction \
+     cppcheck-missingInclude
+ 
+-INDENT_CMD = indent \
++INDENT_CMD = $(INDENT) \
+     --gnu-style \
+     --format-first-column-comments \
+     --indent-level4 \
+diff --git a/configure.ac b/configure.ac
+index 5cf1f2f74..12556f563 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -212,6 +212,7 @@ dnl Check for other tools
+ dnl ############################################################################
+ 
+ AC_CHECK_TOOL(AR, ar, ar)
++AC_CHECK_TOOL(INDENT, gindent, indent)
+ mc_UNIT_TESTS
+ 
+ 
+-- 
+2.39.3 (Apple Git-146)
+

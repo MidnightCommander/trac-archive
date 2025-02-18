@@ -1,0 +1,11 @@
+--- mc-4.6.2~git20080311/edit/editcmd.c.orig	2008-06-22 16:58:16.000000000 +0200
++++ mc-4.6.2~git20080311/edit/editcmd.c	2008-06-22 16:58:53.000000000 +0200
+@@ -1721,7 +1721,7 @@
+ 	    int found_start, match_bol, move_win = 0;
+ 
+ 	    while (start + offset < last_byte) {
+-		match_bol = (offset == 0 || (*get_byte) (data, start + offset - 1) == '\n');
++		match_bol = (start == 0 || (*get_byte) (data, start + offset - 1) == '\n');
+ 		if (!move_win) {
+ 		    p = start + offset;
+ 		    q = 0;

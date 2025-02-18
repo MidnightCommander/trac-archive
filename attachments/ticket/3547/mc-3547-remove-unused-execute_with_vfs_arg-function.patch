@@ -1,0 +1,355 @@
+From 17b6cb49a13a5c3cf8e7ebb40cfdbec20431d290 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 15:24:56 +0000
+Subject: [PATCH] remove unused execute_with_vfs_arg function
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ po/mc.pot                                 |   4 -
+ src/execute.c                             |  24 ---
+ src/execute.h                             |   1 -
+ tests/src/Makefile.am                     |   4 -
+ tests/src/execute__execute_with_vfs_arg.c | 248 ------------------------------
+ 5 files changed, 281 deletions(-)
+ delete mode 100644 tests/src/execute__execute_with_vfs_arg.c
+
+diff --git a/po/mc.pot b/po/mc.pot
+index 7756f86..e39ccbe 100644
+--- a/po/mc.pot
++++ b/po/mc.pot
+@@ -756,7 +756,6 @@ msgstr ""
+ #: src/editor/editcmd.c:377 src/editor/editcmd.c:2958 src/editor/spell.c:317
+ #: src/editor/spell.c:553 src/editor/spell.c:561
+ #: tests/src/execute__common.c:145
+-#: tests/src/execute__execute_with_vfs_arg.c:154
+ msgid "Error"
+ msgstr ""
+ 
+@@ -5465,6 +5464,3 @@ msgstr ""
+ msgid "Continue from beginning?"
+ msgstr ""
+ 
+-#: tests/src/execute__execute_with_vfs_arg.c:156
+-msgid "Cannot fetch a local copy of /ftp://some.host/editme.txt"
+-msgstr ""
+diff --git a/src/execute.c b/src/execute.c
+index c12d58c..237264b 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -581,30 +581,6 @@ execute_suspend (const gchar * event_group_name, const gchar * event_name,
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-
+-/**
+- * Execute command on a filename that can be on VFS.
+- * Errors are reported to the user.
+- */
+-
+-void
+-execute_with_vfs_arg (const char *command, const vfs_path_t * filename_vpath)
+-{
+-    vfs_path_t *localcopy_vpath = NULL;
+-    const vfs_path_t *do_execute_vpath;
+-    time_t mtime;
+-
+-    if (!execute_prepare_with_vfs_arg (filename_vpath, &localcopy_vpath, &mtime))
+-        return;
+-
+-    do_execute_vpath = (localcopy_vpath == NULL) ? filename_vpath : localcopy_vpath;
+-
+-    do_execute (command, vfs_path_get_last_path_str (do_execute_vpath), EXECUTE_INTERNAL);
+-
+-    execute_cleanup_with_vfs_arg (filename_vpath, &localcopy_vpath, &mtime);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+ /**
+  * Execute external editor or viewer.
+  *
+diff --git a/src/execute.h b/src/execute.h
+index 56d24c5..08803de 100644
+--- a/src/execute.h
++++ b/src/execute.h
+@@ -39,7 +39,6 @@ gboolean execute_suspend (const gchar * event_group_name, const gchar * event_na
+                           gpointer init_data, gpointer data);
+ 
+ /* Execute command on a filename that can be on VFS */
+-void execute_with_vfs_arg (const char *command, const vfs_path_t * filename_vpath);
+ void execute_external_editor_or_viewer (const char *command, const vfs_path_t * filename_vpath,
+                                         long start_line);
+ 
+diff --git a/tests/src/Makefile.am b/tests/src/Makefile.am
+index 74eecf6..23928a8 100644
+--- a/tests/src/Makefile.am
++++ b/tests/src/Makefile.am
+@@ -26,15 +26,11 @@ endif
+ EXTRA_DIST = execute__common.c
+ 
+ TESTS = \
+-	execute__execute_with_vfs_arg \
+ 	execute__execute_external_editor_or_viewer \
+ 	execute__execute_get_external_cmd_opts_from_config
+ 
+ check_PROGRAMS = $(TESTS)
+ 
+-execute__execute_with_vfs_arg_SOURCES = \
+-	execute__execute_with_vfs_arg.c
+-
+ 
+ execute__execute_external_editor_or_viewer_SOURCES = \
+ 	execute__execute_external_editor_or_viewer.c
+diff --git a/tests/src/execute__execute_with_vfs_arg.c b/tests/src/execute__execute_with_vfs_arg.c
+deleted file mode 100644
+index 2c7733a..0000000
+--- a/tests/src/execute__execute_with_vfs_arg.c
++++ /dev/null
+@@ -1,248 +0,0 @@
+-/*
+-   src - tests for execute_with_vfs_arg() function
+-
+-   Copyright (C) 2013-2016
+-   Free Software Foundation, Inc.
+-
+-   Written by:
+-   Slava Zanko <slavazanko@gmail.com>, 2013
+-
+-   This file is part of the Midnight Commander.
+-
+-   The Midnight Commander is free software: you can redistribute it
+-   and/or modify it under the terms of the GNU General Public License as
+-   published by the Free Software Foundation, either version 3 of the License,
+-   or (at your option) any later version.
+-
+-   The Midnight Commander is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-#define TEST_SUITE_NAME "/src"
+-
+-#include "tests/mctest.h"
+-
+-#include "execute__common.c"
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-/* @DataSource("the_file_is_local_ds") */
+-/* *INDENT-OFF* */
+-static const struct the_file_is_local_ds
+-{
+-    const char *input_path;
+-} the_file_is_local_ds[] =
+-{
+-    {
+-        NULL,
+-    },
+-    {
+-        "/blabla",
+-    },
+-};
+-/* *INDENT-ON* */
+-
+-/* @Test(dataSource = "the_file_is_local_ds") */
+-/* *INDENT-OFF* */
+-START_PARAMETRIZED_TEST (the_file_is_local, the_file_is_local_ds)
+-/* *INDENT-ON* */
+-{
+-    /* given */
+-    vfs_path_t *filename_vpath;
+-    filename_vpath = vfs_path_from_str (data->input_path);
+-
+-    vfs_file_is_local__return_value = TRUE;
+-
+-    /* when */
+-    execute_with_vfs_arg ("cmd_for_local_file", filename_vpath);
+-
+-    /* then */
+-    mctest_assert_str_eq (do_execute__lc_shell__captured, "cmd_for_local_file");
+-    mctest_assert_str_eq (do_execute__command__captured, data->input_path);
+-
+-    mctest_assert_int_eq (vfs_file_is_local__vpath__captured->len, 1);
+-    {
+-        const vfs_path_t *tmp_vpath;
+-
+-        tmp_vpath = (data->input_path == NULL) ? vfs_get_raw_current_dir () : filename_vpath;
+-        mctest_assert_int_eq (vfs_path_equal
+-                              (g_ptr_array_index (vfs_file_is_local__vpath__captured, 0),
+-                               tmp_vpath), TRUE);
+-    }
+-    mctest_assert_int_eq (do_execute__flags__captured, EXECUTE_INTERNAL);
+-    fail_unless (mc_getlocalcopy__pathname_vpath__captured == NULL,
+-                 "\nFunction mc_getlocalcopy() shouldn't be called!");
+-
+-    vfs_path_free (filename_vpath);
+-}
+-/* *INDENT-OFF* */
+-END_PARAMETRIZED_TEST
+-/* *INDENT-ON* */
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-/* @Test */
+-/* *INDENT-OFF* */
+-START_TEST (the_file_is_remote_but_empty)
+-/* *INDENT-ON* */
+-{
+-    /* given */
+-    vfs_path_t *filename_vpath;
+-    filename_vpath = NULL;
+-
+-    vfs_file_is_local__return_value = FALSE;
+-
+-    /* when */
+-    execute_with_vfs_arg ("cmd_for_remote_file", filename_vpath);
+-
+-    /* then */
+-    mctest_assert_str_eq (do_execute__lc_shell__captured, NULL);
+-    mctest_assert_str_eq (do_execute__command__captured, NULL);
+-
+-    mctest_assert_int_eq (vfs_file_is_local__vpath__captured->len, 2);
+-
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (g_ptr_array_index (vfs_file_is_local__vpath__captured, 0),
+-                           vfs_get_raw_current_dir ()), TRUE);
+-    fail_unless (g_ptr_array_index (vfs_file_is_local__vpath__captured, 1) == NULL,
+-                 "\nParameter for second call to vfs_file_is_local() should be NULL!");
+-    fail_unless (mc_getlocalcopy__pathname_vpath__captured == NULL,
+-                 "\nFunction mc_getlocalcopy() shouldn't be called!");
+-
+-    vfs_path_free (filename_vpath);
+-}
+-/* *INDENT-OFF* */
+-END_TEST
+-/* *INDENT-ON* */
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-/* @Test */
+-/* *INDENT-OFF* */
+-START_TEST (the_file_is_remote_fail_to_create_local_copy)
+-/* *INDENT-ON* */
+-{
+-    /* given */
+-    vfs_path_t *filename_vpath;
+-
+-    filename_vpath = vfs_path_from_str ("/ftp://some.host/editme.txt");
+-
+-    vfs_file_is_local__return_value = FALSE;
+-    mc_getlocalcopy__return_value = NULL;
+-
+-    /* when */
+-    execute_with_vfs_arg ("cmd_for_remote_file", filename_vpath);
+-
+-    /* then */
+-    mctest_assert_str_eq (do_execute__lc_shell__captured, NULL);
+-    mctest_assert_str_eq (do_execute__command__captured, NULL);
+-
+-    mctest_assert_int_eq (vfs_file_is_local__vpath__captured->len, 1);
+-
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (g_ptr_array_index (vfs_file_is_local__vpath__captured, 0),
+-                           filename_vpath), TRUE);
+-
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (mc_getlocalcopy__pathname_vpath__captured, filename_vpath), TRUE);
+-
+-    mctest_assert_str_eq (message_title__captured, _("Error"));
+-    mctest_assert_str_eq (message_text__captured,
+-                          _("Cannot fetch a local copy of /ftp://some.host/editme.txt"));
+-
+-
+-    vfs_path_free (filename_vpath);
+-}
+-/* *INDENT-OFF* */
+-END_TEST
+-/* *INDENT-ON* */
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-/* @Test */
+-/* *INDENT-OFF* */
+-START_TEST (the_file_is_remote)
+-/* *INDENT-ON* */
+-{
+-    /* given */
+-    vfs_path_t *filename_vpath, *local_vpath, *local_vpath_should_be_freeing;
+-
+-    filename_vpath = vfs_path_from_str ("/ftp://some.host/editme.txt");
+-    local_vpath = vfs_path_from_str ("/tmp/blabla-editme.txt");
+-    local_vpath_should_be_freeing = vfs_path_clone (local_vpath);
+-
+-    vfs_file_is_local__return_value = FALSE;
+-    mc_getlocalcopy__return_value = local_vpath_should_be_freeing;
+-
+-    /* when */
+-    execute_with_vfs_arg ("cmd_for_remote_file", filename_vpath);
+-
+-    /* then */
+-    mctest_assert_str_eq (do_execute__lc_shell__captured, "cmd_for_remote_file");
+-    mctest_assert_str_eq (do_execute__command__captured, "/tmp/blabla-editme.txt");
+-
+-    mctest_assert_int_eq (vfs_file_is_local__vpath__captured->len, 1);
+-
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (g_ptr_array_index (vfs_file_is_local__vpath__captured, 0),
+-                           filename_vpath), TRUE);
+-
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (mc_getlocalcopy__pathname_vpath__captured, filename_vpath), TRUE);
+-
+-    mctest_assert_int_eq (mc_stat__vpath__captured->len, 2);
+-
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (g_ptr_array_index (mc_stat__vpath__captured, 0), local_vpath), TRUE);
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (g_ptr_array_index (mc_stat__vpath__captured, 0),
+-                           g_ptr_array_index (mc_stat__vpath__captured, 1)), TRUE);
+-
+-    mctest_assert_int_eq (vfs_path_equal
+-                          (mc_ungetlocalcopy__pathname_vpath__captured, filename_vpath), TRUE);
+-
+-    mctest_assert_int_eq (vfs_path_equal (mc_ungetlocalcopy__local_vpath__captured, local_vpath),
+-                          TRUE);
+-
+-    vfs_path_free (filename_vpath);
+-    vfs_path_free (local_vpath);
+-}
+-/* *INDENT-OFF* */
+-END_TEST
+-/* *INDENT-ON* */
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-int
+-main (void)
+-{
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+-    TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+-
+-    tcase_add_checked_fixture (tc_core, setup, teardown);
+-
+-    /* Add new tests here: *************** */
+-    mctest_add_parameterized_test (tc_core, the_file_is_local, the_file_is_local_ds);
+-    tcase_add_test (tc_core, the_file_is_remote_but_empty);
+-    tcase_add_test (tc_core, the_file_is_remote_fail_to_create_local_copy);
+-    tcase_add_test (tc_core, the_file_is_remote);
+-    /* *********************************** */
+-
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "execute__execute_with_vfs_arg.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */

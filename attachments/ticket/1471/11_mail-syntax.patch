@@ -1,0 +1,107 @@
+mail syntax
+Index: mc-4.6.2~git20090522/syntax/Syntax
+===================================================================
+--- mc-4.6.2~git20090522.orig/syntax/Syntax	2009-05-24 10:38:41.000000000 +0200
++++ mc-4.6.2~git20090522/syntax/Syntax	2009-05-24 10:46:10.000000000 +0200
+@@ -160,7 +160,7 @@
+ file ..\*\\.([iI][dD][lL])$ CORBA\sIDL
+ include idl.syntax
+ 
+-file Don_t_match_me Mail\sfolder ^From\s
++file Don_t_match_me Mail\sfolder ^(From|Return-(P|p)ath:|From:|Date:)\s
+ include mail.syntax
+ 
+ file \.procmailrc$ Procmail\sRC\sFile ^#/usr/bin/procmail
+Index: mc-4.6.2~git20090522/syntax/mail.syntax
+===================================================================
+--- mc-4.6.2~git20090522.orig/syntax/mail.syntax	2009-05-22 17:22:37.000000000 +0200
++++ mc-4.6.2~git20090522/syntax/mail.syntax	2009-05-24 10:46:10.000000000 +0200
+@@ -4,32 +4,71 @@
+     spellcheck
+ 
+ context linestart From\s \n\n cyan black
++    keyword linestart From: brightgreen
+     keyword linestart From\s brightred
+-    keyword linestart Received: brightcyan
+-    keyword linestart Date: green
++    keyword <*@*> white
++    keyword whole +@+ white
++    keyword linestart To: brightmagenta
++    keyword linestart Subject: brightred/Orange
++    keyword linestart +: brown
++
++context linestart Return-path:\s \n\n cyan black
+     keyword linestart From: brightgreen
++    keyword linestart From\s brightred
++    keyword <*@*> white
++    keyword whole +@+ white
+     keyword linestart To: brightmagenta
+-    keyword linestart Cc: magenta
+-    keyword linestart Subject: brightred
+-    keyword linestart Message-ID: red
+-    keyword linestart In-Reply-To: yellow
+-    keyword linestart References: yellow
+-    keyword linestart MIME-Version: brightblue
+-    keyword linestart Mime-Version: brightblue
+-    keyword linestart Content-Type: brightblue
+-    keyword linestart Content-Disposition: brightblue
+-    keyword linestart Content-Transfer-Encoding: brightblue
++    keyword linestart Subject: brightred/Orange
+     keyword linestart +: brown
++
++context linestart Return-Path:\s \n\n cyan black
++    keyword linestart From: brightgreen
++    keyword linestart From\s brightred
+     keyword <*@*> white
+     keyword whole +@+ white
++    keyword linestart To: brightmagenta
++    keyword linestart Subject: brightred/Orange
++    keyword linestart +: brown
+ 
+-context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightcyan
++context linestart From:\s \n\n cyan black
++    keyword linestart From: brightgreen
++    keyword linestart From\s brightred
++    keyword <*@*> white
++    keyword whole +@+ white
++    keyword linestart To: brightmagenta
++    keyword linestart Subject: brightred/Orange
++    keyword linestart +: brown
++
++context linestart Date:\s \n\n cyan black
++    keyword linestart From: brightgreen
++    keyword linestart From\s brightred
++    keyword <*@*> white
++    keyword whole +@+ white
++    keyword linestart To: brightmagenta
++    keyword linestart Subject: brightred/Orange
++    keyword linestart +: brown
++
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
+ context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
+-context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightcyan
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
+ context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
+-context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightcyan
++context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightred
+ context linestart >\[\s\]>\[\s\]>\[\s\]>\[\s\]> \n brightgreen
+-context linestart >\[\s\]>\[\s\]>\[\s\]> \n brightcyan
++context linestart >\[\s\]>\[\s\]>\[\s\]> \n brightred
+ context linestart >\[\s\]>\[\s\]> \n brightgreen
+-context linestart >\[\s\]> \n brightcyan
++context linestart >\[\s\]> \n brightred
+ context linestart > \n brightgreen
++

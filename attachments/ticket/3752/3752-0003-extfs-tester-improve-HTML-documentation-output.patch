@@ -1,0 +1,44 @@
+From 2a15888c597ed43ad5e9b98ffce73cbd7770aad4 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 8 Jan 2017 07:21:22 +0200
+Subject: [PATCH 3/3] Ticket #3752: extfs: tester: improve HTML documentation
+ output.
+
+- We now have 4'th level headers: adjust --doc-depth.
+- We have many short sections: highlight the active section's header.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ tests/src/vfs/extfs/helpers-list/Makefile.am    | 2 +-
+ tests/src/vfs/extfs/helpers-list/README.css.inc | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/tests/src/vfs/extfs/helpers-list/Makefile.am b/tests/src/vfs/extfs/helpers-list/Makefile.am
+index a0a28e9..716c3a3 100644
+--- a/tests/src/vfs/extfs/helpers-list/Makefile.am
++++ b/tests/src/vfs/extfs/helpers-list/Makefile.am
+@@ -107,7 +107,7 @@ doc: README.html
+ 
+ # (Thanks to VPATH we don't need to write "$(srcdir)/README". doc/hlp/Makefile.am needlessly does this.)
+ README.html: README
+-	pandoc --include-in-header=$(srcdir)/README.css.inc -N --old-dashes --toc --standalone -o $@ $<
++	pandoc --include-in-header=$(srcdir)/README.css.inc -N --old-dashes --toc --toc-depth=4 --standalone -o $@ $<
+ 
+ EXTRA_DIST += README.css.inc
+ CLEANFILES += README.html
+diff --git a/tests/src/vfs/extfs/helpers-list/README.css.inc b/tests/src/vfs/extfs/helpers-list/README.css.inc
+index a99a894..dacc4ca 100644
+--- a/tests/src/vfs/extfs/helpers-list/README.css.inc
++++ b/tests/src/vfs/extfs/helpers-list/README.css.inc
+@@ -16,4 +16,8 @@ h1, h2, h3 {
+   font-family: sans-serif;
+ }
+ 
++:target {
++  background: linear-gradient(45deg, #FFF 0%, #7CC 100%);
++}
++
+ </style>
+-- 
+2.9.3
+

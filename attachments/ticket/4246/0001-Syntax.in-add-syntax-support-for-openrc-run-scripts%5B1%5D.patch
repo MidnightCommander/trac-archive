@@ -1,0 +1,25 @@
+From 43796668ca815dc835958ef4c440de8177c05aec Mon Sep 17 00:00:00 2001
+From: TerraTech <TerraTech@users.noreply.github.com>
+Date: Thu, 20 May 2021 16:14:30 -0700
+Subject: [PATCH] Syntax.in: add syntax support for openrc-run scripts
+
+---
+ misc/syntax/Syntax.in | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 5bde4573f..d75e50add 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -22,6 +22,9 @@
+ # yellow
+ #
+ 
++file .\* OpenRC\sRunscript\sFile ^#!/sbin/openrc-run
++include sh.syntax
++
+ file [Ss]yntax$ Syntax\sHighlighting\sdefinitions ^#\ssyntax\srules\sversion\s
+ include syntax.syntax
+ 
+-- 
+2.29.3

@@ -1,0 +1,28 @@
+From 742465b9ac10138f1a455fa79dacdb9b6917be93 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 18 May 2021 18:00:32 +0000
+Subject: [PATCH] (syntax.c) fix deadcode.DeadStores warning
+
+syntax.c:523:25: warning: Value stored to 'found_right' is never read [deadcode.DeadStores]
+                        found_right = TRUE;
+                        ^             ~~~~
+
+Found by Clang-11 analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/syntax.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/editor/syntax.c b/src/editor/syntax.c
+index e271641a1..9e7c9b836 100644
+--- a/src/editor/syntax.c
++++ b/src/editor/syntax.c
+@@ -520,7 +520,6 @@ apply_rules_going_right (WEdit * edit, off_t i)
+                     if (e >= end && (_rule.keyword == 0 || keyword_foundright))
+                     {
+                         _rule.end = e;
+-                        found_right = TRUE;
+                         _rule.border = RULE_ON_LEFT_BORDER;
+                         _rule._context = count;
+                         if (!r->between_delimiters && _rule.keyword == 0)

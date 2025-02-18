@@ -1,0 +1,763 @@
+./configure --prefix=/opt/freeware --mandir=/opt/freeware/man --enable-threads=posix --enable-mclib --with-screen=slang --with-pcre=/opt/freeware --with-x
+checking for a BSD-compatible install... /opt/freeware/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /opt/freeware/bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking whether make supports nested variables... (cached) yes
+checking whether to enable maintainer-specific portions of Makefiles... no
+checking build system type... powerpc-ibm-aix7.2.3.0
+checking host system type... powerpc-ibm-aix7.2.3.0
+checking whether make supports the include directive... yes (GNU style)
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking whether gcc understands -c and -o together... yes
+checking dependency style of gcc... gcc3
+checking how to run the C preprocessor... gcc -E
+checking for grep that handles long lines and -e... /opt/freeware/bin/grep
+checking for egrep... /opt/freeware/bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking minix/config.h usability... no
+checking minix/config.h presence... no
+checking for minix/config.h... no
+checking whether it is safe to define __EXTENSIONS__... yes
+checking for gcc option to accept ISO C99... none needed
+checking for gcc option to accept ISO Standard C... (cached) none needed
+checking whether gcc accepts -fdiagnostics-show-option... yes
+checking whether gcc accepts -Wassign-enum... no
+checking whether gcc accepts -Wbad-function-cast... yes
+checking whether gcc accepts -Wcomment... yes
+checking whether gcc accepts -Wconditional-uninitialized... no
+checking whether gcc accepts -Wdeclaration-after-statement... yes
+checking whether gcc accepts -Wfloat-conversion... yes
+checking whether gcc accepts -Wfloat-equal... yes
+checking whether gcc accepts -Wformat... yes
+checking whether gcc accepts -Wformat-security... yes
+checking whether gcc accepts -Wformat-signedness... yes
+checking whether gcc accepts -Wimplicit... yes
+checking whether gcc accepts -Wimplicit-fallthrough... yes
+checking whether gcc accepts -Wignored-qualifiers... yes
+checking whether gcc accepts -Wlogical-not-parentheses... yes
+checking whether gcc accepts -Wmaybe-uninitialized... yes
+checking whether gcc accepts -Wmissing-braces... yes
+checking whether gcc accepts -Wmissing-declarations... yes
+checking whether gcc accepts -Wmissing-field-initializers... yes
+checking whether gcc accepts -Wmissing-format-attribute... yes
+checking whether gcc accepts -Wmissing-parameter-type... yes
+checking whether gcc accepts -Wmissing-prototypes... yes
+checking whether gcc accepts -Wmissing-variable-declarations... no
+checking whether gcc accepts -Wnested-externs... yes
+checking whether gcc accepts -Wno-long-long... yes
+checking whether gcc accepts -Wno-unreachable-code... yes
+checking whether gcc accepts -Wparentheses... yes
+checking whether gcc accepts -Wpointer-arith... yes
+checking whether gcc accepts -Wpointer-sign... yes
+checking whether gcc accepts -Wredundant-decls... yes
+checking whether gcc accepts -Wreturn-type... yes
+checking whether gcc accepts -Wsequence-point... yes
+checking whether gcc accepts -Wshadow... yes
+checking whether gcc accepts -Wsign-compare... yes
+checking whether gcc accepts -Wstrict-prototypes... yes
+checking whether gcc accepts -Wswitch... yes
+checking whether gcc accepts -Wswitch-default... yes
+checking whether gcc accepts -Wtype-limits... yes
+checking whether gcc accepts -Wundef... yes
+checking whether gcc accepts -Wuninitialized... yes
+checking whether gcc accepts -Wunreachable-code... yes
+checking whether gcc accepts -Wunused-but-set-variable... yes
+checking whether gcc accepts -Wunused-function... yes
+checking whether gcc accepts -Wunused-label... yes
+checking whether gcc accepts -Wunused-parameter... yes
+checking whether gcc accepts -Wunused-result... yes
+checking whether gcc accepts -Wunused-value... yes
+checking whether gcc accepts -Wunused-variable... yes
+checking whether gcc accepts -Wwrite-strings... yes
+checking for __attribute__((fallthrough))... yes
+checking how to print strings... print -r
+checking for a sed that does not truncate output... /opt/freeware/bin/sed
+checking for fgrep... /opt/freeware/bin/grep -F
+checking for ld used by gcc... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... no
+checking for BSD- or MS-compatible name lister (nm)... /opt/freeware/bin/nm -B
+checking the name lister (/opt/freeware/bin/nm -B) interface... BSD nm
+checking whether ln -s works... yes
+checking the maximum length of command line arguments... 786432
+checking how to convert powerpc-ibm-aix7.2.3.0 file names to powerpc-ibm-aix7.2.3.0 format... func_convert_file_noop
+checking how to convert powerpc-ibm-aix7.2.3.0 file names to toolchain format... func_convert_file_noop
+checking for /usr/bin/ld option to reload object files... -r
+checking for objdump... objdump
+checking how to recognize dependent libraries... pass_all
+checking for dlltool... no
+checking how to associate runtime and link libraries... print -r --
+checking for archiver @FILE support... no
+checking for strip... strip
+checking for ranlib... ranlib
+checking command to parse /opt/freeware/bin/nm -B output from gcc object... ok
+checking for sysroot... no
+checking for a working dd... /opt/freeware/bin/dd
+checking how to truncate binary pipes... /opt/freeware/bin/dd bs=4096 count=1
+checking for mt... mt
+checking if mt is a manifest tool... no
+checking for dlfcn.h... yes
+checking which variant of shared library versioning to provide... aix
+checking for objdir... .libs
+checking if gcc supports -fno-rtti -fno-exceptions... no
+checking for gcc option to produce PIC... -fPIC -DPIC
+checking if gcc PIC flag -fPIC -DPIC works... yes
+checking if gcc static flag -static works... no
+checking if gcc supports -c -o file.o... yes
+checking if gcc supports -c -o file.o... (cached) yes
+checking whether the gcc linker (/usr/bin/ld) supports shared libraries... yes
+checking dynamic linker characteristics... AIX lib.a(lib.so.V)
+checking how to hardcode library paths into programs... immediate
+checking whether stripping libraries is possible... no
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... no
+checking for pkg-config... /opt/freeware/bin/pkg-config
+checking pkg-config is at least version 0.9.0... yes
+checking whether ln -s works... yes
+checking for nroff... true
+checking for manual formatting macros... -man
+checking for option to disable ANSI color in manuals... none
+checking if nroff accepts -Tlatin1 or -Tascii... 
+checking for file... true
+checking for -L option to file command... no
+checking for gnome-moz-remote... no
+checking for mozilla... no
+checking for firefox... no
+checking for konqueror... no
+checking for opera... no
+checking for ar... /usr/bin/ar
+checking for CHECK... no
+configure: WARNING: 'Check' testing framework not found. Check your environment
+checking for GLIB... yes
+checking for GMODULE... yes
+checking for SLANG... no
+checking S-Lang headers in /usr ...
+checking for slang.h... yes
+checking for S-Lang version 2.0 or newer... yes
+checking if S-Lang uses termcap... no
+checking for SLang_init_tty in -lslang... yes
+checking for slang/slang.h... no
+checking for X... libraries , headers 
+checking for gethostbyname... yes
+checking for connect... yes
+checking for remove... yes
+checking for shmat... yes
+checking for IceConnectionNumber in -lICE... yes
+checking for string.h... (cached) yes
+checking for memory.h... (cached) yes
+checking limits.h usability... yes
+checking limits.h presence... yes
+checking for limits.h... yes
+checking malloc.h usability... yes
+checking malloc.h presence... yes
+checking for malloc.h... yes
+checking utime.h usability... yes
+checking utime.h presence... yes
+checking for utime.h... yes
+checking sys/statfs.h usability... yes
+checking sys/statfs.h presence... yes
+checking for sys/statfs.h... yes
+checking sys/vfs.h usability... yes
+checking sys/vfs.h presence... yes
+checking for sys/vfs.h... yes
+checking sys/select.h usability... yes
+checking sys/select.h presence... yes
+checking for sys/select.h... yes
+checking sys/ioctl.h usability... yes
+checking sys/ioctl.h presence... yes
+checking for sys/ioctl.h... yes
+checking stropts.h usability... yes
+checking stropts.h presence... yes
+checking for stropts.h... yes
+checking arpa/inet.h usability... yes
+checking arpa/inet.h presence... yes
+checking for arpa/inet.h... yes
+checking sys/socket.h usability... yes
+checking sys/socket.h presence... yes
+checking for sys/socket.h... yes
+checking for sys/types.h... (cached) yes
+checking sys/mkdev.h usability... no
+checking sys/mkdev.h presence... no
+checking for sys/mkdev.h... no
+checking sys/sysmacros.h usability... yes
+checking sys/sysmacros.h presence... yes
+checking for sys/sysmacros.h... yes
+checking for special C compiler options needed for large files... no
+checking for _FILE_OFFSET_BITS value needed for large files... unknown
+checking for _LARGE_FILES value needed for large files... 1
+checking size of long... 4
+checking for unsigned long long int... yes
+checking for uintmax_t... yes
+checking size of uintmax_t... 8
+checking for off_t... yes
+checking size of off_t... 8
+checking for mode_t... yes
+checking for promoted mode_t type... mode_t
+checking for pid_t... yes
+checking for uid_t in sys/types.h... yes
+checking for struct stat.st_blocks... yes
+checking for struct stat.st_blksize... yes
+checking for struct stat.st_rdev... yes
+checking for struct stat.st_mtim... yes
+checking sys/param.h usability... yes
+checking sys/param.h presence... yes
+checking for sys/param.h... yes
+checking for sig_atomic_t in signal.h... yes, non volatile
+checking for strverscmp... no
+checking for strncasecmp... yes
+checking for realpath... yes
+checking for posix_openpt... yes
+checking for grantpt... yes
+checking for statlstat... no
+checking for stdlib.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for getpagesize... yes
+checking for working mmap... yes
+checking for get_process_stats in -lseq... no
+checking sys/statvfs.h usability... yes
+checking sys/statvfs.h presence... yes
+checking for sys/statvfs.h... yes
+checking for sys/vfs.h... (cached) yes
+checking sys/fs_types.h usability... no
+checking sys/fs_types.h presence... no
+checking for sys/fs_types.h... no
+checking OS.h usability... no
+checking OS.h presence... no
+checking for OS.h... no
+checking netinet/in.h usability... yes
+checking netinet/in.h presence... yes
+checking for netinet/in.h... yes
+checking for listmntent... no
+checking for sys/ucred.h... no
+checking for sys/mount.h... no
+checking mntent.h usability... yes
+checking mntent.h presence... yes
+checking for mntent.h... yes
+checking for sys/fs_types.h... (cached) no
+checking for struct fsstat.f_fstypename... no
+checking for library containing getmntent... none required
+checking for getmntent... yes
+checking for mntctl function and struct vmount... yes
+checking sys/mntent.h usability... no
+checking sys/mntent.h presence... no
+checking for sys/mntent.h... no
+checking for struct statfs.f_fstypename... no
+checking fcntl.h usability... yes
+checking fcntl.h presence... yes
+checking for fcntl.h... yes
+checking for utime.h... (cached) yes
+checking for listmntent... (cached) no
+checking for sys/ucred.h... (cached) no
+checking for sys/mount.h... (cached) no
+checking for mntent.h... (cached) yes
+checking for sys/fs_types.h... (cached) no
+checking for struct fsstat.f_fstypename... (cached) no
+checking for library containing getmntent... (cached) none required
+checking for getmntent... (cached) yes
+checking for mntctl function and struct vmount... (cached) yes
+checking for sys/mount.h... (cached) no
+checking how to get file system space usage... checking for statvfs function (SVR4)... yes
+checking whether to use statvfs64... yes
+checking for two-argument statfs with statfs.f_frsize member... no
+checking sys/fs/s5param.h usability... no
+checking sys/fs/s5param.h presence... no
+checking for sys/fs/s5param.h... no
+checking for sys/statfs.h... (cached) yes
+checking for statfs that truncates block counts... no
+checking for struct statfs.f_fstypename... (cached) no
+checking for struct statvfs.f_basetype... yes
+checking for struct statvfs.f_namemax... yes
+checking whether NLS is requested... yes
+checking for msgfmt... /opt/freeware/bin/msgfmt
+checking for gmsgfmt... /opt/freeware/bin/msgfmt
+checking for xgettext... /opt/freeware/bin/xgettext
+checking for msgmerge... /opt/freeware/bin/msgmerge
+checking whether we are using the GNU C Library 2 or newer... no
+checking for ranlib... (cached) ranlib
+checking whether the -Werror option is usable... yes
+checking for simple visibility declarations... yes
+checking for inline... inline
+checking for size_t... yes
+checking for stdint.h... yes
+checking for working alloca.h... yes
+checking for alloca... yes
+checking whether integer division by zero raises SIGFPE... no
+checking for inttypes.h... yes
+checking for inttypes.h... (cached) yes
+checking whether the inttypes.h PRIxNN macros are broken... no
+checking for ld used by GCC... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... no
+checking for shared library run path origin... done
+checking whether imported symbols can be declared weak... no
+checking pthread.h usability... yes
+checking pthread.h presence... yes
+checking for pthread.h... yes
+checking for pthread_kill in -lpthread... yes
+checking for multithread API to use... posix
+checking for pthread_rwlock_t... yes
+checking for iconv... yes
+checking for working iconv... yes
+checking how to link with libiconv... /opt/freeware/lib/libiconv.a
+checking for iconv declaration... 
+         extern size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);
+checking argz.h usability... no
+checking argz.h presence... no
+checking for argz.h... no
+checking for inttypes.h... (cached) yes
+checking for limits.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for sys/param.h... (cached) yes
+checking for getcwd... yes
+checking for getegid... yes
+checking for geteuid... yes
+checking for getgid... yes
+checking for getuid... yes
+checking for mempcpy... no
+checking for munmap... yes
+checking for stpcpy... yes
+checking for strcasecmp... yes
+checking for strdup... yes
+checking for strtoul... yes
+checking for tsearch... yes
+checking for uselocale... yes
+checking for argz_count... no
+checking for argz_stringify... no
+checking for argz_next... no
+checking for __fsetlocking... no
+checking whether feof_unlocked is declared... yes
+checking whether fgets_unlocked is declared... no
+checking for bison... bison
+checking version of bison... 3.0.4, ok
+checking for long long int... yes
+checking for wchar_t... yes
+checking for wint_t... yes
+checking for intmax_t... yes
+checking whether printf() supports POSIX/XSI format strings... yes
+checking whether we are using the GNU C Library 2.1 or newer... no
+checking for stdint.h... (cached) yes
+checking for SIZE_MAX... yes
+checking for stdint.h... (cached) yes
+checking for working fcntl.h... no (bad O_NOATIME)
+checking for CFPreferencesCopyAppValue... no
+checking for CFLocaleCopyCurrent... no
+checking for ptrdiff_t... yes
+checking stddef.h usability... yes
+checking stddef.h presence... yes
+checking for stddef.h... yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking for asprintf... no
+checking for fwprintf... yes
+checking for newlocale... yes
+checking for putenv... yes
+checking for setenv... yes
+checking for setlocale... yes
+checking for snprintf... yes
+checking for strnlen... yes
+checking for wcslen... yes
+checking for wcsnlen... yes
+checking for mbrtowc... yes
+checking for wcrtomb... yes
+checking whether _snprintf is declared... no
+checking whether _snwprintf is declared... no
+checking whether getc_unlocked is declared... yes
+checking for nl_langinfo and CODESET... yes
+checking for LC_MESSAGES... yes
+checking for CFPreferencesCopyAppValue... (cached) no
+checking for CFLocaleCopyCurrent... (cached) no
+checking whether included gettext is requested... no
+checking for GNU gettext in libc... no
+checking for GNU gettext in libintl... yes
+checking whether to use NLS... yes
+checking where the gettext function comes from... external libintl
+checking how to link with libintl... /opt/freeware/lib/libintl.a -lc
+checking for perl... /opt/freeware/bin/perl
+checking for python... /opt/freeware/bin/python
+checking for ruby... /usr/bin/ruby
+checking for AIX defines... yes
+checking for utimensat... yes
+configure: using internal editor
+configure: using diff viewer
+checking for subshell support... checking pty.h usability... no
+checking pty.h presence... no
+checking for pty.h... no
+checking libutil.h usability... no
+checking libutil.h presence... no
+checking for libutil.h... no
+checking util.h usability... no
+checking util.h presence... no
+checking for util.h... no
+checking for openpty... no
+checking for openpty in -lutil... no
+yes
+configure: Enabling VFS code
+checking for zip... /opt/freeware/bin/zip
+checking for unzip... /opt/freeware/bin/unzip
+checking for zipinfo code in unzip... yes
+checking for LIBSSH... no
+checking for library containing socket... none required
+checking for library containing gethostbyname... none required
+checking for struct linger.l_linger... yes
+checking for nlink_t... yes
+checking for socklen_t... yes
+checking for pmap_set... yes
+checking for pmap_getport... yes
+checking for pmap_getmaps... yes
+checking for rresvport... yes
+checking for rpc/pmap_clnt.h... yes
+checking for doxygen... no
+configure: WARNING: doxygen not found - will not generate any doxygen documentation
+checking for perl... /opt/freeware/bin/perl
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating src/man2hlp/man2hlp
+config.status: creating Makefile
+config.status: creating contrib/Makefile
+config.status: creating contrib/dist/Makefile
+config.status: creating contrib/dist/gentoo/Makefile
+config.status: creating contrib/dist/redhat/Makefile
+config.status: creating contrib/dist/redhat/mc.spec
+config.status: creating contrib/dist/pkginfo
+config.status: creating contrib/dist/prototype
+config.status: creating misc/Makefile
+config.status: creating misc/mc.menu
+config.status: creating misc/mcedit.menu
+config.status: creating misc/skins/Makefile
+config.status: creating misc/ext.d/Makefile
+config.status: creating misc/ext.d/doc.sh
+config.status: creating misc/ext.d/misc.sh
+config.status: creating misc/ext.d/text.sh
+config.status: creating misc/ext.d/web.sh
+config.status: creating misc/macros.d/Makefile
+config.status: creating misc/mc.ext
+config.status: creating src/Makefile
+config.status: creating src/consaver/Makefile
+config.status: creating src/editor/Makefile
+config.status: creating src/man2hlp/Makefile
+config.status: creating src/subshell/Makefile
+config.status: creating src/viewer/Makefile
+config.status: creating src/diffviewer/Makefile
+config.status: creating src/filemanager/Makefile
+config.status: creating src/vfs/Makefile
+config.status: creating src/vfs/cpio/Makefile
+config.status: creating src/vfs/extfs/Makefile
+config.status: creating src/vfs/extfs/helpers/Makefile
+config.status: creating src/vfs/extfs/helpers/a+
+config.status: creating src/vfs/extfs/helpers/apt+
+config.status: creating src/vfs/extfs/helpers/audio
+config.status: creating src/vfs/extfs/helpers/deb
+config.status: creating src/vfs/extfs/helpers/deba
+config.status: creating src/vfs/extfs/helpers/debd
+config.status: creating src/vfs/extfs/helpers/dpkg+
+config.status: creating src/vfs/extfs/helpers/iso9660
+config.status: creating src/vfs/extfs/helpers/hp48+
+config.status: creating src/vfs/extfs/helpers/lslR
+config.status: creating src/vfs/extfs/helpers/mailfs
+config.status: creating src/vfs/extfs/helpers/patchfs
+config.status: creating src/vfs/extfs/helpers/rpms+
+config.status: creating src/vfs/extfs/helpers/s3+
+config.status: creating src/vfs/extfs/helpers/uace
+config.status: creating src/vfs/extfs/helpers/ualz
+config.status: creating src/vfs/extfs/helpers/uar
+config.status: creating src/vfs/extfs/helpers/uarc
+config.status: creating src/vfs/extfs/helpers/uarj
+config.status: creating src/vfs/extfs/helpers/uc1541
+config.status: creating src/vfs/extfs/helpers/ucab
+config.status: creating src/vfs/extfs/helpers/uha
+config.status: creating src/vfs/extfs/helpers/ulha
+config.status: creating src/vfs/extfs/helpers/ulib
+config.status: creating src/vfs/extfs/helpers/urar
+config.status: creating src/vfs/extfs/helpers/uzip
+config.status: creating src/vfs/extfs/helpers/uzoo
+config.status: creating src/vfs/fish/Makefile
+config.status: creating src/vfs/fish/helpers/Makefile
+config.status: creating src/vfs/ftpfs/Makefile
+config.status: creating src/vfs/sftpfs/Makefile
+config.status: creating src/vfs/local/Makefile
+config.status: creating src/vfs/sfs/Makefile
+config.status: creating src/vfs/smbfs/Makefile
+config.status: creating src/vfs/tar/Makefile
+config.status: creating src/vfs/undelfs/Makefile
+config.status: creating lib/Makefile
+config.status: creating lib/event/Makefile
+config.status: creating lib/filehighlight/Makefile
+config.status: creating lib/mcconfig/Makefile
+config.status: creating lib/search/Makefile
+config.status: creating lib/skin/Makefile
+config.status: creating lib/strutil/Makefile
+config.status: creating lib/tty/Makefile
+config.status: creating lib/vfs/Makefile
+config.status: creating lib/widget/Makefile
+config.status: creating misc/syntax/Makefile
+config.status: creating misc/syntax/Syntax
+config.status: creating doc/Makefile
+config.status: creating doc/hints/Makefile
+config.status: creating doc/hints/l10n/Makefile
+config.status: creating doc/man/Makefile
+config.status: creating doc/man/es/Makefile
+config.status: creating doc/man/hu/Makefile
+config.status: creating doc/man/it/Makefile
+config.status: creating doc/man/pl/Makefile
+config.status: creating doc/man/ru/Makefile
+config.status: creating doc/man/sr/Makefile
+config.status: creating doc/hlp/Makefile
+config.status: creating doc/hlp/es/Makefile
+config.status: creating doc/hlp/hu/Makefile
+config.status: creating doc/hlp/it/Makefile
+config.status: creating doc/hlp/pl/Makefile
+config.status: creating doc/hlp/ru/Makefile
+config.status: creating doc/hlp/sr/Makefile
+config.status: creating intl/Makefile
+config.status: creating po/Makefile.in
+config.status: creating tests/Makefile
+config.status: creating tests/lib/Makefile
+config.status: creating tests/lib/mcconfig/Makefile
+config.status: creating tests/lib/search/Makefile
+config.status: creating tests/lib/strutil/Makefile
+config.status: creating tests/lib/vfs/Makefile
+config.status: creating tests/lib/widget/Makefile
+config.status: creating tests/src/Makefile
+config.status: creating tests/src/filemanager/Makefile
+config.status: creating tests/src/editor/Makefile
+config.status: creating tests/src/editor/test-data.txt
+config.status: creating tests/src/vfs/Makefile
+config.status: creating tests/src/vfs/extfs/Makefile
+config.status: creating tests/src/vfs/extfs/helpers-list/Makefile
+config.status: creating tests/src/vfs/extfs/helpers-list/data/config.sh
+config.status: creating tests/src/vfs/extfs/helpers-list/misc/Makefile
+config.status: creating config.h
+config.status: executing depfiles commands
+config.status: executing libtool commands
+config.status: executing po-directories commands
+config.status: creating po/POTFILES
+config.status: creating po/Makefile
+configure:
+
+Configuration:
+
+  Source code location:       .
+  Compiler:                   gcc
+  Compiler flags:              -fdiagnostics-show-option -Wbad-function-cast -Wcomment -Wdeclaration-after-statement -Wfloat-conversion -Wfloat-equal -Wformat -Wformat-security -Wformat-signedness -Wimplicit -Wimplicit-fallthrough -Wignored-qualifiers -Wlogical-not-parentheses -Wmaybe-uninitialized -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-parameter-type -Wmissing-prototypes -Wnested-externs -Wno-long-long -Wno-unreachable-code -Wparentheses -Wpointer-arith -Wpointer-sign -Wredundant-decls -Wreturn-type -Wsequence-point -Wshadow -Wsign-compare -Wstrict-prototypes -Wswitch -Wswitch-default -Wtype-limits -Wundef -Wuninitialized -Wunreachable-code -Wunused-but-set-variable -Wunused-function -Wunused-label -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wwrite-strings  -g -O2
+  Assertions:                 yes
+  Unit tests:                 no ('Check' testing framework not found)
+  File system:                Midnight Commander Virtual Filesystem
+                              cpio, extfs, fish, ftp, sfs, tar
+  Screen library:             S-Lang
+  Mouse support:              xterm only
+  X11 events support:         yes
+  With subshell support:      yes
+  With background operations: yes
+  Internal editor:            yes
+  Diff viewer:                yes
+  Support for charset:        yes
+  Search type:                glib-regexp
+
++ make
+make  all-recursive
+make[1]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22'
+Making all in intl
+make[2]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/intl'
+make[2]: Nothing to be done for 'all'.
+make[2]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/intl'
+Making all in po
+make[2]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/po'
+make[2]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/po'
+Making all in lib
+make[2]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib'
+Making all in event
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/event'
+  CC       event.lo
+  CC       manage.lo
+  CC       raise.lo
+  CCLD     libmcevent.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/event'
+Making all in filehighlight
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/filehighlight'
+  CC       common.lo
+  CC       get-color.lo
+  CC       ini-file-read.lo
+  CCLD     libmcfilehighlight.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/filehighlight'
+Making all in mcconfig
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/mcconfig'
+  CC       common.lo
+  CC       get.lo
+  CC       set.lo
+  CC       paths.lo
+  CCLD     libmcconfig.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/mcconfig'
+Making all in search
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/search'
+  CC       search.lo
+  CC       lib.lo
+  CC       normal.lo
+  CC       regex.lo
+  CC       glob.lo
+  CC       hex.lo
+  CCLD     libsearch.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/search'
+Making all in skin
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/skin'
+  CC       colors.lo
+  CC       colors-old.lo
+  CC       common.lo
+  CC       hc-skins.lo
+  CC       ini-file.lo
+  CC       lines.lo
+  CCLD     libmcskin.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/skin'
+Making all in tty
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/tty'
+  CC       color-internal.lo
+  CC       color.lo
+  CC       key.lo
+  CC       keyxdef.lo
+  CC       mouse.lo
+  CC       tty.lo
+  CC       win.lo
+  CC       x11conn.lo
+  CC       color-slang.lo
+  CC       tty-slang.lo
+  CCLD     libmctty.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/tty'
+Making all in vfs
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/vfs'
+  CC       direntry.lo
+  CC       gc.lo
+  CC       interface.lo
+  CC       parse_ls_vga.lo
+  CC       path.lo
+  CC       vfs.lo
+  CC       utilvfs.lo
+  CC       netutil.lo
+  CCLD     libmcvfs.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/vfs'
+Making all in strutil
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/strutil'
+  CC       replace.lo
+  CC       strescape.lo
+  CC       strutil8bit.lo
+  CC       strutilascii.lo
+  CC       strutil.lo
+  CC       strutilutf8.lo
+  CC       strverscmp.lo
+  CC       xstrtol.lo
+  CCLD     libmcstrutil.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/strutil'
+Making all in widget
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/widget'
+  CC       button.lo
+  CC       buttonbar.lo
+  CC       check.lo
+  CC       dialog.lo
+  CC       dialog-switch.lo
+  CC       gauge.lo
+  CC       groupbox.lo
+  CC       hline.lo
+  CC       history.lo
+  CC       input.lo
+  CC       input_complete.lo
+input_complete.c:62:15: warning: redundant redeclaration of 'environ' [-Wredundant-decls]
+ extern char **environ;
+               ^~~~~~~
+In file included from input_complete.c:44:
+/opt/freeware/lib/gcc/powerpc-ibm-aix7.2.0.0/8.1.0/include-fixed/unistd.h:1026:15: note: previous declaration of 'environ' was here
+ extern char **environ;
+               ^~~~~~~
+  CC       listbox-window.lo
+  CC       listbox.lo
+  CC       label.lo
+  CC       menu.lo
+  CC       mouse.lo
+  CC       quick.lo
+  CC       radio.lo
+  CC       widget-common.lo
+  CC       wtools.lo
+  CCLD     libmcwidget.la
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib/widget'
+Making all in .
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib'
+  CC       utilunix.lo
+  CC       util.lo
+  CC       hook.lo
+  CC       glibcompat.lo
+  CC       global.lo
+  CC       keybind.lo
+  CC       lock.lo
+  CC       serialize.lo
+  CC       shell.lo
+  CC       timefmt.lo
+  CC       timer.lo
+  CC       charsets.lo
+  CCLD     libmc.la
+
+*** Warning: Linking the shared library libmc.la against the
+*** static library /opt/freeware/lib/libiconv.a is not portable!
+
+*** Warning: Linking the shared library libmc.la against the
+*** static library /opt/freeware/lib/libintl.a is not portable!
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib'
+make[2]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/lib'
+Making all in src
+make[2]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/src'
+Making all in filemanager
+make[3]: Entering directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/src/filemanager'
+  CC       achown.lo
+achown.c: In function 'chl_callback':
+achown.c:491:9: warning: this statement may fall through [-Wimplicit-fallthrough=]
+         switch (parm)
+         ^~~~~~
+achown.c:505:5: note: here
+     default:
+     ^~~~~~~
+  CC       boxes.lo
+  CC       chmod.lo
+  CC       chown.lo
+  CC       cmd.lo
+  CC       command.lo
+In function 'examine_cd',
+    inlined from 'do_cd_command' at command.c:440:16:
+command.c:172:25: warning: 'strncpy' specified bound depends on the length of the source argument [-Wstringop-overflow=]
+                         strncpy (r, t, tlen + 1);
+                         ^~~~~~~~~~~~~~~~~~~~~~~~
+command.c: In function 'do_cd_command':
+command.c:168:28: note: length computed here
+                     tlen = strlen (t);
+                            ^~~~~~~~~~
+  CC       dir.lo
+  CC       ext.lo
+  CC       file.lo
+file.c: In function 'get_times':
+file.c:899:17: error: incompatible types when assigning to type 'struct timespec' from type 'st_timespec_t' {aka 'const struct st_timespec'}
+     (*times)[0] = sb->st_atim;
+                 ^
+file.c:900:17: error: incompatible types when assigning to type 'struct timespec' from type 'st_timespec_t' {aka 'const struct st_timespec'}
+     (*times)[1] = sb->st_mtim;
+                 ^
+make[3]: *** [Makefile:604: file.lo] Error 1
+make[3]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/src/filemanager'
+make[2]: *** [Makefile:738: all-recursive] Error 1
+make[2]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22/src'
+make[1]: *** [Makefile:625: all-recursive] Error 1
+make[1]: Leaving directory '/home/dp/rpmbuild/BUILD/mc-4.8.22'
+make: *** [Makefile:553: all] Error 2

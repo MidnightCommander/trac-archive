@@ -1,0 +1,363 @@
+
+fix most -Wformat-nonliteral warnings
+
+https://fedoraproject.org/wiki/Format-Security-FAQ
+
+not all warnings are fixable(?) and I don't want insert #pragma GCC diagnostic warning
+
+please cross check real catch at lib/widget/gauge.c
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+regex.c:1011:56: error: format string is not a string literal [-Wformat-nonliteral]
+tty-ncurses.c:641:37: error: format string is not a string literal [-Wformat-nonliteral]
+direntry.c:709:28: error: format string is not a string literal [-Wformat-nonliteral]
+direntry.c:713:28: error: format string is not a string literal [-Wformat-nonliteral]
+interface.c:870:30: error: format string is not a string literal [-Wformat-nonliteral]
+strutil.c:267:38: error: format string is not a string literal [-Wformat-nonliteral]
+gauge.c:118:67: error: data argument not used by format string [-Wformat-extra-args]
+label.c:200:37: error: format string is not a string literal [-Wformat-nonliteral]
+util.c:1453:57: error: format string is not a string literal [-Wformat-nonliteral]
+util.c:1427:57: error: format string is not a string literal [-Wformat-nonliteral]
+serialize.c:65:37: error: format string is not a string literal [-Wformat-nonliteral]
+hotlist.c:1571:34: error: format string is not a string literal [-Wformat-nonliteral]
+info.c:255:31: error: format string is not a string literal [-Werror,-Wformat-nonliteral]
+cons.saver.c:213:52: warning: format string is not a string literal [-Wformat-nonliteral]
+cons.saver.c:220:46: warning: format string is not a string literal [-Wformat-nonliteral]
+fish.c:248:29: warning: format string is not a string literal [-Wformat-nonliteral]
+fish.c:387:40: error: format string is not a string literal (potentially insecure) [-Wformat-security]
+file.c:711:33: warning: format string is not a string literal [-Wformat-nonliteral]
+
+--- a/lib/search/internal.h
++++ b/lib/search/internal.h
+@@ -34,10 +34,10 @@
+ 
+ /*** global variables defined in .c file *********************************************************/
+ 
+-extern const char *STR_E_NOTFOUND;
+-extern const char *STR_E_UNKNOWN_TYPE;
+-extern const char *STR_E_RPL_NOT_EQ_TO_FOUND;
+-extern const char *STR_E_RPL_INVALID_TOKEN;
++#define STR_E_NOTFOUND "Search string not found"
++#define STR_E_UNKNOWN_TYPE "Not implemented yet"
++#define STR_E_RPL_NOT_EQ_TO_FOUND "Num of replace tokens not equal to num of found tokens"
++#define STR_E_RPL_INVALID_TOKEN "Invalid token number %d"
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+diff -ruN a/lib/search/lib.c b/lib/search/lib.c
+--- a/lib/search/lib.c
++++ b/lib/search/lib.c
+@@ -41,12 +41,6 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
+-const char *STR_E_NOTFOUND = N_("Search string not found");
+-const char *STR_E_UNKNOWN_TYPE = N_("Not implemented yet");
+-const char *STR_E_RPL_NOT_EQ_TO_FOUND =
+-N_("Num of replace tokens not equal to num of found tokens");
+-const char *STR_E_RPL_INVALID_TOKEN = N_("Invalid token number %d");
+-
+ /*** file scope macro definitions ****************************************************************/
+ 
+ /*** file scope type declarations ****************************************************************/
+--- a/lib/tty/tty.h
++++ b/lib/tty/tty.h
+@@ -120,7 +120,7 @@
+ extern void tty_print_alt_char (int c, gboolean single);
+ extern void tty_print_anychar (int c);
+ extern void tty_print_string (const char *s);
+-extern void tty_printf (const char *s, ...);
++extern void tty_printf (const char *s, ...) __attribute__((format(printf, 1, 2)));
+ 
+ extern void tty_print_one_vline (gboolean single);
+ extern void tty_print_one_hline (gboolean single);
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -696,21 +696,12 @@
+ vfs_s_print_stats (const char *fs_name, const char *action,
+                    const char *file_name, off_t have, off_t need)
+ {
+-    static const char *i18n_percent_transf_format = NULL;
+-    static const char *i18n_transf_format = NULL;
+-
+-    if (i18n_percent_transf_format == NULL)
+-    {
+-        i18n_percent_transf_format = "%s: %s: %s %3d%% (%" PRIuMAX " %s";
+-        i18n_transf_format = "%s: %s: %s %" PRIuMAX " %s";
+-    }
+-
+     if (need)
+-        vfs_print_message (i18n_percent_transf_format, fs_name, action,
++        vfs_print_message ("%s: %s: %s %3d%% (%" PRIuMAX " %s", fs_name, action,
+                            file_name, (int) ((double) have * 100 / need), (uintmax_t) have,
+                            _("bytes transferred"));
+     else
+-        vfs_print_message (i18n_transf_format, fs_name, action, file_name, (uintmax_t) have,
++        vfs_print_message ("%s: %s: %s %" PRIuMAX " %s", fs_name, action, file_name, (uintmax_t) have,
+                            _("bytes transferred"));
+ }
+ 
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -817,7 +817,7 @@
+     const char *sys_tmp;
+     struct passwd *pwd;
+     struct stat st;
+-    const char *error = NULL;
++    gboolean found_error = FALSE;
+ 
+     /* Check if already correctly initialized */
+     if (tmpdir && lstat (tmpdir, &st) == 0 && S_ISDIR (st.st_mode) &&
+@@ -844,31 +844,37 @@
+         {
+             /* Sanity check for existing directory */
+             if (!S_ISDIR (st.st_mode))
+-                error = _("%s is not a directory\n");
++            {
++                fprintf (stderr, _("%s is not a directory\n"), buffer);
++                found_error = TRUE;
++            }
+             else if (st.st_uid != getuid ())
+-                error = _("Directory %s is not owned by you\n");
++            {
++                fprintf (stderr, _("Directory %s is not owned by you\n"), buffer);
++                found_error = TRUE;
++            }
+             else if (((st.st_mode & 0777) != 0700) && (chmod (buffer, 0700) != 0))
+-                error = _("Cannot set correct permissions for directory %s\n");
++            {
++                fprintf (stderr, _("Cannot set correct permissions for directory %s\n"), buffer);
++                found_error = TRUE;
++            }
+         }
+         else
+         {
+             fprintf (stderr,
+                      _("Cannot create temporary directory %s: %s\n"),
+                      buffer, unix_error_string (errno));
+-            error = "";
++            found_error = TRUE;
+         }
+     }
+ 
+-    if (error != NULL)
++    if (found_error)
+     {
+         int test_fd;
+         char *fallback_prefix;
+         gboolean fallback_ok = FALSE;
+         vfs_path_t *test_vpath;
+ 
+-        if (*error)
+-            fprintf (stderr, error, buffer);
+-
+         /* Test if sys_tmp is suitable for temporary files */
+         fallback_prefix = g_strdup_printf ("%s/mctest", sys_tmp);
+         test_fd = mc_mkstemps (&test_vpath, fallback_prefix, NULL);
+@@ -889,7 +895,7 @@
+         {
+             fprintf (stderr, _("Temporary files will be created in %s\n"), sys_tmp);
+             g_snprintf (buffer, sizeof (buffer), "%s", sys_tmp);
+-            error = NULL;
++            found_error = FALSE;
+         }
+         else
+         {
+@@ -904,7 +910,7 @@
+ 
+     tmpdir = buffer;
+ 
+-    if (!error)
++    if (!found_error)
+         g_setenv ("MC_TMPDIR", tmpdir, TRUE);
+ 
+     return tmpdir;
+--- a/lib/strutil.h
++++ b/lib/strutil.h
+@@ -217,7 +217,7 @@
+ 
+ /* printf function for str_buffer, append result of printf at the end of buffer
+  */
+-void str_printf (GString *, const char *, ...);
++void str_printf (GString *, const char *, ...) __attribute__((format(printf, 2, 3)));
+ 
+ /* add standard replacement character in terminal encoding
+  */
+--- a/lib/widget/gauge.c
++++ b/lib/widget/gauge.c
+@@ -115,7 +115,7 @@
+                 tty_setcolor (GAUGE_COLOR);
+                 tty_printf ("%*s", columns, "");
+                 tty_setcolor (h->color[DLG_COLOR_NORMAL]);
+-                tty_printf ("] %3d%%", 100 * columns / gauge_len, percentage);
++                tty_printf ("%*s] %3d%%", 100 * columns / gauge_len, "", percentage);
+             }
+         }
+         return MSG_HANDLED;
+--- a/lib/widget/label.h
++++ b/lib/widget/label.h
+@@ -28,7 +28,7 @@
+ 
+ WLabel *label_new (int y, int x, const char *text);
+ void label_set_text (WLabel * label, const char *text);
+-void label_set_textv (WLabel * label, const char *format, ...);
++void label_set_textv (WLabel * label, const char *format, ...) __attribute__((format(printf, 2, 3)));
+ 
+ /*** inline functions ****************************************************************************/
+ 
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -246,8 +246,8 @@
+ char *mc_build_filename (const char *first_element, ...);
+ char *mc_build_filenamev (const char *first_element, va_list args);
+ 
+-void mc_propagate_error (GError ** dest, int code, const char *format, ...);
+-void mc_replace_error (GError ** dest, int code, const char *format, ...);
++void mc_propagate_error (GError ** dest, int code, const char *format, ...) __attribute__((format(printf, 3, 4)));
++void mc_replace_error (GError ** dest, int code, const char *format, ...) __attribute__((format(printf, 3, 4)));
+ 
+ gboolean mc_time_elapsed (guint64 * timestamp, guint64 delay);
+ 
+--- a/lib/serialize.c
++++ b/lib/serialize.c
+@@ -50,7 +50,7 @@
+ 
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+-
++__attribute__((format(printf, 2, 3)))
+ static void
+ prepend_error_message (GError ** error, const char *format, ...)
+ {
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -1558,17 +1558,12 @@
+ add2hotlist_cmd (void)
+ {
+     char *lc_prompt;
+-    const char *cp = N_("Label for \"%s\":");
+     int l;
+     char *label_string, *label;
+ 
+-#ifdef ENABLE_NLS
+-    cp = _(cp);
+-#endif
+-
+-    l = str_term_width1 (cp);
++    l = str_term_width1 (_("Label for \"%s\":"));
+     label_string = vfs_path_to_str_flags (current_panel->cwd_vpath, 0, VPF_STRIP_PASSWORD);
+-    lc_prompt = g_strdup_printf (cp, str_trunc (label_string, COLS - 2 * UX - (l + 8)));
++    lc_prompt = g_strdup_printf (_("Label for \"%s\":"), str_trunc (label_string, COLS - 2 * UX - (l + 8)));
+     label =
+         input_dialog (_("Add to hotlist"), lc_prompt, MC_HISTORY_HOTLIST_ADD, label_string,
+                       INPUT_COMPLETE_NONE);
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -105,7 +105,6 @@
+ {
+     Widget *w = WIDGET (info);
+     static int i18n_adjust = 0;
+-    static const char *file_label;
+     GString *buff;
+     struct stat st;
+ 
+@@ -133,8 +132,7 @@
+     if (i18n_adjust == 0)
+     {
+         /* This printf pattern string is used as a reference for size */
+-        file_label = _("File: %s");
+-        i18n_adjust = str_term_width1 (file_label) + 2;
++        i18n_adjust = str_term_width1 (_("File: %s")) + 2;
+     }
+ 
+     tty_setcolor (NORMAL_COLOR);
+@@ -252,7 +250,7 @@
+ 
+             widget_move (w, 3, 2);
+             fname = current_panel->dir.list[current_panel->selected].fname;
+-            str_printf (buff, file_label, str_trunc (fname, w->cols - i18n_adjust));
++            str_printf (buff, _("File: %s"), str_trunc (fname, w->cols - i18n_adjust));
+             tty_print_string (buff->str);
+         }
+ 
+--- a/src/consaver/cons.saver.c
++++ b/src/consaver/cons.saver.c
+@@ -163,7 +163,6 @@
+     struct stat st;
+     uid_t uid, euid;
+     char *buffer, *tty_name, console_name[16], vcsa_name[16];
+-    const char *p, *q;
+     struct winsize winsz;
+ 
+     close (STDERR_FILENO);
+@@ -198,26 +197,24 @@
+     {
+         /* devfs */
+     case 'v':
+-        p = "/dev/vc/%d";
+-        q = "/dev/vcc/a%d";
++        snprintf (console_name, sizeof (console_name), "/dev/vc/%d", console_minor);
++        snprintf (vcsa_name, sizeof (vcsa_name), "/dev/vcc/a%d", console_minor);
+         break;
+         /* /dev/ttyN */
+     case 't':
+-        p = "/dev/tty%d";
+-        q = "/dev/vcsa%d";
++        snprintf (console_name, sizeof (console_name), "/dev/tty%d", console_minor);
++        snprintf (vcsa_name, sizeof (vcsa_name), "/dev/vcsa%d", console_minor);
+         break;
+     default:
+         die ();
+     }
+ 
+-    snprintf (console_name, sizeof (console_name), p, console_minor);
+     if (strncmp (console_name, tty_name, sizeof (console_name)) != 0)
+         die ();
+ 
+     if (seteuid (euid) < 0)
+         die ();
+ 
+-    snprintf (vcsa_name, sizeof (vcsa_name), q, console_minor);
+     vcsa_fd = open (vcsa_name, O_RDWR);
+     if (vcsa_fd < 0)
+         die ();
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -235,6 +235,7 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++__attribute__((format(printf, 4, 5)))
+ static int
+ fish_command (struct vfs_class *me, struct vfs_s_super *super, int wait_reply, const char *fmt, ...)
+ {
+@@ -383,7 +384,7 @@
+ static gboolean
+ fish_info (struct vfs_class *me, struct vfs_s_super *super)
+ {
+-    if (fish_command (me, super, NONE, SUP->scr_info) == COMPLETE)
++    if (fish_command (me, super, NONE, "%s", SUP->scr_info) == COMPLETE)
+     {
+         while (TRUE)
+         {
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -702,13 +702,12 @@
+ {
+     if (ctx->recursive_result < RECURSIVE_ALWAYS)
+     {
+-        const char *msg;
+         char *text;
+ 
+-        msg = mode == Foreground
+-            ? _("Directory \"%s\" not empty.\nDelete it recursively?")
+-            : _("Background process:\nDirectory \"%s\" not empty.\nDelete it recursively?");
+-        text = g_strdup_printf (msg, path_trunc (s, 30));
++        if (mode == Foreground)
++            text = g_strdup_printf (_("Directory \"%s\" not empty.\nDelete it recursively?"), path_trunc (s, 30));
++        else
++            text = g_strdup_printf (_("Background process:\nDirectory \"%s\" not empty.\nDelete it recursively?"), path_trunc (s, 30));
+ 
+         if (safe_delete)
+             query_set_sel (1);

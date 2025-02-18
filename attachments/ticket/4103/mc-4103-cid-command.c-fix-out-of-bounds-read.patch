@@ -1,0 +1,28 @@
+From 9a4b81429255cb4016417d7fd8b5c299010a26a5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 9 Dec 2020 16:14:59 +0000
+Subject: [PATCH] (command.c) fix out-of-bounds read
+
+Fix out-of-bounds read
+
+Found by Coverity
+Coverity id #32603
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/command.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/command.c b/src/filemanager/command.c
+index 6202b8020..0c61807c6 100644
+--- a/src/filemanager/command.c
++++ b/src/filemanager/command.c
+@@ -390,7 +390,7 @@ do_cd_command (char *orig_cmd)
+     {
+         vfs_path_t *new_vpath = NULL;
+ 
+-        if (cmd[0] == '\0')
++        if (cmd[CD_OPERAND_OFFSET] == '\0')
+         {
+             new_vpath = vfs_path_from_str (mc_config_get_home_dir ());
+             sync_tree (new_vpath);

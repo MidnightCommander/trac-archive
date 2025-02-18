@@ -1,0 +1,15 @@
+diff --git a/configure.ac b/configure.ac
+index cfaaa7d..0066dbf 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -14,9 +14,7 @@ AM_MAINTAINER_MODE
+ 
+ AC_CANONICAL_HOST
+ 
+-AC_GNU_SOURCE
+-AC_AIX
+-AC_MINIX
++AC_USE_SYSTEM_EXTENSIONS
+ AC_ISC_POSIX
+ 
+ AC_PROG_CC_STDC

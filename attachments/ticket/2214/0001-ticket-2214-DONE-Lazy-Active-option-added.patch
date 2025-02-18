@@ -1,0 +1,41 @@
+From cc8abc0a153c987afa957ed2ce25816143d29235 Mon Sep 17 00:00:00 2001
+From: Janek Kozicki <janek_listy@wp.pl>
+Date: Sat, 22 May 2010 02:31:40 +0200
+Subject: [PATCH] ticket 2214 DONE Lazy/Active option added
+
+---
+ src/tree.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/tree.c b/src/tree.c
+index bf69eec..09b2d95 100644
+--- a/src/tree.c
++++ b/src/tree.c
+@@ -986,10 +986,10 @@ tree_start_search (WTree * tree)
+ static void
+ tree_toggle_navig (WTree * tree)
+ {
+-    tree_navigation_flag = !tree_navigation_flag;
++    xtree_mode = !xtree_mode;
+     buttonbar_set_label (find_buttonbar (tree->widget.parent), 4,
+-                         tree_navigation_flag ? Q_ ("ButtonBar|Static")
+-                         : Q_ ("ButtonBar|Dynamc"), tree_map, (Widget *) tree);
++            xtree_mode ? Q_("ButtonBar|Active") : Q_("ButtonBar|Lazy"),
++            tree_map, (Widget *) tree);
+ }
+ 
+ static cb_ret_t
+@@ -1143,8 +1143,8 @@ tree_callback (Widget * w, widget_msg_t msg, int parm)
+         buttonbar_set_label (b, 1, Q_ ("ButtonBar|Help"), tree_map, (Widget *) tree);
+         buttonbar_set_label (b, 2, Q_ ("ButtonBar|Rescan"), tree_map, (Widget *) tree);
+         buttonbar_set_label (b, 3, Q_ ("ButtonBar|Forget"), tree_map, (Widget *) tree);
+-        buttonbar_set_label (b, 4, tree_navigation_flag ? Q_ ("ButtonBar|Static")
+-                             : Q_ ("ButtonBar|Dynamc"), tree_map, (Widget *) tree);
++        buttonbar_set_label (b, 4, xtree_mode ? Q_("ButtonBar|Active") : Q_("ButtonBar|Lazy"),
++                                                tree_map, (Widget *) tree);
+         buttonbar_set_label (b, 5, Q_ ("ButtonBar|Copy"), tree_map, (Widget *) tree);
+         buttonbar_set_label (b, 6, Q_ ("ButtonBar|RenMov"), tree_map, (Widget *) tree);
+ #if 0
+-- 
+1.7.1
+

@@ -1,0 +1,13 @@
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -370,7 +370,9 @@
+ #endif /* SEARCH_TYPE_GLIB */
+ 
+     if (fnd_end - fnd_start == 0)
+-        return NULL;
++    {
++        fnd_end = fnd_start = 0;
++    }
+ 
+     return g_strndup (lc_mc_search->regex_buffer->str + fnd_start, fnd_end - fnd_start);
+ 

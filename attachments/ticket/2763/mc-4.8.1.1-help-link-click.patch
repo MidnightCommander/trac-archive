@@ -1,0 +1,16 @@
+diff -ur mc-4.8.1.1.orig/src/help.c mc-4.8.1.1/src/help.c
+--- mc-4.8.1.1.orig/src/help.c	2011-12-19 23:23:14.000000000 +0100
++++ mc-4.8.1.1/src/help.c	2012-03-27 17:05:11.947004519 +0200
+@@ -501,11 +501,11 @@
+                 break;
+             case CHAR_LINK_POINTER:
+                 painting = FALSE;
+-                end_link_area (col - 1, line);
+                 break;
+             case CHAR_LINK_END:
+                 painting = TRUE;
+                 help_print_word (h, word, &col, &line, FALSE);
++                end_link_area (col - 1, line);
+                 tty_setcolor (HELP_NORMAL_COLOR);
+                 break;
+             case CHAR_ALTERNATE:

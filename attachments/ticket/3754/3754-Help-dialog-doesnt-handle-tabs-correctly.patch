@@ -1,0 +1,55 @@
+From ea1d46bc0443b0df5d3d7ee8832d60b328dbfaca Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 10 Jan 2017 02:07:03 +0200
+Subject: [PATCH] Ticket #3754: Help dialog doesn't handle tabs correctly.
+
+Upon seeing a tab, the help viewer effectively pushes the *current* word
+forward.
+
+Instead, it should first finish handling the current word (that is, print it on
+screen) and only then adjust the column.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ src/help.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/src/help.c b/src/help.c
+index eecb932..ccdbb94 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -531,18 +531,22 @@ help_show (WDialog * h, const char *paint_start)
+                 line++;
+                 col = 0;
+                 break;
+-            case '\t':
+-                col = (col / 8 + 1) * 8;
+-                if (col >= HELP_WINDOW_WIDTH)
+-                {
+-                    line++;
+-                    col = 8;
+-                }
+-                break;
+             case ' ':
++            case '\t':
+                 /* word delimiter */
+                 if (painting)
+-                    help_print_word (h, word, &col, &line, TRUE);
++                {
++                    help_print_word (h, word, &col, &line, c == ' ');
++                    if (c == '\t')
++                    {
++                        col = (col / 8 + 1) * 8;
++                        if (col >= HELP_WINDOW_WIDTH)
++                        {
++                            line++;
++                            col = 8;
++                        }
++                    }
++                }
+                 break;
+             default:
+                 if (painting && (line < help_lines))
+-- 
+2.9.3
+

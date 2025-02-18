@@ -1,0 +1,29 @@
+From bedaf035147edacfbbf6b4fcc4bbbf6cef7a9ace Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 24 May 2021 15:42:37 +0000
+Subject: [PATCH] (editsearch.c) fix deadcode.DeadStores warning
+
+editsearch.c:915:13: warning: Value stored to 'i' is never read [deadcode.DeadStores]
+            i = edit->found_len = len;
+            ^   ~~~~~~~~~~~~~~~~~~~~~
+
+Found by Clang-11 analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editsearch.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/editsearch.c b/src/editor/editsearch.c
+index 329ce009a..7ea57f744 100644
+--- a/src/editor/editsearch.c
++++ b/src/editor/editsearch.c
+@@ -912,7 +912,7 @@ edit_replace_cmd (WEdit * edit, gboolean again)
+             GString *repl_str;
+ 
+             edit->found_start = edit->search_start;
+-            i = edit->found_len = len;
++            edit->found_len = len;
+ 
+             edit_cursor_move (edit, edit->search_start - edit->buffer.curs1);
+             edit_scroll_screen_over_cursor (edit);

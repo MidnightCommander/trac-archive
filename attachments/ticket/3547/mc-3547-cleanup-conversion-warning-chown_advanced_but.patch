@@ -1,0 +1,40 @@
+fix -Wconversion warning at struct chown_advanced_but
+
+patch will fix these warnings:
+achown.c:480:10: warning: implicit conversion loses integer precision: 'unsigned long' to 'unsigned int' [-Wshorten-64-to-32]
+achown.c:687:28: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:689:28: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:691:28: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:693:26: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:695:27: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:712:82: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:718:82: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:730:78: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+achown.c:736:78: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -79,7 +79,8 @@
+ static struct
+ {
+     unsigned long id;
+-    int ret_cmd, flags, x, len;
++    int ret_cmd, x, len;
++    button_flags_t flags;
+     const char *text;
+ } chown_advanced_but[BUTTONS] =
+ {
+@@ -475,7 +476,7 @@
+     WDialog *h = DIALOG (w);
+     int i;
+     int f_pos;
+-    unsigned int id;
++    unsigned long id;
+ 
+     id = dlg_get_current_widget_id (h);
+ 

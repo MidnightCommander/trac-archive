@@ -1,0 +1,84 @@
+The program is not being run.
+Starting program: /usr/local/stow/packages/test/mc-4.7.1/src/mc src/mc
+[Thread debugging using libthread_db enabled]
+[New Thread 0xb7b43970 (LWP 18424)]
+
+Program received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0xb7b43970 (LWP 18424)]
+0xb7d5fafb in g_slice_alloc () from /usr/lib/libglib-2.0.so.0
+#0  0xb7d5fafb in g_slice_alloc () from /usr/lib/libglib-2.0.so.0
+#1  0xb7d609a2 in g_slist_prepend () from /usr/lib/libglib-2.0.so.0
+#2  0x080bf4ba in extfs_resolve_symlinks_int (entry=0x81377e0, list=0x81377d8) at extfs.c:701
+#3  0x080bf89b in extfs_resolve_symlinks (entry=0xb7dbc9a8) at extfs.c:719
+#4  0x080c0b47 in extfs_internal_stat (me=0x8128d60, path=<value optimized out>, buf=0xbfffd51c, resolve=1) at extfs.c:1023
+#5  0x080aed0d in mc_stat (filename=0x81eb65b "als", buf=0xbfffd51c) at vfs.c:874
+#6  0x0807e74a in handle_dirent (list=0x81f6508, fltr=0x0, dp=<value optimized out>, buf1=0xbfffd5c4, next_free=2, link_to_dir=0xbfffd628, stale_link=0xbfffd624) at dir.c:324
+#7  0x0807f1e5 in do_load_dir (path=0x81f6518 "/var/www/deb/atool_0.37.0-1_all.deb#deb/CONTENTS/usr/bin", list=0x81f6508, sort=0x807f49f <sort_name>, lc_reverse=0, 
+    lc_case_sensitive=1, exec_ff=0, fltr=0x0) at dir.c:437
+#8  0x080952d7 in _do_panel_cd (panel=0x81f64d8, new_dir=0x8208430 "è© \b8\214 \b/", cd_type=<value optimized out>) at main.c:498
+#9  0x0809551e in do_panel_cd (panel=0x81f64d8, new_dir=0x8208430 "è© \b8\214 \b/", cd_type=cd_exact) at main.c:521
+#10 0x0809555b in do_cd (new_dir=0x8208430 "è© \b8\214 \b/", exact=cd_exact) at main.c:530
+#11 0x0806562b in do_enter_on_file_entry (fe=0x81f97c4) at screen.c:2477
+#12 0x08067be2 in panel_callback (w=0x81f64d8, msg=WIDGET_KEY, parm=10) at screen.c:2535
+#13 0x08060dd0 in dlg_process_event (h=0x81e8900, key=10, event=0xbfffe778) at ../src/dialog.h:235
+#14 0x0806124f in run_dlg (h=0x81e8900) at dialog.c:855
+#15 0x08094f8c in main (argc=Cannot access memory at address 0x1e
+) at main.c:1793
+#0  0xb7d5fafb in g_slice_alloc () from /usr/lib/libglib-2.0.so.0
+No symbol table info available.
+#1  0xb7d609a2 in g_slist_prepend () from /usr/lib/libglib-2.0.so.0
+No symbol table info available.
+#2  0x080bf4ba in extfs_resolve_symlinks_int (entry=0x81377e0, list=0x81377d8) at extfs.c:701
+	looping = <value optimized out>
+	pent = <value optimized out>
+#3  0x080bf89b in extfs_resolve_symlinks (entry=0xb7dbc9a8) at extfs.c:719
+	res = <value optimized out>
+#4  0x080c0b47 in extfs_internal_stat (me=0x8128d60, path=<value optimized out>, buf=0xbfffd51c, resolve=1) at extfs.c:1023
+	archive = (struct archive *) 0x82084b8
+	q = <value optimized out>
+	mpath = 0x8204830 "/var/www/deb/atool_0.37.0-1_all.deb"
+	entry = (struct entry *) 0xb7dbc9a8
+	result = <value optimized out>
+#5  0x080aed0d in mc_stat (filename=0x81eb65b "als", buf=0xbfffd51c) at vfs.c:874
+	vfs = (struct vfs_class *) 0x8128d60
+	result = <value optimized out>
+	path = 0x8209ab8 "/var/www/deb/atool_0.37.0-1_all.deb#deb/CONTENTS/usr/bin/als"
+#6  0x0807e74a in handle_dirent (list=0x81f6508, fltr=0x0, dp=<value optimized out>, buf1=0xbfffd5c4, next_free=2, link_to_dir=0xbfffd628, stale_link=0xbfffd624) at dir.c:324
+	buf2 = {st_dev = 581949586153390656, __pad1 = 33872, __st_ino = 3221214536, st_mode = 3084276033, st_nlink = 135495696, st_uid = 4294967295, st_gid = 135429459, 
+  st_rdev = 580876429655277567, __pad2 = 32784, st_size = -5199942120883861256, st_blksize = 135495696, st_blocks = 17592321473875, st_atim = {tv_sec = 135245832, 
+    tv_nsec = 135429440}, st_mtim = {tv_sec = 136348752, tv_nsec = 136333560}, st_ctim = {tv_sec = 134932074, tv_nsec = 136230491}, st_ino = 1099647977712}
+#7  0x0807f1e5 in do_load_dir (path=0x81f6518 "/var/www/deb/atool_0.37.0-1_all.deb#deb/CONTENTS/usr/bin", list=0x81f6508, sort=0x807f49f <sort_name>, lc_reverse=0, 
+    lc_case_sensitive=1, exec_ff=0, fltr=0x0) at dir.c:437
+	dirp = (DIR *) 0x82048f8
+	dp = (struct dirent *) 0x81eb648
+	status = <value optimized out>
+	link_to_dir = 0
+	stale_link = 0
+	next_free = 2
+	st = {st_dev = 2, __pad1 = 1, __st_ino = 3082770005, st_mode = 41471, st_nlink = 1, st_uid = 0, st_gid = 0, st_rdev = 0, __pad2 = 0, st_size = 0, st_blksize = 512, 
+  st_blocks = 0, st_atim = {tv_sec = 1250114400, tv_nsec = 136275208}, st_mtim = {tv_sec = 1250114400, tv_nsec = 136275224}, st_ctim = {tv_sec = 1250114400, tv_nsec = 135209616}, 
+  st_ino = 20}
+#8  0x080952d7 in _do_panel_cd (panel=0x81f64d8, new_dir=0x8208430 "è© \b8\214 \b/", cd_type=<value optimized out>) at main.c:498
+	directory = <value optimized out>
+	olddir = 0x8209918 "/var/www/deb/atool_0.37.0-1_all.deb#deb/CONTENTS/usr"
+	temp = "\022\000\000\000Ød\037\b\000\000\000\000\001\000\000\000»Y\006\b\005\000\000\000\001\000\000\000\001\000\000\000boot/initrd.img-2.6.26-2-686-bigmem\000l]\n0=/var/www/iso\n1=/var/www/audio/bob_m\212Å\035\b\214äÿ¿/var\000\000\000\000\212Å\035\b\234äÿ¿earl\000\000\000\000/01_\000\000\000\0001991-\n3=qÕ\037\b@l\036\b/aud", '\0' <repeats 12 times>, "/02_\000\000\000\000ÍN\036\b\033\000\000\000var/\000\000"...
+	translated_url = 0x8208460 "d"
+#9  0x0809551e in do_panel_cd (panel=0x81f64d8, new_dir=0x8208430 "è© \b8\214 \b/", cd_type=cd_exact) at main.c:521
+	r = <value optimized out>
+#10 0x0809555b in do_cd (new_dir=0x8208430 "è© \b8\214 \b/", exact=cd_exact) at main.c:530
+No locals.
+#11 0x0806562b in do_enter_on_file_entry (fe=0x81f97c4) at screen.c:2477
+	full_name = <value optimized out>
+#12 0x08067be2 in panel_callback (w=0x81f64d8, msg=WIDGET_KEY, parm=10) at screen.c:2535
+	bb = <value optimized out>
+#13 0x08060dd0 in dlg_process_event (h=0x81e8900, key=10, event=0xbfffe778) at ../src/dialog.h:235
+No locals.
+#14 0x0806124f in run_dlg (h=0x81e8900) at dialog.c:855
+No locals.
+#15 0x08094f8c in main (argc=Cannot access memory at address 0x1e
+) at main.c:1793
+	s = {st_dev = 65024, __pad1 = 0, __st_ino = 7716, st_mode = 16877, st_nlink = 3, st_uid = 1000, st_gid = 1000, st_rdev = 0, __pad2 = 0, st_size = 4096, st_blksize = 4096, 
+  st_blocks = 8, st_atim = {tv_sec = 1266613588, tv_nsec = 0}, st_mtim = {tv_sec = 1272576875, tv_nsec = 0}, st_ctim = {tv_sec = 1272576875, tv_nsec = 0}, st_ino = 7716}
+	mc_dir = 0x27 <Address 0x27 out of bounds>
+	error = (GError *) 0x6
+	isInitialized = <value optimized out>

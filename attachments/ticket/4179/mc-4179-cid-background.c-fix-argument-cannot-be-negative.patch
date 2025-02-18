@@ -1,0 +1,59 @@
+From 951d3a804936bef13e11853cb598010666f59fa5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 18 May 2021 15:14:16 +0000
+Subject: [PATCH] (background.c) fix argument cannot be negative
+
+Fix argument cannot be negative
+
+Found by Coverity
+Coverity id #32593
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/background.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/src/background.c b/src/background.c
+index 584cd74ef..66b7c3d37 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -332,9 +332,12 @@ background_attention (int fd, void *closure)
+             }
+ 
+         /* Send the result code and the value for shared variables */
+-        ret = write (to_child_fd, &result, sizeof (result));
+-        if (have_ctx != 0 && to_child_fd != -1)
+-            ret = write (to_child_fd, ctx, sizeof (*ctx));
++        if (to_child_fd != -1)
++        {
++            ret = write (to_child_fd, &result, sizeof (result));
++            if (have_ctx != 0)
++                ret = write (to_child_fd, ctx, sizeof (*ctx));
++        }
+     }
+     else if (type == Return_String)
+     {
+@@ -368,15 +371,19 @@ background_attention (int fd, void *closure)
+         if (resstr != NULL)
+         {
+             len = strlen (resstr);
+-            ret = write (to_child_fd, &len, sizeof (len));
+-            if (len != 0)
+-                ret = write (to_child_fd, resstr, len);
++            if (to_child_fd != -1)
++            {
++                ret = write (to_child_fd, &len, sizeof (len));
++                if (len != 0)
++                    ret = write (to_child_fd, resstr, len);
++            }
+             g_free (resstr);
+         }
+         else
+         {
+             len = 0;
+-            ret = write (to_child_fd, &len, sizeof (len));
++            if (to_child_fd != -1)
++                ret = write (to_child_fd, &len, sizeof (len));
+         }
+     }
+ 

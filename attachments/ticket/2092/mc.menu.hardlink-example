@@ -1,0 +1,40 @@
+shell_patterns=0
+
++ ! t t & ! f ^\.\.$
+l   Hardlink file(s)
+    for DST in whiptail dialog gdialog Xdialog; do #kdialog is not fully compatible with this
+        if [ -x /usr/bin/$DST ]; then
+            CMD=$DST
+            break 1
+        fi
+    done
+    $CMD --inputbox 'Hardlink file to:' 8 64 %D/ 2>${MC_TMPDIR-/tmp}/__dialog-tmp__
+    DST="`cat ${MC_TMPDIR-/tmp}/__dialog-tmp__`"
+    rm ${MC_TMPDIR-/tmp}/__dialog-tmp__
+    if [ "x$DST" != x ]; then
+        cp -Rli %f "$DST"
+    fi
+    unset CMD
+    unset DST
+
++ t t
+l   Hardlink file(s)
+    for DST in whiptail dialog gdialog Xdialog; do #kdialog is not fully compatible with this
+        if [ -x /usr/bin/$DST ]; then
+            CMD=$DST
+            break 1
+        fi
+    done
+    $CMD --inputbox 'Hardlink file(s) to:' 8 64 %D/ 2>${MC_TMPDIR-/tmp}/__dialog-tmp__
+    DST="`cat ${MC_TMPDIR-/tmp}/__dialog-tmp__`"
+    rm ${MC_TMPDIR-/tmp}/__dialog-tmp__
+    if [ "x$DST" != x ]; then
+        if [ -d "$DST" ]; then
+            cp -Rli %u "$DST"
+        else
+            $CMD --msgbox 'The destination must be a directory.' 7 41
+        fi
+    fi
+    unset CMD
+    unset DST
+

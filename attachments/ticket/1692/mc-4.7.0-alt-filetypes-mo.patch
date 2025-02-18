@@ -1,0 +1,14 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index a093f88..bc9e751 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -573,6 +573,9 @@ regex/\.(d64|D64)$
+ regex/\.([Gg][Ll][Aa][Dd][Ee])$
+ 	Open=if glade-3 --version >/dev/null 2>&1; then (glade-3 %f >/dev/null 2>&1 &); else (glade-2 %f >/dev/null 2>&1 &); fi
+ 
++# Gettext Catalogs
++shell/.mo
++	View=%view{ascii} msgunfmt %f || cat %f
+ 
+ ### Plain compressed files ###
+ 

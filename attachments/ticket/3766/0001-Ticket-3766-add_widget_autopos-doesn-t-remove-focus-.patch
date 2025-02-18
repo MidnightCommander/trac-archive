@@ -1,0 +1,59 @@
+From f26be579fe5843ef5a234394e9d08f1ec423e8e1 Mon Sep 17 00:00:00 2001
+From: Andrew Borodin <aborodin@vmail.ru>
+Date: Mon, 30 Jan 2017 22:06:13 +0300
+Subject: [PATCH] Ticket #3766: add_widget_autopos() doesn't remove focus from
+ the previously focused widget.
+
+Signed-off-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ lib/widget/dialog.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index 6dc6252..75f91ba 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -845,6 +845,7 @@ add_widget_autopos (WDialog * h, void *w, widget_pos_flags_t pos_flags, const vo
+ {
+     Widget *wh = WIDGET (h);
+     Widget *widget;
++    GList *current;
+ 
+     /* Don't accept 0 widgets */
+     if (w == NULL)
+@@ -867,7 +868,7 @@ add_widget_autopos (WDialog * h, void *w, widget_pos_flags_t pos_flags, const vo
+     if (h->widgets == NULL || before == NULL)
+     {
+         h->widgets = g_list_append (h->widgets, widget);
+-        h->current = g_list_last (h->widgets);
++        current = g_list_last (h->widgets);
+     }
+     else
+     {
+@@ -882,17 +883,19 @@ add_widget_autopos (WDialog * h, void *w, widget_pos_flags_t pos_flags, const vo
+         b = g_list_next (b);
+         h->widgets = g_list_insert_before (h->widgets, b, widget);
+         if (b != NULL)
+-            h->current = g_list_previous (b);
++            current = g_list_previous (b);
+         else
+-            h->current = g_list_last (h->widgets);
++            current = g_list_last (h->widgets);
+     }
+ 
+-    /* widget has been added in runtime */
++    /* widget has been added at runtime */
+     if (widget_get_state (wh, WST_ACTIVE))
+     {
+         send_message (widget, NULL, MSG_INIT, 0, NULL);
+-        widget_set_state (widget, WST_FOCUSED, TRUE);
++        widget_select (widget);
+     }
++    else
++        h->current = current;
+ 
+     return widget->id;
+ }
+-- 
+2.7.4
+

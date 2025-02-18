@@ -1,0 +1,286 @@
+diff -urN mc-4.7.1-old/lib/vfs/mc-vfs/fish.c mc-4.7.1-new/lib/vfs/mc-vfs/fish.c
+--- mc-4.7.1-old/lib/vfs/mc-vfs/fish.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1-new/lib/vfs/mc-vfs/fish.c	2010-03-27 10:23:30.000000000 +0000
+@@ -128,9 +128,12 @@
+ 
+ 	if (strncmp(answer, "### ", 4)) {
+ 	    was_garbage = 1;
+-	    if (string_buf)
++	    if (string_buf != NULL) {
+ 		g_strlcpy(string_buf, answer, string_len);
+-	} else return fish_decode_reply(answer+4, was_garbage);
++	    }
++	} else {
++            return fish_decode_reply (answer + 4, was_garbage);
++	}
+     }
+ }
+ 
+diff -urN mc-4.7.1-old/lib/vfs/mc-vfs/vfs.c mc-4.7.1-new/lib/vfs/mc-vfs/vfs.c
+--- mc-4.7.1-old/lib/vfs/mc-vfs/vfs.c	2010-02-26 09:29:51.000000000 +0000
++++ mc-4.7.1-new/lib/vfs/mc-vfs/vfs.c	2010-03-27 10:40:19.000000000 +0000
+@@ -537,35 +537,35 @@
+ {
+     int  mode;
+     void *info;
+-    va_list ap;
++    struct vfs_class *vfs;
++
++    file = vfs_canon_and_translate (filename);
++    if (file == NULL)
++	return -1;
+ 
+-    char *file = vfs_canon_and_translate (filename);
+-    if (file != NULL) {
+-    struct vfs_class *vfs = vfs_get_class (file);
++    vfs = vfs_get_class (file);
+ 
+     /* Get the mode flag */
+     if (flags & O_CREAT) {
+-    	va_start (ap, flags);
++    	va_list ap;
++    	va_start (ap, flags); 
+     	mode = va_arg (ap, int);
+     	va_end (ap);
+-    } else
++    } else {
+         mode = 0;
+-    
+-    if (!vfs->open) {
++    }
++    if (vfs->open == NULL) {
+ 	g_free (file);
+ 	errno = -EOPNOTSUPP;
+ 	return -1;
+     }
+-
+     info = (*vfs->open) (vfs, file, flags, mode);	/* open must be supported */
+     g_free (file);
+-    if (!info){
++    if (info == NULL) {
+ 	errno = ferrno (vfs);
+ 	return -1;
+     }
+-
+     return vfs_new_handle (vfs, info);
+-    } else return -1;
+ }
+ 
+ 
+@@ -575,7 +575,8 @@
+     struct vfs_class *vfs; \
+     int result; \
+     char *mpath = vfs_canon_and_translate (path); \
+-    if (mpath != NULL) { \
++    if (mpath == NULL) \
++	return -1; \
+     vfs = vfs_get_class (mpath); \
+     if (vfs == NULL){ \
+ 	g_free (mpath); \
+@@ -586,7 +587,6 @@
+     if (result == -1) \
+ 	errno = vfs->name ? ferrno (vfs) : E_NOTSUPP; \
+     return result; \
+-    } else return -1; \
+ }
+ 
+ MC_NAMEOP (chmod, (const char *path, mode_t mode), (vfs, mpath, mode))
+@@ -608,24 +608,26 @@
+     char *tmp;
+     
+     mpath = vfs_canon_and_translate (path); 
+-    if (mpath != NULL) {
+-        tmp = g_strdup (name1);
+-        lpath = vfs_translate_path_n (tmp);
+-        g_free (tmp);
+-    
+-        if (lpath != NULL) {
+-            vfs = vfs_get_class (mpath); 
+-            result = vfs->symlink ? (*vfs->symlink) (vfs, lpath, mpath) : -1;
+-            g_free (lpath);
+-            g_free (mpath);
+-
+-            if (result == -1) 
+-                errno = vfs->symlink ? ferrno (vfs) : E_NOTSUPP; 
+-            return result; 
+-        } 
+-        g_free (mpath); 
++    if (mpath == NULL)
++        return -1;
++
++    tmp = g_strdup (name1);
++    lpath = vfs_translate_path_n (tmp);
++    g_free (tmp);
++
++    if (lpath == NULL) {
++        g_free (mpath);
++        return -1;
+     }
+-    return -1;
++    vfs = vfs_get_class (mpath); 
++    result = vfs->symlink ? (*vfs->symlink) (vfs, lpath, mpath) : -1;
++    g_free (mpath);
++    g_free (lpath);
++
++    if (result == -1) 
++	errno = vfs->symlink ? ferrno (vfs) : E_NOTSUPP; 
++    
++    return result;
+ }
+ 
+ #define MC_HANDLEOP(name, inarg, callarg) \
+@@ -655,9 +657,13 @@
+     int result; \
+     char *name2, *name1; \
+     name1 = vfs_canon_and_translate (fname1); \
+-    if (name1 != NULL) { \
+-        name2 = vfs_canon_and_translate (fname2); \
+-        if (name2 != NULL) { \
++    if (name1 == NULL) \
++        return -1; \
++    name2 = vfs_canon_and_translate (fname2); \
++    if (name2 == NULL) { \
++        g_free (name1); \
++        return -1; \
++    } \
+     vfs = vfs_get_class (name1); \
+     if (vfs != vfs_get_class (name2)){ \
+     	errno = EXDEV; \
+@@ -671,11 +677,6 @@
+     if (result == -1) \
+         errno = vfs->name ? ferrno (vfs) : E_NOTSUPP; \
+     return result; \
+-    } else { \
+-        g_free (name1); \
+-        return -1; \
+-    } \
+-    } else return -1; \
+ }
+ 
+ MC_RENAMEOP (link)
+@@ -704,12 +705,13 @@
+ 	vfs_die("You don't want to pass NULL to mc_setctl.");
+     
+     mpath = vfs_canon_and_translate (path);
+-    if (mpath != NULL) {
++    if (mpath == NULL)
++	return -1;
++
+     vfs = vfs_get_class (mpath);
+     result = vfs->setctl ? (*vfs->setctl)(vfs, mpath, ctlop, arg) : 0;
+     g_free (mpath);
+     return result;
+-    } else return -1;
+ }
+ 
+ int
+@@ -752,7 +754,10 @@
+     canon = vfs_canon (dirname);
+     dname = vfs_translate_path_n (canon);
+ 
+-    if (dname != NULL) {
++    if (dname == NULL) {
++        g_free (canon);
++        return NULL;
++    }
+         vfs = vfs_get_class (dname);
+         info = vfs->opendir ? (*vfs->opendir)(vfs, dname) : NULL;
+         g_free (dname);
+@@ -777,10 +782,6 @@
+         handlep = g_new (int, 1);
+         *handlep = handle;
+         return (DIR *) handlep;
+-    } else {
+-        g_free (canon);
+-        return NULL;
+-    }
+ }
+ 
+ static struct dirent * mc_readdir_result = NULL;
+@@ -1070,8 +1071,11 @@
+ 
+     new_dir = vfs_canon (path);
+     trans_dir = vfs_translate_path_n (new_dir);
+-    if (trans_dir != NULL) {
+-        new_vfs = vfs_get_class (trans_dir);
++    if (trans_dir == NULL) {
++        g_free (new_dir);
++        return -1;
++    }
++    new_vfs = vfs_get_class (trans_dir);
+     if (!new_vfs->chdir) {
+     	g_free (new_dir);
+             g_free (trans_dir);
+@@ -1108,10 +1112,6 @@
+ 
+         g_free (trans_dir);
+     return 0;
+-    } else {
+-        g_free (new_dir);
+-        return -1;
+-    }
+ }
+ 
+ /* Return 1 is the current VFS class is local */
+@@ -1129,11 +1129,12 @@
+     char *fname;
+ 
+     fname = vfs_canon_and_translate (filename);
+-    if (fname != NULL) {
++    if (fname == NULL)
++	return -1;
++
+     vfs = vfs_get_class (fname);
+     g_free (fname);
+     return vfs->flags;
+-    } else return -1;
+ }
+ 
+ static char *
+@@ -1187,10 +1188,13 @@
+ {
+     char *result;
+     char *path;
++    struct vfs_class *vfs;
+             
+     path = vfs_canon_and_translate (pathname);
+-    if (path != NULL) {
+-    struct vfs_class *vfs = vfs_get_class (path);    
++    if (path == NULL)
++	return NULL;
++	
++    vfs = vfs_get_class (path);
+ 
+     result = vfs->getlocalcopy ? (*vfs->getlocalcopy)(vfs, path) :
+                                  mc_def_getlocalcopy (path);
+@@ -1198,7 +1202,6 @@
+     if (!result)
+ 	errno = ferrno (vfs);
+     return result;
+-    } else return NULL;
+ }
+ 
+ static int
+@@ -1253,17 +1256,19 @@
+ {
+     int return_value = 0;
+     char *path;
++    struct vfs_class *vfs;
+     
+     path = vfs_canon_and_translate (pathname);
+-    if (path != NULL) {
+-    struct vfs_class *vfs = vfs_get_class (path);
++    if (path == NULL)
++	return -1;
++	
++    vfs = vfs_get_class (path);
+ 
+     return_value = vfs->ungetlocalcopy ? 
+             (*vfs->ungetlocalcopy)(vfs, path, local, has_changed) :
+             mc_def_ungetlocalcopy (vfs, path, local, has_changed);
+     g_free (path);
+     return return_value;
+-    } else return -1;
+ }
+ 
+ 

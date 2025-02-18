@@ -1,0 +1,115 @@
+From 864c802da99c33658e86c8c3659dcaa6eb2708d5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 15:23:57 +0000
+Subject: [PATCH] filemanager/find.c: cleanup -Wcast-qual warning
+
+find.c:775:75: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+             *start_dir = in_start->buffer[0] != '\0' ? in_start->buffer : (char *) ".";
+                                                                           ^
+find.c: In function 'push_directory':
+find.c:829:36: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     g_queue_push_head (&dir_queue, (void *) dir);
+                                    ^
+find.c: In function 'find_rotate_dash':
+../../lib/widget/widget-common.h:13:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define WIDGET(x) ((Widget *)(x))
+                    ^
+find.c:1202:23: note: in expansion of macro 'WIDGET'
+     const Widget *w = WIDGET (h);
+                       ^
+find.c: In function 'find_calc_button_locations':
+../../lib/widget/widget-common.h:13:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define WIDGET(x) ((Widget *)(x))
+                    ^
+find.c:1432:22: note: in expansion of macro 'WIDGET'
+     const int cols = WIDGET (h)->cols;
+                      ^
+find.c: In function 'find_relocate_buttons':
+../../lib/widget/widget-common.h:13:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define WIDGET(x) ((Widget *)(x))
+                    ^
+find.c:1463:30: note: in expansion of macro 'WIDGET'
+         fbuts[i].button->x = WIDGET (h)->x + fbuts[i].x;
+                              ^
+find.c: In function 'do_find':
+find.c:1679:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     find_pattern = (char *) pattern;
+                    ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/find.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index e0956d0..4a3eccf 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -772,11 +772,11 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+ 
+             *content = (options.content_use && in_with->buffer[0] != '\0')
+                 ? g_strdup (in_with->buffer) : NULL;
+-            *start_dir = in_start->buffer[0] != '\0' ? in_start->buffer : (char *) ".";
++            *start_dir = in_start->buffer[0] != '\0' ? g_strdup (in_start->buffer) : g_strdup (".");
+             *pattern = g_strdup (in_name->buffer);
+             if (in_start_dir != INPUT_LAST_TEXT)
+                 g_free (in_start_dir);
+-            in_start_dir = g_strdup (*start_dir);
++            in_start_dir = *start_dir;
+ 
+             s = tilde_expand (*start_dir);
+             canonicalize_pathname (s);
+@@ -824,7 +824,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static inline void
+-push_directory (const vfs_path_t * dir)
++push_directory (vfs_path_t * dir)
+ {
+     g_queue_push_head (&dir_queue, (void *) dir);
+ }
+@@ -1199,7 +1199,7 @@ find_rotate_dash (const WDialog * h, gboolean show)
+ {
+     static size_t pos = 0;
+     static const char rotating_dash[4] = "|/-\\";
+-    const Widget *w = WIDGET (h);
++    const Widget *w = CWIDGET (h);
+ 
+     if (!verbose)
+         return;
+@@ -1429,7 +1429,7 @@ view_edit_currently_selected_file (gboolean unparsed_view, gboolean edit)
+ static void
+ find_calc_button_locations (const WDialog * h, gboolean all_buttons)
+ {
+-    const int cols = WIDGET (h)->cols;
++    const int cols = CWIDGET (h)->cols;
+ 
+     int l1, l2;
+ 
+@@ -1460,7 +1460,7 @@ find_relocate_buttons (const WDialog * h, gboolean all_buttons)
+     find_calc_button_locations (h, all_buttons);
+ 
+     for (i = 0; i < fbuts_num; i++)
+-        fbuts[i].button->x = WIDGET (h)->x + fbuts[i].x;
++        fbuts[i].button->x = CWIDGET (h)->x + fbuts[i].x;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1675,8 +1675,7 @@ do_find (const char *start_dir, ssize_t start_dir_len, const char *ignore_dirs,
+ 
+     setup_gui ();
+ 
+-    /* FIXME: Need to cleanup this, this ought to be passed non-globaly */
+-    find_pattern = (char *) pattern;
++    find_pattern = g_strdup (pattern);
+ 
+     content_pattern = NULL;
+     if (options.content_use && content != NULL && str_is_valid_string (content))
+@@ -1790,6 +1789,7 @@ do_find (const char *start_dir, ssize_t start_dir_len, const char *ignore_dirs,
+         }
+     }
+ 
++    g_free (find_pattern);
+     g_free (content_pattern);
+     kill_gui ();
+     do_search (NULL);           /* force do_search to release resources */

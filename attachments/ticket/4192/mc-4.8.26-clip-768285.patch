@@ -1,0 +1,50 @@
+https://bugs.gentoo.org/768285
+--- a/lib/tty/tty-ncurses.c
++++ b/lib/tty/tty-ncurses.c
+@@ -135,42 +135,46 @@ tty_clip (int *y, int *x, int *rows, int *cols)
+         *rows += *y;
+ 
+         if (*rows <= 0)
+             return FALSE;
+ 
+         *y = 0;
+     }
+ 
+     if (*x < 0)
+     {
+         *cols += *x;
+ 
+         if (*cols <= 0)
+             return FALSE;
+ 
+         *x = 0;
+     }
+ 
+     if (*y + *rows > LINES)
+         *rows = LINES - *y;
++    if (*rows <= 0)
++        return FALSE;
+     if (*x + *cols > COLS)
+         *cols = COLS - *x;
++    if (*cols <= 0)
++        return FALSE;
+ 
+     return TRUE;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ int
+ mc_tty_normalize_lines_char (const char *ch)
+ {
+     char *str2;
+     int res;
+ 
+     struct mc_tty_lines_struct
+     {
+         const char *line;
+         int line_code;
+     } const lines_codes[] = {
+         {"\342\224\230", ACS_LRCORNER}, /* ┌ */

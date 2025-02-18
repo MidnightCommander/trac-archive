@@ -1,0 +1,33 @@
+From 911d906fd9cce8471249fa3e3489c93ace3259d2 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 26 Jan 2017 18:40:14 +0200
+Subject: [PATCH] Ticket #3766: add_widget_autopos() doesn't remove focus from
+ the previously focused widget.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ lib/widget/dialog.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index 6dc6252..0a7aa7e 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -864,6 +864,14 @@ add_widget_autopos (WDialog * h, void *w, widget_pos_flags_t pos_flags, const vo
+     widget->pos_flags = pos_flags;
+     widget->id = h->widget_id++;
+ 
++    /* widget is to be added in runtime */
++    if (widget_get_state (wh, WST_ACTIVE))
++    {
++        /* clear focus from the soon-to-be inactive widget. */
++        if (h->current != NULL)
++            widget_set_state (h->current->data, WST_FOCUSED, FALSE);
++    }
++
+     if (h->widgets == NULL || before == NULL)
+     {
+         h->widgets = g_list_append (h->widgets, widget);
+-- 
+2.9.3
+

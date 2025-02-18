@@ -1,0 +1,51 @@
+
+fix memleak at editor/editcmd_dialogs.c:editcmd_dialog_search_show()
+
+edit->last_search_string never freed when editor closed
+
+found by LeakSanitizer
+
+Direct leak of 8 byte(s) in 1 object(s) allocated from:
+    #0 0x4d60a5 in realloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d60a5)
+    #1 0x7f9bc7bfe90d in g_realloc (/usr/lib64/libglib-2.0.so.0+0x6790d)
+    #2 0x7f9bc7c28493 in g_string_sized_new (/usr/lib64/libglib-2.0.so.0+0x91493)
+    #3 0x7f9bc7c28e82 in g_string_new (/usr/lib64/libglib-2.0.so.0+0x91e82)
+    #4 0x747de3 in editcmd_dialog_search_show /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editcmd_dialogs.c:152:15
+    #5 0x73caa2 in edit_search /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editcmd.c:1037:9
+    #6 0x70e518 in edit_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3817:9
+    #7 0x70bfc6 in edit_execute_key_command /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3223:5
+    #8 0x76459a in edit_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1136:17
+    #9 0x519c47 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #10 0x531415 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #11 0x52fbfa in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #12 0x530546 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #13 0x530165 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #14 0x76240a in edit_files /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1255:9
+    #15 0x761988 in edit_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1194:10
+    #16 0x7a6bcb in edit_file_at_line /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:701:9
+    #17 0x7dbcbf in find_do_view_edit /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1359:9
+    #18 0x7db810 in view_edit_currently_selected_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1379:5
+    #19 0x52fbea in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:505:15
+    #20 0x530546 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #21 0x530165 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #22 0x7d850e in run_process /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1604:11
+    #23 0x7d4a83 in do_find /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1645:20
+    #24 0x7d2102 in find_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1780:13
+    #25 0x5a688e in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1209:9
+    #26 0x5a2704 in midnight_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1559:21
+    #27 0x52fcae in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:519:19
+    #28 0x530546 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #29 0x530165 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -2194,6 +2194,7 @@
+     vfs_path_free (edit->filename_vpath);
+     vfs_path_free (edit->dir_vpath);
+     mc_search_free (edit->search);
++    g_free (edit->last_search_string);
+     edit->search = NULL;
+ 
+ #ifdef HAVE_CHARSET

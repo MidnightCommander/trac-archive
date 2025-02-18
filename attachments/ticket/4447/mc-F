@@ -1,0 +1,20 @@
+Home directory: /home/bernward
+Profile root directory: /home/bernward
+
+[System data]
+    Config directory: /etc/mc/
+    Data directory:   /usr/local/share/mc/
+    File extension handlers: /usr/local/libexec/mc/ext.d/
+    VFS plugins and scripts: /usr/local/libexec/mc/
+	extfs.d:        /usr/local/libexec/mc/extfs.d/
+	fish:           /usr/local/libexec/mc/fish/
+
+[User data]
+    Config directory: /home/bernward/.config/mc/
+    Data directory:   /home/bernward/.local/share/mc/
+	skins:          /home/bernward/.local/share/mc/skins/
+	extfs.d:        /home/bernward/.local/share/mc/extfs.d/
+	fish:           /home/bernward/.local/share/mc/fish/
+	mcedit macros:  /home/bernward/.local/share/mc/mc.macros
+	mcedit external macros: /home/bernward/.local/share/mc/mcedit/macros.d/macro.*
+    Cache directory:  /home/bernward/.cache/mc/

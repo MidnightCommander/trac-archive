@@ -1,0 +1,92 @@
+From 65a7fe564d7043e93d8676adbe582ef3891ebd78 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 17 Dec 2024 15:00:00 +0000
+Subject: [PATCH] (autogen.sh) improve POTFILES.in creating
+
+ - current POTFILES.in file detection can output wrong filename
+     xgettext output
+     #: src/background.c:221 src/filemanager/file.c:858 src/filemanager/file.c:952
+     result in
+     src/background.csrc/filemanager/file.csrc/filemanager/file.c
+ - simplify POTFILES.in file detection by using grep only
+ - find command search files only
+ - find/grep option should be Solaris OS friendly (please verify)
+ - move POTFILES.in creating to configure.ac (more BUILD friendly and future autogen.sh get rid possibility)
+ - autoconf AC_CONFIG_COMMANDS_POST support since <2.64
+ - comparing current vs simplify grep file detection result in additional files:
+    lib/search/regex.c
+    lib/widget/history.c
+    lib/widget/quick.h
+    src/diffviewer/internal.h
+    src/diffviewer/search.c
+    src/editor/editdraw.c
+    src/editor/etags.c
+    src/filemanager/command.c
+    src/vfs/tar/tar.c
+    src/viewer/lib.c
+    tests/src/execute__common.c
+    tests/src/execute__execute_with_vfs_arg.c
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ autogen.sh               | 11 -----------
+ configure.ac             |  4 ++++
+ po/create-potfiles_in.sh |  7 +++++++
+ 3 files changed, 11 insertions(+), 11 deletions(-)
+ create mode 100755 po/create-potfiles_in.sh
+
+diff --git a/autogen.sh b/autogen.sh
+index a37064c6a..4639915bb 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -13,17 +13,6 @@ ${AUTORECONF:-autoreconf} --verbose --install --force -I m4 ${AUTORECONF_FLAGS}
+ # Customize the INSTALL file
+ rm -f INSTALL && ln -s doc/INSTALL .
+ 
+-# Generate po/POTFILES.in
+-if ! xgettext -h 2>&1 | grep -- '--keyword' >/dev/null ; then
+-  echo "gettext is unable to extract translations, set XGETTEXT to GNU gettext!" >&2
+-  touch po/POTFILES.in
+-else
+-  ${XGETTEXT:-xgettext} --keyword=_ --keyword=N_ --keyword=Q_ --output=- \
+-	`find . -name '*.[ch]'` | ${SED-sed} -ne '/^#:/{s/#://;s/:[0-9]*/\
+-/g;s/ //g;p;}' | \
+-	grep -v '^$' | sort | uniq >po/POTFILES.in
+-fi
+-
+ "$srcdir/version.sh" "$srcdir"
+ 
+ if test -x "$srcdir/configure.mc"; then
+diff --git a/configure.ac b/configure.ac
+index a3761a4ee..4883def37 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -736,6 +736,10 @@ tests/src/vfs/extfs/helpers-list/misc/Makefile
+ tests/src/vfs/ftpfs/Makefile
+ ])
+ 
++AC_CONFIG_COMMANDS_POST([
++"${srcdir}"/po/create-potfiles_in.sh "${srcdir}"
++])
++
+ AC_OUTPUT
+ 
+ AC_MSG_NOTICE([
+diff --git a/po/create-potfiles_in.sh b/po/create-potfiles_in.sh
+new file mode 100755
+index 000000000..5f36d2907
+--- /dev/null
++++ b/po/create-potfiles_in.sh
+@@ -0,0 +1,12 @@
++#!/bin/sh
++set -e
++
++if [ -z "$1" ] ;then
++    echo "usage: $0 <toplevel-source-dir>"
++    exit 1
++fi
++
++cd "$1" && \
++    "${FIND:-find}" . -type f -name '*.[ch]' -exec \
++    "${GREP:-grep}" -l '_\s*(\s*"' {} + | \
++    "${SORT:-sort}" | "${UNIQ:-uniq}" > po/POTFILES.in

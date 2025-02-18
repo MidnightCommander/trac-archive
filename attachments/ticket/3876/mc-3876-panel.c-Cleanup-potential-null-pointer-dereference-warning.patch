@@ -1,0 +1,33 @@
+From 4a72f11b272e8c30ef2102eda94ba50f8f1728a1 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 3 Jan 2018 17:22:59 +0000
+Subject: [PATCH] (pannel.c) Cleanup potential null pointer dereference warning
+
+Found by GCC 6.4.0.
+
+panel.c: In function 'panel_reload':
+panel.c:4188:40: warning: potential null pointer dereference [-Wnull-dereference]
+         if (IS_PATH_SEP (panel_cwd_path[0]) && panel_cwd_path[1] == '\0')
+
+../../lib/global.h:132:26: note: in definition of macro 'IS_PATH_SEP'
+ #define IS_PATH_SEP(c) ((c) == PATH_SEP)
+                          ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/panel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index a3d88b8a8..c653b821d 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -4185,7 +4185,7 @@ panel_recursive_cd_to_parent (const vfs_path_t * vpath)
+ 
+         /* check if path contains only '/' */
+         panel_cwd_path = vfs_path_as_str (cwd_vpath);
+-        if (IS_PATH_SEP (panel_cwd_path[0]) && panel_cwd_path[1] == '\0')
++        if (panel_cwd_path != NULL && IS_PATH_SEP (panel_cwd_path[0]) && panel_cwd_path[1] == '\0')
+             return NULL;
+ 
+         tmp_vpath = vfs_path_vtokens_get (cwd_vpath, 0, -1);

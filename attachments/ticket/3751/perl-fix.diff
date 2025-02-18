@@ -1,0 +1,67 @@
+diff --git a/tests/src/vfs/extfs/helpers-list/data/rpm.custom.env_vars b/tests/src/vfs/extfs/helpers-list/data/rpm.custom.env_vars
+index c08b141..a740c64 100644
+--- a/tests/src/vfs/extfs/helpers-list/data/rpm.custom.env_vars
++++ b/tests/src/vfs/extfs/helpers-list/data/rpm.custom.env_vars
+@@ -1,4 +1,3 @@
+-MC_TEST_INPUT="$INPUT"   # export it.
+-MC_TEST_RPM_REWRITE="$DATA_DIR/rpm.rewrite.sh"
++MC_TEST_RPM_REWRITE="$MC_TEST_EXTFS_DATA_DIR/rpm.rewrite.sh"
+ 
+ MCFASTRPM=               # disable "fast mode".
+diff --git a/tests/src/vfs/extfs/helpers-list/data/rpm.glib.env_vars b/tests/src/vfs/extfs/helpers-list/data/rpm.glib.env_vars
+index c08b141..a740c64 100644
+--- a/tests/src/vfs/extfs/helpers-list/data/rpm.glib.env_vars
++++ b/tests/src/vfs/extfs/helpers-list/data/rpm.glib.env_vars
+@@ -1,4 +1,3 @@
+-MC_TEST_INPUT="$INPUT"   # export it.
+-MC_TEST_RPM_REWRITE="$DATA_DIR/rpm.rewrite.sh"
++MC_TEST_RPM_REWRITE="$MC_TEST_EXTFS_DATA_DIR/rpm.rewrite.sh"
+ 
+ MCFASTRPM=               # disable "fast mode".
+diff --git a/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh b/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh
+index a6c4932..7828038 100644
+--- a/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh
++++ b/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh
+@@ -5,7 +5,9 @@
+ #
+ 
+ # The tags file.
+-TAGSF="$MC_TEST_INPUT"
++TAGSF="$MC_TEST_EXTFS_INPUT"
++
++. "$MC_TEST_EXTFS_CONFIG_SH"  # Gain access to $PERL.
+ 
+ # ----------------------------------------------------------------------------
+ 
+@@ -18,7 +20,7 @@ TAGSF="$MC_TEST_INPUT"
+ #
+ mcrpmfs_getSupportedTags()
+ {
+-  perl -e '
++  $PERL -e '
+     $tagsf = $ARGV[0];
+ 
+     do $tagsf or die("$tagsf: $!");
+@@ -39,7 +41,7 @@ mcrpmfs_getSupportedTags()
+ #
+ rpm_qf()
+ {
+-  perl -w -e '
++  $PERL -w -e '
+     $tagsf = $ARGV[0];
+     $tmplt = $ARGV[1];
+ 
+diff --git a/tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags b/tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags.pl
+old mode 100755
+new mode 100644
+similarity index 93%
+rename from tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags
+rename to tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags.pl
+index b3c80cd..c776407
+--- a/tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags
++++ b/tests/src/vfs/extfs/helpers-list/misc/rpm/rpm2tags.pl
+@@ -1,4 +1,3 @@
+-#!/usr/bin/perl
+ use strict;
+ use warnings;
+ use Data::Dumper;

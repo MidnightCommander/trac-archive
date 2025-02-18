@@ -1,0 +1,110 @@
+diff -uNr mc-4.8.9/src/filemanager/find.c mc-4.8.9.status/src/filemanager/find.c
+--- mc-4.8.9/src/filemanager/find.c	2013-08-03 00:30:11.341477523 +0400
++++ mc-4.8.9.status/src/filemanager/find.c	2013-08-04 15:57:14.831628014 +0400
+@@ -38,6 +38,8 @@
+ #include <string.h>
+ #include <fcntl.h>
+ #include <sys/stat.h>
++#include <unistd.h>
++#include <signal.h>
+ 
+ #include "lib/global.h"
+ 
+@@ -154,6 +156,8 @@
+ static int last_line;
+ static int last_pos;
+ 
++static gboolean refresh_status;
++
+ static size_t ignore_count = 0;
+ 
+ static WDialog *find_dlg;       /* The dialog */
+@@ -1013,6 +1017,12 @@
+     return FIND_CONT;
+ }
+ 
++/* use alarm to make status updates only once per second */
++void set_refresh_and_alarm(int sig) {
++    refresh_status = TRUE;
++    alarm(1);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * search_content:
+@@ -1047,11 +1057,6 @@
+     if (file_fd == -1)
+         return FALSE;
+ 
+-    g_snprintf (buffer, sizeof (buffer), _("Grepping in %s"), filename);
+-    status_update (str_trunc (buffer, WIDGET (h)->cols - 8));
+-
+-    mc_refresh ();
+-
+     tty_enable_interrupt_key ();
+     tty_got_interrupt ();
+ 
+@@ -1064,6 +1069,7 @@
+         gboolean found = FALSE;
+         gsize found_len;
+         char result[BUF_MEDIUM];
++        gboolean status_updated = FALSE;
+ 
+         if (resuming)
+         {
+@@ -1076,6 +1082,13 @@
+                && (p = get_line_at (file_fd, buffer, sizeof (buffer),
+                                     &pos, &n_read, &has_newline)) != NULL)
+         {
++            if (refresh_status == TRUE && status_updated == FALSE) {
++                g_snprintf (buffer, sizeof (buffer), _("Grepping in %s/%s"), directory, filename);
++                status_update (str_trunc (buffer, WIDGET (h)->cols - 8));
++                mc_refresh ();
++                status_updated = TRUE;
++                refresh_status = FALSE;
++            }
+             if (!found          /* Search in binary line once */
+                 && mc_search_run (search_content_handle,
+                                   (const void *) p, 0, strlen (p), &found_len))
+@@ -1282,6 +1295,7 @@
+                 g_free (directory);
+                 directory = g_strdup (vfs_path_as_str (tmp_vpath));
+ 
++                /* //directory is shown along with file name now
+                 if (verbose)
+                 {
+                     char buffer[BUF_MEDIUM];
+@@ -1289,6 +1303,7 @@
+                     g_snprintf (buffer, sizeof (buffer), _("Searching %s"), directory);
+                     status_update (str_trunc (directory, WIDGET (h)->cols - 8));
+                 }
++                */
+                 /* mc_stat should not be called after mc_opendir
+                    because vfs_s_opendir modifies the st_nlink
+                  */
+@@ -1669,7 +1684,6 @@
+ {
+     int return_value = 0;
+     char *dir_tmp = NULL, *file_tmp = NULL;
+-
+     setup_gui ();
+ 
+     /* FIXME: Need to cleanup this, this ought to be passed non-globaly */
+@@ -1679,6 +1693,9 @@
+     if (options.content_use && content != NULL && str_is_valid_string (content))
+         content_pattern = g_strdup (content);
+ 
++    signal(SIGALRM, set_refresh_and_alarm);
++    set_refresh_and_alarm(SIGALRM);
++
+     init_find_vars ();
+     parse_ignore_dirs (ignore_dirs);
+     push_directory (vfs_path_from_str (start_dir));
+@@ -1794,6 +1811,7 @@
+     g_free (old_dir);
+     old_dir = NULL;
+     rotate_dash (FALSE);
++    alarm(0);
+ 
+     return return_value;
+ }

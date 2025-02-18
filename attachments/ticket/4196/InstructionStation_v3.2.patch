@@ -1,0 +1,1759 @@
+From 3a101ba6fc4d0b800e56d8208c9581ce8dbc923b Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Wed, 10 Feb 2021 13:41:35 -0600
+Subject: =?UTF-8?q?Instruction=20Station=20=E2=80=93=20a=20CLI=20window=20?=
+ =?UTF-8?q?for=20MCEdit?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ lib/global.h               |   3 +
+ lib/keybind.c              |   1 +
+ lib/keybind.h              |   1 +
+ lib/tty/key.c              |  10 +-
+ misc/mc.default.keymap     |   1 +
+ misc/mc.emacs.keymap       |   1 +
+ src/editor/Makefile.am     |   1 +
+ src/editor/edit-impl.h     |  15 +-
+ src/editor/edit.c          |  27 +-
+ src/editor/editcmd.c       |   9 +
+ src/editor/editdraw.c      |   1 -
+ src/editor/editmenu.c      |   3 +
+ src/editor/editwidget.c    | 581 ++++++++++++++++----------------
+ src/editor/editwidget.h    |   3 +
+ src/editor/instr_station.c | 668 +++++++++++++++++++++++++++++++++++++
+ src/editor/instr_station.h |  86 +++++
+ src/history.h              |   1 +
+ src/keybind-defaults.c     |   1 +
+ 18 files changed, 1121 insertions(+), 292 deletions(-)
+ create mode 100644 src/editor/instr_station.c
+ create mode 100644 src/editor/instr_station.h
+
+diff --git a/lib/global.h b/lib/global.h
+index f1a3e702c..1f76061c6 100644
+--- a/lib/global.h
++++ b/lib/global.h
+@@ -103,6 +103,9 @@
+ #include "lib/logging.h"
+ #endif
+ 
++#define has_flag(x,y) (((x) & (y)) != 0)
++#define set_flag_in(x,y) ((x) |= (y))
++
+ /* Just for keeping Your's brains from invention a proper size of the buffer :-) */
+ #define BUF_10K 10240L
+ #define BUF_8K  8192L
+diff --git a/lib/keybind.c b/lib/keybind.c
+index 65ac5f15c..2f9d3cf29 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -300,6 +300,7 @@ static name_keymap_t command_names_start[] = {
+     ADD_KEYMAP_NAME (EditMail),
+     ADD_KEYMAP_NAME (ParagraphFormat),
+     ADD_KEYMAP_NAME (MatchBracket),
++    ADD_KEYMAP_NAME (InstructionStation),
+     ADD_KEYMAP_NAME (ExternalCommand),
+     ADD_KEYMAP_NAME (MacroStartRecord),
+     ADD_KEYMAP_NAME (MacroStopRecord),
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 4e954ade2..18c7d95e4 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -324,6 +324,7 @@ enum
+     CK_SyntaxOnOff,
+     CK_SyntaxChoose,
+     CK_InsertLiteral,
++    CK_InstructionStation,
+     CK_ExternalCommand,
+     CK_Date,
+     CK_EditMail,
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 58a2f018b..cec17801a 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -2031,7 +2031,13 @@ tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
+             time_out.tv_sec = 0;
+             time_out.tv_usec = 0;
+         }
+-
++        else if (time_addr == NULL)
++        {
++            /* Standard timeout to call GLib main loop */
++            time_addr = &time_out;
++            time_addr->tv_sec = 0;
++            time_addr->tv_usec = 200000;
++        }
+         tty_enable_interrupt_key ();
+         flag = select (nfd, &select_set, NULL, NULL, time_addr);
+         tty_disable_interrupt_key ();
+@@ -2043,6 +2049,8 @@ tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
+          */
+         if (flag == 0)
+         {
++            /* Provide CPU time to GLib main loop's default context */
++            g_main_context_iteration (NULL, 0);
+             if (redo_event)
+                 return EV_MOUSE;
+             if (!block || tty_got_winch ())
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 73b4c0eab..a7269d07f 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -352,6 +352,7 @@ Sort = alt-t
+ Mail = alt-m
+ ParagraphFormat = alt-p
+ MatchBracket = alt-b
++InstructionStation = alt-i
+ ExternalCommand = alt-u
+ UserMenu = f11
+ Menu = f9
+diff --git a/misc/mc.emacs.keymap b/misc/mc.emacs.keymap
+index 955929444..98412b75f 100644
+--- a/misc/mc.emacs.keymap
++++ b/misc/mc.emacs.keymap
+@@ -351,6 +351,7 @@ Sort = alt-t
+ # Mail =
+ ParagraphFormat = alt-p
+ # MatchBracket =
++InstructionStation = alt-i
+ ExternalCommand = alt-u
+ UserMenu = f11
+ Menu = f9
+diff --git a/src/editor/Makefile.am b/src/editor/Makefile.am
+index 235ed76af..0ac4b4af7 100644
+--- a/src/editor/Makefile.am
++++ b/src/editor/Makefile.am
+@@ -18,6 +18,7 @@ libedit_la_SOURCES = \
+ 	editmenu.c \
+ 	editoptions.c \
+ 	editwidget.c editwidget.h \
++	instr_station.c instr_station.h \
+ 	etags.c etags.h \
+ 	format.c \
+ 	syntax.c
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 881ef549b..eedd98952 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -88,6 +88,12 @@ typedef enum
+     LB_MAC
+ } LineBreaks;
+ 
++typedef enum
++{
++    EDIT_DO_INIT_BASE_CLASS = 1 << 0,
++
++} edit_init_flags_t;
++
+ typedef enum
+ {
+     EDIT_QUICK_SAVE = 0,
+@@ -146,6 +152,11 @@ extern char *edit_window_state_char;
+ extern char *edit_window_close_char;
+ 
+ /*** declarations of public functions ************************************************************/
++cb_ret_t edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data);
++cb_ret_t edit_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data);
++cb_ret_t edit_dialog_command_execute (WDialog * h, long command);
++
++void edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event);
+ 
+ gboolean edit_add_window (WDialog * h, int y, int x, int lines, int cols,
+                           const vfs_path_t * f, long fline);
+@@ -169,6 +180,7 @@ void edit_move_to_prev_col (WEdit * edit, off_t p);
+ long edit_get_col (const WEdit * edit);
+ void edit_update_curs_row (WEdit * edit);
+ void edit_update_curs_col (WEdit * edit);
++gboolean edit_newline_end_check_only (const WEdit * edit);
+ void edit_find_bracket (WEdit * edit);
+ gboolean edit_reload_line (WEdit * edit, const vfs_path_t * filename_vpath, long line);
+ void edit_set_codeset (WEdit * edit);
+@@ -180,6 +192,7 @@ void edit_delete_line (WEdit * edit);
+ 
+ int edit_delete (WEdit * edit, gboolean byte_delete);
+ int edit_backspace (WEdit * edit, gboolean byte_delete);
++void edit_insert_string (WEdit * edit, char *str_text, gsize len);
+ void edit_insert (WEdit * edit, int c);
+ void edit_insert_over (WEdit * edit);
+ void edit_cursor_move (WEdit * edit, off_t increment);
+@@ -193,7 +206,7 @@ char *edit_get_write_filter (const vfs_path_t * write_name_vpath,
+ gboolean edit_save_confirm_cmd (WEdit * edit);
+ gboolean edit_save_as_cmd (WEdit * edit);
+ WEdit *edit_init (WEdit * edit, int y, int x, int lines, int cols,
+-                  const vfs_path_t * filename_vpath, long line);
++                  const vfs_path_t * filename_vpath, long line, edit_init_flags_t flags);
+ gboolean edit_clean (WEdit * edit);
+ gboolean edit_ok_to_exit (WEdit * edit);
+ file_suitable_rank_t edit_check_file_suitable (const vfs_path_t * fs_path);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 8477939aa..ea193a8de 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -652,8 +652,8 @@ edit_modification (WEdit * edit)
+ {
+     edit->caches_valid = FALSE;
+ 
+-    /* raise lock when file modified */
+-    if (!edit->modified && !edit->delete_file)
++    /* raise lock when file is about to be modified */
++    if (edit->filename_vpath && !edit->modified && !edit->delete_file)
+         edit->locked = lock_file (edit->filename_vpath);
+     edit->modified = 1;
+ }
+@@ -2106,7 +2106,7 @@ edit_insert_file (WEdit * edit, const vfs_path_t * filename_vpath)
+ 
+ WEdit *
+ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * filename_vpath,
+-           long line)
++           long line, edit_init_flags_t flags)
+ {
+     gboolean to_free = FALSE;
+ 
+@@ -2128,11 +2128,14 @@ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * f
+         edit->fullscreen = fullscreen;
+         edit->loc_prev = loc_prev;
+     }
+-    else
++    if (has_flag (flags, EDIT_DO_INIT_BASE_CLASS) || edit == NULL)
+     {
+         Widget *w;
+-        edit = g_malloc0 (sizeof (WEdit));
+-        to_free = TRUE;
++        if (edit == NULL)
++        {
++            edit = g_malloc0 (sizeof (WEdit));
++            to_free = TRUE;
++        }
+ 
+         w = WIDGET (edit);
+         widget_init (w, y, x, lines, cols, NULL, NULL);
+@@ -2271,7 +2274,7 @@ edit_reload_line (WEdit * edit, const vfs_path_t * filename_vpath, long line)
+     e->fullscreen = edit->fullscreen;
+     e->loc_prev = edit->loc_prev;
+ 
+-    if (edit_init (e, w->y, w->x, w->lines, w->cols, filename_vpath, line) == NULL)
++    if (edit_init (e, w->y, w->x, w->lines, w->cols, filename_vpath, line, 0) == NULL)
+     {
+         g_free (e);
+         return FALSE;
+@@ -2528,6 +2531,16 @@ edit_push_redo_action (WEdit * edit, long c)
+         edit->redo_stack_bottom = edit->redo_stack_pointer = 0;
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++
++void
++edit_insert_string (WEdit * edit, char *str_text, gsize len)
++{
++    size_t i;
++    for (i = 0; i < len; i++)
++        edit_insert (edit, str_text[i]);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+    Basic low level single character buffer alterations and movements at the cursor.
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index be58f3db7..7318aebd5 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1573,6 +1573,15 @@ edit_complete_word_insert_recoded_completion (WEdit * edit, char *completion, gs
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++gboolean
++edit_newline_end_check_only (const WEdit * e)
++{
++    const edit_buffer_t *buf = &e->buffer;
++    return (buf->size > 0 && edit_buffer_get_byte (buf, buf->size - 1) == '\n');
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ edit_refresh_cmd (void)
+ {
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 61bbdcbee..80495dcd0 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -820,7 +820,6 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+     }
+ 
+     p->ch = 0;
+-
+     print_to_widget (edit, row, start_col, start_col_real, end_col, line, line_stat, book_mark);
+ }
+ 
+diff --git a/src/editor/editmenu.c b/src/editor/editmenu.c
+index c20e9fb7e..0c8e60801 100644
+--- a/src/editor/editmenu.c
++++ b/src/editor/editmenu.c
+@@ -238,6 +238,9 @@ create_window_menu (void)
+     entries = g_list_prepend (entries, menu_entry_create (_("&Next"), CK_WindowNext));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Previous"), CK_WindowPrev));
+     entries = g_list_prepend (entries, menu_entry_create (_("&List..."), CK_WindowList));
++    entries =
++        g_list_prepend (entries,
++                        menu_entry_create (_("Instr&uction Station"), CK_InstructionStation));
+ 
+     return g_list_reverse (entries);
+ }
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index e32541cd9..bbc4e4af8 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -68,6 +68,7 @@
+ #ifdef HAVE_ASPELL
+ #include "spell.h"
+ #endif
++#include "src/editor/instr_station.h"
+ 
+ /*** global variables ****************************************************************************/
+ 
+@@ -86,8 +87,20 @@ static unsigned int edit_dlg_init_refcounter = 0;
+ 
+ /*** file scope functions ************************************************************************/
+ 
+-static cb_ret_t edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
+-                                      void *data);
++/* --------------------------------------------------------------------------------------------- */
++/* Creates a CLI special window, windowed (not fullscreen) */
++
++static gboolean
++edit_add_instr_stat_window (WDialog * h)
++{
++    WInstructionStation *ip;
++    ip = instr_stat_create (3, 10, 17, 80, "/bin/bash");
++    if (ip == NULL)
++        return FALSE;
++    group_add_widget_autopos (GROUP (h), ip, WPOS_KEEP_ALL, NULL);
++    widget_draw (WIDGET (h));
++    return TRUE;
++}
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -634,133 +647,6 @@ edit_get_title (const WDialog * h, size_t len)
+     return g_strconcat (_("Edit: "), modified, file_label, (char *) NULL);
+ }
+ 
+-/* --------------------------------------------------------------------------------------------- */
+-
+-static cb_ret_t
+-edit_dialog_command_execute (WDialog * h, long command)
+-{
+-    WGroup *g = GROUP (h);
+-    Widget *wh = WIDGET (h);
+-    cb_ret_t ret = MSG_HANDLED;
+-
+-    switch (command)
+-    {
+-    case CK_EditNew:
+-        edit_add_window (h, wh->y + 1, wh->x, wh->lines - 2, wh->cols, NULL, 0);
+-        break;
+-    case CK_EditFile:
+-        edit_load_cmd (h, NULL);
+-        break;
+-    case CK_OtherFile:
+-        {
+-            WEdit *e = (WEdit *) g->current->data;
+-            gboolean retflag = FALSE;
+-
+-            if (e != NULL && edit_widget_is_editor (CONST_WIDGET (e)))
+-            {
+-                retflag = edit_compute_other_file_vfs_path (e);
+-                if (retflag)
+-                    retflag = edit_switch_to_file (h, e->otherfile_vpath);
+-            }
+-            if (!retflag)
+-                ret = MSG_NOT_HANDLED;
+-        }
+-        break;
+-    case CK_History:
+-        edit_load_file_from_history (h);
+-        break;
+-    case CK_EditSyntaxFile:
+-        edit_load_syntax_file (h);
+-        break;
+-    case CK_EditUserMenu:
+-        edit_load_menu_file (h);
+-        break;
+-    case CK_Close:
+-        /* if there are no opened files anymore, close MC editor */
+-        if (edit_widget_is_editor (CONST_WIDGET (g->current->data)) &&
+-            edit_close_cmd ((WEdit *) g->current->data) && find_editor (h) == NULL)
+-            dlg_stop (h);
+-        break;
+-    case CK_Help:
+-        edit_help ();
+-        /* edit->force |= REDRAW_COMPLETELY; */
+-        break;
+-    case CK_Menu:
+-        edit_menu_cmd (h);
+-        break;
+-    case CK_Quit:
+-    case CK_Cancel:
+-        /* don't close editor due to SIGINT, but stop move/resize window */
+-        {
+-            Widget *w = WIDGET (g->current->data);
+-
+-            if (edit_widget_is_editor (w) && ((WEdit *) w)->drag_state != MCEDIT_DRAG_NONE)
+-                edit_restore_size ((WEdit *) w);
+-            else if (command == CK_Quit)
+-                dlg_stop (h);
+-        }
+-        break;
+-    case CK_About:
+-        edit_about ();
+-        break;
+-    case CK_SyntaxOnOff:
+-        edit_syntax_onoff_cmd (h);
+-        break;
+-    case CK_ShowTabTws:
+-        edit_show_tabs_tws_cmd (h);
+-        break;
+-    case CK_ShowMargin:
+-        edit_show_margin_cmd (h);
+-        break;
+-    case CK_ShowNumbers:
+-        edit_show_numbers_cmd (h);
+-        break;
+-    case CK_Refresh:
+-        edit_refresh_cmd ();
+-        break;
+-    case CK_Shell:
+-        toggle_subshell ();
+-        break;
+-    case CK_LearnKeys:
+-        learn_keys ();
+-        break;
+-    case CK_WindowMove:
+-    case CK_WindowResize:
+-        if (edit_widget_is_editor (CONST_WIDGET (g->current->data)))
+-            edit_handle_move_resize ((WEdit *) g->current->data, command);
+-        break;
+-    case CK_WindowList:
+-        edit_window_list (h);
+-        break;
+-    case CK_WindowCascade:
+-        edit_window_cascade (h);
+-        break;
+-    case CK_WindowTile:
+-        edit_window_tile (h);
+-        break;
+-    case CK_WindowNext:
+-        group_select_next_widget (g);
+-        break;
+-    case CK_WindowPrev:
+-        group_select_prev_widget (g);
+-        break;
+-    case CK_Options:
+-        edit_options_dialog (h);
+-        break;
+-    case CK_OptionsSaveMode:
+-        edit_save_mode_cmd ();
+-        break;
+-    case CK_SaveSetup:
+-        save_setup_cmd ();
+-        break;
+-    default:
+-        ret = MSG_NOT_HANDLED;
+-        break;
+-    }
+-
+-    return ret;
+-}
+-
+ /* --------------------------------------------------------------------------------------------- */
+ /*
+  * Translate the keycode into either 'command' or 'char_for_insertion'.
+@@ -1019,9 +905,289 @@ edit_update_cursor (WEdit * edit, const mouse_event_t * event)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-/** Callback for the edit dialog */
++
++/**
++ * Handle mouse events of editor screen.
++ *
++ * @param w Widget object (the editor)
++ * @param msg mouse event message
++ * @param event mouse event data
++ */
++static void
++edit_dialog_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
++{
++    gboolean unhandled = TRUE;
++
++    if (msg == MSG_MOUSE_DOWN && event->y == 0)
++    {
++        WGroup *g = GROUP (w);
++        WDialog *h = DIALOG (w);
++        WMenuBar *b;
++
++        b = find_menubar (h);
++
++        if (!widget_get_state (WIDGET (b), WST_FOCUSED))
++        {
++            /* menubar */
++
++            GList *l;
++            GList *top = NULL;
++            int x;
++
++            /* Try find top fullscreen window */
++            for (l = g->widgets; l != NULL; l = g_list_next (l))
++                if (edit_widget_is_editor (CONST_WIDGET (l->data))
++                    && ((WEdit *) l->data)->fullscreen)
++                    top = l;
++
++            /* Handle fullscreen/close buttons in the top line */
++            x = w->cols - 6;
++
++            if (top != NULL && event->x >= x)
++            {
++                WEdit *e = (WEdit *) top->data;
++
++                if (top != g->current)
++                {
++                    /* Window is not active. Activate it */
++                    widget_select (WIDGET (e));
++                }
++
++                /* Handle buttons */
++                if (event->x - x <= 2)
++                    edit_toggle_fullscreen (e);
++                else
++                    send_message (h, NULL, MSG_ACTION, CK_Close, NULL);
++
++                unhandled = FALSE;
++            }
++
++            if (unhandled)
++                menubar_activate (b, drop_menus, -1);
++        }
++    }
++
++    /* Continue handling of unhandled event in window or menu */
++    event->result.abort = unhandled;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
++edit_dialog_bg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    switch (msg)
++    {
++    case MSG_INIT:
++        {
++            Widget *wo = WIDGET (w->owner);
++
++            w->y = wo->y + 1;
++            w->x = wo->x;
++            w->lines = wo->lines - 2;
++            w->cols = wo->cols;
++            w->pos_flags |= WPOS_KEEP_ALL;
++
++            return MSG_HANDLED;
++        }
++
++    default:
++        return background_callback (w, sender, msg, parm, data);
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/**
++ * Handle move/resize mouse events.
++ */
++static void
++edit_mouse_handle_move_resize (Widget * w, mouse_msg_t msg, mouse_event_t * event)
++{
++    WEdit *edit = (WEdit *) (w);
++    Widget *h = WIDGET (w->owner);
++    int global_x, global_y;
++
++    if (msg == MSG_MOUSE_UP)
++    {
++        /* Exit move/resize mode. */
++        edit_execute_cmd (edit, CK_Enter, -1);
++        edit_update_screen (edit);      /* Paint the buttonbar over our possibly overlapping frame. */
++        return;
++    }
++
++    if (msg != MSG_MOUSE_DRAG)
++        /**
++         * We ignore any other events. Specifically, MSG_MOUSE_DOWN.
++         *
++         * When the move/resize is initiated by the menu, we let the user
++         * stop it by clicking with the mouse. Which is why we don't want
++         * a mouse down to affect the window.
++         */
++        return;
++
++    /* Convert point to global coordinates for easier calculations. */
++    global_x = event->x + w->x;
++    global_y = event->y + w->y;
++
++    /* Clamp the point to the dialog's client area. */
++    global_y = CLAMP (global_y, h->y + 1, h->y + h->lines - 2); /* Status line, buttonbar */
++    global_x = CLAMP (global_x, h->x, h->x + h->cols - 1);      /* Currently a no-op, as the dialog has no left/right margins. */
++
++    if (edit->drag_state == MCEDIT_DRAG_MOVE)
++    {
++        w->y = global_y;
++        w->x = global_x - edit->drag_state_start;
++    }
++    else if (edit->drag_state == MCEDIT_DRAG_RESIZE)
++    {
++        w->lines = MAX (WINDOW_MIN_LINES, global_y - w->y + 1);
++        w->cols = MAX (WINDOW_MIN_COLS, global_x - w->x + 1);
++    }
++
++    edit->force |= REDRAW_COMPLETELY;   /* Not really needed as WEdit's MSG_DRAW already does this. */
++
++    /* We draw the whole dialog because dragging/resizing exposes area beneath. */
++    widget_draw (WIDGET (w->owner));
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++cb_ret_t
++edit_dialog_command_execute (WDialog * h, long command)
++{
++    WGroup *g = GROUP (h);
++    Widget *wh = WIDGET (h);
++    cb_ret_t ret = MSG_HANDLED;
++
++    switch (command)
++    {
++    case CK_EditNew:
++        edit_add_window (h, wh->y + 1, wh->x, wh->lines - 2, wh->cols, NULL, 0);
++        break;
++    case CK_EditFile:
++        edit_load_cmd (h, NULL);
++        break;
++    case CK_OtherFile:
++        {
++            WEdit *e = (WEdit *) g->current->data;
++            gboolean retflag = FALSE;
++
++            if (e != NULL && edit_widget_is_editor (CONST_WIDGET (e)))
++            {
++                retflag = edit_compute_other_file_vfs_path (e);
++                if (retflag)
++                    retflag = edit_switch_to_file (h, e->otherfile_vpath);
++            }
++            if (!retflag)
++                ret = MSG_NOT_HANDLED;
++        }
++        break;
++    case CK_History:
++        edit_load_file_from_history (h);
++        break;
++    case CK_EditSyntaxFile:
++        edit_load_syntax_file (h);
++        break;
++    case CK_EditUserMenu:
++        edit_load_menu_file (h);
++        break;
++    case CK_Close:
++        /* if there are no opened files anymore, close MC editor */
++        if ((edit_widget_is_editor (CONST_WIDGET (g->current->data)) ||
++            edit_widget_is_cli(CONST_WIDGET(g->current->data))) &&
++            edit_close_cmd ((WEdit *) g->current->data) && find_editor (h) == NULL)
++            dlg_stop (h);
++        break;
++    case CK_Help:
++        edit_help ();
++        /* edit->force |= REDRAW_COMPLETELY; */
++        break;
++    case CK_Menu:
++        edit_menu_cmd (h);
++        break;
++    case CK_Quit:
++    case CK_Cancel:
++        /* don't close editor due to SIGINT, but stop move/resize window */
++        {
++            Widget *w = WIDGET (g->current->data);
++
++            if (edit_widget_is_editor (w) && ((WEdit *) w)->drag_state != MCEDIT_DRAG_NONE)
++                edit_restore_size ((WEdit *) w);
++            else if (command == CK_Quit)
++                dlg_stop (h);
++        }
++        break;
++    case CK_About:
++        edit_about ();
++        break;
++    case CK_SyntaxOnOff:
++        edit_syntax_onoff_cmd (h);
++        break;
++    case CK_ShowTabTws:
++        edit_show_tabs_tws_cmd (h);
++        break;
++    case CK_ShowMargin:
++        edit_show_margin_cmd (h);
++        break;
++    case CK_ShowNumbers:
++        edit_show_numbers_cmd (h);
++        break;
++    case CK_Refresh:
++        edit_refresh_cmd ();
++        break;
++    case CK_InstructionStation:
++        edit_add_instr_stat_window (h);
++        break;
++    case CK_Shell:
++        toggle_subshell ();
++        break;
++    case CK_LearnKeys:
++        learn_keys ();
++        break;
++    case CK_WindowMove:
++    case CK_WindowResize:
++        if (edit_widget_is_editor (CONST_WIDGET (g->current->data)))
++            edit_handle_move_resize ((WEdit *) g->current->data, command);
++        break;
++    case CK_WindowList:
++        edit_window_list (h);
++        break;
++    case CK_WindowCascade:
++        edit_window_cascade (h);
++        break;
++    case CK_WindowTile:
++        edit_window_tile (h);
++        break;
++    case CK_WindowNext:
++        group_select_next_widget (g);
++        break;
++    case CK_WindowPrev:
++        group_select_prev_widget (g);
++        break;
++    case CK_Options:
++        edit_options_dialog (h);
++        break;
++    case CK_OptionsSaveMode:
++        edit_save_mode_cmd ();
++        break;
++    case CK_SaveSetup:
++        save_setup_cmd ();
++        break;
++    default:
++        ret = MSG_NOT_HANDLED;
++        break;
++    }
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/** Callback for the edit dialog */
++
++cb_ret_t
+ edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
+ {
+     WGroup *g = GROUP (w);
+@@ -1116,99 +1282,7 @@ edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, v
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/**
+- * Handle mouse events of editor screen.
+- *
+- * @param w Widget object (the editor)
+- * @param msg mouse event message
+- * @param event mouse event data
+- */
+-static void
+-edit_dialog_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+-{
+-    gboolean unhandled = TRUE;
+-
+-    if (msg == MSG_MOUSE_DOWN && event->y == 0)
+-    {
+-        WGroup *g = GROUP (w);
+-        WDialog *h = DIALOG (w);
+-        WMenuBar *b;
+-
+-        b = find_menubar (h);
+-
+-        if (!widget_get_state (WIDGET (b), WST_FOCUSED))
+-        {
+-            /* menubar */
+-
+-            GList *l;
+-            GList *top = NULL;
+-            int x;
+-
+-            /* Try find top fullscreen window */
+-            for (l = g->widgets; l != NULL; l = g_list_next (l))
+-                if (edit_widget_is_editor (CONST_WIDGET (l->data))
+-                    && ((WEdit *) l->data)->fullscreen)
+-                    top = l;
+-
+-            /* Handle fullscreen/close buttons in the top line */
+-            x = w->cols - 6;
+-
+-            if (top != NULL && event->x >= x)
+-            {
+-                WEdit *e = (WEdit *) top->data;
+-
+-                if (top != g->current)
+-                {
+-                    /* Window is not active. Activate it */
+-                    widget_select (WIDGET (e));
+-                }
+-
+-                /* Handle buttons */
+-                if (event->x - x <= 2)
+-                    edit_toggle_fullscreen (e);
+-                else
+-                    send_message (h, NULL, MSG_ACTION, CK_Close, NULL);
+-
+-                unhandled = FALSE;
+-            }
+-
+-            if (unhandled)
+-                menubar_activate (b, drop_menus, -1);
+-        }
+-    }
+-
+-    /* Continue handling of unhandled event in window or menu */
+-    event->result.abort = unhandled;
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-static cb_ret_t
+-edit_dialog_bg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
+-{
+-    switch (msg)
+-    {
+-    case MSG_INIT:
+-        {
+-            Widget *wo = WIDGET (w->owner);
+-
+-            w->y = wo->y + 1;
+-            w->x = wo->x;
+-            w->lines = wo->lines - 2;
+-            w->cols = wo->cols;
+-            w->pos_flags |= WPOS_KEEP_ALL;
+-
+-            return MSG_HANDLED;
+-        }
+-
+-    default:
+-        return background_callback (w, sender, msg, parm, data);
+-    }
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-static cb_ret_t
++cb_ret_t
+ edit_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
+ {
+     WEdit *e = (WEdit *) w;
+@@ -1278,61 +1352,6 @@ edit_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *da
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/**
+- * Handle move/resize mouse events.
+- */
+-static void
+-edit_mouse_handle_move_resize (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+-{
+-    WEdit *edit = (WEdit *) (w);
+-    Widget *h = WIDGET (w->owner);
+-    int global_x, global_y;
+-
+-    if (msg == MSG_MOUSE_UP)
+-    {
+-        /* Exit move/resize mode. */
+-        edit_execute_cmd (edit, CK_Enter, -1);
+-        edit_update_screen (edit);      /* Paint the buttonbar over our possibly overlapping frame. */
+-        return;
+-    }
+-
+-    if (msg != MSG_MOUSE_DRAG)
+-        /**
+-         * We ignore any other events. Specifically, MSG_MOUSE_DOWN.
+-         *
+-         * When the move/resize is initiated by the menu, we let the user
+-         * stop it by clicking with the mouse. Which is why we don't want
+-         * a mouse down to affect the window.
+-         */
+-        return;
+-
+-    /* Convert point to global coordinates for easier calculations. */
+-    global_x = event->x + w->x;
+-    global_y = event->y + w->y;
+-
+-    /* Clamp the point to the dialog's client area. */
+-    global_y = CLAMP (global_y, h->y + 1, h->y + h->lines - 2); /* Status line, buttonbar */
+-    global_x = CLAMP (global_x, h->x, h->x + h->cols - 1);      /* Currently a no-op, as the dialog has no left/right margins. */
+-
+-    if (edit->drag_state == MCEDIT_DRAG_MOVE)
+-    {
+-        w->y = global_y;
+-        w->x = global_x - edit->drag_state_start;
+-    }
+-    else if (edit->drag_state == MCEDIT_DRAG_RESIZE)
+-    {
+-        w->lines = MAX (WINDOW_MIN_LINES, global_y - w->y + 1);
+-        w->cols = MAX (WINDOW_MIN_COLS, global_x - w->x + 1);
+-    }
+-
+-    edit->force |= REDRAW_COMPLETELY;   /* Not really needed as WEdit's MSG_DRAW already does this. */
+-
+-    /* We draw the whole dialog because dragging/resizing exposes area beneath. */
+-    widget_draw (WIDGET (w->owner));
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+ /**
+  * Handle mouse events of editor window
+  *
+@@ -1340,7 +1359,7 @@ edit_mouse_handle_move_resize (Widget * w, mouse_msg_t msg, mouse_event_t * even
+  * @param msg mouse event message
+  * @param event mouse event data
+  */
+-static void
++void
+ edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+ {
+     WEdit *edit = (WEdit *) w;
+@@ -1454,8 +1473,6 @@ edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+     }
+ }
+ 
+-/* --------------------------------------------------------------------------------------------- */
+-/*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ gboolean
+@@ -1686,7 +1703,7 @@ edit_add_window (WDialog * h, int y, int x, int lines, int cols, const vfs_path_
+     WEdit *edit;
+     Widget *w;
+ 
+-    edit = edit_init (NULL, y, x, lines, cols, f, fline);
++    edit = edit_init (NULL, y, x, lines, cols, f, fline, 0);
+     if (edit == NULL)
+         return FALSE;
+ 
+diff --git a/src/editor/editwidget.h b/src/editor/editwidget.h
+index b4b10692e..a80057393 100644
+--- a/src/editor/editwidget.h
++++ b/src/editor/editwidget.h
+@@ -13,6 +13,9 @@
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
++#define EDIT(x) ((WEdit *)(x))
++#define CONST_EDIT(x) ((const WEdit *)(x))
++
+ #define N_LINE_CACHES 32
+ 
+ /*** enums ***************************************************************************************/
+diff --git a/src/editor/instr_station.c b/src/editor/instr_station.c
+new file mode 100644
+index 000000000..dcbb8e5e3
+--- /dev/null
++++ b/src/editor/instr_station.c
+@@ -0,0 +1,668 @@
++/*
++   Implementation of a CLI window for MCEdit.
++
++   Copyright (C) 2021
++   Free Software Foundation, Inc.
++
++   Written by:
++   Sebastian Gniazdowski <sgniazdowski@gmail.com>, 2021.
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file instr_station.c
++ *  \brief Implementation of a CLI special window for MCEdit.
++ *  \author Sebastian Gniazdowski
++ *  \date 2021
++ *
++ *  Such window runs a set up program (/bin/bash by default) allowing to
++ *  provide an input to it and read its output.
++ */
++
++#include <config.h>
++
++#include "lib/global.h"
++
++#include "src/editor/editwidget.h"
++
++#include "lib/util.h"
++#include "lib/tty/key.h"
++#include "lib/widget.h"
++#include "src/editor/instr_station.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++static gboolean alt_prog_first_run = TRUE;
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++static char *
++instr_stat_get_instruction_text (WInstructionStation * ip)
++{
++    char *ret_str;
++    GString *instr;
++    off_t bol, eol, begin_instr;
++    long size;
++    int idx, byte;
++
++    /* Calculate offset of text after prompt */
++    bol = edit_buffer_get_current_bol (&EDIT (ip)->buffer);
++    eol = edit_buffer_get_current_eol (&EDIT (ip)->buffer);
++    begin_instr = bol + ip->prompt_span;
++
++    /* Is there anything entered? */
++    size = ((long) eol) - ((long) begin_instr);
++    if (size <= 0)
++        return NULL;
++
++    /* Allocate expected size string and fill it */
++    instr = g_string_sized_new (size + 2);
++    for (idx = 0; idx < size; idx++)
++    {
++        byte = edit_buffer_get_byte (&EDIT (ip)->buffer, begin_instr + idx);
++        g_string_append_c (instr, byte);
++    }
++
++    /* Append new line if needed */
++    if (instr->str[instr->len - 1] != '\n')
++        g_string_append_c (instr, '\n');
++
++    /* Return char buffer */
++    ret_str = instr->str;
++    g_string_free (instr, FALSE);
++    return ret_str;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static cb_ret_t
++instr_stat_run_activity (WInstructionStation * ip, long activity)
++{
++    cb_ret_t ret = MSG_NOT_HANDLED;
++    switch (activity)
++    {
++    case CK_BackSpace:
++        if (ip->cur_col <= ip->prompt_span)
++        {
++            ret = MSG_HANDLED;
++        }
++        else
++        {
++            EDIT (ip)->force |= REDRAW_PAGE;
++            edit_update_screen (EDIT (ip));
++        }
++        break;
++    case CK_Enter:
++    case CK_Return:
++        if (EDIT (ip)->buffer.curs_line == ip->cur_line)
++        {
++            ip->instruction = instr_stat_get_instruction_text (ip);
++            /* Should dispatch to write callback which will send instruction */
++            g_main_context_iteration (NULL, 0);
++            EDIT (ip)->force |= REDRAW_PAGE;
++            edit_update_screen (EDIT (ip));
++        }
++        ret = MSG_HANDLED;
++        break;
++    default:
++        break;
++    }
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++instr_release (WInstructionStation * ip, gboolean free_all)
++{
++    if (ip->finalizing)
++        return FALSE;
++    ip->finalizing = TRUE;
++
++    /* Close process watcher first, suppressing *program_ended_cb() callback */
++    if (ip->proc_src_id != 0)
++    {
++        GSource *src;
++        src = g_main_context_find_source_by_id (NULL, ip->proc_src_id);
++        if (src != NULL)
++            g_source_destroy (src);
++        ip->proc_src_id = 0;
++    }
++
++    /* Release the pipes, channels, etc. */
++    for (int i = 0; i <= STDERR; i++)
++    {
++        if (ip->io[i].src_id != 0)
++        {
++            GSource *src;
++            src = g_main_context_find_source_by_id (NULL, ip->io[i].src_id);
++            if (src != NULL)
++                g_source_destroy (src);
++            ip->io[i].src_id = 0;
++        }
++        if (ip->io[i].ch != NULL)
++        {
++            g_io_channel_unref (ip->io[i].ch);
++            ip->io[i].ch = NULL;
++        }
++        if (ip->io[i].fd >= 0)
++        {
++            close (ip->io[i].fd);
++            ip->io[i].fd = -1;
++        }
++    }
++
++    if (ip->prompt_timeout_id != 0)
++    {
++        g_source_remove(ip->prompt_timeout_id);
++        ip->prompt_timeout_id = 0;
++    }
++
++    if (free_all)
++    {
++        MC_PTR_FREE (ip->program);
++        /* Release prompt */
++        MC_PTR_FREE (ip->prompt);
++        /* Release error prompt */
++        MC_PTR_FREE (ip->eprompt);
++
++        /* Free main object */
++        g_free (ip);
++    }
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++helper_program_ended_cb (GPid pid, gint status, gpointer user_data)
++{
++    WInstructionStation *ip = INSTR_STATION (user_data);
++    char *msg;
++    mc_log ("Program %d ended with status: %d (%s)", pid, status,
++            g_spawn_check_exit_status (status, NULL) ? "normally" : "abnormally");
++
++    instr_release (ip, FALSE);
++    g_spawn_close_pid (pid);
++    msg = _("\nProgram closed.\n");
++    edit_insert_string (EDIT (ip), msg, strlen (msg));
++    repaint_screen();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++instr_stat_show_prompt (WInstructionStation * ip, gboolean is_ok)
++{
++    char *sel_prompt = is_ok ? ip->prompt : ip->eprompt;
++    int sel_prompt_span = is_ok ? ip->prompt_span : ip->eprompt_span;
++
++    /* Print prompt */
++    if (!edit_newline_end_check_only (EDIT (ip)))
++    {
++        edit_insert (EDIT (ip), '\n');
++        ip->cur_line += 1;
++    }
++    edit_insert_string (EDIT (ip), sel_prompt, sel_prompt_span);
++
++    /* Raise an indicator flag */
++    ip->prompt_shown = TRUE;
++
++    /* Set cursor position to reflect state */
++    ip->cur_col = sel_prompt_span;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++instr_stat_clear_prompt (WInstructionStation * ip)
++{
++    off_t bol, eol, idx;
++    eol = edit_buffer_get_current_eol(&EDIT(ip)->buffer);
++    bol = edit_buffer_get_current_bol(&EDIT(ip)->buffer);
++    for (idx=0; idx < eol - bol; idx ++)
++        edit_backspace(EDIT(ip), TRUE);
++    ip->prompt_shown = FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++helper_timeout_cb (gpointer data)
++{
++    WInstructionStation *ip = INSTR_STATION (data);
++    guint64 cur_time;
++    cur_time = g_get_real_time ();
++    /* Draw prompt after 0.5 seconds of no output from program */
++    if (cur_time - ip->read_time > 500000 && !ip->prompt_shown)
++    {
++        instr_stat_show_prompt (ip, TRUE);
++        repaint_screen();
++    }
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++helper_configure_src_and_ch (GIOChannel ** ch, gint fd, guint * src_id, gboolean write,
++                             GIOFunc cb_fun, gpointer data, const char *name)
++{
++    /* Initialize the output variables */
++    *ch = NULL;
++    *src_id = 0;
++
++    *ch = g_io_channel_unix_new (fd);
++
++    /* Channel created? */
++    if (*ch == NULL)
++        goto cleanup_and_err;
++
++    /* Automatic shutdown of channel */
++    g_io_channel_set_close_on_unref (*ch, TRUE);
++
++    /* Trim down buffering on this channel */
++    g_io_channel_set_buffer_size (*ch, 5);
++
++    /* Attempt to set non-blocking flag on channel */
++    if (g_io_channel_set_flags (*ch, G_IO_FLAG_NONBLOCK, NULL) != G_IO_STATUS_NORMAL)
++        mc_log ("Problem setting a channel to non-blocking state (channel flags: 0x%x)",
++                g_io_channel_get_flags (*ch));
++
++    /* Create GSource */
++    *src_id = g_io_add_watch (*ch, (write ? G_IO_OUT : G_IO_IN) | G_IO_HUP, cb_fun, data);
++
++    /* Source created OK? */
++    if (*src_id == 0)
++        goto cleanup_and_err;
++
++    /* Configure the sources */
++    g_source_set_name_by_id (*src_id, name);
++
++    /* Return true */
++    return TRUE;
++
++  cleanup_and_err:
++    if (*src_id != 0)
++    {
++        GSource *src;
++        src = g_main_context_find_source_by_id (NULL, *src_id);
++        if (src != NULL)
++            /* Triggers also unref of wrapped channel */
++            g_source_destroy (src);
++    }
++    if (*ch != NULL)
++        g_io_channel_unref (*ch);
++    *ch = NULL;
++    *src_id = 0;
++
++    return FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++helper_read_all (GIOChannel * channel, char *buf, gsize * out_bytes_read_in_len)
++{
++    gsize len = *out_bytes_read_in_len;
++    gsize count, retries = 10;
++    GIOStatus stat;
++
++    *out_bytes_read_in_len = 0;
++
++    while (*out_bytes_read_in_len < len)
++    {
++        count = 0;
++        stat =
++            g_io_channel_read_chars (channel, buf + *out_bytes_read_in_len,
++                                     len - *out_bytes_read_in_len, &count, NULL);
++        *out_bytes_read_in_len += count;
++
++        /* Should end the reading ? */
++        if (stat == G_IO_STATUS_ERROR || (stat == G_IO_STATUS_NORMAL && count == 0) ||
++            stat == G_IO_STATUS_EOF)
++            return (stat != G_IO_STATUS_ERROR);
++        else if (stat == G_IO_STATUS_AGAIN && retries-- == 0)
++            /* Exhausted retries - there must be no data to read - return OK */
++            return TRUE;
++    }
++
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++helper_write_all (GIOChannel * channel, char *buf, gsize * out_bytes_written_in_len)
++{
++    gsize len = *out_bytes_written_in_len;
++    gsize count;
++    GIOError err;
++
++    *out_bytes_written_in_len = 0;
++
++    while (*out_bytes_written_in_len < len)
++    {
++        count = 0;
++        err =
++            g_io_channel_write (channel, buf + *out_bytes_written_in_len,
++                                len - *out_bytes_written_in_len, &count);
++        *out_bytes_written_in_len += count;
++
++        if (err && err != G_IO_ERROR_AGAIN)
++            return FALSE;
++    }
++
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++stdout_read_callback (GIOChannel * source, GIOCondition condition, gpointer data)
++{
++    WInstructionStation *ip = INSTR_STATION (data);
++    char buf[2048];
++    gsize count = 2047;
++    gboolean r_ret;
++
++    if ((condition & G_IO_IN) == 0)
++        return TRUE;
++
++    r_ret = helper_read_all (source, buf, &count);
++    buf[count] = '\0';
++    if (count == 0)
++    {
++        mc_log ("Error while reading program's output: %s", g_strerror (errno));
++    }
++    else
++    {
++        ip->read_time = g_get_real_time ();
++        buf[count] = '\0';
++        if (count > 0)
++        {
++            gsize idx = 0, nl_count = 0;
++            char *p = buf;
++            while (idx++ < count)
++                if (*p++ == '\n')
++                    nl_count++;
++
++            /* Move to next line after prompt */
++            if (ip->first_response)
++            {
++                edit_insert (EDIT (ip), '\n');
++                nl_count++;
++                ip->first_response = FALSE;
++                ip->prompt_shown = FALSE;
++            }
++            else if(ip->prompt_shown)
++                instr_stat_clear_prompt(ip);
++
++            /* Print whole buffer into file's window  */
++            edit_insert_string (EDIT (ip), buf, count);
++
++            /* Increase the row pointer */
++            ip->cur_line += nl_count;
++        }
++        else if (!ip->prompt_shown)
++            instr_stat_show_prompt (ip, r_ret);
++
++        repaint_screen ();
++    }
++
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++stdin_write_callback (GIOChannel * source, GIOCondition condition, gpointer data)
++{
++    WInstructionStation *ip = INSTR_STATION (data);
++    gsize count;
++    gboolean ret = TRUE;
++
++    /* Any instruction to send? */
++    if (ip->instruction == NULL)
++        return ret;
++
++    if ((condition & G_IO_OUT) == 0)
++        return TRUE;
++
++    errno = 0;
++    count = strlen (ip->instruction);
++    ret = helper_write_all (ip->io[STDIN].ch, ip->instruction, &count);
++    if (!ret)
++    {
++        mc_log ("Error during sending instruction to program: %s", g_strerror (errno));
++    }
++    else
++    {
++        ip->first_response = TRUE;
++        MC_PTR_FREE (ip->instruction);
++        if (ip->prompt_timeout_id == 0)
++            ip->prompt_timeout_id = g_timeout_add (200, helper_timeout_cb, ip);
++    }
++
++    g_io_channel_flush (ip->io[STDIN].ch, NULL);
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++WInstructionStation *
++instr_stat_create (int y, int x, int lines, int cols, const char *program)
++{
++    WInstructionStation *ip;
++    WEdit *iret;
++    gboolean proc_ret = FALSE;
++    char *program_cline[2];
++    int rounds = 0;
++
++    ip = g_new0 (WInstructionStation, 1);
++    if (ip == NULL)
++        return NULL;
++
++    iret = edit_init (EDIT (ip), y, x, lines, cols, NULL, 0, EDIT_DO_INIT_BASE_CLASS);
++    if (iret == NULL)
++        goto cleanup_and_err;
++
++    WIDGET (ip)->callback = instr_stat_callback;
++    WIDGET (ip)->mouse_callback = edit_mouse_callback;
++    EDIT (ip)->fullscreen = 0;
++
++    ip->io[0].name = g_strdup ("Std-In (WInstructionStation)");
++    ip->io[1].name = g_strdup ("Std-Out (WInstructionStation)");
++    ip->io[2].name = g_strdup ("Std-Error (WInstructionStation)");
++    ip->io[0].fd = ip->io[1].fd = ip->io[2].fd = -1;
++
++    ip->prompt = g_strdup ("[guest@localhost]# ");
++    ip->prompt_span = strlen (ip->prompt);
++    ip->eprompt = g_strdup ("[guest@localhost]! ");
++    ip->eprompt_span = strlen (ip->eprompt);
++
++    /* Set initial program (most probably a shell, like Bash) */
++    if (program != NULL)
++        ip->program = g_strdup (program);
++    else
++        /* Fallback instruction if no program given */
++        ip->program = g_strdup ("bash");
++
++    while (++rounds <= 2 && !proc_ret)
++    {
++        if (ip->error != NULL)
++        {
++            g_error_free (ip->error);
++            ip->error = NULL;
++        }
++        program_cline[0] = ip->program;
++        program_cline[1] = NULL;
++        proc_ret = g_spawn_async_with_pipes (NULL, program_cline,
++                                             NULL, G_SPAWN_SEARCH_PATH |
++                                             G_SPAWN_DO_NOT_REAP_CHILD |
++                                             G_SPAWN_LEAVE_DESCRIPTORS_OPEN,
++                                             NULL, NULL, &ip->proc_id, &ip->io[STDIN].fd,
++                                             &ip->io[STDOUT].fd, &ip->io[STDERR].fd, &ip->error);
++
++        if (!proc_ret)
++        {
++            char *new_program, *msg_text;
++            mc_log ("Creating the background process [program:%s] failed: %s",
++                    program, ip->error ? ip->error->message : "<no error message>");
++
++            /* Create a transatable, parametrized message */
++            msg_text = g_strdup_printf ("%s%s:", _("The specified program has failed to run.\n"
++                                                   "Enter a new full path or a program name"),
++                                        (rounds >= 2 ? _(" (last try)") : ""));
++
++            /* Display message asking for a new program */
++            new_program = input_expand_dialog (_("Provide an alternate program to run"),
++                                               msg_text, "instruction-station",
++                                               alt_prog_first_run ? ip->program : INPUT_LAST_TEXT,
++                                               INPUT_COMPLETE_COMMANDS | INPUT_COMPLETE_FILENAMES |
++                                               INPUT_COMPLETE_VARIABLES);
++            g_free(msg_text);
++            alt_prog_first_run = FALSE;
++
++            /* Obtained a new program? */
++            if (new_program != NULL)
++            {
++                g_free (ip->program);
++                ip->program = new_program;
++            }
++        }
++    }
++
++    /* If no program to run has been found, then exit. */
++    if (!proc_ret)
++    {
++        message (D_ERROR, _("InstructionStation startup failed"),
++                 _("Failed to initialize the CLI window."));
++        goto cleanup_and_err;
++    }
++
++    /* Display initial prompt */
++    instr_stat_show_prompt (ip, TRUE);
++
++    for (int i = 0; i <= STDERR; i++)
++    {
++        if (helper_configure_src_and_ch (&ip->io[i].ch, ip->io[i].fd, &ip->io[i].src_id,
++                                         (i == STDIN ? TRUE : FALSE),
++                                         (i == STDIN ? stdin_write_callback : stdout_read_callback),
++                                         ip, ip->io[i].name) == FALSE)
++            goto cleanup_and_err;
++    }
++    /* Set a process watcher and restarter for the program */
++    ip->proc_src_id = g_child_watch_add (ip->proc_id, helper_program_ended_cb, ip);
++
++    return ip;
++
++  cleanup_and_err:
++
++    instr_release (ip, TRUE);
++    return NULL;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/* Check if widget is an WInstructionStation class. */
++
++gboolean
++edit_widget_is_cli (const Widget * w)
++{
++    return (w != NULL && w->callback == instr_stat_callback);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++cb_ret_t
++instr_stat_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    cb_ret_t ret = MSG_NOT_HANDLED;
++    WInstructionStation *ip = INSTR_STATION (w);
++    WEdit *e = EDIT (w);
++
++    switch (msg)
++    {
++
++    case MSG_KEY:
++        {
++            gboolean ext_mode;
++            long activity;
++
++            /* keep and then extmod flag */
++            ext_mode = w->ext_mode;
++            activity = widget_lookup_key (w, parm);
++            w->ext_mode = ext_mode;
++
++            if (activity == CK_IgnoreKey)
++                w->ext_mode = FALSE;
++            else
++            {
++                ret = edit_dialog_command_execute (DIALOG(w->owner), activity);
++                if (ret == MSG_NOT_HANDLED)
++                    ret = instr_stat_run_activity (ip, activity);
++                /* if activity was not handled, keep the extended mode
++                   for the further key processing */
++                if (ret == MSG_HANDLED)
++                    w->ext_mode = FALSE;
++            }
++
++            /*
++             * Due to the "end of bracket" escape the editor sees input with is_idle() == false
++             * (expects more characters) and hence doesn't yet refresh the screen, but then
++             * no further characters arrive (there's only an "end of bracket" which is swallowed
++             * by tty_get_event()), so you end up with a screen that's not refreshed after pasting.
++             * So let's trigger an IDLE signal.
++             */
++            if (!is_idle ())
++                widget_idle (w, TRUE);
++        }
++        break;
++    case MSG_ACTION:
++        ret = instr_stat_run_activity (ip, parm);
++        break;
++    case MSG_IDLE:
++        edit_update_screen (e);
++        break;
++    case MSG_DESTROY:
++        instr_release(ip, FALSE);
++        break;
++    default:
++        break;
++    }
++
++    /* Route to editor window */
++    if (ret == MSG_NOT_HANDLED)
++    {
++        ret = edit_callback (w, sender, msg, parm, data);
++        ip->cur_col = EDIT (w)->curs_col;
++    }
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/src/editor/instr_station.h b/src/editor/instr_station.h
+new file mode 100644
+index 000000000..8b5d31cb0
+--- /dev/null
++++ b/src/editor/instr_station.h
+@@ -0,0 +1,86 @@
++#ifndef MC__INSTR_STATION_H
++#define MC__INSTR_STATION_H
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++#define INSTR_STATION(x) ((WInstructionStation *)x)
++#define CONST_INSTR_STATION(x) ((const WInstructionStation *)x)
++
++/*** enums ***************************************************************************************/
++
++typedef enum instr_stat_io_type
++{
++    STDIN = 0,
++    STDOUT,
++    STDERR
++} instr_stat_io_type_t;
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++/* Forward declare the subclassed editor widget */
++struct WEdit;
++typedef struct WEdit WEdit;
++
++typedef struct
++{
++    WEdit base;
++
++    int cur_line;
++    int cur_col;
++    int prompt_span;
++    int eprompt_span;
++
++    /*  Shell (or other program) that is being run in station */
++    char *program;
++    /* The prompt (a simulation) */
++    char *prompt;
++    char *eprompt;
++    /* The current instruction to send */
++    char *instruction;
++
++    /* An indicator of waiting for an initial response from program */
++    gboolean first_response;
++    /* An indicator of the prompt being printed after running an instruction */
++    gboolean prompt_shown;
++    /* ID of prompt drawing timeout */
++    guint prompt_timeout_id;
++
++    /* Process ID of the program */
++    GPid proc_id;
++
++    /* A mark whether process ID is ready to be released */
++    gboolean program_working;
++
++    /* Pipes to and from the program */
++    struct
++    {
++        gint fd;
++        GIOChannel *ch;
++        guint src_id;
++        char *name;
++    } io[3];
++
++    /* Time of last read of data from program */
++    guint64 read_time;
++
++    /* GSource id (tag) of program process watcher */
++    guint proc_src_id;
++
++    /* A GError placeholder */
++    GError *error;
++
++    gboolean io_complete;
++    gboolean finalizing;
++} WInstructionStation;
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++WInstructionStation *instr_stat_create (int y, int x, int lines, int cols, const char *program);
++gboolean edit_widget_is_cli (const Widget * w);
++cb_ret_t instr_stat_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data);
++
++/*** inline functions ****************************************************************************/
++
++#endif /* MC__INSTR_STATION_H */
+diff --git a/src/history.h b/src/history.h
+index 7a8d73fa2..738d75c66 100644
+--- a/src/history.h
++++ b/src/history.h
+@@ -17,6 +17,7 @@
+ #define MC_HISTORY_EDIT_SORT          "mc.edit.sort"
+ #define MC_HISTORY_EDIT_PASTE_EXTCMD  "mc.edit.paste-extcmd"
+ #define MC_HISTORY_EDIT_REPEAT        "mc.edit.repeat-action"
++#define MC_HISTORY_EDIT_INSTR_STATION_PATH "mc.edit.instr-panel-path"
+ 
+ #define MC_HISTORY_FM_VIEW_FILE       "mc.fm.view-file"
+ #define MC_HISTORY_FM_MKDIR           "mc.fm.mkdir"
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index db483382a..c0cede558 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -478,6 +478,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"FileNext", "alt-plus"},
+     {"Sort", "alt-t"},
+     {"Mail", "alt-m"},
++    {"InstructionStation", "alt-i"},
+     {"ExternalCommand", "alt-u"},
+     {"WindowMove", "ctrl-alt-e"},
+     {"WindowResize", "ctrl-alt-s"},
+-- 
+2.28.0
+

@@ -1,0 +1,45 @@
+From 2d1a52608bc2e64975e75dea7b760693031181dc Mon Sep 17 00:00:00 2001
+From: Johannes Altmanninger <aclopte@gmail.com>
+Date: Fri, 11 Oct 2024 08:26:48 +0200
+Subject: [PATCH 3/3] Ticket #4597: export MC_VERSION to subshell
+
+This lets fish know if we are running 4.8.33 or greater which means
+fish can use the kitty keyboard protocol without breaking mc.
+
+I have a slight preference for doing this instead of parsing
+"mc --version" because these version checks are currently hardcoded in
+fish's early startup; if we wanted to run external programs we should
+move that to a shell function but I don't see a strong reason to do so.
+
+Additionally, this approach does a better job of actually matching the
+running mc binary (I don't think there is a portable way of getting
+the "parent process executable path").
+
+Anyway, no strong opinion; either way works for me.
+---
+ src/subshell/common.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 85eef1181..739954bb1 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -105,6 +105,7 @@
+ #include "lib/strutil.h"
+ #include "lib/mcconfig.h"
+ #include "lib/util.h"
++#include "mc-version.h"
+ #include "lib/widget.h"
+ 
+ #include "src/filemanager/layout.h"     /* setup_cmdline() */
+@@ -316,6 +317,7 @@ init_subshell_child (const char *pty_name)
+         g_snprintf (sid_str, sizeof (sid_str), "MC_SID=%ld", (long) mc_sid);
+         putenv (g_strdup (sid_str));
+     }
++    putenv ((char *)"MC_VERSION=" MC_CURRENT_VERSION);
+ 
+     switch (mc_global.shell->type)
+     {
+-- 
+2.47.0.rc0
+

@@ -1,0 +1,75 @@
+From 6c5b26af80f515126793eb31543a6f3d6a610eef Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 18 Feb 2016 18:45:20 +0200
+Subject: [PATCH] fixup! WEdit: use the new mouse API.
+
+---
+ src/editor/editwidget.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 1ce8ed5..37471d6 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -758,20 +758,22 @@ edit_total_update (WEdit * edit)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static gboolean
+-edit_update_cursor (WEdit * edit, mouse_event_t * event)
++edit_update_cursor (WEdit * edit, const mouse_event_t * event)
+ {
++    int x, y;
+     gboolean done;
+ 
++    x = event->x - (edit->fullscreen ? 0 : 1);
++    y = event->y - (edit->fullscreen ? 0 : 1);
++
+     if (edit->mark2 != -1 && event->msg == MSG_MOUSE_UP)
+         return TRUE;            /* don't do anything */
+ 
+     if (event->msg == MSG_MOUSE_DOWN || event->msg == MSG_MOUSE_UP)
+         edit_push_key_press (edit);
+ 
+-    if (!edit->fullscreen)
+-        event->x--;
+     if (!option_cursor_beyond_eol)
+-        edit->prev_col = event->x - edit->start_col - option_line_state_width;
++        edit->prev_col = x - edit->start_col - option_line_state_width;
+     else
+     {
+         long line_len;
+@@ -780,24 +782,22 @@ edit_update_cursor (WEdit * edit, mouse_event_t * event)
+             edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer), 0,
+                                 edit_buffer_get_current_eol (&edit->buffer));
+ 
+-        if (event->x + 1 > line_len)
++        if (x + 1 > line_len)
+         {
+-            edit->over_col = event->x - line_len - edit->start_col - option_line_state_width;
++            edit->over_col = x - line_len - edit->start_col - option_line_state_width;
+             edit->prev_col = line_len;
+         }
+         else
+         {
+             edit->over_col = 0;
+-            edit->prev_col = event->x - option_line_state_width - edit->start_col;
++            edit->prev_col = x - option_line_state_width - edit->start_col;
+         }
+     }
+ 
+-    if (!edit->fullscreen)
+-        event->y--;
+-    if (event->y > edit->curs_row)
+-        edit_move_down (edit, event->y - edit->curs_row, 0);
+-    else if (event->y < edit->curs_row)
+-        edit_move_up (edit, edit->curs_row - event->y, 0);
++    if (y > edit->curs_row)
++        edit_move_down (edit, y - edit->curs_row, 0);
++    else if (y < edit->curs_row)
++        edit_move_up (edit, edit->curs_row - y, 0);
+     else
+         edit_move_to_prev_col (edit, edit_buffer_get_current_bol (&edit->buffer));
+ 
+-- 
+2.5.0
+

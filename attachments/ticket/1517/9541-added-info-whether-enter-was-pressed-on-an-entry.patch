@@ -1,0 +1,57 @@
+From 898fcc91b30347f0d3daf8b7d0d6f23a9ede6ffe Mon Sep 17 00:00:00 2001
+From: Janek Kozicki <janek_listy@wp.pl>
+Date: Fri, 21 May 2010 23:57:47 +0200
+Subject: [PATCH 9541/9542] added info whether enter was pressed on an entry
+
+---
+ src/tree.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/src/tree.c b/src/tree.c
+index e99b669..6055b41 100644
+--- a/src/tree.c
++++ b/src/tree.c
+@@ -534,7 +534,7 @@ tree_event (WTree * tree, int y)
+ }
+ 
+ static void
+-tree_chdir_sel (WTree * tree)
++tree_chdir_sel (WTree * tree, gboolean enter_key_was_pressed)
+ {
+     if (!tree->is_panel)
+         return;
+@@ -555,7 +555,7 @@ static void
+ maybe_chdir (WTree * tree)
+ {
+     if (xtree_mode && tree->is_panel && is_idle ())
+-        tree_chdir_sel (tree);
++        tree_chdir_sel (tree, FALSE);
+ }
+ 
+ /* Mouse callback */
+@@ -597,7 +597,7 @@ event_callback (Gpm_Event * event, void *data)
+         tree_event (tree, event->y);
+         if ((event->type & (GPM_UP | GPM_DOUBLE)) == (GPM_UP | GPM_DOUBLE))
+         {
+-            tree_chdir_sel (tree);
++            tree_chdir_sel (tree, TRUE);
+         }
+     }
+     return MOU_NORMAL;
+@@ -973,7 +973,7 @@ tree_execute_cmd (WTree * tree, unsigned long command)
+         tree_move_pgdn (tree);
+         break;
+     case CK_TreeOpen:
+-        tree_chdir_sel (tree);
++        tree_chdir_sel (tree, TRUE);
+         break;
+     case CK_TreeRescan:
+         tree_rescan (tree);
+@@ -1177,4 +1177,3 @@ find_tree (struct Dlg_head *h)
+ {
+     return (WTree *) find_widget_type (h, tree_callback);
+ }
+-
+-- 
+1.7.1
+

@@ -1,0 +1,103 @@
+diff -urp mc-4.8.10.orig/lib/vfs/vfs.c mc-4.8.10/lib/vfs/vfs.c
+--- mc-4.8.10.orig/lib/vfs/vfs.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/lib/vfs/vfs.c	2013-10-04 00:09:48.879171497 +0200
+@@ -44,6 +44,7 @@
+ #include <config.h>
+ 
+ #include <errno.h>
++#include <stdlib.h>
+ 
+ #include "lib/global.h"
+ #include "lib/strutil.h"
+@@ -538,10 +539,25 @@ vfs_setup_cwd (void)
+     if (vfs_get_raw_current_dir () == NULL)
+     {
+         char *tmp;
++        vfs_path_t *tmp_vpath;
+ 
+         tmp = g_get_current_dir ();
+         vfs_set_raw_current_dir (vfs_path_from_str (tmp));
+         g_free (tmp);
++
++        tmp = getenv ("PWD");
++        tmp_vpath = vfs_path_from_str (tmp);
++        if (tmp_vpath != NULL)
++        {
++            struct stat my_stat, my_stat2;
++            if (mc_global.vfs.cd_symlinks
++                  && mc_stat (tmp_vpath, &my_stat) == 0
++                  && mc_stat (vfs_get_raw_current_dir (), &my_stat2) == 0
++                  && my_stat.st_ino == my_stat2.st_ino && my_stat.st_dev == my_stat2.st_dev)
++                vfs_set_raw_current_dir (tmp_vpath);
++            else
++                vfs_path_free (tmp_vpath);
++        }
+     }
+ 
+     path_element = vfs_path_get_by_index (vfs_get_raw_current_dir (), -1);
+diff -urp mc-4.8.10.orig/src/main.c mc-4.8.10/src/main.c
+--- mc-4.8.10.orig/src/main.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/main.c	2013-10-04 00:09:48.883171497 +0200
+@@ -293,7 +293,6 @@ main (int argc, char *argv[])
+ 
+     vfs_init ();
+     vfs_plugins_init ();
+-    vfs_setup_work_dir ();
+ 
+     /* Set up temporary directory after VFS initialization */
+     mc_tmpdir ();
+@@ -341,6 +340,23 @@ main (int argc, char *argv[])
+ 
+     load_setup ();
+ 
++    /* Must be done after load_setup because depends on mc_global.vfs.cd_symlinks */
++    vfs_setup_work_dir ();
++
++    /* Resolve the other_dir panel option. Must be done after vfs_setup_work_dir */
++    {
++        char *buffer;
++        vfs_path_t *vpath;
++
++        buffer = mc_config_get_string (mc_panels_config, "Dirs", "other_dir", ".");
++        vpath = vfs_path_from_str (buffer);
++        if (vfs_file_is_local (vpath))
++            saved_other_dir = buffer;
++        else
++            g_free (buffer);
++        vfs_path_free (vpath);
++    }
++
+     /* start check mc_global.display_codepage and mc_global.source_codepage */
+     check_codeset ();
+ 
+diff -urp mc-4.8.10.orig/src/setup.c mc-4.8.10/src/setup.c
+--- mc-4.8.10.orig/src/setup.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/setup.c	2013-10-04 00:09:54.987171750 +0200
+@@ -43,8 +43,6 @@
+ #include "lib/util.h"
+ #include "lib/widget.h"
+ 
+-#include "lib/vfs/vfs.h"
+-
+ #ifdef ENABLE_VFS_FTP
+ #include "src/vfs/ftpfs/ftpfs.h"
+ #endif
+@@ -989,18 +987,6 @@ load_setup (void)
+     if (startup_left_mode != view_listing && startup_right_mode != view_listing)
+         startup_left_mode = view_listing;
+ 
+-    {
+-        vfs_path_t *vpath;
+-
+-        buffer = mc_config_get_string (mc_panels_config, "Dirs", "other_dir", ".");
+-        vpath = vfs_path_from_str (buffer);
+-        if (vfs_file_is_local (vpath))
+-            saved_other_dir = buffer;
+-        else
+-            g_free (buffer);
+-        vfs_path_free (vpath);
+-    }
+-
+     boot_current_is_left = mc_config_get_bool (mc_panels_config, "Dirs", "current_is_left", TRUE);
+ 
+     /* Load time formats */

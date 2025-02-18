@@ -1,0 +1,33 @@
+From b5e3bfd163835d9c904f179a3145896643852348 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 22:51:51 +0000
+Subject: [PATCH] Prevent execute last item on empty area
+
+As pointed out by egmont (#3722) prevent execute of last item when
+clicking on empty area by accident.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/panel.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index d2c6cc6..f50bf14 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3905,12 +3906,13 @@ panel_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+     case MSG_MOUSE_CLICK:
+         if ((event->count & GPM_DOUBLE) != 0)
+         {
+-            int y, lines;
++            int y, lines, last;
+ 
+             y = event->y - 2;
+             lines = panel_lines (panel);
++            last = panel->dir.len;
+ 
+-            if (y >= 0 && y < lines)
++            if (y >= 0 && y < lines && panel->top_file + y < last)
+                 do_enter (panel);
+         }
+         break;

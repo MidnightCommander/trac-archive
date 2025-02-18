@@ -1,0 +1,21 @@
+From 78470f8ef849b02eabc954fc777c9c80be75f22a Mon Sep 17 00:00:00 2001
+From: bill auger <mr.j.spam.me@gmail.com>
+Date: Thu, 16 Mar 2023 17:14:17 -0400
+Subject: [PATCH] recognize 'b2sums' for PKGBUILD syntax highlighting
+
+---
+ misc/syntax/PKGBUILD.syntax | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/misc/syntax/PKGBUILD.syntax b/misc/syntax/PKGBUILD.syntax
+index 2e7a5d5511..5e929919a8 100644
+--- a/misc/syntax/PKGBUILD.syntax
++++ b/misc/syntax/PKGBUILD.syntax
+@@ -26,6 +26,7 @@ context default
+     keyword whole linestart backup brightcyan
+     keyword whole linestart changelog brightcyan
+     keyword whole linestart validpgpkeys brightcyan
++    keyword whole linestart b2sums brightcyan
+     keyword whole linestart md5sums brightcyan
+     keyword whole linestart sha1sums brightcyan
+     keyword whole linestart sha256sums brightcyan

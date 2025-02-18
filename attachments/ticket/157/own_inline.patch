@@ -1,0 +1,128 @@
+diff --git a/acinclude.m4 b/acinclude.m4
+index f4c0e3b..a6d6580 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -568,3 +568,123 @@ if test "$mc_cv_g_module_supported" = yes; then
+ 	      [Define if gmodule functionality is supported])
+ fi
+ ])
++
++dnl
++dnl  Check for __attribute__((always_inline))
++dnl
++AC_DEFUN([MC_ATTRIBUTE_ALWAYS_INLINE_SUPPORTED], [
++   AC_CACHE_CHECK([if __attribute__ ((always_inline)) supported ], mc_cv_attr_always_inline_supp, [
++	   ac_save_CFLAGS="$CFLAGS"
++	   CFLAGS="$CFLAGS -Werror -fgnu89-inline"
++           AC_TRY_RUN([
++#define _ATTRIBUTE_ALWAYS_INLINE_	__attribute__((always_inline))
++
++extern inline int _ATTRIBUTE_ALWAYS_INLINE_ test_alws_inln(void);
++
++inline int _ATTRIBUTE_ALWAYS_INLINE_ test_alws_inln(void) {
++
++int i, S = 65535;
++   for (i = 0; i < S; i++) {
++         i = ~(S^i);
++    }
++ return (i-S);
++}
++
++
++int main(void) {
++
++   test_alws_inln();
++
++ return 0;
++}
++            ],
++   		[mc_cv_attr_always_inline_supp=yes],
++		[mc_cv_attr_always_inline_supp=no]
++            )
++             CFLAGS="$ac_save_CFLAGS"
++  ])
++
++if test "$mc_cv_attr_always_inline_supp" = yes; then
++    AC_DEFINE([_ATTRIBUTE_ALWAYS_INLINE_], [__attribute__((always_inline))],
++               [Define if __attribute__((always_inline)) supported])
++else
++    AC_DEFINE([_ATTRIBUTE_ALWAYS_INLINE_], [], [unsupported])
++fi
++])
++
++
++dnl
++dnl  Check for __attribute__((gnu_inline))
++dnl
++AC_DEFUN([MC_GNU_INLINE_SUPPORTED], [
++   AC_CACHE_CHECK([if (inline) supported ], mc_cv_inline_supp, [
++	   ac_save_CFLAGS="$CFLAGS"
++	   CFLAGS="$CFLAGS -Werror"
++           AC_TRY_RUN([
++
++extern inline int test_inln(void);
++
++inline int test_inln(void) {
++
++int i, S = 65535;
++   for (i = 0; i < S; i++) {
++         i = ~(S^i);
++    }
++ return (i-S);
++}
++
++
++int main(void) {
++
++   test_inln();
++
++ return 0;
++}
++            ],
++   		[mc_cv_inline_supp=yes],
++		[mc_cv_inline_supp=no]
++            )
++             CFLAGS="$ac_save_CFLAGS"
++  ])
++
++if test "$mc_cv_inline_supp" = yes; then
++    AC_DEFINE([_GNU_INLINE_], [ inline ], [Define if inline supported])
++else
++   AC_CACHE_CHECK([if (inline) with -fgnu89-inline supported ], mc_cv_89inline_supp, [
++	   ac_save_CFLAGS="$CFLAGS -fgnu89-inline"
++	   CFLAGS="$CFLAGS -Werror -fgnu89-inline"
++           AC_TRY_RUN([
++
++extern inline int test_inln(void);
++
++inline int test_inln(void) {
++
++int i, S = 65535;
++   for (i = 0; i < S; i++) {
++         i = ~(S^i);
++    }
++ return (i-S);
++}
++
++
++int main(void) {
++
++   test_inln();
++
++ return 0;
++}
++            ],
++   		[mc_cv_89inline_supp=yes],
++		[mc_cv_89inline_supp=no]
++            )
++             CFLAGS="$ac_save_CFLAGS"
++  ])
++
++    if test "$mc_cv_89inline_supp" = yes; then
++    AC_DEFINE([_GNU_INLINE_], [ inline ], [Define if inline supported])
++    else
++    AC_DEFINE([_GNU_INLINE_], [ ], [Define if inline unsupported])
++    fi
++fi
++])
++

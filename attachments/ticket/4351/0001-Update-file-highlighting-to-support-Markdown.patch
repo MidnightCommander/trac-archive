@@ -1,0 +1,39 @@
+From 2c2a53d9914ab25b71df385273288afea1d3e0af Mon Sep 17 00:00:00 2001
+From: Zoltan Puskas <zoltan@sinustrom.info>
+Date: Sat, 19 Mar 2022 00:31:18 -0700
+Subject: [PATCH] Update file highlighting to support Markdown
+
+Add markdown into the document highlighting extensions list, since
+it's quite popular in many places.
+
+While there are many suggested extensions for the file type[1], this
+commit only adds `.md` and `.markdown` as they are the recommended ones
+in RFC7763[2] and by the creator themselves[3]. The rest is a hit and
+miss anyway, with support highly dependant on the underlying system or
+application, and are used infrequently.
+
+[1]https://superuser.com/questions/249436/file-extension-for-markdown-files
+[2]https://datatracker.ietf.org/doc/html/rfc7763
+[3]https://daringfireball.net/linked/2014/01/08/markdown-extension
+
+Signed-off-by: Zoltan Puskas <zoltan@sinustrom.info>
+---
+ misc/filehighlight.ini | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/filehighlight.ini b/misc/filehighlight.ini
+index bc30163c7..13dd71962 100644
+--- a/misc/filehighlight.ini
++++ b/misc/filehighlight.ini
+@@ -28,7 +28,7 @@
+     extensions=7z;Z;ace;apk;arc;arj;ark;bz2;cab;cpio;deb;gz;lha;lz;lz4;lzh;lzma;rar;rpm;tar;tbz;tbz2;tgz;tlz;txz;tzst;xz;zip;zoo;zst
+ 
+ [doc]
+-    extensions=chm;css;ctl;diz;doc;docm;docx;dtd;fodg;fodp;fods;fodt;htm;html;json;letter;lsm;mail;man;me;msg;nroff;odg;odp;ods;odt;pdf;po;ppt;pptm;pptx;ps;rtf;sgml;shtml;tex;text;txt;xls;xlsm;xlsx;xml;xsd;xslt
++    extensions=chm;css;ctl;diz;doc;docm;docx;dtd;fodg;fodp;fods;fodt;htm;html;json;letter;lsm;mail;man;markdown;md;me;msg;nroff;odg;odp;ods;odt;pdf;po;ppt;pptm;pptx;ps;rtf;sgml;shtml;tex;text;txt;xls;xlsm;xlsx;xml;xsd;xslt
+ 
+ [source]
+     extensions=ada;asm;awk;bash;c;c++;caml;cc;cgi;cpp;cxx;diff;erl;go;h;h++;hh;hi;hpp;hs;inc;jasm;jav;java;js;m4;mak;mjs;ml;mli;mll;mlp;mly;pas;patch;php;phps;pl;pm;prg;py;rb;s;sas;sh;sl;st;swift;tcl;tk;xq
+-- 
+2.35.1
+

@@ -1,0 +1,18 @@
+diff -ur mc-4.7.0.5.orig/src/wtools.c mc-4.7.0.5/src/wtools.c
+--- mc-4.7.0.5.orig/src/wtools.c	2010-05-05 19:51:16.000000000 +0200
++++ mc-4.7.0.5/src/wtools.c	2010-05-06 20:00:06.000000000 +0200
+@@ -51,10 +51,10 @@
+ {
+     const int listbox_colors[DLG_COLOR_NUM] =
+     {
+-	MENU_ENTRY_COLOR,
+-	MENU_SELECTED_COLOR,
+-	MENU_HOT_COLOR,
+-	MENU_HOTSEL_COLOR,
++	COLOR_NORMAL,
++	COLOR_FOCUS,
++	COLOR_HOT_NORMAL,
++	COLOR_HOT_FOCUS,
+     };
+ 
+     const int space = 4;

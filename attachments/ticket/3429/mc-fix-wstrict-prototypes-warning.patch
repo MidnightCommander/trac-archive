@@ -1,0 +1,38 @@
+
+fix -Wstrict-prototypes compiler warnings
+and use compiler option for future compile checks
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -69,6 +69,7 @@
+     MC_CHECK_ONE_CFLAG([-Wshadow])
+     MC_CHECK_ONE_CFLAG([-Wsign-compare])
+ dnl    MC_CHECK_ONE_CFLAG([-Wstrict-aliasing])
++    MC_CHECK_ONE_CFLAG([-Wstrict-prototypes])
+     MC_CHECK_ONE_CFLAG([-Wswitch])
+     MC_CHECK_ONE_CFLAG([-Wtype-limits])
+     MC_CHECK_ONE_CFLAG([-Wuninitialized])
+--- a/src/background.c
++++ b/src/background.c
+@@ -200,7 +200,7 @@
+         int (*non_have_ctx3) (file_op_context_t *, int, char *, char *, char *);
+         int (*non_have_ctx4) (file_op_context_t *, int, char *, char *, char *, char *);
+ 
+-        char *(*ret_str0) ();
++        char *(*ret_str0) (void);
+         char *(*ret_str1) (char *);
+         char *(*ret_str2) (char *, char *);
+         char *(*ret_str3) (char *, char *, char *);
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -390,7 +390,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-init_raw_mode ()
++init_raw_mode (void)
+ {
+     static int initialized = 0;
+ 

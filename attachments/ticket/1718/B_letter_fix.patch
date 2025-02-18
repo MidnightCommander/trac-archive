@@ -1,0 +1,13 @@
+Index: sandbox/pavlinux/mc/src/util.c
+===================================================================
+--- sandbox/pavlinux/mc/src/util.c	(revision 281)
++++ sandbox/pavlinux/mc/src/util.c	(revision 282)
+@@ -1194,7 +1194,7 @@
+     for (w = s, r = s; *r; ) {
+ 	if (*r == ESC_CHAR) {
+ 	    /* Skip the control sequence's arguments */ ;
+-	    if (*(++r) == '[') {
++	    if (*(++r) == '[' || *r == '(') {
+ 		/* strchr() matches trailing binary 0 */
+ 		while (*(++r) && strchr ("0123456789;?", *r));
+ 	    }

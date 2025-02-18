@@ -1,0 +1,38 @@
+diff -ur mc.git/src/view.c mc.src/src/view.c
+--- mc.git/src/view.c	2009-07-24 21:50:01.000000000 +0200
++++ mc.src/src/view.c	2009-07-24 21:32:50.000000000 +0200
+@@ -3392,9 +3392,9 @@
+     buttonbar_set_label (h, 1, Q_("ButtonBar|Help"), view_help_cmd);
+ 
+     my_define (h, 10, Q_("ButtonBar|Quit"), view_quit_cmd, view);
+-    text = view->hex_mode ? "ButtonBar|Ascii" : "ButtonBar|Hex";
++    text = view->hex_mode ? N_("ButtonBar|Ascii") : N_("ButtonBar|Hex");
+     my_define (h, 4, Q_(text), view_toggle_hex_mode_cmd, view);
+-    text = view->hex_mode ?"ButtonBar|Goto": "ButtonBar|Line";
++    text = view->hex_mode ? N_("ButtonBar|Goto"): N_("ButtonBar|Line");
+     my_define (h, 5, Q_(text),
+ 	view->hex_mode ? view_moveto_addr_cmd : view_moveto_line_cmd, view);
+ 
+@@ -3411,18 +3411,18 @@
+ 	my_define (h, 6, Q_("ButtonBar|Save"),
+ 	    view_hexedit_save_changes_cmd, view);
+     } else {
+-        text = view->text_wrap_mode ? "ButtonBar|UnWrap" : "ButtonBar|Wrap";
++        text = view->text_wrap_mode ? N_("ButtonBar|UnWrap") : N_("ButtonBar|Wrap");
+ 	my_define (h, 2, Q_(text), view_toggle_wrap_mode_cmd, view);
+     }
+ 
+-    text = view->hex_mode ? "ButtonBar|HxSrch" : "ButtonBar|Search";
++    text = view->hex_mode ? N_("ButtonBar|HxSrch") : N_("ButtonBar|Search");
+     my_define (h, 7, Q_(text), view_search_cmd, view);
+-    text = view->magic_mode ? "ButtonBar|Raw" : "ButtonBar|Parse";
++    text = view->magic_mode ? N_("ButtonBar|Raw") : N_("ButtonBar|Parse");
+     my_define (h, 8, Q_(text), view_toggle_magic_mode_cmd, view);
+ 
+     /* don't override the key to access the main menu */
+     if (!view_is_in_panel (view)) {
+-        text = view->text_nroff_mode ? "ButtonBar|Unform" : "ButtonBar|Format";
++        text = view->text_nroff_mode ? N_("ButtonBar|Unform") : N_("ButtonBar|Format");
+ 	my_define (h, 9, Q_(text), view_toggle_nroff_mode_cmd, view);
+ 	my_define (h, 3, Q_("ButtonBar|Quit"), view_quit_cmd, view);
+     }

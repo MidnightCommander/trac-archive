@@ -1,0 +1,6 @@
+3359c3359,3361
+<         if (char_for_insertion > 255 && !mc_global.utf8_display)
+---
+>         if ((char_for_insertion > 255 || 
+> 	    (char_for_insertion > 127 && str_isutf8 (get_codepage_id (mc_global.source_codepage)))) && 
+> 	    !mc_global.utf8_display)

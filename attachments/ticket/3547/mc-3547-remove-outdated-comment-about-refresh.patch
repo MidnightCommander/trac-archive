@@ -1,0 +1,28 @@
+From 18040dd1cb23b925736d834a62a5d2e40b12457d Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 17 Nov 2015 23:38:20 +0200
+Subject: [PATCH] Remove outdated comment about refresh.
+
+This comment was explanining a call to mc_refresh(). That call was
+removed in commit 1f0b05b18. Keyboard events and mouse events are
+nowadays the same: refresh is done after both.
+---
+ lib/widget/listbox.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index edd15b5..cbc31b5 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -507,8 +507,6 @@ listbox_event (Gpm_Event * event, void *data)
+         else
+             listbox_select_entry (l, listbox_select_pos (l, l->top, local.y - 1));
+ 
+-        /* We need to refresh ourselves since the dialog manager doesn't */
+-        /* know about this event */
+         listbox_draw (l, TRUE);
+         return ret;
+     }
+-- 
+2.1.4
+

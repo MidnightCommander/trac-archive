@@ -1,0 +1,257 @@
+commit a426e63ae02d3890428948769db1fa73cc0b7379
+Author: admin <admin@holmes.(none)>
+Date:   Thu Feb 5 08:02:23 2009 +0000
+
+    first step to user hotkeys
+
+diff --git a/src/key.c b/src/key.c
+index d531541..d8a9c38 100644
+--- a/src/key.c
++++ b/src/key.c
+@@ -987,6 +987,7 @@ static int getch_with_delay (void)
+ 
+ 	/* Try to get a character */
+ 	c = get_key_code (0);
++	mc_log("key=%d\n", c);
+ 	if (c != -1)
+ 	    break;
+ 	/* Failed -> wait 0.1 secs and try again */
+@@ -1118,7 +1119,7 @@ get_event (struct Gpm_Event *event, int redo_event, int block)
+     untouchwin (stdscr);
+ #endif				/* !HAVE_SLANG */
+     c = block ? getch_with_delay () : get_key_code (1);
+-
++    mc_log("key=%d\n", c);
+ #ifndef HAVE_SLANG
+     if (flag)
+ 	touchwin (stdscr);
+diff --git a/src/setup.c b/src/setup.c
+index fd6251f..79bcf72 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -61,7 +61,107 @@
+ #   include "../edit/edit.h"
+ #endif
+ 
++#include "../edit/editcmddef.h"
++#include "../edit/edit-widget.h"
++
++static edit_key_map_type def_common_key_map[] = {
++    { '\n', CK_Enter },
++    { '\t', CK_Tab },
++
++    { ESC_CHAR, CK_Exit },
++    { KEY_BACKSPACE, CK_BackSpace },
++    { KEY_DC, CK_Delete },
++    { KEY_DOWN, CK_Down },
++    { KEY_END, CK_End },
++    { KEY_HOME, CK_Home },
++    { KEY_IC, CK_Toggle_Insert },
++    { KEY_LEFT, CK_Left },
++    { KEY_NPAGE, CK_Page_Down },
++    { KEY_PPAGE, CK_Page_Up },
++    { KEY_RIGHT, CK_Right },
++    { KEY_UP, CK_Up },
++
++    { ALT ('\n'), CK_Return },
++    { ALT ('\t'), CK_Complete_Word },
++    { ALT ('l'), CK_Goto },
++    { ALT ('L'), CK_Goto },
++    { ALT ('p'), CK_Paragraph_Format },
++    { ALT ('t'), CK_Sort },
++    { ALT ('u'), CK_ExtCmd },
++    { ALT ('<'), CK_Beginning_Of_Text },
++    { ALT ('>'), CK_End_Of_Text },
++    { ALT (KEY_BACKSPACE), CK_Delete_Word_Left },
++
++    { XCTRL ('k'), CK_Delete_To_Line_End },
++    { XCTRL ('l'), CK_Refresh },
++    { XCTRL ('o'), CK_Shell },
++    { XCTRL ('s'), CK_Toggle_Syntax },
++    { XCTRL ('u'), CK_Undo },
++    { XCTRL ('t'), CK_Select_Codepage },
++    { XCTRL ('q'), CK_Insert_Literal },
++    { XCTRL ('a'), CK_Execute_Macro },
++    { XCTRL ('r'), CK_Begin_End_Macro },
++
++    { KEY_F (1), CK_Help },
++    { KEY_F (2), CK_Save },
++    { KEY_F (3), CK_Mark },
++    { KEY_F (4), CK_Replace },
++    { KEY_F (5), CK_Copy },
++    { KEY_F (6), CK_Move },
++    { KEY_F (7), CK_Find },
++    { KEY_F (8), CK_Remove },
++    { KEY_F (10), CK_Exit },
++    { KEY_F (11), CK_User_Menu },	/* edit user menu */
++    { KEY_F (12), CK_Save_As },
++    { KEY_F (13), CK_Column_Mark },
++    { KEY_F (14), CK_Replace_Again },
++    { KEY_F (15), CK_Insert_File },
++    { KEY_F (17), CK_Find_Again },
++    { KEY_F (19), CK_Pipe_Block (0) },	/* C formatter */
++
++    /* Shift */
++    { KEY_M_SHIFT | KEY_PPAGE, CK_Page_Up_Highlight },
++    { KEY_M_SHIFT | KEY_NPAGE, CK_Page_Down_Highlight },
++    { KEY_M_SHIFT | KEY_LEFT, CK_Left_Highlight },
++    { KEY_M_SHIFT | KEY_RIGHT, CK_Right_Highlight },
++    { KEY_M_SHIFT | KEY_UP, CK_Up_Highlight },
++    { KEY_M_SHIFT | KEY_DOWN, CK_Down_Highlight },
++    { KEY_M_SHIFT | KEY_HOME, CK_Home_Highlight },
++    { KEY_M_SHIFT | KEY_END, CK_End_Highlight },
++    { KEY_M_SHIFT | KEY_IC, CK_XPaste },
++    { KEY_M_SHIFT | KEY_DC, CK_XCut },
++    { KEY_M_SHIFT | '\n', CK_Return },	/* useful for pasting multiline text */
++
++    /* Ctrl */
++    { KEY_M_CTRL | (KEY_F (2)), CK_Save_As },
++    { KEY_M_CTRL | (KEY_F (4)), CK_Replace_Again },
++    { KEY_M_CTRL | (KEY_F (7)), CK_Find_Again },
++    { KEY_M_CTRL | KEY_BACKSPACE, CK_Undo },
++    { KEY_M_CTRL | KEY_PPAGE, CK_Beginning_Of_Text },
++    { KEY_M_CTRL | KEY_NPAGE, CK_End_Of_Text },
++    { KEY_M_CTRL | KEY_HOME, CK_Beginning_Of_Text },
++    { KEY_M_CTRL | KEY_END, CK_End_Of_Text },
++    { KEY_M_CTRL | KEY_UP, CK_Scroll_Up },
++    { KEY_M_CTRL | KEY_DOWN, CK_Scroll_Down },
++    { KEY_M_CTRL | KEY_LEFT, CK_Word_Left },
++    { KEY_M_CTRL | KEY_RIGHT, CK_Word_Right },
++    { KEY_M_CTRL | KEY_IC, CK_XStore },
++    { KEY_M_CTRL | KEY_DC, CK_Remove },
++
++    /* Ctrl + Shift */
++    { KEY_M_SHIFT | KEY_M_CTRL | KEY_PPAGE, CK_Beginning_Of_Text_Highlight },
++    { KEY_M_SHIFT | KEY_M_CTRL | KEY_NPAGE, CK_End_Of_Text_Highlight },
++    { KEY_M_SHIFT | KEY_M_CTRL | KEY_LEFT, CK_Word_Left_Highlight },
++    { KEY_M_SHIFT | KEY_M_CTRL | KEY_RIGHT, CK_Word_Right_Highlight },
++    { KEY_M_SHIFT | KEY_M_CTRL | KEY_UP, CK_Scroll_Up_Highlight },
++    { KEY_M_SHIFT | KEY_M_CTRL | KEY_DOWN, CK_Scroll_Down_Highlight },
++
++    { 0, 0 }
++};
++
++
+ global_key_map_type *global_key_map;
++edit_key_map_type *common_key_map;
+ 
+ extern char *find_ignore_dirs;
+ 
+@@ -428,6 +528,55 @@ panel_load_setup (WPanel *panel, const char *section)
+ 
+ }
+ 
++void fill_common_key(void)
++{
++    int k = 0;
++    for (k = 0; def_common_key_map[k].command != 0 && def_common_key_map[k].key != 0  ; ++k)
++        continue;
++    k++;
++
++    common_key_map = (edit_key_map_type*)g_malloc ((k) * sizeof(edit_key_map_type));
++    memcpy(common_key_map, def_common_key_map, sizeof(edit_key_map_type) * k);
++
++    for (int i = 0; i<k ; ++i) {
++        mc_log("common_key_map[%d].key=%d = common_key_map[%d].command=%d \n",i, common_key_map[i].key, i, common_key_map[i].command);
++    }
++
++}
++
++int
++remap_key (long x_key, long x_command)
++{
++    int i = 0;
++    int k = 0;
++    for (k = 0; common_key_map[k].command != 0 && common_key_map[k].key != 0  ; ++k)
++        continue;
++    k++;
++
++    for (i = 0; i<=k ; ++i) {
++        if (common_key_map[i].command == 0 || common_key_map[i].command == x_command) {
++            break;
++        }
++    }
++    mc_log("remap i=%d, keys_count=%d \n", i, k);
++
++    if (common_key_map[i].command != 0) {
++        mc_log("b common_key_map[%d].key=%d = common_key_map[%d].command=%d \n",i, common_key_map[i].key, i, common_key_map[i].command);
++        common_key_map[i].key = x_key;
++        mc_log("a common_key_map[%d].key=%d = common_key_map[%d].command=%d \n",i, common_key_map[i].key, i, common_key_map[i].command);
++        return 1;
++    } else {
++        common_key_map[i].key = x_key;
++        common_key_map[i].command = x_command;
++        k++;
++        common_key_map = (edit_key_map_type*)g_realloc(common_key_map, (k + 1) * sizeof(edit_key_map_type));
++        common_key_map[k].key = 0;
++        common_key_map[k].command = 0;
++        return 2;
++    }
++
++}
++
+ GList *hotkeys_load_setup (void)
+ {
+     GList *keys = NULL;
+@@ -444,7 +593,9 @@ GList *hotkeys_load_setup (void)
+         return;
+     }
+     while (fgets (buf, sizeof (buf), f)) {
+-        keys = g_list_append (keys, g_strdup (buf));
++        if (buf[0] != '\n' && buf[0] != '\0' && buf[0] != '#') {
++            keys = g_list_append (keys, g_strdup (buf));
++        }
+     }
+     fclose (f);
+     keys = g_list_last (keys);
+@@ -471,13 +622,15 @@ static void fill_hotkeys_stru(void)
+             global_key_map[count].key = (long) atol (key);
+             global_key_map[count].command = (long) atol (cmd);
+             mc_log("key=%d, val=%d \n", global_key_map[count].key, global_key_map[count].command);
++            remap_key(global_key_map[count].key,  global_key_map[count].command);
+             count++;
+             k = g_list_next (k);
+         }
+-        //g_list_free_1 (k);
++        g_list_free_1 (k);
+     }
+ }
+ 
++
+ static void
+ load_layout (char *profile_name)
+ {
+@@ -633,7 +786,15 @@ load_setup (void)
+ 
+     init_translation_table( source_codepage, display_codepage );
+ #endif /* HAVE_CHARSET */
++    fill_common_key();
+     fill_hotkeys_stru();
++    int k = 0;
++    for (k = 0; def_common_key_map[k].command != 0 && def_common_key_map[k].key != 0  ; ++k)
++        continue;
++    k++;
++    for (int i = 0; i<k ; ++i) {
++        mc_log("res common_key_map[%d].key=%d = common_key_map[%d].command=%d \n",i, common_key_map[i].key, i, common_key_map[i].command);
++    }
+ }
+ 
+ #if defined(USE_VFS) && defined (USE_NETCODE)
+diff --git a/src/setup.h b/src/setup.h
+index 94c7912..1ee2c0f 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -2,6 +2,7 @@
+ #define MC_SETUP_H
+ 
+ #include "panel.h"
++#include "../edit/edit-widget.h"
+ 
+ char *setup_init (void);
+ void save_layout (void);
+@@ -38,3 +39,5 @@ typedef struct global_key_map_type {
+ } global_key_map_type;
+ 
+ global_key_map_type *global_key_map;
++
++edit_key_map_type *common_key_map;

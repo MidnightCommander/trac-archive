@@ -1,0 +1,153 @@
+parent 78019b896ba0e59ba886ecf500747cbe77dbc7cb (4.7.5-189-g78019b8)
+commit d2954783f6766da2051b0849aeb167eac8ca2497
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Mar 16 12:18:33 2011 +0100
+
+skins: add mc-4.6 skin
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ misc/skins/Makefile.am |    1 +
+ misc/skins/mc46.ini    |  119 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 120 insertions(+), 0 deletions(-)
+ create mode 100644 misc/skins/mc46.ini
+
+diff --git a/misc/skins/Makefile.am b/misc/skins/Makefile.am
+index 06ec814..57c54d0 100644
+--- a/misc/skins/Makefile.am
++++ b/misc/skins/Makefile.am
+@@ -7,6 +7,7 @@ skin_DATA = \
+ 	double-lines.ini \
+ 	featured.ini \
+ 	gotar.ini \
++	mc46.ini \
+ 	nicedark.ini \
+ 	sand256.ini \
+ 	xoria256.ini
+diff --git a/misc/skins/mc46.ini b/misc/skins/mc46.ini
+new file mode 100644
+index 0000000..bfd7df2
+--- /dev/null
++++ b/misc/skins/mc46.ini
+@@ -0,0 +1,119 @@
++[skin]
++	description=mc-4.6 skin
++
++[Lines]
++	horiz=─
++	vert=│
++	lefttop=┌
++	righttop=┐
++	leftbottom=└
++	rightbottom=┘
++	topmiddle=─
++	bottommiddle=─
++	leftmiddle=├
++	rightmiddle=┤
++	cross=┼
++	dhoriz=─
++	dvert=│
++	dlefttop=┌
++	drighttop=┐
++	dleftbottom=└
++	drightbottom=┘
++	dtopmiddle=─
++	dbottommiddle=─
++	dleftmiddle=├
++	drightmiddle=┤
++
++[core]
++	_default_=lightgray;blue
++	selected=black;cyan
++	marked=yellow;blue
++	markselect=yellow;cyan
++	gauge=white;black
++	input=black;cyan
++	inputunchanged=black;cyan
++	inputmark=cyan;black
++	disabled=gray;lightgray
++	reverse=black;lightgray
++	commandlinemark=black;lightgray
++	header=yellow;blue
++	inputhistory=
++	commandhistory=
++
++[dialog]
++	_default_=black;lightgray
++	dfocus=black;cyan
++	dhotnormal=blue;lightgray
++	dhotfocus=blue;cyan
++	dtitle=blue;lightgray
++
++[error]
++	_default_=white;red
++	errdfocus=black;lightgray
++	errdhotnormal=yellow;red
++	errdtitle=yellow;red
++	errdhotfocus=yellow;lightgray
++	errdtitle=yellow;red
++
++[filehighlight]
++	directory=white;
++	executable=brightgreen;
++	symlink=lightgray;
++	stalelink=brightred;
++	device=brightmagenta;
++	special=black;
++
++[menu]
++	_default_=black;cyan
++	menuhot=yellow;cyan
++	menusel=white;black
++	menuhotsel=yellow;black
++	menuinactive=gray;cyan
++
++[buttonbar]
++	hotkey=lightgray;black
++	button=black;cyan
++
++[statusbar]
++	_default_=black;cyan
++
++[help]
++	_default_=black;lightgray
++	helpitalic=red;lightgray
++	helpbold=blue;lightgray
++	helplink=black;cyan
++	helpslink=yellow;blue
++	helptitle=blue;lightgray
++
++[editor]
++	_default_=lightgray;blue
++	editbold=yellow;
++	editmarked=black;cyan
++	editwhitespace=brightblue;blue
++	editlinestate=white;cyan
++	bookmark=white;red
++	bookmarkfound=black;green
++	editrightmargin=brightblue;black
++
++[viewer]
++	viewbold=yellow;blue
++	viewunderline=brightred;blue
++	viewselected=yellow;cyan
++
++[diffviewer]
++	added=white;green
++	changedline=blue;cyan
++	changednew=red;cyan
++	changed=white;cyan
++	removed=white;red
++	folder=blue;black
++	error=red;white
++
++[popupmenu]
++	_default_=white;cyan
++	menusel=yellow;black
++	menutitle=yellow;cyan
++
++[widget-common]
++	sort-sign-up = '
++	sort-sign-down = ,
+-- 
+# Created with git-export-patch

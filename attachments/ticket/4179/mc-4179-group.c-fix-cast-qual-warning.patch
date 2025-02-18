@@ -1,0 +1,62 @@
+From 1abe24d5246c5a5bb78ff7f1db5b5772b1b7c70e Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 15:12:20 +0000
+Subject: [PATCH] (group.c) Fix -Wcast-qual warning
+
+group.c:199:21: warning: cast from 'const struct Widget *' to 'struct WGroup *' drops const qualifier [-Wcast-qual]
+        for (iter = GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
+                    ^
+../../lib/widget/group.h:16:29: note: expanded from macro 'GROUP'
+#define GROUP(x) ((WGroup *)(x))
+                            ^
+group.c:231:21: warning: cast from 'const struct Widget *' to 'struct WGroup *' drops const qualifier [-Wcast-qual]
+        for (iter = GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
+                    ^
+../../lib/widget/group.h:16:29: note: expanded from macro 'GROUP'
+#define GROUP(x) ((WGroup *)(x))
+                            ^
+group.c:263:21: warning: cast from 'const struct Widget *' to 'struct WGroup *' drops const qualifier [-Wcast-qual]
+        for (iter = GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
+                    ^
+../../lib/widget/group.h:16:29: note: expanded from macro 'GROUP'
+#define GROUP(x) ((WGroup *)(x))
+                            ^
+
+Found by Clang-11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/group.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/widget/group.c b/lib/widget/group.c
+index f8e318bd9..96d2f2770 100644
+--- a/lib/widget/group.c
++++ b/lib/widget/group.c
+@@ -196,7 +196,7 @@ group_default_find (const Widget * w, const Widget * what)
+     {
+         GList *iter;
+ 
+-        for (iter = GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
++        for (iter = CONST_GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
+         {
+             w0 = widget_find (WIDGET (iter->data), what);
+             if (w0 != NULL)
+@@ -228,7 +228,7 @@ group_default_find_by_type (const Widget * w, widget_cb_fn cb)
+     {
+         GList *iter;
+ 
+-        for (iter = GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
++        for (iter = CONST_GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
+         {
+             w0 = widget_find_by_type (WIDGET (iter->data), cb);
+             if (w0 != NULL)
+@@ -260,7 +260,7 @@ group_default_find_by_id (const Widget * w, unsigned long id)
+     {
+         GList *iter;
+ 
+-        for (iter = GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
++        for (iter = CONST_GROUP (w)->widgets; iter != NULL; iter = g_list_next (iter))
+         {
+             w0 = widget_find_by_id (WIDGET (iter->data), id);
+             if (w0 != NULL)

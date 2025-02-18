@@ -1,0 +1,194 @@
+diff --git a/mhl/env.h b/mhl/env.h
+index 8d56337..6598e0c 100644
+--- a/mhl/env.h
++++ b/mhl/env.h
+@@ -1,5 +1,5 @@
+-#ifndef __MHL_ENV_H
+-#define __MHL_ENV_H
++#ifndef MHL_ENV_H
++#define MHL_ENV_H
+ 
+ #include <mhl/string.h>
+ 
+diff --git a/mhl/escape.h b/mhl/escape.h
+index 2ec4e0d..118e082 100644
+--- a/mhl/escape.h
++++ b/mhl/escape.h
+@@ -1,5 +1,5 @@
+-#ifndef __MHL_SHELL_ESCAPE_H
+-#define __MHL_SHELL_ESCAPE_H
++#ifndef MHL_ESCAPE_H
++#define MHL_ESCAPE_H
+ 
+ /* Micro helper library: shell escaping functions */
+ 
+@@ -64,7 +64,7 @@ static inline SHELL_ESCAPED_STR mhl_shell_escape_dup(const char* src)
+ /** Unescape paths or other strings for e.g the internal cd
+     shell-unescape within a given buffer (writing to it!)
+ 
+- /params const char * in
++ /params const char * src
+  string for unescaping
+  /returns
+  return unescaped string
+@@ -113,7 +113,7 @@ static inline char* mhl_shell_unescape_buf(char* text)
+ 		case '`':
+ 		case '"':
+ 		case ';':
+-		case '\0': /* end of line! malformed escape string */
++		case '\0': /* end of string! malformed escape string */
+ 		    goto out;
+ 		default:
+ 		    (*writeptr) = c; writeptr++; break;
+diff --git a/mhl/memory.h b/mhl/memory.h
+index b006177..3268e93 100644
+--- a/mhl/memory.h
++++ b/mhl/memory.h
+@@ -1,5 +1,5 @@
+-#ifndef __MHL_MEM
+-#define __MHL_MEM
++#ifndef MHL_MEMORY_H
++#define MHL_MEMORY_H
+ 
+ #include <memory.h>
+ #include <stdlib.h>
+@@ -17,7 +17,7 @@ static inline void mhl_mem_free(void* ptr)
+ }
+ 
+ /* free an ptr and NULL it */
+-#define 	MHL_PTR_FREE(ptr)	do { mhl_mem_free(ptr); (ptr) = NULL; } while (0); 
++#define 	MHL_PTR_FREE(ptr)	do { mhl_mem_free(ptr); (ptr) = NULL; } while (0)
+ 
+ /* allocate a chunk on stack - automatically free'd on function exit */
+ #define		mhl_stack_alloc(sz)	(alloca(sz))
+diff --git a/mhl/strhash.h b/mhl/strhash.h
+index 1f19505..8ff17cb 100644
+--- a/mhl/strhash.h
++++ b/mhl/strhash.h
+@@ -1,5 +1,5 @@
+-#ifndef __MHL_STRHASH_H
+-#define __MHL_STRHASH_H
++#ifndef MHL_STRHASH_H
++#define MHL_STRHASH_H
+ 
+ #include <hash.h>
+ #include <mhl/memory.h>
+diff --git a/mhl/string.h b/mhl/string.h
+index ee74e1d..6431fdc 100644
+--- a/mhl/string.h
++++ b/mhl/string.h
+@@ -1,5 +1,5 @@
+-#ifndef __MHL_STRING_H
+-#define __MHL_STRING_H
++#ifndef MHL_STRING_H
++#define MHL_STRING_H
+ 
+ #include <ctype.h>
+ #include <stdarg.h>
+@@ -10,6 +10,9 @@
+ #define mhl_str_ndup(str,len)	((str ? strndup(str,len) : strdup("")))
+ #define mhl_str_len(str)	((str ? strlen(str) : 0))
+ 
++#define ISSPACE(c)		isspace((unsigned char)(c))
++#define TOUPPER(c)		toupper((unsigned char)(c))
++
+ static inline char * mhl_str_dup_range(const char * s_start, const char * s_bound)
+ {
+     return mhl_str_ndup(s_start, s_bound - s_start);
+@@ -20,26 +23,26 @@ static inline char* mhl_str_trim(char* str)
+     if (!str) return NULL;	/* NULL string ?! bail out. */
+ 
+     /* find the first non-space */
+-    char* start; for (start=str; ((*str) && (!isspace(*str))); str++);
++    char* start; for (start=str; ((*str) && (!ISSPACE(*str))); str++);
+ 
+     /* only spaces ? */
+     if (!(*str)) { *str = 0; return str; }
+ 
+-    /* get the size (cannot be empty - catched above) */
++    /* get the size (cannot be empty - caught above) */
+     size_t _sz = strlen(str);
+ 
+     /* find the proper end */
+     char* end;
+-    for (end=(str+_sz-1); ((end>str) && (isspace(*end))); end--);
++    for (end=(str+_sz-1); ((end>str) && (ISSPACE(*end))); end--);
+     end[1] = 0;		/* terminate, just to be sure */
+ 
+     /* if we have no leading spaces, just trucate */
+     if (start==str) { end++; *end = 0; return str; }
+ 
+-    /* if it' only one char, dont need memmove for that */
++    /* if it's only one char, dont need memmove for that */
+     if (start==end) { str[0]=*start; str[1]=0; return str; }
+ 
+-    /* by here we have a (non-empty) region between start end end */
++    /* by here we have a (non-empty) region between start and end */
+     memmove(str,start,(end-start+1));
+     return str;
+ }
+@@ -48,7 +51,7 @@ static inline void mhl_str_toupper(char* str)
+ {
+     if (str)
+ 	for (;*str;str++)
+-	    *str = toupper(*str);
++	    *str = TOUPPER(*str);
+ }
+ 
+ #define __STR_CONCAT_MAX	32
+@@ -79,14 +82,15 @@ static inline char* __mhl_str_concat_hlp(const char* base, ...)
+ 	    arg_sz[count]  = strlen(a);
+ 	    totalsize += arg_sz[count];
+ 	    count++;
++	    assert(count < __STR_CONCAT_MAX);
+ 	}
+     }
+ 
+     if (!count)
+ 	return mhl_str_dup("");
+ 
+-    /* now as we know how much to copy, allocate the buffer */
+-    char* buffer = (char*)mhl_mem_alloc_u(totalsize+2);
++    /* now that we know how much to copy, allocate the buffer */
++    char* buffer = (char*)mhl_mem_alloc_u(totalsize+2); /* why +2? */
+     char* current = buffer;
+     int x=0;
+     for (x=0; x<count; x++)
+@@ -130,7 +134,7 @@ static inline char * mhl_strmove(char * dest, const char * src)
+ {
+     size_t n = strlen (src) + 1; /* + '\0' */
+ 
+-    assert (dest<=src);
++    assert (dest<=src); /* strictly speaking, this invokes undefined behavior as soon as dest and src are pointers into different objects. */
+ 
+     return memmove(dest, src, n);
+ }
+@@ -168,4 +172,4 @@ static inline char* mhl_str_dir_plus_file(const char* dirname, const char* filen
+     return buffer;
+ }
+ 
+-#endif /* __MHL_STRING_H */
++#endif /* MHL_STRING_H */
+diff --git a/mhl/types.h b/mhl/types.h
+index 1f84002..977c27a 100644
+--- a/mhl/types.h
++++ b/mhl/types.h
+@@ -4,13 +4,15 @@
+ 
+ */
+ 
+-#ifndef __MHL_TYPES_H
+-#define __MHL_TYPES_H
++#ifndef MHL_TYPES_H
++#define MHL_TYPES_H
+ 
+-typedef enum 
++#if !defined(__bool_true_false_are_defined) && !defined(false) && !defined(true) && !defined(bool)
++typedef enum
+ {
+     false	= 0,
+     true	= 1
+ } bool;
++#endif
+ 
+ #endif

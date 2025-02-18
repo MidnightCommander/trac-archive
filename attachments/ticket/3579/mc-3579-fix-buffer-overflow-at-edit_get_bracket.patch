@@ -1,0 +1,59 @@
+From a390be4cca675561a3619f789a5692aa2fb7d047 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 21:26:22 +0000
+Subject: [PATCH] fix buffer overflow at edit_get_bracket()
+
+testcase:
+create file with byte 0x28 and byte 0x00 -> open in mcedit -> move cursors
+
+found by Clang/AddressSanitizer
+
+==3716==ERROR: AddressSanitizer: global-buffer-overflow on address 0x00000068886a at pc 0x000000598c09 bp 0x7ffeed4b0350 sp 0x7ffeed4b0348
+READ of size 1 at 0x00000068886a thread T0
+    #0 0x598c08 in edit_get_bracket /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:1525:9
+    #1 0x58ea18 in edit_find_bracket /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3173:32
+    #2 0x596ed4 in edit_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3960:5
+    #3 0x58ed08 in edit_execute_key_command /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3224:5
+    #4 0x5c4dcd in edit_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1136:17
+    #5 0x7f80f324ca11 in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #6 0x7f80f324ca11 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:515
+    #7 0x7f80f324ca11 in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1236
+    #8 0x7f80f324e0b7 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #9 0x7f80f324cc35 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #10 0x5c1719 in edit_files /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1255:9
+    #11 0x5c0426 in edit_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1194:10
+    #12 0x5f048b in edit_file_at_line /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:704:9
+    #13 0x52bf9c in do_edit /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:168:5
+    #14 0x52bf9c in edit_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:742
+    #15 0x52bf9c in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1175
+    #16 0x7f80f3248019 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #17 0x7f80f324c915 in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #18 0x7f80f324c915 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464
+    #19 0x7f80f324c915 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509
+    #20 0x7f80f324c915 in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1236
+    #21 0x7f80f324e0b7 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #22 0x7f80f324cc35 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #23 0x4fc967 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:954:5
+    #24 0x4fc967 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757
+    #25 0x4fc967 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:463
+    #26 0x7f80f17c2953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #27 0x427008 in _start (/usr/bin/mc+0x427008)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/edit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e69a9d4..78880e6 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -1519,7 +1519,7 @@ edit_get_bracket (WEdit * edit, gboolean in_screen, unsigned long furthest_brack
+     if (!furthest_bracket_search)
+         furthest_bracket_search--;
+     /* not on a bracket at all */
+-    if (p == NULL)
++    if (p == NULL || *p == '\0')
+         return -1;
+     /* the matching bracket */
+     d = p[1];

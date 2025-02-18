@@ -1,0 +1,262 @@
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index e94e4e8..7a8eb0a 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -3632,9 +3632,9 @@ with the assignment of colors, as described in Section
+ Colors\&.
+ .\"Colors"
+ .PP
+-If your skin contains any of 256\-color definitions, you should define
+-the '256colors' key set to TRUE value in [skin] section.
+-
++If your skin contains any of true\-color definitions, you should define
++the 'truecolors' key set to TRUE value in [skin] section. If true\-color
++is not used but 256\-color is, you should define '256colors' instead.
+ .PP
+ A skin\-file is searched on the following algorithm (to the first one found):
+ .IP
+diff --git a/lib/skin.h b/lib/skin.h
+index 8d32180..747a504 100644
+--- a/lib/skin.h
++++ b/lib/skin.h
+@@ -120,6 +120,7 @@ typedef struct mc_skin_struct
+     mc_config_t *config;
+     GHashTable *colors;
+     gboolean have_256_colors;
++    gboolean have_true_colors;
+ } mc_skin_t;
+ 
+ /*** global variables defined in .c file *********************************************************/
+diff --git a/lib/skin/common.c b/lib/skin/common.c
+index f620ec8..180eb1b 100644
+--- a/lib/skin/common.c
++++ b/lib/skin/common.c
+@@ -114,10 +114,12 @@ gboolean
+ mc_skin_init (const gchar * skin_override, GError ** mcerror)
+ {
+     gboolean is_good_init = TRUE;
++    GError *error = NULL;
+ 
+     mc_return_val_if_error (mcerror, FALSE);
+ 
+     mc_skin__default.have_256_colors = FALSE;
++    mc_skin__default.have_true_colors = FALSE;
+ 
+     mc_skin__default.name =
+         skin_override != NULL ? g_strdup (skin_override) : mc_skin_get_default_name ();
+@@ -145,6 +147,18 @@ mc_skin_init (const gchar * skin_override, GError ** mcerror)
+         (void) mc_skin_ini_file_parse (&mc_skin__default);
+         is_good_init = FALSE;
+     }
++    if (is_good_init && !tty_use_truecolors (&error) && mc_skin__default.have_true_colors)
++    {
++        mc_propagate_error (mcerror, 0,
++                            _
++                            ("Unable to use '%s' skin with true colors support:\n%s\nDefault skin has been loaded"),
++                            mc_skin__default.name, error->message);
++        g_error_free (error);
++        mc_skin_try_to_load_default ();
++        mc_skin_colors_old_configure (&mc_skin__default);
++        (void) mc_skin_ini_file_parse (&mc_skin__default);
++        is_good_init = FALSE;
++    }
+     if (is_good_init && !tty_use_256colors () && mc_skin__default.have_256_colors)
+     {
+         mc_propagate_error (mcerror, 0,
+diff --git a/lib/skin/ini-file.c b/lib/skin/ini-file.c
+index 923b45a..fad3492 100644
+--- a/lib/skin/ini-file.c
++++ b/lib/skin/ini-file.c
+@@ -188,6 +188,7 @@ mc_skin_ini_file_parse (mc_skin_t * mc_skin)
+ 
+     mc_skin_lines_parse_ini_file (mc_skin);
+     mc_skin->have_256_colors = mc_config_get_bool (mc_skin->config, "skin", "256colors", FALSE);
++    mc_skin->have_true_colors = mc_config_get_bool (mc_skin->config, "skin", "truecolors", FALSE);
+ 
+     return TRUE;
+ }
+diff --git a/lib/tty/color-internal.c b/lib/tty/color-internal.c
+index 5359943..3a982c8 100644
+--- a/lib/tty/color-internal.c
++++ b/lib/tty/color-internal.c
+@@ -96,8 +96,19 @@ static mc_tty_color_table_t const attributes_table[] = {
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static inline int
++parse_hex_digit (char c)
++{
++    if (c >= '0' && c <= '9')
++        return c - '0';
++    c |= 0x20;
++    if (c >= 'a' && c <= 'f')
++        return c - 'a' + 10;
++    return -1;
++}
++
+ static int
+-parse_256_color_name (const char *color_name)
++parse_256_or_true_color_name (const char *color_name)
+ {
+     int i;
+     char dummy;
+@@ -119,6 +130,24 @@ parse_256_color_name (const char *color_name)
+     {
+         return 16 + 36 * (color_name[3] - '0') + 6 * (color_name[4] - '0') + (color_name[5] - '0');
+     }
++    if (color_name[0] == '#')
++    {
++        int h[6];
++        color_name++;
++        if (strlen (color_name) != 3 && strlen (color_name) != 6)
++            return -1;
++        for (i = 0; color_name[i] != '\0'; i++)
++        {
++            h[i] = parse_hex_digit (color_name[i]);
++            if (h[i] == -1)
++                return -1;
++        }
++        if (i == 3)
++            i = (h[0] << 20) | (h[0] << 16) | (h[1] << 12) | (h[1] << 8) | (h[2] << 4) | h[2];
++        else
++            i = (h[0] << 20) | (h[1] << 16) | (h[2] << 12) | (h[3] << 8) | (h[4] << 4) | h[5];
++        return (1 << 24) | i;
++    }
+     return -1;
+ }
+ 
+@@ -136,21 +165,15 @@ tty_color_get_name_by_index (int idx)
+     for (i = 0; color_table[i].name != NULL; i++)
+         if (idx == color_table[i].value)
+             return color_table[i].name;
+-    /* Create and return the strings "color16" to "color255". */
+-    if (idx >= 16 && idx < 256)
++    /* Create and return the strings in "colorNNN" or "#rrggbb" format. */
++    if ((idx >= 16 && idx < 256) || idx & (1 << 24))
+     {
+-        static char **color_N_names = NULL;
+-
+-        if (color_N_names == NULL)
+-        {
+-            color_N_names = g_try_malloc0 (240 * sizeof (char *));
+-        }
+-        if (color_N_names[idx - 16] == NULL)
+-        {
+-            color_N_names[idx - 16] = g_try_malloc (9);
+-            sprintf (color_N_names[idx - 16], "color%d", idx);
+-        }
+-        return color_N_names[idx - 16];
++        char name[9];
++        if (idx < 256)
++            sprintf (name, "color%d", idx);
++        else
++            sprintf (name, "#%06X", idx & 0xFFFFFF);
++        return g_intern_string (name);
+     }
+     return "default";
+ }
+@@ -167,7 +190,7 @@ tty_color_get_index_by_name (const char *color_name)
+         for (i = 0; color_table[i].name != NULL; i++)
+             if (strcmp (color_name, color_table[i].name) == 0)
+                 return color_table[i].value;
+-        return parse_256_color_name (color_name);
++        return parse_256_or_true_color_name (color_name);
+     }
+     return -1;
+ }
+diff --git a/lib/tty/color-ncurses.c b/lib/tty/color-ncurses.c
+index 1688520..7f8222f 100644
+--- a/lib/tty/color-ncurses.c
++++ b/lib/tty/color-ncurses.c
+@@ -180,8 +180,8 @@ tty_color_try_alloc_pair_lib (tty_color_pair_t * mc_color_pair)
+         ibg = mc_color_pair->ibg;
+         attr = mc_color_pair->attr;
+ 
+-        /* In non-256 color mode, change bright colors into bold */
+-        if (!tty_use_256colors ())
++        /* In legacy color mode, change bright colors into bold */
++        if (!tty_use_256colors () && !tty_use_truecolors (NULL))
+         {
+             if (ifg >= 8 && ifg < 16)
+             {
+@@ -234,3 +234,13 @@ tty_use_256colors (void)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++gboolean
++tty_use_truecolors (GError ** error)
++{
++    /* Not yet supported in ncurses */
++    g_set_error (error, MC_ERROR, -1, _("True color not supported with ncurses."));
++    return FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/tty/color-slang.c b/lib/tty/color-slang.c
+index b9d5a3c..9d0768d 100644
+--- a/lib/tty/color-slang.c
++++ b/lib/tty/color-slang.c
+@@ -215,3 +215,37 @@ tty_use_256colors (void)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++gboolean
++tty_use_truecolors (GError ** error)
++{
++    /* Ideally this should check slang's runtime version, but there's no API for that. */
++#if SLANG_VERSION < 20301
++    g_set_error (error, MC_ERROR, -1, _("True color not supported in this slang version."));
++    return FALSE;
++#else
++    char *colorterm;
++
++    /* Sanity check that at least 256 colors are supported. */
++    if (!tty_use_256colors ())
++    {
++        g_set_error (error, MC_ERROR, -1,
++                     _("Your terminal doesn't even seem to support 256 colors."));
++        return FALSE;
++    }
++
++    /* Duplicate slang's check so that we can pop up an error message
++       rather than silently use wrong colors. */
++    colorterm = getenv ("COLORTERM");
++    if (colorterm == NULL || (strcmp (colorterm, "truecolor") != 0 && strcmp (colorterm, "24bit")))
++    {
++        g_set_error (error, MC_ERROR, -1,
++                     _("Set COLORTERM=truecolor if your terminal really supports true colors."));
++        return FALSE;
++    }
++
++    return TRUE;
++#endif /* SLANG_VERSION */
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/tty/color.h b/lib/tty/color.h
+index 00ce671..1a9f573 100644
+--- a/lib/tty/color.h
++++ b/lib/tty/color.h
+@@ -48,6 +48,7 @@ void tty_set_normal_attrs (void);
+ void tty_color_set_defaults (const char *, const char *, const char *);
+ 
+ extern gboolean tty_use_256colors (void);
++extern gboolean tty_use_truecolors (GError **);
+ 
+ /*** inline functions ****************************************************************************/
+ #endif /* MC_COLOR_H */
+diff --git a/lib/tty/tty-slang.c b/lib/tty/tty-slang.c
+index dfb0fa8..caa090f 100644
+--- a/lib/tty/tty-slang.c
++++ b/lib/tty/tty-slang.c
+@@ -309,7 +309,7 @@ tty_init (gboolean mouse_enable, gboolean is_xterm)
+     tty_reset_prog_mode ();
+     load_terminfo_keys ();
+ 
+-    SLtt_Blink_Mode = tty_use_256colors ()? 1 : 0;
++    SLtt_Blink_Mode = (tty_use_256colors () || tty_use_truecolors (NULL)) ? 1 : 0;
+ 
+     tty_start_interrupt_key ();
+ 

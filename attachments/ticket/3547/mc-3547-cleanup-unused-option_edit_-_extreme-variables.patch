@@ -1,0 +1,59 @@
+From 9acb34297a508fa1c3a4acc7d80d2177bcbfbe3f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 22:06:01 +0000
+Subject: [PATCH] cleanup unused option_edit_*_extreme variables
+
+one-way variables as source for macro definitions
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/edit-impl.h | 13 ++++---------
+ src/editor/edit.c      |  4 ----
+ 2 files changed, 4 insertions(+), 13 deletions(-)
+
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 3d7fbe6..48adad9 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -34,10 +34,10 @@
+ #define EDIT_TEXT_HORIZONTAL_OFFSET 0
+ #define EDIT_TEXT_VERTICAL_OFFSET   0
+ 
+-#define EDIT_RIGHT_EXTREME option_edit_right_extreme
+-#define EDIT_LEFT_EXTREME option_edit_left_extreme
+-#define EDIT_TOP_EXTREME option_edit_top_extreme
+-#define EDIT_BOTTOM_EXTREME option_edit_bottom_extreme
++#define EDIT_RIGHT_EXTREME 0
++#define EDIT_LEFT_EXTREME 0
++#define EDIT_TOP_EXTREME 0
++#define EDIT_BOTTOM_EXTREME 0
+ 
+ /* Initial size of the undo stack, in bytes */
+ #define START_STACK_SIZE 32
+@@ -132,11 +132,6 @@ extern int option_line_state_width;
+ extern int option_max_undo;
+ extern int option_auto_syntax;
+ 
+-extern int option_edit_right_extreme;
+-extern int option_edit_left_extreme;
+-extern int option_edit_top_extreme;
+-extern int option_edit_bottom_extreme;
+-
+ extern gboolean search_create_bookmark;
+ 
+ extern char *edit_window_state_char;
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e69a9d4..f86ffed 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -91,10 +91,6 @@ int option_line_state_width = 0;
+ gboolean option_cursor_after_inserted_block = FALSE;
+ int option_state_full_filename = 0;
+ 
+-int option_edit_right_extreme = 0;
+-int option_edit_left_extreme = 0;
+-int option_edit_top_extreme = 0;
+-int option_edit_bottom_extreme = 0;
+ int enable_show_tabs_tws = 1;
+ int option_check_nl_at_eof = 0;
+ int option_group_undo = 0;

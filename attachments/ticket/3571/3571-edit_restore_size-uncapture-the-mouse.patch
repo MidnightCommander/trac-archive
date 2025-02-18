@@ -1,0 +1,24 @@
+From 95da69182dcfa19b1e21abc9b1803bab941bff66 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 1 Apr 2016 14:58:29 +0300
+Subject: [PATCH] (edit_restore_size): uncapture the mouse.
+
+---
+ src/editor/editwidget.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 3af1f11..30aef2b 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -212,6 +212,7 @@ static void
+ edit_restore_size (WEdit * edit)
+ {
+     edit->drag_state = MCEDIT_DRAG_NONE;
++    WIDGET (edit)->mouse.forced_capture = FALSE;
+     widget_set_size (WIDGET (edit), edit->y_prev, edit->x_prev, edit->lines_prev, edit->cols_prev);
+     dlg_redraw (WIDGET (edit)->owner);
+ }
+-- 
+2.5.0
+

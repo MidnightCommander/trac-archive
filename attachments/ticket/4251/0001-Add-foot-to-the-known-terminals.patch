@@ -1,0 +1,36 @@
+From 9fa217e40de5e63af2dd8619c2d493f1a9bf2128 Mon Sep 17 00:00:00 2001
+From: Grzegorz Szymaszek <gszymaszek@short.pl>
+Date: Sat, 29 May 2021 18:09:27 +0200
+Subject: [PATCH] Add foot to the known terminals
+
+foot is a "fast, lightweight and minimalistic Wayland terminal emulator"
+(see https://codeberg.org/dnkl/foot). Add its default TERM value to the
+recognized ones. This enables mc to change the terminal window title and
+handle mouse events.
+---
+ lib/tty/tty.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/tty/tty.c b/lib/tty/tty.c
+index 784488ba1..6545208d3 100644
+--- a/lib/tty/tty.c
++++ b/lib/tty/tty.c
+@@ -98,6 +98,7 @@ sigintr_handler (int signo)
+  *         Eterm
+  *         dtterm
+  *         alacritty*
++ *         foot*
+  *         screen* (and DISPLAY environment variable is set).
+  */
+ gboolean
+@@ -123,6 +124,7 @@ tty_check_term (gboolean force_xterm)
+         || strcmp (termvalue, "Eterm") == 0
+         || strcmp (termvalue, "dtterm") == 0
+         || strncmp (termvalue, "alacritty", 9) == 0
++        || strncmp (termvalue, "foot", 4) == 0
+         || (strncmp (termvalue, "screen", 6) == 0 && xdisplay != NULL);
+ }
+ 
+-- 
+2.30.2
+

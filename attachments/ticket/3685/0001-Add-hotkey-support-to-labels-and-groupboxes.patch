@@ -1,0 +1,280 @@
+From 37978a2ce0d2e664644da3b9d8b90ff0adde996c Mon Sep 17 00:00:00 2001
+From: Kamil W <istonar3@gmail.com>
+Date: Mon, 26 Sep 2016 19:05:57 +0200
+Subject: [PATCH] Add hotkey support to labels and groupboxes
+
+---
+ lib/widget/groupbox.c      | 25 +++++++++++++++++++------
+ lib/widget/groupbox.h      |  2 +-
+ lib/widget/label.c         | 45 +++++++++++++++++++++++++++++++++++----------
+ lib/widget/label.h         |  2 +-
+ lib/widget/widget-common.c | 21 +++++++++++++++++++++
+ lib/widget/widget-common.h |  2 ++
+ 6 files changed, 79 insertions(+), 18 deletions(-)
+
+diff --git a/lib/widget/groupbox.c b/lib/widget/groupbox.c
+index 2d7a5b4..cf48996 100644
+--- a/lib/widget/groupbox.c
++++ b/lib/widget/groupbox.c
+@@ -62,6 +62,18 @@ groupbox_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+     case MSG_INIT:
+         return MSG_HANDLED;
+ 
++    case MSG_HOTKEY:
++        if (g->title.hotkey != NULL)
++        {
++            if (g_ascii_tolower ((gchar) g->title.hotkey[0]) == parm)
++            {
++                /* select next widget in this groupbox */
++                dlg_select_by_id (w->owner, (w->id + 1));
++                return MSG_HANDLED;
++            }
++        }
++        return MSG_NOT_HANDLED;
++
+     case MSG_DRAW:
+         {
+             WDialog *h = w->owner;
+@@ -72,17 +84,17 @@ groupbox_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+             tty_setcolor (disabled ? DISABLED_COLOR : h->color[DLG_COLOR_NORMAL]);
+             tty_draw_box (w->y, w->x, w->lines, w->cols, TRUE);
+ 
+-            if (g->title != NULL)
++            if ((get_hotkey_text (g->title)) != NULL)
+             {
+                 tty_setcolor (disabled ? DISABLED_COLOR : h->color[DLG_COLOR_TITLE]);
+                 widget_move (w, 0, 1);
+-                tty_print_string (g->title);
++                hotkey_draw (w, g->title, FALSE);
+             }
+             return MSG_HANDLED;
+         }
+ 
+     case MSG_DESTROY:
+-        g_free (g->title);
++        release_hotkey (g->title);
+         return MSG_HANDLED;
+ 
+     default:
+@@ -102,9 +114,10 @@ groupbox_new (int y, int x, int height, int width, const char *title)
+ 
+     g = g_new (WGroupbox, 1);
+     w = WIDGET (g);
++    g->title = parse_hotkey (title);
+     widget_init (w, y, x, height, width, groupbox_callback, NULL);
+ 
+-    g->title = NULL;
++    w->options |= WOP_WANT_HOTKEY;
+     groupbox_set_title (g, title);
+ 
+     return g;
+@@ -115,7 +128,7 @@ groupbox_new (int y, int x, int height, int width, const char *title)
+ void
+ groupbox_set_title (WGroupbox * g, const char *title)
+ {
+-    MC_PTR_FREE (g->title);
++    release_hotkey (g->title);
+ 
+     /* Strip existing spaces, add one space before and after the title */
+     if (title != NULL && *title != '\0')
+@@ -123,7 +136,7 @@ groupbox_set_title (WGroupbox * g, const char *title)
+         char *t;
+ 
+         t = g_strstrip (g_strdup (title));
+-        g->title = g_strconcat (" ", t, " ", (char *) NULL);
++        g->title = parse_hotkey (g_strconcat (" ", t, " ", (char *) NULL));
+         g_free (t);
+     }
+ 
+diff --git a/lib/widget/groupbox.h b/lib/widget/groupbox.h
+index 06fb0d3..e8b3fcc 100644
+--- a/lib/widget/groupbox.h
++++ b/lib/widget/groupbox.h
+@@ -17,7 +17,7 @@
+ typedef struct WGroupbox
+ {
+     Widget widget;
+-    char *title;
++    hotkey_t title;
+ } WGroupbox;
+ 
+ /*** global variables defined in .c file *********************************************************/
+diff --git a/lib/widget/label.c b/lib/widget/label.c
+index 769a9c3..e471400 100644
+--- a/lib/widget/label.c
++++ b/lib/widget/label.c
+@@ -67,23 +67,45 @@ label_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+     case MSG_INIT:
+         return MSG_HANDLED;
+ 
++    case MSG_HOTKEY:
++        if (l->text.hotkey != NULL)
++        {
++            if (g_ascii_tolower ((gchar) l->text.hotkey[0]) == parm)
++            {
++                /* select next widget after this label */
++                dlg_select_by_id (w->owner, (w->id + 1));
++                return MSG_HANDLED;
++            }
++        }
++        return MSG_NOT_HANDLED;
++
+     case MSG_DRAW:
+         {
+-            char *p = l->text;
++            char *p = get_hotkey_text (l->text);
+             int y = 0;
+             gboolean disabled;
++            gboolean focused;
+             align_crt_t align;
+ 
+-            if (l->text == NULL)
++            if (p == NULL)
+                 return MSG_HANDLED;
+ 
+             disabled = widget_get_state (w, WST_DISABLED);
++            focused = widget_get_state (w, WST_FOCUSED);
+ 
+             if (l->transparent)
+                 tty_setcolor (disabled ? DISABLED_COLOR : DEFAULT_COLOR);
+             else
+                 tty_setcolor (disabled ? DISABLED_COLOR : h->color[DLG_COLOR_NORMAL]);
+ 
++            /* if there is a hotkey, we assume that text will be a one liner */
++            if (l->text.hotkey != NULL)
++            {
++                widget_move (w, 0, 0);
++                hotkey_draw (w, l->text, focused);
++                return MSG_HANDLED;
++            }
++
+             align = (w->pos_flags & WPOS_CENTER_HORZ) != 0 ? J_CENTER_LEFT : J_LEFT;
+ 
+             while (TRUE)
+@@ -91,7 +113,6 @@ label_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+                 char *q;
+                 char c = '\0';
+ 
+-
+                 q = strchr (p, '\n');
+                 if (q != NULL)
+                 {
+@@ -109,11 +130,12 @@ label_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+                 p = q + 1;
+                 y++;
+             }
++
+             return MSG_HANDLED;
+         }
+ 
+     case MSG_DESTROY:
+-        g_free (l->text);
++        release_hotkey (l->text);
+         return MSG_HANDLED;
+ 
+     default:
+@@ -138,9 +160,9 @@ label_new (int y, int x, const char *text)
+ 
+     l = g_new (WLabel, 1);
+     w = WIDGET (l);
++    l->text = parse_hotkey (text);
+     widget_init (w, y, x, lines, cols, label_callback, NULL);
+-
+-    l->text = g_strdup (text);
++    w->options |= WOP_WANT_HOTKEY;
+     l->auto_adjust_cols = TRUE;
+     l->transparent = FALSE;
+ 
+@@ -155,17 +177,18 @@ label_set_text (WLabel * label, const char *text)
+     Widget *w = WIDGET (label);
+     int newcols = w->cols;
+     int newlines;
++    char *temp_str = get_hotkey_text (label->text);
+ 
+-    if (label->text != NULL && text != NULL && strcmp (label->text, text) == 0)
++    if (temp_str != NULL && text != NULL && strcmp (temp_str, text) == 0)
+         return;                 /* Flickering is not nice */
+ 
+-    g_free (label->text);
++    release_hotkey (label->text);
+ 
+     if (text == NULL)
+-        label->text = NULL;
++        label->text = parse_hotkey (NULL);
+     else
+     {
+-        label->text = g_strdup (text);
++        label->text = parse_hotkey (text);
+         if (label->auto_adjust_cols)
+         {
+             str_msg_term_size (text, &newlines, &newcols);
+@@ -180,6 +203,8 @@ label_set_text (WLabel * label, const char *text)
+ 
+     if (newcols < w->cols)
+         w->cols = newcols;
++
++    g_free (temp_str);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/label.h b/lib/widget/label.h
+index 6d1607f..59d5281 100644
+--- a/lib/widget/label.h
++++ b/lib/widget/label.h
+@@ -18,7 +18,7 @@ typedef struct
+ {
+     Widget widget;
+     gboolean auto_adjust_cols;  /* compute widget.cols from strlen(text)? */
+-    char *text;
++    hotkey_t text;
+     gboolean transparent;       /* Paint in the default color fg/bg */
+ } WLabel;
+ 
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index e97b526..17c8db1 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -173,6 +173,27 @@ hotkey_width (const hotkey_t hotkey)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++char *
++get_hotkey_text (const hotkey_t hotkey)
++{
++    int hk_width;
++    char *temp;
++
++    hk_width = hotkey_width (hotkey);
++    temp = g_malloc (hk_width + 1);
++
++    strcpy (temp, hotkey.start);
++
++    if (hotkey.hotkey != NULL)
++        strcat (temp, hotkey.hotkey);
++    if (hotkey.end != NULL)
++        strcat (temp, hotkey.end);
++
++    return temp;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ hotkey_draw (Widget * w, const hotkey_t hotkey, gboolean focused)
+ {
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index 540189a..9d93967 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -168,6 +168,8 @@ hotkey_t parse_hotkey (const char *text);
+ void release_hotkey (const hotkey_t hotkey);
+ /* return width on terminal of hotkey */
+ int hotkey_width (const hotkey_t hotkey);
++/* get text of hotkey as one string */
++char * get_hotkey_text (const hotkey_t hotkey);
+ /* draw hotkey of widget */
+ void hotkey_draw (Widget * w, const hotkey_t hotkey, gboolean focused);
+ 
+-- 
+1.9.1
+

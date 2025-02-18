@@ -1,0 +1,32 @@
+From 28971edfb1e980f8166c1a66bd4cd298e2ce1730 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 29 Sep 2023 12:37:05 +0000
+Subject: [PATCH] (tar-sparse.c) fix conditional-uninitialized warning
+
+tar-sparse.c:563:55: warning: variable 'rc' may be uninitialized when used here [-Wconditional-uninitialized]
+    for (ext_p = h->oldgnu_header.isextended ? 1 : 0; rc == add_ok && ext_p != 0;
+                                                      ^~
+tar-sparse.c:551:5: note: variable 'rc' is declared here
+    enum oldgnu_add_status rc;
+    ^
+
+Found by clang-16
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar-sparse.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/tar/tar-sparse.c b/src/vfs/tar/tar-sparse.c
+index 0bc169b01..1e1eca1cd 100644
+--- a/src/vfs/tar/tar-sparse.c
++++ b/src/vfs/tar/tar-sparse.c
+@@ -548,7 +548,7 @@ oldgnu_get_sparse_info (tar_super_t * archive, struct tar_sparse_file *file)
+     size_t i;
+     union block *h = current_header;
+     int ext_p;
+-    enum oldgnu_add_status rc;
++    enum oldgnu_add_status rc = add_fail;
+ 
+     if (file->stat_info->sparse_map != NULL)
+         g_array_set_size (file->stat_info->sparse_map, 0);

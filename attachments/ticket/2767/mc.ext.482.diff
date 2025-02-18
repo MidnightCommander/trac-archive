@@ -1,0 +1,36 @@
+--- mc.ext.default	2012-03-31 17:42:32.000000000 +0600
++++ mc.ext	2012-03-31 18:01:07.970256077 +0600
+@@ -442,13 +442,12 @@
+ regex/\.([mM][iI][dD][iI]?|[rR][mM][iI][dD]?)$
+ 	Open=timidity %f
+ 
+-regex/\.([wW][mM][aA])$
+-	Open=mplayer -vo null %f
+-	View=%view{ascii} mplayer -quiet -slave -frames 0 -vo null -ao null -identify %f 2>/dev/null | tail +13 || file %f
++regex/\.([wW][mM][aA]|[aA][pP][eE]|[aA][aA][cC]|[wW][vV]|[mM]4[aA])$
++	Include=audio
+ 
+ include/audio
+ 	Open=mplayer %f
+-	View=%view{ascii} mplayer -identify -vo null -ao null -frames 0 %f 2>&1 | sed -n '/^ID_/p'
++	View=%view{ascii} mplayer -identify -vo null -ao null -frames 0 %f 2>&1 | sed -n 's/^ID_//p'
+ 
+ ### Play lists ###
+ 
+@@ -493,7 +492,7 @@
+ regex/\.([fF][lL][iIcCvV])$
+ 	Include=video
+ 
+-regex/\.([oO][gG][mM])$
++regex/\.([oO][gG][mM|vV])$
+ 	Include=video
+ 
+ regex/\.([rR][aA]?[mM])$
+@@ -501,6 +500,7 @@
+ 
+ include/video
+ 	Open=(mplayer %f >/dev/null 2>&1 &)
++	View=%view{ascii} mplayer -identify -vo null -ao null -frames 0 %f 2>&1 | sed -n 's/^ID_//p'
+ 	#Open=(gtv %f >/dev/null 2>&1 &)
+ 	#Open=(xanim %f >/dev/null 2>&1 &)
+ 

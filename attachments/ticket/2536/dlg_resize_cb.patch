@@ -1,0 +1,35 @@
+
+    dlg_resize_cb() only used in dialog_change_screen_size() 
+    but if defined TIOCGWINSZ.
+#
+#		/* Inform all running dialogs */
+#		g_list_foreach (top_dlg, (GFunc) dlg_resize_cb, NULL);
+#		
+#		/* Now, force the redraw */
+
+
+
+
+ lib/widget/dialog-switch.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/lib/widget/dialog-switch.c b/lib/widget/dialog-switch.c
+index 6876c84..c1b3789 100644
+--- a/lib/widget/dialog-switch.c
++++ b/lib/widget/dialog-switch.c
+@@ -94,6 +94,7 @@ dialog_switch_goto (GList * dlg)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++#if defined TIOCGWINSZ
+ static void
+ dlg_resize_cb (void *data, void *user_data)
+ {
+@@ -102,6 +103,7 @@ dlg_resize_cb (void *data, void *user_data)
+     (void) user_data;
+     d->callback (d, NULL, DLG_RESIZE, 0, NULL);
+ }
++#endif
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/

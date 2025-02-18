@@ -1,0 +1,66 @@
+From 172d729569e729669a8b254dd1b1406dce9af318 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 14:52:31 +0000
+Subject: [PATCH] skin/ini-file.c: cleanup -Wcast-qual warning
+
+ini-file.c:61:24: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         while ((name = (gchar *) g_dir_read_name (dir)) != NULL)
+                        ^
+ini-file.c:92:17: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     char *aa = *(char **) a;
+                 ^
+ini-file.c:93:17: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     char *bb = *(char **) b;
+                 ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+---
+ lib/skin/ini-file.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/lib/skin/ini-file.c b/lib/skin/ini-file.c
+index 32c3a99..22bc8b0 100644
+--- a/lib/skin/ini-file.c
++++ b/lib/skin/ini-file.c
+@@ -49,23 +49,23 @@
+ static void
+ mc_skin_get_list_from_dir (const gchar * base_dir, GPtrArray * list)
+ {
+-    gchar *name;
++    const gchar *cname;
+     GDir *dir;
+ 
+-    name = g_build_filename (base_dir, MC_SKINS_SUBDIR, (char *) NULL);
++    gchar *name = g_build_filename (base_dir, MC_SKINS_SUBDIR, (char *) NULL);
+     dir = g_dir_open (name, 0, NULL);
+     g_free (name);
+ 
+     if (dir != NULL)
+     {
+-        while ((name = (gchar *) g_dir_read_name (dir)) != NULL)
++        while ((cname = g_dir_read_name (dir)) != NULL)
+         {
+             gchar *sname;
+             size_t slen;
+             unsigned int i;
+ 
+-            slen = strlen (name);
+-            sname = g_strndup (name, slen);
++            slen = strlen (cname);
++            sname = g_strndup (cname, slen);
+ 
+             if (slen > 4 && strcmp (sname + slen - 4, ".ini") == 0)
+                 sname[slen - 4] = '\0';
+@@ -89,10 +89,7 @@ mc_skin_get_list_from_dir (const gchar * base_dir, GPtrArray * list)
+ static int
+ string_array_comparator (gconstpointer a, gconstpointer b)
+ {
+-    char *aa = *(char **) a;
+-    char *bb = *(char **) b;
+-
+-    return strcmp (aa, bb);
++    return strcmp (*(char *const *) a, *(char *const *) b);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

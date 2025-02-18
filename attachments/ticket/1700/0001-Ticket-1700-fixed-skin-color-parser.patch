@@ -1,0 +1,49 @@
+From 17e943401052e9db6ef32070b20c0416ce2cde4d Mon Sep 17 00:00:00 2001
+From: Andrew Borodin <aborodin@vmail.ru>
+Date: Sat, 10 Oct 2009 09:35:37 +0400
+Subject: [PATCH] Ticket #1700: fixed skin color parser.
+
+Strip leading and trailing spaces in color names read from skin ini
+file.
+
+Signed-off-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ src/skin/colors.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/skin/colors.c b/src/skin/colors.c
+index 638fb1f..95b7df8 100644
+--- a/src/skin/colors.c
++++ b/src/skin/colors.c
+@@ -144,8 +144,8 @@ mc_skin_color_get_from_ini_file (mc_skin_t * mc_skin, const gchar * group, const
+     case 0:
+         tmp = mc_skin_color_get_with_defaults (group, "_default_");
+         if (tmp) {
+-            mc_skin_color->fgcolor = g_strdup (tmp->fgcolor);
+-            mc_skin_color->bgcolor = g_strdup (tmp->bgcolor);
++            mc_skin_color->fgcolor = g_strstrip (g_strdup (tmp->fgcolor));
++            mc_skin_color->bgcolor = g_strstrip (g_strdup (tmp->bgcolor));
+         } else {
+             g_strfreev (values);
+             g_free (mc_skin_color);
+@@ -153,13 +153,13 @@ mc_skin_color_get_from_ini_file (mc_skin_t * mc_skin, const gchar * group, const
+         }
+         break;
+     case 1:
+-        mc_skin_color->fgcolor = (values[0]) ? g_strdup (values[0]) : NULL;
++        mc_skin_color->fgcolor = (values[0]) ? g_strstrip (g_strdup (values[0])) : NULL;
+         tmp = mc_skin_color_get_with_defaults (group, "_default_");
+-        mc_skin_color->bgcolor = (tmp != NULL) ? g_strdup (tmp->bgcolor) : NULL;
++        mc_skin_color->bgcolor = (tmp != NULL) ? g_strstrip (g_strdup (tmp->bgcolor)) : NULL;
+         break;
+     case 2:
+-        mc_skin_color->fgcolor = (values[0]) ? g_strdup (values[0]) : NULL;
+-        mc_skin_color->bgcolor = (values[1]) ? g_strdup (values[1]) : NULL;
++        mc_skin_color->fgcolor = (values[0]) ? g_strstrip (g_strdup (values[0])) : NULL;
++        mc_skin_color->bgcolor = (values[1]) ? g_strstrip (g_strdup (values[1])) : NULL;
+         break;
+     }
+     g_strfreev (values);
+-- 
+1.6.0.2.GIT
+

@@ -1,0 +1,43 @@
+diff -urN mc.orig/misc/mc.keymap mc/misc/mc.keymap
+--- mc.orig/misc/mc.keymap	2009-10-01 15:02:59.000000000 +0200
++++ mc/misc/mc.keymap	2009-10-03 14:20:08.000000000 +0200
+@@ -59,8 +59,8 @@
+ EditEndOfTextHighlight  = ctrl-shift-end
+ EditBeginPageHighlight  = ctrl-shift-pgup
+ EditEndPageHighlight = ctrl-shift-pgdn
+-EditScrollUpHighlight =
+-EditScrollDownHighlight =
++EditScrollUpHighlight = ctrl-shift-up
++EditScrollDownHighlight = ctrl-shift-down
+ EditParagraphUpHighlight =
+ EditParagraphDownHighlight =
+ 
+@@ -162,7 +162,7 @@
+ 
+ [viewer]
+ ViewSearch = question; slash; f7
+-ViewContinueSearch = ctrl-r; ctrl-s; f17
++ViewContinueSearch = ctrl-r; ctrl-s; f17; n
+ ViewMoveToBol = home
+ ViewMoveToEol = end
+ ViewMoveLeft = h; left
+@@ -215,7 +215,7 @@
+ PanelDoEnter = enter
+ PanelChdirOtherPanel = alt-o
+ PanelChdirToReadlink = alt-l
+-PanelViewSimple = shift-F3
++PanelViewSimple = f13
+ PanelEditNew = F14
+ PanelCopyLocal = F15
+ PanelRenameLocal = F16
+diff -urN mc.orig/src/keybind.c mc/src/keybind.c
+--- mc.orig/src/keybind.c	2009-10-01 15:02:59.000000000 +0200
++++ mc/src/keybind.c	2009-10-03 12:39:06.000000000 +0200
+@@ -360,6 +360,7 @@
+ 
+     { '?',                                  CK_ViewSearch },
+     { '/',                                  CK_ViewSearch },
++    { 'n',                                  CK_ViewContinueSearch },
+     { XCTRL('r'),                           CK_ViewContinueSearch },
+     { XCTRL('s'),                           CK_ViewContinueSearch },
+     { KEY_F (17),                           CK_ViewContinueSearch },

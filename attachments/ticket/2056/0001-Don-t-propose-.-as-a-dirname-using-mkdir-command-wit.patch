@@ -1,0 +1,26 @@
+From 7234d6897ec0c6f9204aa23c4be76646d76fb562 Mon Sep 17 00:00:00 2001
+From: Francesco Cosoleto <cosoleto@gmail.com>
+Date: Tue, 16 Feb 2010 02:53:55 +0100
+Subject: [PATCH] Don't propose ".." as a dirname using mkdir command with automatic name filling enabled
+
+Signed-off-by: Francesco Cosoleto <cosoleto@gmail.com>
+---
+ src/cmd.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index 05635b5..99e953d 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -388,7 +388,7 @@ mkdir_cmd (void)
+     const char *name = "";
+ 
+     /* If 'on' then automatically fills name with current selected item name */
+-    if (auto_fill_mkdir_name)
++    if (auto_fill_mkdir_name && strcmp(selection(current_panel)->fname, ".."))
+         name = selection (current_panel)->fname;
+ 
+     dir =
+-- 
+1.6.6.1
+

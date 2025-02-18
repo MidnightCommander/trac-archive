@@ -1,0 +1,72 @@
+From d4b6a11e0136227ce02e5fedde043945a96ddcec Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 24 Feb 2016 16:15:07 +0000
+Subject: [PATCH] paths.c: cleanup -Wcast-qual warning
+
+paths.c:319:15: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         dir = (char *) g_get_user_config_dir ();
+               ^
+paths.c:329:15: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         dir = (char *) g_get_user_cache_dir ();
+               ^
+paths.c:339:15: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         dir = (char *) g_get_user_data_dir ();
+               ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/mcconfig/paths.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/lib/mcconfig/paths.c b/lib/mcconfig/paths.c
+index bfcf3f4..43adcbf 100644
+--- a/lib/mcconfig/paths.c
++++ b/lib/mcconfig/paths.c
+@@ -289,6 +289,8 @@ mc_config_init_config_paths (GError ** mcerror)
+     char *dir;
+ #if MC_HOMEDIR_XDG == 0
+     char *defined_userconf_dir;
++#else
++    const char *cdir;
+ #endif
+ 
+     mc_return_if_error (mcerror);
+@@ -316,9 +318,9 @@ mc_config_init_config_paths (GError ** mcerror)
+     }
+     else
+     {
+-        dir = (char *) g_get_user_config_dir ();
+-        if (dir != NULL && *dir != '\0')
+-            mc_config_str = mc_config_init_one_config_path (dir, MC_USERCONF_DIR, mcerror);
++        cdir = g_get_user_config_dir ();
++        if (cdir != NULL && *cdir != '\0')
++            mc_config_str = mc_config_init_one_config_path (cdir, MC_USERCONF_DIR, mcerror);
+         else
+         {
+             dir = g_build_filename (homedir, ".config", (char *) NULL);
+@@ -326,9 +328,9 @@ mc_config_init_config_paths (GError ** mcerror)
+             g_free (dir);
+         }
+ 
+-        dir = (char *) g_get_user_cache_dir ();
+-        if (dir != NULL && *dir != '\0')
+-            mc_cache_str = mc_config_init_one_config_path (dir, MC_USERCONF_DIR, mcerror);
++        cdir = g_get_user_cache_dir ();
++        if (cdir != NULL && *cdir != '\0')
++            mc_cache_str = mc_config_init_one_config_path (cdir, MC_USERCONF_DIR, mcerror);
+         else
+         {
+             dir = g_build_filename (homedir, ".cache", (char *) NULL);
+@@ -336,9 +338,9 @@ mc_config_init_config_paths (GError ** mcerror)
+             g_free (dir);
+         }
+ 
+-        dir = (char *) g_get_user_data_dir ();
+-        if (dir != NULL && *dir != '\0')
+-            mc_data_str = mc_config_init_one_config_path (dir, MC_USERCONF_DIR, mcerror);
++        cdir = g_get_user_data_dir ();
++        if (cdir != NULL && *cdir != '\0')
++            mc_data_str = mc_config_init_one_config_path (cdir, MC_USERCONF_DIR, mcerror);
+         else
+         {
+             dir = g_build_filename (homedir, ".local", "share", (char *) NULL);

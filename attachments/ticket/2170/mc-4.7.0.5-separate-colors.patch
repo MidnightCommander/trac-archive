@@ -1,0 +1,822 @@
+diff -ur mc-4.7.0.5.orig/lib/skin/colors.c mc-4.7.0.5/lib/skin/colors.c
+--- mc-4.7.0.5.orig/lib/skin/colors.c	2010-05-06 19:42:07.000000000 +0200
++++ mc-4.7.0.5/lib/skin/colors.c	2010-05-06 23:47:40.000000000 +0200
+@@ -181,15 +181,19 @@
+     SELECTED_COLOR = mc_skin_color_get ("core", "selected");
+     MARKED_SELECTED_COLOR = mc_skin_color_get ("core", "markselect");
+     REVERSE_COLOR = mc_skin_color_get ("core", "reverse");
++    HEADER_COLOR = mc_skin_color_get ("core", "header");
+ 
+     COLOR_NORMAL = mc_skin_color_get ("dialog", "_default_");
+     COLOR_FOCUS = mc_skin_color_get ("dialog", "dfocus");
+     COLOR_HOT_NORMAL = mc_skin_color_get ("dialog", "dhotnormal");
+     COLOR_HOT_FOCUS = mc_skin_color_get ("dialog", "dhotfocus");
++    COLOR_TITLE = mc_skin_color_get ("dialog", "dtitle");
+ 
+     ERROR_COLOR = mc_skin_color_get ("error", "_default_");
++    ERROR_FOCUS = mc_skin_color_get ("error", "errdfocus");
+     ERROR_HOT_NORMAL = mc_skin_color_get ("error", "errdhotnormal");
+     ERROR_HOT_FOCUS = mc_skin_color_get ("error", "errdhotfocus");
++    ERROR_TITLE = mc_skin_color_get ("error", "errdtitle");
+ 
+     MENU_ENTRY_COLOR = mc_skin_color_get ("menu", "_default_");
+     MENU_SELECTED_COLOR = mc_skin_color_get ("menu", "menusel");
+@@ -199,14 +203,19 @@
+ 
+     GAUGE_COLOR = mc_skin_color_get ("core", "gauge");
+     INPUT_COLOR = mc_skin_color_get ("core", "input");
++    INPUT_HISTORY_COLOR = mc_skin_color_get ("core", "inputhistory");
++    COMMAND_HISTORY_COLOR = mc_skin_color_get ("core", "commandhistory");
+ 
+     HELP_NORMAL_COLOR = mc_skin_color_get ("help", "_default_");
+     HELP_ITALIC_COLOR = mc_skin_color_get ("help", "helpitalic");
+     HELP_BOLD_COLOR = mc_skin_color_get ("help", "helpbold");
+     HELP_LINK_COLOR = mc_skin_color_get ("help", "helplink");
+     HELP_SLINK_COLOR = mc_skin_color_get ("help", "helpslink");
++    HELP_TITLE_COLOR = mc_skin_color_get ("help", "helptitle");
+ 
++    VIEW_BOLD_COLOR = mc_skin_color_get ("viewer", "viewbold");
+     VIEW_UNDERLINED_COLOR = mc_skin_color_get ("viewer", "viewunderline");
++    VIEW_SELECTED_COLOR = mc_skin_color_get ("viewer", "viewselected");
+ 
+     EDITOR_NORMAL_COLOR = mc_skin_color_get ("editor", "_default_");
+     EDITOR_BOLD_COLOR = mc_skin_color_get ("editor", "editbold");
+diff -ur mc-4.7.0.5.orig/lib/skin.h mc-4.7.0.5/lib/skin.h
+--- mc-4.7.0.5.orig/lib/skin.h	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/lib/skin.h	2010-05-06 23:47:17.000000000 +0200
+@@ -19,58 +19,67 @@
+ #define SELECTED_COLOR          mc_skin_color__cache[3]
+ #define MARKED_SELECTED_COLOR   mc_skin_color__cache[4]
+ #define REVERSE_COLOR           mc_skin_color__cache[5]
++#define HEADER_COLOR            mc_skin_color__cache[6]
+ 
+ /* Dialog colors */
+-#define COLOR_NORMAL            mc_skin_color__cache[6]
+-#define COLOR_FOCUS             mc_skin_color__cache[7]
+-#define COLOR_HOT_NORMAL        mc_skin_color__cache[8]
+-#define COLOR_HOT_FOCUS         mc_skin_color__cache[9]
++#define COLOR_NORMAL            mc_skin_color__cache[7]
++#define COLOR_FOCUS             mc_skin_color__cache[8]
++#define COLOR_HOT_NORMAL        mc_skin_color__cache[9]
++#define COLOR_HOT_FOCUS         mc_skin_color__cache[10]
++#define COLOR_TITLE             mc_skin_color__cache[11]
+ 
+ /* Error dialog colors */
+-#define ERROR_COLOR             mc_skin_color__cache[10]
+-#define ERROR_HOT_NORMAL        mc_skin_color__cache[11]
+-#define ERROR_HOT_FOCUS         mc_skin_color__cache[12]
++#define ERROR_COLOR             mc_skin_color__cache[12]
++#define ERROR_FOCUS             mc_skin_color__cache[13]
++#define ERROR_HOT_NORMAL        mc_skin_color__cache[14]
++#define ERROR_HOT_FOCUS         mc_skin_color__cache[15]
++#define ERROR_TITLE             mc_skin_color__cache[16]
+ 
+ /* Menu colors */
+-#define MENU_ENTRY_COLOR        mc_skin_color__cache[13]
+-#define MENU_SELECTED_COLOR     mc_skin_color__cache[14]
+-#define MENU_HOT_COLOR          mc_skin_color__cache[15]
+-#define MENU_HOTSEL_COLOR       mc_skin_color__cache[16]
+-#define MENU_INACTIVE_COLOR     mc_skin_color__cache[17]
++#define MENU_ENTRY_COLOR        mc_skin_color__cache[17]
++#define MENU_SELECTED_COLOR     mc_skin_color__cache[18]
++#define MENU_HOT_COLOR          mc_skin_color__cache[19]
++#define MENU_HOTSEL_COLOR       mc_skin_color__cache[20]
++#define MENU_INACTIVE_COLOR     mc_skin_color__cache[21]
+ 
+ /*
+  * This should be selectable independently. Default has to be black background
+  * foreground does not matter at all.
+  */
+-#define GAUGE_COLOR             mc_skin_color__cache[18]
+-#define INPUT_COLOR             mc_skin_color__cache[19]
+-
+-#define HELP_NORMAL_COLOR       mc_skin_color__cache[20]
+-#define HELP_ITALIC_COLOR       mc_skin_color__cache[21]
+-#define HELP_BOLD_COLOR         mc_skin_color__cache[22]
+-#define HELP_LINK_COLOR         mc_skin_color__cache[23]
+-#define HELP_SLINK_COLOR        mc_skin_color__cache[24]
+-
+-#define VIEW_UNDERLINED_COLOR   mc_skin_color__cache[25]
++#define GAUGE_COLOR             mc_skin_color__cache[22]
++#define INPUT_COLOR             mc_skin_color__cache[23]
++#define INPUT_HISTORY_COLOR     mc_skin_color__cache[24]
++#define COMMAND_HISTORY_COLOR   mc_skin_color__cache[25]
++
++#define HELP_NORMAL_COLOR       mc_skin_color__cache[26]
++#define HELP_ITALIC_COLOR       mc_skin_color__cache[27]
++#define HELP_BOLD_COLOR         mc_skin_color__cache[28]
++#define HELP_LINK_COLOR         mc_skin_color__cache[29]
++#define HELP_SLINK_COLOR        mc_skin_color__cache[30]
++#define HELP_TITLE_COLOR        mc_skin_color__cache[31]
++
++#define VIEW_BOLD_COLOR         mc_skin_color__cache[32]
++#define VIEW_UNDERLINED_COLOR   mc_skin_color__cache[33]
++#define VIEW_SELECTED_COLOR     mc_skin_color__cache[34]
+ 
+ /*
+  * editor colors - only 4 for normal, search->found, select, and whitespace
+  * respectively
+  * Last is defined to view color.
+  */
+-#define EDITOR_NORMAL_COLOR     mc_skin_color__cache[26]
+-#define EDITOR_BOLD_COLOR       mc_skin_color__cache[27]
+-#define EDITOR_MARKED_COLOR     mc_skin_color__cache[28]
+-#define EDITOR_WHITESPACE_COLOR mc_skin_color__cache[29]
++#define EDITOR_NORMAL_COLOR     mc_skin_color__cache[35]
++#define EDITOR_BOLD_COLOR       mc_skin_color__cache[36]
++#define EDITOR_MARKED_COLOR     mc_skin_color__cache[37]
++#define EDITOR_WHITESPACE_COLOR mc_skin_color__cache[38]
+ /* color of left 8 char status per line */
+-#define LINE_STATE_COLOR        mc_skin_color__cache[30]
+-#define BOOK_MARK_COLOR         mc_skin_color__cache[31]
+-#define BOOK_MARK_FOUND_COLOR   mc_skin_color__cache[32]
++#define LINE_STATE_COLOR        mc_skin_color__cache[39]
++#define BOOK_MARK_COLOR         mc_skin_color__cache[40]
++#define BOOK_MARK_FOUND_COLOR   mc_skin_color__cache[41]
+ 
+-#define BUTTONBAR_HOTKEY_COLOR   mc_skin_color__cache[33]
+-#define BUTTONBAR_BUTTON_COLOR   mc_skin_color__cache[34]
++#define BUTTONBAR_HOTKEY_COLOR   mc_skin_color__cache[42]
++#define BUTTONBAR_BUTTON_COLOR   mc_skin_color__cache[43]
+ 
+-#define MC_SKIN_COLOR_CACHE_COUNT 35
++#define MC_SKIN_COLOR_CACHE_COUNT 44
+ 
+ 
+ /*** enums ***************************************************************************************/
+diff -ur mc-4.7.0.5.orig/misc/skins/darkfar.ini mc-4.7.0.5/misc/skins/darkfar.ini
+--- mc-4.7.0.5.orig/misc/skins/darkfar.ini	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/misc/skins/darkfar.ini	2010-05-07 00:02:45.000000000 +0200
+@@ -24,17 +24,23 @@
+     gauge=white;black
+     input=black;cyan
+     reverse=black;lightgray
++    header=yellow;black
++    inputhistory=
++    commandhistory=
+ 
+ [dialog]
+     _default_=brightcyan;blue
+     dfocus=blue;cyan
+     dhotnormal=white;
+     dhotfocus=white;cyan
++    dtitle=white;
+ 
+ [error]
+     _default_=white;red
++    errdfocus=black;lightgray
+     errdhotnormal=yellow;red
+     errdhotfocus=yellow;lightgray
++    errdtitle=yellow;red
+ 
+ [filehighlight]
+     directory=white;
+@@ -65,6 +71,7 @@
+     helpbold=blue;lightgray
+     helplink=black;cyan
+     helpslink=yellow;blue
++    helptitle=blue;lightgray
+ 
+ [editor]
+     _default_=lightgray;black
+@@ -76,7 +83,9 @@
+     bookmarkfound=black;green
+ 
+ [viewer]
++    viewbold=yellow;black
+     viewunderline=brightred;black
++    viewselected=yellow;cyan
+ 
+ [buttonbar]
+     hotkey=red;white
+diff -ur mc-4.7.0.5.orig/misc/skins/default.ini mc-4.7.0.5/misc/skins/default.ini
+--- mc-4.7.0.5.orig/misc/skins/default.ini	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/misc/skins/default.ini	2010-05-06 23:49:49.000000000 +0200
+@@ -24,17 +24,23 @@
+     gauge=white;black
+     input=black;cyan
+     reverse=black;lightgray
++    header=yellow;blue
++    inputhistory=
++    commandhistory=
+ 
+ [dialog]
+     _default_=black;lightgray
+     dfocus=black;cyan
+     dhotnormal=blue;lightgray
+     dhotfocus=blue;cyan
++    dtitle=blue;lightgray
+ 
+ [error]
+     _default_=white;red
++    errdfocus=black;lightgray
+     errdhotnormal=yellow;red
+     errdhotfocus=yellow;lightgray
++    errdtitle=yellow;red
+ 
+ 
+ [filehighlight]
+@@ -70,6 +76,7 @@
+     helpbold=blue;lightgray
+     helplink=black;cyan
+     helpslink=yellow;blue
++    helptitle=blue;lightgray
+ 
+ [editor]
+     _default_=lightgray;blue
+@@ -81,7 +88,9 @@
+     bookmarkfound=black;green
+ 
+ [viewer]
++    viewbold=yellow;blue
+     viewunderline=brightred;blue
++    viewselected=yellow;cyan
+ 
+ [widget-common]
+     sort-sign-up = '
+diff -ur mc-4.7.0.5.orig/misc/skins/double-lines.ini mc-4.7.0.5/misc/skins/double-lines.ini
+--- mc-4.7.0.5.orig/misc/skins/double-lines.ini	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/misc/skins/double-lines.ini	2010-05-06 23:50:01.000000000 +0200
+@@ -24,17 +24,23 @@
+     gauge=white;black
+     input=black;cyan
+     reverse=black;lightgray
++    header=yellow;blue
++    inputhistory=
++    commandhistory=
+ 
+ [dialog]
+     _default_=black;lightgray
+     dfocus=black;cyan
+     dhotnormal=blue;lightgray
+     dhotfocus=blue;cyan
++    dtitle=blue;lightgray
+ 
+ [error]
+     _default_=white;red
++    errdfocus=black;lightgray
+     errdhotnormal=yellow;red
+     errdhotfocus=yellow;lightgray
++    errdtitle=yellow;red
+ 
+ 
+ [filehighlight]
+@@ -66,6 +72,7 @@
+     helpbold=blue;lightgray
+     helplink=black;cyan
+     helpslink=yellow;blue
++    helptitle=blue;lightgray
+ 
+ [editor]
+     _default_=lightgray;blue
+@@ -77,7 +84,9 @@
+     bookmarkfound=black;green
+ 
+ [viewer]
++    viewbold=yellow;blue
+     viewunderline=brightred;blue
++    viewselected=yellow;cyan
+ 
+ [widget-common]
+     sort-sign-up = '
+diff -ur mc-4.7.0.5.orig/misc/skins/featured.ini mc-4.7.0.5/misc/skins/featured.ini
+--- mc-4.7.0.5.orig/misc/skins/featured.ini	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/misc/skins/featured.ini	2010-05-06 23:50:13.000000000 +0200
+@@ -26,17 +26,23 @@
+     gauge=white;black
+     input=black;cyan
+     reverse=black;lightgray
++    header=yellow;blue
++    inputhistory=
++    commandhistory=
+ 
+ [dialog]
+     _default_=black;lightgray
+     dfocus=black;cyan
+     dhotnormal=blue;lightgray
+     dhotfocus=blue;cyan
++    dtitle=blue;lightgray
+ 
+ [error]
+     _default_=white;red
++    errdfocus=black;lightgray
+     errdhotnormal=yellow;red
+     errdhotfocus=yellow;lightgray
++    errdtitle=yellow;red
+ 
+ 
+ [filehighlight]
+@@ -72,6 +78,7 @@
+     helpbold=blue;lightgray
+     helplink=black;cyan
+     helpslink=yellow;blue
++    helptitle=blue;lightgray
+ 
+ [editor]
+     _default_=lightgray;blue
+@@ -83,7 +90,9 @@
+     bookmarkfound=black;green
+ 
+ [viewer]
++    viewbold=yellow;blue
+     viewunderline=brightred;blue
++    viewselected=yellow;cyan
+ 
+ [widget-common]
+     sort-sign-up = ↓
+diff -ur mc-4.7.0.5.orig/misc/skins/gotar.ini mc-4.7.0.5/misc/skins/gotar.ini
+--- mc-4.7.0.5.orig/misc/skins/gotar.ini	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/misc/skins/gotar.ini	2010-05-06 23:50:22.000000000 +0200
+@@ -24,17 +24,23 @@
+ 	gauge=;yellow
+ 	input=brightgreen;
+ 	reverse=brightgreen;blue
++	header=brightred;
++	inputhistory=
++	commandhistory=
+ 
+ [dialog]
+ 	_default_=brightcyan;blue
+ 	dfocus=brightred;black
+ 	dhotnormal=brightred;
+ 	dhotfocus=yellow;black
++	dtitle=brightred;
+ 
+ [error]
+ 	_default_=white;red
++	errdfocus=brightgreen;blue
+ 	errdhotnormal=yellow;
+ 	errdhotfocus=yellow;blue
++	errdtitle=yellow;
+ 
+ [filehighlight]
+ 	directory=brightcyan;
+@@ -65,6 +71,7 @@
+ 	helpbold=brightgreen;
+ 	helplink=white;
+ 	helpslink=yellow;blue
++	helptitle=brightgreen;
+ 
+ [editor]
+ 	_default_=lightgray;black
+@@ -76,7 +83,9 @@
+ 	bookmarkfound=black;green
+ 
+ [viewer]
++	viewbold=brightred;black
+ 	viewunderline=brightgreen;black
++	viewselected=yellow;black
+ 
+ [buttonbar]
+ 	hotkey=lightgray;black
+diff -ur mc-4.7.0.5.orig/misc/skins/sand256.ini mc-4.7.0.5/misc/skins/sand256.ini
+--- mc-4.7.0.5.orig/misc/skins/sand256.ini	2010-05-06 19:42:07.000000000 +0200
++++ mc-4.7.0.5/misc/skins/sand256.ini	2010-05-06 23:50:32.000000000 +0200
+@@ -72,22 +72,28 @@
+ [core]
+     _default_=black;rgb554
+     selected=;rgb452
+-    marked=rgb400
+-    markselect=rgb400;rgb452
++    marked=rgb400;;bold
++    markselect=rgb400;rgb452;bold
+     gauge=;rgb452
+     input=;rgb452
+     reverse=;rgb452
++    header=red
++    inputhistory=;rgb452
++    commandhistory=default;default
+ 
+ [dialog]
+     _default_=black;rgb553
+     dfocus=;rgb452
+     dhotnormal=;;underline
+     dhotfocus=;rgb452;underline
++    dtitle=red
+ 
+ [error]
+     _default_=rgb554;rgb320;bold
++    errdfocus=black;rgb452;bold
+     errdhotnormal=;;bold+underline
+-    errdhotfocus=black;rgb452;underline
++    errdhotfocus=black;rgb452;bold+underline
++    errdtitle=
+ 
+ [filehighlight]
+     directory=
+@@ -123,6 +129,7 @@
+     helpbold=red
+     helplink=blue;;underline
+     helpslink=blue;;reverse
++    helptitle=red
+ 
+ [editor]
+     _default_=black;rgb554
+@@ -134,7 +141,9 @@
+     bookmarkfound=;rgb530
+ 
+ [viewer]
++    viewbold=red
+     viewunderline=;;underline
++    viewselected=;rgb452
+ 
+ [widget-common]
+     sort-sign-up = ↓
+diff -ur mc-4.7.0.5.orig/src/boxes.c mc-4.7.0.5/src/boxes.c
+--- mc-4.7.0.5.orig/src/boxes.c	2010-05-05 19:51:16.000000000 +0200
++++ mc-4.7.0.5/src/boxes.c	2010-05-06 23:18:53.000000000 +0200
+@@ -197,7 +197,7 @@
+     add_widget (dd, cancel_button);
+     add_widget (dd, ok_button);
+ 
+-    display_mini_status = input_new (10, 8, INPUT_COLOR, dlg_width - 12, _status[radio_sel],
++    display_mini_status = input_new (10, 8, INPUT_COLOR, INPUT_HISTORY_COLOR, dlg_width - 12, _status[radio_sel],
+ 			    "mini-input", INPUT_COMPLETE_DEFAULT);
+     add_widget (dd, display_mini_status);
+     input_set_point (display_mini_status, 0);
+@@ -205,7 +205,7 @@
+     display_check_status = check_new (9, 4, _check_status, user_mini_status);
+     add_widget (dd, display_check_status);
+ 
+-    display_user_format = input_new (7, 8, INPUT_COLOR, dlg_width - 12, init_text,
++    display_user_format = input_new (7, 8, INPUT_COLOR, INPUT_HISTORY_COLOR, dlg_width - 12, init_text,
+ 			"user-fmt-input", INPUT_COMPLETE_DEFAULT);
+     add_widget (dd, display_user_format);
+     input_set_point (display_user_format, 0);
+@@ -1038,17 +1038,17 @@
+ 
+     g_free (title);
+ 
+-    in_user  = input_new (5, istart, INPUT_COLOR, ilen, user, "auth_name", INPUT_COMPLETE_DEFAULT);
++    in_user  = input_new (5, istart, INPUT_COLOR, INPUT_HISTORY_COLOR, ilen, user, "auth_name", INPUT_COMPLETE_DEFAULT);
+     add_widget (auth_dlg, in_user);
+ 
+-    in_domain = input_new (3, istart, INPUT_COLOR, ilen, domain, "auth_domain", INPUT_COMPLETE_DEFAULT);
++    in_domain = input_new (3, istart, INPUT_COLOR, INPUT_HISTORY_COLOR, ilen, domain, "auth_domain", INPUT_COMPLETE_DEFAULT);
+     add_widget (auth_dlg, in_domain);
+     add_widget (auth_dlg, button_new (9, b2, B_CANCEL, NORMAL_BUTTON,
+                  buts[1], 0));
+     add_widget (auth_dlg, button_new (9, b0, B_ENTER, DEFPUSH_BUTTON,
+                  buts[0], 0));
+ 
+-    in_password  = input_new (7, istart, INPUT_COLOR, ilen, "", "auth_password", INPUT_COMPLETE_DEFAULT);
++    in_password  = input_new (7, istart, INPUT_COLOR, INPUT_HISTORY_COLOR, ilen, "", "auth_password", INPUT_COMPLETE_DEFAULT);
+     in_password->completion_flags = 0;
+     in_password->is_password = 1;
+     add_widget (auth_dlg, in_password);
+diff -ur mc-4.7.0.5.orig/src/chmod.c mc-4.7.0.5/src/chmod.c
+--- mc-4.7.0.5.orig/src/chmod.c	2010-05-05 19:51:16.000000000 +0200
++++ mc-4.7.0.5/src/chmod.c	2010-05-06 22:27:26.000000000 +0200
+@@ -152,7 +152,7 @@
+     dlg_move (h, TY + 3, TX);
+     tty_print_string (_("and T or INS to mark"));
+ 
+-    tty_setcolor (COLOR_HOT_NORMAL);
++    tty_setcolor (COLOR_TITLE);
+ 
+     dlg_move (h, PY, PX + 1);
+     tty_print_string (_(" Permission "));
+diff -ur mc-4.7.0.5.orig/src/chown.c mc-4.7.0.5/src/chown.c
+--- mc-4.7.0.5.orig/src/chown.c	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/src/chown.c	2010-05-06 22:27:26.000000000 +0200
+@@ -128,7 +128,7 @@
+     dlg_move (h, TY + 9, TX + 1);
+     tty_print_string (_(" Permission "));
+ 
+-    tty_setcolor (COLOR_HOT_NORMAL);
++    tty_setcolor (COLOR_TITLE);
+     dlg_move (h, UY, UX + 1);
+     tty_print_string (_(" User name "));
+     dlg_move (h, GY, GX + 1);
+diff -ur mc-4.7.0.5.orig/src/command.c mc-4.7.0.5/src/command.c
+--- mc-4.7.0.5.orig/src/command.c	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/src/command.c	2010-05-06 23:19:16.000000000 +0200
+@@ -306,7 +306,7 @@
+ {
+     WInput *cmd;
+ 
+-    cmd = input_new (y, x, DEFAULT_COLOR, cols, "", "cmdline",
++    cmd = input_new (y, x, DEFAULT_COLOR, COMMAND_HISTORY_COLOR, cols, "", "cmdline",
+ 	INPUT_COMPLETE_DEFAULT | INPUT_COMPLETE_CD | INPUT_COMPLETE_COMMANDS | INPUT_COMPLETE_SHELL_ESC);
+ 
+     /* Add our hooks */
+diff -ur mc-4.7.0.5.orig/src/dialog.c mc-4.7.0.5/src/dialog.c
+--- mc-4.7.0.5.orig/src/dialog.c	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/src/dialog.c	2010-05-06 22:13:29.000000000 +0200
+@@ -45,8 +45,8 @@
+ #include "setup.h"	/* mouse_close_dialog */
+ 
+ /* Color styles for normal and error dialogs */
+-int dialog_colors [4];
+-int alarm_colors [4];
++int dialog_colors [DLG_COLOR_NUM];
++int alarm_colors [DLG_COLOR_NUM];
+ 
+ /* Primitive way to check if the the current dialog is our dialog */
+ /* This is needed by async routines like load_prompt */
+@@ -110,7 +110,7 @@
+     draw_box (h, space, space, h->lines - 2 * space, h->cols - 2 * space);
+ 
+     if (h->title) {
+-	tty_setcolor (DLG_HOT_NORMALC (h));
++	tty_setcolor (DLG_TITLEC (h));
+ 	dlg_move (h, space, (h->cols - str_term_width1 (h->title)) / 2);
+ 	tty_print_string (h->title);
+     }
+@@ -281,11 +281,13 @@
+     dialog_colors [1] = COLOR_FOCUS;
+     dialog_colors [2] = COLOR_HOT_NORMAL;
+     dialog_colors [3] = COLOR_HOT_FOCUS;
++    dialog_colors [4] = COLOR_TITLE;
+ 
+     alarm_colors [0] = ERROR_COLOR;
+-    alarm_colors [1] = REVERSE_COLOR;
++    alarm_colors [1] = ERROR_FOCUS;
+     alarm_colors [2] = ERROR_HOT_NORMAL;
+     alarm_colors [3] = ERROR_HOT_FOCUS;
++    alarm_colors [4] = ERROR_TITLE;
+ }
+ 
+ void
+diff -ur mc-4.7.0.5.orig/src/dialog.h mc-4.7.0.5/src/dialog.h
+--- mc-4.7.0.5.orig/src/dialog.h	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/src/dialog.h	2010-05-06 22:12:02.000000000 +0200
+@@ -91,11 +91,12 @@
+ typedef char * (*dlg_shortcut_str) (unsigned long command);
+ 
+ /* Dialog color constants */
+-#define DLG_COLOR_NUM		4
++#define DLG_COLOR_NUM		5
+ #define DLG_NORMALC(h)		((h)->color[0])
+ #define DLG_FOCUSC(h)		((h)->color[1])
+ #define DLG_HOT_NORMALC(h)	((h)->color[2])
+ #define DLG_HOT_FOCUSC(h)	((h)->color[3])
++#define DLG_TITLEC(h)		((h)->color[4])
+ 
+ struct Dlg_head {
+     /* Set by the user */
+@@ -126,8 +127,8 @@
+ };
+ 
+ /* Color styles for normal and error dialogs */
+-extern int dialog_colors[4];
+-extern int alarm_colors[4];
++extern int dialog_colors[DLG_COLOR_NUM];
++extern int alarm_colors[DLG_COLOR_NUM];
+ 
+ 
+ /* Widget callback */
+diff -ur mc-4.7.0.5.orig/src/editor/editcmd_dialogs.c mc-4.7.0.5/src/editor/editcmd_dialogs.c
+--- mc-4.7.0.5.orig/src/editor/editcmd_dialogs.c	2010-05-05 19:51:25.000000000 +0200
++++ mc-4.7.0.5/src/editor/editcmd_dialogs.c	2010-05-06 23:18:54.000000000 +0200
+@@ -316,7 +316,7 @@
+         create_dlg (0, 0, 7, w, dialog_colors, editcmd_dialog_raw_key_query_cb,
+                     NULL, heading, DLG_CENTER | DLG_TRYUP | DLG_WANT_TAB);
+     add_widget (raw_dlg,
+-                input_new (3 - cancel, w - 5, INPUT_COLOR, 2, "", 0, INPUT_COMPLETE_DEFAULT));
++                input_new (3 - cancel, w - 5, INPUT_COLOR, INPUT_HISTORY_COLOR, 2, "", 0, INPUT_COMPLETE_DEFAULT));
+     add_widget (raw_dlg, label_new (3 - cancel, 2, query));
+     if (cancel)
+         add_widget (raw_dlg, button_new (4, w / 2 - 5, B_CANCEL, NORMAL_BUTTON, _("Cancel"), 0));
+diff -ur mc-4.7.0.5.orig/src/find.c mc-4.7.0.5/src/find.c
+--- mc-4.7.0.5.orig/src/find.c	2010-05-05 19:51:16.000000000 +0200
++++ mc-4.7.0.5/src/find.c	2010-05-06 23:18:57.000000000 +0200
+@@ -373,12 +373,12 @@
+     file_case_sens_cbox = check_new (7, 3, file_case_sens_flag, file_case_label);
+     add_widget (find_dlg, file_case_sens_cbox);
+ 
+-    in_with = input_new (6, FIND_X / 2 + 1, INPUT_COLOR, FIND_X / 2 - 4, INPUT_LAST_TEXT,
++    in_with = input_new (6, FIND_X / 2 + 1, INPUT_COLOR, INPUT_HISTORY_COLOR, FIND_X / 2 - 4, INPUT_LAST_TEXT,
+                          MC_HISTORY_SHARED_SEARCH, INPUT_COMPLETE_DEFAULT);
+     add_widget (find_dlg, in_with);
+     add_widget (find_dlg, label_new (5, FIND_X / 2 + 1, _("Content:")));
+ 
+-    in_name = input_new (6, 3, INPUT_COLOR, FIND_X / 2 - 4, INPUT_LAST_TEXT, "name",
++    in_name = input_new (6, 3, INPUT_COLOR, INPUT_HISTORY_COLOR, FIND_X / 2 - 4, INPUT_LAST_TEXT, "name",
+                          INPUT_COMPLETE_DEFAULT);
+     add_widget (find_dlg, in_name);
+     add_widget (find_dlg, label_new (5, 3, _("File name:")));
+@@ -386,7 +386,7 @@
+     add_widget (find_dlg,
+ 		button_new (3, FIND_X - b2 - 2, B_TREE, NORMAL_BUTTON, buts[2], 0));
+ 
+-    in_start = input_new (3, 3, INPUT_COLOR, FIND_X - b2 - 6, in_start_dir, "start",
++    in_start = input_new (3, 3, INPUT_COLOR, INPUT_HISTORY_COLOR, FIND_X - b2 - 6, in_start_dir, "start",
+                           INPUT_COMPLETE_DEFAULT);
+     add_widget (find_dlg, in_start);
+     add_widget (find_dlg, label_new (2, 3, _("Start at:")));
+diff -ur mc-4.7.0.5.orig/src/help.c mc-4.7.0.5/src/help.c
+--- mc-4.7.0.5.orig/src/help.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/help.c	2010-05-06 23:46:41.000000000 +0200
+@@ -892,7 +892,8 @@
+ 	HELP_NORMAL_COLOR,	/* common text color */
+ 	0,			/* unused in help */
+ 	HELP_BOLD_COLOR,	/* title color */
+-	0			/* unused in help */
++	0,			/* unused in help */
++	HELP_TITLE_COLOR,
+     };
+ 
+     WButtonBar *help_bar;
+diff -ur mc-4.7.0.5.orig/src/layout.c mc-4.7.0.5/src/layout.c
+--- mc-4.7.0.5.orig/src/layout.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/layout.c	2010-05-06 22:39:04.000000000 +0200
+@@ -300,8 +300,8 @@
+ 	old_horizontal_split = -1;
+ 	old_output_lines     = -1;
+ 
+-	tty_setcolor (COLOR_HOT_NORMAL);
+ 	update_split ();
++	tty_setcolor (COLOR_NORMAL);
+ 	dlg_move (h, 6, 13);
+ 	tty_print_char ('=');
+ 	if (console_flag){
+diff -ur mc-4.7.0.5.orig/src/main.c mc-4.7.0.5/src/main.c
+--- mc-4.7.0.5.orig/src/main.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/main.c	2010-05-06 23:46:26.000000000 +0200
+@@ -1832,6 +1832,7 @@
+     midnight_colors[1] = mc_skin_color_get("dialog", "focus");
+     midnight_colors[2] = mc_skin_color_get("dialog", "hotnormal");
+     midnight_colors[3] = mc_skin_color_get("dialog", "hotfocus");
++    midnight_colors[4] = 0;  /* unused on the main screen */
+ 
+     panel_init ();
+ 
+diff -ur mc-4.7.0.5.orig/src/panelize.c mc-4.7.0.5/src/panelize.c
+--- mc-4.7.0.5.orig/src/panelize.c	2010-05-05 19:51:16.000000000 +0200
++++ mc-4.7.0.5/src/panelize.c	2010-05-06 23:19:00.000000000 +0200
+@@ -170,7 +170,7 @@
+ 				panelize_but[i].text, 0));
+ 
+     pname =
+-	input_new (UY + 14, UX, INPUT_COLOR, panelize_dlg->cols - 10, "",
++	input_new (UY + 14, UX, INPUT_COLOR, INPUT_HISTORY_COLOR, panelize_dlg->cols - 10, "",
+ 		   "in", INPUT_COMPLETE_DEFAULT);
+     add_widget (panelize_dlg, pname);
+ 
+diff -ur mc-4.7.0.5.orig/src/screen.c mc-4.7.0.5/src/screen.c
+--- mc-4.7.0.5.orig/src/screen.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/screen.c	2010-05-06 22:00:36.000000000 +0200
+@@ -1524,7 +1524,7 @@
+                     g_string_append (format_txt, "]");
+                 }
+ 
+-                tty_setcolor (MARKED_COLOR);
++                tty_setcolor (HEADER_COLOR);
+                 tty_print_string (str_fit_to_term (format_txt->str, format->field_len,
+                                                    J_CENTER_LEFT));
+                 width -= format->field_len;
+diff -ur mc-4.7.0.5.orig/src/viewer/display.c mc-4.7.0.5/src/viewer/display.c
+--- mc-4.7.0.5.orig/src/viewer/display.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/viewer/display.c	2010-05-06 23:28:02.000000000 +0200
+@@ -389,7 +389,7 @@
+     if (ruler == RULER_NONE || height < 1)
+         return;
+ 
+-    tty_setcolor (MARKED_COLOR);
++    tty_setcolor (VIEW_BOLD_COLOR);
+     for (c = 0; c < width; c++)
+     {
+         cl = view->dpy_text_column + c;
+diff -ur mc-4.7.0.5.orig/src/viewer/hex.c mc-4.7.0.5/src/viewer/hex.c
+--- mc-4.7.0.5.orig/src/viewer/hex.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/viewer/hex.c	2010-05-06 23:34:49.000000000 +0200
+@@ -118,7 +118,7 @@
+         g_snprintf (hex_buff, sizeof (hex_buff), "%08" OFFSETTYPE_PRIX " ",
+                     (long unsigned int) from);
+         widget_move (view, top + row, left);
+-        tty_setcolor (MARKED_COLOR);
++        tty_setcolor (VIEW_BOLD_COLOR);
+         for (i = 0; col < width && hex_buff[i] != '\0'; i++)
+         {
+             tty_print_char (hex_buff[i]);
+@@ -166,10 +166,10 @@
+ 
+             /* Select the color for the hex number */
+             tty_setcolor (boldflag == MARK_NORMAL ? NORMAL_COLOR :
+-                          boldflag == MARK_SELECTED ? MARKED_COLOR :
++                          boldflag == MARK_SELECTED ? VIEW_BOLD_COLOR :
+                           boldflag == MARK_CHANGED ? VIEW_UNDERLINED_COLOR :
+                           /* boldflag == MARK_CURSOR */
+-                          view->hexview_in_text ? MARKED_SELECTED_COLOR : VIEW_UNDERLINED_COLOR);
++                          view->hexview_in_text ? VIEW_SELECTED_COLOR : VIEW_UNDERLINED_COLOR);
+ 
+             /* Print the hex number */
+             widget_move (view, top + row, left + col);
+@@ -213,10 +213,10 @@
+             /* Select the color for the character; this differs from the
+              * hex color when boldflag == MARK_CURSOR */
+             tty_setcolor (boldflag == MARK_NORMAL ? NORMAL_COLOR :
+-                          boldflag == MARK_SELECTED ? MARKED_COLOR :
++                          boldflag == MARK_SELECTED ? VIEW_BOLD_COLOR :
+                           boldflag == MARK_CHANGED ? VIEW_UNDERLINED_COLOR :
+                           /* boldflag == MARK_CURSOR */
+-                          view->hexview_in_text ? VIEW_UNDERLINED_COLOR : MARKED_SELECTED_COLOR);
++                          view->hexview_in_text ? VIEW_UNDERLINED_COLOR : VIEW_SELECTED_COLOR);
+ 
+ #ifdef HAVE_CHARSET
+             if (utf8_display)
+diff -ur mc-4.7.0.5.orig/src/viewer/nroff.c mc-4.7.0.5/src/viewer/nroff.c
+--- mc-4.7.0.5.orig/src/viewer/nroff.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/viewer/nroff.c	2010-05-06 21:57:14.000000000 +0200
+@@ -132,7 +132,7 @@
+                     && (c_next != '_' || mcview_count_backspaces (view, from + 1) == 1))
+                     tty_setcolor (VIEW_UNDERLINED_COLOR);
+                 else
+-                    tty_setcolor (MARKED_COLOR);
++                    tty_setcolor (VIEW_BOLD_COLOR);
+                 continue;
+             }
+         }
+diff -ur mc-4.7.0.5.orig/src/widget.c mc-4.7.0.5/src/widget.c
+--- mc-4.7.0.5.orig/src/widget.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/widget.c	2010-05-06 23:08:32.000000000 +0200
+@@ -893,20 +893,16 @@
+     char c;
+     c = in->history->next ? (in->history->prev ? '|' : 'v') : '^';
+     widget_move (&in->widget, 0, in->field_width - HISTORY_BUTTON_WIDTH);
++    tty_setcolor (in->history_color);
+ #ifdef LARGE_HISTORY_BUTTON
+     {
+ 	Dlg_head *h;
+ 	h = in->widget.parent;
+-	tty_setcolor (NORMAL_COLOR);
+ 	tty_print_string ("[ ]");
+-	/* Too distracting: tty_setcolor (MARKED_COLOR); */
+         widget_move (&in->widget, 0, in->field_width - HISTORY_BUTTON_WIDTH + 1);
+-	tty_print_char (c);
+     }
+-#else
+-    tty_setcolor (MARKED_COLOR);
+-    tty_print_char (c);
+ #endif
++    tty_print_char (c);
+ }
+ 
+ /* }}} history button */
+@@ -1997,7 +1993,7 @@
+ }
+ 
+ WInput *
+-input_new (int y, int x, int color, int width, const char *def_text,
++input_new (int y, int x, int color, int history_color, int width, const char *def_text,
+ 	   const char *histname, INPUT_COMPLETE_FLAGS completion_flags)
+ {
+     WInput *in = g_new (WInput, 1);
+@@ -2031,6 +2027,7 @@
+     in->current_max_size = initial_buffer_len;
+     in->buffer = g_new (char, initial_buffer_len);
+     in->color = color;
++    in->history_color = history_color;
+     in->field_width = width;
+     in->first = 1;
+     in->term_first_shown = 0;
+@@ -2825,7 +2822,7 @@
+ 		  g->widget.x - g->widget.parent->x, g->widget.lines,
+ 		  g->widget.cols);
+ 
+-	tty_setcolor (COLOR_HOT_NORMAL);
++	tty_setcolor (COLOR_TITLE);
+ 	dlg_move (g->widget.parent, g->widget.y - g->widget.parent->y,
+ 		  g->widget.x - g->widget.parent->x + 1);
+ 	tty_print_string (g->title);
+diff -ur mc-4.7.0.5.orig/src/widget.h mc-4.7.0.5/src/widget.h
+--- mc-4.7.0.5.orig/src/widget.h	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/widget.h	2010-05-06 23:06:48.000000000 +0200
+@@ -105,6 +105,7 @@
+     size_t current_max_size;	/* Maximum length of input line (bytes) */
+     int  field_width;		/* width of the editing field */
+     int  color;			/* color used */
++    int  history_color;		/* color of the history button */
+     int  first;			/* Is first keystroke? */
+     int  disable_update;	/* Do we want to skip updates? */
+     int  is_password;		/* Is this a password input line? */
+@@ -187,7 +188,7 @@
+ 		      bcback callback);
+ WRadio  *radio_new    (int y, int x, int count, const char **text);
+ WCheck  *check_new    (int y, int x, int state,  const char *text);
+-WInput  *input_new    (int y, int x, int color, int len, const char *text, const char *histname, INPUT_COMPLETE_FLAGS completion_flags);
++WInput  *input_new    (int y, int x, int color, int history_color, int len, const char *text, const char *histname, INPUT_COMPLETE_FLAGS completion_flags);
+ WLabel  *label_new    (int y, int x, const char *text);
+ WGauge  *gauge_new    (int y, int x, int shown, int max, int current);
+ WListbox *listbox_new (int y, int x, int height, int width, lcback callback);
+diff -ur mc-4.7.0.5.orig/src/wtools.c mc-4.7.0.5/src/wtools.c
+--- mc-4.7.0.5.orig/src/wtools.c	2010-05-06 22:08:52.000000000 +0200
++++ mc-4.7.0.5/src/wtools.c	2010-05-06 23:19:02.000000000 +0200
+@@ -55,6 +55,7 @@
+ 	COLOR_FOCUS,
+ 	COLOR_HOT_NORMAL,
+ 	COLOR_HOT_FOCUS,
++	COLOR_TITLE,
+     };
+ 
+     const int space = 4;
+@@ -397,7 +398,7 @@
+ 	    break;
+ 
+ 	case quick_input:
+-	    in = input_new (ypos, xpos, INPUT_COLOR, qw->u.input.len,
++	    in = input_new (ypos, xpos, INPUT_COLOR, INPUT_HISTORY_COLOR, qw->u.input.len,
+ 			    qw->u.input.text, qw->u.input.histname, INPUT_COMPLETE_DEFAULT);
+ 	    in->is_password = (qw->u.input.flags == 1);
+ 	    in->point = 0;

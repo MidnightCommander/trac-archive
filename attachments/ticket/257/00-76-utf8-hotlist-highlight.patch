@@ -1,0 +1,23 @@
+Highlight the lines of hotlist in full width.
+
+diff -Naur mc-4.6.2.orig/src/widget.c mc-4.6.2/src/widget.c
+--- mc-4.6.2.orig/src/widget.c	2009-02-04 17:37:44.000000000 +0100
++++ mc-4.6.2/src/widget.c	2009-02-04 17:46:55.000000000 +0100
+@@ -2027,6 +2027,7 @@
+ {
+     WLEntry *e;
+     int i;
++    int j;
+     int sel_line;
+     Dlg_head *h = l->widget.parent;
+     int normalc = DLG_NORMALC (h);
+@@ -2057,7 +2058,8 @@
+ 	    text = e->text;
+ 	    e = e->next;
+ 	}
+-	tty_printf (" %-*s ", l->width-2, name_trunc (text, l->width-2));
++	j = columns_to_bytes (name_trunc (text, l->width-2), l->width-2);
++	tty_printf (" %-*s ", j, name_trunc (text, l->width-2));
+     }
+     l->cursor_y = sel_line;
+     if (!l->scrollbar)

@@ -1,0 +1,58 @@
+From af30d8fc59186963c309a1c91190543e1d00dc0c Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 14 Dec 2015 23:06:07 +0200
+Subject: [PATCH] Invalid command-line options cause segfault.
+
+That's because main() calls mc_shell_deinit() without mc_shell_init()
+having been called.
+
+Solution: we make mc_shell_deinit() not crash when mc_global.shell ==
+NULL.
+
+(The use of MC_PTR_FREE there is just a matter of style -- it's not part
+of the solution.)
+
+The patch also moves the call to mc_shell_deinit() past
+'startup_exit_ok:'. This is obviously the intended design.
+'startup_exit_falure:' is just meant to print mcerror.
+---
+ lib/shell.c | 7 +++++--
+ src/main.c  | 3 +--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/lib/shell.c b/lib/shell.c
+index 5159909..3d9ba2e 100644
+--- a/lib/shell.c
++++ b/lib/shell.c
+@@ -243,8 +243,11 @@ mc_shell_init (void)
+ void
+ mc_shell_deinit (void)
+ {
+-    g_free (mc_global.shell->path);
+-    g_free (mc_global.shell);
++    if (mc_global.shell != NULL)
++    {
++        g_free (mc_global.shell->path);
++        MC_PTR_FREE (mc_global.shell);
++    }
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/main.c b/src/main.c
+index aec94c4..4e6503c 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -244,9 +244,8 @@ main (int argc, char *argv[])
+       startup_exit_falure:
+         fprintf (stderr, _("Failed to run:\n%s\n"), mcerror->message);
+         g_error_free (mcerror);
+-
+-        mc_shell_deinit ();
+       startup_exit_ok:
++        mc_shell_deinit ();
+         str_uninit_strings ();
+         mc_timer_destroy (mc_global.timer);
+         return exit_code;
+-- 
+2.1.4
+

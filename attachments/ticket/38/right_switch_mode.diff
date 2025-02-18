@@ -1,0 +1,154 @@
+diff --git a/src/layout.c b/src/layout.c
+index e801a99..4ec5162 100644
+--- a/src/layout.c
++++ b/src/layout.c
+@@ -117,6 +117,7 @@ int output_start_y = 0;
+ static struct {
+     int    type;
+     Widget *widget;
++    char *last_saved_dir;  /* last view_list working directory */
+ } panels [MAX_VIEWS];
+ 
+ /* These variables are used to avoid updating the information unless */
+@@ -955,7 +956,7 @@ void set_display_type (int num, int type)
+     
+     switch (type){
+     case view_listing:
+-	new_widget = (Widget *) panel_new (get_nth_panel_name (num));
++	new_widget = restore_into_right_dir_panel(num, old_widget);
+ 	break;
+ 	
+     case view_info:
+@@ -979,6 +980,12 @@ void set_display_type (int num, int type)
+ 	view_load ((WView *) new_widget, 0, file_name, 0);
+ 	break;
+     }
++
++    if (type != view_listing)
++	/* Must save dir, for restoring after change type to */
++	/* view_listing */
++	save_panel_dir(num);
++
+     panels [num].type = type;
+     panels [num].widget = (Widget *) new_widget;
+     
+@@ -1150,3 +1157,32 @@ int get_other_type (void)
+ 	return panels [0].type;
+ }
+ 
++/* Save current list_view widget directory into panel */
++void save_panel_dir(int index)
++{
++    if (get_display_type(index) == view_listing) {
++	WPanel *w = (WPanel *) get_panel_widget(index);
++	char *widget_work_dir = w->cwd;
++
++	g_free(panels [index].last_saved_dir);  /* last path no needed */
++	panels [index].last_saved_dir = g_strdup(widget_work_dir);
++    }
++}
++
++/* Save current list_view widget directory into panel */
++Widget *restore_into_right_dir_panel(int index, Widget *from_widget)
++{
++    Widget *new_widget = 0;
++    const char *saved_dir = panels [index].last_saved_dir;
++    int last_was_panel = (from_widget &&
++            get_display_type(index) != view_listing);
++
++    const char *p_name = get_nth_panel_name (index);
++
++    if (last_was_panel) {
++	new_widget = (Widget *) panel_new_with_dir (p_name, saved_dir);
++    } else
++	new_widget = (Widget *) panel_new (p_name);
++
++    return new_widget;
++}
+diff --git a/src/layout.h b/src/layout.h
+index 7a14a09..2521c2c 100644
+--- a/src/layout.h
++++ b/src/layout.h
+@@ -30,6 +30,9 @@ struct Widget *get_panel_widget (int index);
+ 
+ struct WPanel *get_other_panel (void);
+ 
++void save_panel_dir(int index);
++Widget *restore_into_right_dir_panel(int index, Widget *from_widget);
++
+ void set_hintbar (const char *str);
+ 
+ /* Clear screen */
+diff --git a/src/panel.h b/src/panel.h
+index bed9e3d..a2adb12 100644
+--- a/src/panel.h
++++ b/src/panel.h
+@@ -83,6 +83,7 @@ typedef struct WPanel {
+ } WPanel;
+ 
+ WPanel *panel_new (const char *panel_name);
++WPanel *panel_new_with_dir (const char *panel_name, const char *dr);
+ void panel_clean_dir (WPanel *panel);
+ 
+ extern int torben_fj_mode;
+diff --git a/src/screen.c b/src/screen.c
+index 6f6c403..6e6b62c 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -1096,9 +1096,20 @@ panel_format_modified (WPanel *panel)
+ WPanel *
+ panel_new (const char *panel_name)
+ {
++    return panel_new_with_dir(panel_name, NULL);
++}
++
++/* Panel creation for specified directory */
++/* The parameter specifies the name of the panel for setup retieving */
++/* and the path of working panel directory. If path is NULL then */
++/* panel will be created for current directory */
++WPanel *
++panel_new_with_dir (const char *panel_name, const char *wpath)
++{
+     WPanel *panel;
+     char *section;
+     int i, err;
++    char curdir[MAXPATHLEN];
+ 
+     panel = g_new0 (WPanel, 1);
+ 
+@@ -1108,7 +1119,12 @@ panel_new (const char *panel_name)
+     /* We do not want the cursor */
+     widget_want_cursor (panel->widget, 0);
+ 
+-    mc_get_current_wd (panel->cwd, sizeof (panel->cwd) - 2);
++    if (wpath) {
++	g_strlcpy(panel->cwd, wpath, sizeof (panel->cwd));
++	mc_get_current_wd (curdir, sizeof (curdir) - 2);
++    } else
++	mc_get_current_wd (panel->cwd, sizeof (panel->cwd) - 2);
++
+     strcpy (panel->lwd, ".");
+ 
+     panel->hist_name = g_strconcat ("Dir Hist ", panel_name, (char *) NULL);
+@@ -1155,11 +1171,21 @@ panel_new (const char *panel_name)
+ 	set_panel_formats (panel);
+     }
+ 
++    
++    /* Because do_load_dir lists files in current directory */
++    if (wpath)
++	mc_chdir(wpath);
++
+     /* Load the default format */
+     panel->count =
+ 	do_load_dir (panel->cwd, &panel->dir, panel->sort_type,
+ 		     panel->reverse, panel->case_sensitive,
+ 		     panel->exec_first, panel->filter);
++
++    /* Restore old right path */
++    if (wpath)
++	mc_chdir(curdir);
++
+     return panel;
+ }
+ 

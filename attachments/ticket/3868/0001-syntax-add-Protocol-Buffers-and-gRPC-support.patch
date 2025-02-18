@@ -1,0 +1,103 @@
+From 5a8ba1fa88ca835b0f130dc3a4139d16ea9f6803 Mon Sep 17 00:00:00 2001
+From: Sergey Naumov <snaumov@quantenna.com>
+Date: Tue, 10 Oct 2017 12:45:14 +0300
+Subject: [PATCH] syntax: add Protocol Buffers and gRPC support
+
+---
+ misc/syntax/Makefile.am     |  1 +
+ misc/syntax/Syntax.in       |  3 +++
+ misc/syntax/protobuf.syntax | 57 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 61 insertions(+)
+ create mode 100644 misc/syntax/protobuf.syntax
+
+diff --git a/misc/syntax/Makefile.am b/misc/syntax/Makefile.am
+index 61b3de5..6dac5a1 100644
+--- a/misc/syntax/Makefile.am
++++ b/misc/syntax/Makefile.am
+@@ -64,6 +64,7 @@ SYNTAXFILES =			\
+ 	povray.syntax		\
+ 	procmail.syntax		\
+ 	properties.syntax	\
++	protobuf.syntax		\
+ 	puppet.syntax		\
+ 	python.syntax		\
+ 	r.syntax		\
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 06392e6..86404a0 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -280,5 +280,8 @@ include osl.syntax
+ file .\*\\.([rR]|Rd|Rscript)$ R\sProgram
+ include r.syntax
+ 
++file ..\*\\.proto$ Protobuf\sFile
++include protobuf.syntax
++
+ file .\* unknown
+ include unknown.syntax
+diff --git a/misc/syntax/protobuf.syntax b/misc/syntax/protobuf.syntax
+new file mode 100644
+index 0000000..2490889
+--- /dev/null
++++ b/misc/syntax/protobuf.syntax
+@@ -0,0 +1,57 @@
++# Syntax rules for Protobuf files and gRPC extensions
++
++context default
++    keyword whole enum yellow
++    keyword whole extend yellow
++    keyword whole extensions yellow
++    keyword whole import yellow
++    keyword whole map yellow
++    keyword whole message yellow
++    keyword whole oneof yellow
++    keyword whole option yellow
++    keyword whole optional yellow
++    keyword whole package yellow
++    keyword whole public yellow
++    keyword whole repeated yellow
++    keyword whole required yellow
++    keyword whole reserved yellow
++    keyword whole returns yellow
++    keyword whole rpc yellow
++    keyword whole service yellow
++    keyword whole stream yellow
++
++    keyword whole double yellow
++    keyword whole float yellow
++    keyword whole int32 yellow
++    keyword whole int64 yellow
++    keyword whole uint32 yellow
++    keyword whole uint64 yellow
++    keyword whole sint32 yellow
++    keyword whole sint64 yellow
++    keyword whole fixed32 yellow
++    keyword whole fixed64 yellow
++    keyword whole sfixed32 yellow
++    keyword whole sfixed64 yellow
++    keyword whole bool yellow
++    keyword whole string yellow
++    keyword whole bytes yellow
++
++    keyword // brown
++
++# punctuation characters, sorted by ASCII code
++    keyword ( brightcyan
++    keyword ) brightcyan
++    keyword , brightcyan
++    keyword : brightcyan
++    keyword ; brightmagenta
++    keyword = yellow
++    keyword [ brightcyan
++    keyword ] brightcyan
++    keyword { brightcyan
++    keyword } brightcyan
++
++context exclusive // \n brown
++    spellcheck
++
++context " " green
++    spellcheck
+-- 
+2.7.4
+

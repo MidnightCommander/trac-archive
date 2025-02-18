@@ -1,0 +1,27 @@
+From 2cbecafae56983f7421ad6475de940c2ff2582b5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 24 May 2021 17:41:08 +0000
+Subject: [PATCH] (serialize.c) fix resource leak
+
+Fix Resource leak
+
+Found by Coverity
+Coverity id #331818
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/serialize.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/serialize.c b/lib/serialize.c
+index 63d1c68a2..4c06eb9a7 100644
+--- a/lib/serialize.c
++++ b/lib/serialize.c
+@@ -251,6 +251,7 @@ mc_serialize_config (mc_config_t * data, GError ** error)
+ 
+         g_strfreev (params);
+     }
++    g_strfreev (groups);
+     return g_string_free (buffer, FALSE);
+ }
+ 

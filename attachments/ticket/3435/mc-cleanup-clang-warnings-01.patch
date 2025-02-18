@@ -1,0 +1,28 @@
+
+fix clang 3.6 compiler warnings
+
+patch 01: -Wundef
+patch 02: -Wunused-function
+patch 03: -Wnon-literal-null-conversion
+patch 04: -Wmissing-field-initializers
+patch 05: -Wabsolute-value
+patch 06: -Wtautological-pointer-compare
+patch 07: -Wformat
+
+../../lib/vfs/vfs.h:44:6: error: 'O_NDELAY' is not defined, evaluates to 0 [-Wundef]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/global.h
++++ b/lib/global.h
+@@ -6,6 +6,9 @@
+ 
+ #ifndef MC_GLOBAL_H
+ #define MC_GLOBAL_H
++#ifdef HAVE_FCNTL_H
++#include <fcntl.h>
++#endif
+ 
+ #if defined(HAVE_STRING_H)
+ #include <string.h>
+

@@ -1,0 +1,42 @@
+From 96a6a7976990ed99d577aec72a9265bf7cab99f0 Mon Sep 17 00:00:00 2001
+From: Johannes Altmanninger <aclopte@gmail.com>
+Date: Fri, 11 Oct 2024 08:26:48 +0200
+Subject: [PATCH 3/3] Ticket #4597: advertise that we can suspend a shell that
+ requested CSI u
+
+Add a new variable to let fish know that -- since the parent commit
+-- we are running a version where fish can use the kitty keyboard
+protocol without breaking mc.
+
+In a few years, both fish and mc should ideally remove this hack
+(and fish should speak the kitty keyboard protocol unconditionally),
+so no one should rely on this new variable except as a temporary
+workaround. Hence the feature-specific flag and not a generic version
+variable.
+---
+ src/subshell/common.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index a143427ed..38cc11bcf 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -428,10 +428,14 @@ init_subshell_child (const char *pty_name)
+         execl (mc_global.shell->path, mc_global.shell->path, "-Z", "-g", (char *) NULL);
+         break;
+ 
++    case SHELL_FISH:
++        execl (mc_global.shell->path, mc_global.shell->path,
++               "--init-command", "set --global __mc_csi_u 1", (char *) NULL);
++        break;
++
+     case SHELL_ASH_BUSYBOX:
+     case SHELL_DASH:
+     case SHELL_TCSH:
+-    case SHELL_FISH:
+         execl (mc_global.shell->path, mc_global.shell->path, (char *) NULL);
+         break;
+ 
+-- 
+2.47.0.72.gef8ce8f3d4
+

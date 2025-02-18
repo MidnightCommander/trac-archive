@@ -1,0 +1,436 @@
+From 918646020df0298f54c50a081f54d6167f8bda04 Mon Sep 17 00:00:00 2001
+From: Rainer Tammer <tammer@tammer.net>
+Date: Sun, 17 Jan 2010 13:51:07 +0100
+Subject: [PATCH] patches for AIX with ncurses support
+
+---
+ doc/INSTALL                  |   49 ++++++++++++-
+ m4.include/mc-cflags.m4      |    9 ++-
+ m4.include/mc-with-screen.m4 |  173 +++++++++++++++++++++++++++++++++---------
+ src/tty/tty-ncurses.c        |    7 ++
+ src/tty/tty-ncurses.h        |    4 +
+ src/unixcompat.h             |    4 +
+ vfs/direntry.c               |    3 +-
+ vfs/vfs.c                    |    4 +
+ 8 files changed, 215 insertions(+), 38 deletions(-)
+
+diff --git a/doc/INSTALL b/doc/INSTALL
+index 5a39d6a..7b5959b 100644
+--- a/doc/INSTALL
++++ b/doc/INSTALL
+@@ -224,11 +224,28 @@ ncurses):
+      by default if found, otherwise the included S-Lang library is
+      used.
+ 
++`--with-slang-includes=[DIR]'
++     Set path to SLANG includes [default=/usr/include]; make sense
++     only if --with-screen=slang is used.
++
++`--with-slang-libs=[DIR]'
++     Set path to SLANG library [default=/usr/lib]; mke sense only
++     if --with-screen=slang is used.
++
+ `--with-termcap'
+      If the included S-Lang library is used, this option forces it to
+      use the termcap database, as opposed to the default terminfo
+      database.
+ 
++`--with-ncurses-includes=[DIR]'
++     Set path to ncurses includes [default=/usr/include]; make
++     sense only if --with-screen=ncurses is used;
++     for /usr/local/include/ncurses specify /usr/local/include.
++
++`--with-ncurses-libs=[DIR]'
++     Set path to ncurses library [default=/usr/lib]; make sense
++     only if --with-screen=ncurses is used.
++
+ Compiler options:
+ - - - - - - - - -
+ 
+@@ -320,7 +337,7 @@ mips-dec-ultrix4.3
+ mips-dec-{open,net}bsd1.0
+ mips-sgi-irix5.2
+ mips-sgi-irix5.3
+-rs6000-ibm-aix3.2.5
++powerpc-ibm-aix5.3.0.0 (IBM XL C, IBM XL C/C++)
+ sparc-sun-sunos4.1
+ sparc-sun-netbsd1.0
+ sparc-sun-solaris2.3
+@@ -435,3 +452,33 @@ team.  Sometimes there is no solution than upgrading to a modern and
+ free compiler - GCC (Compiler Collection):
+ 
+ http://gcc.gnu.org/
++
++AIX
++---
++Currently you can not use gcc 4.2.4 (and probably other versions) on
++AIX to compiler the S-Lang version. Please use IBM XL C or IBM XL C/C++
++instead.
++
++If you compile a ncurses version you need to set TERM=dtterm to get
++working color support. Furthermore it is important to specify the
++--with-ncurses-includes/--with-ncurses-lib parameters because otherwise
++mc will pick up term.h from AIX which does not work with the ncurses
++library.
++
++The AIX S-Lang build was tested with S-Lang 2.0.7. Later versions may
++also work but are not tested yet.
++
++Here is an example for S-Lang, it is assumed that the S-Lang library
++is installed under /user/local and that you also want want to install
++to /usr/local:
++
++  export CC=cc_r
++  export CXX=xlC_r
++  export CONFIG_SHELL=/usr/bin/bash (if installed)
++  export SHELL=/usr/bin/bash        (if installed)
++
++  ./configure \
++     --prefix=/usr/local \
++     --with-screen=slang \
++     --with-slang-includes=/usr/local/include \
++     --with-slang-libs=/usr/local/lib
+diff --git a/m4.include/mc-cflags.m4 b/m4.include/mc-cflags.m4
+index d7d4c0b..754ef21 100644
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -9,7 +9,7 @@ dnl @copyright Free Software Foundation, Inc.
+ 
+ AC_DEFUN([MC_CHECK_ONE_CFLAG],[
+ 
+-    AC_MSG_CHECKING([if gcc accepts $1])
++  AC_MSG_CHECKING([if gcc accepts $1])
+ 
+   safe_CFLAGS=$CFLAGS
+   CFLAGS="$1"
+@@ -37,8 +37,15 @@ AC_DEFUN([MC_CHECK_CFLAGS],[
+     mc_configured_cflags=""
+ 
+ dnl Sorted -f options:
++dnl AC_MSG_CHECKING([CC is $CC])
++case "$CC" in
++  gcc*)
+     MC_CHECK_ONE_CFLAG([-fdiagnostics-show-option])
+ dnl    MC_CHECK_ONE_CFLAG([-fno-stack-protector])
++    ;;
++  *)
++    ;;
++esac
+ 
+ dnl Sorted -W options:
+     MC_CHECK_ONE_CFLAG([-Wcomment])
+diff --git a/m4.include/mc-with-screen.m4 b/m4.include/mc-with-screen.m4
+index e130975..f22f68a 100644
+--- a/m4.include/mc-with-screen.m4
++++ b/m4.include/mc-with-screen.m4
+@@ -1,6 +1,6 @@
+ dnl
+ dnl Check if the system S-Lang library can be used.
+-dnl If not, and $1 is "strict", exit, otherwise fall back to mcslang.
++dnl If not, and $1 is "strict", exit.
+ dnl
+ AC_DEFUN([MC_CHECK_SLANG_BY_PATH], [
+ 
+@@ -146,10 +146,15 @@ int main (void)
+             [Define to use S-Lang library for screen management])
+ 
+         MCLIBS="$MCLIBS $ac_slang_lib_path -lslang"
++        CFLAGS="$saved_CFLAGS"
++        dnl do not reset CPPFLAGS
++        dnl - if CPPFLAGS are resetted then cpp does not find the specified header
++        LDFLAGS="$saved_LDFLAGS"
++    else
++        CFLAGS="$saved_CFLAGS"
++        CPPFLAGS="$saved_CPPFLAGS"
++        LDFLAGS="$saved_LDFLAGS"
+     fi
+-    CFLAGS="$saved_CFLAGS"
+-    CPPFLAGS="$saved_CPPFLAGS"
+-    LDFLAGS="$saved_LDFLAGS"
+ ])
+ 
+ dnl
+@@ -162,7 +167,7 @@ AC_DEFUN([MC_WITH_SLANG], [
+ 
+     AC_ARG_WITH([slang-includes],
+         AC_HELP_STRING([--with-slang-includes=@<:@DIR@:>@],
+-            [set path to SLANG includes @<:@default=/usr/include@:>@; may sense only if --with-screen=slang]
++            [set path to SLANG includes @<:@default=/usr/include@:>@; make sense only if --with-screen=slang]
+         ),
+         [ac_slang_inc_path="$withval"],
+         [ac_slang_inc_path=""]
+@@ -170,7 +175,7 @@ AC_DEFUN([MC_WITH_SLANG], [
+ 
+     AC_ARG_WITH([slang-libs],
+         AC_HELP_STRING([--with-slang-libs=@<:@DIR@:>@],
+-            [set path to SLANG library @<:@default=/usr/lib@:>@; may sense only if --with-screen=slang]
++            [set path to SLANG library @<:@default=/usr/lib@:>@; make sense only if --with-screen=slang]
+         ),
+         [ac_slang_lib_path="$withval"],
+         [ac_slang_lib_path=""]
+@@ -197,6 +202,68 @@ AC_DEFUN([MC_WITH_SLANG], [
+ 
+ ])
+ 
++dnl check for ncurses in user supplied path
++AC_DEFUN([MC_CHECK_NCURSES_BY_PATH], [
++
++    ac_ncurses_inc_path=[$1]
++    ac_ncurses_lib_path=[$2]
++
++    if test x"$ac_ncurses_inc_path" != x; then
++        ac_ncurses_inc_path="-I"$ac_ncurses_inc_path
++    fi
++
++    if test x"$ac_ncurses_lib_path" != x; then
++        ac_ncurses_lib_path="-L"$ac_ncurses_lib_path
++    fi
++
++    saved_CPPFLAGS="$CPPFLAGS"
++    CPPFLAGS="$CPPFLAGS $ac_ncurses_inc_path"
++
++    dnl Check for the headers
++    dnl Both headers should be in the same directory
++    dnl AIX term.h is unusable for mc
++    AC_MSG_CHECKING([for ncurses/ncurses.h and ncurses/term.h])
++    AC_PREPROC_IFELSE(
++        [
++            AC_LANG_PROGRAM([[#include <ncurses/ncurses.h>
++                              #include <ncurses/term.h>
++                            ]],[[return 0;]])
++        ],
++        [
++            AC_MSG_RESULT(yes)
++            if test x"$ac_ncurses_inc_path" = x; then
++                ac_ncurses_inc_path="-I/usr/include"
++            fi
++            if test x"$ac_ncurses_lib_path" = x; then
++              ac_ncurses_lib_path="-L/usr/lib"
++            fi
++            found_ncurses=yes
++            AC_DEFINE(HAVE_NCURSES_NCURSES_H, 1,
++                      [Define to 1 if you have the <ncurses/ncurses.h> header file.])
++            AC_DEFINE(HAVE_NCURSES_TERM_H, 1,
++                      [Define to 1 if you have the <ncurses/term.h> header file.])
++        ],
++        [
++            AC_MSG_RESULT(no)
++            found_ncurses=no
++            error_msg_ncurses="ncurses header not found"
++        ],
++    )
++
++    if test x"$found_ncurses" = x"yes"; then
++        screen_type=ncurses
++        screen_msg="ncurses library (installed on the system)"
++
++        AC_DEFINE(HAVE_NCURSES, 1,
++                  [Define to use ncurses library for screen management])
++
++        MCLIBS="$MCLIBS $ac_ncurses_lib_path"
++    else
++        CPPFLAGS="$saved_CPPFLAGS"
++        AC_MSG_ERROR([$error_msg_ncurses])
++    fi
++])
++
+ dnl
+ dnl Use the ncurses library.  It can only be requested explicitly,
+ dnl so just fail if anything goes wrong.
+@@ -208,44 +275,80 @@ AC_DEFUN([MC_WITH_NCURSES], [
+     dnl has_colors() is specific to ncurses, it's not in the old curses
+     save_LIBS="$LIBS"
+     ncursesw_found=
+-    LIBS=
+-    AC_SEARCH_LIBS([addwstr], [ncursesw ncurses curses], [MCLIBS="$MCLIBS $LIBS";ncursesw_found=yes],
+-		   [AC_MSG_WARN([Cannot find ncurses library, that support wide characters])])
+ 
+-    if test x"$ncursesw_found" = "x"; then
+-    LIBS=
+-    AC_SEARCH_LIBS([has_colors], [ncurses curses], [MCLIBS="$MCLIBS $LIBS"],
+-		   [AC_MSG_ERROR([Cannot find ncurses library])])
+-    fi
++    dnl get the user supplied include path
++    AC_ARG_WITH([ncurses-includes],
++        AC_HELP_STRING([--with-ncurses-includes=@<:@DIR@:>@],
++            [set path to ncurses includes @<:@default=/usr/include@:>@; make sense only if --with-screen=ncurses; for /usr/local/include/ncurses specify /usr/local/include]
++        ),
++        [ac_ncurses_inc_path="$withval"],
++        [ac_ncurses_inc_path=""]
++    )
+ 
+-    dnl Check the header
+-    ncurses_h_found=
+-    AC_CHECK_HEADERS([ncursesw/curses.h ncurses/curses.h ncurses.h curses.h],
+-		     [ncurses_h_found=yes; break])
++    dnl get the user supplied lib path
++    AC_ARG_WITH([ncurses-libs],
++        AC_HELP_STRING([--with-ncurses-libs=@<:@DIR@:>@],
++            [set path to ncurses library @<:@default=/usr/lib@:>@; make sense only if --with-screen=ncurses]
++        ),
++        [ac_ncurses_lib_path="$withval"],
++        [ac_ncurses_lib_path=""]
++    )
+ 
+-    if test x"$ncurses_h_found" = "x"; then
+-	AC_MSG_ERROR([Cannot find ncurses header file])
+-    fi
++    dnl we need at least the inc path, the lib may be in a std location
++    if test x"$ac_ncurses_inc_path" != x; then
++        dnl check the user supplied location
++        MC_CHECK_NCURSES_BY_PATH([$ac_ncurses_inc_path],[$ac_ncurses_lib_path])
++
++        LIBS=
++        AC_SEARCH_LIBS([has_colors], [ncurses], [MCLIBS="$MCLIBS $LIBS"], 
++                       [AC_MSG_ERROR([Cannot find ncurses library])])
++
++        screen_type=ncurses
++        screen_msg="ncurses library"
++        AC_DEFINE(USE_NCURSES, 1, 
++                  [Define to use ncurses for screen management])
++    else
++        LIBS=
++        AC_SEARCH_LIBS([addwstr], [ncursesw ncurses curses], [MCLIBS="$MCLIBS $LIBS";ncursesw_found=yes],
++                       [AC_MSG_WARN([Cannot find ncurses library, that support wide characters])])
++
++        if test x"$ncursesw_found" = "x"; then
++            LIBS=
++            AC_SEARCH_LIBS([has_colors], [ncurses curses], [MCLIBS="$MCLIBS $LIBS"], 
++                           [AC_MSG_ERROR([Cannot find ncurses library])])
++        fi
+ 
+-    screen_type=ncurses
+-    screen_msg="ncurses library"
+-    AC_DEFINE(USE_NCURSES, 1,
+-	      [Define to use ncurses for screen management])
++        dnl Check the header
++        ncurses_h_found=
++        AC_CHECK_HEADERS([ncursesw/curses.h ncurses/curses.h ncurses.h curses.h], 
++                         [ncurses_h_found=yes; break])
+ 
++        if test x"$ncurses_h_found" = "x"; then
++            AC_MSG_ERROR([Cannot find ncurses header file])
++        fi
++
++        screen_type=ncurses
++        screen_msg="ncurses library"
++        AC_DEFINE(USE_NCURSES, 1, 
++                  [Define to use ncurses for screen management])
++    fi
++
++    dnl check for ESCDELAY
+     AC_CACHE_CHECK([for ESCDELAY variable],
+-		   [mc_cv_ncurses_escdelay],
+-		   [AC_TRY_LINK([], [
+-			extern int ESCDELAY;
+-			ESCDELAY = 0;
+-			],
+-			[mc_cv_ncurses_escdelay=yes],
+-			[mc_cv_ncurses_escdelay=no])
++                   [mc_cv_ncurses_escdelay],
++                   [AC_TRY_LINK([], [
++                        extern int ESCDELAY;
++                        ESCDELAY = 0;
++                        ],
++                        [mc_cv_ncurses_escdelay=yes],
++                        [mc_cv_ncurses_escdelay=no])
+     ])
+     if test x"$mc_cv_ncurses_escdelay" = xyes; then
+-	AC_DEFINE(HAVE_ESCDELAY, 1,
+-		  [Define if ncurses has ESCDELAY variable])
++        AC_DEFINE(HAVE_ESCDELAY, 1, 
++                  [Define if ncurses has ESCDELAY variable])
+     fi
+ 
++    dnl check for resizeterm
+     AC_CHECK_FUNCS(resizeterm)
+     LIBS="$save_LIBS"
+ ])
+diff --git a/src/tty/tty-ncurses.c b/src/tty/tty-ncurses.c
+index 76b0f5f..810bdc4 100644
+--- a/src/tty/tty-ncurses.c
++++ b/src/tty/tty-ncurses.c
+@@ -52,12 +52,19 @@
+ 
+ /* include at last !!! */
+ #ifdef WANT_TERM_H
++#ifdef HAVE_NCURSES_TERM_H
++#   include <ncurses/term.h>
++#else
+ #   include <term.h>
++#endif /* HAVE_NCURSES_TERM_H */
+ #endif /* WANT_TERM_H */
+ 
+ /*** global variables **************************************************/
+ 
+ /*** file scope macro definitions **************************************/
++#if defined(_AIX) && !defined(CTRL)
++#   define CTRL(x) ((x) & 0x1f)
++#endif
+ 
+ /*** global variables **************************************************/
+ 
+diff --git a/src/tty/tty-ncurses.h b/src/tty/tty-ncurses.h
+index 6363a69..c45141a 100644
+--- a/src/tty/tty-ncurses.h
++++ b/src/tty/tty-ncurses.h
+@@ -5,8 +5,12 @@
+ #ifdef USE_NCURSES
+ #    ifdef HAVE_NCURSES_CURSES_H
+ #        include <ncurses/curses.h>
++#    elif HAVE_NCURSES_NCURSES_H
++#        include <ncurses/ncurses.h>
+ #    elif HAVE_NCURSESW_CURSES_H
+ #        include <ncursesw/curses.h>
++#    elif HAVE_NCURSES_HCURSES_H
++#        include <ncurses.h>
+ #    elif HAVE_NCURSES_H
+ #        include <ncurses.h>
+ #    else
+diff --git a/src/unixcompat.h b/src/unixcompat.h
+index e71332f..9ad6e31 100644
+--- a/src/unixcompat.h
++++ b/src/unixcompat.h
+@@ -20,6 +20,10 @@
+ # include <sys/sysmacros.h>	/* AIX */
+ #endif
+ 
++#if defined(_AIX)
++# include <time.h>		/* AIX for tm */
++#endif
++
+ #ifndef major
+ # warning major() is undefined. Device numbers will not be shown correctly.
+ # define major(devnum) (((devnum) >> 8) & 0xff)
+diff --git a/vfs/direntry.c b/vfs/direntry.c
+index 9a41aa9..bcd4ccd 100644
+--- a/vfs/direntry.c
++++ b/vfs/direntry.c
+@@ -31,7 +31,8 @@
+ #include <config.h>
+ 
+ #include <errno.h>
+-#include <sys/fcntl.h>
++#include <fcntl.h>		/* include fcntl.h -> sys/fcntl.h only       */
++				/* includes fcntl.h see IEEE Std 1003.1-2008 */
+ #include <time.h>
+ #include <sys/time.h>		/* gettimeofday() */
+ 
+diff --git a/vfs/vfs.c b/vfs/vfs.c
+index 6ca2c75..d16f45b 100644
+--- a/vfs/vfs.c
++++ b/vfs/vfs.c
+@@ -67,6 +67,10 @@
+ #include "smbfs.h"
+ #include "local.h"
+ 
++#if defined(_AIX) && !defined(NAME_MAX)
++#  define NAME_MAX FILENAME_MAX
++#endif
++
+ /** They keep track of the current directory */
+ static struct vfs_class *current_vfs;
+ static char *current_dir;
+-- 
+1.6.0.5
+

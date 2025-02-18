@@ -1,0 +1,43 @@
+From d0986ff1042eab5b76da949b69bbd609f852c911 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 8 Dec 2020 19:04:15 +0000
+Subject: [PATCH] (utilunix.c) fix resource leak
+
+Save file handle for later close, if valid
+
+Found by Coverity
+Coverity id #32607
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/utilunix.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index bbcf86b78..8488afd63 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -715,11 +715,13 @@ tilde_expand (const char *directory)
+ void
+ open_error_pipe (void)
+ {
++    int error_fd = -1;
++
+     if (pipe (error_pipe) < 0)
+         message (D_NORMAL, _("Warning"), _("Pipe failed"));
+ 
+     old_error = dup (STDERR_FILENO);
+-    if (old_error < 0 || close (STDERR_FILENO) != 0 || dup (error_pipe[1]) != STDERR_FILENO)
++    if (old_error < 0 || close (STDERR_FILENO) != 0 || (error_fd = dup (error_pipe[1])) != STDERR_FILENO)
+     {
+         message (D_NORMAL, _("Warning"), _("Dup failed"));
+ 
+@@ -749,6 +751,8 @@ open_error_pipe (void)
+             }
+         }
+     }
++    if (error_fd >= 0)
++        close (error_fd);
+     /* we never write there */
+     close (error_pipe[1]);
+     error_pipe[1] = -1;

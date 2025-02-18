@@ -1,0 +1,37 @@
+diff --git a/lib/widget/gauge.c b/lib/widget/gauge.c
+index 1c7355c..9da2694 100644
+--- a/lib/widget/gauge.c
++++ b/lib/widget/gauge.c
+@@ -50,7 +50,7 @@
+ /*** file scope macro definitions ****************************************************************/
+ 
+ /* Currently width is hardcoded here for text mode */
+-#define gauge_len 47
++#define gauge_len COLS-20
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index cd4019f..91f71b9 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -197,8 +197,8 @@ int classic_progressbar = 1;
+ /* Hack: the vfs code should not rely on this */
+ #define WITH_FULL_PATHS 1
+ 
+-#define truncFileString(ui, s)       str_trunc (s, 52)
+-#define truncFileStringSecure(ui, s) path_trunc (s, 52)
++#define truncFileString(ui, s)       str_trunc (s, COLS-30)
++#define truncFileStringSecure(ui, s) path_trunc (s, COLS-30)
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+@@ -655,7 +655,7 @@ file_op_context_create_ui_without_init (FileOpContext * ctx, gboolean with_eta,
+     skip_button_width = str_term_width1 (skip_button_label) + 3;
+     buttons_width = abort_button_width + skip_button_width + 1;
+ 
+-    dlg_width = max (58, buttons_width + 6);
++    dlg_width = max (COLS - 8, buttons_width + 6);
+     dlg_height = 17;            /* will be adjusted later */
+ 
+     ui = g_new0 (FileOpContextUI, 1);

@@ -1,0 +1,36 @@
+From 9c0b5e89ce10e6ccfb57a355a4f4481d3655804b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 24 Apr 2016 17:43:38 +0000
+Subject: [PATCH] Cleanup cppcheck warning at utilunix.c
+
+Cleanup following cppcheck warnings:
+
+[lib/utilunix.c:1109]: (style) Unused variable: link_path
+[lib/utilunix.c:1113]: (style) Variable 'readlinks' is assigned a value that is never used.
+[lib/utilunix.c:1114]: (style) Unused variable: n
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/utilunix.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index fef7a64..8192923 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -1106,12 +1106,14 @@ char *
+ mc_realpath (const char *path, char *resolved_path)
+ {
+     char copy_path[PATH_MAX];
+-    char link_path[PATH_MAX];
+     char got_path[PATH_MAX];
+     char *new_path = got_path;
+     char *max_path;
++#ifdef S_IFLNK
++    char link_path[PATH_MAX];
+     int readlinks = 0;
+     int n;
++#endif /* S_IFLNK */
+ 
+     /* Make a copy of the source path since we may need to modify it. */
+     if (strlen (path) >= PATH_MAX - 2)

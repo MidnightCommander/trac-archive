@@ -1,0 +1,21 @@
+diff -Naur mc-4.6.2-orig/src/util.c mc-4.6.2/src/util.c
+--- mc-4.6.2-orig/src/util.c	2009-05-08 22:04:44.000000000 +0400
++++ mc-4.6.2/src/util.c	2009-05-08 21:59:08.000000000 +0400
+@@ -1185,6 +1185,17 @@
+ 	    if (*(++r) == '[') {
+ 		/* strchr() matches trailing binary 0 */
+ 		while (*(++r) && strchr ("0123456789;?", *r));
++	    } else
++	    if (*r == ']') {
++		// Skip an OSC (Operating System Command)
++		char* BEL = strchr(r, '\7');
++		char* ST = strstr(r, "\33\\");
++		if (ST && BEL)
++		    r = min(ST+1, BEL);
++		else if (BEL)
++		    r = BEL;
++		else if (ST)
++		    r = ST+1;
+ 	    }
+ 
+ 	    /*

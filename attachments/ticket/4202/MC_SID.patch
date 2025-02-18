@@ -1,0 +1,84 @@
+From c9443dd798435ba3d2b2b59a79c416f25beb150b Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Tue, 16 Feb 2021 16:55:48 -0600
+Subject: Move MC_SID setup to main.c
+
+---
+ src/main.c            | 21 +++++++++++++++++++++
+ src/subshell/common.c | 12 ------------
+ 2 files changed, 21 insertions(+), 12 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index d691bcb2a..7382e34d7 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -240,6 +240,25 @@ check_sid (void)
+     return (old_sid != my_sid);
+ }
+ 
++static void
++set_sid_env_var(void)
++{
++    pid_t mc_sid;
++
++    /* Get a fresh terminal session */
++    setsid ();
++
++    /* Set MC_SID to prevent running one mc from another */
++    mc_sid = getsid (0);
++    if (mc_sid != -1)
++    {
++        char sid_str[BUF_SMALL];
++
++        g_snprintf (sid_str, sizeof (sid_str), "MC_SID=%ld", (long) mc_sid);
++        putenv (g_strdup (sid_str));
++    }
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+@@ -264,6 +283,8 @@ main (int argc, char *argv[])
+     /* do this before args parsing */
+     str_init_strings (NULL);
+ 
++    set_sid_env_var();
++
+     mc_setup_run_mode (argv);   /* are we mc? editor? viewer? etc... */
+ 
+     if (!mc_args_parse (&argc, &argv, "mc", &mcerror))
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index cb8bbe3f1..97cd78117 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -272,10 +272,8 @@ init_subshell_child (const char *pty_name)
+ {
+     char *init_file = NULL;
+     char *putenv_str = NULL;
+-    pid_t mc_sid;
+ 
+     (void) pty_name;
+-    setsid ();                  /* Get a fresh terminal session */
+ 
+     /* Make sure that it has become our controlling terminal */
+ 
+@@ -309,16 +307,6 @@ init_subshell_child (const char *pty_name)
+         (void) ret;
+     }
+ 
+-    /* Set MC_SID to prevent running one mc from another */
+-    mc_sid = getsid (0);
+-    if (mc_sid != -1)
+-    {
+-        char sid_str[BUF_SMALL];
+-
+-        g_snprintf (sid_str, sizeof (sid_str), "MC_SID=%ld", (long) mc_sid);
+-        putenv (g_strdup (sid_str));
+-    }
+-
+     switch (mc_global.shell->type)
+     {
+     case SHELL_BASH:
+-- 
+2.28.0
+

@@ -1,0 +1,13 @@
+--- mc.ext.ini.orig	2023-02-14 06:56:55.000000000 -0600
++++ mc.ext.ini	2023-10-08 14:00:02.899179997 -0500
+@@ -529,6 +529,10 @@
+ 
+ ### Images ###
+ 
++[webp]
++Shell=.webp
++Open=/usr/lib/mc/ext.d/image.sh open webp
++
+ [xcf]
+ Shell=.xcf
+ Open=/usr/lib/mc/ext.d/image.sh open xcf

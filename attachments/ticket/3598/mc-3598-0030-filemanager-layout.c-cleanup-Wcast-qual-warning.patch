@@ -1,0 +1,44 @@
+From f7ff2c6d254e75f0817f3b85adfef46d53fbfdfe Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 16:08:02 +0000
+Subject: [PATCH] filemanager/layout.c: cleanup -Wcast-qual warning
+
+layout.c: In function 'setup_cmdline':
+layout.c:810:24: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     char *tmp_prompt = (char *) mc_prompt;
+                        ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+index b97921a..171f3d2 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -807,7 +807,7 @@ setup_cmdline (void)
+ {
+     int prompt_width;
+     int y;
+-    char *tmp_prompt = (char *) mc_prompt;
++    char *tmp_prompt = NULL;
+ 
+ #ifdef ENABLE_SUBSHELL
+     if (mc_global.tty.use_subshell)
+@@ -816,6 +816,8 @@ setup_cmdline (void)
+         (void) strip_ctrl_codes (tmp_prompt);
+     }
+ #endif
++    if (tmp_prompt == NULL)
++        tmp_prompt = g_strdup (mc_prompt);
+ 
+     prompt_width = str_term_width1 (tmp_prompt);
+ 
+@@ -833,10 +835,10 @@ setup_cmdline (void)
+     if (mc_global.tty.use_subshell)
+     {
+         subshell_prompt = g_string_new (tmp_prompt);
+-        g_free (tmp_prompt);
+         mc_prompt = subshell_prompt->str;
+     }
+ #endif
++    g_free (tmp_prompt);
+ 
+     y = LINES - 1 - mc_global.keybar_visible;
+ 

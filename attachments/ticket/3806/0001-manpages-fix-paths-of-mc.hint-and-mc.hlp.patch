@@ -1,0 +1,183 @@
+From 4dac78967fe9d785e8be1164fc43e07ac453b20d Mon Sep 17 00:00:00 2001
+From: Denys Vlasenko <dvlasenk@redhat.com>
+Date: Thu, 13 Apr 2017 18:25:14 +0200
+Subject: [PATCH] manpages: fix paths of mc.hint and mc.hlp
+
+Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
+---
+ doc/man/es/mc.1.in  | 2 +-
+ doc/man/hu/mc.1.in  | 4 ++--
+ doc/man/it/mc.1.in  | 4 ++--
+ doc/man/mc.1.in     | 4 ++--
+ doc/man/mcedit.1.in | 2 +-
+ doc/man/mcview.1.in | 2 +-
+ doc/man/pl/mc.1.in  | 2 +-
+ doc/man/ru/mc.1.in  | 4 ++--
+ doc/man/sr/mc.1.in  | 4 ++--
+ 9 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/doc/man/es/mc.1.in b/doc/man/es/mc.1.in
+index 2f07a0b..18b02a0 100644
+--- a/doc/man/es/mc.1.in
++++ b/doc/man/es/mc.1.in
+@@ -4232,7 +4232,7 @@ Configuración personal del usuario. Si este archivo está presente entonces
+ se cargará la configuración desde aquí en lugar de desde el archivo de
+ configuración del sistema.
+ .PP
+-.I %prefix%/share/mc/mc.hint
++.I %prefix%/share/mc/hints/mc.hint
+ .IP
+ Este archivo contiene los mensajes cortos de ayuda mostrados por el
+ programa.
+diff --git a/doc/man/hu/mc.1.in b/doc/man/hu/mc.1.in
+index 2299282..c27d131 100644
+--- a/doc/man/hu/mc.1.in
++++ b/doc/man/hu/mc.1.in
+@@ -3179,7 +3179,7 @@ A progam minden ezzel kapcsolatos infomációt az
+ környezeti változóban tárol. Ha ezt a változót nem állítottuk be, akkor
+ ez vissza fog állítódni a /usr könyvtárra.
+ .PP
+-.I %prefix%/share/mc/mc.hlp
++.I %prefix%/share/mc/help/mc.hlp
+ .IP
+ A program súgó fájlja.
+ .PP
+@@ -3210,7 +3210,7 @@ A felhasználó saját beállításai. Ha ez a fájl elérhető, akkor a
+ beállítások ebből a fájlból olvasódnak be a rendszerszintű indító fájl
+ helyett.
+ .PP
+-.I %prefix%/share/mc/mc.hint
++.I %prefix%/share/mc/hints/mc.hint
+ .IP
+ Ez a fájl tartalmazza a program által megjelenített útmutattásokat
+ (cookie\-kat).
+diff --git a/doc/man/it/mc.1.in b/doc/man/it/mc.1.in
+index cbe9a2e..96b38ec 100644
+--- a/doc/man/it/mc.1.in
++++ b/doc/man/it/mc.1.in
+@@ -3174,7 +3174,7 @@ dalla variabile ambiente
+ .BR MC_DATADIR ,
+ e se la variabile non è impostata, passerà alla directory %prefix%/share/mc .
+ .PP
+-.I %prefix%/share/mc/mc.hlp
++.I %prefix%/share/mc/help/mc.hlp
+ .IP
+ Il file di aiuto per il programma.
+ .PP
+@@ -3208,7 +3208,7 @@ da mc.lib.
+ La configurazione dell'utente. Se questo file è presente, la configurazione
+ viene caricata da qui invece che dal file di sistema.
+ .PP
+-.I %prefix%/share/mc/mc.hint
++.I %prefix%/share/mc/hints/mc.hint
+ .IP
+ Questo file contiene i suggerimenti (dritte) mostrate dal programma.
+ .PP
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 2944b69..f90ea52 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -4287,7 +4287,7 @@ by the
+ environment variable. If it's set, its value is used instead of
+ %prefix%/share/mc in the paths below.
+ .PP
+-.I %prefix%/share/mc/mc.hlp
++.I %prefix%/share/mc/help/mc.hlp
+ .IP
+ The help file for the program.
+ .PP
+@@ -4319,7 +4319,7 @@ are loaded from mc.lib.
+ User's own setup. If this file is present then the setup is loaded
+ from here instead of the system\-wide startup file.
+ .PP
+-.I %prefix%/share/mc/mc.hint
++.I %prefix%/share/mc/hints/mc.hint
+ .IP
+ This file contains the hints displayed by the program.
+ .PP
+diff --git a/doc/man/mcedit.1.in b/doc/man/mcedit.1.in
+index 55ccf13..e33641d 100644
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -643,7 +643,7 @@ binary files, you should set
+ to 7 bits in Midnight Commander's options menu to keep the spacing
+ clean.
+ .SH FILES
+-.I %prefix%/share/mc/mc.hlp
++.I %prefix%/share/mc/help/mc.hlp
+ .IP
+ The help file for the program.
+ .PP
+diff --git a/doc/man/mcview.1.in b/doc/man/mcview.1.in
+index 63a114b..8d75aa0 100644
+--- a/doc/man/mcview.1.in
++++ b/doc/man/mcview.1.in
+@@ -61,7 +61,7 @@ selected=black,green"
+ .fi
+ .PP
+ .SH FILES
+-.I %prefix%/share/mc/mc.hlp
++.I %prefix%/share/mc/help/mc.hlp
+ .IP
+ The help file for the program.
+ .PP
+diff --git a/doc/man/pl/mc.1.in b/doc/man/pl/mc.1.in
+index 89085fb..d6130d0 100644
+--- a/doc/man/pl/mc.1.in
++++ b/doc/man/pl/mc.1.in
+@@ -2911,7 +2911,7 @@ definiowania ogólnosystemowych ustawień terminali.
+ Własny setup użytkownika. Jeśli ten plik jest dostępny, jest ładowany
+ zamiast pliku globalnego.
+ .PP
+-%prefix%/share/mc/mc.hint
++%prefix%/share/mc/hints/mc.hint
+ .IP
+ Plik zawierający podpowiedzi (hints) wyświetlane przez program.
+ .PP
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index ebe017f..a9dc8b1 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -4652,7 +4652,7 @@ insert=\\e[Op
+ узнать имя этого каталога, дайте команду
+ .BR "mc \-f" .
+ .PP
+-.I %prefix%/share/mc/mc.hlp
++.I %prefix%/share/mc/help/mc.hlp
+ .IP
+ Файл подсказки для программы.
+ .PP
+@@ -4688,7 +4688,7 @@ Commander; используется только в тех случаях, ко
+ установки загружаются из него, а не из общесистемного инициализационного
+ файла программы.
+ .PP
+-.I %prefix%/share/mc/mc.hint
++.I %prefix%/share/mc/hints/mc.hint
+ .IP
+ Этот файл содержит подсказки (hints или cookies), циклически
+ отображаемые программой.
+diff --git a/doc/man/sr/mc.1.in b/doc/man/sr/mc.1.in
+index 66a1a6b..a8c6fcc 100644
+--- a/doc/man/sr/mc.1.in
++++ b/doc/man/sr/mc.1.in
+@@ -3185,7 +3185,7 @@ insert=\\e[Op
+ Ако ова променљива није постављена, биће употребљен директоријум
+ %prefix%/share/mc.
+ .PP
+-.I %prefix%/share/mc/mc.hlp
++.I %prefix%/share/mc/help/mc.hlp
+ .IP
+ Датотека помоћи за програм.
+ .PP
+@@ -3218,7 +3218,7 @@ insert=\\e[Op
+ Корисничка подешавања. Ако је ова датотека присутна, подешавања се
+ учитавају из ње уместо из системске почетне датотеке.
+ .PP
+-.I %prefix%/share/mc/mc.hint
++.I %prefix%/share/mc/hints/mc.hint
+ .IP
+ Ова датотека садржи савете (колачиће) који се приказују у програму.
+ .PP
+-- 
+2.9.2
+

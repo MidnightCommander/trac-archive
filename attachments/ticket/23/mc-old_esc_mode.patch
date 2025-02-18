@@ -1,0 +1,264 @@
+Index: src/key.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/key.c,v
+retrieving revision 1.87
+diff -u -p -r1.87 key.c
+--- src/key.c	5 Feb 2006 15:27:49 -0000	1.87
++++ src/key.c	1 Mar 2006 17:07:58 -0000
+@@ -72,9 +72,6 @@
+ #define DIF_TIME(t1,t2) ((t2.tv_sec -t1.tv_sec) *1000+ \
+ 			 (t2.tv_usec-t1.tv_usec)/1000)
+ 
+-/* timeout for old_esc_mode in usec */
+-#define ESCMODE_TIMEOUT 1000000
+-
+ /* Linux console keyboard modifiers */
+ #define SHIFT_PRESSED		(1 << 0)
+ #define ALTR_PRESSED		(1 << 1)
+@@ -84,6 +81,7 @@
+ int mou_auto_repeat = 100;
+ int double_click_speed = 250;
+ int old_esc_mode = 0;
++int old_esc_mode_timeout = 1000; /* timeout for old_esc_mode in msec */
+ 
+ int use_8th_bit_as_meta = 0;
+ 
+@@ -818,8 +819,8 @@ int get_key_code (int no_delay)
+ 		if (esctime.tv_sec == -1)
+ 		    return -1;
+ 		GET_TIME (current);
+-		timeout.tv_sec = ESCMODE_TIMEOUT / 1000000 + esctime.tv_sec;
+-		timeout.tv_usec = ESCMODE_TIMEOUT % 1000000 + esctime.tv_usec;
++		timeout.tv_sec = old_esc_mode_timeout / 1000 + esctime.tv_sec;
++		timeout.tv_usec = (old_esc_mode_timeout % 1000) * 1000 + esctime.tv_usec;
+ 		if (timeout.tv_usec > 1000000) {
+ 		    timeout.tv_usec -= 1000000;
+ 		    timeout.tv_sec++;
+@@ -1146,8 +1147,8 @@ static int xgetch_second (void)
+     int c;
+     struct timeval timeout;
+ 
+-    timeout.tv_sec = ESCMODE_TIMEOUT / 1000000;
+-    timeout.tv_usec = ESCMODE_TIMEOUT % 1000000;
++    timeout.tv_sec = old_esc_mode_timeout / 1000;
++    timeout.tv_usec = (old_esc_mode_timeout % 1000) * 1000;
+     nodelay (stdscr, TRUE);
+     FD_ZERO (&Read_FD_Set);
+     FD_SET (input_fd, &Read_FD_Set);
+Index: src/key.h
+===================================================================
+RCS file: /cvsroot/mc/mc/src/key.h,v
+retrieving revision 1.23
+diff -u -p -r1.23 key.h
+--- src/key.h	3 Dec 2004 19:17:47 -0000	1.23
++++ src/key.h	1 Mar 2006 17:07:58 -0000
+@@ -26,6 +26,7 @@ int mi_getch (void);
+ 
+ extern int double_click_speed;
+ extern int old_esc_mode;
++extern int old_esc_mode_timeout;
+ extern int irix_fn_keys;
+ extern int use_8th_bit_as_meta;
+ 
+Index: src/boxes.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/boxes.c,v
+retrieving revision 1.95
+diff -u -p -r1.95 boxes.c
+--- src/boxes.c	28 Feb 2006 16:15:21 -0000	1.95
++++ src/boxes.c	1 Mar 2006 17:08:00 -0000
+@@ -1121,3 +1121,150 @@ vfs_smb_get_authinfo (const char *host, 
+     return return_value;
+ }
+ #endif /* WITH_SMBFS */
++
++#define KBD_MOUSE_SETUP_WIDGETS_COUNT 7
++#define KBD_MOUSE_SETUP_DLG_X_OFFSET 2 /* Horizontal offset */
++#define KBD_MOUSE_SETUP_DLG_Y_OFFSET 2 /* Vertical offset */
++#define KBD_MOUSE_SETUP_DLG_EMPTY_LINES_COUNT 3
++#define KBD_MOUSE_SETUP_LAST_LINE_Y 4
++
++void
++keyboard_mouse_setup_box (void)
++{
++    int dlg_width, dlg_height;
++    int line_length;
++    int cur_line;
++    int old_esc_mode_val;
++    char *old_esc_mode_timeout_val;
++    QuickWidget *widgets, *w, *endw;
++    QuickDialog *dlg;
++    char old_esc_mode_timeout_str[BUF_TINY];
++
++    old_esc_mode_val = old_esc_mode;
++    g_snprintf (old_esc_mode_timeout_str, sizeof (old_esc_mode_timeout_str),
++	" %4i", old_esc_mode_timeout);
++
++    widgets = g_new0 (QuickWidget, (KBD_MOUSE_SETUP_WIDGETS_COUNT + 1));
++    dlg = g_new0 (QuickDialog, 1);
++
++    endw = widgets + KBD_MOUSE_SETUP_WIDGETS_COUNT;
++
++    dlg->title = _(" Keayboard / Mouse Setup ");
++    dlg_width = strlen (dlg->title);
++    dlg_height = 0;
++
++    w = endw - 1;
++
++    /* First line of widgets */
++    w->widget_type = quick_checkbox;
++    w->relative_y = 1;
++    w->text = _("Escape key is cancel key");
++    w->result = &old_esc_mode_val;
++    w--;
++
++    /* Next line of widgets */
++    w->widget_type = quick_label;
++    w->relative_y = 2;
++    w->text = _("Escape key timeout ");
++    w--;
++
++    w->widget_type = quick_input;
++    w->relative_y = 2;
++    w->text = old_esc_mode_timeout_str;
++    /* hotkey_pos contains is used to set the length of the input field. */
++    w->hotkey_pos = strlen (widgets[4].text);
++    w->str_result = &old_esc_mode_timeout_val;
++    w->histname = "escape-key-timeout";
++    w--;
++
++    w->widget_type = quick_label;
++    w->relative_y = 2;
++    w->text = _(" msec");
++    w--;
++
++    /* Last line of widgets */
++    w->widget_type = quick_button;
++    w->relative_y = KBD_MOUSE_SETUP_LAST_LINE_Y;
++    w->text = _("&OK");
++    w->value = B_ENTER;
++    w--;
++
++    w->widget_type = quick_label;
++    w->relative_y = KBD_MOUSE_SETUP_LAST_LINE_Y;
++    w->text = "      "; /* padding */
++    w--;
++
++    w->widget_type = quick_button;
++    w->relative_y = KBD_MOUSE_SETUP_LAST_LINE_Y;
++    w->text = _("&Cancel");
++    w->value = B_CANCEL;
++    w--;
++
++    /* Calculate the dialog width and height based on the dimensions
++       of the enclosed widgets. */
++    w = endw - 1;
++    line_length = 0;
++    cur_line = w->relative_y;
++    for (; w >= widgets; w--) {
++	if (cur_line != w->relative_y) {
++	    dlg_height++;
++
++	    if (line_length > dlg_width)
++		dlg_width = line_length;
++
++	    line_length = 0;
++	    cur_line = w->relative_y;
++	}
++
++	w->relative_x = line_length;
++
++	if (w->widget_type == quick_button) {
++	    line_length += button_len (w->text,
++		(w->value == B_ENTER ? DEFPUSH_BUTTON : NORMAL_BUTTON));
++	} else {
++	    line_length += strlen (w->text);
++
++	    if (w->widget_type == quick_checkbox)
++		line_length += 4; /* "[x] " */
++	}
++    }
++    dlg_height++;
++    if (line_length > dlg_width)
++	dlg_width = line_length;
++    else {
++	/* Special handling for the last line of widgets - assume
++	   that they must be centered. */
++	line_length = (dlg_width - line_length) / 2;
++	for (w = widgets; w < endw; w++) {
++	    if (w->relative_y == KBD_MOUSE_SETUP_LAST_LINE_Y)
++		w->relative_x += line_length;
++	}
++    }
++
++    dlg_width += KBD_MOUSE_SETUP_DLG_X_OFFSET * 2;
++    dlg_height += KBD_MOUSE_SETUP_DLG_Y_OFFSET * 2 +
++	KBD_MOUSE_SETUP_DLG_EMPTY_LINES_COUNT;
++    for (w = widgets; w < endw; w++) {
++	w->x_divisions = dlg_width;
++	w->y_divisions = dlg_height;
++	w->relative_x += KBD_MOUSE_SETUP_DLG_X_OFFSET;
++	w->relative_y += KBD_MOUSE_SETUP_DLG_Y_OFFSET;
++    }
++
++    dlg->xlen = dlg_width;
++    dlg->ylen = dlg_height;
++    dlg->xpos = dlg->ypos = -1;
++    dlg->widgets = widgets;
++    dlg->i18n = 1;
++
++    if (quick_dialog (dlg) != B_CANCEL) {
++	old_esc_mode = old_esc_mode_val;
++	if (strlen (old_esc_mode_timeout_val) > 4) /* i.e. 9999 */
++	    old_esc_mode_timeout_val[4] = '\0';
++	old_esc_mode_timeout = atoi (old_esc_mode_timeout_val);
++	g_free (old_esc_mode_timeout_val);
++    }
++
++    g_free (widgets);
++    g_free (dlg);
++}
+Index: src/boxes.h
+===================================================================
+RCS file: /cvsroot/mc/mc/src/boxes.h,v
+retrieving revision 1.6
+diff -u -p -r1.6 boxes.h
+--- src/boxes.h	3 Dec 2004 19:17:47 -0000	1.6
++++ src/boxes.h	1 Mar 2006 17:08:00 -0000
+@@ -16,5 +16,6 @@ char   *cd_dialog        (void);
+ void    symlink_dialog   (const char *existing, const char *new,
+ 			  char **ret_existing, char **ret_new);
+ char   *tree_box         (const char *current_dir);
++void    keyboard_mouse_setup_box (void);
+ 
+ #endif
+Index: src/main.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/main.c,v
+retrieving revision 1.365
+diff -u -p -r1.365 main.c
+--- src/main.c	4 Feb 2006 12:29:30 -0000	1.365
++++ src/main.c	1 Mar 2006 17:08:03 -0000
+@@ -917,6 +935,7 @@ static menu_entry OptMenu[] = {
+     {' ', N_("&Layout..."), 'L', layout_cmd},
+     {' ', N_("c&Onfirmation..."), 'O', confirm_box},
+     {' ', N_("&Display bits..."), 'D', display_bits_box},
++    {' ', N_("Keyboard and &Mouse..."), 'M', keyboard_mouse_setup_box},
+     {' ', N_("learn &Keys..."), 'K', learn_keys},
+ #ifdef USE_VFS
+     {' ', N_("&Virtual FS..."), 'V', configure_vfs},
+Index: src/setup.c
+===================================================================
+RCS file: /cvsroot/mc/mc/src/setup.c,v
+retrieving revision 1.92
+diff -u -p -r1.92 setup.c
+--- src/setup.c	23 Feb 2006 15:32:18 -0000	1.92
++++ src/setup.c	1 Mar 2006 17:09:48 -0000
+@@ -176,6 +176,7 @@ static const struct {
+     { "drop_menus", &drop_menus },
+     { "wrap_mode",  &global_wrap_mode},
+     { "old_esc_mode", &old_esc_mode },
++    { "old_esc_mode_timeout", &old_esc_mode_timeout },
+     { "cd_symlinks", &cd_symlinks },
+     { "show_all_if_ambiguous", &show_all_if_ambiguous },
+     { "max_dirt_limit", &max_dirt_limit },

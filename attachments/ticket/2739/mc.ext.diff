@@ -1,0 +1,33 @@
+--- mc.ext.in	2012-03-04 12:59:12.000000000 +0100
++++ mc.ext.in.new	2012-03-04 13:06:15.661252521 +0100
+@@ -567,9 +567,18 @@
+ 	Include=editor
+ 
+ # DjVu
+-regex/\.(djvu|DJVU)$
++regex/\.([Dd][Jj][Vv][Uu])$
+ 	Open=djview %f &
+ 
++# Comic Books
++regex/\.([cC][Bb][ZzRr]$
++	Open=cbrpager %f &
++
++# Epub
++regex/\.([eE][pP][uU][bB])$
++	Open=(lucidor %f >/dev/null 2>&1 &)
++	View=%view{ascii} einfo -v %f
++
+ ### Miscellaneous ###
+ 
+ # Makefile
+@@ -677,6 +686,10 @@
+ 	Open=xz -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} xz -dc %f 2>/dev/null
+ 
++# Parity Archive
++type/^Parity\ Archive\ Volume\ Set
++	Open=par2 r %f
++
+ ### Default ###
+ 
+ # Default target for anything not described above

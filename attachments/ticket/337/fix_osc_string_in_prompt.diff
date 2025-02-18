@@ -1,0 +1,19 @@
+diff -Naur mc-4.6.2~git20080311.orig/src/util.c mc-4.6.2~git20080311/src/util.c
+--- mc-4.6.2~git20080311.orig/src/util.c	2009-04-25 22:56:25.000000000 +0400
++++ mc-4.6.2~git20080311/src/util.c	2009-04-25 23:00:14.000000000 +0400
+@@ -1175,6 +1175,15 @@
+ 	    if (*(++r) == '[') {
+ 		/* strchr() matches trailing binary 0 */
+ 		while (*(++r) && strchr ("0123456789;?", *r));
++	    } else
++	    if (*r == ']') {
++		// Skip an OSC (Operating System Command)
++		char* BEL = strchr(r, '\7');
++		char* ST = strstr(r, "\33\\");
++		if (BEL)
++		    r = BEL;
++		else if (ST)
++		    r = ST+1;
+ 	    }
+ 
+ 	    /*

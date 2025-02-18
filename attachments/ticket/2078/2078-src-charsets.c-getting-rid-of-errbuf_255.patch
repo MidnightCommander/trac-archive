@@ -1,0 +1,201 @@
+From 1305fa0d410ecc66a1956056cb9fc6b831d5b775 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 2 Mar 2010 20:48:39 +0000
+Subject: [PATCH]  src/charsets.c getting rid of errbuf_255
+
+---
+ src/boxes.c       |   10 ++++++----
+ src/charsets.c    |   20 +++++++-------------
+ src/charsets.h    |    2 +-
+ src/screen.c      |   21 +++++++++++----------
+ src/selcodepage.c |   10 ++++++----
+ src/setup.c       |   11 ++++++++++-
+ 6 files changed, 41 insertions(+), 33 deletions(-)
+
+diff --git a/src/boxes.c b/src/boxes.c
+index 61fca68..cfaad50 100644
+--- a/src/boxes.c
++++ b/src/boxes.c
+@@ -623,12 +623,14 @@ display_bits_box (void)
+     run_dlg (dbits_dlg);
+ 
+     if (dbits_dlg->ret_value == B_ENTER) {
+-	const char *errmsg;
++	char *errmsg = NULL;
++
+ 	display_codepage = new_display_codepage;
+-	errmsg =
+-	    init_translation_table (source_codepage, display_codepage);
+-	if (errmsg)
++	errmsg = init_translation_table (source_codepage, display_codepage);
++	if (errmsg != NULL) {
+ 	    message (D_ERROR, MSG_ERROR, "%s", errmsg);
++	    g_free (errmsg);
++	}
+ #ifdef HAVE_SLANG
+ 	tty_display_8bit (display_codepage != 0 && display_codepage != 1);
+ #else
+diff --git a/src/charsets.c b/src/charsets.c
+index b290e72..a1bcd5d 100644
+--- a/src/charsets.c
++++ b/src/charsets.c
+@@ -177,15 +177,13 @@ translate_character (GIConv cd, char c)
+     return ch;
+ }
+ 
+-char errbuf[255];
+-
+ /*
+  * FIXME: This assumes that ASCII is always the first encoding
+  * in mc.charsets
+  */
+ #define CP_ASCII 0
+ 
+-const char *
++char *
+ init_translation_table (int cpsource, int cpdisplay)
+ {
+     int i;
+@@ -212,11 +210,9 @@ init_translation_table (int cpsource, int cpdisplay)
+     /* display <- inpit table */
+ 
+     cd = g_iconv_open (cp_display, cp_source);
+-    if (cd == INVALID_CONV) {
+-	g_snprintf (errbuf, sizeof (errbuf),
+-		    _("Cannot translate from %s to %s"), cp_source, cp_display);
+-	return errbuf;
+-    }
++    if (cd == INVALID_CONV)
++	return g_strdup_printf (_("Cannot translate from %s to %s"), 
++				cp_source, cp_display);
+ 
+     for (i = 128; i <= 255; ++i)
+ 	conv_displ[i] = translate_character (cd, i);
+@@ -226,11 +222,9 @@ init_translation_table (int cpsource, int cpdisplay)
+     /* inpit <- display table */
+ 
+     cd = g_iconv_open (cp_source, cp_display);
+-    if (cd == INVALID_CONV) {
+-	g_snprintf (errbuf, sizeof (errbuf),
+-		    _("Cannot translate from %s to %s"), cp_display, cp_source);
+-	return errbuf;
+-    }
++    if (cd == INVALID_CONV)
++	return g_strdup_printf (_("Cannot translate from %s to %s"), 
++				cp_display, cp_source);
+ 
+     for (i = 128; i <= 255; ++i) {
+ 	unsigned char ch;
+diff --git a/src/charsets.h b/src/charsets.h
+index 98186b8..087a5bb 100644
+--- a/src/charsets.h
++++ b/src/charsets.h
+@@ -28,7 +28,7 @@ const char *get_codepage_id (const int n);
+ int get_codepage_index (const char *id);
+ int load_codepages_list (void);
+ void free_codepages_list (void);
+-const char *init_translation_table (int cpsource, int cpdisplay);
++char *init_translation_table (int cpsource, int cpdisplay);
+ void convert_to_display (char *str);
+ void convert_from_input (char *str);
+ void convert_string (unsigned char *str);
+diff --git a/src/screen.c b/src/screen.c
+index e158312..24ffbf9 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -3392,9 +3392,8 @@ void
+ set_panel_encoding (WPanel * panel)
+ {
+     const char *encoding = NULL;
+-    char *cd_path;
++    char *cd_path = NULL;
+ #ifdef HAVE_CHARSET
+-    const char *errmsg;
+     int r;
+ 
+     r = select_charset (-1, -1, default_source_codepage, FALSE);
+@@ -3405,22 +3404,24 @@ set_panel_encoding (WPanel * panel)
+     if (r == SELECT_CHARSET_NO_TRANSLATE)
+     {
+         /* No translation */
+-        errmsg = init_translation_table (display_codepage, display_codepage);
++        init_translation_table (display_codepage, display_codepage);
+         cd_path = remove_encoding_from_path (panel->cwd);
+         do_panel_cd (panel, cd_path, 0);
+         g_free (cd_path);
+         return;
+     }
+-
+     source_codepage = r;
+-
+-    errmsg = init_translation_table (source_codepage, display_codepage);
+-    if (errmsg)
+     {
+-        message (D_ERROR, MSG_ERROR, "%s", errmsg);
+-        return;
+-    }
++        char *errmsg = NULL;
+ 
++        errmsg = init_translation_table (source_codepage, display_codepage);
++        if (errmsg != NULL)
++        {
++            message (D_ERROR, MSG_ERROR, "%s", errmsg);
++            g_free (errmsg);
++            return;
++        }
++    }
+     encoding = get_codepage_id (source_codepage);
+ #endif
+     if (encoding != NULL)
+diff --git a/src/selcodepage.c b/src/selcodepage.c
+index 69f75b3..56e8d5c 100644
+--- a/src/selcodepage.c
++++ b/src/selcodepage.c
+@@ -115,16 +115,18 @@ select_charset (int center_y, int center_x, int current_charset, gboolean seldis
+ gboolean
+ do_set_codepage (int codepage)
+ {
+-    const char *errmsg = NULL;
++    char *errmsg = NULL;
+ 
+     source_codepage = codepage;
+     errmsg = init_translation_table (codepage == SELECT_CHARSET_NO_TRANSLATE ?
+ 					display_codepage : source_codepage,
+ 					display_codepage);
+-    if (errmsg != NULL)
++    if (errmsg != NULL) {
+         message (D_ERROR, MSG_ERROR, "%s", errmsg);
+-
+-    return (errmsg == NULL);
++        g_free (errmsg);
++        return FALSE;
++    }
++    return TRUE;
+ }
+ 
+ /* Show menu selecting codepage */
+diff --git a/src/setup.c b/src/setup.c
+index 78dfb1b..178c47d 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -867,7 +867,16 @@ load_setup (void)
+     if ((autodetect_codeset[0] != '\0') && (strcmp (autodetect_codeset, "off")))
+         is_autodetect_codeset_enabled = TRUE;
+ 
+-    init_translation_table (source_codepage, display_codepage);
++    {
++        char *errmsg = NULL;
++
++        errmsg = init_translation_table (source_codepage, display_codepage);
++        if (errmsg != NULL) {
++            message (D_ERROR, MSG_ERROR, "%s", errmsg);
++            g_free (errmsg);
++        }
++    }
++
+     if (get_codepage_id (display_codepage))
+         utf8_display = str_isutf8 (get_codepage_id (display_codepage));
+ #endif /* HAVE_CHARSET */
+-- 
+1.6.4
+

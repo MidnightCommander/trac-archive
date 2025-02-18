@@ -1,0 +1,35 @@
+From aa49ee547669d77386e4b58a8632025dc03f8a3b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 16 Nov 2015 18:33:35 +0000
+Subject: [PATCH] fix #3557 - editor should not be closed on Ctrl-G
+
+solution for #2520 miss fix for editor
+---
+ src/editor/editwidget.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index eb2e812..23eebdb 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -741,7 +741,6 @@ edit_dialog_command_execute (WDialog * h, unsigned long command)
+         edit_menu_cmd (h);
+         break;
+     case CK_Quit:
+-    case CK_Cancel:
+         {
+             Widget *w = WIDGET (h->current->data);
+ 
+@@ -800,6 +799,9 @@ edit_dialog_command_execute (WDialog * h, unsigned long command)
+     case CK_SaveSetup:
+         save_setup_cmd ();
+         break;
++    case CK_Cancel:
++        /* don't close editor due to SIGINT */
++        break;
+     default:
+         ret = MSG_NOT_HANDLED;
+         break;
+-- 
+2.4.10
+

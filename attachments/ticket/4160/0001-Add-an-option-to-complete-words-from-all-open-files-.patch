@@ -1,0 +1,89 @@
+From 43037f84163c058056a55bc3f7ef002dd90dc814 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Thu, 17 Dec 2020 18:09:20 -0600
+Subject: [PATCH] =?UTF-8?q?Add=20an=20option=20to=20complete=20words=20fro?=
+ =?UTF-8?q?m=20=C2=ABall=C2=BB=20open=20files,=20not=20only=20the=20curren?=
+ =?UTF-8?q?t=20one.?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/editor/editcmd.c | 40 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 37 insertions(+), 3 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index f3597fc88..8c73927ea 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1211,7 +1211,8 @@ edit_collect_completions_get_current_word (edit_search_status_msg_t * esm, mc_se
+ 
+ static gsize
+ edit_collect_completions (WEdit * edit, off_t word_start, gsize word_len,
+-                          char *match_expr, GString ** compl, gsize * num)
++                          char *match_expr, GString ** compl, gsize * num,
++                          gsize current_limit)
+ {
+     gsize len = 0;
+     gsize max_len = 0;
+@@ -1301,7 +1302,7 @@ edit_collect_completions (WEdit * edit, off_t word_start, gsize word_len,
+         if (skip != 0)
+             continue;
+ 
+-        if (*num == MAX_WORD_COMPLETIONS)
++        if (*num >= current_limit)
+         {
+             g_string_free (compl[0], TRUE);
+             for (i = 1; i < *num; i++)
+@@ -3337,6 +3338,11 @@ edit_complete_word_cmd (WEdit * edit)
+     GString *match_expr;
+     GString *compl[MAX_WORD_COMPLETIONS];       /* completions */
+ 
++    gboolean search_all_files;
++    WEdit *edit_wid;
++    const WGroup *gr;
++    GList *w;
++
+     /* search start of word to be completed */
+     if (!edit_find_word_start (&edit->buffer, &word_start, &word_len))
+         return;
+@@ -3353,7 +3359,35 @@ edit_complete_word_cmd (WEdit * edit)
+     /* start search from begin to end of file */
+     max_len =
+         edit_collect_completions (edit, word_start, word_len, match_expr->str, (GString **) & compl,
+-                                  &num_compl);
++                                  &num_compl, MAX_WORD_COMPLETIONS);
++
++    // Should search also other open files ?
++    search_all_files =
++        mc_config_get_bool (mc_global.main_config, CONFIG_APP_SECTION,
++                            "editor_wordcompletion_collect_all_files", 1);
++
++    if (search_all_files && num_compl < MAX_WORD_COMPLETIONS) {
++        // Process all the remaining files by listing the editor widgets 
++        // grouped in the main editor dialog.
++        gr = CONST_GROUP (CONST_WIDGET(edit)->owner);
++        for (w = gr->widgets; w != NULL; w = g_list_next (w)) {
++            if (w->data != edit && edit_widget_is_editor (CONST_WIDGET (w->data))) {
++                gsize max_len_candidate, num_compl_sub = 0;
++                edit_wid = (WEdit *) w->data;
++                max_len_candidate =
++                    edit_collect_completions (edit_wid, word_start, word_len, match_expr->str,
++                            ((GString **) &compl)+num_compl, &num_compl_sub,
++                             MAX_WORD_COMPLETIONS - num_compl);
++
++                if (max_len_candidate > max_len)
++                    max_len = max_len_candidate;
++
++                num_compl += num_compl_sub;
++                if (num_compl >= MAX_WORD_COMPLETIONS)
++                    break;
++            }
++        }
++    }
+ 
+     if (num_compl > 0)
+     {
+-- 
+2.28.0
+

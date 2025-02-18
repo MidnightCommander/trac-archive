@@ -1,0 +1,33 @@
+From 35b5f18ddf50f588442cbd209e71bb4e10a0f9d4 Mon Sep 17 00:00:00 2001
+From: Ilia Maslakov <il.smind@gmail.com>
+Date: Thu, 19 Feb 2009 20:00:41 +0000
+Subject: [PATCH] add exit point to panelized filter (in top list)
+
+---
+ src/panelize.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/src/panelize.c b/src/panelize.c
+index 5bbf643..74ef6f0 100644
+--- a/src/panelize.c
++++ b/src/panelize.c
+@@ -374,6 +374,16 @@ static void do_external_panelize (char *command)
+     /* Clear the counters and the directory list */
+     panel_clean_dir (current_panel);
+ 
++    /* Add exit point */
++    list->list[next_free].fnamelen = 1;
++    list->list[next_free].fname = g_strdup (".");
++    list->list[next_free].f.link_to_dir = 0;
++    list->list[next_free].f.stale_link = 0;
++    list->list[next_free].f.dir_size_computed = 0;
++    list->list[next_free].f.marked = 0;
++    list->list[next_free].st.st_mode = 040755;
++    next_free++;
++
+     while (1) {
+ 	clearerr(external);
+ 	if (fgets (line, MC_MAXPATHLEN, external) == NULL) {
+-- 
+1.6.1.2
+

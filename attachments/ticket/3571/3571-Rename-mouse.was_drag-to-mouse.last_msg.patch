@@ -1,0 +1,76 @@
+From 85daceb02c77c3854befce98220e8b2c36503a63 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 23 Mar 2016 18:17:05 +0200
+Subject: [PATCH] Rename mouse.was_drag to mouse.last_msg.
+
+---
+ lib/widget/mouse.c         | 7 ++++---
+ lib/widget/widget-common.c | 4 ++--
+ lib/widget/widget-common.h | 7 +++++--
+ 3 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/lib/widget/mouse.c b/lib/widget/mouse.c
+index 86c23b8..4e834e4 100644
+--- a/lib/widget/mouse.c
++++ b/lib/widget/mouse.c
+@@ -132,7 +132,8 @@ mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click)
+             msg = MSG_MOUSE_UP;
+ 
+             if (in_widget)
+-                *click = !w->mouse.was_drag;
++                /* If the mouse hasn't been dragged since the MSG_MOUSE_DOWN, we trigger a click. */
++                *click = (w->mouse.last_msg == MSG_MOUSE_DOWN);
+ 
+             /*
+              * When using xterm, event->buttons reports the buttons' state
+@@ -158,8 +159,8 @@ mouse_translate_event (Widget * w, Gpm_Event * event, gboolean * click)
+     }
+ 
+     if (msg != 0)
+-        /* Rememer the current state for next event. */
+-        w->mouse.was_drag = ((event->type & GPM_DRAG) != 0);
++        /* Record the current event type for the benefit of the next event. */
++        w->mouse.last_msg = msg;
+ 
+     init_mouse_event (&local, msg, event, w);
+ 
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index a29181a..9c09719 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -149,10 +149,10 @@ widget_init (Widget * w, int y, int x, int lines, int cols,
+     w->mouse_callback = mouse_callback;
+     w->set_options = widget_default_set_options_callback;
+     w->owner = NULL;
+-    w->mouse.capture = FALSE;
+     w->mouse.forced_capture = FALSE;
++    w->mouse.capture = FALSE;
++    w->mouse.last_msg = 0;
+     w->mouse.last_buttons_down = 0;
+-    w->mouse.was_drag = FALSE;
+ 
+     /* Almost all widgets want to put the cursor in a suitable place */
+     w->options = W_WANT_CURSOR;
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index be524d1..be5f41f 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -112,10 +112,13 @@ struct Widget
+     /* Mouse-related fields. */
+     struct
+     {
++        /* Public members: */
++        gboolean forced_capture;        /* Overrides the 'capture' member. Set explicitly by the programmer. */
++
++        /* Implementation details: */
+         gboolean capture;       /* Whether the widget "owns" the mouse. */
+-        gboolean forced_capture;        /* Overrides the above. Set explicitly by the programmer. */
++        mouse_msg_t last_msg;   /* The previous event type processed. */
+         int last_buttons_down;
+-        gboolean was_drag;
+     } mouse;
+ };
+ 
+-- 
+2.5.0
+

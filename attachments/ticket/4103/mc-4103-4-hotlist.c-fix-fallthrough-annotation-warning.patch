@@ -1,0 +1,24 @@
+From 1031203dfd2f1a1432d7c685c624e0a63713a4e7 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 29 Nov 2020 15:02:18 +0000
+Subject: [PATCH] (hotlist.c) fix fallthrough annotation warning
+
+fallthrough annotation does not directly precede switch label
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/hotlist.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index a8dac8d5d..f0fe44486 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -445,7 +445,6 @@ hotlist_run_cmd (int action)
+                 fill_listbox (list);
+                 return 0;
+             }
+-            MC_FALLTHROUGH;     /* go up */
+         }
+         MC_FALLTHROUGH;         /* if list empty - just go up */
+ 

@@ -1,0 +1,38 @@
+From 0a34c580e0d2e611a4216358dffb95550650dcd7 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 18 May 2021 14:34:44 +0000
+Subject: [PATCH] (extfs.c) fix dereference before null check
+
+Fix dereference before null check
+
+Found by Coverity
+Coverity id #110818
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 59ff0e47d..b421c2f36 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -995,7 +995,7 @@ edit_do_search (WEdit * edit)
+             && !edit_search_options.backwards)
+             edit->search_start++;
+ 
+-        if (editcmd_find (&esm, &len))
++        if (edit->search != NULL && editcmd_find (&esm, &len))
+         {
+             edit->found_start = edit->search_start = edit->search->normal_offset;
+             edit->found_len = len;
+@@ -1010,7 +1010,8 @@ edit_do_search (WEdit * edit)
+         else
+         {
+             edit->search_start = edit->buffer.curs1;
+-            edit_show_search_error (edit, _("Search"));
++            if (edit->search != NULL)
++                edit_show_search_error (edit, _("Search"));
+         }
+     }
+ 

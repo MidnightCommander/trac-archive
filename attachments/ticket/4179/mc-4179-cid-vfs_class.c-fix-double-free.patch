@@ -1,0 +1,27 @@
+From 77ab906a59cbee5a58a05f269fcd41ef7149319b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 30 May 2021 14:09:44 +0000
+Subject: [PATCH] (vfs_class.c) fix double free
+
+Fix double free
+
+Found by Coverity
+Coverity id #331814
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/vfs_class.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/vfs/sftpfs/vfs_class.c b/src/vfs/sftpfs/vfs_class.c
+index 472c8d79c..1b2d8ebea 100644
+--- a/src/vfs/sftpfs/vfs_class.c
++++ b/src/vfs/sftpfs/vfs_class.c
+@@ -148,7 +148,6 @@ sftpfs_cb_open (const vfs_path_t * vpath, int flags, mode_t mode)
+     if (!sftpfs_open_file (fh, flags, mode, &mcerror))
+     {
+         mc_error_message (&mcerror, NULL);
+-        g_free (fh);
+         return NULL;
+     }
+ 

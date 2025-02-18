@@ -1,0 +1,38 @@
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index 00be8d0..7eec141 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -237,7 +237,9 @@ mcview_done (mcview_t * view)
+     {
+         char *canon_fname;
+         canon_fname = vfs_canon (view->filename);
+-        save_file_position (canon_fname, -1, 0, view->dpy_start, view->saved_bookmarks);
++        save_file_position (canon_fname, -1, 0,
++            view->hex_mode ? view->hex_cursor : view->dpy_start,
++            view->saved_bookmarks);
+         view->saved_bookmarks = NULL;
+         g_free (canon_fname);
+     }
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index 3cf9948..c28adc8 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -390,8 +390,16 @@ mcview_load (mcview_t * view, const char *command, const char *file, int start_l
+ 
+         canon_fname = vfs_canon (view->filename);
+         load_file_position (canon_fname, &line, &col, &new_offset, &view->saved_bookmarks);
+-        new_offset = min (new_offset, mcview_get_filesize (view));
+-        view->dpy_start = mcview_bol (view, new_offset, 0);
++        new_offset = min (new_offset, mcview_get_filesize (view)-1);
++        if (new_offset < 0)
++            new_offset = 0;
++        if (view->hex_mode)
++        {
++            view->dpy_start = new_offset - new_offset % view->bytes_per_line;
++            view->hex_cursor = new_offset;
++        }
++        else
++            view->dpy_start = mcview_bol (view, new_offset, 0);
+         g_free (canon_fname);
+     }
+     else if (start_line > 0)

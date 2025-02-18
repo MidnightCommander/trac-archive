@@ -1,0 +1,52 @@
+
+fix memleak at src/editor/editcmd.c:1983:21
+
+macros_config object will never freed when macros_list is empty
+
+found by clang LeakSanitizer
+
+Direct leak of 48 byte(s) in 3 object(s) allocated from:
+    #0 0x4d2d50 in malloc (/usr/bin/mc+0x4d2d50)
+    #1 0x7fbdde5c0d08 in g_try_malloc0 (/usr/lib64/libglib-2.0.so.0+0x67d08)
+    #2 0x7fbddf23cb32 in mc_config_init /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/mcconfig/common.c:110:17
+    #3 0x5aac8c in edit_load_macro_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editcmd.c:1983:21
+    #4 0x594906 in edit_init /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:2159:5
+    #5 0x5c9f2e in edit_add_window /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1358:12
+    #6 0x5c9158 in edit_files /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1248:16
+    #7 0x5c8ccf in edit_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1194:10
+    #8 0x5f806b in edit_file_at_line /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:704:9
+    #9 0x5f81db in edit_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:742:9
+    #10 0x536977 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1177:9
+    #11 0x7fbddf27d2b9 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #12 0x7fbddf28342c in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #13 0x7fbddf282720 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #14 0x7fbddf282be2 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #15 0x7fbddf2828e5 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #16 0x534e0d in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1759:9
+    #17 0x502ab7 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #18 0x7fbddd694eca in __libc_start_main (/lib64/libc.so.6+0x21eca)
+    #19 0x4280ed in _start (/usr/bin/mc+0x4280ed)
+
+patch against b8ffa1b9661987f41deeb5cb7bf2ab6c09a41c43
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1983,9 +1983,15 @@
+     macros_config = mc_config_init (macros_fname, TRUE);
+     g_free (macros_fname);
+ 
+-    if (macros_config == NULL || macros_list == NULL || macros_list->len != 0)
++    if (macros_config == NULL)
+         return FALSE;
+ 
++    if (macros_list == NULL || macros_list->len != 0)
++    {
++        mc_config_deinit (macros_config);
++        return FALSE;
++    }
++
+     keys = mc_config_get_keys (macros_config, section_name, NULL);
+ 
+     for (profile_keys = keys; *profile_keys != NULL; profile_keys++)

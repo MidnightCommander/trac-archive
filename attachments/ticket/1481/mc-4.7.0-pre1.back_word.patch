@@ -1,0 +1,22 @@
+diff -Naur mc-4.7.0-pre1~/src/widget.c mc-4.7.0-pre1/src/widget.c
+--- mc-4.7.0-pre1~/src/widget.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/widget.c	2009-08-05 03:29:43.000000000 +0300
+@@ -1325,16 +1325,11 @@
+ {
+     const char *p = in->buffer + str_offset_to_pos (in->buffer, in->point);
+ 
+-    while ((p != in->buffer) && (p[0] == '\0')) {
+-	p--;
+-        in->point--;
+-    }
+-    
+-    while ((p != in->buffer) && (str_isspace (p) || str_ispunct (p))) {
++    while ((p > in->buffer) && (str_isspace (p - 1) || str_ispunct (p - 1))) {
+         str_cprev_char (&p);
+         in->point--;
+     }
+-    while ((p != in->buffer) && !str_isspace (p) && !str_ispunct (p)) {
++    while ((p > in->buffer) && !str_isspace (p - 1) && !str_ispunct (p - 1)) {
+         str_cprev_char (&p);
+         in->point--;
+     }

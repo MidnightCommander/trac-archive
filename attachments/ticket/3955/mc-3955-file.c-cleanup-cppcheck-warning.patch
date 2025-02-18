@@ -1,0 +1,37 @@
+From f9f7e7c924a4b93dc480eab43a2138184dff4593 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 8 Jan 2019 06:39:09 +0000
+Subject: [PATCH] file.c: Cleanup cppcheck suspicious condition warning
+
+Found by cppcheck 1.81
+
+[src/filemanager/file.c:386]: (style) Suspicious condition (assignment + comparison); Clarify expression with parentheses.
+[src/filemanager/file.c:406]: (style) Suspicious condition (assignment + comparison); Clarify expression with parentheses.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/file.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 01054bf0b..e9d377630 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -383,7 +383,7 @@ check_hardlinks (const vfs_path_t * src_vpath, const struct stat *src_stat,
+                 {
+                     gboolean ok;
+ 
+-                    while (!(ok = mc_stat (lnk->dst_vpath, &link_stat) == 0) && !*skip_all)
++                    while (!(ok = (mc_stat (lnk->dst_vpath, &link_stat) == 0)) && !*skip_all)
+                     {
+                         FileProgressStatus status;
+ 
+@@ -403,7 +403,7 @@ check_hardlinks (const vfs_path_t * src_vpath, const struct stat *src_stat,
+                     if (!ok)
+                         return HARDLINK_ERROR;
+ 
+-                    while (!(ok = mc_link (lnk->dst_vpath, dst_vpath) == 0) && !*skip_all)
++                    while (!(ok = (mc_link (lnk->dst_vpath, dst_vpath) == 0)) && !*skip_all)
+                     {
+                         FileProgressStatus status;
+ 

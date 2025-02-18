@@ -1,0 +1,76 @@
+--- /usr/lib/mc/extfs.d/uace.orig	2010-09-15 11:40:28.000000000 +0200
++++ /usr/lib/mc/extfs.d/uace	2010-10-01 20:38:54.325599328 +0200
+@@ -2,11 +2,11 @@
+ 
+ #
+ # ACE Virtual filesystem executive v0.1
+-# Works with unace v2.5
+-
+-# Copyright (C) 2008 Jacques Pelletier
++# Works with unace-nonfree v2.5
++#
++# Copyright (C) 2008 Jacques Pelletier <jpelletier@ieee.org>
++# Copyright (C) 2010 Eugene San (eugenesan) <eugenesan@gmail.com
+ # May be distributed under the terms of the GNU Public License
+-# <jpelletier@ieee.org>
+ #
+ 
+ # Define your awk
+@@ -17,14 +17,13 @@
+ # ACE_PUT="unace ?"  not available
+ 
+ # The 'list' command executive
+-
+-# Unace:	DD.MM.YY HH.MM packed size ratio file 
+-# ls:
++# unace: DD.MM.YY HH.MM packed size ratio filename
++# list:  -rw-r--r-- 1 uid gid size MM/DD/CCYY HH:MM filename
+ mc_ace_fs_list()
+ {
+-    $ACE_LIST "$1" | gawk -v uid=${UID-0} '
+-BEGIN { Month="JanFebMarAprMayJunJulAugSepOctNovDec" }
+-/%/ { 
++	$ACE_LIST "$1" | gawk -v uid=`id -u` -v gid=`id -g` '
++BEGIN { }
++/%/ {
+   split($1,date,".")
+ 
+   if (date[3] > 50)
+@@ -32,16 +31,21 @@
+   else
+     date[3]=date[3] + 2000
+ 
+-  printf "-rw-r--r--   1 %-8d %-8d %8d %s %2d %4d %s %s\n", uid, 0, $3, substr(Month,3*(date[2]-1)+1,3),date[1],date[3], $2, $6
++  printf "-rw-r--r-- 1 %s %s %d %02d/%02d/%04d %s", uid, gid, $4, date[2],date[1],date[3], $2
++  for (i = 6; i <= NF; i++) printf " %s", $i
++  printf "\n"
+ }' 2>/dev/null
+-    exit 0
++	exit 0
+ }
+ 
+ # Command: copyout archivename storedfilename extractto
+ mc_ace_fs_copyout()
+ {
+-   $ACE_GET "$1" "$2" > /dev/null 2>&1
+-        mv "$2" "$3"
++	cd "$(dirname "${3}")" && \
++	rm -f ${2} ${3} && \
++	$ACE_GET "$1" "$2" > /dev/null 2>&1 && \
++	mv "$2" "$3" && \
++	exit 0
+ }
+ 
+ # The main routine
+@@ -51,8 +55,8 @@
+ shift
+ 
+ case "$cmd" in
+-   list) 	mc_ace_fs_list 	  "$@" ;;
+-   copyout) mc_ace_fs_copyout "$@" ;;
+-   *)       exit 1 ;;
++	list)		mc_ace_fs_list 	  "$@" ;;
++	copyout)	echo $(pwd) $@ > /tmp/uace.log; mc_ace_fs_copyout "$@" ;;
++	*)		exit 1 ;;
+ esac
+ exit 0

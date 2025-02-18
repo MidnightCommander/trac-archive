@@ -1,0 +1,44 @@
+From 51b5af90b9264066656ffadb806204ef8b115134 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 Dec 2024 16:00:00 +0000
+Subject: [PATCH] (editcmd.c) fix uninitialized value function call
+
+Make Static Analyzer happy.
+
+src/editor/editcmd.c:412:17: warning: 1st function call argument is an uninitialized value [clang-analyzer-core.CallAndMessage]
+  412 |         fname = tilde_expand (filename_res);   
+      |                 ^
+
+src/editor/editcmd.c:1928:9: warning: 2nd function call argument is an uninitialized value [clang-analyzer-core.CallAndMessage]
+ 1928 |         pipe_mail (&edit->buffer, mail_to, mail_subject, mail_cc);
+      |         ^                         ~~~~~~~
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 98d1e6f06..c2fbdafcc 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -374,7 +374,7 @@ static vfs_path_t *
+ edit_get_save_file_as (WEdit *edit)
+ {
+     static LineBreaks cur_lb = LB_ASIS;
+-    char *filename_res;
++    char *filename_res = NULL;
+     vfs_path_t *ret_vpath = NULL;
+ 
+     const char *lb_names[LB_NAMES] = {
+@@ -1897,7 +1897,7 @@ edit_block_process_cmd (WEdit *edit, int macro_number)
+ void
+ edit_mail_dialog (WEdit *edit)
+ {
+-    char *mail_to, *mail_subject, *mail_cc;
++    char *mail_to = NULL, *mail_subject = NULL, *mail_cc = NULL;
+ 
+     quick_widget_t quick_widgets[] = {
+         /* *INDENT-OFF* */

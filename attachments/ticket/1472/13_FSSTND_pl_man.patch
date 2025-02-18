@@ -1,0 +1,14 @@
+Fix non FHS path
+Index: mc-4.6.2~git20090529/doc/man/pl/mc.1.in
+===================================================================
+--- mc-4.6.2~git20090529.orig/doc/man/pl/mc.1.in	2009-05-30 17:22:54.000000000 +0200
++++ mc-4.6.2~git20090529/doc/man/pl/mc.1.in	2009-05-30 17:22:58.000000000 +0200
+@@ -1052,7 +1052,7 @@
+ logów transferu:
+ .PP
+ .nf
+-awk '$9 ~! /incoming/ { print $9 }' < /usr/adm/xferlog
++awk '$9 ~! /incoming/ { print $9 }' < /var/log/xferlog
+ .fi
+ .PP
+ Możesz zapisać sobie często używane komendy pod jakąś nazwą, po to

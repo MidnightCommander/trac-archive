@@ -1,0 +1,27 @@
+From 59ad5afc5d632b54d2bd46946e8c713af4e1d841 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 26 May 2021 15:09:06 +0000
+Subject: [PATCH] (Makefile.am) teach automake to include maint/utils/version.h
+
+Teach automake to include maint/utils/version.h
+
+Fix #4249 found by IceMan
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 6ad0c2b43..36bbaecde 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -7,7 +7,7 @@ if HAVE_TESTS
+     SUBDIRS += tests
+ endif
+ 
+-EXTRA_DIST = 
++EXTRA_DIST = maint/utils/version.sh
+ 
+ dist_noinst_SCRIPTS = build-glib2.sh
+ 

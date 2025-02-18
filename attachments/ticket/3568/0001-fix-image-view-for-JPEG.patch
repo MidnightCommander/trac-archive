@@ -1,0 +1,32 @@
+From abd25f36149e2b8f688e7048f03059c4a7bfbb90 Mon Sep 17 00:00:00 2001
+From: Frank Dietrich <ablesoft@gmx.de>
+Date: Sun, 22 Nov 2015 11:53:29 +0100
+Subject: [PATCH] fix image view for JPEG
+
+---
+ misc/ext.d/image.sh | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/misc/ext.d/image.sh b/misc/ext.d/image.sh
+index 6535554..d03a1ee 100755
+--- a/misc/ext.d/image.sh
++++ b/misc/ext.d/image.sh
+@@ -13,10 +13,11 @@ do_view_action() {
+ 
+     case "${filetype}" in
+     jpeg)
+-        which exif >/dev/null 2>&1 && \
+-        {
+-            identify "${MC_EXT_FILENAME}"; exif "${MC_EXT_FILENAME}" 2>/dev/null
+-        }
++        identify "${MC_EXT_FILENAME}" 2>/dev/null
++        type -P exif >/dev/null 2>&1
++        if [ $? -ne 0 ]; then
++            exif "${MC_EXT_FILENAME}" 2>/dev/null
++        fi
+         ;;
+     xpm)
+         sxpm "${MC_EXT_FILENAME}"
+-- 
+2.6.2
+

@@ -1,0 +1,47 @@
+From 204d2fd9ef0c5cc0c0799e828aed49c1dadb23cd Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 3 Jan 2018 21:18:48 +0000
+Subject: [PATCH] (configure.ac): Workaround for autoconf-2.69 AC_HEADER_MAJOR
+
+Beginning with glibc 2.25 major(), minor(), or makedev() should
+include by <sys/sysmacros.h> statement.
+
+As of 2018.01 latest autoconf (2.69) failed with AC_HEADER_MAJOR,
+because macro don't handle <sys/types.h> warning (see below)
+and this lead into missing MAJOR_IN_SYSMACROS define.
+
+Patch will catch warning as error to get MAJOR_IN_SYSMACROS defined
+for working unixcompat.h #ifdef case.
+
+This patch may obsolete with upcoming autoconf >2.69 version.
+
+parse_ls_vga.c:790:13: error: In the GNU C Library, "makedev" is defined
+ by <sys/sysmacros.h>. For historical compatibility, it is
+ currently defined by <sys/types.h> as well, but we plan to
+ remove this soon. To use "makedev", include <sys/sysmacros.h>
+ directly. If you did not intend to use a system-defined macro
+ "makedev", you should undefine it after including <sys/types.h>. [-Werror]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 0364880b5..beb5b1b78 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -162,8 +162,12 @@ AC_CHECK_HEADERS([string.h memory.h limits.h malloc.h \
+ 	utime.h sys/statfs.h sys/vfs.h \
+ 	sys/select.h sys/ioctl.h stropts.h arpa/inet.h \
+ 	sys/socket.h])
+-AC_HEADER_MAJOR
+ 
++dnl autoconf-2.69 workaround for missing detection sys/types.h to sys/sysmacros.h
++old_CFLAGS=$CFLAGS
++CFLAGS="$CFLAGS -Werror"
++AC_HEADER_MAJOR
++CFLAGS=$old_CFLAGS
+ 
+ dnl ############################################################################
+ dnl Check for types

@@ -1,0 +1,163 @@
+diff --git a/src/args.c b/src/args.c
+index 15bd506..b55f401 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -516,6 +516,11 @@ mc_setup_by_args (int argc, char *argv[])
+ 
+         if (tmp != NULL)
+             mc_run_param0 = g_strdup (tmp);
++#ifdef HAVE_UNISTD_H
++        /* If fd0 is non-interactive, a file is being piped */
++        else if (!isatty(fileno(stdin)))
++            mc_run_param0 = g_strdup("-");
++#endif
+         else
+         {
+             fprintf (stderr, "%s\n", _("No arguments given to the viewer."));
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index 765bc82..e85eea3 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -907,6 +907,9 @@ prepend_cwd_on_local (const char *filename)
+     size_t l;
+     vfs_path_t *vpath;
+ 
++    if (filename[0] == '-') /* don't let it reach vfs */
++        return g_strdup (filename);
++
+     vpath = vfs_path_from_str (filename);
+     if (!vfs_file_is_local (vpath) || g_path_is_absolute (filename))
+     {
+diff --git a/src/viewer/datasource.c b/src/viewer/datasource.c
+index 008183e..fde7399 100644
+--- a/src/viewer/datasource.c
++++ b/src/viewer/datasource.c
+@@ -91,6 +91,17 @@ mcview_set_datasource_stdio_pipe (mcview_t * view, FILE * fp)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
++mcview_set_datasource_stdin_pipe (mcview_t * view)
++{
++    view->datasource = DS_STDIN_PIPE;
++    view->ds_stdio_pipe = stdin;
++
++    mcview_growbuf_init (view);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
+ mcview_set_datasource_none (mcview_t * view)
+ {
+     view->datasource = DS_NONE;
+@@ -106,6 +117,7 @@ mcview_get_filesize (mcview_t * view)
+     case DS_NONE:
+         return 0;
+     case DS_STDIO_PIPE:
++    case DS_STDIN_PIPE:
+     case DS_VFS_PIPE:
+         return mcview_growbuf_filesize (view);
+     case DS_FILE:
+@@ -171,6 +183,7 @@ mcview_get_utf (mcview_t * view, off_t byte_index, int *char_width, gboolean * r
+     switch (view->datasource)
+     {
+     case DS_STDIO_PIPE:
++    case DS_STDIN_PIPE:
+     case DS_VFS_PIPE:
+         str = mcview_get_ptr_growing_buffer (view, byte_index);
+         break;
+@@ -318,6 +331,10 @@ mcview_close_datasource (mcview_t * view)
+         }
+         mcview_growbuf_free (view);
+         break;
++    case DS_STDIN_PIPE:
++        view->ds_stdio_pipe = NULL;
++        mcview_growbuf_free (view);
++        break;
+     case DS_VFS_PIPE:
+         if (view->ds_vfs_pipe != -1)
+         {
+diff --git a/src/viewer/growbuf.c b/src/viewer/growbuf.c
+index a98bf93..05a9657 100644
+--- a/src/viewer/growbuf.c
++++ b/src/viewer/growbuf.c
+@@ -150,6 +150,16 @@ mcview_growbuf_read_until (mcview_t * view, off_t ofs)
+                 return;
+             }
+         }
++        else if (view->datasource == DS_STDIN_PIPE)
++        {
++            nread = fread (p, 1, bytesfree, view->ds_stdio_pipe);
++            if (nread == 0)
++            {
++                view->growbuf_finished = TRUE;
++                view->ds_stdio_pipe = NULL;
++                return;
++            }
++        }
+         else
+         {
+             assert (view->datasource == DS_VFS_PIPE);
+diff --git a/src/viewer/inlines.h b/src/viewer/inlines.h
+index 8a3233f..3dfb349 100644
+--- a/src/viewer/inlines.h
++++ b/src/viewer/inlines.h
+@@ -102,6 +102,7 @@ mcview_get_byte (mcview_t * view, off_t offset, int *retval)
+     switch (view->datasource)
+     {
+     case DS_STDIO_PIPE:
++    case DS_STDIN_PIPE:
+     case DS_VFS_PIPE:
+         return mcview_get_byte_growing_buffer (view, offset, retval);
+     case DS_FILE:
+diff --git a/src/viewer/internal.h b/src/viewer/internal.h
+index 249df6c..75c6f94 100644
+--- a/src/viewer/internal.h
++++ b/src/viewer/internal.h
+@@ -29,6 +29,7 @@ enum view_ds
+ {
+     DS_NONE,                    /* No data available */
+     DS_STDIO_PIPE,              /* Data comes from a pipe using popen/pclose */
++    DS_STDIN_PIPE,              /* Data comes from a pipe using standart input */
+     DS_VFS_PIPE,                /* Data comes from a piped-in VFS file */
+     DS_FILE,                    /* Data comes from a VFS file */
+     DS_STRING                   /* Data comes from a string in memory */
+@@ -228,6 +229,7 @@ void mcview_ccache_lookup (mcview_t * view, coord_cache_entry_t * coord,
+ 
+ /* datasource.c: */
+ void mcview_set_datasource_none (mcview_t *);
++void mcview_set_datasource_stdin_pipe (mcview_t *);
+ off_t mcview_get_filesize (mcview_t *);
+ void mcview_update_filesize (mcview_t * view);
+ char *mcview_get_ptr_file (mcview_t *, off_t);
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index 6863dff..9a91a90 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -78,6 +78,9 @@ mcview_toggle_magic_mode (mcview_t * view)
+ {
+     char *filename, *command;
+ 
++    if (view->datasource == DS_STDIN_PIPE) /* stdin can't be "re-opened" */
++        return; /* and we can't do magic toggle without reopen, yet */
++
+     mcview_altered_magic_flag = 1;
+     view->magic_mode = !view->magic_mode;
+     filename = g_strdup (view->filename);
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index a67895b..7e5d851 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -306,6 +306,12 @@ mcview_load (mcview_t * view, const char *command, const char *file, int start_l
+ 
+     if (command != NULL && (view->magic_mode || file == NULL || file[0] == '\0'))
+         retval = mcview_load_command_output (view, command);
++    else if (file != NULL && file[0] == '-')
++    {
++        /* "-" is a special case, a standart input pipe */
++        mcview_set_datasource_stdin_pipe (view);
++        retval = TRUE;
++    }
+     else if (file != NULL && file[0] != '\0')
+     {
+         int fd = -1;

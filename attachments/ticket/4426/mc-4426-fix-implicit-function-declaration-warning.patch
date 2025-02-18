@@ -1,0 +1,31 @@
+From 7562f0b671d8353257374486fc5ccd0d590b75f1 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 3 Mar 2023 13:15:48 +0000
+Subject: [PATCH] (spell.c): fix Wimplicit-function-declaration warning
+
+spell.c:308:9: error: call to undeclared function 'MC_PTR_FREE'; ISO C99 and later do not support implicit function declarations [-Werror,-Wimplicit-function-declaration]
+        MC_PTR_FREE (global_speller);
+        ^
+spell.c:347:5: error: call to undeclared function 'MC_PTR_FREE'; ISO C99 and later do not support implicit function declarations [-Werror,-Wimplicit-function-declaration]
+    MC_PTR_FREE (global_speller);
+    ^
+
+Found by clang 15
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/spell.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/editor/spell.c b/src/editor/spell.c
+index 4b743275f..f7355af79 100644
+--- a/src/editor/spell.c
++++ b/src/editor/spell.c
+@@ -43,6 +43,7 @@
+ #include "editwidget.h"
+ 
+ #include "spell.h"
++#include "lib/util.h"           /* MC_PTR_FREE() */
+ 
+ /*** global variables ****************************************************************************/
+ 

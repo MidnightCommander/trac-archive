@@ -1,0 +1,60 @@
+From db09ca01a05644d45eaeb7158c0eeb810d81fb5f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 7 Jan 2016 15:25:27 +0000
+Subject: [PATCH] #3161 listbox.c remember focus state
+
+when listbox is updated, e.g. new file match add MSG_DRAW event is triggered
+but currently listbox re-draw has no knowledge about right focus state
+fix it by remember current focus state and resolve #3161
+
+(patch can be simplify but I unsure about lib api function change)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/listbox.c | 11 ++++++++++-
+ lib/widget/listbox.h |  1 +
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index 7668ee3..d391668 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -449,9 +449,17 @@ listbox_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         return MSG_HANDLED;
+ 
+     case MSG_FOCUS:
++        l->hasfocus = TRUE;
++        listbox_draw (l, l->hasfocus);
++        return MSG_HANDLED;
++
+     case MSG_UNFOCUS:
++        l->hasfocus = FALSE;
++        listbox_draw (l, l->hasfocus);
++        return MSG_HANDLED;
++
+     case MSG_DRAW:
+-        listbox_draw (l, msg != MSG_UNFOCUS);
++        listbox_draw (l, l->hasfocus);
+         return MSG_HANDLED;
+ 
+     case MSG_DESTROY:
+@@ -559,6 +567,7 @@ listbox_new (int y, int x, int height, int width, gboolean deletable, lcback_fn
+     l->callback = callback;
+     l->allow_duplicates = TRUE;
+     l->scrollbar = !mc_global.tty.slow_terminal;
++    l->hasfocus = FALSE;
+     widget_want_hotkey (w, TRUE);
+     widget_want_cursor (w, FALSE);
+ 
+diff --git a/lib/widget/listbox.h b/lib/widget/listbox.h
+index 6bb5269..ae73313 100644
+--- a/lib/widget/listbox.h
++++ b/lib/widget/listbox.h
+@@ -52,6 +52,7 @@ typedef struct WListbox
+     gboolean allow_duplicates;  /* Do we allow duplicates on the list? */
+     gboolean scrollbar;         /* Draw a scrollbar? */
+     gboolean deletable;         /* Can list entries be deleted? */
++    gboolean hasfocus;          /* Has listbox a focus */
+     lcback_fn callback;         /* The callback function */
+     int cursor_x, cursor_y;     /* Cache the values */
+ } WListbox;

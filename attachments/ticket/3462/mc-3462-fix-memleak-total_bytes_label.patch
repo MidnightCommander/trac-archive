@@ -1,0 +1,39 @@
+
+fix memleak at filemanager/findgui.c:file_op_context_create_ui()
+
+file_op_context_create_ui() override allocated ui->total_bytes_label
+
+found by LeakSanitizer
+
+Direct leak of 21 byte(s) in 1 object(s) allocated from:
+    #0 0x4d5d62 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d5d62)
+    #1 0x7fa6a82927d4 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x677d4)
+    #2 0x7fa6a82b9111 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8e111)
+    #3 0x54ff80 in hline_set_text /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/hline.c:151:19
+    #4 0x53b354 in file_progress_show_total /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/filegui.c:1027:9
+    #5 0x7cce7b in panel_operate /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/file.c:3030:21
+    #6 0x7a702b in copy_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:795:9
+    #7 0x5a64cb in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1144:9
+    #8 0x519c47 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #9 0x531415 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #10 0x52fbfa in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #11 0x530546 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #12 0x530165 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #13 0x5a1cca in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1762:9
+    #14 0x4fa3e8 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #15 0x7fa6a7363133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #16 0x44ed96 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x44ed9
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -868,6 +868,8 @@
+     {
+         file_op_context_ui_t *ui = (file_op_context_ui_t *) ctx->ui;
+ 
++        if (ui->total_bytes_label != NULL && ui->total_bytes_label->text != NULL)
++            g_free(ui->total_bytes_label->text);
+         dlg_run_done (ui->op_dlg);
+         dlg_destroy (ui->op_dlg);
+         MC_PTR_FREE (ctx->ui);

@@ -1,0 +1,40 @@
+From 078f46752f2fed4df0f441ef41563144984b4c69 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 13 Nov 2015 16:11:29 +0200
+Subject: [PATCH] button_get_text() shouldn't return 'const'.
+
+As it's a newly allocated string which the caller needs to free.
+---
+ lib/widget/button.c | 2 +-
+ lib/widget/button.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/widget/button.c b/lib/widget/button.c
+index 055602e..cf7de6d 100644
+--- a/lib/widget/button.c
++++ b/lib/widget/button.c
+@@ -222,7 +222,7 @@ button_new (int y, int x, int action, button_flags_t flags, const char *text, bc
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-const char *
++char *
+ button_get_text (const WButton * b)
+ {
+     if (b->text.hotkey != NULL)
+diff --git a/lib/widget/button.h b/lib/widget/button.h
+index f85be8b..278b2d3 100644
+--- a/lib/widget/button.h
++++ b/lib/widget/button.h
+@@ -46,7 +46,7 @@ typedef struct WButton
+ 
+ WButton *button_new (int y, int x, int action, button_flags_t flags, const char *text,
+                      bcback_fn callback);
+-const char *button_get_text (const WButton * b);
++char *button_get_text (const WButton * b);
+ void button_set_text (WButton * b, const char *text);
+ int button_get_len (const WButton * b);
+ 
+-- 
+2.1.4
+

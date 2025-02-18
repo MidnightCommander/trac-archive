@@ -1,0 +1,95 @@
+From 5bc7aaf54310e08a3f2e1878cabb94c5de6db0b8 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 19 Dec 2024 16:00:00 +0000
+Subject: [PATCH] (quick.c) fix undefined behavior
+
+quick.c:432:28: runtime error: member access within null pointer of type 'Widget' (aka 'struct Widget')
+   #0 in quick_dialog_skip lib/widget/quick.c:432:28
+   #1 in file_mask_dialog src/filemanager/filegui.c:1462:19
+   #2 in do_confirm_copy_move src/filemanager/file.c:1977:11
+   #3 in panel_operate src/filemanager/file.c:3536:16
+   #4 in copy_cmd src/filemanager/./cmd.h:111:5
+   #5 in midnight_execute_cmd src/filemanager/filemanager.c:1177:9
+   #6 in midnight_callback src/filemanager/filemanager.c
+   #7 in send_message lib/widget/../../lib/widget/widget-common.h:255:15
+   #8 in buttonbar_call lib/widget/buttonbar.c:157:15
+   #9 in buttonbar_callback lib/widget/buttonbar.c:174:42
+   #10 in send_message lib/widget/../../lib/widget/widget-common.h:255:15
+   #11 in group_handle_hotkey lib/widget/group.c:566:23
+   #12 in group_default_callback lib/widget/group.c:640:16
+   #13 in dlg_default_callback lib/widget/dialog.c:370:16
+   #14 in midnight_callback src/filemanager/filemanager.c:1615:16
+   #15 in send_message lib/widget/../../lib/widget/widget-common.h:255:15
+   #16 in group_handle_key lib/widget/group.c:503:15
+   #17 in group_default_callback lib/widget/group.c:637:16
+   #18 in dlg_key_event lib/widget/dialog.c:252:19
+   #19 in dlg_process_event lib/widget/dialog.c:539:9
+   #20 in frontend_dlg_run lib/widget/dialog.c:321:9
+   #21 in dlg_run lib/widget/dialog.c:573:5
+   #22 in do_nc src/filemanager/filemanager.c:1826:16
+   #23 in main src/main.c:469:21
+   #24 in <null> <null>
+   #25 in __libc_start_main <null>
+   #26 in _start <null>
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior quick.c:432:28 
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/quick.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/widget/quick.c b/lib/widget/quick.c
+index 1930c6109..934c16c1f 100644
+--- a/lib/widget/quick.c
++++ b/lib/widget/quick.c
+@@ -429,7 +429,6 @@ quick_dialog_skip (quick_dialog_t *quick_dlg, int nskip)
+         WRect *r;
+ 
+         item = &g_array_index (widgets, quick_widget_item_t, i);
+-        r = &item->widget->rect;
+         column_width = two_columns ? width2 : width1;
+ 
+         /* adjust widget width and x position */
+@@ -448,6 +447,7 @@ quick_dialog_skip (quick_dialog_t *quick_dlg, int nskip)
+             MC_FALLTHROUGH;
+         case quick_checkbox:
+         case quick_radio:
++            r = &item->widget->rect;
+             if (r->x != x1)
+                 r->x = x2;
+             if (g != NULL)
+@@ -455,6 +455,7 @@ quick_dialog_skip (quick_dialog_t *quick_dlg, int nskip)
+             break;
+ 
+         case quick_button:
++            r = &item->widget->rect;
+             if (!put_buttons)
+             {
+                 if (r->x != x1)
+@@ -477,6 +478,7 @@ quick_dialog_skip (quick_dialog_t *quick_dlg, int nskip)
+                 if (g != NULL)
+                     width -= 4;
+ 
++                r = &item->widget->rect;
+                 switch (item->quick_widget->u.input.label_location)
+                 {
+                 case input_label_left:
+@@ -511,6 +513,7 @@ quick_dialog_skip (quick_dialog_t *quick_dlg, int nskip)
+ 
+         case quick_start_groupbox:
+             g = GROUPBOX (item->widget);
++            r = &item->widget->rect;
+             if (r->x != x1)
+                 r->x = x2;
+             r->cols = column_width;
+@@ -523,6 +526,7 @@ quick_dialog_skip (quick_dialog_t *quick_dlg, int nskip)
+         case quick_separator:
+             if (item->widget != NULL)
+             {
++                r = &item->widget->rect;
+                 if (g != NULL)
+                 {
+                     Widget *wg = WIDGET (g);

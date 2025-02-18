@@ -1,0 +1,100 @@
+From 5f10e4467d7c35eecd672c846e10894ae3a29f4a Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 29 Jan 2017 22:26:55 +0200
+Subject: [PATCH] Ticket #3760: WEdit shouldn't handle mouse events of
+ overlapping buttonbar.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ lib/widget/widget-common.c | 16 +++++++++++++++-
+ lib/widget/widget-common.h |  1 +
+ src/editor/editwidget.c    |  9 ++++++++-
+ 3 files changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index e6deefb..e6f9cdb 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -97,6 +97,9 @@ widget_focus (Widget * w)
+ 
+ /**
+  * Put widget on top or bottom of Z-order.
++ *
++ * (This function does not affect 'h->current'. That is, calling this
++ * function does not transfer the focus from any widget to another.)
+  */
+ static void
+ widget_reorder (GList * l, gboolean set_top)
+@@ -499,7 +502,7 @@ widget_select (Widget * w)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+- * Set widget at bottom of widget list.
++ * Set widget at the bottom of the widget list.
+  */
+ 
+ void
+@@ -510,6 +513,17 @@ widget_set_bottom (Widget * w)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /**
++ * Set widget at the top of the widget list.
++ */
++
++void
++widget_set_top (Widget * w)
++{
++    widget_reorder (dlg_find (w->owner, w), TRUE);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
+   * Check whether two widgets are overlapped or not.
+   * @param a 1st widget
+   * @param b 2nd widget
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index 936d3fa..140983d 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -190,6 +190,7 @@ gboolean widget_overlapped (const Widget * a, const Widget * b);
+ void widget_replace (Widget * old, Widget * new);
+ void widget_select (Widget * w);
+ void widget_set_bottom (Widget * w);
++void widget_set_top (Widget * w);
+ 
+ /* get mouse pointer location within widget */
+ Gpm_Event mouse_get_local (const Gpm_Event * global, const Widget * w);
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 515a586..a038e8d 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -871,11 +871,11 @@ edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, v
+ static void
+ edit_dialog_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+ {
++    WDialog *h = DIALOG (w);
+     gboolean unhandled = TRUE;
+ 
+     if (msg == MSG_MOUSE_DOWN && event->y == 0)
+     {
+-        WDialog *h = DIALOG (w);
+         WMenuBar *b;
+ 
+         b = find_menubar (h);
+@@ -921,6 +921,13 @@ edit_dialog_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+         }
+     }
+ 
++    /* The last line of the screen is where the buttonbar is. If the user
++     * clicks there, we bring the buttonbar to the top (Z-order) so that it
++     * gets sent the mouse event even if a windowed WEdit is on top of it
++     * (the WEdit still retains the focus). */
++    if (msg == MSG_MOUSE_DOWN && event->y == LINES - 1)
++        widget_set_top (WIDGET (find_buttonbar (h)));
++
+     /* Continue handling of unhandled event in window or menu */
+     event->result.abort = unhandled;
+ }
+-- 
+2.9.3
+

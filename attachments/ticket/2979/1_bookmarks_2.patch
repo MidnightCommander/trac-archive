@@ -1,0 +1,898 @@
+--- mc-4.8.12.orig/lib/keybind.c
++++ mc-4.8.12/lib/keybind.c
+@@ -287,6 +287,7 @@ static name_keymap_t command_names[] = {
+     {"SpellCheckCurrentWord", CK_SpellCheckCurrentWord},
+     {"SpellCheckSelectLang", CK_SpellCheckSelectLang},
+ #endif /* HAVE_ASPELL */
++    {"BookmarkList", CK_BookmarkList},
+     {"BookmarkFlush", CK_BookmarkFlush},
+     {"BookmarkNext", CK_BookmarkNext},
+     {"BookmarkPrev", CK_BookmarkPrev},
+--- mc-4.8.12.orig/lib/keybind.h
++++ mc-4.8.12/lib/keybind.h
+@@ -243,6 +243,7 @@ enum
+     CK_BlockShiftRight,
+     CK_DeleteLine,
+     /* bookmarks */
++    CK_BookmarkList,
+     CK_BookmarkFlush,
+     CK_BookmarkNext,
+     CK_BookmarkPrev,
+--- mc-4.8.12.orig/misc/mc.default.keymap
++++ mc-4.8.12/misc/mc.default.keymap
+@@ -316,6 +316,7 @@ ExternalCommand = alt-u
+ UserMenu = f11
+ Menu = f9
+ Bookmark = alt-k
++BookmarkList = alt-shift-k; alt-shift-j
+ BookmarkFlush = alt-o
+ BookmarkNext = alt-j
+ BookmarkPrev = alt-i
+--- mc-4.8.12.orig/misc/mc.emacs.keymap
++++ mc-4.8.12/misc/mc.emacs.keymap
+@@ -315,6 +315,7 @@ ExternalCommand = alt-u
+ UserMenu = f11
+ Menu = f9
+ # Bookmark =
++# BookmarkList =
+ # BookmarkFlush =
+ # BookmarkNext =
+ # BookmarkPrev =
+--- mc-4.8.12.orig/src/editor/bookmark.c
++++ mc-4.8.12/src/editor/bookmark.c
+@@ -44,6 +44,13 @@
+ 
+ #include "lib/global.h"
+ #include "lib/util.h"           /* MAX_SAVED_BOOKMARKS */
++#include "lib/strutil.h"
++
++#include "lib/skin.h"           /* BOOK_MARK_COLOR ... */
++#include "lib/tty/key.h"        /* KEY_M_CTRL */
++#include "lib/tty/tty.h"        /* LINES, COLS */
++
++#include "src/setup.h"          /* option_tab_spacing */
+ 
+ #include "editwidget.h"
+ 
+@@ -53,10 +60,20 @@
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
++typedef struct
++{
++    edit_book_mark_t *mark;
++    char *text;
++    int detail_cols;
++    char *detail[4];
++} list_entry_t;
++
+ /*** file scope variables ************************************************************************/
+ 
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
++static void list_add_entry (WEdit * edit, WListbox * list, edit_book_mark_t * book_mark,
++                            GString * buff, GString * detail);
+ 
+ /** note, if there is more than one bookmark on a line, then they are
+    appended after each other and the last one is always the one found
+@@ -135,10 +152,753 @@ book_mark_find (WEdit * edit, long line)
+     return NULL;                /* can't get here */
+ }
+ 
++#define UX 3
++#define UY 2
++
++#define DLG_H (LINES - 6)
++#define DLG_W (COLS > 86 ? 80 : COLS - 6)
++
++#define LABELS          3
++#define B_ADD_NEW       B_USER
++#define B_REMOVE        (B_USER + 1)
++#define B_FLUSH         (B_USER + 2)
++#define B_FILTER        (B_USER + 3)
++#define B_SORT          (B_USER + 4)
++#define B_REVERSE       (B_USER + 5)
++
++#define SORT_LINE 0
++#define SORT_FREQ 1
++#define SORT_ALPHA 2
++
++#define FILTER_NONE 0
++#define FILTER_BOOK 1
++#define FILTER_FOUND 2
++
++static WDialog *list_dlg;
++static WGroupbox *list_grp;
++static WListbox *list_box;
++static WLabel *list_detail;
++static WButton *list_sort;
++static WButton *list_filter;
++static struct
++{
++    WEdit *edit;
++    GList *hidden;
++    int filter;                 /* find/bookmark/all */
++    int sort;                   /* sort by line num/usage/alpha */
++    gboolean reverse;           /* reverse sort */
++} list_cfg =
++{
++    /* *INDENT-OFF* */
++    NULL, NULL, FILTER_NONE, SORT_LINE, FALSE
++    /* *INDENT-ON* */
++};
++
++static struct
++{
++    int ret_cmd, flags, y, x, len;
++    const char *text;
++    widget_pos_flags_t pos_flags;
++} list_btn[] =
++{
++    /* *INDENT-OFF* */
++    { B_ENTER, DEFPUSH_BUTTON, 0, 0, 0, N_("&Go to"),
++            WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_ADD_NEW, NORMAL_BUTTON, 0, 12, 0, N_("&Add"),
++            WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_REMOVE, NORMAL_BUTTON, 0, 20, 0, N_("&Remove"),
++            WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_FLUSH, NORMAL_BUTTON, 0, 31, 0, N_("Fl&ush"),
++            WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_CANCEL, NORMAL_BUTTON, 0, -16, 0, N_("&Cancel"),
++            WPOS_KEEP_RIGHT | WPOS_KEEP_BOTTOM },
++    { B_FILTER, NORMAL_BUTTON, 1, 0, 0, N_("&Filter"),
++            WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_SORT, NORMAL_BUTTON, 1, 11, 0, N_("&Sort"),
++            WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_REVERSE, NORMAL_BUTTON, 1, 20, 0, N_("Re&verse"),
++            WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    /* *INDENT-ON* */
++};
++
++static const size_t list_btn_num = G_N_ELEMENTS (list_btn);
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++list_entry_free2 (list_entry_t * entry)
++{
++    g_free (entry->text);
++    g_free (entry->detail[0]);
++    g_free (entry->detail[1]);
++    g_free (entry->detail[2]);
++    g_free (entry);
++}
++
++static gint
++list_sort_alpha (gconstpointer a, gconstpointer b)
++{
++    return strcmp (((list_entry_t *) ((WLEntry *) a)->data)->text,
++                   ((list_entry_t *) ((WLEntry *) b)->data)->text);
++}
++
++static gint
++list_sort_freq (gconstpointer a, gconstpointer b)
++{
++    int afreq = ((list_entry_t *) ((WLEntry *) a)->data)->mark->freq;
++    int bfreq = ((list_entry_t *) ((WLEntry *) b)->data)->mark->freq;
++    return afreq > bfreq ? 1 : (afreq < bfreq ? -1 : 0);
++}
++
++static gint
++list_sort_line (gconstpointer a, gconstpointer b)
++{
++    int aline = ((list_entry_t *) ((WLEntry *) a)->data)->mark->line;
++    int bline = ((list_entry_t *) ((WLEntry *) b)->data)->mark->line;
++    return aline > bline ? 1 : (aline < bline ? -1 : 0);
++}
++
++static void
++list_filter_none (void)
++{
++    size_t increment = 0;
++    GList *tail;
++
++    if (!list_cfg.hidden)
++        return;
++
++    for (tail = list_cfg.hidden; tail->next; tail = tail->next, increment++);
++
++    list_box->list->tail = g_list_concat (list_box->list->tail, list_cfg.hidden);
++    list_box->list->tail = tail;
++    list_box->list->length += increment;
++
++    list_cfg.hidden = NULL;
++}
++
++static void
++list_filter_color (int color)
++{
++    GList *e;
++
++    list_filter_none ();
++    if (color != -1)
++    {
++        e = list_box->list->head;
++
++        while (e != NULL)
++        {
++            if (((list_entry_t *) ((WLEntry *) e->data)->data)->mark->c != color)
++            {
++                list_box->list->head = g_list_remove_link (list_box->list->head, e);
++                list_box->list->length--;
++                list_cfg.hidden = g_list_concat (list_cfg.hidden, e);
++                e = list_box->list->head;
++            }
++            else
++            {
++                e = g_list_next (e);
++            }
++        }
++    }
++    /*else
++    {
++        list_box->list->head;
++    }*/
++    //listbox_set_list (list_box, list_box->list->head);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++update_detail (void)
++{
++    list_entry_t *entry;
++    WListbox *list = list_box;
++
++    if (list->list->length != 0)
++    {
++        char *ctext = NULL;
++
++        listbox_get_current (list, &ctext, (void **) &entry);
++        if (list->widget.cols != entry->detail_cols)
++        {
++            GString *buff = g_string_new ("");
++            g_string_append (buff, str_trunc (entry->detail[0], list->widget.cols - 1));
++            g_string_append (buff, "\n");
++            g_string_append (buff, str_trunc (entry->detail[1], list->widget.cols - 1));
++            g_string_append (buff, "\n");
++            g_string_append (buff, str_trunc (entry->detail[2], list->widget.cols - 1));
++            g_free (entry->detail[3]);
++            entry->detail[3] = g_strdup (buff->str);
++            entry->detail_cols = list->widget.cols;
++        }
++        label_set_text (list_detail, entry->detail[3]);
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++update_list_title (void)
++{
++    GString *buff = g_string_new (_("Bookmarks"));
++
++    if (list_cfg.sort != SORT_LINE || list_cfg.reverse)
++    {
++        g_string_append (buff, _(" - Sort: "));
++        g_string_append (buff,
++                         list_cfg.sort == SORT_ALPHA ? _("ABC") : list_cfg.sort ==
++                         SORT_LINE ? "" : _("FRQ"));
++        g_string_append (buff, list_cfg.reverse ? " v" : " ^");
++    }
++    if (list_cfg.filter != FILTER_NONE)
++    {
++        g_string_append (buff, _(" - Filter: "));
++        g_string_append (buff, list_cfg.filter == FILTER_FOUND ? _("FOUND") : _("USER"));
++    }
++    groupbox_set_title (list_grp, str_trunc (buff->str, list_box->widget.cols - 4));
++    g_string_free (buff, TRUE);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static int
++list_button_callback (WButton * button, int action)
++{
++    list_entry_t *entry = NULL;
++    WEdit *edit = list_cfg.edit;
++
++    (void) button;
++
++    switch (action)
++    {
++    case B_REMOVE:
++        {
++            listbox_get_current (list_box, NULL, (void **) &entry);
++            if (entry != NULL)
++            {
++                book_mark_clear (edit, entry->mark->line, entry->mark->c);
++                list_entry_free2 (entry);
++                /* now remove list entry from screen */
++                listbox_remove_current (list_box);
++            }
++        }
++        edit_update_screen (edit);
++        dlg_redraw (list_dlg);
++        break;
++
++    case B_FLUSH:
++        {
++            GList *list = list_box->list->head;
++            list_box->list->head = list_box->list->tail = NULL;
++            list_box->list->length = 0;
++
++            while (list != NULL)
++            {
++                entry = (list_entry_t *) ((WLEntry *) list->data)->data;
++                book_mark_clear (edit, entry->mark->line, entry->mark->c);
++                list_entry_free2 (entry);
++
++                list = g_list_next (list);
++            }
++            //listbox_set_list (list_box, NULL);
++        }
++        edit_update_screen (edit);
++        dlg_redraw (list_dlg);
++        break;
++
++    case B_ADD_NEW:
++        if (!book_mark_query_color (edit, edit->curs_row, BOOK_MARK_FOUND_COLOR) &&
++            !book_mark_query_color (edit, edit->curs_row, BOOK_MARK_COLOR))
++        {
++            edit_book_mark_t *book_mark;
++            GList *new_list;
++            long int line = edit->curs_row;
++            GString *buff = g_string_new ("");
++            GString *detail = g_string_new ("");
++
++            book_mark_insert (edit, edit->curs_row, BOOK_MARK_COLOR);
++            book_mark = book_mark_find (edit, edit->curs_row);
++            list_add_entry (list_cfg.edit, list_box, book_mark, buff, detail);
++            g_string_free (buff, 1);
++            g_string_free (detail, 1);
++            new_list = g_list_sort (list_box->list->head, list_cfg.sort == 2 ?
++                                    list_sort_alpha : (list_cfg.sort ==
++                                                       0 ? list_sort_line : list_sort_freq));
++            list_box->list->length++;
++            list_box->list->head = new_list;
++            while (list_box->list->tail->next)
++                list_box->list->tail = list_box->list->tail->next;
++
++            if (edit->curs_row < line)
++                edit_move_down (edit, line - edit->curs_row, FALSE);
++            else
++                edit_move_up (edit, edit->curs_row - line, FALSE);
++        }
++        edit_update_screen (edit);
++        dlg_redraw (list_dlg);
++        break;
++
++    case B_ENTER:
++        {
++            return 1;
++        }
++
++    case B_FILTER:
++        {
++            if (++list_cfg.filter > FILTER_FOUND)
++                list_cfg.filter = FILTER_NONE;
++            if (list_cfg.filter == FILTER_FOUND)
++                list_filter_color (BOOK_MARK_FOUND_COLOR);
++            else if (list_cfg.filter == FILTER_NONE)
++                list_filter_color (-1);
++            else
++                list_filter_color (BOOK_MARK_COLOR);
++            update_list_title ();
++        }
++        break;
++
++    case B_SORT:
++        if (++list_cfg.sort > SORT_ALPHA)
++            list_cfg.sort = SORT_LINE;
++        list_box->list->head = g_list_sort (list_box->list->head,
++                                            list_cfg.sort == SORT_ALPHA ? list_sort_alpha :
++                                                (list_cfg.sort ==
++                                                SORT_LINE ? list_sort_line : list_sort_freq));
++        while (list_box->list->tail->next)
++            list_box->list->tail = list_box->list->tail->next;
++        //listbox_set_list (list_box, list_box->list->head);
++        update_list_title ();
++        break;
++
++    case B_REVERSE:
++        {
++            GList *t;
++            list_cfg.reverse = !list_cfg.reverse;
++            t = list_box->list->head;
++            list_box->list->head = g_list_reverse (list_box->list->head);
++            list_box->list->tail = t;
++            //listbox_set_list (list_box, list_box->list->head);
++            update_list_title ();
++        }
++        break;
++
++    default:
++        return 1;
++    }
++
++    return 0;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static inline cb_ret_t
++list_handle_key (WDialog * h, int key)
++{
++    switch (key)
++    {
++    case KEY_M_CTRL | '\n':
++        goto l1;
++
++    case '\n':
++    case KEY_ENTER:
++    case KEY_RIGHT:
++        if (list_button_callback (NULL, B_ENTER) != 0)
++        {
++            h->ret_value = B_ENTER;
++            dlg_stop (h);
++        }
++        return MSG_HANDLED;
++
++    case KEY_IC:
++    case KEY_KP_ADD:
++    case '+':
++        list_button_callback (NULL, B_ADD_NEW);
++        return MSG_HANDLED;
++
++    case KEY_DC:
++    case KEY_BACKSPACE:
++    case KEY_KP_SUBTRACT:
++    case '-':
++        list_button_callback (NULL, B_REMOVE);
++        return MSG_HANDLED;
++
++      l1:
++    case ALT ('\n'):
++    case ALT ('\r'):
++        {
++            void *ldata = NULL;
++
++            listbox_get_current (list_box, NULL, &ldata);
++
++            if (ldata != NULL)
++            {
++            }
++        }
++        return MSG_HANDLED;     /* ignore key */
++
++    default:
++        return MSG_NOT_HANDLED;
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static cb_ret_t
++list_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    WDialog *h = DIALOG (w);
++
++    switch (msg)
++    {
++    case MSG_UNHANDLED_KEY:
++        return list_handle_key (h, parm);
++
++    case MSG_POST_KEY:
++        dlg_select_widget (list_box);
++        /* always stay on hotlist */
++        /* fall through */
++
++    case MSG_INIT:
++        update_detail ();
++        update_list_title ();
++        return MSG_HANDLED;
++
++    case MSG_RESIZE:
++        /* simply call dlg_set_size() with new size */
++        dlg_set_size (h, DLG_H, DLG_W);
++        update_detail ();
++        update_list_title ();
++        return MSG_HANDLED;
++
++    default:
++        return dlg_default_callback (w, sender, msg, parm, data);
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static lcback_ret_t
++list_listbox_callback (WListbox * list)
++{
++    WDialog *dlg = WIDGET (list)->owner;
++
++    if (list->list->length != 0)
++    {
++        void *data = NULL;
++
++        listbox_get_current (list, NULL, &data);
++
++        if (data == NULL)
++        {
++            dlg->ret_value = B_ENTER;
++            dlg_stop (dlg);
++            return LISTBOX_DONE;
++        }
++    }
++
++    return LISTBOX_CONT;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++fill_line_listbox (WEdit * edit, int skip_sp, GString * buff)
++{
++    off_t off;
++    int cw = 1, c = -1;
++
++    off = edit_buffer_get_current_bol (&edit->buffer);
++    while (c != '\r' && c != '\n' && c != 0)
++    {
++#ifdef HAVE_CHARSET
++        if (edit->utf8)
++        {
++            c = edit_buffer_get_utf (&edit->buffer, off, &cw);
++            if (cw < 1)
++                cw = 1;
++            if (skip_sp && c != ' ' && c != '\t')
++                skip_sp = 0;
++            if (c != '\r' && c != '\n' && c != 0 && !skip_sp)
++            {
++                /* convert TAB to spaces */
++                if (c == '\t')
++                {
++                    for (c = option_tab_spacing; c > 1; c--)
++                        g_string_append_unichar (buff, ' ');
++                    c = ' ';
++                }
++                g_string_append_unichar (buff, c);
++            }
++        }
++        else
++#endif
++        {
++            c = edit_buffer_get_byte (&edit->buffer, off);
++            if (skip_sp && c != ' ' && c != '\t')
++                skip_sp = 0;
++            if (c != '\r' && c != '\n' && c != 0 && !skip_sp)
++            {
++                /* convert TAB to spaces */
++                if (c == '\t')
++                {
++                    for (c = option_tab_spacing; c > 1; c--)
++                        g_string_append_c (buff, ' ');
++                    c = ' ';
++                }
++                g_string_append_c (buff, c);
++            }
++        }
++        off += cw;
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*
++ * Copy&Paste (and rewrite) from filemanager/hotlsist.c
++ */
++/**
++ * Expands all button names (once) and recalculates button positions.
++ * returns number of columns in the dialog box, which is 10 chars longer
++ * then buttonbar.
++ *
++ * If common width of the window (i.e. in xterm) is less than returned
++ * width - sorry :)  (anyway this did not handled in previous version too)
++ */
++
++static void
++init_i18n_stuff (int cols)
++{
++    size_t i;
++
++    static gboolean i18n_flag = FALSE;
++    int curr_x = 0;
++    int curr_minus_x = cols - 5;
++
++    if (!i18n_flag)
++    {
++        for (i = 0; i < list_btn_num; i++)
++        {
++#ifdef ENABLE_NLS
++            list_btn[i].text = _(list_btn[i].text);
++#endif /* ENABLE_NLS */
++            list_btn[i].len = str_term_width1 (list_btn[i].text) + 3;
++            if (list_btn[i].flags == DEFPUSH_BUTTON)
++                list_btn[i].len += 2;
++            /* reset current X at line start */
++            if (list_btn[i].x == 0)
++            {
++                curr_x = 0;
++                curr_minus_x = cols - 5;
++            }
++            if (list_btn[i].x >= 0)
++            {
++                list_btn[i].x = curr_x;
++                curr_x += list_btn[i].len + 1;
++            }
++            else if (list_btn[i].x < 0)
++            {
++                curr_minus_x -= list_btn[i].len + 1;
++                list_btn[i].x = curr_minus_x;
++            }
++        }
++
++        i18n_flag = TRUE;
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++list_add_entry (WEdit * edit, WListbox * list, edit_book_mark_t * book_mark, GString * buff,
++                GString * detail)
++{
++    list_entry_t *entry;
++
++    entry = g_malloc (sizeof (list_entry_t));
++    g_string_truncate (buff, 0);
++    g_string_truncate (detail, 0);
++
++    fill_line_listbox (edit, 1, buff);
++    fill_line_listbox (edit, 0, detail);
++    entry->detail[1] = g_strdup (detail->str);
++    g_string_truncate (detail, 0);
++
++    if (book_mark->line != 0)
++    {
++        edit_move_up (edit, 1, FALSE);
++        fill_line_listbox (edit, 0, detail);
++    }
++    entry->detail[0] = g_strdup (detail->str);
++    g_string_truncate (detail, 0);
++
++    if (book_mark->line != edit->buffer.lines)
++    {
++        edit_move_down (edit, (book_mark->line == 0) ? 1 : 2, FALSE);
++        fill_line_listbox (edit, 0, detail);
++    }
++    entry->detail[2] = g_strdup (detail->str);
++    entry->detail[3] = g_strdup ("");
++    entry->detail_cols = -1;
++
++    entry->text = g_strndup (buff->str, 80);
++    entry->mark = book_mark;
++    g_string_printf (buff, "% 6ld [%c/%d] -> %s", book_mark->line + 1,
++                     book_mark->c == BOOK_MARK_FOUND_COLOR ? 'F' : 'U', book_mark->freq,
++                     str_trunc (buff->str, list->widget.cols - 1));
++    listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, buff->str, entry);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++fill_list_box (WEdit * edit, WListbox * list)
++{
++    edit_book_mark_t *book_mark;
++    GString *detail;
++    GString *buff;
++    long int curs_line = edit->buffer.curs_line;
++
++    buff = g_string_new ("");
++    detail = g_string_new ("");
++    // edit_bol (edit, edit->curs1); ??? Is it needed?
++
++    for (book_mark = book_mark_find (edit, 0); book_mark != NULL; book_mark = book_mark->next)
++    {
++        if (book_mark->line == -1)
++            continue;
++        if (edit->buffer.curs_line == book_mark->line)
++            ;
++        else if (edit->buffer.curs_line < book_mark->line)
++            edit_move_down (edit, book_mark->line - edit->buffer.curs_line, FALSE);
++        else
++            edit_move_up (edit, edit->buffer.curs_line - book_mark->line, FALSE);
++
++        list_add_entry (edit, list, book_mark, buff, detail);
++    }
++    if (edit->buffer.curs_line < curs_line)
++        edit_move_down (edit, curs_line - edit->buffer.curs_line, FALSE);
++    else
++        edit_move_up (edit, edit->buffer.curs_line - curs_line, FALSE);
++    g_string_free (buff, TRUE);
++    g_string_free (detail, TRUE);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++list_init (WEdit * edit)
++{
++    size_t i;
++    const char *title, *help_node;
++    int lines, cols;
++    int y;
++    int dh = 0;
++    WGroupbox *dtl_box;
++    Widget *list_widget;
++
++    do_refresh ();
++
++    lines = DLG_H;
++    cols = DLG_W;
++    init_i18n_stuff (cols);
++
++    title = _("Bookmark list");
++    help_node = "[Bookmarklist]";
++
++    list_cfg.hidden = NULL;
++    list_cfg.edit = edit;
++    list_dlg =
++        dlg_create (TRUE, 0, 0, lines, cols, dialog_colors, list_callback, NULL, help_node,
++                    title, DLG_CENTER);
++    y = UY;
++    list_grp = groupbox_new (y, UX, lines - 12 + dh, cols - 2 * UX, _("Bookmarks"));
++    list_widget = WIDGET (list_grp);
++    add_widget_autopos (list_dlg, list_widget, WPOS_KEEP_ALL, NULL);
++
++    list_box =
++        listbox_new (y + 1, UX + 1, list_widget->lines - 2, list_widget->cols - 2, FALSE,
++                     list_listbox_callback);
++
++    fill_list_box (edit, list_box);
++
++    /* insert before groupbox to view scrollbar */
++    add_widget_autopos (list_dlg, list_box, WPOS_KEEP_ALL, NULL);
++
++    y += list_widget->lines;
++
++    dtl_box = groupbox_new (y, UX, 5, list_widget->cols, _("Bookmark detail"));
++    add_widget_autopos (list_dlg, dtl_box, WPOS_KEEP_BOTTOM | WPOS_KEEP_HORZ, NULL);
++
++    list_detail = label_new (y + 1, UX + 2, "");
++    widget_set_size ((Widget *) list_detail, y + 1, UX + 2, 80, 3);
++    add_widget_autopos (list_dlg, list_detail, WPOS_KEEP_BOTTOM | WPOS_KEEP_LEFT, NULL);
++    y += WIDGET (dtl_box)->lines;
++
++    add_widget_autopos (list_dlg, hline_new (y++, -1, -1), WPOS_KEEP_BOTTOM, NULL);
++
++    for (i = 0; i < list_btn_num; i++)
++    {
++        WButton *btn;
++        if (list_btn[i].x < 0)
++            list_btn[i].x = cols + list_btn[i].x;
++        btn = button_new (y + list_btn[i].y, UX + list_btn[i].x,
++                          list_btn[i].ret_cmd, list_btn[i].flags,
++                          list_btn[i].text, list_button_callback);
++        if (i == 5)
++            list_filter = btn;
++        if (i == 6)
++            list_sort = btn;
++        add_widget_autopos (list_dlg, btn, list_btn[i].pos_flags, NULL);
++    }
++
++    dlg_select_widget (list_box);
++}
++
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++list_entry_free (void *data)
++{
++    list_entry_free2 (((WLEntry *) data)->data);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++void
++book_mark_list_show (WEdit * edit)
++{
++    int res;
++
++/*** Check list_box running...?? */
++    list_init (edit);
++
++    res = dlg_run (list_dlg);
++    if (res == B_ENTER)
++    {
++        char *text;
++        list_entry_t *entry;
++
++        listbox_get_current (list_box, &text, (void **) &entry);
++        if (entry != NULL)
++        {
++            if (entry->mark->line >= edit->start_line + WIDGET (edit)->lines
++                || entry->mark->line < edit->start_line)
++                edit_move_display (edit, entry->mark->line - WIDGET (edit)->lines / 2);
++            edit_move_to_line (edit, entry->mark->line);
++            if (entry->mark->freq < 128 * 1024)
++                entry->mark->freq++;
++        }
++    }
++    g_list_foreach (list_box->list->head, (GFunc) list_entry_free, NULL);
++    dlg_destroy (list_dlg);
++    list_cfg.edit = NULL;
++}
++
+ /** 
+  * Check if bookmark bookmark exists at this line of this color
+  *
+@@ -192,6 +952,7 @@ book_mark_insert (WEdit * edit, long lin
+     q = g_new (edit_book_mark_t, 1);
+     q->line = line;
+     q->c = c;
++    q->freq = 0;
+     q->next = p->next;
+     /* insert into list */
+     q->prev = p;
+--- mc-4.8.12.orig/src/editor/edit-impl.h
++++ mc-4.8.12/src/editor/edit-impl.h
+@@ -275,6 +275,7 @@ void book_mark_inc (WEdit * edit, long l
+ void book_mark_dec (WEdit * edit, long line);
+ void book_mark_serialize (WEdit * edit, int color);
+ void book_mark_restore (WEdit * edit, int color);
++void book_mark_list_show (WEdit * edit);
+ 
+ gboolean edit_line_is_blank (WEdit * edit, long line);
+ gboolean is_break_char (char c);
+--- mc-4.8.12.orig/src/editor/edit.c
++++ mc-4.8.12/src/editor/edit.c
+@@ -3682,9 +3682,16 @@ edit_execute_cmd (WEdit * edit, unsigned
+                 if (p->line >= edit->start_line + w->lines || p->line < edit->start_line)
+                     edit_move_display (edit, p->line - w->lines / 2);
+                 edit_move_to_line (edit, p->line);
++                if (p->freq < 128*1024)
++                    p->freq++;
++                if (p->freq < 128*1024)
++                    p->freq++;
+             }
+         }
+         break;
++    case CK_BookmarkList:
++        book_mark_list_show (edit);
++        break;
+ 
+     case CK_Top:
+     case CK_MarkToFileBegin:
+--- mc-4.8.12.orig/src/editor/editmenu.c
++++ mc-4.8.12/src/editor/editmenu.c
+@@ -135,6 +135,7 @@ create_search_replace_menu (void)
+     entries = g_list_prepend (entries, menu_entry_create (_("&Toggle bookmark"), CK_Bookmark));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Next bookmark"), CK_BookmarkNext));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Prev bookmark"), CK_BookmarkPrev));
++    entries = g_list_prepend (entries, menu_entry_create (_("&List bookmarks"), CK_BookmarkList));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Flush bookmarks"), CK_BookmarkFlush));
+ 
+     return g_list_reverse (entries);
+--- mc-4.8.12.orig/src/editor/editwidget.h
++++ mc-4.8.12/src/editor/editwidget.h
+@@ -34,6 +34,7 @@ struct edit_book_mark_t
+ {
+     long line;                  /* line number */
+     int c;                      /* color */
++    int freq;                   /* usage freq */
+     edit_book_mark_t *next;
+     edit_book_mark_t *prev;
+ };
+--- mc-4.8.12.orig/src/keybind-defaults.c
++++ mc-4.8.12/src/keybind-defaults.c
+@@ -401,6 +401,7 @@ static const global_keymap_ini_t default
+     {"MatchBracket", "alt-b"},
+     {"ParagraphFormat", "alt-p"},
+     {"Bookmark", "alt-k"},
++    {"BookmarkList", "alt-shift-k; alt-shift-j"},
+     {"BookmarkFlush", "alt-o"},
+     {"BookmarkNext", "alt-j"},
+     {"BookmarkPrev", "alt-i"},

@@ -1,0 +1,231 @@
+--- mc-4.8.12.orig/lib/keybind.c
++++ mc-4.8.12/lib/keybind.c
+@@ -290,6 +290,7 @@ static name_keymap_t command_names[] = {
+     {"BookmarkFlush", CK_BookmarkFlush},
+     {"BookmarkNext", CK_BookmarkNext},
+     {"BookmarkPrev", CK_BookmarkPrev},
++    {"ChangeLockToggle", CK_ChangeLockToggle},
+     {"MarkPageUp", CK_MarkPageUp},
+     {"MarkPageDown", CK_MarkPageDown},
+     {"MarkToFileBegin", CK_MarkToFileBegin},
+--- mc-4.8.12.orig/lib/keybind.h
++++ mc-4.8.12/lib/keybind.h
+@@ -246,6 +246,7 @@ enum
+     CK_BookmarkFlush,
+     CK_BookmarkNext,
+     CK_BookmarkPrev,
++    CK_ChangeLockToggle,
+     /* mark commands */
+     CK_MarkColumn,
+     CK_MarkWord,
+--- mc-4.8.12.orig/misc/mc.default.keymap
++++ mc-4.8.12/misc/mc.default.keymap
+@@ -319,6 +319,7 @@ Bookmark = alt-k
+ BookmarkFlush = alt-o
+ BookmarkNext = alt-j
+ BookmarkPrev = alt-i
++ChangeLockToggle = ctrl-alt-l
+ # History =
+ Shell = ctrl-o
+ InsertLiteral = ctrl-q
+--- mc-4.8.12.orig/misc/mc.emacs.keymap
++++ mc-4.8.12/misc/mc.emacs.keymap
+@@ -318,6 +318,7 @@ Menu = f9
+ # BookmarkFlush =
+ # BookmarkNext =
+ # BookmarkPrev =
++# ChangeLockToggle =
+ # History =
+ Shell = ctrl-o
+ InsertLiteral = ctrl-q
+--- mc-4.8.12.orig/src/editor/edit.c
++++ mc-4.8.12/src/editor/edit.c
+@@ -1053,6 +1053,9 @@ edit_move_updown (WEdit * edit, long lin
+ static void
+ edit_right_delete_word (WEdit * edit)
+ {
++    if (edit->edit_locked)
++        return;
++
+     while (edit->buffer.curs1 < edit->buffer.size)
+     {
+         int c1, c2;
+@@ -1073,6 +1076,9 @@ edit_right_delete_word (WEdit * edit)
+ static void
+ edit_left_delete_word (WEdit * edit)
+ {
++    if (edit->edit_locked)
++        return;
++
+     while (edit->buffer.curs1 > 0)
+     {
+         int c1, c2;
+@@ -1100,6 +1106,9 @@ edit_do_undo (WEdit * edit)
+     long ac;
+     long count = 0;
+ 
++    if (edit->edit_locked)
++        return;
++
+     edit->undo_stack_disable = 1;       /* don't record undo's onto undo stack! */
+     edit->over_col = 0;
+     while ((ac = edit_pop_undo_action (edit)) < KEY_PRESS)
+@@ -1183,6 +1192,9 @@ edit_do_redo (WEdit * edit)
+     long ac;
+     long count = 0;
+ 
++    if (edit->edit_locked)
++        return;
++
+     if (edit->redo_stack_reset)
+         return;
+ 
+@@ -1280,6 +1292,9 @@ edit_group_undo (WEdit * edit)
+ static void
+ edit_delete_to_line_end (WEdit * edit)
+ {
++    if (edit->edit_locked)
++        return;
++
+     while (edit_buffer_get_current_byte (&edit->buffer) != '\n' && edit->buffer.curs2 != 0)
+         edit_delete (edit, TRUE);
+ }
+@@ -1289,6 +1304,9 @@ edit_delete_to_line_end (WEdit * edit)
+ static void
+ edit_delete_to_line_begin (WEdit * edit)
+ {
++    if (edit->edit_locked)
++        return;
++
+     while (edit_buffer_get_previous_byte (&edit->buffer) != '\n' && edit->buffer.curs1 != 0)
+         edit_backspace (edit, TRUE);
+ }
+@@ -2096,6 +2114,7 @@ edit_init (WEdit * edit, int y, int x, i
+ 
+     edit->loading_done = 1;
+     edit->modified = 0;
++    edit->edit_locked = 0;
+     edit->locked = 0;
+     edit_load_syntax (edit, NULL, NULL);
+     edit_get_syntax_color (edit, -1);
+@@ -2450,6 +2469,9 @@ edit_push_redo_action (WEdit * edit, lon
+ void
+ edit_insert (WEdit * edit, int c)
+ {
++    if (edit->edit_locked)
++        return;
++
+     /* first we must update the position of the display window */
+     if (edit->buffer.curs1 < edit->start_display)
+     {
+@@ -2494,6 +2516,9 @@ edit_insert (WEdit * edit, int c)
+ void
+ edit_insert_ahead (WEdit * edit, int c)
+ {
++    if (edit->edit_locked)
++        return;
++
+     if (edit->buffer.curs1 < edit->start_display)
+     {
+         edit->start_display++;
+@@ -2544,7 +2569,7 @@ edit_delete (WEdit * edit, gboolean byte
+     int cw = 1;
+     int i;
+ 
+-    if (edit->buffer.curs2 == 0)
++    if (edit->edit_locked || edit->buffer.curs2 == 0)
+         return 0;
+ 
+ #ifdef HAVE_CHARSET
+@@ -2606,7 +2631,7 @@ edit_backspace (WEdit * edit, gboolean b
+     int cw = 1;
+     int i;
+ 
+-    if (edit->buffer.curs1 == 0)
++    if (edit->edit_locked || edit->buffer.curs1 == 0)
+         return 0;
+ 
+     if (edit->mark2 != edit->mark1)
+@@ -3080,6 +3105,9 @@ edit_mark_current_line_cmd (WEdit * edit
+ void
+ edit_delete_line (WEdit * edit)
+ {
++    if (edit->edit_locked)
++        return;
++
+     /*
+      * Delete right part of the line.
+      * Note that edit_buffer_get_byte() returns '\n' when byte position is
+@@ -3641,6 +3669,10 @@ edit_execute_cmd (WEdit * edit, unsigned
+         edit_mark_current_line_cmd (edit);
+         break;
+ 
++    case CK_ChangeLockToggle:
++        edit->edit_locked = !edit->edit_locked;
++        break;
++
+     case CK_Bookmark:
+         book_mark_clear (edit, edit->buffer.curs_line, BOOK_MARK_FOUND_COLOR);
+         if (book_mark_query_color (edit, edit->buffer.curs_line, BOOK_MARK_COLOR))
+--- mc-4.8.12.orig/src/editor/editdraw.c
++++ mc-4.8.12/src/editor/editdraw.c
+@@ -152,11 +152,12 @@ status_string (WEdit * edit, char *s, in
+     /* The field lengths just prevent the status line from shortening too much */
+     if (simple_statusbar)
+         g_snprintf (s, w,
+-                    "%c%c%c%c %3ld %5ld/%ld %6ld/%ld %s %s",
++                    "%c%c%c%c%c %3ld %5ld/%ld %6ld/%ld %s %s",
+                     edit->mark1 != edit->mark2 ? (edit->column_highlight ? 'C' : 'B') : '-',
+                     edit->modified ? 'M' : '-',
+                     macro_index < 0 ? '-' : 'R',
+                     edit->overwrite == 0 ? '-' : 'O',
++                    edit->edit_locked == 0 ? '-' : 'L',
+                     edit->curs_col + edit->over_col,
+                     edit->buffer.curs_line + 1,
+                     edit->buffer.lines + 1, (long) edit->buffer.curs1, (long) edit->buffer.size,
+@@ -167,11 +168,12 @@ status_string (WEdit * edit, char *s, in
+                     "");
+     else
+         g_snprintf (s, w,
+-                    "[%c%c%c%c] %2ld L:[%3ld+%2ld %3ld/%3ld] *(%-4ld/%4ldb) %s  %s",
++                    "[%c%c%c%c%c] %2ld L:[%3ld+%2ld %3ld/%3ld] *(%-4ld/%4ldb) %s  %s",
+                     edit->mark1 != edit->mark2 ? (edit->column_highlight ? 'C' : 'B') : '-',
+                     edit->modified ? 'M' : '-',
+                     macro_index < 0 ? '-' : 'R',
+                     edit->overwrite == 0 ? '-' : 'O',
++                    edit->edit_locked == 0 ? '-' : 'L',
+                     edit->curs_col + edit->over_col,
+                     edit->start_line + 1,
+                     edit->curs_row,
+--- mc-4.8.12.orig/src/editor/editmenu.c
++++ mc-4.8.12/src/editor/editmenu.c
+@@ -154,6 +154,9 @@ create_command_menu (void)
+     entries =
+         g_list_prepend (entries,
+                         menu_entry_create (_("Toggle s&yntax highlighting"), CK_SyntaxOnOff));
++    entries =
++        g_list_prepend (entries,
++                        menu_entry_create (_("Toggle &change lock"), CK_ChangeLockToggle));
+     entries = g_list_prepend (entries, menu_separator_create ());
+     entries = g_list_prepend (entries, menu_entry_create (_("&Find declaration"), CK_Find));
+     entries =
+--- mc-4.8.12.orig/src/editor/editwidget.h
++++ mc-4.8.12/src/editor/editwidget.h
+@@ -105,6 +105,7 @@ struct WEdit
+     long over_col;              /* pos after '\n' */
+     int force;                  /* how much of the screen do we redraw? */
+     unsigned int overwrite:1;   /* Overwrite on type mode (as opposed to insert) */
++    unsigned int edit_locked:1; /* File modification is prohibited */
+     unsigned int modified:1;    /* File has been modified and needs saving */
+     unsigned int loading_done:1;        /* File has been loaded into the editor */
+     unsigned int locked:1;      /* We hold lock on current file */
+--- mc-4.8.12.orig/src/keybind-defaults.c
++++ mc-4.8.12/src/keybind-defaults.c
+@@ -404,6 +404,7 @@ static const global_keymap_ini_t default
+     {"BookmarkFlush", "alt-o"},
+     {"BookmarkNext", "alt-j"},
+     {"BookmarkPrev", "alt-i"},
++    {"ChangeLockToggle", "ctrl-alt-l"},
+     {"MacroStartStopRecord", "ctrl-r"},
+     {"MacroExecute", "ctrl-a"},
+     {"ShowNumbers", "alt-n"},

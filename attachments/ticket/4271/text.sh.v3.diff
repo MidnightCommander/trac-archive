@@ -1,0 +1,63 @@
+diff -pru mc-4.8.27-orig/misc/ext.d/text.sh.in mc-4.8.27/misc/ext.d/text.sh.in
+--- mc-4.8.27-orig/misc/ext.d/text.sh.in	2021-01-10 12:50:16.000000000 +0100
++++ mc-4.8.27/misc/ext.d/text.sh.in	2021-08-18 08:19:34.265370077 +0200
+@@ -10,6 +10,10 @@ pager=$3
+ 
+ [ -n "${MC_XDG_OPEN}" ] || MC_XDG_OPEN="xdg-open"
+ 
++# https://midnight-commander.org/ticket/4271
++ppid_of_ppid=`ps jhp ${PPID} | @AWK@ '{print $1}'`
++export COLUMNS="`stty size < /proc/${ppid_of_ppid}/fd/0 | cut -f2 -d' '`"
++
+ get_unpacker() {
+     filetype=$1
+     case "${filetype}" in
+@@ -59,13 +63,13 @@ do_view_action() {
+         esac
+         ;;
+     pod)
+-        pod2man "${MC_EXT_FILENAME}" | nroff @MAN_FLAGS@ @MANDOC@
++        pod2man "${MC_EXT_FILENAME}" | nroff @MAN_FLAGS@ @MANDOC@ -rLT=${COLUMNS}n -rLL=${COLUMNS}n
+         ;;
+     nroff.me)
+-        nroff @MAN_FLAGS@ -me "${MC_EXT_FILENAME}"
++        nroff @MAN_FLAGS@ -me -rLT=${COLUMNS}n -rLL=${COLUMNS}n "${MC_EXT_FILENAME}"
+         ;;
+     nroff.ms)
+-        nroff @MAN_FLAGS@ -ms "${MC_EXT_FILENAME}"
++        nroff @MAN_FLAGS@ -ms -rLT=${COLUMNS}n -rLL=${COLUMNS}n "${MC_EXT_FILENAME}"
+         ;;
+     man.gz|man.bz|man.bz2|man.lz|man.lz4|man.lzma|man.xz|man.zst)
+         case "${MC_EXT_FILENAME}" in
+@@ -101,18 +105,18 @@ do_open_action() {
+             ;;
+         *)
+             { zsoelim "${MC_EXT_FILENAME}" 2>/dev/null || cat "${MC_EXT_FILENAME}"; } | \
+-                nroff @MAN_FLAGS@ @MANDOC@
++                nroff @MAN_FLAGS@ @MANDOC@ -rLT=${COLUMNS}n -rLL=${COLUMNS}n
+             ;;
+         esac | ${pager}
+         ;;
+     pod)
+-        pod2man "${MC_EXT_FILENAME}" | nroff @MAN_FLAGS@ @MANDOC@ | ${pager}
++        pod2man "${MC_EXT_FILENAME}" | nroff @MAN_FLAGS@ @MANDOC@ -rLT=${COLUMNS}n -rLL=${COLUMNS}n | ${pager}
+         ;;
+     nroff.me)
+-        nroff @MAN_FLAGS@ -me "${MC_EXT_FILENAME}" | ${pager}
++        nroff @MAN_FLAGS@ -me "${MC_EXT_FILENAME}" -rLT=${COLUMNS}n -rLL=${COLUMNS}n | ${pager}
+         ;;
+     nroff.ms)
+-        nroff @MAN_FLAGS@ -ms "${MC_EXT_FILENAME}" | ${pager}
++        nroff @MAN_FLAGS@ -ms "${MC_EXT_FILENAME}" -rLT=${COLUMNS}n -rLL=${COLUMNS}n | ${pager}
+         ;;
+     man.gz|man.bz|man.bz2|man.lz|man.lz4|man.lzma|man.xz|man.zst)
+         case "${MC_EXT_FILENAME}" in
+@@ -120,7 +124,7 @@ do_open_action() {
+             ${unpacker} "${MC_EXT_FILENAME}"
+             ;;
+         *)
+-            ${unpacker} "${MC_EXT_FILENAME}" | nroff @MAN_FLAGS@ @MANDOC@
++            ${unpacker} "${MC_EXT_FILENAME}" | nroff @MAN_FLAGS@ @MANDOC@ -rLT=${COLUMNS}n -rLL=${COLUMNS}n
+             ;;
+         esac | ${pager}
+         ;;

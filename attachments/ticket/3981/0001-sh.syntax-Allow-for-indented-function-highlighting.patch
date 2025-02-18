@@ -1,0 +1,41 @@
+From f0122eaf4e552ff18c9187cf23d4782a5c96e7b3 Mon Sep 17 00:00:00 2001
+From: TerraTech <1118433+TerraTech@users.noreply.github.com>
+Date: Wed, 24 Apr 2019 21:58:31 -0400
+Subject: [PATCH] sh.syntax: Allow for indented 'function' highlighting
+
+  This will allow for the following:
+
+  if want_foo; then
+      function foobar() {
+          echo "foo"
+      }
+  else
+      function foobar() {
+          echo "bar"
+      }
+  fi
+  foobar
+
+Signed-off-by: TerraTech <1118433+TerraTech@users.noreply.github.com>
+---
+ misc/syntax/sh.syntax | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/misc/syntax/sh.syntax b/misc/syntax/sh.syntax
+index 032433ee8..051d996a9 100644
+--- a/misc/syntax/sh.syntax
++++ b/misc/syntax/sh.syntax
+@@ -40,8 +40,8 @@ context default
+ 
+     keyword $ brightgreen
+ 
+-    keyword wholeleft linestart function*() brightmagenta
+-    keyword wholeleft linestart function\[\s\]+ brightmagenta
++    keyword wholeleft linestart \[\s\]*function*() brightmagenta
++    keyword wholeleft linestart \[\s\]*function\[\s\]+ brightmagenta
+     keyword wholeright +() brightmagenta
+ 
+ wholechars abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._
+-- 
+2.21.0
+

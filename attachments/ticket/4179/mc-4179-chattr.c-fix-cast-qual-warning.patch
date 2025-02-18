@@ -1,0 +1,47 @@
+From 29fceb26aef5a65592dc62f1d17a68fa8312205d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 16:19:33 +0000
+Subject: [PATCH] (chattr.c) Fix -Wcast-qual warning
+
+chattr.c:398:34: warning: cast from 'const struct WChattrBoxes *' to 'struct WGroup *' drops const qualifier [-Wcast-qual]
+    w = WIDGET (g_list_nth_data (GROUP (cb)->widgets, Id - cb->top));
+                                 ^
+../../lib/widget/group.h:16:29: note: expanded from macro 'GROUP'
+#define GROUP(x) ((WGroup *)(x))
+                            ^
+chattr.c:515:27: warning: cast from 'const struct WChattrBoxes *' to 'struct WGroup *' drops const qualifier [-Wcast-qual]
+    for (i = cb->top, l = GROUP (cb)->widgets; l != NULL; i++, l = g_list_next (l))
+                          ^
+../../lib/widget/group.h:16:29: note: expanded from macro 'GROUP'
+#define GROUP(x) ((WGroup *)(x))
+                            ^
+
+Found by Clang-11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/chattr.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/chattr.c b/src/filemanager/chattr.c
+index a8afaa33d..1b5121aa4 100644
+--- a/src/filemanager/chattr.c
++++ b/src/filemanager/chattr.c
+@@ -395,7 +395,7 @@ chattr_toggle_select (const WChattrBoxes * cb, int Id)
+     Widget *w;
+ 
+     /* find checkbox */
+-    w = WIDGET (g_list_nth_data (GROUP (cb)->widgets, Id - cb->top));
++    w = WIDGET (g_list_nth_data (CONST_GROUP (cb)->widgets, Id - cb->top));
+ 
+     check_attr[Id].selected = !check_attr[Id].selected;
+ 
+@@ -512,7 +512,7 @@ checkboxes_save_state (const WChattrBoxes * cb)
+     int i;
+     GList *l;
+ 
+-    for (i = cb->top, l = GROUP (cb)->widgets; l != NULL; i++, l = g_list_next (l))
++    for (i = cb->top, l = CONST_GROUP (cb)->widgets; l != NULL; i++, l = g_list_next (l))
+     {
+         int m;
+ 

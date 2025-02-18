@@ -1,0 +1,32 @@
+From c8e7ecd12fa5c0bc2aa6f32ad0ad415561933c97 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Sat, 13 Jun 2009 14:30:05 +0200
+Subject: [PATCH 2/5] fix bashisms
+
+---
+ maint/version.sh |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/maint/version.sh b/maint/version.sh
+index 933c14e..944a38e 100755
+--- a/maint/version.sh
++++ b/maint/version.sh
+@@ -21,13 +21,11 @@ src_top_dir=
+ 
+ VERSION_FILE=${src_top_dir}/version.h
+ 
+-pushd ${src_top_dir} &>/dev/null
+-git_head=$(git rev-parse --verify HEAD 2>/dev/null)
++git_head=$(git --git-dir "${src_top_dir}" rev-parse --verify HEAD 2>/dev/null)
+ [ -z "${git_head}" ] && exit
+ 
+-new_version="$(git describe 2>/dev/null)"
++new_version="$(git --git-dir "${src_top_dir}" describe 2>/dev/null)"
+ [ -z "${new_version}" ] && exit
+-popd &>/dev/null
+ 
+ 
+ saved_version=
+-- 
+1.6.3.1
+

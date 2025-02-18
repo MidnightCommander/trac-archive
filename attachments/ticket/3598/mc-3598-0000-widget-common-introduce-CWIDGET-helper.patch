@@ -1,0 +1,27 @@
+From c239eea487fda3286c5dffe8b8bfe4eabcc8f6a4 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 14:29:21 +0000
+Subject: [PATCH] widget-common: introduce CWIDGET helper
+
+introduce CWIDGET helper for cleanup -Wcast-qual compiler warnings
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/widget-common.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index 0398a1e..55f1547 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -11,8 +11,9 @@
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+ #define WIDGET(x) ((Widget *)(x))
++#define CWIDGET(x) ((const Widget *)(x))
+ 
+-#define widget_move(w, _y, _x) tty_gotoyx (WIDGET(w)->y + (_y), WIDGET(w)->x + (_x))
++#define widget_move(w, _y, _x) tty_gotoyx (CWIDGET(w)->y + (_y), CWIDGET(w)->x + (_x))
+ /* Sets/clear the specified flag in the options field */
+ #define widget_want_cursor(w,i) widget_set_options(w, W_WANT_CURSOR, i)
+ #define widget_want_hotkey(w,i) widget_set_options(w, W_WANT_HOTKEY, i)

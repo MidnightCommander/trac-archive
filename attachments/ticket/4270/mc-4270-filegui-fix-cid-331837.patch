@@ -1,0 +1,38 @@
+From bcbca283588a5d14e187d9e33b80e877d2fa6ae2 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 25 Feb 2022 19:11:42 +0000
+Subject: [PATCH] (args.c) fix coverity finding #331837
+
+Reduce variable scope into #ifdef to fix coverity finding.
+
+Found by Coverity.
+Coverity id #331837
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/args.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/args.c b/src/args.c
+index e87579bab..3f98f9eba 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -770,16 +770,15 @@ mc_setup_by_args (int argc, char **argv, GError ** mcerror)
+         mc_global.tty.use_subshell = FALSE;
+ #endif /* ENABLE_SUBSHELL */
+ 
++#ifdef ENABLE_VFS_FTP
+     if (mc_args__netfs_logfile != NULL)
+     {
+         vfs_path_t *vpath;
+-#ifdef ENABLE_VFS_FTP
+         vpath = vfs_path_from_str ("ftp://");
+         mc_setctl (vpath, VFS_SETCTL_LOGFILE, (void *) mc_args__netfs_logfile);
+         vfs_path_free (vpath, TRUE);
+-#endif /* ENABLE_VFS_FTP */
+-        (void) vpath;
+     }
++#endif /* ENABLE_VFS_FTP */
+ 
+     tmp = (argc > 0) ? argv[1] : NULL;
+ 

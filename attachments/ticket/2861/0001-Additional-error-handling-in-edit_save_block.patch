@@ -1,0 +1,62 @@
+From 68d6dfb9996a5e143a981c6c902009fa68414e71 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Sat, 4 Aug 2012 18:55:07 +0200
+Subject: [PATCH] Additional error handling in edit_save_block()
+
+If edit->column_highlight is on and the disk is so full that the editor
+is unable even to write the magic (r <= 0), then subsequent if (len)
+check might fail, since the value of len is undefined.
+
+The solution is to initialize len with a non-zero value, so that the
+function properly returns an error value in all cases (adding an
+explicit return 0; is also possible, but then one must take care of
+closing file descriptors, which is less convenient).
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ src/editor/editcmd.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 4ca6cee..ec20cbf 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -2908,21 +2908,22 @@ edit_ok_to_exit (WEdit * edit)
+ int
+ edit_save_block (WEdit * edit, const char *filename, long start, long finish)
+ {
+-    int len, file;
++    int len = 1, file;
+     vfs_path_t *vpath;
+ 
+     vpath = vfs_path_from_str (filename);
+     file = mc_open (vpath, O_CREAT | O_WRONLY | O_TRUNC,
+                     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH | O_BINARY);
+     vfs_path_free (vpath);
++
+     if (file == -1)
+         return 0;
+ 
+     if (edit->column_highlight)
+     {
+         int r;
+-
+         r = mc_write (file, VERTICAL_MAGIC, sizeof (VERTICAL_MAGIC));
++
+         if (r > 0)
+         {
+             unsigned char *block, *p;
+@@ -2957,8 +2958,10 @@ edit_save_block (WEdit * edit, const char *filename, long start, long finish)
+         g_free (buf);
+     }
+     mc_close (file);
++
+     if (len)
+         return 0;
++
+     return 1;
+ }
+ 
+-- 
+1.7.10
+

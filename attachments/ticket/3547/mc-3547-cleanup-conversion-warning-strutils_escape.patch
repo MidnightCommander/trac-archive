@@ -1,0 +1,180 @@
+fix -Wconversion warning at strutils_escape/strutils_unescape()
+
+remove src_len parameter support, never used in mc
+
+patch will fix following warnings:
+strescape.c:180:34: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+strescape.c:188:34: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+strescape.c:196:34: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+strescape.c:213:37: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+strescape.c:221:37: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+strescape.c:228:37: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+panel.c:2646:41: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+treestore.c:330:63: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+learn.c:363:63: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/strescape.h
++++ e/lib/strescape.h
+@@ -15,8 +15,8 @@
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-char *strutils_escape (const char *, gsize, const char *, gboolean);
+-char *strutils_unescape (const char *, gsize, const char *, gboolean);
++char *strutils_escape (const char *, const char *, gboolean);
++char *strutils_unescape (const char *, const char *, gboolean);
+ 
+ char *strutils_shell_unescape (const char *);
+ char *strutils_shell_escape (const char *);
+--- a/lib/strutil/strescape.c
++++ e/lib/strutil/strescape.c
+@@ -46,11 +46,11 @@
+ /*** public functions ****************************************************************************/
+ 
+ char *
+-strutils_escape (const char *src, gsize src_len, const char *escaped_chars,
++strutils_escape (const char *src, const char *escaped_chars,
+                  gboolean escape_non_printable)
+ {
+     GString *ret;
+-    gsize curr_index;
++    gsize curr_index, src_len;
+     /* do NOT break allocation semantics */
+     if (src == NULL)
+         return NULL;
+@@ -60,8 +60,7 @@
+ 
+     ret = g_string_new ("");
+ 
+-    if (src_len == (gsize) (-1))
+-        src_len = strlen (src);
++    src_len = strlen (src);
+ 
+     for (curr_index = 0; curr_index < src_len; curr_index++)
+     {
+@@ -96,11 +95,11 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ char *
+-strutils_unescape (const char *src, gsize src_len, const char *unescaped_chars,
++strutils_unescape (const char *src, const char *unescaped_chars,
+                    gboolean unescape_non_printable)
+ {
+     GString *ret;
+-    gsize curr_index;
++    gsize curr_index, src_len;
+ 
+     if (src == NULL)
+         return NULL;
+@@ -110,8 +109,7 @@
+ 
+     ret = g_string_sized_new (16);
+ 
+-    if (src_len == (gsize) (-1))
+-        src_len = strlen (src);
++    src_len = strlen (src);
+     src_len--;
+ 
+     for (curr_index = 0; curr_index < src_len; curr_index++)
+@@ -177,7 +175,7 @@
+ char *
+ strutils_shell_escape (const char *src)
+ {
+-    return strutils_escape (src, -1, ESCAPE_SHELL_CHARS, FALSE);
++    return strutils_escape (src, ESCAPE_SHELL_CHARS, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -185,7 +183,7 @@
+ char *
+ strutils_glob_escape (const char *src)
+ {
+-    return strutils_escape (src, -1, ESCAPE_GLOB_CHARS, TRUE);
++    return strutils_escape (src, ESCAPE_GLOB_CHARS, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -193,7 +191,7 @@
+ char *
+ strutils_regex_escape (const char *src)
+ {
+-    return strutils_escape (src, -1, ESCAPE_REGEX_CHARS, TRUE);
++    return strutils_escape (src, ESCAPE_REGEX_CHARS, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -210,7 +208,7 @@
+ char *
+ strutils_shell_unescape (const char *text)
+ {
+-    return strutils_unescape (text, -1, ESCAPE_SHELL_CHARS, TRUE);
++    return strutils_unescape (text, ESCAPE_SHELL_CHARS, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -218,14 +216,14 @@
+ char *
+ strutils_glob_unescape (const char *text)
+ {
+-    return strutils_unescape (text, -1, ESCAPE_GLOB_CHARS, TRUE);
++    return strutils_unescape (text, ESCAPE_GLOB_CHARS, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ char *
+ strutils_regex_unescape (const char *text)
+ {
+-    return strutils_unescape (text, -1, ESCAPE_REGEX_CHARS, TRUE);
++    return strutils_unescape (text, ESCAPE_REGEX_CHARS, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+--- a/src/filemanager/panel.c
++++ e/src/filemanager/panel.c
+@@ -2643,7 +2643,7 @@
+     }
+ 
+     reg_exp = g_strdup_printf ("%s*", panel->search_buffer);
+-    esc_str = strutils_escape (reg_exp, -1, ",|\\{}[]", TRUE);
++    esc_str = strutils_escape (reg_exp, ",|\\{}[]", TRUE);
+     search = mc_search_new (esc_str, -1, NULL);
+     search->search_type = MC_SEARCH_T_GLOB;
+     search->is_entire_line = TRUE;
+--- a/src/filemanager/treestore.c
++++ e/src/filemanager/treestore.c
+@@ -327,7 +327,7 @@
+ static char *
+ encode (const vfs_path_t * vpath, size_t offset)
+ {
+-    return strutils_escape (vfs_path_as_str (vpath) + offset, -1, "\n\\", FALSE);
++    return strutils_escape (vfs_path_as_str (vpath) + offset, "\n\\", FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+--- a/src/learn.c
++++ e/src/learn.c
+@@ -360,7 +360,7 @@
+         {
+             char *esc_str;
+ 
+-            esc_str = strutils_escape (learnkeys[i].sequence, -1, ";\\", TRUE);
++            esc_str = strutils_escape (learnkeys[i].sequence, ";\\", TRUE);
+             mc_config_set_string_raw_value (mc_main_config, section, key_name_conv_tab[i].name,
+                                             esc_str);
+             g_free (esc_str);
+--- a/tests/lib/mcconfig/config_string.c
++++ e/tests/lib/mcconfig/config_string.c
+@@ -215,7 +215,7 @@
+     {
+         char *esc_str;
+ 
+-        esc_str = strutils_escape ("T;E\\X;T-FOR-\\T;E;S\\TI;N'G", -1, ";", TRUE);
++        esc_str = strutils_escape ("T;E\\X;T-FOR-\\T;E;S\\TI;N'G", ";", TRUE);
+         mc_config_set_string_raw (mc_config, "test-group1", "test-param1", esc_str);
+         g_free (esc_str);
+     }

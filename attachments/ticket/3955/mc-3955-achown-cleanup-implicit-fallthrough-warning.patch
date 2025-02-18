@@ -1,0 +1,31 @@
+From 007aa60728cb7029f0154059010520029d59ac28 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 11 Jan 2019 16:18:10 +0000
+Subject: [PATCH] achown.c: cleanup -Wimplicit-fallthrough warning
+
+Found by GCC8
+
+achown.c:491:9: error: this statement may fall through [-Werror=implicit-fallthrough=]
+         switch (parm)
+         ^~~~~~
+achown.c:505:5: note: here
+     default:
+     ^~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/achown.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/filemanager/achown.c b/src/filemanager/achown.c
+index c154dc4dc..e933d6fd8 100644
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -501,6 +501,7 @@ chl_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *dat
+         default:
+             break;
+         }
++        MC_FALLTHROUGH;
+ 
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);

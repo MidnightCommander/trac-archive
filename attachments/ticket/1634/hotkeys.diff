@@ -1,0 +1,40 @@
+diff --git a/src/widget.c b/src/widget.c
+index 16f4ec8..44aaa35 100644
+--- a/src/widget.c
++++ b/src/widget.c
+@@ -189,8 +189,7 @@ button_callback (Widget *w, widget_msg_t msg, int parm)
+ 	}
+ 
+         if (b->text.hotkey != NULL) {
+-            if (g_ascii_tolower ((gchar)b->text.hotkey[0]) ==
+-                g_ascii_tolower ((gchar)parm)) {
++            if ((guchar)*(b->text.hotkey) == parm) {
+ 		button_callback (w, WIDGET_KEY, ' ');
+ 		return MSG_HANDLED;
+ 	    }
+@@ -370,13 +369,9 @@ radio_callback (Widget *w, widget_msg_t msg, int parm)
+     switch (msg) {
+     case WIDGET_HOTKEY:
+ 	{
+-	    int lp = g_ascii_tolower ((gchar)parm);
+-
+ 	    for (i = 0; i < r->count; i++) {
+                 if (r->texts[i].hotkey != NULL) {
+-                    int c = g_ascii_tolower ((gchar)r->texts[i].hotkey[0]);
+-
+-		    if (c != lp)
++		    if ((guchar)*(r->texts[i].hotkey) != parm)
+ 			continue;
+ 		    r->pos = i;
+ 
+@@ -505,9 +500,7 @@ check_callback (Widget *w, widget_msg_t msg, int parm)
+     switch (msg) {
+     case WIDGET_HOTKEY:
+         if (c->text.hotkey != NULL) {
+-            if (g_ascii_tolower ((gchar)c->text.hotkey[0]) ==
+-                g_ascii_tolower ((gchar)parm)) {
+-
++            if ((guchar)*(c->text.hotkey) == parm) {
+ 		check_callback (w, WIDGET_KEY, ' ');	/* make action */
+ 		return MSG_HANDLED;
+ 	    }

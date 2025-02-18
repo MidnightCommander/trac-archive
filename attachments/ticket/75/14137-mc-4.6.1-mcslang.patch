@@ -1,0 +1,12 @@
+diff -Naur mc-4.6.1.org/slang/include/slang.h mc-4.6.1/slang/include/slang.h
+--- mc-4.6.1.org/slang/include/slang.h	2005-02-10 15:14:37.000000000 +0100
++++ mc-4.6.1/slang/include/slang.h	2007-10-07 11:28:46.000000000 +0200
+@@ -24,7 +24,7 @@
+ # endif
+ #endif /* __watcomc__ */
+ 
+-#if defined(unix) || defined(__unix) || defined (_AIX) || defined(__NetBSD__)
++#if defined(unix) || defined(__unix) || defined (_AIX) || defined(__NetBSD__) || defined(__APPLE__)
+ # ifndef __unix__
+ #  define __unix__ 1
+ # endif

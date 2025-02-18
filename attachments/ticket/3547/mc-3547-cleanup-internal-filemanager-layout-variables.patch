@@ -1,0 +1,65 @@
+From 3c21ec0b27b755e67fbcc8a32d84e12faba0756e Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 16:05:14 +0000
+Subject: [PATCH] cleanup internal filemanager layout variables
+
+_free_space and _xterm_title never used
+_command_prompt, _keybar_visible, _menubar_visible, _message_visible used within layout_callback() only
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+---
+ src/filemanager/layout.c | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index cb4e1be..2eaaf39 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -147,13 +147,7 @@ static int old_output_lines;
+ 
+ /* Internal variables */
+ static int equal_split;
+-static int _menubar_visible;
+ static int _output_lines;
+-static gboolean _command_prompt;
+-static int _keybar_visible;
+-static int _message_visible;
+-static gboolean _xterm_title;
+-static int _free_space;
+ 
+ static int height;
+ 
+@@ -312,6 +306,10 @@ static cb_ret_t
+ layout_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
+ {
+     WDialog *h = DIALOG (w);
++    gboolean _command_prompt;
++    int _keybar_visible;
++    int _menubar_visible;
++    int _message_visible;
+ 
+     switch (msg)
+     {
+@@ -340,8 +338,6 @@ layout_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *
+         _command_prompt = (check_options[2].widget->state & C_BOOL) != 0;
+         _keybar_visible = check_options[3].widget->state & C_BOOL;
+         _message_visible = check_options[4].widget->state & C_BOOL;
+-        _xterm_title = (check_options[5].widget->state & C_BOOL) != 0;
+-        _free_space = check_options[6].widget->state & C_BOOL;
+ 
+         if (mc_global.tty.console_flag != '\0')
+         {
+@@ -463,12 +459,6 @@ init_layout (void)
+     output_lines_label = _("Output lines:");
+ 
+     /* save old params */
+-    _menubar_visible = menubar_visible;
+-    _command_prompt = command_prompt;
+-    _keybar_visible = mc_global.keybar_visible;
+-    _message_visible = mc_global.message_visible;
+-    _xterm_title = xterm_title;
+-    _free_space = free_space;
+     old_output_lines = -1;
+     _output_lines = output_lines;
+ 

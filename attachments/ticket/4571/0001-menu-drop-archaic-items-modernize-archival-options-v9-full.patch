@@ -1,0 +1,75 @@
+--- a/mc.menu.in
++++ b/mc.menu.in
+@@ -21,7 +21,7 @@
+ #   %1f   ditto
+ #   %0f   don't quote expanded macro
+ #
+-#   Unused shortcuts: I, o, O, l, L, k, K, p, P
++#   Unused shortcuts: K, P
+ ##############################################################################
+ 
+ + ! t t
+@@ -861,6 +861,63 @@
+         mcdiff %d/%f %D/%F
+ 
+ + ! t t
++I  Compare (FreeFileSync) opposite directories
++        if [ %d = %D ]; then
++            echo "The two directores must be different"
++            exit 1
++        fi
++        freefilesync -dirpair %d %D &
++
+++ t t
++I  Compare (FreeFileSync) tagged directories
++        freefilesync -dirpair %t &
++
+++ t t
++o  Compare (Dolphin) tagged directories
++        dolphin --split %t &
++
++o  Open (Dolphin) current directory
++        dolphin %d &
++
+++ ! t t
++O  Compare (Dolphin) opposite directories
++        if [ %d = %D ]; then
++            echo "The two directores must be different"
++            exit 1
++        fi
++        dolphin --split %d %D &
++
++L  Compare (Meld) opposite directories
++        if [ %d = %D ]; then
++            echo "The two directores must be different"
++            exit 1
++        fi
++        meld %d %D &
++
+++ t t
++l  Compare (Meld) tagged files/directories
++        meld %t &
++
+++ ! t t & ! f ^..$ & ! F ^..$
++l  Compare (Meld) opposite selected files/directories
++        if [ %d/%f = %D/%F ]; then
++            echo "The two files must be different"
++            exit 1
++        fi
++        meld %d/%f %D/%F &
++
+++ ! t t
++k  Open file with Kate
++        kate %f
++
+++ t t
++k  Open tagged file with Kate
++        kate %t
++
++p  Run Ookla Speedtest
++        speedtest
++
+++ ! t t
+ s  Calculate SHA256 checksum of the current file
+         SHACMD=`command -v sha256sum` || SHACMD="shasum -a256"
+         $SHACMD %f

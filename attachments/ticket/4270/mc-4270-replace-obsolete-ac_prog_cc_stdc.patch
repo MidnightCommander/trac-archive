@@ -1,0 +1,28 @@
+From ad4d6a1820a513c37e678325a807d5c6a6627c9b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 22 Dec 2021 19:12:03 +0000
+Subject: [PATCH] (configure.ac) replace obsolete AC_PROG_CC_STDC macro
+
+Since release 2.70 of GNU Autoconf
+
+> *** AC_PROG_CC_STDC, AC_PROG_CC_C89, AC_PROG_CC_C99 are now obsolete.
+>  Applications should use AC_PROG_CC.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4f0fb9723..044f04d56 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -36,7 +36,7 @@ dnl ############################################################################
+ dnl Check for compiler
+ dnl ############################################################################
+ 
+-AC_PROG_CC_STDC
++AC_PROG_CC
+ AM_PROG_CC_C_O
+ 
+ mc_CHECK_CFLAGS

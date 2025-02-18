@@ -1,0 +1,55 @@
+From 42e5c16d98306d9b4e96b52fd6962eb05eae9ffe Mon Sep 17 00:00:00 2001
+From: Pavel Roskin <plroskin@gmail.com>
+Date: Sat, 11 Feb 2023 21:39:02 -0800
+Subject: [PATCH] Skin julia256.ini: Fix visual inconsistencies
+
+Set "disabled" background to "lightgray" for consistency with the dialog
+background. The inconsistent background can be seen in the file search dialog
+with an empty search string.
+
+The hotkeys in dialogs were impossible to distinguish from other text. Make
+them red for consistency with the buttonbar.
+
+Show changed lines in diffs in black on cyan. Blue on cyan is hard to see,
+such color combination is not used elsewhere in the skin, which promises
+"good contrast".
+---
+ misc/skins/julia256.ini | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/misc/skins/julia256.ini b/misc/skins/julia256.ini
+index 8a8c61fd8..e942fc615 100644
+--- a/misc/skins/julia256.ini
++++ b/misc/skins/julia256.ini
+@@ -36,7 +36,7 @@
+     input = black;cyan
+     inputunchanged = gray;cyan
+     inputmark = cyan;color237
+-    disabled = gray;blue
++    disabled = gray;lightgray
+     reverse = black;lightgray
+     commandlinemark = black;lightgray
+     header = yellow;color237
+@@ -47,8 +47,8 @@
+ [dialog]
+     _default_ = black;lightgray
+     dfocus = black;cyan
+-    dhotnormal = black;
+-    dhotfocus = black;cyan
++    dhotnormal = red;
++    dhotfocus = red;cyan
+     dtitle = black;
+ 
+ [error]
+@@ -126,7 +126,7 @@
+ 
+ [diffviewer]
+     added = white;green
+-    changedline = blue;cyan
++    changedline = black;cyan
+     changednew = red;cyan
+     changed = white;cyan
+     removed = white;red
+-- 
+2.27.0
+

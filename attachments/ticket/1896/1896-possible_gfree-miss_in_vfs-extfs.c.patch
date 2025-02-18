@@ -1,0 +1,48 @@
+From 746af5b77739dc7f82eb933121fbcea673d04a45 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Thu, 24 Dec 2009 14:50:18 +0000
+Subject: [PATCH]  possible_missing__g_free__in_vfs-extfs.c
+
+---
+ vfs/extfs.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/vfs/extfs.c b/vfs/extfs.c
+index d30774e..47498c2 100644
+--- a/vfs/extfs.c
++++ b/vfs/extfs.c
+@@ -1010,6 +1010,7 @@ extfs_readlink (struct vfs_class *me, const char *path, char *buf, size_t size)
+     if ((q = extfs_get_path_mangle (me, mpath, &archive, 0)) == NULL)
+ 	goto cleanup;
+     entry = extfs_find_entry (archive->root_entry, q, 0, 0);
++    g_free (q);
+     if (entry == NULL)
+         goto cleanup;
+     if (!S_ISLNK (entry->inode->mode)) {
+@@ -1061,6 +1062,7 @@ static int extfs_unlink (struct vfs_class *me, const char *file)
+     if ((q = extfs_get_path_mangle (me, mpath, &archive, 0)) == NULL)
+ 	goto cleanup;
+     entry = extfs_find_entry (archive->root_entry, q, 0, 0);
++    g_free (q);
+     if (entry == NULL)
+         goto cleanup;
+     if ((entry = extfs_resolve_symlinks (entry)) == NULL)
+@@ -1097,6 +1099,7 @@ static int extfs_mkdir (struct vfs_class *me, const char *path, mode_t mode)
+     	goto cleanup;
+     }
+     entry = extfs_find_entry (archive->root_entry, q, 1, 0);
++    g_free (q);
+     if (entry == NULL)
+         goto cleanup;
+     if ((entry = extfs_resolve_symlinks (entry)) == NULL)
+@@ -1127,6 +1130,7 @@ static int extfs_rmdir (struct vfs_class *me, const char *path)
+     if ((q = extfs_get_path_mangle (me, mpath, &archive, 0)) == NULL)
+ 	goto cleanup;
+     entry = extfs_find_entry (archive->root_entry, q, 0, 0);
++    g_free (q);
+     if (entry == NULL)
+     	goto cleanup;
+     if ((entry = extfs_resolve_symlinks (entry)) == NULL)
+-- 
+1.6.4
+

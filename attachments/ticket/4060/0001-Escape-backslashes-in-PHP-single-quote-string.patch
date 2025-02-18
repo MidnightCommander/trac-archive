@@ -1,0 +1,34 @@
+From 30c9861d525b1778d1d46cf4d311675332d1dfdc Mon Sep 17 00:00:00 2001
+From: Grzegorz Szymaszek <gszymaszek@short.pl>
+Date: Thu, 6 Feb 2020 09:20:20 +0100
+Subject: [PATCH] Escape backslashes in PHP single quote string
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+In PHP strings delimited with single quotes, there are two characters
+that can be escaped: \ and '. For example, the PHP string 'a\'b\\c\d'
+could be printed as ‘a'b\c\d’.
+
+Escaping quotes was already possible with the PHP syntax file. This
+commit adds support for escaping backslashes. It fixes mcedit’s syntax
+highlighting on PHP strings that end with \\ (like 'aaa\\').
+---
+ misc/syntax/php.syntax | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/misc/syntax/php.syntax b/misc/syntax/php.syntax
+index 5a8506a27..b1ba3da8b 100644
+--- a/misc/syntax/php.syntax
++++ b/misc/syntax/php.syntax
+@@ -3136,6 +3136,7 @@ context " " green
+ 
+ context ' ' brightgreen
+     spellcheck
++    keyword \\\\ brightcyan
+     keyword \\' brightcyan
+ 
+ context exclusive <? ?> cyan
+-- 
+2.24.1
+

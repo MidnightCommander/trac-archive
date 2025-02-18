@@ -1,0 +1,174 @@
+From cfc0ed218814f20472b98e11984aec85dbacee62 Mon Sep 17 00:00:00 2001
+From: Denys Vlasenko <dvlasenk@redhat.com>
+Date: Thu, 13 Apr 2017 19:27:46 +0200
+Subject: [PATCH] Fix --help option to show correct syntax for editor, viewer
+ and mcdiff
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Before the patch: --help shows the same text for all tools, only "mc"
+is replaced by tool name. For example, "mcedit --help" says:
+
+	Usage:
+	  mcedit [OPTION…] [+number] [this_dir] [other_panel_dir]
+	 +number - Set initial line number for the internal editor
+
+which is wrong: mcedit does not take [this_dir] [other_panel_dir]
+syntax, that's mc syntax.
+
+After the patch, each tool has its own syntax string shown.
+"Usage:" message for each tool is as follows now:
+
+  mc [OPTION…] [this_dir] [other_panel_dir]
+
+  mcedit [OPTION…] [+lineno] file1[:lineno] [file2[:lineno]...]
+
+  mcview [OPTION…] file
+
+  mcdiff [OPTION…] file1 file2
+
+Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
+---
+ src/args.c | 75 ++++++++++++++++++++++++++++++++++++++++----------------------
+ src/args.h |  1 +
+ src/main.c |  2 ++
+ 3 files changed, 52 insertions(+), 26 deletions(-)
+
+diff --git a/src/args.c b/src/args.c
+index 5ee5470..0c677c7 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -388,12 +388,31 @@ mc_args_new_color_group (void)
+ static gchar *
+ mc_args_add_usage_info (void)
+ {
+-    mc_args__loc__usage_string = g_strdup_printf ("[%s] %s\n %s - %s\n",
+-                                                  _("+number"),
+-                                                  _("[this_dir] [other_panel_dir]"),
+-                                                  _("+number"),
+-                                                  _
+-                                                  ("Set initial line number for the internal editor"));
++    gchar *s;
++
++    switch (mc_global.mc_run_mode)
++    {
++    case MC_RUN_EDITOR:
++        s = g_strdup_printf ("%s\n",
++                        _("[+lineno] file1[:lineno] [file2[:lineno]...]"));
++        break;
++    case MC_RUN_VIEWER:
++        s = g_strdup_printf ("%s\n",
++                        _("file"));
++        break;
++#ifdef USE_DIFF_VIEW
++    case MC_RUN_DIFFVIEWER:
++        s = g_strdup_printf ("%s\n",
++                        _("file1 file2"));
++        break;
++#endif /* USE_DIFF_VIEW */
++    case MC_RUN_FULL:
++    default:
++        s = g_strdup_printf ("%s\n",
++                        _("[this_dir] [other_panel_dir]"));
++    }
++    mc_args__loc__usage_string = s;
++
+     return mc_args__loc__usage_string;
+ }
+ 
+@@ -613,6 +632,30 @@ parse_mcedit_arguments (int argc, char **argv)
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++void
++mc_setup_run_mode (char **argv)
++{
++    const char *base = x_basename (argv[0]);
++
++    if (strncmp (base, "mce", 3) == 0 || strcmp (base, "vi") == 0)
++    {
++        /* mce* or vi is link to mc */
++        mc_global.mc_run_mode = MC_RUN_EDITOR;
++    }
++    else if (strncmp (base, "mcv", 3) == 0 || strcmp (base, "view") == 0)
++    {
++        /* mcv* or view is link to mc */
++        mc_global.mc_run_mode = MC_RUN_VIEWER;
++    }
++#ifdef USE_DIFF_VIEW
++    else if (strncmp (base, "mcd", 3) == 0 || strcmp (base, "diff") == 0)
++    {
++        /* mcd* or diff is link to mc */
++        mc_global.mc_run_mode = MC_RUN_DIFFVIEWER;
++    }
++#endif /* USE_DIFF_VIEW */
++}
++
+ gboolean
+ mc_args_parse (int *argc, char ***argv, const char *translation_domain, GError ** mcerror)
+ {
+@@ -730,7 +773,6 @@ mc_args_show_info (void)
+ gboolean
+ mc_setup_by_args (int argc, char **argv, GError ** mcerror)
+ {
+-    const char *base;
+     char *tmp;
+ 
+     mc_return_val_if_error (mcerror, FALSE);
+@@ -764,27 +806,8 @@ mc_setup_by_args (int argc, char **argv, GError ** mcerror)
+         (void) vpath;
+     }
+ 
+-    base = x_basename (argv[0]);
+     tmp = (argc > 0) ? argv[1] : NULL;
+ 
+-    if (strncmp (base, "mce", 3) == 0 || strcmp (base, "vi") == 0)
+-    {
+-        /* mce* or vi is link to mc */
+-        mc_global.mc_run_mode = MC_RUN_EDITOR;
+-    }
+-    else if (strncmp (base, "mcv", 3) == 0 || strcmp (base, "view") == 0)
+-    {
+-        /* mcv* or view is link to mc */
+-        mc_global.mc_run_mode = MC_RUN_VIEWER;
+-    }
+-#ifdef USE_DIFF_VIEW
+-    else if (strncmp (base, "mcd", 3) == 0 || strcmp (base, "diff") == 0)
+-    {
+-        /* mcd* or diff is link to mc */
+-        mc_global.mc_run_mode = MC_RUN_DIFFVIEWER;
+-    }
+-#endif /* USE_DIFF_VIEW */
+-
+     switch (mc_global.mc_run_mode)
+     {
+     case MC_RUN_EDITOR:
+diff --git a/src/args.h b/src/args.h
+index 53ff9ea..616864d 100644
+--- a/src/args.h
++++ b/src/args.h
+@@ -46,6 +46,7 @@ extern char *mc_run_param1;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
++void mc_setup_run_mode (char **argv);
+ gboolean mc_args_parse (int *argc, char ***argv, const char *translation_domain, GError ** mcerror);
+ gboolean mc_args_show_info (void);
+ gboolean mc_setup_by_args (int argc, char **argv, GError ** mcerror);
+diff --git a/src/main.c b/src/main.c
+index bdc40ba..9104438 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -234,6 +234,8 @@ main (int argc, char *argv[])
+     /* do this before args parsing */
+     str_init_strings (NULL);
+ 
++    mc_setup_run_mode (argv); /* are we mc? editor? viewer? etc... */
++
+     if (!mc_args_parse (&argc, &argv, "mc", &mcerror))
+     {
+       startup_exit_falure:
+-- 
+2.9.2
+

@@ -1,0 +1,93 @@
+==================================================================================
+   /src/vfs/extfs/helpers-list: tests/src/vfs/extfs/helpers-list/test-suite.log
+==================================================================================
+
+# TOTAL: 1
+# PASS:  0
+# SKIP:  0
+# XFAIL: 0
+# FAIL:  1
+# XPASS: 0
+# ERROR: 0
+
+.. contents:: :depth: 2
+
+FAIL: run
+=========
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/hp48+.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/lslR.1.spaces.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/lslR.2.spaces-iso.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/lslR.3.spaces-iso-noslash.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.custom.input
+/home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.custom.output /tmp/rpm.actual-parsed-output.kLHkyHWQ differ: char 42, line 1
+
+ERROR: rpm has produced output that's different than the expected output.
+
+  Expected output (after parsing): /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.custom.output
+  Actual output (after parsing): /tmp/rpm.actual-parsed-output.kLHkyHWQ
+
+This might mean that a bug was introduced into rpm. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+------------ diff of the expected output vs the actual output: -------------
+--- /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.custom.output	2017-01-22 16:42:40.730438199 +0000
++++ /tmp/rpm.actual-parsed-output.kLHkyHWQ	2017-03-08 08:16:57.575208078 +0000
+@@ -1,3 +1,3 @@
+--r--r--r--   1        0        0        539 2017-01-05 00:00:00 HEADER
++-r--r--r--   1        0        0        597 2017-01-05 00:00:00 HEADER
+ -r-xr-xr-x   1        0        0         39 2017-01-05 00:00:00 INSTALL
+ -r-xr-xr-x   1        0        0         39 2017-01-05 00:00:00 UPGRADE
+@@ -14,4 +14,5 @@
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/VENDOR
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/DESCRIPTION
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/SUMMARY
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/SCRIPTS/PRETRANS
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/SCRIPTS/POSTTRANS
+@@ -29,4 +30,11 @@
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/SCRIPTS/POSTUNPROG
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/SCRIPTS/VERIFYSCRIPTPROG
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/PACKAGER
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/URL
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/EPOCH
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/LICENSE
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/REQUIRES
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/OBSOLETES
++-r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/PROVIDES
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 INFO/CHANGELOG
+ -r--r--r--   1        0        0          0 2017-01-05 00:00:00 CONTENTS.cpio
+------------------------------- end of diff --------------------------------
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.glib.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.complex.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.missing-date.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.missing-size-and-date.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.simple.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uace.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uarc.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v4,v3.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v5.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzip.with-zipinfo.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzip.without-zipinfo--mdy.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzip.without-zipinfo--ymd.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzoo.input
+PASSED.
+

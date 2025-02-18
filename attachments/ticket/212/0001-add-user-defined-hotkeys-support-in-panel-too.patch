@@ -1,0 +1,149 @@
+From c2f690cee6a27aca7b369d19832de8493b5b62d8 Mon Sep 17 00:00:00 2001
+From: admin <admin@holmes.(none)>
+Date: Fri, 13 Feb 2009 08:50:29 +0000
+Subject: [PATCH] add user defined hotkeys support in panel too
+
+---
+ src/main.c |   68 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ src/main.h |    8 +++---
+ 2 files changed, 66 insertions(+), 10 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 0134098..a5b8acf 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -280,7 +280,7 @@ char *mc_home = NULL;
+ 
+ char cmd_buf[512];
+ 
+-static global_command_type global_command [] = {
++static panel_command_type panel_command [] = {
+     {CK_ChmodCmd,            "ChmodCmd",            chmod_cmd},
+     {CK_ChownAdvancedCmd,    "ChownAdvancedCmd",    chown_advanced_cmd},
+     {CK_ChownCmd,            "ChownCmd",            chown_cmd},
+@@ -336,14 +336,56 @@ static global_command_type global_command [] = {
+ 
+ callfn cmdfn_by_name (char *cmd_name)
+ {
+-    for (int i = 0; global_command[i].command != NULL && global_command[i].key != 0 ; i++) {
+-        if (strcmp(global_command[i].cmd_name, cmd_name) == 0) {
+-            return global_command[i].command;
++    for (int i = 0; panel_command[i].command != 0 ; i++) {
++        if (strcmp(panel_command[i].cmd_name, cmd_name) == 0) {
++            return panel_command[i].command_fn;
++        }
++    }
++    return 0;
++}
++
++callfn cmdfn_by_command (int x_command)
++{
++    mc_log("[[[[[[[cmdfn_by_command (%i)\n", x_command);
++    for (int i = 0; panel_command[i].command != 0 ; i++) {
++	//mc_log("panel_command[%i].command=%i / panel_command[%i].cmd_name=%s\n",i ,panel_command[i].command, i, panel_command[i].cmd_name);
++        if (panel_command[i].command == x_command) {
++            mc_log("    !! cmdfn_by_command (%i)=%s\n", x_command, panel_command[i].cmd_name);
++            return panel_command[i].command_fn;
+         }
+     }
+     return NULL;
+ }
+ 
++int cmd_by_name (char *cmd_name)
++{
++    for (int i = 0; panel_command[i].command != 0 ; i++) {
++        if (strcmp(panel_command[i].cmd_name, cmd_name) == 0) {
++            return panel_command[i].command;
++        }
++    }
++    return 0;
++}
++
++int command_by_key (int x_key)
++{
++    mc_log("=========command_by_key\n");
++    for (int i = 0; panel_user_key_map[i].command != 0 ; i++) {
++        mc_log("panel_user_key_map[%i].key=%i = panel_user_key_map[%i].command=%i\n", i, panel_user_key_map[i].key, i, panel_user_key_map[i].command );
++        if (panel_user_key_map[i].key == x_key) {
++            return panel_user_key_map[i].command;
++        }
++    }
++    return 0;
++}
++
++callfn cmdfn_by_key (int x_key)
++{
++    int cmd = command_by_key(x_key);
++    if (cmd > 0){
++        return cmdfn_by_command(cmd);
++    }
++}
+ 
+ static void
+ reload_panelized (WPanel *panel)
+@@ -1520,7 +1562,8 @@ static cb_ret_t
+ midnight_callback (struct Dlg_head *h, dlg_msg_t msg, int parm)
+ {
+     int i;
+-
++    int x_cmd;
++    callfn fn;
+     switch (msg) {
+ 
+     case DLG_IDLE:
+@@ -1532,6 +1575,18 @@ midnight_callback (struct Dlg_head *h, dlg_msg_t msg, int parm)
+ 	return MSG_HANDLED;
+ 
+     case DLG_KEY:
++        x_cmd = command_by_key(parm);
++        mc_log("x_cmd=%i\n", x_cmd);
++	if (x_cmd > 0){
++            fn = cmdfn_by_key (parm);
++    	    if (fn) {
++    		(fn) ();
++		return MSG_HANDLED;
++            }
++	}
++	/*
++	*/
++	/*
+ 	if (ctl_x_map_enabled) {
+ 	    ctl_x_map_enabled = 0;
+ 	    for (i = 0; ctl_x_map[i].key_code; i++)
+@@ -1540,7 +1595,7 @@ midnight_callback (struct Dlg_head *h, dlg_msg_t msg, int parm)
+ 		    return MSG_HANDLED;
+ 		}
+ 	}
+-
++	*/
+ 	/* FIXME: should handle all menu shortcuts before this point */
+ 	if (the_menubar->active)
+ 	    return MSG_NOT_HANDLED;
+@@ -1627,6 +1682,7 @@ midnight_callback (struct Dlg_head *h, dlg_msg_t msg, int parm)
+ 	return MSG_HANDLED;
+ 
+     case DLG_UNHANDLED_KEY:
++        mc_log("case DLG_UNHANDLED_KEY: %i", parm);
+ 	if (command_prompt) {
+ 	    int v;
+ 
+diff --git a/src/main.h b/src/main.h
+index 9768236..ffb2afb 100644
+--- a/src/main.h
++++ b/src/main.h
+@@ -127,8 +127,8 @@ int  do_panel_cd             (struct WPanel *panel, const char *new_dir, enum cd
+ 
+ #endif
+ 
+-typedef struct global_command_type {
+-    int    key;
++typedef struct panel_command_type {
++    int     command;
+     char   *cmd_name;
+-    callfn command;
+-} global_command_type;
++    callfn  command_fn;
++} panel_command_type;
+-- 
+1.6.1.1
+

@@ -1,0 +1,2246 @@
+diff --git a/acinclude.m4 b/acinclude.m4
+index b156296..9f071a7 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -13,6 +13,7 @@ m4_include([m4.include/mc-use-termcap.m4])
+ m4_include([m4.include/mc-with-screen.m4])
+ m4_include([m4.include/mc-with-internal-edit.m4])
+ m4_include([m4.include/mc-subshell.m4])
++m4_include([m4.include/mc-tabs.m4])
+ m4_include([m4.include/mc-background.m4])
+ m4_include([m4.include/ac-glib.m4])
+ m4_include([m4.include/mc-vfs.m4])
+diff --git a/configure.ac b/configure.ac
+index c82fdd0..9d40560 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -400,6 +400,7 @@ else
+ fi
+ 
+ MC_SUBSHELL
++MC_TABS
+ MC_BACKGROUND
+ AC_MC_VFS_CHECKS
+ 
+@@ -653,6 +654,7 @@ Configuration:
+   Mouse support:              ${mouse_lib}
+   X11 events support:         ${textmode_x11_support}
+   With subshell support:      ${subshell}
++  With tabs support:          ${tabs}
+   With background operations: ${enable_background}
+   Internal editor:            ${edit_msg}
+   Diff viewer:                ${diff_msg}
+diff --git a/lib/fileloc.h b/lib/fileloc.h
+index d0ca28b..2b5a9c5 100644
+--- a/lib/fileloc.h
++++ b/lib/fileloc.h
+@@ -60,6 +60,9 @@
+ #define MC_USERMENU_FILE        "menu"
+ #define MC_TREESTORE_FILE       "Tree"
+ #define MC_PANELS_FILE          "panels.ini"
++#ifdef WITH_TABS
++#define MC_TABS_SESSION_SUBDIR  "tabs.sessions"
++#endif
+ #define MC_FHL_INI_FILE         "filehighlight.ini"
+ #define MC_SKINS_SUBDIR         "skins"
+ 
+diff --git a/lib/keybind.c b/lib/keybind.c
+index 4a7b62a..e980465 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -72,6 +72,22 @@ static name_keymap_t command_names[] = {
+     {"Delete", CK_Delete},
+     {"MakeDir", CK_MakeDir},
+     {"ChangeMode", CK_ChangeMode},
++#ifdef WITH_TABS
++    {"CreateTab", CK_CreateTab},
++    {"CloseTab", CK_CloseTab},
++    {"RenameTab", CK_RenameTab},
++    {"NextTab", CK_NextTab},
++    {"MoveTab", CK_MoveTab},
++    {"CopyTab", CK_CopyTab},
++    {"MoveTabLeft", CK_MoveTabLeft},
++    {"MoveTabRight", CK_MoveTabRight},
++    {"SwapTab", CK_SwapTab},
++    {"PreviousTab", CK_PreviousTab},
++    {"TabsOptions", CK_TabsOptions},
++    {"GoToTab", CK_GoToTab},
++    {"TabsSaveSession", CK_TabsSaveSession},
++    {"TabsRestoreSession", CK_TabsRestoreSession},
++#endif
+     {"ChangeOwn", CK_ChangeOwn},
+     {"ChangeOwnAdvanced", CK_ChangeOwnAdvanced},
+     {"Remove", CK_Remove},
+diff --git a/lib/keybind.h b/lib/keybind.h
+index d5031ae..85b4289 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -91,6 +91,22 @@ enum
+     CK_SaveAs,
+     CK_Goto,
+     CK_Reread,
++#ifdef WITH_TABS
++    CK_CreateTab,
++    CK_CloseTab,
++    CK_RenameTab,
++    CK_NextTab,
++    CK_PreviousTab,
++    CK_TabsOptions,
++    CK_TabsSaveSession,
++    CK_TabsRestoreSession,
++    CK_GoToTab,
++    CK_MoveTab,
++    CK_CopyTab,
++    CK_MoveTabLeft = 800,
++    CK_MoveTabRight = 801,
++    CK_SwapTab,
++#endif
+     CK_Refresh,
+     CK_Suspend,
+     CK_Swap,
+diff --git a/lib/mcconfig.h b/lib/mcconfig.h
+index cc68992..5574e61 100644
+--- a/lib/mcconfig.h
++++ b/lib/mcconfig.h
+@@ -9,6 +9,9 @@
+ #define CONFIG_PANELS_SECTION "Panels"
+ #define CONFIG_LAYOUT_SECTION "Layout"
+ #define CONFIG_MISC_SECTION "Misc"
++#ifdef WITH_TABS
++#define CONFIG_TABS_SECTION "Tabs"
++#endif
+ #define CONFIG_EXT_EDITOR_VIEWER_SECTION "External editor or viewer parameters"
+ 
+ /*** enums ***************************************************************************************/
+diff --git a/lib/mcconfig/paths.c b/lib/mcconfig/paths.c
+index c2aefa9..cfafc69 100644
+--- a/lib/mcconfig/paths.c
++++ b/lib/mcconfig/paths.c
+@@ -83,6 +83,9 @@ static const struct
+ 
+     /* data */
+     { "skins",                                 &mc_data_str, MC_SKINS_SUBDIR},
++#ifdef WITH_TABS
++    { "tabs.sessions",                         &mc_config_str, MC_TABS_SESSION_SUBDIR}, 
++#endif
+     { "fish",                                  &mc_data_str, FISH_PREFIX},
+     { "bashrc",                                &mc_data_str, "bashrc"},
+     { "inputrc",                               &mc_data_str, "inputrc"},
+diff --git a/m4.include/mc-tabs.m4 b/m4.include/mc-tabs.m4
+new file mode 100644
+index 0000000..3ece8a0
+--- /dev/null
++++ b/m4.include/mc-tabs.m4
+@@ -0,0 +1,30 @@
++dnl
++dnl Tabs support
++dnl
++dnl @author Cosmin Popescu <cosminadrianpopescu@gmail.com>
++dnl @copyright Free Software Foundation, Inc.
++AC_DEFUN([MC_TABS], [
++
++    AC_MSG_CHECKING([for tabs support])
++    AC_ARG_WITH(tabs,
++            [  --with-tabs          Compile with tabs support @<:@yes@:>@
++  --with-tabs=no Do not compile tab support @<:@no@:>@],
++            [
++                result=no
++                if test x$withval = xyes; then
++                    AC_DEFINE(WITH_TABS, 1,  [Define to make tabs support optional])
++                    result="yes"
++                fi
++                if test x$withval = xyes; then
++                    result="yes"
++                fi
++            ],
++            [
++                dnl Default: enable the tabs support
++                result="no"
++            ])
++
++    AC_MSG_RESULT([$result])
++    tabs="$result"
++
++])
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 28bf221..ea5636e 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -732,6 +732,55 @@ panel_options_box (void)
+     update_panels (UP_RELOAD, UP_KEEPSEL);
+ }
+ 
++#ifdef WITH_TABS
++void
++tabs_options_box (void)
++{
++    const char *open_where_options[] = {
++        N_("&Before current tab"),
++        N_("&After current tab"),
++        N_("At &end of tab bar"),
++        N_("At be&ginning of tab bar")
++    };
++
++    const char *bar_position_options[] = {
++        N_("&Top"),
++        N_("&Bottom")
++    };
++
++    {
++        quick_widget_t quick_widgets[] = {
++            /* *INDENT-OFF* */
++            QUICK_START_GROUPBOX (N_("Open tabs")),
++                QUICK_RADIO (TABS_NUM, open_where_options, (int *) &tabs_options.open_where,
++                             NULL),
++            QUICK_STOP_GROUPBOX,
++            QUICK_START_GROUPBOX (N_("Tabs bar position")),
++                QUICK_RADIO (POS_NUM, bar_position_options, (int *) &tabs_options.bar_position,
++                             NULL),
++            QUICK_STOP_GROUPBOX,
++            QUICK_CHECKBOX (N_("H&ighlight current tab in the other panel"), &tabs_options.highlight_current_tab, NULL),
++            QUICK_CHECKBOX (N_("&Hide tab bar if only one tab"), &tabs_options.hide_tabs, NULL),
++            QUICK_CHECKBOX (N_("&Restore tabs when starting"), &tabs_options.restore_on_load, NULL),
++            QUICK_BUTTONS_OK_CANCEL,
++            QUICK_END
++            /* *INDENT-ON* */
++        };
++
++        quick_dialog_t qdlg = {
++            -1, -1, 60,
++            N_("Tabs options"), "[Tabs options]",
++            quick_widgets, NULL, NULL
++        };
++
++        if (quick_dialog (&qdlg) != B_ENTER)
++            return;
++    }
++
++    update_panels (UP_RELOAD, UP_KEEPSEL);
++}
++#endif
++
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ /* return list type */
+diff --git a/src/filemanager/boxes.h b/src/filemanager/boxes.h
+index 9859a73..5561f87 100644
+--- a/src/filemanager/boxes.h
++++ b/src/filemanager/boxes.h
+@@ -21,6 +21,9 @@
+ void configure_box (void);
+ void appearance_box (void);
+ void panel_options_box (void);
++#ifdef WITH_TABS
++void tabs_options_box (void);
++#endif
+ int panel_listing_box (WPanel * p, char **user, char **mini, int *use_msformat, int num);
+ const panel_field_t *sort_box (dir_sort_options_t * op, const panel_field_t * sort_field);
+ void confirm_box (void);
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 96bdd19..54a6ad7 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -983,6 +983,15 @@ set_display_type (int num, panel_view_mode_t type)
+                     x = panels_layout.left_panel_size;
+             }
+         }
++#ifdef WITH_TABS
++        if (old_type == view_listing)
++        {
++            Widget *_w = panels[num].widget;
++            WPanel *_p = PANEL (_w);
++            _p->tabs.do_not_delete = 1;
++            change_tab (_p, dir_absolute, _p->tabs.list);
++        }
++#endif
+     }
+ 
+     /* Restoring saved path from panels.ini for nonlist panel */
+@@ -1120,6 +1129,10 @@ swap_panels (void)
+         panelswap (selected);
+         panelswap (is_panelized);
+         panelswap (dir_stat);
++#ifdef WITH_TABS
++        panelswap (tabs.list);
++        panelswap (tabs.current);
++#endif
+ #undef panelswapstr
+ #undef panelswap
+ 
+@@ -1406,4 +1419,17 @@ update_xterm_title_path (void)
+     }
+ }
+ 
++#ifdef WITH_TABS
++WPanel *
++get_target_panel (int menu)
++{
++    WPanel *p = PANEL (panels[menu].widget);
++    if (menu == -1)
++    {
++        return current_panel;
++    }
++    return p;
++}
++#endif
++
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/filemanager/layout.h b/src/filemanager/layout.h
+index 958549d..1dc649d 100644
+--- a/src/filemanager/layout.h
++++ b/src/filemanager/layout.h
+@@ -66,6 +66,9 @@ panel_view_mode_t get_current_type (void);
+ panel_view_mode_t get_other_type (void);
+ int get_current_index (void);
+ int get_other_index (void);
++#ifdef WITH_TABS
++WPanel *get_target_panel (int menu);
++#endif
+ const char *get_nth_panel_name (int num);
+ 
+ struct Widget *get_panel_widget (int idx);
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index da25d75..ee8cb5c 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -226,6 +226,17 @@ create_panel_menu (void)
+     entries = g_list_prepend (entries, menu_separator_create ());
+     entries = g_list_prepend (entries, menu_entry_create (_("&Rescan"), CK_Reread));
+ 
++#ifdef WITH_TABS
++    entries = g_list_prepend (entries, menu_separator_create ());
++    entries = g_list_prepend (entries, menu_entry_create (_("&Create tab"), CK_CreateTab));
++    entries = g_list_prepend (entries, menu_entry_create (_("Cl&ose tab"), CK_CloseTab));
++    entries = g_list_prepend (entries, menu_entry_create (_("Re&name tab"), CK_RenameTab));
++    entries = g_list_prepend (entries, menu_entry_create (_("Ne&xt tab"), CK_NextTab));
++    entries = g_list_prepend (entries, menu_entry_create (_("Pre&vious tab"), CK_PreviousTab));
++    entries = g_list_prepend (entries, menu_entry_create (_("&Move tab left"), CK_MoveTabLeft));
++    entries = g_list_prepend (entries, menu_entry_create (_("Move tab ri&ght"), CK_MoveTabRight));
++    entries = g_list_prepend (entries, menu_entry_create (_("Go to ta&b"), CK_GoToTab));
++#endif
+     return g_list_reverse (entries);
+ }
+ 
+@@ -289,6 +300,14 @@ create_command_menu (void)
+     entries =
+         g_list_prepend (entries, menu_entry_create (_("E&xternal panelize"), CK_ExternalPanelize));
+     entries = g_list_prepend (entries, menu_entry_create (_("Show directory s&izes"), CK_DirSize));
++#ifdef WITH_TABS
++    entries = g_list_prepend (entries, menu_separator_create ());
++    entries =
++        g_list_prepend (entries, menu_entry_create (_("Move tab to the other pane&l"), CK_MoveTab));
++    entries =
++        g_list_prepend (entries, menu_entry_create (_("Copy tab to the other pa&nel"), CK_CopyTab));
++    entries = g_list_prepend (entries, menu_entry_create (_("&Swap tabs"), CK_SwapTab));
++#endif
+     entries = g_list_prepend (entries, menu_separator_create ());
+     entries = g_list_prepend (entries, menu_entry_create (_("Command &history"), CK_History));
+     entries = g_list_prepend (entries, menu_entry_create (_("Di&rectory hotlist"), CK_HotList));
+@@ -333,6 +352,9 @@ create_options_menu (void)
+     entries = g_list_prepend (entries, menu_entry_create (_("&Configuration..."), CK_Options));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Layout..."), CK_OptionsLayout));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Panel options..."), CK_OptionsPanel));
++#ifdef WITH_TABS
++    entries = g_list_prepend (entries, menu_entry_create (_("&Tabs options..."), CK_TabsOptions));
++#endif
+     entries =
+         g_list_prepend (entries, menu_entry_create (_("C&onfirmation..."), CK_OptionsConfirm));
+     entries =
+@@ -345,6 +367,13 @@ create_options_menu (void)
+ #endif
+     entries = g_list_prepend (entries, menu_separator_create ());
+     entries = g_list_prepend (entries, menu_entry_create (_("&Save setup"), CK_SaveSetup));
++#ifdef WITH_TABS
++    entries =
++        g_list_prepend (entries, menu_entry_create (_("Save tabs sessio&n"), CK_TabsSaveSession));
++    entries =
++        g_list_prepend (entries,
++                        menu_entry_create (_("Restore tabs sessi&on"), CK_TabsRestoreSession));
++#endif
+ 
+     return g_list_reverse (entries);
+ }
+@@ -957,6 +986,16 @@ create_panels_and_run_mc (void)
+     midnight_set_buttonbar (the_bar);
+ 
+     /* Run the Midnight Commander if no file was specified in the command line */
++#ifdef WITH_TABS
++    saved_tabs = NULL;
++    if (tabs_options.restore_on_load)
++    {
++        char *title = g_new0 (char, 255);
++        strcpy (title, "default");
++        restore_tabs_session (title);
++        g_free (title);
++    }
++#endif
+     dlg_run (midnight_dlg);
+ }
+ 
+@@ -1282,6 +1321,52 @@ midnight_execute_cmd (Widget * sender, unsigned long command)
+     case CK_OptionsPanel:
+         panel_options_box ();
+         break;
++#ifdef WITH_TABS
++    case CK_TabsOptions:
++        tabs_options_box ();
++        break;
++    case CK_TabsSaveSession:
++        save_tabs_session_custom ();
++        break;
++    case CK_TabsRestoreSession:
++        restore_tabs_session_custom ();
++        break;
++    case CK_CreateTab:
++        new_tab (TARGET_PANEL);
++        break;
++    case CK_CloseTab:
++        close_tab (TARGET_PANEL);
++        break;
++    case CK_RenameTab:
++        rename_tab (TARGET_PANEL);
++        break;
++    case CK_NextTab:
++        // If the sender if the menu bar, then do next tab in the corresponding menu panel. 
++        // Otherwise, do it in the current panel (-1)
++        change_tab (TARGET_PANEL, dir_next, NULL);
++        break;
++    case CK_CopyTab:
++        copy_tab_to_other_panel ();
++        break;
++    case CK_MoveTabLeft:
++        move_tab (TARGET_PANEL, dir_previous);
++        break;
++    case CK_MoveTabRight:
++        move_tab (TARGET_PANEL, dir_next);
++        break;
++    case CK_SwapTab:
++        swap_tabs ();
++        break;
++    case CK_MoveTab:
++        move_tab_to_other_panel ();
++        break;
++    case CK_PreviousTab:
++        change_tab (TARGET_PANEL, dir_previous, NULL);
++        break;
++    case CK_GoToTab:
++        goto_tab (TARGET_PANEL);
++        break;
++#endif
+ #ifdef HAVE_CHARSET
+     case CK_SelectCodepage:
+         encoding_cmd ();
+@@ -1730,6 +1815,9 @@ do_nc (void)
+ {
+     gboolean ret;
+ 
++#ifdef WITH_TABS
++    char *title = g_new0 (char, 255);
++#endif
+ #ifdef USE_INTERNAL_EDIT
+     edit_stack_init ();
+ #endif
+@@ -1767,6 +1855,11 @@ do_nc (void)
+ 
+     /* Program end */
+     mc_global.midnight_shutdown = TRUE;
++#ifdef WITH_TABS
++    strcpy (title, "default");
++    save_tabs_session (title);
++    g_free (title);
++#endif
+     dialog_switch_shutdown ();
+     done_mc ();
+     dlg_destroy (midnight_dlg);
+diff --git a/src/filemanager/midnight.h b/src/filemanager/midnight.h
+index 4ad3629..8c7db2c 100644
+--- a/src/filemanager/midnight.h
++++ b/src/filemanager/midnight.h
+@@ -14,6 +14,9 @@
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
++#ifdef WITH_TABS
++#define TARGET_PANEL get_target_panel(sender == WIDGET (the_menubar) ? MENU_PANEL_IDX : -1)
++#endif
+ #define MENU_PANEL (mc_global.widget.is_right ? right_panel : left_panel)
+ #define MENU_PANEL_IDX  (mc_global.widget.is_right ? 1 : 0)
+ #define SELECTED_IS_PANEL (get_display_type (MENU_PANEL_IDX) == view_listing)
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 3879bb1..da774fa 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -321,7 +321,12 @@ extern int saving_setup;
+ #define STATUS          5
+ 
+ /* This macro extracts the number of available lines in a panel */
++#ifdef WITH_TABS
++#define llines(p) (WIDGET (p)->lines - (TABS_UP(p) ? 4 : 3) - (panels_options.show_mini_info ? 4 : 2) + (TABS_UP(p) ? 0 : (TABS_VISIBLE(p) ? 0 : 2)))
++#else
+ #define llines(p) (WIDGET (p)->lines - 3 - (panels_options.show_mini_info ? 2 : 0))
++#endif
++
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+@@ -927,6 +932,9 @@ repaint_file (WPanel * panel, int file_index, gboolean mv, int attr, gboolean is
+             ypos = pos;
+ 
+         ypos += 2;
++#ifdef WITH_TABS
++        ypos += TABS_UP (panel) ? 3 : 0;
++#endif
+         widget_move (w, ypos, offset + 1);
+     }
+ 
+@@ -979,7 +987,12 @@ display_mini_info (WPanel * panel)
+     if (!panels_options.show_mini_info)
+         return;
+ 
++#ifdef WITH_TABS
++    widget_move (w, llines (panel) + 3 + (TABS_UP (panel) ? 3 : 0), 1);
++#else
+     widget_move (w, llines (panel) + 3, 1);
++#endif
++
+ 
+     if (panel->searching)
+     {
+@@ -1104,7 +1117,11 @@ mini_info_separator (WPanel * panel)
+     if (panels_options.show_mini_info)
+     {
+         Widget *w = WIDGET (panel);
++#ifdef WITH_TABS
++        const int y = llines (panel) + 2 + (TABS_UP (panel) ? 3 : 0);
++#else
+         const int y = llines (panel) + 2;
++#endif
+ 
+         tty_setcolor (NORMAL_COLOR);
+         tty_draw_hline (w->y + y, w->x + 1, ACS_HLINE, w->cols - 2);
+@@ -1255,9 +1272,17 @@ show_dir (WPanel * panel)
+ 
+     if (panels_options.show_mini_info)
+     {
++#ifdef WITH_TABS
++        widget_move (w, llines (panel) + 2 + (TABS_UP (panel) ? 3 : 0), 0);
++#else
+         widget_move (w, llines (panel) + 2, 0);
++#endif
+         tty_print_alt_char (ACS_LTEE, FALSE);
++#ifdef WITH_TABS
++        widget_move (w, llines (panel) + 2 + (TABS_UP (panel) ? 3 : 0), w->cols - 1);
++#else
+         widget_move (w, llines (panel) + 2, w->cols - 1);
++#endif
+         tty_print_alt_char (ACS_RTEE, FALSE);
+     }
+ 
+@@ -1462,6 +1487,10 @@ panel_destroy (WPanel * p)
+ {
+     size_t i;
+ 
++#ifdef WITH_TABS
++    destroy_tabs (p);
++#endif
++
+     if (panels_options.auto_save_setup)
+     {
+         char *name;
+@@ -1516,7 +1545,11 @@ panel_paint_sort_info (WPanel * panel)
+         char *str;
+ 
+         str = g_strdup_printf ("%s%s", sort_sign, Q_ (panel->sort_field->hotkey));
++#ifdef WITH_TABS
++        widget_move (panel, TABS_UP (panel) ? 4 : 1, 1);
++#else
+         widget_move (panel, 1, 1);
++#endif
+         tty_print_string (str);
+         g_free (str);
+     }
+@@ -1559,7 +1592,11 @@ paint_frame (WPanel * panel)
+     widget_erase (w);
+     show_dir (panel);
+ 
++#ifdef WITH_TABS
++    widget_move (w, TABS_UP (panel) ? 4 : 1, 1);
++#else
+     widget_move (w, 1, 1);
++#endif
+ 
+     for (side = 0; side <= panel->split; side++)
+     {
+@@ -3591,6 +3628,10 @@ panel_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+     case MSG_DRAW:
+         /* Repaint everything, including frame and separator */
+         paint_frame (panel);    /* including show_dir */
++#ifdef WITH_TABS
++        draw_tabs (get_other_type () != view_listing
++                   || get_current_type () != view_listing ? panel : NULL);
++#endif
+         paint_dir (panel);
+         mini_info_separator (panel);
+         display_mini_info (panel);
+@@ -3623,6 +3664,10 @@ panel_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         bb = find_buttonbar (w->owner);
+         midnight_set_buttonbar (bb);
+         widget_redraw (WIDGET (bb));
++#ifdef WITH_TABS
++        draw_tabs (get_other_type () != view_listing
++                   || get_current_type () != view_listing ? panel : NULL);
++#endif
+         return MSG_HANDLED;
+ 
+     case MSG_UNFOCUS:
+@@ -3810,12 +3855,24 @@ panel_event (Gpm_Event * event, void *data)
+     }
+ 
+     /* sort on clicked column; don't handle wheel events */
++#ifdef WITH_TABS
++    if (mouse_down && (local.buttons & (GPM_B_UP | GPM_B_DOWN)) == 0
++        && local.y == (TABS_UP (panel) ? 5 : 2))
++#else
+     if (mouse_down && (local.buttons & (GPM_B_UP | GPM_B_DOWN)) == 0 && local.y == 2)
++#endif
+     {
+         mouse_sort_col (panel, local.x);
+         goto finish;
+     }
+ 
++#ifdef WITH_TABS
++    if (mouse_down && (local.buttons & (GPM_B_UP | GPM_B_DOWN)) == 0
++        && local.y == (TABS_UP (panel) ? 3 : w->lines - 1))
++    {
++        process_tab_click (local.x);
++    }
++#endif
+     /* Mouse wheel events */
+     if (mouse_down && (local.buttons & GPM_B_UP) != 0)
+     {
+@@ -3842,7 +3899,11 @@ panel_event (Gpm_Event * event, void *data)
+         goto finish;
+     }
+ 
++#ifdef WITH_TABS
++    local.y -= (TABS_UP (panel) ? 5 : 2);
++#else
+     local.y -= 2;
++#endif
+     if ((local.type & (GPM_DOWN | GPM_DRAG)) != 0)
+     {
+         int my_index;
+@@ -4279,6 +4340,19 @@ panel_new_with_dir (const char *panel_name, const vfs_path_t * vpath)
+         section = g_strdup (panel->panel_name);
+     }
+     panel_load_setup (panel, section);
++#ifdef WITH_TABS
++    if (saved_tabs != NULL)
++    {
++        panel->tabs.list = saved_tabs;
++        panel->tabs.current = saved_tabs;
++        saved_tabs = NULL;
++    }
++    else
++    {
++        create_tab (panel, dir_next, NULL);
++    }
++    panel->tabs.do_not_delete = 0;
++#endif
+     g_free (section);
+ 
+     /* Load format strings */
+@@ -4998,4 +5072,1233 @@ do_cd (const vfs_path_t * new_dir_vpath, enum cd_enum exact)
+     return res;
+ }
+ 
++#ifdef WITH_TABS
++/**
++ * Gets the new tabs direction from preferences
++ */
++enum tabs_direction
++get_new_tabs_direction ()
++{
++    if (tabs_options.open_where == BEFORE_CURRENT)
++    {
++        return dir_previous;
++    }
++    else if (tabs_options.open_where == AFTER_CURRENT)
++    {
++        return dir_next;
++    }
++    else if (tabs_options.open_where == AT_END)
++    {
++        return dir_last;
++    }
++    else if (tabs_options.open_where == AT_BEGINNING)
++    {
++        return dir_first;
++    }
++
++    return dir_last;
++}
++
++/**
++ * This function will create a new tab in the current panel
++ */
++void
++new_tab (WPanel * panel)
++{
++    enum tabs_direction d = get_new_tabs_direction ();
++    create_tab (panel, d, NULL);
++    change_tab (panel, d, NULL);
++    draw_tabs (panel);
++    panel->dirty = 1;
++}
++
++/**
++ * Copies the current tab from the current panel to the other Panel
++ */
++void
++copy_tab_to_other_panel (void)
++{
++    WPanel *opanel = (WPanel *) other_panel;
++    WPanel *cpanel = (WPanel *) current_panel;
++    Tab *tc, *to;
++    enum tabs_direction d = get_new_tabs_direction ();
++
++    tc = cpanel->tabs.current->data;
++    create_tab (opanel, d, NULL);
++    change_tab (opanel, d, NULL);
++    to = opanel->tabs.current->data;
++
++    if (tc->name != NULL)
++    {
++        to->name = g_new0 (char, strlen (tc->name) + 1);
++        strcpy (to->name, tc->name);
++    }
++    to->path = vfs_path_clone (cpanel->cwd_vpath);
++    do_panel_cd (opanel, to->path, cd_exact);
++    draw_tabs (opanel);
++}
++
++void
++swap_tabs (void)
++{
++    WPanel *panel1 = (WPanel *) other_panel;
++    WPanel *panel2 = (WPanel *) current_panel;
++    GList *b, *e, *d, *f;
++    // We consider the tabs on the current panel a, b, c
++    // and the tabs on the other panel d, e, f
++    // We try to change b and e. 
++    // If we have only one tab on each panel, then we do switch panel. 
++    // We have a special case if we have only one tab on only one of the panels. 
++    // Then this algorithm will work if panel1 is the panel with only one tab
++    // If we changed the first tab of any of the panel, we have to also change the panel->tabs.list pointer
++
++    if (panel1->tabs.current->next == panel1->tabs.current
++        && panel2->tabs.current->next == panel2->tabs.current)
++    {
++        swap_panels ();
++        tty_touch_screen ();
++        repaint_screen ();
++        return;
++    }
++    else
++    {
++        if (panel2->tabs.current->next == panel2->tabs.current)
++        {
++            panel1 = (WPanel *) current_panel;
++            panel2 = (WPanel *) other_panel;
++        }
++    }
++
++    b = panel1->tabs.current;
++    ((Tab *) b->data)->path = vfs_path_clone (panel1->cwd_vpath);
++    e = panel2->tabs.current;
++    ((Tab *) e->data)->path = vfs_path_clone (panel2->cwd_vpath);
++    d = e->prev;
++    f = e->next;
++
++    if (b->prev != b)
++    {
++        b->prev->next = e;
++    }
++    e->next = b->next == b ? e : b->next;
++    if (b->next != b)
++    {
++        b->next->prev = e;
++    }
++    e->prev = b->prev == b ? e : b->prev;
++
++    d->next = b;
++    b->next = f;
++    f->prev = b;
++    b->prev = d;
++
++    panel1->tabs.current = e;
++    if (panel1->tabs.list == b)
++    {
++        panel1->tabs.list = e;
++    }
++    panel2->tabs.current = b;
++    if (panel2->tabs.list == e)
++    {
++        panel2->tabs.list = b;
++    }
++    do_panel_cd (panel1, ((Tab *) e->data)->path, cd_exact);
++    do_panel_cd (panel2, ((Tab *) b->data)->path, cd_exact);
++    change_panel ();
++    repaint_screen ();
++}
++
++/**
++ * Moves the current tab from the current panel to the other Panel
++ */
++void
++move_tab_to_other_panel (void)
++{
++    WPanel *opanel = (WPanel *) other_panel;
++    WPanel *cpanel = (WPanel *) current_panel;
++    Tab *t;
++    GList *i;
++    enum tabs_direction d = get_new_tabs_direction ();
++    int first_tab = 0;
++
++    if (cpanel->tabs.list->next == cpanel->tabs.list)
++    {
++        message (D_ERROR, MSG_ERROR, _("The current tab is the only one.\nYou cannot move it."));
++    }
++    else
++    {
++        if (cpanel->tabs.list == cpanel->tabs.current)
++        {
++            cpanel->tabs.list = cpanel->tabs.list->next;
++            first_tab = 1;
++        }
++        t = cpanel->tabs.current->data;
++        create_tab (opanel, d, (Tab *) t);
++        i = cpanel->tabs.current;
++        change_tab (cpanel, dir_previous, NULL);
++        i->prev->next = i->next;
++        i->next->prev = i->prev;
++        g_free (i);
++        i = opanel->tabs.current->next;
++        while (i != opanel->tabs.current)
++        {
++            if (i->data == t)
++            {
++                break;
++            }
++
++            i = i->next;
++        }
++        change_tab (opanel, dir_absolute, i);
++        change_panel ();
++        if (first_tab)
++        {
++            change_tab (cpanel, dir_absolute, cpanel->tabs.list);
++        }
++        repaint_screen ();
++    }
++}
++
++/**
++ * This function will close a tab
++ * @return void
++ */
++void
++close_tab (WPanel * p)
++{
++    if (p->tabs.list->next == p->tabs.list)
++    {
++        message (D_ERROR, MSG_ERROR, _("The current tab is the only one.\nYou cannot close it."));
++    }
++    else
++    {
++        int first = p->tabs.current == p->tabs.list;
++        GList *b = p->tabs.current->prev;
++        GList *c = p->tabs.current;
++        GList *d = p->tabs.current->next;
++        change_tab (p, dir_previous, NULL);
++        b->next = d;
++        d->prev = b;
++
++        destroy_tab (c->data);
++        g_free (c);
++
++        if (first)
++        {
++            p->tabs.list = d;
++        }
++    }
++}
++
++/**
++ * This function renames a tab
++ * @return void
++ */
++void
++rename_tab (WPanel * p)
++{
++    Tab *t = (Tab *) p->tabs.current->data;
++    char *title = TAB_TITLE (p, t);
++
++    char *name = input_dialog (_("Tab rename"), _("Please enter the new name:"), NULL, title,
++                               INPUT_COMPLETE_NONE);
++    if (name)
++    {
++        if (strlen (name))
++        {
++            t->name = g_new0 (char, strlen (name) + 1);
++            strcpy (t->name, name);
++            g_free (name);
++            g_free (title);
++        }
++    }
++    widget_redraw ((Widget *) p);
++}
++
++int
++get_tab_index (WPanel * p, GList * t)
++{
++    int result = 0;
++    GList *i = p->tabs.list;
++    do
++    {
++        if (i == t)
++        {
++            return result;
++        }
++        result++;
++        i = i->next;
++    }
++    while (i != p->tabs.list);
++
++    return 0;
++}
++
++/**
++ * This function goes to an arbitrary choosen tab
++ * @return void
++ */
++void
++goto_tab (WPanel * p)
++{
++    Listbox *listbox =
++        create_listbox_window (15, 60, _("Available Tabs"), "[Available Tabs Selector]");
++    GList *it = p->tabs.list;
++    int items = 0;
++    int result;
++
++    do
++    {
++        char *title = TAB_TITLE (p, it->data);
++        listbox_add_item (listbox->list, LISTBOX_APPEND_AT_END, 0, title, (void *) it);
++        it = it->next;
++        items++;
++    }
++    while (it != p->tabs.list);
++
++    listbox_select_entry (listbox->list, get_tab_index (current_panel, p->tabs.current));
++
++    result = run_listbox (listbox);
++
++    if (result >= 0)
++    {
++        GList *t;
++        t = g_list_nth ((GList *) p->tabs.list, result);
++        change_tab (p, dir_absolute, t);
++    }
++}
++
++void
++create_tab (WPanel * p, enum tabs_direction direction, Tab * t)
++{
++    GList *b = NULL;
++    GList *c = g_new0 (GList, 1);
++
++    if (t == NULL)
++    {
++        t = g_new0 (Tab, 1);
++        t->path = NULL;
++        t->name = NULL;
++    }
++
++    if (direction == dir_next)
++    {
++        b = p->tabs.current;
++    }
++    else if (direction == dir_previous)
++    {
++        b = p->tabs.current->prev;
++    }
++    else if (direction == dir_last || direction == dir_first)
++    {
++        b = p->tabs.list->prev;
++    }
++    c->data = t;
++
++    if (b)
++    {
++        GList *d = b->next;
++        b->next = c;
++        c->next = d;
++        d->prev = c;
++        c->prev = b;
++    }
++    else
++    {
++        c->next = c;
++        c->prev = c;
++        p->tabs.current = c;
++    }
++
++    if (!p->tabs.list)
++    {
++        p->tabs.list = c;
++    }
++
++    if (direction == dir_first)
++    {
++        p->tabs.list = c;
++    }
++
++}
++
++GList *
++get_tab_by_index (WPanel * p, int idx)
++{
++    int i = 0;
++    GList *t = p->tabs.list;
++
++    while (i++ < idx)
++    {
++        t = t->next;
++    }
++
++    return t;
++}
++
++RestoredTabs
++_restore_tabs (FILE * f)
++{
++    RestoredTabs result;
++    Tab *t;
++    int idx = 0;
++    int crt_idx;
++    GList *i;
++    GList *j = NULL;
++    char *line = g_new0 (char, 1024);
++
++    result.error = 0;
++    result.list = NULL;
++    fscanf (f, "%d\n%d\n", &result.idx, &crt_idx);
++
++    if (crt_idx == -1)
++    {
++        return result;
++    }
++
++    do
++    {
++        read_line (line, 1024, f);
++        if (strcmp (line, "") && !feof (f))
++        {
++            t = g_new0 (Tab, 1);
++            if (!strcmp (line, "(null)"))
++            {
++                t->name = NULL;
++            }
++            else
++            {
++                t->name = g_new0 (char, strlen (line) + 1);
++                memcpy (t->name, line, strlen (line) + 1);
++            }
++
++            read_line (line, 1024, f);
++            if (!strcmp (line, ""))
++            {
++                result.error = 1;
++                return result;
++            }
++            t->path = vfs_path_from_str (line);
++
++            i = g_new0 (GList, 1);
++            i->data = (void *) t;
++
++            if (result.list == NULL)
++            {
++                result.list = i;
++                result.list->prev = result.list;
++                j = i;
++            }
++            i->next = result.list;
++            result.list->prev = i;
++            i->prev = j;
++            j->next = i;
++            j = i;
++
++            if (idx++ == crt_idx)
++            {
++                result.current = j;
++            }
++        }
++    }
++    while (!feof (f) && strcmp (line, "") && !result.error);
++
++    g_free (line);
++
++    return result;
++}
++
++void
++abort_restore (RestoredTabs restored)
++{
++    WPanel *tmp = g_new0 (WPanel, 1);
++    tmp->tabs.list = restored.list;
++    destroy_tabs (tmp);
++    message (D_ERROR, MSG_ERROR, _("Error restoring the tabs."));
++    g_free (tmp);
++}
++
++void
++read_line (char *line, int max, FILE * f)
++{
++    fgets (line, max, f);
++    if (line[strlen (line) - 1] == '\n')
++    {
++        line[strlen (line) - 1] = '\0';
++    }
++}
++
++void
++restore_tabs_session (char *title)
++{
++    char *file_name = g_new0 (char, strlen (tabs_options.sessions_folder) + 1 + strlen (title) + 1);
++    RestoredTabs restored1, restored2;
++    char *line = g_new0 (char, 1024);
++    Tab *t;
++
++    restored1.list = restored1.current = restored2.list = restored2.current = NULL;
++
++    sprintf (file_name, "%s/%s", tabs_options.sessions_folder, title);
++
++    if (exist_file (file_name))
++    {
++        FILE *f = fopen (file_name, "rt");
++        read_line (line, 1024, f);
++        if (strcmp (line, "[Current Panel]"))
++        {
++            abort_restore (restored1);
++            g_free (line);
++            g_free (file_name);
++            return;
++        }
++
++        restored1 = _restore_tabs (f);
++        if (restored1.error)
++        {
++            abort_restore (restored1);
++            g_free (line);
++            g_free (file_name);
++            return;
++        }
++        read_line (line, 1024, f);
++        if (strcmp (line, "[Other Panel]"))
++        {
++            abort_restore (restored1);
++            g_free (line);
++            g_free (file_name);
++            return;
++        }
++        restored2 = _restore_tabs (f);
++        if (restored2.error)
++        {
++            abort_restore (restored1);
++            abort_restore (restored2);
++            g_free (line);
++            g_free (file_name);
++            return;
++        }
++
++        fclose (f);
++        if (restored1.list && get_display_type (get_current_index ()) == view_listing)
++        {
++            destroy_tabs (current_panel);
++            current_panel->tabs.list = restored1.list;
++            current_panel->tabs.current = restored1.current;
++
++            t = (Tab *) current_panel->tabs.current->data;
++            do_panel_cd (current_panel, t->path, cd_exact);
++
++        }
++        if (restored2.list && get_display_type (get_other_index ()) == view_listing)
++        {
++            destroy_tabs (other_panel);
++            other_panel->tabs.list = restored2.list;
++            other_panel->tabs.current = restored2.current;
++            t = (Tab *) other_panel->tabs.current->data;
++            do_panel_cd (other_panel, t->path, cd_exact);
++        }
++
++        if (get_current_index () != restored1.idx)
++        {
++            swap_panels ();
++            if (restored1.idx != 0)
++            {
++                //change_panel();
++            }
++        }
++    }
++    g_free (line);
++    g_free (file_name);
++}
++
++void
++_write_tabs (FILE * f, WPanel * p)
++{
++    GList *i = p->tabs.list;
++    Tab *t;
++    int crt = get_tab_index (p, p->tabs.current);
++    fprintf (f, "%d\n", crt);
++    do
++    {
++        t = (Tab *) i->data;
++        fprintf (f, "%s\n%s\n", t->name ? t->name : "(null)",
++                 vfs_path_as_str (i == p->tabs.current ? p->cwd_vpath : t->path));
++        i = i->next;
++    }
++    while (i != p->tabs.list);
++}
++
++void
++save_tabs_session (char *title)
++{
++    char *file_name = g_new0 (char, strlen (tabs_options.sessions_folder) + 1 + strlen (title) + 1);
++    FILE *f;
++    panel_view_mode_t t;
++    int i;
++    sprintf (file_name, "%s/%s", tabs_options.sessions_folder, title);
++
++    f = fopen (file_name, "wt");
++
++    i = get_current_index ();
++    t = get_display_type (i);
++    fprintf (f, "[Current Panel]\n%d\n", i);
++    if (t == view_listing)
++    {
++        _write_tabs (f, current_panel);
++    }
++    else
++    {
++        fprintf (f, "-1\n");
++    }
++    i = get_other_index ();
++    t = get_display_type (i);
++    fprintf (f, "\n[Other Panel]\n%d\n", i);
++    if (t == view_listing)
++    {
++        _write_tabs (f, other_panel);
++    }
++    else
++    {
++        fprintf (f, "-1\n");
++    }
++    fclose (f);
++    g_free (file_name);
++}
++
++void
++save_tabs_session_custom (void)
++{
++    char *name =
++        input_dialog (_("Save custom tabs session"), _("Please enter the session name:"), NULL, "",
++                      INPUT_COMPLETE_NONE);
++    if (name)
++    {
++        if (strlen (name))
++        {
++            save_tabs_session (name);
++        }
++
++        g_free (name);
++    }
++}
++
++void
++restore_tabs_session_custom (void)
++{
++    Listbox *listbox =
++        create_listbox_window (15, 60, _("Available Sessions"), "[Available Sessions Selector]");
++    struct dirent *entry;
++    DIR *dir;
++    char *name;
++    GList *items, *last, *current;
++    int result;
++    GList *t;
++    GList *i;
++
++    dir = opendir (tabs_options.sessions_folder);
++
++    items = NULL;
++
++    while ((entry = readdir (dir)) != NULL)
++    {
++        if (strcmp (entry->d_name, ".") && strcmp (entry->d_name, ".."))
++        {
++            name = g_new0 (char, 255);
++            memmove (name, entry->d_name, strlen (entry->d_name) + 1);
++            last = g_new0 (GList, 1);
++            last->data = name;
++            last->next = NULL;
++            if (items == NULL)
++            {
++                items = last;
++                current = last;
++            }
++            else
++            {
++                current->next = last;
++            }
++            current = last;
++            listbox_add_item (listbox->list, LISTBOX_APPEND_AT_END, 0, entry->d_name,
++                              (void *) name);
++        }
++    }
++
++    result = run_listbox (listbox);
++
++    if (result >= 0)
++    {
++        t = g_list_nth ((GList *) items, result);
++        restore_tabs_session ((char *) t->data);
++    }
++
++    i = items;
++    while (i)
++    {
++        name = (char *) i->data;
++        i = i->next;
++        g_free (name);
++    }
++}
++
++void
++change_tab (WPanel * p, enum tabs_direction d, GList * tab)
++{
++    if (p->tabs.current)
++    {
++        Tab *t = (Tab *) p->tabs.current->data;
++        if (t->path)
++        {
++            vfs_path_free (t->path);
++        }
++
++        //t->path = (vfs_path_t *) g_memdup(p->cwd_vpath, sizeof(vfs_path_t));
++        t->path = vfs_path_clone (p->cwd_vpath);
++
++        if (d == dir_next)
++        {
++            p->tabs.current = p->tabs.current->next;
++        }
++        else if (d == dir_previous)
++        {
++            p->tabs.current = p->tabs.current->prev;
++        }
++        else if (d == dir_first)
++        {
++            p->tabs.current = p->tabs.list;
++        }
++        else if (d == dir_last)
++        {
++            p->tabs.current = p->tabs.list->prev;
++        }
++        else if (tab != NULL)
++        {
++            p->tabs.current = tab;
++        }
++
++        t = (Tab *) p->tabs.current->data;
++        if (t->path)
++        {
++            do_panel_cd (p, t->path, cd_exact);
++        }
++    }
++}
++
++void
++destroy_tab (Tab * t)
++{
++    if (t->path)
++    {
++        vfs_path_free (t->path);
++    }
++    if (t->name)
++    {
++        g_free (t->name);
++    }
++    g_free (t);
++}
++
++void
++destroy_tabs (WPanel * p)
++{
++    GList *i;
++    Tab *t;
++    int loop;
++    if (p->tabs.list == NULL || p->tabs.do_not_delete)
++    {
++        saved_tabs = p->tabs.list;
++        p->tabs.do_not_delete = 0;
++        return;
++    }
++
++    loop = p->tabs.list != p->tabs.list->next;
++
++    p->tabs.list->prev->next = NULL;
++
++    do
++    {
++        i = p->tabs.list;
++        if (i)
++        {
++            t = (Tab *) i->data;
++            p->tabs.list = p->tabs.list->next;
++            destroy_tab (t);
++            g_free (i);
++        }
++    }
++    while (p->tabs.list && loop);
++    p->tabs.list = NULL;
++    p->tabs.current = NULL;
++}
++
++int
++draw_tab (char *title, int selected)
++{
++    if (selected)
++    {
++        tty_setcolor (SELECTED_COLOR);
++    }
++    tty_print_string (" ");
++    tty_print_string (title);
++    tty_print_string (" ");
++    tty_setcolor (NORMAL_COLOR);
++    tty_print_one_vline (TRUE);
++
++    return strlen (title) + 3;
++}
++
++void
++cut_title (char *title, int max)
++{
++    title[max] = '\0';
++    title[max - 1] = '.';
++    title[max - 2] = '.';
++    title[max - 3] = '.';
++}
++
++char *
++get_tab_title (WPanel * p, Tab * t, unsigned int max)
++{
++    char *result = g_new0 (char, 255);
++    vfs_path_t *path;
++    size_t c;
++    Widget *w = (Widget *) p;
++
++    if (max > (unsigned int) w->cols - 5 || max == 0)
++    {
++        max = w->cols - 5;
++    }
++
++    if (HIGHLIGHT_TAB)
++    {
++        max -= 1;
++    }
++
++    if (t->name)
++    {
++        memcpy (result, t->name, strlen (t->name) + 1);
++        if (max != 0 && strlen (t->name) > max)
++        {
++            cut_title (result, max - (HIGHLIGHT_TAB ? 1 : 0));
++        }
++        if (HIGHLIGHT_TAB)
++        {
++            strcat (result, "*");
++        }
++        return result;
++    }
++
++    if (t != p->tabs.current->data)
++    {
++        if (!t->path)
++        {
++            strcpy (result, "Error");
++            return result;
++        }
++        path = t->path;
++    }
++    else
++    {
++        path = p->cwd_vpath;
++    }
++
++    c = vfs_path_tokens_count (path);
++    if (c == 0)
++    {
++        strcpy (result, "/");
++        if (HIGHLIGHT_TAB)
++        {
++            strcat (result, "*");
++        }
++        return result;
++    }
++    g_free (result);
++    result = vfs_path_tokens_get (path, c - 1, 1);
++    if (max != 0 && strlen (result) > max)
++    {
++        cut_title (result, max - (HIGHLIGHT_TAB ? 1 : 0));
++    }
++    if (HIGHLIGHT_TAB)
++    {
++        strcat (result, "*");
++    }
++    return result;
++}
++
++TabDisplayInfo *
++display_info (WPanel * p, Widget * w)
++{
++    int max_length = w->cols - 2;
++    TabDisplayInfo *result = g_new0 (TabDisplayInfo, 1);
++    GList *i;
++    int length = 0, dir = -1;
++    char *title;
++    char *buffer, *current = NULL, *j, *k;
++
++    result->start_tab = result->end_tab = p->tabs.current;
++    result->start_idx = 0;
++    result->end_idx = -1;
++    result->scroll = NO_SCROLL;
++
++    if (p->tabs.list->next == p->tabs.list)
++    {
++        return result;
++    }
++
++    i = p->tabs.list;
++    do
++    {
++        title = TAB_TITLE (p, i->data);
++        length += strlen (title) + 3;
++        g_free (title);
++        i = i->next;
++    }
++    while (i != p->tabs.list);
++
++    i = p->tabs.list;
++    buffer = g_new0 (char, length);
++
++    i = p->tabs.list;
++    j = buffer;
++    do
++    {
++        title = TAB_TITLE (p, i->data);
++        if (p->tabs.current == i)
++        {
++            current = j;
++        }
++        k = g_new0 (char, 2 + strlen (title));
++        strcpy (k, " ");
++        strcat (k, title);
++        strcpy (title, k);
++        strcat (title, " ");
++        memcpy (j, title, strlen (title));
++        g_free (k);
++        j += strlen (title);
++        j[0] = 0;
++        j++;
++        g_free (title);
++        i = i->next;
++    }
++    while (i != p->tabs.list);
++
++    length = strlen (current) + 3;
++    j = current;
++    k = current + strlen (j);
++
++    while (length < max_length)
++    {
++        if (dir == -1)
++        {
++            if (j != buffer)
++            {
++                length++;
++                j--;
++                if (*j == 0)
++                {
++                    result->start_tab = result->start_tab->prev;
++                }
++            }
++        }
++        else if (dir == 1)
++        {
++            if (*k != 0 || result->end_tab->next != p->tabs.list)
++            {
++                if (*k == 0)
++                {
++                    result->end_tab = result->end_tab->next;
++                }
++                k++;
++                length++;
++            }
++        }
++
++        dir *= -1;
++
++        if (j == buffer && *k == 0 && result->end_tab->next == p->tabs.list)
++        {
++            break;
++        }
++    }
++
++    if (*j == 0)
++    {
++        result->start_idx = 0;
++        if (result->start_tab != result->end_tab)
++        {
++            result->start_tab = result->start_tab->next;
++        }
++    }
++    else
++    {
++        title = TAB_TITLE (p, result->start_tab->data);
++        if (strcmp (j, " ") == 0)
++        {
++            result->start_idx = strlen (title) - 1;
++        }
++        else
++        {
++            result->start_idx = strlen (title) - strlen (j) + 1;
++            if (strlen (title) == strlen (j) - 1 && result->start_tab != p->tabs.list)
++            {
++                result->scroll = result->scroll | SCROLL_LEFT;
++            }
++        }
++        g_free (title);
++    }
++
++    if (*k == 0)
++    {
++        result->end_idx = -1;
++    }
++    else
++    {
++        title = TAB_TITLE (p, result->end_tab->data);
++        if (strcmp (k, " ") == 0)
++        {
++            result->end_idx = strlen (title);
++            result->scroll = result->scroll | SCROLL_RIGHT;
++        }
++        else
++        {
++            result->end_idx = strlen (title) - strlen (k) + 1;
++            if (result->end_idx < 0)
++            {
++                result->end_idx = 0;
++            }
++        }
++        g_free (title);
++    }
++
++    if (result->start_tab != p->tabs.list || result->start_idx > 0)
++    {
++        result->scroll = result->scroll | SCROLL_LEFT;
++    }
++
++    if (result->end_tab->next != p->tabs.list || result->end_idx != -1)
++    {
++        result->scroll = result->scroll | SCROLL_RIGHT;
++    }
++
++    g_free (buffer);
++
++    return result;
++}
++
++void
++draw_tabs (WPanel * panel)
++{
++    WPanel *p = (panel == NULL ? current_panel : panel);
++    Widget *w;
++    char *title;
++    int x, y, length;
++    GList *i;
++    TabDisplayInfo *info;
++
++    do
++    {
++        // if (current_panel->frame_size == frame_full && p != current_panel){
++        //     break; 
++        // }
++        if (TABS_VISIBLE (p))
++        {
++            if (p->tabs.list == NULL)
++            {
++                break;
++            }
++            tty_setcolor (NORMAL_COLOR);
++            w = (Widget *) p;
++
++            x = w->x + 1;
++            if (!TABS_UP (p))
++            {
++                y = w->y + w->lines - 3;        //w->lines - (the_menubar->is_visible ? 2 : 3);
++                tty_draw_hline (y, x, ACS_HLINE, w->cols - 2);
++                tty_gotoyx (y, w->x);
++                tty_print_alt_char (ACS_LTEE, FALSE);
++                tty_gotoyx (y, w->x + w->cols - 1);
++                tty_print_alt_char (ACS_RTEE, FALSE);
++                tty_gotoyx (y + 1, x);
++            }
++            else
++            {
++                y = w->y;
++                tty_draw_hline (y + 1, x, ACS_HLINE, w->cols - 2);
++                tty_draw_hline (y + 3, x, ACS_HLINE, w->cols - 2);
++                tty_gotoyx (y + 1, w->x);
++                tty_print_alt_char (ACS_LTEE, FALSE);
++                tty_gotoyx (y + 1, w->x + w->cols - 1);
++                tty_print_alt_char (ACS_RTEE, FALSE);
++                tty_gotoyx (y + 3, w->x);
++                tty_print_alt_char (ACS_LTEE, FALSE);
++                tty_gotoyx (y + 3, w->x + w->cols - 1);
++                tty_print_alt_char (ACS_RTEE, FALSE);
++                tty_gotoyx (y + 2, x);
++            }
++            length = w->cols - 2;
++
++            info = display_info (p, w);
++            i = info->start_tab;
++            if (i)
++            {
++                do
++                {
++                    title = TAB_TITLE (p, i->data);
++                    if (i == info->start_tab && info->start_idx != 0)
++                    {
++                        int l = strlen (title) - info->start_idx;
++                        char *title2 = g_new0 (char, l + 1);
++                        memcpy (title2, title + info->start_idx, l + 1);
++                        memcpy (title, title2, strlen (title2));
++                        title[l] = '\0';
++                        g_free (title2);
++                    }
++                    if (i == info->end_tab && info->end_idx != -1)
++                    {
++                        title[info->end_idx] = '\0';
++                    }
++                    if (*title != 0)
++                    {
++                        length -= draw_tab (title, i == p->tabs.current && p == current_panel);
++                    }
++                    g_free (title);
++                    i = i->next;
++                }
++                while (i != info->end_tab->next);
++            }
++            g_free (info);
++
++            tty_print_string (str_fit_to_term (" ", length, J_LEFT));
++
++            // Draw the scroll signs
++            if ((info->scroll & SCROLL_LEFT) == SCROLL_LEFT)
++            {
++                tty_gotoyx ((TABS_UP (p) ? w->y + 2 : w->lines - 1), w->x + 1);
++                tty_print_string (panel_history_prev_item_sign);
++            }
++
++            if ((info->scroll & SCROLL_RIGHT) == SCROLL_RIGHT)
++            {
++                tty_gotoyx ((TABS_UP (p) ? w->y + 2 : w->lines - 1), w->x + w->cols - 2);
++                tty_print_string (panel_history_next_item_sign);
++            }
++        }
++
++        if (panel != NULL)
++        {
++            break;
++        }
++
++        if (p == other_panel)
++        {
++            p = NULL;
++        }
++        else
++        {
++            p = other_panel;
++        }
++    }
++    while (p);
++}
++
++void
++hide_tabs (void)
++{
++    WPanel *p = current_panel;
++    Widget *w = WIDGET (p);
++
++    int x = w->x + 1, y = w->lines - (the_menubar->is_visible ? 2 : 3);
++
++    tty_gotoyx (y, x);
++    tty_print_string (str_fit_to_term (" ", w->cols - 2, J_LEFT));
++    tty_gotoyx (y + 1, x);
++    tty_print_string (str_fit_to_term (" ", w->cols - 2, J_LEFT));
++}
++
++/*
++ * Processes a click on the tabbar
++ */
++void
++process_tab_click (unsigned int x)
++{
++    Widget *w = (Widget *) current_panel;
++    TabDisplayInfo *info = display_info (current_panel, w);
++    GList *i;
++    char *title, *j;
++    unsigned int n;
++    if (x == 2 && ((info->scroll & SCROLL_LEFT) == SCROLL_LEFT))
++    {
++        change_tab (current_panel, dir_previous, NULL);
++    }
++    else if (x == (unsigned int) (w->cols - 1) && ((info->scroll & SCROLL_RIGHT) == SCROLL_RIGHT))
++    {
++        change_tab (current_panel, dir_next, NULL);
++    }
++    else
++    {
++        n = 2;
++        for (i = info->start_tab; i != info->end_tab; i = i->next)
++        {
++            title = TAB_TITLE (current_panel, i->data);
++            j = title;
++            if (i == info->start_tab && info->start_idx != 0)
++            {
++                j = title + info->start_idx;
++            }
++            if (x < strlen (j) + 2 + n)
++            {
++                g_free (title);
++                break;
++            }
++
++            n += strlen (j) + 3;
++            g_free (title);
++        }
++
++        change_tab (current_panel, dir_absolute, i);
++    }
++    g_free (info);
++}
++
++void
++move_tab (WPanel * p, enum tabs_direction d)
++{
++    gpointer i;
++    if (p->tabs.list == p->tabs.list->next)
++    {
++        return;
++    }
++
++    if (d == dir_previous && p->tabs.current == p->tabs.list)
++    {
++        p->tabs.list = p->tabs.list->next;
++        draw_tabs (p);
++        return;
++    }
++
++    if (d == dir_next && p->tabs.current->next == p->tabs.list)
++    {
++        p->tabs.list = p->tabs.current;
++        draw_tabs (p);
++        return;
++    }
++
++    change_tab (p, dir_absolute, p->tabs.current);
++    i = p->tabs.current->data;
++    if (d == dir_next)
++    {
++        p->tabs.current->data = p->tabs.current->next->data;
++        p->tabs.current->next->data = i;
++    }
++    else
++    {
++        p->tabs.current->data = p->tabs.current->prev->data;
++        p->tabs.current->prev->data = i;
++    }
++
++    do_panel_cd (p, ((Tab *) p->tabs.current->data)->path, cd_exact);
++    change_tab (p, d, NULL);
++    draw_tabs (p);
++}
++
++#endif
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/filemanager/panel.h b/src/filemanager/panel.h
+index 6892a32..9debf08 100644
+--- a/src/filemanager/panel.h
++++ b/src/filemanager/panel.h
+@@ -17,6 +17,14 @@
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
++#ifdef WITH_TABS
++#define MAX_TAB_TITLE 30        /* 0 means full title */
++#define TABS_VISIBLE(p) (((p->tabs.list->next != p->tabs.list) || !tabs_options.hide_tabs) && ((current_panel->list_type != list_long && other_panel->list_type != list_long) || p == current_panel))
++#define TABS_UP(p) (tabs_options.bar_position == TOP && TABS_VISIBLE(p))
++#define HIGHLIGHT_TAB (t == p->tabs.current->data && p != current_panel && tabs_options.highlight_current_tab)
++#define TAB_TITLE(p, tab) get_tab_title(p, (Tab *) tab, MAX_TAB_TITLE)
++#endif
++
+ #define PANEL(x) ((WPanel *)(x))
+ #define selection(p) (&(p->dir.list[p->selected]))
+ #define DEFAULT_USER_FORMAT "half type name | size | perm"
+@@ -27,6 +35,25 @@
+ 
+ /*** enums ***************************************************************************************/
+ 
++#ifdef WITH_TABS
++enum tabs_direction
++{
++    dir_next,
++    dir_previous,
++    dir_first,
++    dir_last,
++    dir_absolute
++};
++
++enum tabs_scroll_flags
++{
++    NO_SCROLL = 0,
++    SCROLL_LEFT = 1,
++    SCROLL_RIGHT = 2,
++    SCROLL_BOTH = 3
++};
++#endif
++
+ enum list_types
+ {
+     list_full,                  /* Name, size, perm/date */
+@@ -66,6 +93,37 @@ enum cd_enum
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+ 
++#ifdef WITH_TABS
++typedef struct TabDisplayInfo
++{
++    GList *start_tab;
++    GList *end_tab;
++    int start_idx, end_idx;
++    enum tabs_scroll_flags scroll;
++} TabDisplayInfo;
++
++typedef struct Tab
++{
++    char *name;
++    vfs_path_t *path;
++} Tab;
++
++typedef struct TabsInfo
++{
++    GList *list;
++    GList *current;
++    int do_not_delete;
++} TabsInfo;
++
++typedef struct RestoredTabs
++{
++    GList *list;
++    GList *current;
++    int idx;
++    int error;
++} RestoredTabs;
++#endif
++
+ struct format_e;
+ 
+ typedef struct panel_field_struct
+@@ -99,6 +157,9 @@ typedef struct
+     vfs_path_t *lwd_vpath;      /* Last Working Directory */
+     GList *dir_history;         /* directory history */
+     GList *dir_history_current; /* pointer to the current history item */
++#ifdef WITH_TABS
++    TabsInfo tabs;
++#endif
+     char *hist_name;            /* directory history name for history file */
+     int marked;                 /* Count of marked files */
+     int dirs_marked;            /* Count of marked directories */
+@@ -151,8 +212,51 @@ extern hook_t *select_file_hook;
+ 
+ extern mc_fhl_t *mc_filehighlight;
+ 
++#ifdef WITH_TABS
++GList *saved_tabs;
++#endif
++
+ /*** declarations of public functions ************************************************************/
+ 
++#ifdef WITH_TABS
++/*Tabs functions */
++void draw_tabs (WPanel * panel);
++void hide_tabs (void);
++void create_tab (WPanel * p, enum tabs_direction d, Tab * t);
++void change_tab (WPanel * p, enum tabs_direction d,
++                 GList * tab /*used only for absolute direction */ );
++void destroy_tab (Tab * t);
++void destroy_tabs (WPanel * p);
++char *get_tab_title (WPanel * p, Tab * t, unsigned int max);
++void save_tabs_session (char *title);
++void restore_tabs_session (char *title);
++void save_tabs_session_custom ();
++void restore_tabs_session_custom ();
++void move_tab_to_other_panel (void);
++void copy_tab_to_other_panel (void);
++void swap_tabs (void);
++void process_tab_click (unsigned int x);
++void move_tab (WPanel * p, enum tabs_direction d);
++
++enum tabs_direction get_new_tabs_direction (void);
++void new_tab (WPanel * panel);
++void close_tab (WPanel * p);
++void rename_tab (WPanel * p);
++int get_tab_index (WPanel * p, GList * t);
++GList *get_tab_by_index (WPanel * p, int idx);
++RestoredTabs _restore_tabs (FILE * f);
++void abort_restore (RestoredTabs restored);
++void save_tabs_session_custom (void);
++void restore_tabs_session_custom (void);
++void _write_tabs (FILE * f, WPanel * p);
++void read_line (char *line, int max, FILE * f);
++void goto_tab (WPanel * p);
++void cut_title (char *title, int max);
++TabDisplayInfo *display_info (WPanel * p, Widget * w);
++int draw_tab (char *title, int selected);
++/*End tabs functions */
++#endif
++
+ WPanel *panel_new_with_dir (const char *panel_name, const vfs_path_t * vpath);
+ void panel_clean_dir (WPanel * panel);
+ 
+diff --git a/src/setup.c b/src/setup.c
+index 6e5465c..4ba3028 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -147,6 +147,17 @@ panels_options_t panels_options = {
+     .select_flags = SELECT_MATCH_CASE | SELECT_SHELL_PATTERNS
+ };
+ 
++#ifdef WITH_TABS
++tabs_options_t tabs_options = {
++    .open_where = AFTER_CURRENT,
++    .hide_tabs = FALSE,
++    .restore_on_load = TRUE,
++    .sessions_folder = NULL,
++    .bar_position = TOP,
++    .highlight_current_tab = TRUE
++};
++#endif
++
+ int easy_patterns = 1;
+ 
+ /* It true saves the setup when quitting */
+@@ -224,6 +235,10 @@ GArray *macros_list;
+ static char *profile_name = NULL;       /* ${XDG_CONFIG_HOME}/mc/ini */
+ static char *panels_profile_name = NULL;        /* ${XDG_CACHE_HOME}/mc/panels.ini */
+ 
++#ifdef WITH_TABS
++static char *tabs_sessions_folder = NULL;       /*${XDG_CONFIG_HOME}/mc/tabs.sessions */
++#endif
++
+ /* *INDENT-OFF* */
+ static const struct
+ {
+@@ -404,6 +419,18 @@ static const struct
+     { "torben_fj_mode", &panels_options.torben_fj_mode },
+     { NULL, NULL }
+ };
++#ifdef WITH_TABS
++static const struct
++{
++    const char *opt_name;
++    gboolean *opt_addr;
++} tabs_ini_options[] = {
++    { "hide_tabs", &tabs_options.hide_tabs },
++    { "highlight_current_tab", &tabs_options.highlight_current_tab },
++    { "restore_on_load", &tabs_options.restore_on_load },
++    { NULL, NULL }
++};
++#endif
+ /* *INDENT-ON* */
+ 
+ /*** file scope functions ************************************************************************/
+@@ -928,6 +955,17 @@ load_setup (void)
+     }
+ 
+     panels_profile_name = mc_config_get_full_path (MC_PANELS_FILE);
++#ifdef WITH_TABS
++    tabs_sessions_folder = mc_config_get_full_path (MC_TABS_SESSION_SUBDIR);
++
++    tabs_options.sessions_folder = tabs_sessions_folder;
++    //memcpy(tabs_options.sessions_folder, tabs_sessions_folder, strlen(tabs_sessions_folder) + 1);
++
++    if (!exist_file (tabs_sessions_folder))
++    {
++        mkdir (tabs_sessions_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
++    }
++#endif
+ 
+     mc_main_config = mc_config_init (profile, FALSE);
+ 
+@@ -967,6 +1005,9 @@ load_setup (void)
+ 
+     load_layout ();
+     panels_load_options ();
++#ifdef WITH_TABS
++    tabs_load_options ();
++#endif
+     load_panelize ();
+ 
+     startup_left_mode = setup__load_panel_state ("New Left Panel");
+@@ -1067,6 +1108,9 @@ save_setup (gboolean save_options, gboolean save_panel_options)
+         save_config ();
+         save_layout ();
+         panels_save_options ();
++#ifdef WITH_TABS
++        tabs_save_options ();
++#endif
+         save_panelize ();
+         /* directory_history_save (); */
+ 
+@@ -1122,6 +1166,9 @@ done_setup (void)
+     g_free (mc_global.tty.setup_color_string);
+     g_free (profile_name);
+     g_free (panels_profile_name);
++#ifdef WITH_TABS
++    g_free (tabs_sessions_folder);
++#endif
+     mc_config_deinit (mc_main_config);
+     mc_config_deinit (mc_panels_config);
+ 
+@@ -1480,4 +1527,45 @@ panels_save_options (void)
+                        "select_flags", (int) panels_options.select_flags);
+ }
+ 
++#ifdef WITH_TABS
++/**
++  Load tabs options from [Tabs] section.
++*/
++void
++tabs_load_options (void)
++{
++    if (mc_config_has_group (mc_main_config, CONFIG_TABS_SECTION))
++    {
++        size_t i;
++
++        for (i = 0; tabs_ini_options[i].opt_name != NULL; i++)
++            *tabs_ini_options[i].opt_addr =
++                mc_config_get_bool (mc_main_config, CONFIG_TABS_SECTION,
++                                    tabs_ini_options[i].opt_name, *tabs_ini_options[i].opt_addr);
++
++        tabs_options.open_where = mc_config_get_int (mc_main_config, CONFIG_TABS_SECTION,
++                                                     "open_where", (int) tabs_options.open_where);
++
++        tabs_options.bar_position = mc_config_get_int (mc_main_config, CONFIG_TABS_SECTION,
++                                                       "bar_position",
++                                                       (int) tabs_options.bar_position);
++    }
++}
++
++void
++tabs_save_options (void)
++{
++    size_t i;
++
++    for (i = 0; tabs_ini_options[i].opt_name != NULL; i++)
++        mc_config_set_bool (mc_main_config, CONFIG_TABS_SECTION,
++                            tabs_ini_options[i].opt_name, *tabs_ini_options[i].opt_addr);
++
++    mc_config_set_int (mc_main_config, CONFIG_TABS_SECTION,
++                       "open_where", (int) tabs_options.open_where);
++
++    mc_config_set_int (mc_main_config, CONFIG_TABS_SECTION,
++                       "bar_position", (int) tabs_options.bar_position);
++}
++#endif
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/setup.h b/src/setup.h
+index ea4cbff..677918e 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -29,6 +29,23 @@ typedef enum
+     QSEARCH_NUM
+ } qsearch_mode_t;
+ 
++#ifdef WITH_TABS
++typedef enum
++{
++    BEFORE_CURRENT = 0,
++    AFTER_CURRENT = 1,
++    AT_END = 2,
++    AT_BEGINNING = 3,
++    TABS_NUM
++} tabs_open_t;
++
++typedef enum
++{
++    TOP = 0,
++    BOTTOM = 1,
++    POS_NUM
++} bar_position_t;
++#endif
+ /*** structures declarations (and typedefs of structures)*****************************************/
+ 
+ /* panels ini options; [Panels] section */
+@@ -56,6 +73,18 @@ typedef struct
+     panel_select_flags_t select_flags;  /* Select/unselect file flags */
+ } panels_options_t;
+ 
++#ifdef WITH_TABS
++typedef struct
++{
++    tabs_open_t open_where;     /* Where to open a new tab */
++    gboolean hide_tabs;         /* If TRUE, hide the tabs when only one tab */
++    gboolean restore_on_load;   /* If TRUE, restore tabs when starting mc */
++    gboolean highlight_current_tab;     /* If TRUE, highlight with an * the current tab in the other panel */
++    char *sessions_folder;      /* If TRUE, restore tabs when starting mc */
++    bar_position_t bar_position;        /* Where to place the tabs bar */
++} tabs_options_t;
++#endif
++
+ typedef struct macro_action_t
+ {
+     unsigned long action;
+@@ -99,6 +128,9 @@ extern int file_op_compute_totals;
+ extern int editor_ask_filename_before_edit;
+ 
+ extern panels_options_t panels_options;
++#ifdef WITH_TABS
++extern tabs_options_t tabs_options;
++#endif
+ 
+ extern panel_view_mode_t startup_left_mode;
+ extern panel_view_mode_t startup_right_mode;
+@@ -159,6 +191,11 @@ void panel_save_setup (WPanel * panel, const char *section);
+ void panels_load_options (void);
+ void panels_save_options (void);
+ 
++#ifdef WITH_TABS
++void tabs_save_options (void);
++void tabs_load_options (void);
++#endif
++
+ /*** inline functions ****************************************************************************/
+ 
+ #endif /* MC__SETUP_H */

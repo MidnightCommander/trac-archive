@@ -1,0 +1,27 @@
+From 4fb644de92014948d7bb2411d21071717ebf8541 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 10:02:59 +0000
+Subject: [PATCH] tty/tty-ncurses.c: cleanup -Wcast-qual warning
+
+tty-ncurses.c:652:21: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return tgetstr ((char *) cap, &unused);
+                     ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/tty/tty-ncurses.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/tty/tty-ncurses.c b/lib/tty/tty-ncurses.c
+index 78fcba6..74da01b 100644
+--- a/lib/tty/tty-ncurses.c
++++ b/lib/tty/tty-ncurses.c
+@@ -649,7 +649,7 @@ char *
+ tty_tgetstr (const char *cap)
+ {
+     char *unused = NULL;
+-    return tgetstr ((char *) cap, &unused);
++    return tgetstr (cap, &unused);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

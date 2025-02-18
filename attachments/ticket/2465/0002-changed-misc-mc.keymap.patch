@@ -1,0 +1,40 @@
+From b9929c50c0933ef11146d4bb2040ef17ef89655e Mon Sep 17 00:00:00 2001
+From: Ilia Maslakov <il.smind@gmail.com>
+Date: Fri, 18 Mar 2011 13:15:08 +0000
+Subject: [PATCH 2/2] changed misc/mc.keymap.*
+
+Signed-off-by: Ilia Maslakov <il.smind@gmail.com>
+---
+ misc/mc.keymap.default |    2 ++
+ misc/mc.keymap.emacs   |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/misc/mc.keymap.default b/misc/mc.keymap.default
+index e0f3374..ba14f00 100644
+--- a/misc/mc.keymap.default
++++ b/misc/mc.keymap.default
+@@ -253,6 +253,8 @@ CmdSelect = kpplus
+ CmdUnselect = kpminus
+ CmdReverseSelection = kpasterisk
+ CmdDialogList = alt-prime
++PanelEnlangeRight = alt-shift-left
++PanelEnlangeLeft = alt-shift-right
+ ExtMap1 = ctrl-x
+ 
+ [main:xmap]
+diff --git a/misc/mc.keymap.emacs b/misc/mc.keymap.emacs
+index 53c1d23..f2165fa 100644
+--- a/misc/mc.keymap.emacs
++++ b/misc/mc.keymap.emacs
+@@ -256,6 +256,8 @@ CmdSelect = kpplus
+ CmdUnselect = kpminus
+ CmdReverseSelection = kpasterisk
+ CmdDialogList = alt-prime
++PanelEnlangeRight =
++PanelEnlangeLeft =
+ ExtMap1 = ctrl-x
+ 
+ [main:xmap]
+-- 
+1.7.3.5
+

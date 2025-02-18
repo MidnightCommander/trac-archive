@@ -1,0 +1,33 @@
+From 0cf48ca4019b297ec6dfc927b4925a04ea059c78 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 30 May 2024 16:57:35 +0200
+Subject: [PATCH] buildsys: fix build on macOS with libssh2 present via
+ homebrew
+
+Path to libssh2 headers was missing from CPPFLAGS resulting into FTBFS.
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ src/Makefile.am | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/Makefile.am b/src/Makefile.am
+index cca050cb8..1ed6e5b9d 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -26,6 +26,12 @@ SUBDIRS += consaver
+ AM_CPPFLAGS += -DSAVERDIR=\""$(pkglibexecdir)"\"
+ endif
+ 
++if ENABLE_VFS
++if ENABLE_VFS_SFTP
++AM_CPPFLAGS += $(LIBSSH_CFLAGS)
++endif
++endif
++
+ AM_CPPFLAGS += -I$(top_srcdir) $(GLIB_CFLAGS)
+ 
+ localedir = $(datadir)/locale
+-- 
+2.39.3 (Apple Git-146)
+

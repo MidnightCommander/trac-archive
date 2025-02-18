@@ -1,0 +1,128 @@
+# Midnight Commander extension file
+#
+# Empty lines and lines starting with "#" are ignored.
+#
+# Lines starting in the first column should have following format:
+#
+#   KEYWORD/DESC<NL> (i.e. everything after "KEYWORD/" until newline is "DESC")
+#
+# KEYWORD is one of the following:
+#
+#    shell
+#       DESC is, when starting with a dot, an extension (no wildcards.)
+#       All the files matching '*DESC'. Example: .tar matches *.tar; if it
+#       doesn't start with a dot, it matches only a file of that name.
+#
+#    shell/i
+#       DESC is, when starting with a dot, an extension (no wildcards.)
+#       The same as "shell" but case-insensitive.
+#
+#    regex
+#       DESC is an extended regular expression.
+#       Note that mc uses the GNU regex library and thus:
+#         \| matches the literal | and | has special meaning ("or")
+#         () have special meaning and \( \) stand for literal ( )
+#
+#    regex/i
+#       DESC is an extended regular expression.
+#       The same as "regex" but case-insensitive.
+#
+#    type
+#       File matches this if `file %f` matches regular expression DESC
+#       (the 'filename:' text from `file %f` is removed)
+#
+#    type/i
+#       File matches this if `file %f` matches regular expression DESC
+#       The same as "type" but case-insensitive.
+#
+#    directory
+#       Matches any directory matching regular expression DESC
+#
+#    include
+#       Matches an 'include' directive
+#
+#    default
+#       Matches any file regardless of the value of DESC
+#
+# Other lines should start with a space or tab and should be in the format:
+#
+#   KEYWORD=COMMAND<NL> (with no spaces around =)
+#
+# KEYWORD is one of the # following:
+#
+#    Open
+#       COMMAND is run if the user presses Enter or double-clicks the file
+#
+#    View
+#       COMMAND is run if the user presses F3
+#
+#    Edit
+#       COMMAND is run if the user presses F4
+#
+#    Include
+#       Add any further entries from an 'include/' section
+#
+# COMMAND is any one-line shell command, with the following substitutions:
+#
+#    %%
+#       The '%' character
+#
+#    %p or $MC_EXT_BASENAME
+#       Name of the current file (without path, but 'pwd' is its path.)
+#
+#    %f or $MC_EXT_FILENAME
+#       Name of the current file. Unlike %p, if file is located on a non-local
+#       virtual filesystem (e.g. tarfs or ftpfs,) then the file will be
+#       temporarily copied into a local directory and %f will be the full path
+#       to this local temporal file.  If you don't want to get a local copy and
+#       want to get the virtual fs path (like ftp://ftp.cvut.cz/pub/linux), 
+#       then use %d/%p instead of %f.
+#
+#    %d or $MC_EXT_CURRENTDIR
+#       Name of the current directory (pwd, without trailing slash)
+#
+#    %s or $MC_EXT_SELECTED
+#       Space separated list of tagged files (if any) or the name of the
+#       current file.
+#
+#    %t or $MC_EXT_ONLYTAGGED
+#       Space-spearted list of tagged files
+#
+#    %u
+#       list of tagged files; untagged after command completes
+#
+#    (If the above six letters are in uppercase, they refer to the other panel.
+#    But you shouldn't have to use it in this file.)
+#
+#    %cd PATH
+#       PATH that mc should change into ("cd" won't work because it's a child
+#       process.)  %cd handles even vfs names.
+#
+#    %view
+#       Output from COMMAND will be piped into mc's internal file viewer.  If
+#       you type only '%view' and no COMMAND, viewer will directly load the %f
+#       file without piping. The result is the same as if COMMAND was "%view
+#       cat %f," but without the need to fork a shell, run 'cat', and read its
+#       output.
+#
+#       %view may be directly followed by {} with a list of any of the following
+#       separated by commas:
+#         ascii  (ascii mode)
+#         hex    (hex mode)
+#         nroff  (colour highlighting for text using backspace for bold and underscore)
+#         unform (no highlighting for nroff sequences) separated by commas.
+#
+#    %var{VARNAME:default}
+#       Expands to the value of the VARNAME variable in the environment if it's
+#       set, otherwise the value in "default" is used. This is similar to the
+#       Bourne shell ${VAR-default} construct.
+#
+# Rules are applied from top to bottom, thus the order is important.  If some
+# actions are missing, search continues as if this target didn't match (i.e. if
+# a file matches the first and second entry and View action is missing in the
+# first one, then on pressing F3 the View action from the second entry will be
+# used. default should catch all the actions.
+#
+# Any new entries you develop for you are always welcome if they are useful
+# on more than one system.  You can post your modifications as tickets at
+# www.midnight-commander.org

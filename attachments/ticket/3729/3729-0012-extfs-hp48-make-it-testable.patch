@@ -1,0 +1,25 @@
+From ab3a3cbbd85b838732a5a3e38680942aafd08fa6 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 13 Dec 2016 01:06:46 +0200
+Subject: [PATCH 12/13] extfs: hp48: make it testable.
+
+---
+ src/vfs/extfs/helpers/hp48+.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/hp48+.in b/src/vfs/extfs/helpers/hp48+.in
+index 322de59..25da24a 100644
+--- a/src/vfs/extfs/helpers/hp48+.in
++++ b/src/vfs/extfs/helpers/hp48+.in
+@@ -22,7 +22,7 @@
+ # Make sure you have kermit installed and that it's using the right serial
+ # device by changing /dev/ttyXX on the next line
+ AWK=@AWK@
+-KERMIT="kermit -l /dev/ttyS1 -b 9600"
++KERMIT=${MC_TEST_EXTFS_LIST_CMD:-"kermit -l /dev/ttyS1 -b 9600"}
+ 
+ NOW=`date +"%m-%d-%Y %H:%M"`
+ 
+-- 
+2.9.3
+

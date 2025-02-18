@@ -1,0 +1,62 @@
+diff --git a/src/viewer/hex.c b/src/viewer/hex.c
+index e355cfb..a783217 100644
+--- a/src/viewer/hex.c
++++ b/src/viewer/hex.c
+@@ -192,36 +192,28 @@ mcview_display_hex (mcview_t * view)
+ #ifdef HAVE_CHARSET
+             if (view->utf8)
+             {
+-                int cw = 1;
+-                gboolean read_res = TRUE;
+-
+-                ch = mcview_get_utf (view, from, &cw, &read_res);
+-                if (!read_res)
+-                    break;
+-                /* char width is greater 0 bytes */
+-                if (cw != 0)
+-                {
+-                    int cnt;
+-                    char corr_buf[UTF8_CHAR_LEN + 1];
+-                    struct hexedit_change_node *corr = curr;
+-                    int res;
+-
+-                    res = g_unichar_to_utf8 (ch, (char *) corr_buf);
+-
+-                    for (cnt = 0; cnt < cw; cnt++)
+-                    {
+-                        if (curr != NULL && from + cnt == curr->offset)
+-                        {
+-                            /* replace only changed bytes in array of multibyte char */
+-                            corr_buf[cnt] = curr->value;
+-                            curr = curr->next;
+-                        }
+-                    }
+-                    corr_buf[res] = '\0';
+-                    /* Determine the state of the current multibyte char */
+-                    ch = utf8_to_int ((char *) corr_buf, &cw, &read_res);
+-                    curr = corr;
++                int res;
++                int j;
++                struct hexedit_change_node *corr = curr;
++                gchar utf8buf[UTF8_CHAR_LEN + 1];
++
++                for (j = 0; j < UTF8_CHAR_LEN; j++) {
++                    if (mcview_get_byte (view, from + j, &res))
++                        utf8buf[j] = res;
++		    else
++		    {
++		        utf8buf[j] = '\0';
++		        break;
++		    }
++                    if (curr != NULL && from + j == curr->offset)
++                        utf8buf[j] = curr->value;
++                    if (curr != NULL && from + j >= curr->offset)
++                        curr = curr->next;
+                 }
++                utf8buf[UTF8_CHAR_LEN] = '\0';
++                /* Determine the state of the current multibyte char */
++                ch = g_utf8_get_char_validated (utf8buf, -1);
++                curr = corr;
+             }
+ #endif /* HAVE_CHARSET */
+             if (!mcview_get_byte (view, from, &c))

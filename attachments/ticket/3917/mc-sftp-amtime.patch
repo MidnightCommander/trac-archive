@@ -1,0 +1,130 @@
+Subject: [PATCH] Preserve atime/mtime over sftpfs
+
+---
+ src/vfs/sftpfs/internal.c  | 56 ++++++++++++++++++++++++++++++++++++++++++++++
+ src/vfs/sftpfs/internal.h  |  1 +
+ src/vfs/sftpfs/vfs_class.c | 26 ++++++++++++++++-----
+ 3 files changed, 77 insertions(+), 6 deletions(-)
+
+diff --git a/src/vfs/sftpfs/internal.c b/src/vfs/sftpfs/internal.c
+index 443126e95..85d3c83be 100644
+--- a/src/vfs/sftpfs/internal.c
++++ b/src/vfs/sftpfs/internal.c
+@@ -419,6 +419,62 @@ sftpfs_symlink (const vfs_path_t * vpath1, const vfs_path_t * vpath2, GError **
+     return 0;
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++/**
++ * Changes the times of the file.
++ *
++ * @param vpath   path to file or directory
++ * @param atime   access time
++ * @param mtime   modification time
++ * @param mcerror pointer to error object
++ * @return 0 if success, negative value otherwise
++ */
++
++int
++sftpfs_utime (const vfs_path_t * vpath,time_t atime, time_t mtime, GError ** mcerror)
++{
++    sftpfs_super_data_t *super_data = NULL;
++    const vfs_path_element_t *path_element = NULL;
++    LIBSSH2_SFTP_ATTRIBUTES attrs;
++    int res;
++
++    res = sftpfs_stat_init (&super_data, &path_element, vpath, mcerror, LIBSSH2_SFTP_LSTAT, &attrs);
++    if (res < 0)
++        return res;
++
++    attrs.atime = atime;
++    attrs.mtime = mtime;
++
++    do
++    {
++        const char *fixfname;
++        unsigned int fixfname_len = 0;
++
++        fixfname = sftpfs_fix_filename (path_element->path, &fixfname_len);
++
++        res =
++            libssh2_sftp_stat_ex (super_data->sftp_session, fixfname, fixfname_len,
++                                  LIBSSH2_SFTP_SETSTAT, &attrs);
++        if (res >= 0)
++            break;
++
++        if (sftpfs_is_sftp_error (super_data->sftp_session, res, LIBSSH2_FX_NO_SUCH_FILE))
++            return -ENOENT;
++
++        if (sftpfs_is_sftp_error (super_data->sftp_session, res, LIBSSH2_FX_FAILURE))
++        {
++            res = 0;            /* need something like ftpfs_ignore_chattr_errors */
++            break;
++        }
++
++        if (!sftpfs_waitsocket (super_data, res, mcerror))
++            return -1;
++    }
++    while (res == LIBSSH2_ERROR_EAGAIN);
++
++    return res;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Changes the permissions of the file.
+diff --git a/src/vfs/sftpfs/internal.h b/src/vfs/sftpfs/internal.h
+index 56da30ff1..2cce73772 100644
+--- a/src/vfs/sftpfs/internal.h
++++ b/src/vfs/sftpfs/internal.h
+@@ -77,6 +77,7 @@ int sftpfs_lstat (const vfs_path_t * vpath, struct stat *buf, GError ** mcerror)
+ int sftpfs_stat (const vfs_path_t * vpath, struct stat *buf, GError ** mcerror);
+ int sftpfs_readlink (const vfs_path_t * vpath, char *buf, size_t size, GError ** mcerror);
+ int sftpfs_symlink (const vfs_path_t * vpath1, const vfs_path_t * vpath2, GError ** mcerror);
++int sftpfs_utime (const vfs_path_t * vpath, time_t atime, time_t mtime, GError ** mcerror);
+ int sftpfs_chmod (const vfs_path_t * vpath, mode_t mode, GError ** mcerror);
+ int sftpfs_unlink (const vfs_path_t * vpath, GError ** mcerror);
+ int sftpfs_rename (const vfs_path_t * vpath1, const vfs_path_t * vpath2, GError ** mcerror);
+diff --git a/src/vfs/sftpfs/vfs_class.c b/src/vfs/sftpfs/vfs_class.c
+index 897f21c60..8caf2b32e 100644
+--- a/src/vfs/sftpfs/vfs_class.c
++++ b/src/vfs/sftpfs/vfs_class.c
+@@ -324,18 +324,32 @@ sftpfs_cb_readlink (const vfs_path_t * vpath, char *buf, size_t size)
+ /**
+  * Callback for utime VFS-function.
+  *
+- * @param vpath unused
+- * @param times unused
+- * @return always 0
++ * @param vpath path to file or directory
++ * @param times access and modification time to set
++ * @return 0 if success, negative value otherwise
+  */
+ 
+ static int
+ sftpfs_cb_utime (const vfs_path_t * vpath, mc_timesbuf_t * times)
+ {
+-    (void) vpath;
+-    (void) times;
++    int rc;
++    GError *mcerror = NULL;
+ 
+-    return 0;
++#ifdef HAVE_UTIMENSAT
++    time_t atime = (*times)[0].tv_sec;
++#else
++    time_t atime = times->actime;
++#endif
++
++#ifdef HAVE_UTIMENSAT
++    time_t mtime = (*times)[1].tv_sec;
++#else
++    time_t mtime = times->modtime;
++#endif
++
++    rc = sftpfs_utime (vpath, atime, mtime, &mcerror);
++    mc_error_message (&mcerror, NULL);
++    return rc;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

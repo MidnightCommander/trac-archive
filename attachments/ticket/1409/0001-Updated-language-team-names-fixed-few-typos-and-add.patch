@@ -1,0 +1,209 @@
+From 9820a27be3732400b39c932d561182df60f7a791 Mon Sep 17 00:00:00 2001
+From: Yury V. Zaytsev <yury@shurup.com>
+Date: Sat, 3 Oct 2009 16:40:49 +0200
+Subject: [PATCH] Updated language team names, fixed few typos and added *.po~ to .gitignore
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ po/.gitignore   |    1 +
+ po/be-tarask.po |    3 +--
+ po/be.po        |    2 +-
+ po/eu.po        |    2 +-
+ po/lt.po        |    3 +--
+ po/pl.po        |    3 +--
+ po/pt_BR.po     |    2 +-
+ po/ru.po        |   19 +++++++++----------
+ po/sr.po        |    3 +--
+ po/wa.po        |    2 +-
+ po/zh_CN.po     |    2 +-
+ po/zh_TW.po     |    2 +-
+ 12 files changed, 20 insertions(+), 24 deletions(-)
+
+diff --git a/po/.gitignore b/po/.gitignore
+index 3c56b73..2f1607f 100644
+--- a/po/.gitignore
++++ b/po/.gitignore
+@@ -3,6 +3,7 @@
+ *.mo
+ *.msg
+ *.pox
++*.po~
+ Makefile
+ Makefile.in
+ Makefile.in.in
+diff --git a/po/be-tarask.po b/po/be-tarask.po
+index 6b1d2da..e213127 100644
+--- a/po/be-tarask.po
++++ b/po/be-tarask.po
+@@ -5,8 +5,7 @@ msgstr ""
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 2002-08-25 16:15GMT+2\n"
+ "Last-Translator: Vital Khilko <dojlid@mova.org>\n"
+-"Language-Team: belarussian (tarask) <debian-l10n-belarusian@lists.debian."
+-"org>\n"
++"Language-Team: Belarusian (tarask) <debian-l10n-belarusian@lists.debian.org>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+diff --git a/po/be.po b/po/be.po
+index 7f894f3..0f5cfc6 100644
+--- a/po/be.po
++++ b/po/be.po
+@@ -7,7 +7,7 @@ msgstr ""
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 2008-12-21 23:28+0200\n"
+ "Last-Translator: Pavel Piatruk <piatruk.p@gmail.com>\n"
+-"Language-Team: belarussian <debian-l10n-belarusian@lists.debian.org>\n"
++"Language-Team: Belarusian <debian-l10n-belarusian@lists.debian.org>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+diff --git a/po/eu.po b/po/eu.po
+index 490453c..3ca71a2 100644
+--- a/po/eu.po
++++ b/po/eu.po
+@@ -9,7 +9,7 @@ msgstr ""
+ "Report-Msgid-Bugs-To: mc-devel@gnome.org\n"
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 2001-05-25 13:35+0200\n"
+-"Last-Translator: mari susperregi <mari@elhuyar.com>\n"
++"Last-Translator: Mari Susperregi <mari@elhuyar.com>\n"
+ "Language-Team: Euskara <debian-l10n-basque@lists.debian.org>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+diff --git a/po/lt.po b/po/lt.po
+index 50c51c9..847be0d 100644
+--- a/po/lt.po
++++ b/po/lt.po
+@@ -14,8 +14,7 @@ msgstr ""
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%"
+-"100<10 || n%100>=20) ? 1 : 2;\n"
++"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+ 
+ msgid " Choose syntax highlighting "
+ msgstr " Parinkite sintaksės ryškinimą "
+diff --git a/po/pl.po b/po/pl.po
+index e1f1ce9..e93a091 100644
+--- a/po/pl.po
++++ b/po/pl.po
+@@ -17,8 +17,7 @@ msgstr ""
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+-"|| n%100>=20) ? 1 : 2);\n"
++"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+ 
+ msgid " Choose syntax highlighting "
+ msgstr " Wybierz podświetlanie składniowe "
+diff --git a/po/pt_BR.po b/po/pt_BR.po
+index 09d1958..b258a4b 100644
+--- a/po/pt_BR.po
++++ b/po/pt_BR.po
+@@ -10,7 +10,7 @@ msgstr ""
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 2000-10-27 15:37-03:00\n"
+ "Last-Translator: E. A. Tacão <tacao@conectiva.com.br>\n"
+-"Language-Team: pt_BR <ldp-br@bazar.conectiva.com.br>\n"
++"Language-Team: Brazilian Portuguese <ldp-br@bazar.conectiva.com.br>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+diff --git a/po/ru.po b/po/ru.po
+index e3ee718..9cb99fb 100644
+--- a/po/ru.po
++++ b/po/ru.po
+@@ -4,16 +4,16 @@
+ # Current translators: Anton S. Chumak <nightfast@yahoo.co.uk>
+ # Based on work of
+ # Andrew V. Samoilov <sav@bcs.zp.ua>, 2000-2003.
+-# 	Pavel Roskin <proski@gnu.org>, 2001-2004.
+-# 	Valek Filippov <frob@df.ru>, 2000.
+-# 	Evgeny Bulgakov <bgav@netvision.net.il>, 1999,.
+-# 	Sergey Panov <sipan@mit.edu>, 1999,.
+-# 	Andrew V. Samoilov <sav@bcs.zp.ua>, 1999,.
++# Pavel Roskin <proski@gnu.org>, 2001-2004.
++# Valek Filippov <frob@df.ru>, 2000.
++# Evgeny Bulgakov <bgav@netvision.net.il>, 1999.
++# Sergey Panov <sipan@mit.edu>, 1999.
++# Andrew V. Samoilov <sav@bcs.zp.ua>, 1999.
+ # and Alex Tkachenko <alex@bcs.zp.ua>, 1998.
+ # Anton Sergeevich Chumak <nightfast@yahoo.co.uk>, 2005.
+-# Andrew Borodin <aborodin@vmail.ru>, 2009
+-# Ilia Maslakov <il.smind@gmail.com>, 2009
+-# Slava Zanko <slavazanko@gmail.com>, 2009
++# Andrew Borodin <aborodin@vmail.ru>, 2009.
++# Ilia Maslakov <il.smind@gmail.com>, 2009.
++# Slava Zanko <slavazanko@gmail.com>, 2009.
+ msgid ""
+ msgstr ""
+ "Project-Id-Version: ru\n"
+@@ -25,8 +25,7 @@ msgstr ""
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
++"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+ "X-Generator: mcedit 4.7.0\n"
+ 
+ msgid " Choose syntax highlighting "
+diff --git a/po/sr.po b/po/sr.po
+index e5aa996..f97cc28 100644
+--- a/po/sr.po
++++ b/po/sr.po
+@@ -9,8 +9,7 @@ msgstr ""
+ "Report-Msgid-Bugs-To: mc-devel@gnome.org\n"
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 2003-09-20 18:50+0200\n"
+-"Last-Translator: Strahinya Radich (Страхиња Радић) <mr99164@alas.matf.bg.ac."
+-"yu>\n"
++"Last-Translator: Strahinya Radich (Страхиња Радић) <mr99164@alas.matf.bg.ac.yu>\n"
+ "Language-Team: Serbian (српски) <sr@li.org>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+diff --git a/po/wa.po b/po/wa.po
+index 916336c..d4f40e8 100644
+--- a/po/wa.po
++++ b/po/wa.po
+@@ -16,7 +16,7 @@ msgstr ""
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 1999-03-18 23:11+0100\n"
+ "Last-Translator: Lorint Hendschel <LorintHendschel@skynet.be>\n"
+-"Language-Team: walon <linux-wa@chanae.alphanet.ch>\n"
++"Language-Team: Walloon <linux-wa@chanae.alphanet.ch>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+diff --git a/po/zh_CN.po b/po/zh_CN.po
+index 2bee02a..d91ec8d 100644
+--- a/po/zh_CN.po
++++ b/po/zh_CN.po
+@@ -9,7 +9,7 @@ msgstr ""
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 2002-01-29 22:05+0800\n"
+ "Last-Translator: Wang Jian <lark@linux.net.cn>\n"
+-"Language-Team: zh_CN <i18n-translation@lists.linux.net.cn>\n"
++"Language-Team: Chinese Simplified <i18n-translation@lists.linux.net.cn>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8bit\n"
+diff --git a/po/zh_TW.po b/po/zh_TW.po
+index 6b9ecf8..3762af7 100644
+--- a/po/zh_TW.po
++++ b/po/zh_TW.po
+@@ -10,7 +10,7 @@ msgstr ""
+ "POT-Creation-Date: 2009-10-01 02:39+0300\n"
+ "PO-Revision-Date: 2001-07-27 03:02+0800\n"
+ "Last-Translator: Jing-Jong Shyue <shyue@sonoma.com.tw>\n"
+-"Language-Team: Chinese <zh-l10n@linux.org.tw>\n"
++"Language-Team: Chinese Traditional <zh-l10n@linux.org.tw>\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=UTF-8\n"
+ "Content-Transfer-Encoding: 8-bit\n"
+-- 
+1.5.4.3
+

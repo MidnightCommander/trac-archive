@@ -1,0 +1,144 @@
+==================================================================================
+   /src/vfs/extfs/helpers-list: tests/src/vfs/extfs/helpers-list/test-suite.log
+==================================================================================
+
+# TOTAL: 1
+# PASS:  0
+# SKIP:  0
+# XFAIL: 0
+# FAIL:  1
+# XPASS: 0
+# ERROR: 0
+
+.. contents:: :depth: 2
+
+FAIL: run
+=========
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/hp48+.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/lslR.1.spaces.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/lslR.2.spaces-iso.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/lslR.3.spaces-iso-noslash.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.custom.input
+/home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.custom.output /tmp/rpm.actual-parsed-output.5KFukg2S differ: char 42, line 1
+
+ERROR: rpm has produced output that's different than the expected output.
+
+  Expected output (after parsing): /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.custom.output
+  Actual output (after parsing): /tmp/rpm.actual-parsed-output.5KFukg2S
+
+This might mean that a bug was introduced into rpm. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+Tip: invoke this program with '--mcdiff' to automatically launch
+mcdiff to visually inspect the diff.
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/rpm.glib.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.complex.input
+/home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.complex.output /tmp/u7z.actual-parsed-output.32c658I0 differ: char 38, line 1
+
+ERROR: u7z has produced output that's different than the expected output.
+
+  Expected output (after parsing): /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.complex.output
+  Actual output (after parsing): /tmp/u7z.actual-parsed-output.32c658I0
+
+This might mean that a bug was introduced into u7z. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+Tip: invoke this program with '--mcdiff' to automatically launch
+mcdiff to visually inspect the diff.
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.missing-date.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.missing-size-and-date.input
+/home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.missing-size-and-date.output /tmp/u7z.actual-parsed-output.poUYeOtk differ: char 1, line 1
+
+ERROR: u7z has produced output that's different than the expected output.
+
+  Expected output (after parsing): /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.missing-size-and-date.output
+  Actual output (after parsing): /tmp/u7z.actual-parsed-output.poUYeOtk
+
+This might mean that a bug was introduced into u7z. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+Tip: invoke this program with '--mcdiff' to automatically launch
+mcdiff to visually inspect the diff.
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.simple.input
+/home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.simple.output /tmp/u7z.actual-parsed-output.ncyZjvRn differ: char 1617, line 23
+
+ERROR: u7z has produced output that's different than the expected output.
+
+  Expected output (after parsing): /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/u7z.simple.output
+  Actual output (after parsing): /tmp/u7z.actual-parsed-output.ncyZjvRn
+
+This might mean that a bug was introduced into u7z. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+Tip: invoke this program with '--mcdiff' to automatically launch
+mcdiff to visually inspect the diff.
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uace.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uarc.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v4,v3.input
+/home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v4,v3.output /tmp/urar.actual-parsed-output.JDADkOlX differ: char 170, line 3
+
+ERROR: urar has produced output that's different than the expected output.
+
+  Expected output (after parsing): /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v4,v3.output
+  Actual output (after parsing): /tmp/urar.actual-parsed-output.JDADkOlX
+
+This might mean that a bug was introduced into urar. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+Tip: invoke this program with '--mcdiff' to automatically launch
+mcdiff to visually inspect the diff.
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v5.input
+/home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v5.output /tmp/urar.actual-parsed-output.zkYM0qIt differ: char 170, line 3
+
+ERROR: urar has produced output that's different than the expected output.
+
+  Expected output (after parsing): /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/urar.v5.output
+  Actual output (after parsing): /tmp/urar.actual-parsed-output.zkYM0qIt
+
+This might mean that a bug was introduced into urar. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+Tip: invoke this program with '--mcdiff' to automatically launch
+mcdiff to visually inspect the diff.
+
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzip.with-zipinfo.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzip.without-zipinfo--mdy.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzip.without-zipinfo--ymd.input
+PASSED.
+Testing /home/slyfox/dev/git/mc/tests/src/vfs/extfs/helpers-list/data/uzoo.input
+PASSED.
+

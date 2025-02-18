@@ -1,0 +1,2228 @@
+From 98d18fc4398f431971a54018d5895fc9ef54a7e0 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Tue, 12 Jan 2021 16:38:35 -0600
+Subject: [PATCH] Resolve file name base conflicts to avoid libtool copy stage.
+
+---
+ lib/Makefile.am                                  | 2 +-
+ lib/charsets.c                                   | 2 +-
+ lib/event/event.c                                | 2 +-
+ lib/event/manage.c                               | 2 +-
+ lib/filehighlight.h                              | 2 +-
+ lib/filehighlight/Makefile.am                    | 2 +-
+ lib/filehighlight/{common.c => fh-common.c}      | 0
+ lib/filehighlight/get-color.c                    | 2 +-
+ lib/filehighlight/ini-file-read.c                | 2 +-
+ lib/lock.c                                       | 2 +-
+ lib/mcconfig.c                                   | 0
+ lib/mcconfig/Makefile.am                         | 4 ++--
+ lib/mcconfig/common.h                            | 0
+ lib/mcconfig/{common.c => mcconf-common.c}       | 2 +-
+ lib/mcconfig/{history.c => mcconf-history.c}     | 2 +-
+ lib/mcconfig/paths.c                             | 2 +-
+ lib/search/Makefile.am                           | 6 +++---
+ lib/search/{search.c => main-search.c}           | 2 +-
+ lib/search/regex.c                               | 2 +-
+ lib/search/{hex.c => srch-hex.c}                 | 0
+ lib/search/{lib.c => srch-lib.c}                 | 0
+ lib/shell.c                                      | 2 +-
+ lib/skin/Makefile.am                             | 2 +-
+ lib/skin/ini-file.c                              | 2 +-
+ lib/skin/{common.c => skin-common.c}             | 2 +-
+ lib/strutil/strutil.c                            | 2 +-
+ lib/{util.c => sub-util.c}                       | 2 +-
+ lib/{util.h => sub-util.h}                       | 0
+ lib/tty/Makefile.am                              | 2 +-
+ lib/tty/color-slang.c                            | 2 +-
+ lib/tty/key.c                                    | 2 +-
+ lib/tty/keyxdef.c                                | 2 +-
+ lib/tty/{mouse.c => tty-mouse.c}                 | 2 +-
+ lib/tty/{mouse.h => tty-mouse.h}                 | 0
+ lib/tty/tty-ncurses.c                            | 2 +-
+ lib/tty/tty-slang.c                              | 4 ++--
+ lib/tty/tty.c                                    | 2 +-
+ lib/tty/win.c                                    | 2 +-
+ lib/utilunix.c                                   | 2 +-
+ lib/vfs/direntry.c                               | 2 +-
+ lib/vfs/gc.c                                     | 2 +-
+ lib/vfs/interface.c                              | 2 +-
+ lib/vfs/path.c                                   | 2 +-
+ lib/vfs/utilvfs.c                                | 2 +-
+ lib/vfs/vfs.c                                    | 2 +-
+ lib/widget/Makefile.am                           | 4 ++--
+ lib/widget/buttonbar.c                           | 2 +-
+ lib/widget/dialog.c                              | 4 ++--
+ lib/widget/frame.c                               | 2 +-
+ lib/widget/groupbox.c                            | 2 +-
+ lib/widget/{history.c => history-widget.c}       | 0
+ lib/widget/input.c                               | 2 +-
+ lib/widget/input_complete.c                      | 2 +-
+ lib/widget/listbox.c                             | 2 +-
+ lib/widget/quick.c                               | 2 +-
+ lib/widget/quick.h                               | 2 +-
+ lib/widget/widget-common.h                       | 4 ++--
+ lib/widget/{mouse.c => widget-mouse.c}           | 2 +-
+ lib/widget/{mouse.h => widget-mouse.h}           | 2 +-
+ lib/widget/wtools.c                              | 2 +-
+ src/Makefile.am                                  | 2 +-
+ src/args.c                                       | 2 +-
+ src/clipboard.c                                  | 2 +-
+ src/cons.handler.c                               | 2 +-
+ src/diffviewer/Makefile.am                       | 2 +-
+ src/diffviewer/{search.c => df-view-search.c}    | 0
+ src/diffviewer/ydiff.c                           | 2 +-
+ src/editor/bookmark.c                            | 2 +-
+ src/editor/edit.c                                | 2 +-
+ src/editor/editcmd.c                             | 2 +-
+ src/editor/editdraw.c                            | 2 +-
+ src/editor/editwidget.c                          | 2 +-
+ src/editor/etags.c                               | 2 +-
+ src/editor/syntax.c                              | 2 +-
+ src/events_init.c                                | 2 +-
+ src/execute.c                                    | 2 +-
+ src/file_history.c                               | 2 +-
+ src/filemanager/Makefile.am                      | 2 +-
+ src/filemanager/achown.c                         | 2 +-
+ src/filemanager/boxes.c                          | 6 +++---
+ src/filemanager/boxes.h                          | 2 +-
+ src/filemanager/chmod.c                          | 2 +-
+ src/filemanager/chown.c                          | 2 +-
+ src/filemanager/cmd.c                            | 4 ++--
+ src/filemanager/command.c                        | 2 +-
+ src/filemanager/ext.c                            | 2 +-
+ src/filemanager/file.c                           | 6 +++---
+ src/filemanager/filegui.c                        | 2 +-
+ src/filemanager/filenot.c                        | 2 +-
+ src/filemanager/find.c                           | 4 ++--
+ src/filemanager/{dir.c => fman-dir.c}            | 4 ++--
+ src/filemanager/{dir.h => fman-dir.h}            | 2 +-
+ src/filemanager/hotlist.c                        | 2 +-
+ src/filemanager/info.c                           | 2 +-
+ src/filemanager/layout.c                         | 6 +++---
+ src/filemanager/listmode.c                       | 2 +-
+ src/filemanager/midnight.c                       | 4 ++--
+ src/filemanager/panel.c                          | 4 ++--
+ src/filemanager/panel.h                          | 2 +-
+ src/filemanager/panelize.c                       | 4 ++--
+ src/filemanager/tree.c                           | 4 ++--
+ src/filemanager/treestore.c                      | 2 +-
+ src/help.c                                       | 2 +-
+ src/learn.c                                      | 2 +-
+ src/main.c                                       | 4 ++--
+ src/setup.c                                      | 4 ++--
+ src/subshell/Makefile.am                         | 2 +-
+ src/subshell/{common.c => subshell-common.c}     | 2 +-
+ src/{background.c => task-background.c}          | 2 +-
+ src/{background.h => task-background.h}          | 0
+ src/textconf.c                                   | 2 +-
+ src/usermenu.c                                   | 4 ++--
+ src/util.c                                       | 2 +-
+ src/vfs/cpio/cpio.c                              | 2 +-
+ src/vfs/extfs/extfs.c                            | 2 +-
+ src/vfs/fish/fish.c                              | 2 +-
+ src/vfs/ftpfs/ftpfs.c                            | 2 +-
+ src/vfs/sfs/sfs.c                                | 2 +-
+ src/vfs/sftpfs/Makefile.am                       | 4 ++--
+ src/vfs/sftpfs/config_parser.c                   | 2 +-
+ src/vfs/sftpfs/connection.c                      | 2 +-
+ src/vfs/sftpfs/internal.c                        | 2 +-
+ src/vfs/sftpfs/{dir.c => sftp-dir.c}             | 2 +-
+ src/vfs/sftpfs/{file.c => sftp-file.c}           | 2 +-
+ src/vfs/smbfs/smbfs.c                            | 2 +-
+ src/vfs/tar/tar.c                                | 2 +-
+ src/vfs/undelfs/undelfs.c                        | 2 +-
+ src/viewer/Makefile.am                           | 6 +++---
+ src/viewer/actions_cmd.c                         | 2 +-
+ src/viewer/ascii.c                               | 2 +-
+ src/viewer/datasource.c                          | 2 +-
+ src/viewer/display.c                             | 2 +-
+ src/viewer/growbuf.c                             | 2 +-
+ src/viewer/internal.h                            | 2 +-
+ src/viewer/mcviewer.c                            | 2 +-
+ src/viewer/{hex.c => view-hex.c}                 | 2 +-
+ src/viewer/{lib.c => view-lib.c}                 | 2 +-
+ src/viewer/{search.c => view-search.c}           | 0
+ tests/lib/mc_build_filename.c                    | 2 +-
+ tests/lib/mc_realpath.c                          | 2 +-
+ tests/lib/name_quote.c                           | 2 +-
+ tests/lib/utilunix__my_system-fork_child.c       | 2 +-
+ tests/lib/utilunix__my_system-fork_child_shell.c | 2 +-
+ tests/lib/utilunix__my_system-fork_fail.c        | 2 +-
+ tests/lib/vfs/canonicalize_pathname.c            | 2 +-
+ tests/lib/x_basename.c                           | 2 +-
+ tests/src/filemanager/get_random_hint.c          | 2 +-
+ tests/src/vfs/extfs/helpers-list/mc_parse_ls_l.c | 2 +-
+ 148 files changed, 163 insertions(+), 163 deletions(-)
+ rename lib/filehighlight/{common.c => fh-common.c} (100%)
+ create mode 100644 lib/mcconfig.c
+ create mode 100644 lib/mcconfig/common.h
+ rename lib/mcconfig/{common.c => mcconf-common.c} (99%)
+ rename lib/mcconfig/{history.c => mcconf-history.c} (99%)
+ rename lib/search/{search.c => main-search.c} (99%)
+ rename lib/search/{hex.c => srch-hex.c} (100%)
+ rename lib/search/{lib.c => srch-lib.c} (100%)
+ rename lib/skin/{common.c => skin-common.c} (99%)
+ rename lib/{util.c => sub-util.c} (99%)
+ rename lib/{util.h => sub-util.h} (100%)
+ rename lib/tty/{mouse.c => tty-mouse.c} (99%)
+ rename lib/tty/{mouse.h => tty-mouse.h} (100%)
+ rename lib/widget/{history.c => history-widget.c} (100%)
+ rename lib/widget/{mouse.c => widget-mouse.c} (99%)
+ rename lib/widget/{mouse.h => widget-mouse.h} (97%)
+ rename src/diffviewer/{search.c => df-view-search.c} (100%)
+ rename src/filemanager/{dir.c => fman-dir.c} (99%)
+ rename src/filemanager/{dir.h => fman-dir.h} (99%)
+ rename src/subshell/{common.c => subshell-common.c} (99%)
+ rename src/{background.c => task-background.c} (99%)
+ rename src/{background.h => task-background.h} (100%)
+ rename src/vfs/sftpfs/{dir.c => sftp-dir.c} (99%)
+ rename src/vfs/sftpfs/{file.c => sftp-file.c} (99%)
+ rename src/viewer/{hex.c => view-hex.c} (99%)
+ rename src/viewer/{lib.c => view-lib.c} (99%)
+ rename src/viewer/{search.c => view-search.c} (100%)
+
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index 455f9ddf7..3f8c3386b 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -26,7 +26,7 @@ SUBLIB_includes = \
+ SRC_mc_utils = \
+ 	utilunix.c utilunix.h \
+ 	unixcompat.h \
+-	util.c util.h
++	sub-util.c sub-util.h
+ 
+ 
+ libmc_la_SOURCES = \
+diff --git a/lib/charsets.c b/lib/charsets.c
+index 51b5aaf21..7c9652adb 100644
+--- a/lib/charsets.c
++++ b/lib/charsets.c
+@@ -36,7 +36,7 @@
+ #include "lib/global.h"
+ #include "lib/strutil.h"        /* utf-8 functions */
+ #include "lib/fileloc.h"
+-#include "lib/util.h"           /* whitespace() */
++#include "lib/sub-util.h"           /* whitespace() */
+ 
+ #include "lib/charsets.h"
+ 
+diff --git a/lib/event/event.c b/lib/event/event.c
+index 3ca22977a..709ce5b9f 100644
+--- a/lib/event/event.c
++++ b/lib/event/event.c
+@@ -27,7 +27,7 @@
+ #include <config.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/event.h"
+ 
+ #include "internal.h"
+diff --git a/lib/event/manage.c b/lib/event/manage.c
+index b2dda1d86..5828071a4 100644
+--- a/lib/event/manage.c
++++ b/lib/event/manage.c
+@@ -27,7 +27,7 @@
+ #include <config.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/event.h"
+ 
+ #include "internal.h"
+diff --git a/lib/filehighlight.h b/lib/filehighlight.h
+index 980258898..9a635d5c2 100644
+--- a/lib/filehighlight.h
++++ b/lib/filehighlight.h
+@@ -2,7 +2,7 @@
+ #define MC__FILEHIGHLIGHT_H
+ 
+ #include "lib/mcconfig.h"       /* mc_config_t */
+-#include "lib/util.h"           /* file_entry_t */
++#include "lib/sub-util.h"           /* file_entry_t */
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+diff --git a/lib/filehighlight/Makefile.am b/lib/filehighlight/Makefile.am
+index 57a8d949f..842bdfcd8 100644
+--- a/lib/filehighlight/Makefile.am
++++ b/lib/filehighlight/Makefile.am
+@@ -1,7 +1,7 @@
+ noinst_LTLIBRARIES = libmcfilehighlight.la
+ 
+ libmcfilehighlight_la_SOURCES = \
+-	common.c \
++	fh-common.c \
+ 	get-color.c \
+ 	ini-file-read.c \
+ 	internal.h
+diff --git a/lib/filehighlight/common.c b/lib/filehighlight/fh-common.c
+similarity index 100%
+rename from lib/filehighlight/common.c
+rename to lib/filehighlight/fh-common.c
+diff --git a/lib/filehighlight/get-color.c b/lib/filehighlight/get-color.c
+index dbb84c8b7..ac0c17a6a 100644
+--- a/lib/filehighlight/get-color.c
++++ b/lib/filehighlight/get-color.c
+@@ -29,7 +29,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/skin.h"
+-#include "lib/util.h"           /* is_exe() */
++#include "lib/sub-util.h"           /* is_exe() */
+ #include "lib/filehighlight.h"
+ #include "internal.h"
+ 
+diff --git a/lib/filehighlight/ini-file-read.c b/lib/filehighlight/ini-file-read.c
+index 68befd3ca..9a3c9295e 100644
+--- a/lib/filehighlight/ini-file-read.c
++++ b/lib/filehighlight/ini-file-read.c
+@@ -31,7 +31,7 @@
+ #include "lib/fileloc.h"
+ #include "lib/strescape.h"
+ #include "lib/skin.h"
+-#include "lib/util.h"           /* exist_file() */
++#include "lib/sub-util.h"           /* exist_file() */
+ #include "lib/filehighlight.h"
+ 
+ #include "internal.h"
+diff --git a/lib/lock.c b/lib/lock.c
+index bdecb582d..124da81ac 100644
+--- a/lib/lock.c
++++ b/lib/lock.c
+@@ -56,7 +56,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/vfs/vfs.h"
+-#include "lib/util.h"           /* tilde_expand() */
++#include "lib/sub-util.h"           /* tilde_expand() */
+ #include "lib/lock.h"
+ #include "lib/widget.h"         /* query_dialog() */
+ 
+diff --git a/lib/mcconfig.c b/lib/mcconfig.c
+new file mode 100644
+index 000000000..e69de29bb
+diff --git a/lib/mcconfig/Makefile.am b/lib/mcconfig/Makefile.am
+index ad62b9132..8685e6209 100644
+--- a/lib/mcconfig/Makefile.am
++++ b/lib/mcconfig/Makefile.am
+@@ -2,9 +2,9 @@
+ noinst_LTLIBRARIES = libmcconfig.la
+ 
+ libmcconfig_la_SOURCES = \
+-	common.c \
++	mcconf-common.c \
+ 	get.c \
+-	history.c \
++	mcconf-history.c \
+ 	set.c \
+ 	paths.c
+ 
+diff --git a/lib/mcconfig/common.h b/lib/mcconfig/common.h
+new file mode 100644
+index 000000000..e69de29bb
+diff --git a/lib/mcconfig/common.c b/lib/mcconfig/mcconf-common.c
+similarity index 99%
+rename from lib/mcconfig/common.c
+rename to lib/mcconfig/mcconf-common.c
+index 5affb45b4..0bdf34978 100644
+--- a/lib/mcconfig/common.c
++++ b/lib/mcconfig/mcconf-common.c
+@@ -29,7 +29,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/vfs/vfs.h"        /* mc_stat */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "lib/mcconfig.h"
+ 
+diff --git a/lib/mcconfig/history.c b/lib/mcconfig/mcconf-history.c
+similarity index 99%
+rename from lib/mcconfig/history.c
+rename to lib/mcconfig/mcconf-history.c
+index c1a00e297..8b2882f0f 100644
+--- a/lib/mcconfig/history.c
++++ b/lib/mcconfig/mcconf-history.c
+@@ -41,7 +41,7 @@
+ 
+ #include "lib/fileloc.h"        /* MC_HISTORY_FILE */
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* list_append_unique */
++#include "lib/sub-util.h"           /* list_append_unique */
+ 
+ #include "lib/mcconfig.h"
+ 
+diff --git a/lib/mcconfig/paths.c b/lib/mcconfig/paths.c
+index e111dc7a2..dae8297d0 100644
+--- a/lib/mcconfig/paths.c
++++ b/lib/mcconfig/paths.c
+@@ -32,7 +32,7 @@
+ #include "lib/global.h"
+ #include "lib/fileloc.h"
+ #include "lib/vfs/vfs.h"
+-#include "lib/util.h"           /* unix_error_string() */
++#include "lib/sub-util.h"           /* unix_error_string() */
+ 
+ #include "lib/mcconfig.h"
+ 
+diff --git a/lib/search/Makefile.am b/lib/search/Makefile.am
+index ed9d3aadb..5abccd695 100644
+--- a/lib/search/Makefile.am
++++ b/lib/search/Makefile.am
+@@ -1,12 +1,12 @@
+ noinst_LTLIBRARIES = libsearch.la
+ 
+ libsearch_la_SOURCES = \
+-	search.c \
++	main-search.c \
+ 	internal.h \
+-	lib.c \
++	srch-lib.c \
+ 	normal.c \
+ 	regex.c \
+ 	glob.c \
+-	hex.c
++	srch-hex.c
+ 
+ AM_CPPFLAGS = -I$(top_srcdir) $(GLIB_CFLAGS) $(PCRE_CPPFLAGS)
+diff --git a/lib/search/search.c b/lib/search/main-search.c
+similarity index 99%
+rename from lib/search/search.c
+rename to lib/search/main-search.c
+index 963f3b108..dd6129717 100644
+--- a/lib/search/search.c
++++ b/lib/search/main-search.c
+@@ -34,7 +34,7 @@
+ #include "lib/global.h"
+ #include "lib/strutil.h"
+ #include "lib/search.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"
+ #endif
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index 8e6bbb4dd..2d2285e35 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -34,7 +34,7 @@
+ #include "lib/strutil.h"
+ #include "lib/search.h"
+ #include "lib/strescape.h"
+-#include "lib/util.h"           /* MC_PTR_FREE */
++#include "lib/sub-util.h"           /* MC_PTR_FREE */
+ 
+ #include "internal.h"
+ 
+diff --git a/lib/search/hex.c b/lib/search/srch-hex.c
+similarity index 100%
+rename from lib/search/hex.c
+rename to lib/search/srch-hex.c
+diff --git a/lib/search/lib.c b/lib/search/srch-lib.c
+similarity index 100%
+rename from lib/search/lib.c
+rename to lib/search/srch-lib.c
+diff --git a/lib/shell.c b/lib/shell.c
+index c826c96a3..165873e74 100644
+--- a/lib/shell.c
++++ b/lib/shell.c
+@@ -35,7 +35,7 @@
+ #include <stdlib.h>
+ 
+ #include "global.h"
+-#include "util.h"
++#include "sub-util.h"
+ 
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/skin/Makefile.am b/lib/skin/Makefile.am
+index 04f12ed1d..0c8b3b693 100644
+--- a/lib/skin/Makefile.am
++++ b/lib/skin/Makefile.am
+@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libmcskin.la
+ libmcskin_la_SOURCES = \
+ 	colors.c \
+ 	colors-old.c \
+-	common.c \
++	skin-common.c \
+ 	hc-skins.c \
+ 	ini-file.c \
+ 	lines.c \
+diff --git a/lib/skin/ini-file.c b/lib/skin/ini-file.c
+index 2b62b4b3d..9754a0d5b 100644
+--- a/lib/skin/ini-file.c
++++ b/lib/skin/ini-file.c
+@@ -32,7 +32,7 @@
+ 
+ #include "internal.h"
+ #include "lib/fileloc.h"
+-#include "lib/util.h"           /* exist_file() */
++#include "lib/sub-util.h"           /* exist_file() */
+ 
+ /*** global variables ****************************************************************************/
+ 
+diff --git a/lib/skin/common.c b/lib/skin/skin-common.c
+similarity index 99%
+rename from lib/skin/common.c
+rename to lib/skin/skin-common.c
+index 2092eee1e..b7abe4a45 100644
+--- a/lib/skin/common.c
++++ b/lib/skin/skin-common.c
+@@ -29,7 +29,7 @@
+ #include <stdlib.h>
+ 
+ #include "internal.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "lib/tty/color.h"      /* tty_use_256colors(); */
+ 
+diff --git a/lib/strutil/strutil.c b/lib/strutil/strutil.c
+index cf11d00d8..4b371466c 100644
+--- a/lib/strutil/strutil.c
++++ b/lib/strutil/strutil.c
+@@ -31,7 +31,7 @@
+ #include <errno.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"           /* MC_PTR_FREE */
++#include "lib/sub-util.h"           /* MC_PTR_FREE */
+ #include "lib/strutil.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/util.c b/lib/sub-util.c
+similarity index 99%
+rename from lib/util.c
+rename to lib/sub-util.c
+index 1a9bfd16f..a48133a80 100644
+--- a/lib/util.c
++++ b/lib/sub-util.c
+@@ -50,7 +50,7 @@
+ #include "lib/fileloc.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/timer.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/util.h b/lib/sub-util.h
+similarity index 100%
+rename from lib/util.h
+rename to lib/sub-util.h
+diff --git a/lib/tty/Makefile.am b/lib/tty/Makefile.am
+index d4260fee8..ae717033a 100644
+--- a/lib/tty/Makefile.am
++++ b/lib/tty/Makefile.am
+@@ -15,7 +15,7 @@ TTY_SRC = \
+ 	color-internal.c color-internal.h \
+ 	color.c color.h \
+ 	key.c key.h keyxdef.c \
+-	mouse.c mouse.h \
++	tty-mouse.c tty-mouse.h \
+ 	tty-internal.c tty-internal.h \
+ 	tty.c tty.h \
+ 	win.c win.h
+diff --git a/lib/tty/color-slang.c b/lib/tty/color-slang.c
+index 6a0993e7d..53a4cbb30 100644
+--- a/lib/tty/color-slang.c
++++ b/lib/tty/color-slang.c
+@@ -36,7 +36,7 @@
+ #include <sys/types.h>          /* size_t */
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"           /* whitespace() */
++#include "lib/sub-util.h"           /* whitespace() */
+ 
+ #include "tty-slang.h"
+ #include "color.h"              /* variables */
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 4abfc71d7..58a2f018b 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -54,7 +54,7 @@
+ 
+ #include "tty.h"
+ #include "tty-internal.h"       /* mouse_enabled */
+-#include "mouse.h"
++#include "tty-mouse.h"
+ #include "key.h"
+ 
+ #include "lib/widget.h"         /* mc_refresh() */
+diff --git a/lib/tty/keyxdef.c b/lib/tty/keyxdef.c
+index cb1c8becc..b4d375e3e 100644
+--- a/lib/tty/keyxdef.c
++++ b/lib/tty/keyxdef.c
+@@ -49,7 +49,7 @@
+ #include "lib/global.h"
+ 
+ #include "tty.h"
+-#include "mouse.h"              /* required before key.h */
++#include "tty-mouse.h"              /* required before key.h */
+ #include "key.h"
+ 
+ #if defined (__QNX__) && !defined (__QNXNTO__)
+diff --git a/lib/tty/mouse.c b/lib/tty/tty-mouse.c
+similarity index 99%
+rename from lib/tty/mouse.c
+rename to lib/tty/tty-mouse.c
+index 1bba0cc58..d58210b47 100644
+--- a/lib/tty/mouse.c
++++ b/lib/tty/tty-mouse.c
+@@ -39,7 +39,7 @@
+ 
+ #include "tty.h"
+ #include "tty-internal.h"       /* mouse_enabled */
+-#include "mouse.h"
++#include "tty-mouse.h"
+ #include "key.h"                /* define sequence */
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/tty/mouse.h b/lib/tty/tty-mouse.h
+similarity index 100%
+rename from lib/tty/mouse.h
+rename to lib/tty/tty-mouse.h
+diff --git a/lib/tty/tty-ncurses.c b/lib/tty/tty-ncurses.c
+index 03235cd5b..bc9a24a1b 100644
+--- a/lib/tty/tty-ncurses.c
++++ b/lib/tty/tty-ncurses.c
+@@ -51,7 +51,7 @@
+ #include "color.h"              /* tty_setcolor */
+ #include "color-internal.h"
+ #include "key.h"
+-#include "mouse.h"
++#include "tty-mouse.h"
+ #include "win.h"
+ 
+ /* include at last !!! */
+diff --git a/lib/tty/tty-slang.c b/lib/tty/tty-slang.c
+index 6bf22a90d..1c135bc68 100644
+--- a/lib/tty/tty-slang.c
++++ b/lib/tty/tty-slang.c
+@@ -43,14 +43,14 @@
+ 
+ #include "lib/global.h"
+ #include "lib/strutil.h"        /* str_term_form */
+-#include "lib/util.h"           /* is_printable() */
++#include "lib/sub-util.h"           /* is_printable() */
+ 
+ #include "tty-internal.h"       /* mc_tty_normalize_from_utf8() */
+ #include "tty.h"
+ #include "color.h"
+ #include "color-slang.h"
+ #include "color-internal.h"
+-#include "mouse.h"              /* Gpm_Event is required in key.h */
++#include "tty-mouse.h"              /* Gpm_Event is required in key.h */
+ #include "key.h"                /* define_sequence */
+ #include "win.h"
+ 
+diff --git a/lib/tty/tty.c b/lib/tty/tty.c
+index d4a731343..cdf28f5a4 100644
+--- a/lib/tty/tty.c
++++ b/lib/tty/tty.c
+@@ -56,7 +56,7 @@
+ 
+ #include "tty.h"
+ #include "tty-internal.h"
+-#include "mouse.h"              /* use_mouse_p */
++#include "tty-mouse.h"              /* use_mouse_p */
+ #include "win.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/tty/win.c b/lib/tty/win.c
+index d65ffe64e..53fdb612d 100644
+--- a/lib/tty/win.c
++++ b/lib/tty/win.c
+@@ -41,7 +41,7 @@
+ #endif
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"           /* is_printable() */
++#include "lib/sub-util.h"           /* is_printable() */
+ #include "tty-internal.h"
+ #include "tty.h"                /* tty_gotoyx, tty_print_char */
+ #include "win.h"
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index bbcf86b78..0a64fba51 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -67,7 +67,7 @@
+ #include "lib/unixcompat.h"
+ #include "lib/vfs/vfs.h"        /* VFS_ENCODING_PREFIX */
+ #include "lib/strutil.h"        /* str_move() */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* message() */
+ #include "lib/vfs/xdirentry.h"
+ 
+diff --git a/lib/vfs/direntry.c b/lib/vfs/direntry.c
+index 87e71a660..3cec4edd3 100644
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -69,7 +69,7 @@
+ #include "lib/global.h"
+ 
+ #include "lib/tty/tty.h"        /* enable/disable interrupt key */
+-#include "lib/util.h"           /* custom_canonicalize_pathname() */
++#include "lib/sub-util.h"           /* custom_canonicalize_pathname() */
+ #include "lib/timer.h"
+ #if 0
+ #include "lib/widget.h"         /* message() */
+diff --git a/lib/vfs/gc.c b/lib/vfs/gc.c
+index 5090aaacb..54378184b 100644
+--- a/lib/vfs/gc.c
++++ b/lib/vfs/gc.c
+@@ -43,7 +43,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/event.h"
+-#include "lib/util.h"           /* MC_PTR_FREE */
++#include "lib/sub-util.h"           /* MC_PTR_FREE */
+ #include "lib/timer.h"
+ 
+ #include "vfs.h"
+diff --git a/lib/vfs/interface.c b/lib/vfs/interface.c
+index ca29653a2..666b83411 100644
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -51,7 +51,7 @@
+ 
+ #include "lib/widget.h"         /* message() */
+ #include "lib/strutil.h"        /* str_crt_conv_from() */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "vfs.h"
+ #include "utilvfs.h"
+diff --git a/lib/vfs/path.c b/lib/vfs/path.c
+index 49553198f..f5630e6bd 100644
+--- a/lib/vfs/path.c
++++ b/lib/vfs/path.c
+@@ -36,7 +36,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* mc_build_filename() */
++#include "lib/sub-util.h"           /* mc_build_filename() */
+ #include "lib/serialize.h"
+ 
+ #include "vfs.h"
+diff --git a/lib/vfs/utilvfs.c b/lib/vfs/utilvfs.c
+index ce3213c7b..fea5db04d 100644
+--- a/lib/vfs/utilvfs.c
++++ b/lib/vfs/utilvfs.c
+@@ -40,7 +40,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/unixcompat.h"
+-#include "lib/util.h"           /* mc_mkstemps() */
++#include "lib/sub-util.h"           /* mc_mkstemps() */
+ #include "lib/widget.h"         /* message() */
+ #include "lib/strutil.h"        /* INVALID_CONV */
+ 
+diff --git a/lib/vfs/vfs.c b/lib/vfs/vfs.c
+index 0b948846c..a4bec8c83 100644
+--- a/lib/vfs/vfs.c
++++ b/lib/vfs/vfs.c
+@@ -56,7 +56,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* message() */
+ #include "lib/event.h"
+ 
+diff --git a/lib/widget/Makefile.am b/lib/widget/Makefile.am
+index 90f023bbc..00d5f1835 100644
+--- a/lib/widget/Makefile.am
++++ b/lib/widget/Makefile.am
+@@ -13,14 +13,14 @@ libmcwidget_la_SOURCES = \
+ 	group.c group.h \
+ 	groupbox.c groupbox.h \
+ 	hline.c hline.h \
+-	history.c history.h \
++	history-widget.c history-widget.h \
+ 	input.c input.h \
+ 	input_complete.c \
+ 	listbox-window.c listbox-window.h \
+ 	listbox.c listbox.h \
+ 	label.c label.h \
+ 	menu.c menu.h \
+-	mouse.c mouse.h \
++	widget-mouse.c widget-mouse.h \
+ 	quick.c quick.h \
+ 	radio.c radio.h \
+ 	rect.c rect.h \
+diff --git a/lib/widget/buttonbar.c b/lib/widget/buttonbar.c
+index b52a2b887..f0f37b3cd 100644
+--- a/lib/widget/buttonbar.c
++++ b/lib/widget/buttonbar.c
+@@ -43,7 +43,7 @@
+ #include "lib/tty/key.h"        /* XCTRL and ALT macros  */
+ #include "lib/skin.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index f984e03af..4c29e5787 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -42,11 +42,11 @@
+ #include "lib/strutil.h"
+ #include "lib/fileloc.h"        /* MC_HISTORY_FILE */
+ #include "lib/event.h"          /* mc_event_raise() */
+-#include "lib/util.h"           /* MC_PTR_FREE */
++#include "lib/sub-util.h"           /* MC_PTR_FREE */
+ #include "lib/mcconfig.h"       /* num_history_items_recorded */
+ 
+ #include "lib/widget.h"
+-#include "lib/widget/mouse.h"
++#include "lib/widget/widget-mouse.h"
+ 
+ /*** global variables ****************************************************************************/
+ 
+diff --git a/lib/widget/frame.c b/lib/widget/frame.c
+index 5d5a5acdf..633f7cb11 100644
+--- a/lib/widget/frame.c
++++ b/lib/widget/frame.c
+@@ -36,7 +36,7 @@
+ #include "lib/tty/color.h"
+ #include "lib/skin.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* MC_PTR_FREE */
++#include "lib/sub-util.h"           /* MC_PTR_FREE */
+ #include "lib/widget.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/widget/groupbox.c b/lib/widget/groupbox.c
+index fe16e6e28..e21d28b98 100644
+--- a/lib/widget/groupbox.c
++++ b/lib/widget/groupbox.c
+@@ -39,7 +39,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/tty/color.h"
+ #include "lib/skin.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/widget/history.c b/lib/widget/history-widget.c
+similarity index 100%
+rename from lib/widget/history.c
+rename to lib/widget/history-widget.c
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index b5cec7e6b..6e83c8e72 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -45,7 +45,7 @@
+ #include "lib/fileloc.h"
+ #include "lib/skin.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #include "lib/event.h"          /* mc_event_raise() */
+ #include "lib/mcconfig.h"       /* mc_config_history_*() */
+diff --git a/lib/widget/input_complete.c b/lib/widget/input_complete.c
+index 59a994d62..0eb7b5f7c 100644
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -50,7 +50,7 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/strescape.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index e20c1a82d..f33164fec 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -41,7 +41,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/skin.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* Q_() */
++#include "lib/sub-util.h"           /* Q_() */
+ #include "lib/widget.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/widget/quick.c b/lib/widget/quick.c
+index 434def9ee..a4ed84171 100644
+--- a/lib/widget/quick.c
++++ b/lib/widget/quick.c
+@@ -38,7 +38,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/strutil.h"        /* str_term_width1() */
+-#include "lib/util.h"           /* tilde_expand() */
++#include "lib/sub-util.h"           /* tilde_expand() */
+ #include "lib/widget.h"
+ 
+ /*** global variables ****************************************************************************/
+diff --git a/lib/widget/quick.h b/lib/widget/quick.h
+index 86c027c88..bffbdf41d 100644
+--- a/lib/widget/quick.h
++++ b/lib/widget/quick.h
+@@ -5,7 +5,7 @@
+ #ifndef MC__QUICK_H
+ #define MC__QUICK_H
+ 
+-#include "lib/tty/mouse.h"
++#include "lib/tty/tty-mouse.h"
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index a20bcd671..a0d5236c6 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -7,8 +7,8 @@
+ #define MC__WIDGET_INTERNAL_H
+ 
+ #include "lib/keybind.h"        /* global_keymap_t */
+-#include "lib/tty/mouse.h"
+-#include "lib/widget/mouse.h"   /* mouse_msg_t, mouse_event_t */
++#include "lib/tty/tty-mouse.h"
++#include "lib/widget/widget-mouse.h"   /* mouse_msg_t, mouse_event_t */
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+diff --git a/lib/widget/mouse.c b/lib/widget/widget-mouse.c
+similarity index 99%
+rename from lib/widget/mouse.c
+rename to lib/widget/widget-mouse.c
+index 1123738c9..f1f4a483c 100644
+--- a/lib/widget/mouse.c
++++ b/lib/widget/widget-mouse.c
+@@ -32,7 +32,7 @@
+ #include "lib/global.h"
+ #include "lib/widget.h"
+ 
+-#include "lib/widget/mouse.h"
++#include "lib/widget/widget-mouse.h"
+ 
+ /*** global variables ****************************************************************************/
+ 
+diff --git a/lib/widget/mouse.h b/lib/widget/widget-mouse.h
+similarity index 97%
+rename from lib/widget/mouse.h
+rename to lib/widget/widget-mouse.h
+index 44e7b238b..ee209357e 100644
+--- a/lib/widget/mouse.h
++++ b/lib/widget/widget-mouse.h
+@@ -10,7 +10,7 @@
+ #ifndef MC__WIDGET_MOUSE_H
+ #define MC__WIDGET_MOUSE_H
+ 
+-#include "lib/tty/mouse.h"      /* Gpm_Event */
++#include "lib/tty/tty-mouse.h"      /* Gpm_Event */
+ 
+ /*** enums ***************************************************************************************/
+ 
+diff --git a/lib/widget/wtools.c b/lib/widget/wtools.c
+index 00cc50df7..a1bbb60f1 100644
+--- a/lib/widget/wtools.c
++++ b/lib/widget/wtools.c
+@@ -40,7 +40,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/tty/key.h"        /* tty_getch() */
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* tilde_expand() */
++#include "lib/sub-util.h"           /* tilde_expand() */
+ #include "lib/widget.h"
+ #include "lib/event.h"          /* mc_event_raise() */
+ 
+diff --git a/src/Makefile.am b/src/Makefile.am
+index e883ab4bd..d0f11af26 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -88,7 +88,7 @@ endif
+ 
+ 
+ if ENABLE_BACKGROUND
+-    libinternal_la_SOURCES += background.c background.h
++    libinternal_la_SOURCES += task-background.c task-background.h
+ endif
+ 
+ EXTRA_DIST = $(SRC_maintainer) $(SRC_charset)
+diff --git a/src/args.c b/src/args.c
+index 4cb0f67fd..9561ea559 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -32,7 +32,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/strutil.h"
+ #include "lib/vfs/vfs.h"
+-#include "lib/util.h"           /* x_basename() */
++#include "lib/sub-util.h"           /* x_basename() */
+ 
+ #ifdef ENABLE_VFS_SMB
+ #include "src/vfs/smbfs/smbfs.h"        /* smbfs_set_debugf()  */
+diff --git a/src/clipboard.c b/src/clipboard.c
+index c277ae66b..14cb8c3f3 100644
+--- a/src/clipboard.c
++++ b/src/clipboard.c
+@@ -33,7 +33,7 @@
+ #include "lib/global.h"
+ #include "lib/fileloc.h"
+ #include "lib/mcconfig.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/event.h"
+ 
+ #include "lib/vfs/vfs.h"
+diff --git a/src/cons.handler.c b/src/cons.handler.c
+index 79297c2a7..d3ef02b40 100644
+--- a/src/cons.handler.c
++++ b/src/cons.handler.c
+@@ -44,7 +44,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/tty/color.h"      /* tty_set_normal_attrs */
+ #include "lib/tty/win.h"
+-#include "lib/util.h"           /* mc_build_filename() */
++#include "lib/sub-util.h"           /* mc_build_filename() */
+ 
+ #include "consaver/cons.saver.h"
+ 
+diff --git a/src/diffviewer/Makefile.am b/src/diffviewer/Makefile.am
+index 58e8e5b04..804ebca81 100644
+--- a/src/diffviewer/Makefile.am
++++ b/src/diffviewer/Makefile.am
+@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libdiffviewer.la
+ 
+ libdiffviewer_la_SOURCES = \
+ 	internal.h \
+-	search.c \
++	df-view-search.c \
+ 	ydiff.c ydiff.h
+ 
+ AM_CPPFLAGS = -I$(top_srcdir) $(GLIB_CFLAGS) $(PCRE_CPPFLAGS)
+diff --git a/src/diffviewer/search.c b/src/diffviewer/df-view-search.c
+similarity index 100%
+rename from src/diffviewer/search.c
+rename to src/diffviewer/df-view-search.c
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index 43c758971..92be19c01 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -41,7 +41,7 @@
+ #include "lib/tty/key.h"
+ #include "lib/skin.h"           /* EDITOR_NORMAL_COLOR */
+ #include "lib/vfs/vfs.h"        /* mc_opendir, mc_readdir, mc_closedir, */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #include "lib/strutil.h"
+ #include "lib/strescape.h"      /* strutils_glob_escape() */
+diff --git a/src/editor/bookmark.c b/src/editor/bookmark.c
+index 4fef88584..746e36041 100644
+--- a/src/editor/bookmark.c
++++ b/src/editor/bookmark.c
+@@ -43,7 +43,7 @@
+ #include <unistd.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"           /* MAX_SAVED_BOOKMARKS */
++#include "lib/sub-util.h"           /* MAX_SAVED_BOOKMARKS */
+ 
+ #include "editwidget.h"
+ 
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e13be389a..edcfeaf54 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -52,7 +52,7 @@
+ #include "lib/fileloc.h"        /* EDIT_HOME_BLOCK_FILE */
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"        /* utf string functions */
+-#include "lib/util.h"           /* load_file_position(), save_file_position() */
++#include "lib/sub-util.h"           /* load_file_position(), save_file_position() */
+ #include "lib/timefmt.h"        /* time formatting */
+ #include "lib/lock.h"
+ #include "lib/widget.h"
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index e2b904604..62f10650b 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -53,7 +53,7 @@
+ #include "lib/strutil.h"        /* utf string functions */
+ #include "lib/fileloc.h"
+ #include "lib/lock.h"
+-#include "lib/util.h"           /* tilde_expand() */
++#include "lib/sub-util.h"           /* tilde_expand() */
+ #include "lib/vfs/vfs.h"
+ #include "lib/widget.h"
+ #include "lib/event.h"          /* mc_event_raise() */
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 564e18d6c..f3849ec25 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -47,7 +47,7 @@
+ #include "lib/tty/key.h"        /* is_idle() */
+ #include "lib/skin.h"
+ #include "lib/strutil.h"        /* utf string functions */
+-#include "lib/util.h"           /* is_printable() */
++#include "lib/sub-util.h"           /* is_printable() */
+ #include "lib/widget.h"
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 18ac00e66..090dd8d7f 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -47,7 +47,7 @@
+ #include "lib/skin.h"
+ #include "lib/fileloc.h"        /* EDIT_HOME_DIR */
+ #include "lib/strutil.h"        /* str_term_trim() */
+-#include "lib/util.h"           /* mc_build_filename() */
++#include "lib/sub-util.h"           /* mc_build_filename() */
+ #include "lib/widget.h"
+ #include "lib/mcconfig.h"
+ #include "lib/event.h"          /* mc_event_raise() */
+diff --git a/src/editor/etags.c b/src/editor/etags.c
+index 35c7a2f04..14ae67122 100644
+--- a/src/editor/etags.c
++++ b/src/editor/etags.c
+@@ -38,7 +38,7 @@
+ #include <ctype.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"           /* canonicalize_pathname() */
++#include "lib/sub-util.h"           /* canonicalize_pathname() */
+ 
+ #include "etags.h"
+ 
+diff --git a/src/editor/syntax.c b/src/editor/syntax.c
+index 93aa7512c..91be0a396 100644
+--- a/src/editor/syntax.c
++++ b/src/editor/syntax.c
+@@ -58,7 +58,7 @@
+ #include "lib/skin.h"
+ #include "lib/fileloc.h"        /* EDIT_HOME_DIR, EDIT_HOME_SYNTAX_FILE */
+ #include "lib/strutil.h"        /* utf string functions */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* message() */
+ 
+ #include "edit-impl.h"
+diff --git a/src/events_init.c b/src/events_init.c
+index a1ba78be3..f7f982c69 100644
+--- a/src/events_init.c
++++ b/src/events_init.c
+@@ -30,7 +30,7 @@
+ #include "lib/event.h"
+ 
+ #ifdef ENABLE_BACKGROUND
+-#include "background.h"         /* (background_parent_call), background_parent_call_string() */
++#include "task-background.h"         /* (background_parent_call), background_parent_call_string() */
+ #endif /* ENABLE_BACKGROUND */
+ #include "clipboard.h"          /* clipboard events */
+ #include "execute.h"            /* execute_suspend() */
+diff --git a/src/execute.c b/src/execute.c
+index f35c53d94..2459e3a40 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -41,7 +41,7 @@
+ #include "lib/tty/win.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/mcconfig.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/strutil.h"        /* str_replace_all_substrings() */
+ #include "lib/widget.h"
+ 
+diff --git a/src/file_history.c b/src/file_history.c
+index 4304655aa..4989bda3b 100644
+--- a/src/file_history.c
++++ b/src/file_history.c
+@@ -32,7 +32,7 @@
+ #include "lib/fileloc.h"        /* MC_FILEPOS_FILE */
+ #include "lib/mcconfig.h"       /* mc_config_get_full_path() */
+ #include "lib/strutil.h"        /* str_term_width1() */
+-#include "lib/util.h"           /* backup functions */
++#include "lib/sub-util.h"           /* backup functions */
+ 
+ #include "file_history.h"
+ 
+diff --git a/src/filemanager/Makefile.am b/src/filemanager/Makefile.am
+index ba4a1be96..2f0c16430 100644
+--- a/src/filemanager/Makefile.am
++++ b/src/filemanager/Makefile.am
+@@ -8,7 +8,7 @@ libmcfilemanager_la_SOURCES = \
+ 	chown.c \
+ 	cmd.c cmd.h \
+ 	command.c command.h \
+-	dir.c dir.h \
++	fman-dir.c fman-dir.h \
+ 	ext.c ext.h \
+ 	file.c file.h \
+ 	filegui.c filegui.h \
+diff --git a/src/filemanager/achown.c b/src/filemanager/achown.c
+index 7a9ba7a97..7ee390e55 100644
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -42,7 +42,7 @@
+ #include "lib/skin.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "midnight.h"           /* current_panel */
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 5b4d8c527..dd6cb928c 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -56,14 +56,14 @@
+ #include "src/vfs/smbfs/smbfs.h"
+ #endif /* ENABLE_VFS_SMB */
+ 
+-#include "lib/util.h"           /* Q_() */
++#include "lib/sub-util.h"           /* Q_() */
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"
+ #include "src/history.h"        /* MC_HISTORY_ESC_TIMEOUT */
+ #include "src/execute.h"        /* pause_after_run */
+ #ifdef ENABLE_BACKGROUND
+-#include "src/background.h"     /* task_list */
++#include "src/task-background.h"     /* task_list */
+ #endif
+ 
+ #ifdef HAVE_CHARSET
+@@ -72,7 +72,7 @@
+ #endif
+ 
+ #include "command.h"            /* For cmdline */
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "panel.h"              /* LIST_FORMATS */
+ #include "tree.h"
+ #include "layout.h"             /* for get_nth_panel_name proto */
+diff --git a/src/filemanager/boxes.h b/src/filemanager/boxes.h
+index 4d6acc3a8..3cbe8b56c 100644
+--- a/src/filemanager/boxes.h
++++ b/src/filemanager/boxes.h
+@@ -5,7 +5,7 @@
+ #ifndef MC__BOXES_H
+ #define MC__BOXES_H
+ 
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "panel.h"
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+diff --git a/src/filemanager/chmod.c b/src/filemanager/chmod.c
+index 26fb846cd..49fb268d2 100644
+--- a/src/filemanager/chmod.c
++++ b/src/filemanager/chmod.c
+@@ -37,7 +37,7 @@
+ #include "lib/skin.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "midnight.h"           /* current_panel */
+diff --git a/src/filemanager/chown.c b/src/filemanager/chown.c
+index e7b104a06..801923521 100644
+--- a/src/filemanager/chown.c
++++ b/src/filemanager/chown.c
+@@ -41,7 +41,7 @@
+ #include "lib/skin.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"          /* panels_options */
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 7daf7b763..69e7924cd 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -58,7 +58,7 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/fileloc.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #include "lib/keybind.h"        /* CK_Down, CK_History */
+ #include "lib/event.h"          /* mc_event_raise() */
+@@ -90,7 +90,7 @@
+ #include "layout.h"             /* get_current_type() */
+ #include "ext.h"                /* regex_command() */
+ #include "boxes.h"              /* cd_box() */
+-#include "dir.h"
++#include "fman-dir.h"
+ 
+ #include "cmd.h"                /* Our definitions */
+ 
+diff --git a/src/filemanager/command.c b/src/filemanager/command.c
+index cce18fbc9..a2c2ed3dc 100644
+--- a/src/filemanager/command.c
++++ b/src/filemanager/command.c
+@@ -41,7 +41,7 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/strescape.h"
+ #include "lib/skin.h"           /* DEFAULT_COLOR */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"          /* quit */
+diff --git a/src/filemanager/ext.c b/src/filemanager/ext.c
+index 4e1520050..d291c18a5 100644
+--- a/src/filemanager/ext.c
++++ b/src/filemanager/ext.c
+@@ -43,7 +43,7 @@
+ #include "lib/search.h"
+ #include "lib/fileloc.h"
+ #include "lib/mcconfig.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/widget.h"
+ #ifdef HAVE_CHARSET
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index b9833de1d..ea3ba6c9c 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -66,17 +66,17 @@
+ #include "lib/search.h"
+ #include "lib/strescape.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"
+ #ifdef ENABLE_BACKGROUND
+-#include "src/background.h"     /* do_background() */
++#include "src/task-background.h"     /* do_background() */
+ #endif
+ 
+ /* Needed for current_panel, other_panel and WTree */
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "filegui.h"
+ #include "filenot.h"
+ #include "tree.h"
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index c43a2ae99..ec2dbc87c 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -150,7 +150,7 @@ statfs (char const *filename, struct fs_info *buf)
+ #include "lib/strescape.h"
+ #include "lib/strutil.h"
+ #include "lib/timefmt.h"        /* file_date() */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"          /* verbose, safe_overwrite */
+diff --git a/src/filemanager/filenot.c b/src/filemanager/filenot.c
+index 31b31f6c4..25e614559 100644
+--- a/src/filemanager/filenot.c
++++ b/src/filemanager/filenot.c
+@@ -41,7 +41,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/fs.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/vfs/vfs.h"
+ 
+ #include "filenot.h"
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index b7506bf7d..4687b3911 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -47,12 +47,12 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+ #include "lib/widget.h"
+-#include "lib/util.h"           /* canonicalize_pathname() */
++#include "lib/sub-util.h"           /* canonicalize_pathname() */
+ 
+ #include "src/setup.h"          /* verbose */
+ #include "src/history.h"        /* MC_HISTORY_SHARED_SEARCH */
+ 
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "cmd.h"                /* find_cmd(), view_file_at_line() */
+ #include "midnight.h"           /* current_panel */
+ #include "boxes.h"
+diff --git a/src/filemanager/dir.c b/src/filemanager/fman-dir.c
+similarity index 99%
+rename from src/filemanager/dir.c
+rename to src/filemanager/fman-dir.c
+index 92b616668..a85d896e1 100644
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/fman-dir.c
+@@ -41,13 +41,13 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/fs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "src/setup.h"          /* panels_options */
+ 
+ #include "treestore.h"
+ #include "file.h"               /* file_is_symlink_to_dir() */
+-#include "dir.h"
++#include "fman-dir.h"
+ 
+ /*** global variables ****************************************************************************/
+ 
+diff --git a/src/filemanager/dir.h b/src/filemanager/fman-dir.h
+similarity index 99%
+rename from src/filemanager/dir.h
+rename to src/filemanager/fman-dir.h
+index a159271f5..04473d104 100644
+--- a/src/filemanager/dir.h
++++ b/src/filemanager/fman-dir.h
+@@ -8,7 +8,7 @@
+ #include <sys/stat.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/vfs/vfs.h"
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index 90df75bf6..cbe9bbc57 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -53,7 +53,7 @@
+ #include "lib/fileloc.h"
+ #include "lib/strutil.h"
+ #include "lib/vfs/vfs.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"          /* For profile_bname */
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index b981b85d0..c027e07df 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -45,7 +45,7 @@
+ #include "lib/skin.h"
+ #include "lib/strutil.h"
+ #include "lib/timefmt.h"        /* file_date() */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"          /* panels_options */
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index f5df9f7bf..062de010b 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -44,13 +44,13 @@
+ #include "lib/tty/tty.h"
+ #include "lib/skin.h"
+ #include "lib/tty/key.h"
+-#include "lib/tty/mouse.h"
++#include "lib/tty/tty-mouse.h"
+ #include "lib/mcconfig.h"
+ #include "lib/vfs/vfs.h"        /* For _vfs_get_cwd () */
+ #include "lib/strutil.h"
+ #include "lib/widget.h"
+ #include "lib/event.h"
+-#include "lib/util.h"           /* mc_time_elapsed() */
++#include "lib/sub-util.h"           /* mc_time_elapsed() */
+ 
+ #include "src/consaver/cons.saver.h"
+ #include "src/viewer/mcviewer.h"        /* The view widget */
+@@ -63,7 +63,7 @@
+ #include "midnight.h"
+ #include "tree.h"
+ /* Needed for the extern declarations of integer parameters */
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "layout.h"
+ #include "info.h"               /* The Info widget */
+ 
+diff --git a/src/filemanager/listmode.c b/src/filemanager/listmode.c
+index 0aaa0e91f..0b1526952 100644
+--- a/src/filemanager/listmode.c
++++ b/src/filemanager/listmode.c
+@@ -47,7 +47,7 @@
+ #include "lib/skin/skin.h"
+ 
+ /* Needed for the extern declarations of integer parameters */
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "panel.h"              /* Needed for the externs */
+ #include "file.h"
+ #include "listmode.h"
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index 36461b260..fa83c2d11 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -50,7 +50,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/tty/key.h"        /* KEY_M_* masks */
+ #include "lib/skin.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "lib/vfs/vfs.h"
+ 
+@@ -73,7 +73,7 @@
+ #include "hotlist.h"
+ #include "panelize.h"
+ #include "command.h"            /* cmdline */
+-#include "dir.h"                /* dir_list_clean() */
++#include "fman-dir.h"                /* dir_list_clean() */
+ 
+ #ifdef USE_INTERNAL_EDIT
+ #include "src/editor/edit.h"
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index c74247aea..309eee844 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -48,7 +48,7 @@
+ #include "lib/unixcompat.h"
+ #include "lib/search.h"
+ #include "lib/timefmt.h"        /* file_date() */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"       /* get_codepage_id () */
+@@ -67,7 +67,7 @@
+ 
+ #include "src/usermenu.h"
+ 
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "boxes.h"
+ #include "tree.h"
+ #include "ext.h"                /* regexp_command */
+diff --git a/src/filemanager/panel.h b/src/filemanager/panel.h
+index 57f4d6284..bb7ef665c 100644
+--- a/src/filemanager/panel.h
++++ b/src/filemanager/panel.h
+@@ -14,7 +14,7 @@
+ #include "lib/widget.h"         /* Widget */
+ #include "lib/filehighlight.h"
+ 
+-#include "dir.h"                /* dir_list */
++#include "fman-dir.h"                /* dir_list */
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 8c1af1ed8..1820e3467 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -43,13 +43,13 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/mcconfig.h"       /* Load/save directories panelize */
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/setup.h"          /* For profile_bname */
+ #include "src/history.h"
+ 
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "midnight.h"           /* current_panel */
+ #include "layout.h"             /* rotate_dash() */
+ #include "panel.h"              /* WPanel */
+diff --git a/src/filemanager/tree.c b/src/filemanager/tree.c
+index 008bc0403..9d6ddecb3 100644
+--- a/src/filemanager/tree.c
++++ b/src/filemanager/tree.c
+@@ -51,7 +51,7 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/fileloc.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #include "lib/event.h"          /* mc_event_raise() */
+ 
+@@ -59,7 +59,7 @@
+ #include "src/keybind-defaults.h"
+ #include "src/history.h"
+ 
+-#include "dir.h"
++#include "fman-dir.h"
+ #include "midnight.h"           /* the_menubar */
+ #include "file.h"               /* copy_dir_dir(), move_dir_dir(), erase_dir() */
+ #include "layout.h"             /* command_prompt */
+diff --git a/src/filemanager/treestore.c b/src/filemanager/treestore.c
+index 08354b217..a8e86b94a 100644
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -56,7 +56,7 @@
+ #include "lib/fileloc.h"
+ #include "lib/strescape.h"
+ #include "lib/hook.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "src/setup.h"          /* setup_init() */
+ 
+diff --git a/src/help.c b/src/help.c
+index f5922f086..8881d448c 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -61,7 +61,7 @@
+ #include "lib/skin.h"
+ #include "lib/strutil.h"
+ #include "lib/fileloc.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #include "lib/event-types.h"
+ 
+diff --git a/src/learn.c b/src/learn.c
+index 8c607f67c..92c4902d3 100644
+--- a/src/learn.c
++++ b/src/learn.c
+@@ -39,7 +39,7 @@
+ #include "lib/mcconfig.h"
+ #include "lib/strescape.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* convert_controls() */
++#include "lib/sub-util.h"           /* convert_controls() */
+ #include "lib/widget.h"
+ 
+ #include "setup.h"
+diff --git a/src/main.c b/src/main.c
+index 6db18b200..c30f51c30 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -48,13 +48,13 @@
+ #include "lib/event.h"
+ #include "lib/tty/tty.h"
+ #include "lib/tty/key.h"        /* For init_key() */
+-#include "lib/tty/mouse.h"      /* init_mouse() */
++#include "lib/tty/tty-mouse.h"      /* init_mouse() */
+ #include "lib/timer.h"
+ #include "lib/skin.h"
+ #include "lib/filehighlight.h"
+ #include "lib/fileloc.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/vfs/vfs.h"        /* vfs_init(), vfs_shut() */
+ 
+ #include "filemanager/midnight.h"       /* current_panel */
+diff --git a/src/setup.c b/src/setup.c
+index 97da20940..27d8b65d6 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -39,7 +39,7 @@
+ #include "lib/mcconfig.h"       /* num_history_items_recorded */
+ #include "lib/fileloc.h"
+ #include "lib/timefmt.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #ifdef ENABLE_VFS_FTP
+@@ -53,7 +53,7 @@
+ #include "lib/charsets.h"
+ #endif
+ 
+-#include "filemanager/dir.h"
++#include "filemanager/fman-dir.h"
+ #include "filemanager/midnight.h"
+ #include "filemanager/tree.h"   /* xtree_mode */
+ #include "filemanager/hotlist.h"        /* load/save/done hotlist */
+diff --git a/src/subshell/Makefile.am b/src/subshell/Makefile.am
+index 369cb6f47..c18786496 100644
+--- a/src/subshell/Makefile.am
++++ b/src/subshell/Makefile.am
+@@ -1,7 +1,7 @@
+ noinst_LTLIBRARIES = libsubshell.la
+ 
+ libsubshell_la_SOURCES = \
+-	common.c \
++	subshell-common.c \
+ 	internal.h \
+ 	proxyfunc.c \
+ 	subshell.h
+diff --git a/src/subshell/common.c b/src/subshell/subshell-common.c
+similarity index 99%
+rename from src/subshell/common.c
+rename to src/subshell/subshell-common.c
+index 02ae85211..8e22d6ad2 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/subshell-common.c
+@@ -103,7 +103,7 @@
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+ #include "lib/mcconfig.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/filemanager/layout.h"     /* setup_cmdline() */
+diff --git a/src/background.c b/src/task-background.c
+similarity index 99%
+rename from src/background.c
+rename to src/task-background.c
+index 8774c0cd7..36112a7b7 100644
+--- a/src/background.c
++++ b/src/task-background.c
+@@ -52,7 +52,7 @@
+ 
+ #include "filemanager/fileopctx.h"      /* file_op_context_t */
+ 
+-#include "background.h"
++#include "task-background.h"
+ 
+ /*** global variables ****************************************************************************/
+ 
+diff --git a/src/background.h b/src/task-background.h
+similarity index 100%
+rename from src/background.h
+rename to src/task-background.h
+diff --git a/src/textconf.c b/src/textconf.c
+index fbb187b12..57c114724 100644
+--- a/src/textconf.c
++++ b/src/textconf.c
+@@ -33,7 +33,7 @@
+ #include "lib/global.h"
+ #include "lib/fileloc.h"
+ #include "lib/mcconfig.h"
+-#include "lib/util.h"           /* mc_get_profile_root() */
++#include "lib/sub-util.h"           /* mc_get_profile_root() */
+ #include "lib/tty/tty.h"        /* S-Lang or ncurses version */
+ 
+ #include "src/textconf.h"
+diff --git a/src/usermenu.c b/src/usermenu.c
+index 698244220..fda44a895 100644
+--- a/src/usermenu.c
++++ b/src/usermenu.c
+@@ -43,7 +43,7 @@
+ #include "lib/search.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ 
+ #include "src/editor/edit.h"    /* WEdit, BLOCK_FILE */
+@@ -53,7 +53,7 @@
+ #include "src/setup.h"
+ #include "src/history.h"
+ 
+-#include "src/filemanager/dir.h"
++#include "src/filemanager/fman-dir.h"
+ #include "src/filemanager/midnight.h"
+ #include "src/filemanager/layout.h"
+ 
+diff --git a/src/util.c b/src/util.c
+index 4b3f99569..68bfa7169 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -27,7 +27,7 @@
+ #include <config.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "src/filemanager/file.h"
+ #include "src/filemanager/filegui.h"
+diff --git a/src/vfs/cpio/cpio.c b/src/vfs/cpio/cpio.c
+index 774fdf356..76cfe10f7 100644
+--- a/src/vfs/cpio/cpio.c
++++ b/src/vfs/cpio/cpio.c
+@@ -38,7 +38,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/unixcompat.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* message() */
+ 
+ #include "lib/vfs/vfs.h"
+diff --git a/src/vfs/extfs/extfs.c b/src/vfs/extfs/extfs.c
+index 7ddbc7a80..641cd140e 100644
+--- a/src/vfs/extfs/extfs.c
++++ b/src/vfs/extfs/extfs.c
+@@ -53,7 +53,7 @@
+ #include "lib/global.h"
+ #include "lib/fileloc.h"
+ #include "lib/mcconfig.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* message() */
+ 
+ #include "src/execute.h"        /* For shell_execute */
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index 5cd279f95..9b7e98ddf 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -63,7 +63,7 @@
+ #include "lib/strescape.h"
+ #include "lib/unixcompat.h"
+ #include "lib/fileloc.h"
+-#include "lib/util.h"           /* my_exit() */
++#include "lib/sub-util.h"           /* my_exit() */
+ #include "lib/mcconfig.h"
+ #include "lib/timer.h"
+ 
+diff --git a/src/vfs/ftpfs/ftpfs.c b/src/vfs/ftpfs/ftpfs.c
+index 8a841ac1a..80ba5a548 100644
+--- a/src/vfs/ftpfs/ftpfs.c
++++ b/src/vfs/ftpfs/ftpfs.c
+@@ -95,7 +95,7 @@ What to do with this?
+ #include <inttypes.h>           /* uintmax_t */
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/strutil.h"        /* str_move() */
+ #include "lib/mcconfig.h"
+ #include "lib/timer.h"
+diff --git a/src/vfs/sfs/sfs.c b/src/vfs/sfs/sfs.c
+index fafcf32e7..0321f5ff0 100644
+--- a/src/vfs/sfs/sfs.c
++++ b/src/vfs/sfs/sfs.c
+@@ -45,7 +45,7 @@
+ #include <string.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* D_ERROR, D_NORMAL */
+ 
+ #include "src/execute.h"        /* EXECUTE_AS_SHELL */
+diff --git a/src/vfs/sftpfs/Makefile.am b/src/vfs/sftpfs/Makefile.am
+index 423f38730..49fe59caa 100644
+--- a/src/vfs/sftpfs/Makefile.am
++++ b/src/vfs/sftpfs/Makefile.am
+@@ -6,8 +6,8 @@ noinst_LTLIBRARIES = libvfs-sftpfs.la
+ libvfs_sftpfs_la_SOURCES = \
+ 	config_parser.c \
+ 	connection.c \
+-	dir.c \
+-	file.c \
++	sftp-dir.c \
++	sftp-file.c \
+ 	init.c init.h \
+ 	internal.c internal.h \
+ 	vfs_class.c \
+diff --git a/src/vfs/sftpfs/config_parser.c b/src/vfs/sftpfs/config_parser.c
+index f5736996d..e95193835 100644
+--- a/src/vfs/sftpfs/config_parser.c
++++ b/src/vfs/sftpfs/config_parser.c
+@@ -32,7 +32,7 @@
+ #include "lib/global.h"
+ 
+ #include "lib/search.h"
+-#include "lib/util.h"           /* tilde_expand() */
++#include "lib/sub-util.h"           /* tilde_expand() */
+ #include "lib/vfs/utilvfs.h"
+ 
+ #include "internal.h"
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index 0fc08d285..d0fe4948c 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -39,7 +39,7 @@
+ 
+ #include "lib/global.h"
+ 
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/tty/tty.h"        /* tty_enable_interrupt_key () */
+ #include "lib/vfs/utilvfs.h"
+ 
+diff --git a/src/vfs/sftpfs/internal.c b/src/vfs/sftpfs/internal.c
+index baa2de4f7..daae5239b 100644
+--- a/src/vfs/sftpfs/internal.c
++++ b/src/vfs/sftpfs/internal.c
+@@ -36,7 +36,7 @@
+ #endif
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "internal.h"
+ 
+diff --git a/src/vfs/sftpfs/dir.c b/src/vfs/sftpfs/sftp-dir.c
+similarity index 99%
+rename from src/vfs/sftpfs/dir.c
+rename to src/vfs/sftpfs/sftp-dir.c
+index 67b7f29ee..653bc9d7b 100644
+--- a/src/vfs/sftpfs/dir.c
++++ b/src/vfs/sftpfs/sftp-dir.c
+@@ -30,7 +30,7 @@
+ #include <libssh2_sftp.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "internal.h"
+ 
+diff --git a/src/vfs/sftpfs/file.c b/src/vfs/sftpfs/sftp-file.c
+similarity index 99%
+rename from src/vfs/sftpfs/file.c
+rename to src/vfs/sftpfs/sftp-file.c
+index 40d019f11..01a92fe6d 100644
+--- a/src/vfs/sftpfs/file.c
++++ b/src/vfs/sftpfs/sftp-file.c
+@@ -31,7 +31,7 @@
+ #include <libssh2_sftp.h>
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ #include "internal.h"
+ 
+diff --git a/src/vfs/smbfs/smbfs.c b/src/vfs/smbfs/smbfs.c
+index e91a18fbd..b73331cd4 100644
+--- a/src/vfs/smbfs/smbfs.c
++++ b/src/vfs/smbfs/smbfs.c
+@@ -47,7 +47,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* message() */
+ 
+ #undef  PACKAGE_BUGREPORT
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index 913a39520..39086ba6e 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -46,7 +46,7 @@
+ #endif
+ 
+ #include "lib/global.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/unixcompat.h"     /* makedev() */
+ #include "lib/widget.h"         /* message() */
+ 
+diff --git a/src/vfs/undelfs/undelfs.c b/src/vfs/undelfs/undelfs.c
+index 6e8a0685c..446953aa5 100644
+--- a/src/vfs/undelfs/undelfs.c
++++ b/src/vfs/undelfs/undelfs.c
+@@ -63,7 +63,7 @@
+ 
+ #include "lib/global.h"
+ 
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* message() */
+ #include "lib/vfs/xdirentry.h"
+ #include "lib/vfs/utilvfs.h"
+diff --git a/src/viewer/Makefile.am b/src/viewer/Makefile.am
+index 0602084d5..f5c0b7e13 100644
+--- a/src/viewer/Makefile.am
++++ b/src/viewer/Makefile.am
+@@ -9,15 +9,15 @@ libmcviewer_la_SOURCES = \
+ 	dialogs.c \
+ 	display.c \
+ 	growbuf.c \
+-	hex.c \
++	view-hex.c \
+ 	inlines.h \
+ 	internal.h \
+-	lib.c \
++	view-lib.c \
+ 	mcviewer.c \
+ 	mcviewer.h \
+ 	move.c \
+ 	nroff.c \
+-	search.c
++	view-search.c
+ 
+ AM_CPPFLAGS = -I$(top_srcdir) $(GLIB_CFLAGS) $(PCRE_CPPFLAGS)
+ 
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index f5724ce20..3f63ea273 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -52,7 +52,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/tty/key.h"        /* is_idle() */
+ #include "lib/lock.h"           /* lock_file() */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"
+diff --git a/src/viewer/ascii.c b/src/viewer/ascii.c
+index e2a3ce934..1e679c533 100644
+--- a/src/viewer/ascii.c
++++ b/src/viewer/ascii.c
+@@ -149,7 +149,7 @@
+ #include "lib/global.h"
+ #include "lib/tty/tty.h"
+ #include "lib/skin.h"
+-#include "lib/util.h"           /* is_printable() */
++#include "lib/sub-util.h"           /* is_printable() */
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"
+ #endif
+diff --git a/src/viewer/datasource.c b/src/viewer/datasource.c
+index 1f97e8dd1..56206f16b 100644
+--- a/src/viewer/datasource.c
++++ b/src/viewer/datasource.c
+@@ -56,7 +56,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/vfs/vfs.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* D_NORMAL, D_ERROR */
+ 
+ #include "internal.h"
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index 7512e4763..1c56f0a9b 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -41,7 +41,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/tty/key.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"
+diff --git a/src/viewer/growbuf.c b/src/viewer/growbuf.c
+index c1292f255..954ecd90e 100644
+--- a/src/viewer/growbuf.c
++++ b/src/viewer/growbuf.c
+@@ -38,7 +38,7 @@
+ 
+ #include "lib/global.h"
+ #include "lib/vfs/vfs.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"         /* D_NORMAL */
+ 
+ #include "internal.h"
+diff --git a/src/viewer/internal.h b/src/viewer/internal.h
+index d96223f2f..94f8d30a7 100644
+--- a/src/viewer/internal.h
++++ b/src/viewer/internal.h
+@@ -12,7 +12,7 @@
+ #include "lib/vfs/vfs.h"        /* vfs_path_t */
+ 
+ #include "src/keybind-defaults.h"       /* global_keymap_t */
+-#include "src/filemanager/dir.h"        /* dir_list */
++#include "src/filemanager/fman-dir.h"        /* dir_list */
+ 
+ #include "mcviewer.h"
+ 
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index 027323f1c..fbfa50f8b 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -40,7 +40,7 @@
+ #include "lib/tty/tty.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* load_file_position() */
++#include "lib/sub-util.h"           /* load_file_position() */
+ #include "lib/widget.h"
+ 
+ #include "src/filemanager/layout.h"
+diff --git a/src/viewer/hex.c b/src/viewer/view-hex.c
+similarity index 99%
+rename from src/viewer/hex.c
+rename to src/viewer/view-hex.c
+index 7996d4308..6ac4ddedc 100644
+--- a/src/viewer/hex.c
++++ b/src/viewer/view-hex.c
+@@ -43,7 +43,7 @@
+ #include "lib/skin.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/lock.h"           /* lock_file() and unlock_file() */
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/widget.h"
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"
+diff --git a/src/viewer/lib.c b/src/viewer/view-lib.c
+similarity index 99%
+rename from src/viewer/lib.c
+rename to src/viewer/view-lib.c
+index 744e7e9a2..6e81a1548 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/view-lib.c
+@@ -41,7 +41,7 @@
+ #include "lib/global.h"
+ #include "lib/vfs/vfs.h"
+ #include "lib/strutil.h"
+-#include "lib/util.h"           /* save_file_position() */
++#include "lib/sub-util.h"           /* save_file_position() */
+ #include "lib/widget.h"
+ #ifdef HAVE_CHARSET
+ #include "lib/charsets.h"
+diff --git a/src/viewer/search.c b/src/viewer/view-search.c
+similarity index 100%
+rename from src/viewer/search.c
+rename to src/viewer/view-search.c
+diff --git a/tests/lib/mc_build_filename.c b/tests/lib/mc_build_filename.c
+index 0b6b7a4cc..abf94ab64 100644
+--- a/tests/lib/mc_build_filename.c
++++ b/tests/lib/mc_build_filename.c
+@@ -30,7 +30,7 @@
+ #include <stdio.h>
+ 
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+diff --git a/tests/lib/mc_realpath.c b/tests/lib/mc_realpath.c
+index 17f7c2fff..6c4ac1744 100644
+--- a/tests/lib/mc_realpath.c
++++ b/tests/lib/mc_realpath.c
+@@ -31,7 +31,7 @@
+ #include "lib/vfs/vfs.h"        /* VFS_ENCODING_PREFIX, vfs_init(), vfs_shut() */
+ #include "src/vfs/local/local.c"
+ 
+-#include "lib/util.h"           /* mc_realpath() */
++#include "lib/sub-util.h"           /* mc_realpath() */
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+diff --git a/tests/lib/name_quote.c b/tests/lib/name_quote.c
+index eb5056d7d..27469cd64 100644
+--- a/tests/lib/name_quote.c
++++ b/tests/lib/name_quote.c
+@@ -27,7 +27,7 @@
+ 
+ #include "tests/mctest.h"
+ 
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+diff --git a/tests/lib/utilunix__my_system-fork_child.c b/tests/lib/utilunix__my_system-fork_child.c
+index 95081db11..43d45585e 100644
+--- a/tests/lib/utilunix__my_system-fork_child.c
++++ b/tests/lib/utilunix__my_system-fork_child.c
+@@ -27,7 +27,7 @@
+ 
+ #include "tests/mctest.h"
+ 
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/utilunix.h"
+ 
+ #include "utilunix__my_system-common.c"
+diff --git a/tests/lib/utilunix__my_system-fork_child_shell.c b/tests/lib/utilunix__my_system-fork_child_shell.c
+index 6de19581b..46c462a17 100644
+--- a/tests/lib/utilunix__my_system-fork_child_shell.c
++++ b/tests/lib/utilunix__my_system-fork_child_shell.c
+@@ -27,7 +27,7 @@
+ 
+ #include "tests/mctest.h"
+ 
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/utilunix.h"
+ 
+ #include "utilunix__my_system-common.c"
+diff --git a/tests/lib/utilunix__my_system-fork_fail.c b/tests/lib/utilunix__my_system-fork_fail.c
+index 452efb161..c42f7c260 100644
+--- a/tests/lib/utilunix__my_system-fork_fail.c
++++ b/tests/lib/utilunix__my_system-fork_fail.c
+@@ -30,7 +30,7 @@
+ #include <signal.h>
+ #include <unistd.h>
+ 
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/utilunix.h"
+ 
+ #include "utilunix__my_system-common.c"
+diff --git a/tests/lib/vfs/canonicalize_pathname.c b/tests/lib/vfs/canonicalize_pathname.c
+index f070fa039..5e6c16aaf 100644
+--- a/tests/lib/vfs/canonicalize_pathname.c
++++ b/tests/lib/vfs/canonicalize_pathname.c
+@@ -32,7 +32,7 @@
+ #endif
+ 
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/vfs/xdirentry.h"
+ 
+ #include "src/vfs/local/local.c"
+diff --git a/tests/lib/x_basename.c b/tests/lib/x_basename.c
+index c3a85f463..95da4b1da 100644
+--- a/tests/lib/x_basename.c
++++ b/tests/lib/x_basename.c
+@@ -30,7 +30,7 @@
+ #include <stdio.h>
+ 
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+diff --git a/tests/src/filemanager/get_random_hint.c b/tests/src/filemanager/get_random_hint.c
+index c9a953227..721362180 100644
+--- a/tests/src/filemanager/get_random_hint.c
++++ b/tests/src/filemanager/get_random_hint.c
+@@ -29,7 +29,7 @@
+ #include "tests/mctest.h"
+ 
+ #include "lib/strutil.h"
+-#include "lib/util.h"
++#include "lib/sub-util.h"
+ #include "lib/timer.h"
+ 
+ #include "src/filemanager/midnight.h"
+diff --git a/tests/src/vfs/extfs/helpers-list/mc_parse_ls_l.c b/tests/src/vfs/extfs/helpers-list/mc_parse_ls_l.c
+index 8bd1f69e5..a846dc319 100644
+--- a/tests/src/vfs/extfs/helpers-list/mc_parse_ls_l.c
++++ b/tests/src/vfs/extfs/helpers-list/mc_parse_ls_l.c
+@@ -41,7 +41,7 @@
+ #include "lib/global.h"
+ 
+ #include "lib/vfs/utilvfs.h"    /* vfs_parse_ls_lga() */
+-#include "lib/util.h"           /* string_perm() */
++#include "lib/sub-util.h"           /* string_perm() */
+ #include "lib/timefmt.h"        /* FMT_LOCALTIME */
+ #include "lib/widget.h"         /* for the prototype of message() only */
+ 
+-- 
+2.28.0
+

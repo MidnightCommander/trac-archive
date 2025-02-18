@@ -1,0 +1,15 @@
+--- edit.c1	2010-02-26 14:34:03.000000000 +0300
++++ edit.c	2010-04-26 00:59:04.000000000 +0400
+@@ -3045,6 +3045,12 @@
+ 	edit_cut_to_X_buf_cmd (edit);
+ 	break;
+     case CK_XPaste:
++        // nickk: delete currently selected block to paste over it.
++        if ( !option_persistent_selections ) {
++            if ( edit->mark1 != edit->mark2 ) {
++                edit_block_delete_cmd (edit);
++            }
++        }
+         if ( option_cursor_beyond_eol && edit->over_col > 0 )
+             edit_insert_over (edit);
+ 	edit_paste_from_X_buf_cmd (edit);

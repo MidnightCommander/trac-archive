@@ -1,0 +1,24 @@
+From a2ca95cc9f0e5d5d494c963124a98fa52fceecb8 Mon Sep 17 00:00:00 2001
+From: Egmont Koblinger <egmont@gmail.com>
+Date: Sat, 4 Oct 2014 14:48:02 +0200
+Subject: [PATCH 1/2] 3282
+
+---
+ src/viewer/ascii.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/viewer/ascii.c b/src/viewer/ascii.c
+index 081cb85..e7ebc7d 100644
+--- a/src/viewer/ascii.c
++++ b/src/viewer/ascii.c
+@@ -870,6 +870,7 @@ mcview_display_text (mcview_t * view)
+     view->dpy_end = state.offset;
+     view->dpy_state_bottom = state;
+ 
++    tty_setcolor (VIEW_NORMAL_COLOR);
+     if (mcview_show_eof != NULL && mcview_show_eof[0] != '\0')
+         while (row < (int) height)
+         {
+-- 
+2.1.0
+

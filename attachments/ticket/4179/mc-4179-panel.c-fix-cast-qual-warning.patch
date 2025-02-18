@@ -1,0 +1,32 @@
+From ee43595c754c8bbea789f72ca7000057b8e7e862 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 16:13:12 +0000
+Subject: [PATCH] (panel.c) Fix -Wcast-qual warning
+
+panel.c:3834:18: warning: cast from 'const WPanel *' to 'struct Widget *' drops const qualifier [-Wcast-qual]
+        width = (WIDGET (panel)->cols - 2) / panel->list_cols;
+                 ^
+../../lib/widget/widget-common.h:15:30: note: expanded from macro 'WIDGET'
+#define WIDGET(x) ((Widget *)(x))
+                             ^
+
+Found by Clang-11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/panel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index df73e181f..2fded91a0 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3831,7 +3831,7 @@ panel_mouse_is_on_item (const WPanel * panel, int y, int x)
+     {
+         int width, lines;
+ 
+-        width = (WIDGET (panel)->cols - 2) / panel->list_cols;
++        width = (CONST_WIDGET (panel)->cols - 2) / panel->list_cols;
+         lines = panel_lines (panel);
+         y += lines * (x / width);
+     }

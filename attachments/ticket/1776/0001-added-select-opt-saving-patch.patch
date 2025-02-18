@@ -1,0 +1,52 @@
+From 553fb5a77278691720b01b40785922607253bba4 Mon Sep 17 00:00:00 2001
+From: kenny <kenny@tpol.lan>
+Date: Sun, 1 Nov 2009 14:26:55 +0100
+Subject: [PATCH] added select opt saving patch
+
+---
+ src/cmd.c   |    2 +-
+ src/setup.c |    1 +
+ src/setup.h |    2 ++
+ 3 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index d23cc67..0dda06b 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -110,7 +110,7 @@ typedef enum {
+     SELECT_SHELL_PATTERNS = 1 << 2
+ } select_flags_t;
+ 
+-static select_flags_t select_flags = SELECT_MATCH_CASE | SELECT_SHELL_PATTERNS;
++int select_flags = SELECT_MATCH_CASE | SELECT_SHELL_PATTERNS;
+ 
+ int
+ view_file_at_line (const char *filename, int plain_view, int internal,
+diff --git a/src/setup.c b/src/setup.c
+index ef45ff5..6660119 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -229,6 +229,7 @@ static const struct {
+     { "auto_fill_mkdir_name", &auto_fill_mkdir_name },
+     { "reverse_files_only", &reverse_files_only },
+     { "copymove_persistent_attr", &setup_copymove_persistent_attr },
++    { "select_flags", &select_flags },
+     { 0, 0 }
+ };
+ 
+diff --git a/src/setup.h b/src/setup.h
+index 8d1e8dd..adf0ce2 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -35,6 +35,8 @@ extern int verbose;
+ 
+ extern int mouse_close_dialog;
+ extern int reverse_files_only;
++extern int select_flags;
++
+ 
+ extern int setup_copymove_persistent_attr;
+ void setup_save_config_show_error(const char *filename, GError **error);
+-- 
+1.6.4.4
+

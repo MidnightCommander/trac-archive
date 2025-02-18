@@ -1,0 +1,13 @@
+--- edit/edit.c.old	2009-05-31 22:54:08.000000000 +0200
++++ edit/edit.c	2009-05-31 22:55:42.000000000 +0200
+@@ -573,6 +573,10 @@
+ 	    }
+ 	    edit->stack_disable = 0;
+ 	}
++#ifdef HAVE_CHARSET
++    if ( get_codepage_id( source_codepage ) )
++        edit->utf8 = str_isutf8 (get_codepage_id( source_codepage ));
++#endif
+     }
+     return 0;
+ }

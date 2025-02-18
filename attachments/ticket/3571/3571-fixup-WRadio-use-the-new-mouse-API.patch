@@ -1,0 +1,24 @@
+From a99a705ff46d6f9bffae643460a2123824a9bc68 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 5 Feb 2016 02:50:01 +0200
+Subject: [PATCH] fixup! WRadio: use the new mouse API.
+
+---
+ lib/widget/radio.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/widget/radio.c b/lib/widget/radio.c
+index 5dd598b..c8e13cf 100644
+--- a/lib/widget/radio.c
++++ b/lib/widget/radio.c
+@@ -148,6 +148,7 @@ radio_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+     switch (msg)
+     {
+     case MSG_MOUSE_DOWN:
++        RADIO (w)->pos = event->y;
+         dlg_select_widget (w);
+         break;
+ 
+-- 
+2.5.0
+

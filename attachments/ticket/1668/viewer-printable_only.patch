@@ -1,0 +1,12 @@
+diff -urNp mc-4.7.0-pre4.orig/src/tty/tty-slang.c mc-4.7.0-pre4/src/tty/tty-slang.c
+--- mc-4.7.0-pre4.orig/src/tty/tty-slang.c	2009-11-07 16:18:44.000000000 +0100
++++ mc-4.7.0-pre4/src/tty/tty-slang.c	2009-11-07 15:03:04.000000000 +0100
+@@ -565,6 +565,8 @@ tty_print_anychar (int c)
+         }
+         SLsmg_write_string ((char *) str_term_form (str));
+     } else {
++	if (!is_printable (c))
++		c = '.';
+         SLsmg_write_char ((SLwchar_Type) ((unsigned int) c));
+     }
+ }

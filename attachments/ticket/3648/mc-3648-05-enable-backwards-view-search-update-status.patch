@@ -1,0 +1,47 @@
+From 950e082f67b14ced345ca6e614efccd8723e98c8 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 May 2016 14:20:12 +0000
+Subject: [PATCH] Enable backwards view search update status
+
+Fix missing status update when searching backwards in mcview.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/search.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/src/viewer/search.c b/src/viewer/search.c
+index e0cf17b..d36bb49 100644
+--- a/src/viewer/search.c
++++ b/src/viewer/search.c
+@@ -250,14 +250,26 @@ mcview_search_update_cmd_callback (const void *user_data, gsize char_offset)
+     mc_search_cbret_t result = MC_SEARCH_CB_OK;
+ 
+     vsm->offset = (off_t) char_offset;
+-    if (vsm->offset >= vsm->view->update_activate)
++    if (mcview_search_options.backwards)
+     {
+-        vsm->view->update_activate += vsm->view->update_steps;
++        if (vsm->offset <= vsm->view->update_activate)
++        {
++            vsm->view->update_activate -= vsm->view->update_steps;
+ 
+-        if (sm->update (sm) == B_CANCEL)
+-            result = MC_SEARCH_CB_ABORT;
++            if (sm->update (sm) == B_CANCEL)
++                result = MC_SEARCH_CB_ABORT;
++        }
+     }
++    else
++    {
++        if (vsm->offset >= vsm->view->update_activate)
++        {
++            vsm->view->update_activate += vsm->view->update_steps;
+ 
++            if (sm->update (sm) == B_CANCEL)
++                result = MC_SEARCH_CB_ABORT;
++        }
++    }
+     /* may be in future return from this callback will change current position in searching block. */
+ 
+     return result;

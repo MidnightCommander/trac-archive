@@ -1,0 +1,396 @@
+From 462219fd0f21a29e8caa6b18dcbc46b997b0ef3a Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Mon, 25 Jan 2010 18:55:30 +0000
+Subject: [PATCH]  unifying some declarations in edit dir
+
+---
+ edit/bookmark.c    |   12 ++++++------
+ edit/edit-impl.h   |   20 ++++++++++----------
+ edit/edit-widget.h |    2 +-
+ edit/edit.c        |   36 +++++++++++++++++-------------------
+ edit/edit.h        |    2 +-
+ edit/editcmd.c     |    4 ++--
+ edit/editdraw.c    |   22 +++++++++++-----------
+ edit/editwidget.c  |    2 +-
+ edit/wordproc.c    |    4 +++-
+ 9 files changed, 52 insertions(+), 52 deletions(-)
+
+diff --git a/edit/bookmark.c b/edit/bookmark.c
+index 00dfe8e..e64e03e 100644
+--- a/edit/bookmark.c
++++ b/edit/bookmark.c
+@@ -60,7 +60,7 @@ static struct _book_mark *double_marks (WEdit * edit, struct _book_mark *p)
+ }
+ 
+ /* returns the first bookmark on or before this line */
+-struct _book_mark *book_mark_find (WEdit * edit, int line)
++struct _book_mark *book_mark_find (WEdit * edit, long line)
+ {
+     struct _book_mark *p;
+     if (!edit->book_mark) {
+@@ -104,7 +104,7 @@ struct _book_mark *book_mark_find (WEdit * edit, int line)
+ }
+ 
+ /* returns true if a bookmark exists at this line of color c */
+-int book_mark_query_color (WEdit * edit, int line, int c)
++int book_mark_query_color (WEdit * edit, long line, int c)
+ {
+     struct _book_mark *p;
+     if (!edit->book_mark)
+@@ -120,7 +120,7 @@ int book_mark_query_color (WEdit * edit, int line, int c)
+ 
+ /* insert a bookmark at this line */
+ void
+-book_mark_insert (WEdit *edit, int line, int c)
++book_mark_insert (WEdit *edit, long line, int c)
+ {
+     struct _book_mark *p, *q;
+     p = book_mark_find (edit, line);
+@@ -149,7 +149,7 @@ book_mark_insert (WEdit *edit, int line, int c)
+ 
+ /* remove a bookmark if there is one at this line matching this color - c of -1 clear all */
+ /* returns non-zero on not-found */
+-int book_mark_clear (WEdit * edit, int line, int c)
++int book_mark_clear (WEdit * edit, long line, int c)
+ {
+     struct _book_mark *p, *q;
+     int r = 1;
+@@ -201,7 +201,7 @@ void book_mark_flush (WEdit * edit, int c)
+ }
+ 
+ /* shift down bookmarks after this line */
+-void book_mark_inc (WEdit * edit, int line)
++void book_mark_inc (WEdit * edit, long line)
+ {
+     if (edit->book_mark) {
+ 	struct _book_mark *p;
+@@ -213,7 +213,7 @@ void book_mark_inc (WEdit * edit, int line)
+ }
+ 
+ /* shift up bookmarks after this line */
+-void book_mark_dec (WEdit * edit, int line)
++void book_mark_dec (WEdit * edit, long line)
+ {
+     if (edit->book_mark) {
+ 	struct _book_mark *p;
+diff --git a/edit/edit-impl.h b/edit/edit-impl.h
+index a66f1a4..7e7d91a 100644
+--- a/edit/edit-impl.h
++++ b/edit/edit-impl.h
+@@ -166,9 +166,9 @@ long edit_move_backward (WEdit * edit, long current, long lines);
+ void edit_scroll_screen_over_cursor (WEdit * edit);
+ void edit_render_keypress (WEdit * edit);
+ void edit_scroll_upward (WEdit * edit, unsigned long i);
+-void edit_scroll_downward (WEdit * edit, int i);
+-void edit_scroll_right (WEdit * edit, int i);
+-void edit_scroll_left (WEdit * edit, int i);
++void edit_scroll_downward (WEdit * edit, long i);
++void edit_scroll_right (WEdit * edit, long i);
++void edit_scroll_left (WEdit * edit, long i);
+ void edit_move_up (WEdit * edit, unsigned long i, int scroll);
+ void edit_move_down (WEdit * edit, unsigned long i, int scroll);
+ void edit_move_to_prev_col (WEdit *edit, long p);
+@@ -260,14 +260,14 @@ void edit_free_syntax_rules (WEdit * edit);
+ void edit_get_syntax_color (WEdit * edit, long byte_index, int *color);
+ 
+ 
+-void book_mark_insert (WEdit * edit, int line, int c);
+-int book_mark_query_color (WEdit * edit, int line, int c);
+-int book_mark_query_all (WEdit * edit, int line, int *c);
+-struct _book_mark *book_mark_find (WEdit * edit, int line);
+-int book_mark_clear (WEdit * edit, int line, int c);
++struct _book_mark *book_mark_find (WEdit * edit, long line);
++int book_mark_clear (WEdit * edit, long line, int c);
++int book_mark_query_color (WEdit * edit, long line, int c);
++int book_mark_query_all (WEdit * edit, long line, int *c);
++void book_mark_inc (WEdit * edit, long line);
++void book_mark_dec (WEdit * edit, long line);
++void book_mark_insert (WEdit * edit, long line, int c);
+ void book_mark_flush (WEdit * edit, int c);
+-void book_mark_inc (WEdit * edit, int line);
+-void book_mark_dec (WEdit * edit, int line);
+ 
+ int line_is_blank (WEdit *edit, long line);
+ int edit_indent_width (WEdit *edit, long p);
+diff --git a/edit/edit-widget.h b/edit/edit-widget.h
+index 0e90882..de2d5c7 100644
+--- a/edit/edit-widget.h
++++ b/edit/edit-widget.h
+@@ -16,7 +16,7 @@
+ #define N_LINE_CACHES 32
+ 
+ struct _book_mark {
+-    int line;			/* line number */
++    long line;			/* line number */
+     int c;			/* color */
+     struct _book_mark *next;
+     struct _book_mark *prev;
+diff --git a/edit/edit.c b/edit/edit.c
+index b48e108..0c84d98 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -706,7 +706,7 @@ edit_load_position (WEdit *edit)
+         line = edit->curs_line;
+     }
+     edit_move_to_prev_col (edit, edit_bol (edit, edit->curs1));
+-    edit_move_display (edit, line - (edit->num_widget_lines / 2));
++    edit_move_display (edit, line - (long) (edit->num_widget_lines / 2));
+ }
+ 
+ /* Save cursor position in the file */
+@@ -1204,7 +1204,7 @@ edit_insert (WEdit *edit, int c)
+ static void
+ edit_insert_over (WEdit * edit)
+ {
+-    int i;
++    long i;
+ 
+     for ( i = 0; i < edit->over_col; i++ ) {
+         edit_insert (edit, ' ');
+@@ -1358,7 +1358,7 @@ static void memqcpy (WEdit * edit, unsigned char *dest, unsigned char *src, int
+ int
+ edit_move_backward_lots (WEdit *edit, long increment)
+ {
+-    int r, s, t;
++    long r, s, t;
+     unsigned char *p = NULL;
+ 
+     if (increment > edit->curs1)
+@@ -1682,10 +1682,10 @@ void edit_scroll_upward (WEdit * edit, unsigned long i)
+ 
+ 
+ /* returns 1 if could scroll, 0 otherwise */
+-void edit_scroll_downward (WEdit * edit, int i)
++void edit_scroll_downward (WEdit * edit, long i)
+ {
+-    int lines_below;
+-    lines_below = edit->total_lines - edit->start_line - (edit->num_widget_lines - 1);
++    long lines_below;
++    lines_below = edit->total_lines - edit->start_line - ((long) edit->num_widget_lines) - 1;
+     if (lines_below > 0) {
+ 	if (i > lines_below)
+ 	    i = lines_below;
+@@ -1697,14 +1697,14 @@ void edit_scroll_downward (WEdit * edit, int i)
+     edit_update_curs_row (edit);
+ }
+ 
+-void edit_scroll_right (WEdit * edit, int i)
++void edit_scroll_right (WEdit * edit, long i)
+ {
+     edit->force |= REDRAW_PAGE;
+     edit->force &= (0xfff - REDRAW_CHAR_ONLY);
+     edit->start_col -= i;
+ }
+ 
+-void edit_scroll_left (WEdit * edit, int i)
++void edit_scroll_left (WEdit * edit, long i)
+ {
+     if (edit->start_col) {
+ 	edit->start_col += i;
+@@ -1731,8 +1731,8 @@ static int left_of_four_spaces (WEdit *edit);
+ void
+ edit_move_to_prev_col (WEdit * edit, long p)
+ {
+-    int prev = edit->prev_col;
+-    int over = edit->over_col;
++    long prev = edit->prev_col;
++    long over = edit->over_col;
+     edit_cursor_move (edit, edit_move_forward3 (edit, p, prev + edit->over_col, 0) - edit->curs1);
+ 
+     if (option_cursor_beyond_eol) {
+@@ -1782,7 +1782,7 @@ is_blank (WEdit *edit, long offset)
+ 
+ /* returns the offset of line i */
+ static long
+-edit_find_line (WEdit *edit, int line)
++edit_find_line (WEdit *edit, long line)
+ {
+     int i, j = 0;
+     int m = 2000000000;
+@@ -1859,7 +1859,7 @@ static void edit_move_up_paragraph (WEdit * edit, int scroll)
+    before a non-blank line is reached */
+ static void edit_move_down_paragraph (WEdit * edit, int scroll)
+ {
+-    int i;
++    long i;
+     if (edit->curs_line >= edit->total_lines - 1) {
+ 	i = edit->total_lines;
+     } else {
+@@ -2597,7 +2597,7 @@ edit_execute_cmd (WEdit *edit, unsigned long command, int char_for_insertion)
+ 	edit->highlight = 1;
+     } else {			/* any other command */
+ 	if (edit->highlight)
+-	    edit_mark_cmd (edit, 0);	/* clear */
++	    edit_mark_cmd (edit, 0);	/* marking on */
+ 	edit->highlight = 0;
+     }
+ 
+@@ -2970,11 +2970,10 @@ edit_execute_cmd (WEdit *edit, unsigned long command, int char_for_insertion)
+ 						      edit->curs_line);
+ 	    if (p->next) {
+ 		p = p->next;
+-		if (p->line >= edit->start_line + edit->num_widget_lines
++		if (p->line >= (edit->start_line + (long) edit->num_widget_lines)
+ 		    || p->line < edit->start_line)
+ 		    edit_move_display (edit,
+-				       p->line -
+-				       edit->num_widget_lines / 2);
++				       p->line - ((long) (edit->num_widget_lines / 2)));
+ 		edit_move_to_line (edit, p->line);
+ 	    }
+ 	}
+@@ -2988,11 +2987,10 @@ edit_execute_cmd (WEdit *edit, unsigned long command, int char_for_insertion)
+ 		if (p->prev)
+ 		    p = p->prev;
+ 	    if (p->line >= 0) {
+-		if (p->line >= edit->start_line + edit->num_widget_lines
++		if (p->line >= (edit->start_line + (long) edit->num_widget_lines)
+ 		    || p->line < edit->start_line)
+ 		    edit_move_display (edit,
+-				       p->line -
+-				       edit->num_widget_lines / 2);
++				       p->line - ((long) (edit->num_widget_lines / 2)));
+ 		edit_move_to_line (edit, p->line);
+ 	    }
+ 	}
+diff --git a/edit/edit.h b/edit/edit.h
+index 2b46607..e4de807 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -67,7 +67,7 @@ extern int show_right_margin;
+ void edit_stack_init (void);
+ void edit_stack_free (void);
+ 
+-int edit_file (const char *_file, int line);
++int edit_file (const char *_file, long line);
+ 
+ const char *edit_get_file_name (const WEdit *edit);
+ int edit_get_curs_col (const WEdit *edit);
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 3d60d90..668227c 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -124,7 +124,7 @@ edit_search_cmd_search_create_bookmark(WEdit * edit)
+ static int
+ edit_search_cmd_callback(const void *user_data, gsize char_offset)
+ {
+-    return edit_get_byte ((WEdit * )user_data, (long) char_offset);
++    return edit_get_byte ((WEdit * ) user_data, (long) char_offset);
+ }
+ 
+ void edit_help_cmd (WEdit * edit)
+@@ -2015,7 +2015,7 @@ edit_goto_cmd (WEdit *edit)
+     line = l;
+     if (l < 0)
+ 	l = edit->total_lines + l + 2;
+-    edit_move_display (edit, l - edit->num_widget_lines / 2 - 1);
++    edit_move_display (edit, l - ((long) (edit->num_widget_lines / 2 - 1)));
+     edit_move_to_line (edit, l - 1);
+     edit->force |= REDRAW_COMPLETELY;
+     g_free (f);
+diff --git a/edit/editdraw.c b/edit/editdraw.c
+index 9913c5d..9a0eb93 100644
+--- a/edit/editdraw.c
++++ b/edit/editdraw.c
+@@ -219,8 +219,7 @@ edit_status (WEdit *edit)
+ /* this scrolls the text so that cursor is on the screen */
+ void edit_scroll_screen_over_cursor (WEdit * edit)
+ {
+-    int p;
+-    int outby;
++    long p, outby;
+     int b_extreme, t_extreme, l_extreme, r_extreme;
+ 
+     if (edit->num_widget_lines <= 0 || edit->num_widget_columns <= 0)
+@@ -251,17 +250,18 @@ void edit_scroll_screen_over_cursor (WEdit * edit)
+     }
+     p = edit_get_col (edit) + edit->over_col;
+     edit_update_curs_row (edit);
+-    outby = p + edit->start_col - edit->num_widget_columns + 1 + (r_extreme + edit->found_len);
++    p = p + edit->start_col + 1;
++    outby = p - ((long) (edit->num_widget_columns + r_extreme + edit->found_len));
+     if (outby > 0)
+ 	edit_scroll_right (edit, outby);
+-    outby = l_extreme - p - edit->start_col;
++    outby = ((long) l_extreme) - p - edit->start_col;
+     if (outby > 0)
+ 	edit_scroll_left (edit, outby);
+     p = edit->curs_row;
+-    outby = p - edit->num_widget_lines + 1 + b_extreme;
++    outby = p + 1 - ((long) (edit->num_widget_lines + b_extreme));
+     if (outby > 0)
+ 	edit_scroll_downward (edit, outby);
+-    outby = t_extreme - p;
++    outby = ((long) t_extreme) - p;
+     if (outby > 0)
+ 	edit_scroll_upward (edit, outby);
+     edit_update_curs_row (edit);
+@@ -287,6 +287,7 @@ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+     int x1 = start_col + EDIT_TEXT_HORIZONTAL_OFFSET + option_line_state_width;
+     int y = row + EDIT_TEXT_VERTICAL_OFFSET;
+     int cols_to_skip = abs (x);
++    int i = 1;
+ 
+     tty_setcolor (EDITOR_NORMAL_COLOR);
+ 
+@@ -307,10 +308,10 @@ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+     }
+ 
+     if (option_line_state) {
+-        int i;
+-        for (i = 0; i < LINE_STATE_WIDTH; i++)
+-            if (status[i] == '\0')
+-                status[i] = ' ';
++        int n;
++        for (n = 0; n < LINE_STATE_WIDTH; n++)
++            if (status[n] == '\0')
++                status[n] = ' ';
+ 
+         tty_setcolor (LINE_STATE_COLOR);
+         edit_move (x1 + FONT_OFFSET_X - option_line_state_width, y + FONT_OFFSET_Y);
+@@ -319,7 +320,6 @@ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+ 
+     edit_move (x1 + FONT_OFFSET_X, y + FONT_OFFSET_Y);
+     p = line;
+-    int i = 1;
+     while (p->ch) {
+ 	int style;
+ 	unsigned int textchar;
+diff --git a/edit/editwidget.c b/edit/editwidget.c
+index 33175d4..69d97a9 100644
+--- a/edit/editwidget.c
++++ b/edit/editwidget.c
+@@ -227,7 +227,7 @@ edit_dialog_callback (Dlg_head *h, Widget *sender,
+ }
+ 
+ int
+-edit_file (const char *_file, int line)
++edit_file (const char *_file, long line)
+ {
+     static gboolean made_directory = FALSE;
+     Dlg_head *edit_dlg;
+diff --git a/edit/wordproc.c b/edit/wordproc.c
+index b340544..b42787a 100644
+--- a/edit/wordproc.c
++++ b/edit/wordproc.c
+@@ -119,7 +119,7 @@ begin_paragraph (WEdit *edit, int force)
+ static long
+ end_paragraph (WEdit *edit, int force)
+ {
+-    int i;
++    long i;
+     for (i = edit->curs_line + 1; i <= edit->total_lines; i++) {
+ 	if (line_is_blank (edit, i)) {
+ 	    i--;
+@@ -352,6 +352,8 @@ format_paragraph (WEdit *edit, int force)
+ 	return;
+     p = begin_paragraph (edit, force);
+     q = end_paragraph (edit, force);
++    if (q <= p)
++	return;
+     indent = test_indent (edit, p, q);
+     t = get_paragraph (edit, p, q, indent, &size);
+     if (!t)
+-- 
+1.6.4
+

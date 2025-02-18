@@ -1,0 +1,45 @@
+diff -uNr mc-4.8.10/src/editor/editcmd.c mc-4.8.10.drop-selection/src/editor/editcmd.c
+--- mc-4.8.10/src/editor/editcmd.c	2013-08-02 19:02:39.000000000 +0400
++++ mc-4.8.10.drop-selection/src/editor/editcmd.c	2013-09-18 22:19:08.000000000 +0400
+@@ -91,6 +91,9 @@
+ /* queries on a save */
+ int edit_confirm_save = 1;
+ 
++/* whether we need to drop selection on copy to buffer */
++int option_drop_selection_on_copy = 0;
++
+ /*** file scope macro definitions ****************************************************************/
+ 
+ #define space_width 1
+@@ -2896,6 +2899,9 @@
+     /* try use external clipboard utility */
+     mc_event_raise (MCEVENT_GROUP_CORE, "clipboard_file_to_ext_clip", NULL);
+ 
++    if (option_drop_selection_on_copy)
++        edit_mark_cmd (edit, TRUE);
++
+     return TRUE;
+ }
+ 
+diff -uNr mc-4.8.10/src/editor/edit.h mc-4.8.10.drop-selection/src/editor/edit.h
+--- mc-4.8.10/src/editor/edit.h	2013-08-02 19:02:39.000000000 +0400
++++ mc-4.8.10.drop-selection/src/editor/edit.h	2013-09-18 22:19:29.000000000 +0400
+@@ -39,6 +39,7 @@
+ extern int option_backspace_through_tabs;
+ extern int option_fake_half_tabs;
+ extern int option_persistent_selections;
++extern int option_drop_selection_on_copy;
+ extern int option_cursor_beyond_eol;
+ extern gboolean option_cursor_after_inserted_block;
+ extern int option_line_state;
+diff -uNr mc-4.8.10/src/setup.c mc-4.8.10.drop-selection/src/setup.c
+--- mc-4.8.10/src/setup.c	2013-08-02 19:02:39.000000000 +0400
++++ mc-4.8.10.drop-selection/src/setup.c	2013-09-18 22:21:39.000000000 +0400
+@@ -349,6 +349,7 @@
+     { "editor_edit_confirm_save", &edit_confirm_save },
+     { "editor_syntax_highlighting", &option_syntax_highlighting },
+     { "editor_persistent_selections", &option_persistent_selections },
++    { "editor_drop_selection_on_copy", &option_drop_selection_on_copy },
+     { "editor_cursor_beyond_eol", &option_cursor_beyond_eol },
+     { "editor_cursor_after_inserted_block", &option_cursor_after_inserted_block },
+     { "editor_visible_tabs", &visible_tabs },

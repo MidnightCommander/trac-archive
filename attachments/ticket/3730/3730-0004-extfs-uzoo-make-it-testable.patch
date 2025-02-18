@@ -1,0 +1,27 @@
+From 30b7f04d179ddd3fd51f1017aebfdb73f7441afc Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 16 Nov 2016 20:10:03 +0200
+Subject: [PATCH 04/11] extfs: uzoo: make it testable.
+
+Note how easy it is to make the helpers testable. MC_TEST_EXTFS_LIST_CMD is
+explained in README.
+---
+ src/vfs/extfs/helpers/uzoo.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/uzoo.in b/src/vfs/extfs/helpers/uzoo.in
+index c90be75..fb079a5 100644
+--- a/src/vfs/extfs/helpers/uzoo.in
++++ b/src/vfs/extfs/helpers/uzoo.in
+@@ -5,7 +5,7 @@
+ # Source of zoo can be found at
+ # ftp://ftp.ibiblio.org/pub/Linux/utils/compress/
+ 
+-ZOO=zoo
++ZOO=${MC_TEST_EXTFS_LIST_CMD:-zoo}
+ 
+ # Stupid zoo won't work if the archive name has no .zoo extension, so we
+ # have to make a symlink with a "better" name.  Also, zoo can create
+-- 
+2.9.3
+

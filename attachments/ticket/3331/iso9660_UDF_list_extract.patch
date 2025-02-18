@@ -1,0 +1,106 @@
+--- /usr/lib/mc/extfs.d/iso9660	2013-12-05 00:00:00.000000000 +0200
++++ /home/user/.local/share/mc/extfs.d/iso9660	2014-11-14 13:20:27.000000000 +0200
+@@ -32,6 +32,8 @@
+ #*** file scope functions **********************************************
+ 
+ XORRISO=$(which xorriso 2>/dev/null)
++A7Z=$(which 7z 2>/dev/null)
++UDF=
+ 
+ xorriso_list() {
+     if test -z "$XORRISO"; then
+@@ -51,6 +53,13 @@ xorriso_list() {
+     done
+ }
+ 
++a7z_copyout() {
++    if test -z "$A7Z"; then
++        return 1
++    fi
++    $A7Z e -bd -so "$1" "$2" >$3 2>/dev/null
++}
++
+ xorriso_copyout() {
+     if test -z "$XORRISO"; then
+         return 1
+@@ -105,12 +114,22 @@ test_iso () {
+ 
+     ISOINFO_D_I="$(isoinfo -d -i "$1" 2>/dev/null)"
+ 
++    ISOINFO_L_I_README_TXT="$(isoinfo -l -i "$1" | /bin/grep "README.TXT" 2>/dev/null)"
++
++    ISOINFO_L_I="$(isoinfo -l -i "$1" | wc -l 2>/dev/null)"
++
+     echo "$ISOINFO_D_I" | /bin/grep "UCS level 1\|NO Joliet" > /dev/null || ISOINFO="$ISOINFO $JOLIET_OPT"
+ 
+     if [ $(echo "$ISOINFO_D_I" | /bin/grep "Joliet with UCS level 3 found" | wc -l) = 1 \
+         -a $(echo "$ISOINFO_D_I" | /bin/grep "NO Rock Ridge" | wc -l) = 1 ] ; then
+         SEMICOLON="YES"
+     fi
++    if [ $(echo "$ISOINFO_D_I" | /bin/grep "NO Joliet present" | wc -l) = 1 \
++	-a $(echo "$ISOINFO_D_I" | /bin/grep "NO Rock Ridge present"| wc -l) = 1 \
++	-a $(echo "$ISOINFO_L_I") = 5 \
++	-a $(echo "$ISOINFO_L_I_README_TXT"| wc -l) = 1 ] ; then
++	UDF="yes"
++    fi
+ }
+ 
+ mcisofs_list () {
+@@ -156,6 +175,21 @@ BEGIN {
+ }'
+ }
+ 
++mcudffs_list () {
++    $A7Z l "$1" 2>/dev/null | awk '
++BEGIN {
++  split("Jan Feb Mch Apr May Jun Jul Aug Sep Oct Nov Dec", aMonths)
++}
++/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\ [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\ D\.\.\.\./ { next }
++/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\ [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\ .*/ {
++  split($1, aDate, "-")
++  month=aDate[2]+0
++  date=aMonths[month] " " aDate[3] " " aDate[1]
++  attr="-r--r--r--   1 root root"
++  printf ("%s %15s %s %s\n", attr, $4, date, $6);
++}'
++}
++
+ mcisofs_copyout () {
+     if [ "x$SEMICOLON" = "xYES" ]; then
+         $ISOINFO -i "$1" -x "/$2;1" 2>/dev/null > "$3"
+@@ -173,10 +207,15 @@ shift
+ 
+ case "$cmd" in
+   list)
+-    xorriso_list "$@" || {
+-        test_iso "$@";
+-        mcisofs_list "$@";
+-    }
++    test_iso "$@";
++    if ! test -z "$UDF" ; then
++	mcudffs_list "$@";
++    else
++	xorriso_list "$@" || {
++    	    test_iso "$@";
++    	    mcisofs_list "$@";
++	}
++    fi
+     exit 0
+     ;;
+   rm)
+@@ -204,10 +243,15 @@ case "$cmd" in
+     exit 0
+     ;;
+   copyout)
++    test_iso "$@";
++    if ! test -z "$UDF" ; then
++	a7z_copyout "$@";
++    else
+     xorriso_copyout "$@" || {
+         test_iso "$@";
+         mcisofs_copyout "$@";
+     }
++    fi
+     exit 0
+     ;;
+ esac

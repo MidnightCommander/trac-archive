@@ -1,0 +1,54 @@
+From 2fbd997a87329410fff6add17ea9334a368f3565 Mon Sep 17 00:00:00 2001
+From: Anatoly Borodin <anatoly.borodin@gmail.com>
+Date: Sun, 1 Oct 2017 02:20:38 +0000
+Subject: [PATCH] Ticket #3865: extfs: rpm: INSTALL is truncated in the viewer
+
+Before the rewrite e7ed071be7fda2df59191d103c47bf30a6b98ca8, the files
+`INSTALL`, `UPGRADE`, and `REBUILD` were just text files with fixed
+length of 39 characters. After the rewrite, the corresponding `rpm`
+commands (of variable length) have been added.
+
+If one of these files is being opened with the internal viewer, only the
+first 39 characters (hardcoded in `mcrpmfs_list()`) are shown, e.g.
+`INSTALL` (before the previous commit):
+
+	# Run this script to install this RPM p
+
+The word 'script' was added inconsistently (compare with `UPGRADE` and
+`REBUILD`) and can be removed. The `rpm` commands can be also removed:
+they may fail to work if there is a whitespace in the path, so they
+cannot always be simply copy&pasted; it's is still possible to "run" the
+script files with Enter.
+
+Signed-off-by: Anatoly Borodin <anatoly.borodin@gmail.com>
+---
+ src/vfs/extfs/helpers/rpm | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/rpm b/src/vfs/extfs/helpers/rpm
+index 7cb2a1b0c787..126142eb9c09 100755
+--- a/src/vfs/extfs/helpers/rpm
++++ b/src/vfs/extfs/helpers/rpm
+@@ -266,18 +266,15 @@ mcrpmfs_copyout ()
+     case "$1" in
+ 	HEADER) mcrpmfs_getDesription > "$2"; exit 0;;
+ 	INSTALL)
+-	    echo "# Run this script to install this RPM package" > "$2"
+-	    echo $RPM -ivh "${rpm_filename}" >> "$2"
++	    echo "# Run this to install this RPM package" > "$2"
+ 	    exit 0
+ 	;;
+ 	UPGRADE)
+ 	    echo "# Run this to upgrade this RPM package" > "$2"
+-	    echo $RPM -Uvh "${rpm_filename}" >> "$2"
+ 	    exit 0
+ 	;;
+ 	REBUILD)
+ 	    echo "# Run this to rebuild this RPM package" > "$2"
+-	    echo $RPMBUILD --rebuild "${rpm_filename}" >> "$2"
+ 	    exit 0
+ 	;;
+ 	ERROR) mcrpmfs_getDesription > /dev/null 2> "$2"; exit 0;;
+-- 
+2.14.2
+

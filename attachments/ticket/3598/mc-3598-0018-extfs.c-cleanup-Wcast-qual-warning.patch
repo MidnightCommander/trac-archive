@@ -1,0 +1,27 @@
+From ef960a2c34e513c22cfdb4aede02350459bbc01b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 19 Feb 2016 23:09:37 +0000
+Subject: [PATCH] extfs.c: cleanup -Wcast-qual warnings
+
+extfs.c:249:16: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         name = (char *) g_path_skip_root (name);
+                ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/extfs/extfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/extfs.c b/src/vfs/extfs/extfs.c
+index 2e7c87b..737c4ed 100644
+--- a/src/vfs/extfs/extfs.c
++++ b/src/vfs/extfs/extfs.c
+@@ -246,7 +246,7 @@ extfs_find_entry_int (struct entry *dir, const char *name, GSList * list,
+     if (g_path_is_absolute (name))
+     {
+         /* Handle absolute paths */
+-        name = (char *) g_path_skip_root (name);
++        name = g_path_skip_root (name);
+         dir = dir->inode->archive->root_entry;
+     }
+ 

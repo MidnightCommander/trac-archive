@@ -1,0 +1,189 @@
+From 4f1398e267ac1fbddea5a754889672e17a90ad8c Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 14 Feb 2016 19:40:22 +0200
+Subject: [PATCH 1/2] Simplify buttonbar and menu handling.
+
+We make WButtonBar send the command directly to the target widget. This
+lets us simplify the MSG_ACTION case in dialog handlers. The menu handling
+too is simplified here.
+---
+ lib/widget/buttonbar.c     |  5 ++++-
+ src/diffviewer/ydiff.c     | 16 ++++------------
+ src/editor/editwidget.c    | 31 ++++++++++++-------------------
+ src/filemanager/midnight.c | 16 ++--------------
+ src/help.c                 | 13 ++-----------
+ src/viewer/actions_cmd.c   | 16 ++++------------
+ 6 files changed, 28 insertions(+), 69 deletions(-)
+
+diff --git a/lib/widget/buttonbar.c b/lib/widget/buttonbar.c
+index f879969..a987967 100644
+--- a/lib/widget/buttonbar.c
++++ b/lib/widget/buttonbar.c
+@@ -148,9 +148,12 @@ buttonbar_call (WButtonBar * bb, int i)
+ {
+     cb_ret_t ret = MSG_NOT_HANDLED;
+     Widget *w = WIDGET (bb);
++    Widget *target;
++
++    target = (bb->labels[i].receiver != NULL) ? bb->labels[i].receiver : WIDGET (w->owner);
+ 
+     if ((bb != NULL) && (bb->labels[i].command != CK_IgnoreKey))
+-        ret = send_message (w->owner, w, MSG_ACTION, bb->labels[i].command, bb->labels[i].receiver);
++        ret = send_message (target, w, MSG_ACTION, bb->labels[i].command, NULL);
+     return ret;
+ }
+ 
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index e3aaeb0..c4c8f67 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -3406,19 +3406,11 @@ dview_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
+         return MSG_HANDLED;
+ 
+     case MSG_ACTION:
+-        /* shortcut */
+-        if (sender == NULL)
+-            return dview_execute_cmd (NULL, parm);
+-        /* message from buttonbar */
+-        if (sender == WIDGET (find_buttonbar (h)))
+-        {
+-            if (data != NULL)
+-                return send_message (data, NULL, MSG_ACTION, parm, NULL);
++        /* Handle shortcuts. */
+ 
+-            dview = (WDiff *) find_widget_type (h, dview_callback);
+-            return dview_execute_cmd (dview, parm);
+-        }
+-        return MSG_NOT_HANDLED;
++        /* Note: the buttonbar sends messages directly to the the WDiff, not to
++         * here, which is why we can pass NULL in the following call. */
++        return dview_execute_cmd (NULL, parm);
+ 
+     case MSG_VALIDATE:
+         dview = (WDiff *) find_widget_type (h, dview_callback);
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 9c2fcb3..565b12c 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -1020,27 +1020,20 @@ edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, v
+         return MSG_HANDLED;
+ 
+     case MSG_ACTION:
+-        /* shortcut */
+-        if (sender == NULL)
+-            return edit_dialog_command_execute (h, parm);
+-        /* message from menu */
+-        menubar = find_menubar (h);
+-        if (sender == WIDGET (menubar))
+-        {
+-            if (edit_dialog_command_execute (h, parm) == MSG_HANDLED)
+-                return MSG_HANDLED;
+-            /* try send command to the current window */
+-            return send_message (h->current->data, NULL, MSG_ACTION, parm, NULL);
+-        }
+-        /* message from buttonbar */
+-        buttonbar = find_buttonbar (h);
+-        if (sender == WIDGET (buttonbar))
+         {
+-            if (data != NULL)
+-                return send_message (data, NULL, MSG_ACTION, parm, NULL);
+-            return edit_dialog_command_execute (h, parm);
++            /* Handle shortcuts, menu, and buttonbar. */
++
++            cb_ret_t result;
++
++            result = edit_dialog_command_execute (h, parm);
++
++            /* We forward any commands coming from the menu, and which haven't been
++               handled by the dialog, to the focused WEdit window. */
++            if ((result == MSG_NOT_HANDLED) && (sender == WIDGET (find_menubar (h))))
++                result = send_message (h->current->data, NULL, MSG_ACTION, parm, NULL);
++
++            return result;
+         }
+-        return MSG_NOT_HANDLED;
+ 
+     case MSG_KEY:
+         {
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index c21a378..c2c75c6 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -1565,20 +1565,8 @@ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         return MSG_HANDLED;
+ 
+     case MSG_ACTION:
+-        /* shortcut */
+-        if (sender == NULL)
+-            return midnight_execute_cmd (NULL, parm);
+-        /* message from menu */
+-        if (sender == WIDGET (the_menubar))
+-            return midnight_execute_cmd (sender, parm);
+-        /* message from buttonbar */
+-        if (sender == WIDGET (the_bar))
+-        {
+-            if (data != NULL)
+-                return send_message (data, NULL, MSG_ACTION, parm, NULL);
+-            return midnight_execute_cmd (sender, parm);
+-        }
+-        return MSG_NOT_HANDLED;
++        /* Handle shortcuts, menu, and buttonbar. */
++        return midnight_execute_cmd (sender, parm);
+ 
+     case MSG_END:
+         panel_deinit ();
+diff --git a/src/help.c b/src/help.c
+index 7dacdfa..cbf4c2c 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -966,17 +966,8 @@ help_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *da
+         return help_handle_key (h, parm);
+ 
+     case MSG_ACTION:
+-        /* shortcut */
+-        if (sender == NULL)
+-            return help_execute_cmd (parm);
+-        /* message from buttonbar */
+-        if (sender == WIDGET (find_buttonbar (h)))
+-        {
+-            if (data != NULL)
+-                return send_message (data, NULL, MSG_ACTION, parm, NULL);
+-            return help_execute_cmd (parm);
+-        }
+-        return MSG_NOT_HANDLED;
++        /* Handle shortcuts and buttonbar. */
++        return help_execute_cmd (parm);
+ 
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index 4514882..2e15a86 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -724,19 +724,11 @@ mcview_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
+         return MSG_HANDLED;
+ 
+     case MSG_ACTION:
+-        /* shortcut */
+-        if (sender == NULL)
+-            return mcview_execute_cmd (NULL, parm);
+-        /* message from buttonbar */
+-        if (sender == WIDGET (find_buttonbar (h)))
+-        {
+-            if (data != NULL)
+-                return send_message (data, NULL, MSG_ACTION, parm, NULL);
++        /* Handle shortcuts. */
+ 
+-            view = (WView *) find_widget_type (h, mcview_callback);
+-            return mcview_execute_cmd (view, parm);
+-        }
+-        return MSG_NOT_HANDLED;
++        /* Note: the buttonbar sends messages directly to the the WView, not to
++         * here, which is why we can pass NULL in the following call. */
++        return mcview_execute_cmd (NULL, parm);
+ 
+     case MSG_VALIDATE:
+         view = (WView *) find_widget_type (h, mcview_callback);
+-- 
+2.5.0
+

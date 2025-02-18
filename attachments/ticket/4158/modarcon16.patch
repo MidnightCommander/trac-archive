@@ -1,0 +1,13 @@
+diff --git a/misc/skins/modarcon16.ini b/misc/skins/modarcon16.ini
+index 8cf81ab8b..4fdd43e3c 100644
+--- a/misc/skins/modarcon16.ini
++++ b/misc/skins/modarcon16.ini
+@@ -145,7 +145,7 @@
+     _default_ = color7;color0
+     editbold = color15;;bold
+     editmarked = color11;color2;bold
+-    editwhitespace = color12;color4
++    editwhitespace = color2;color0
+     editlinestate = color2;color0
+     bookmark = color0;color7
+     bookmarkfound = color0;color7

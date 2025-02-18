@@ -1,0 +1,1047 @@
+
+introduce -Wswitch-default check because switch cases should almost always have a default case
+1. to 'catch' an unexpected value
+2. to handle 'default' actions, where the cases are for special behavior
+3. to show someone reading your code that you've covered that case
+
+please cross check for default stub case and add code comment at default case
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -71,6 +71,7 @@
+ dnl    MC_CHECK_ONE_CFLAG([-Wstrict-aliasing])
+     MC_CHECK_ONE_CFLAG([-Wstrict-prototypes])
+     MC_CHECK_ONE_CFLAG([-Wswitch])
++    MC_CHECK_ONE_CFLAG([-Wswitch-default])
+     MC_CHECK_ONE_CFLAG([-Wtype-limits])
+     MC_CHECK_ONE_CFLAG([-Wundef])
+     MC_CHECK_ONE_CFLAG([-Wuninitialized])
+--- a/lib/charsets.c
++++ b/lib/charsets.c
+@@ -454,6 +454,8 @@
+         case ESTR_FAILURE:
+             ch = '.';
+             break;
++        default:
++            break;
+         }
+         str_close_conv (conv);
+     }
+@@ -489,6 +491,8 @@
+     case ESTR_FAILURE:
+         ch = '.';
+         break;
++    default:
++        break;
+     }
+     return ch;
+ }
+@@ -523,6 +527,8 @@
+     case ESTR_FAILURE:
+         ch = '.';
+         break;
++    default:
++        break;
+     }
+     return ch;
+ }
+@@ -565,6 +571,8 @@
+         case ESTR_FAILURE:
+             ch = '.';
+             break;
++        default:
++            break;
+         }
+         str_close_conv (conv);
+     }
+--- a/lib/filehighlight/get-color.c
++++ b/lib/filehighlight/get-color.c
+@@ -197,6 +197,8 @@
+         if (mc_fhl_is_special_door (fe))
+             my_color = TRUE;
+         break;
++    default:
++        break;
+     }
+ 
+     return (my_color) ? mc_filter->color_pair_index : -1;
+@@ -250,6 +252,8 @@
+             if (ret > 0)
+                 return -ret;
+             break;
++        default:
++            break;
+         }
+     }
+     return NORMAL_COLOR;
+--- a/lib/lock.c
++++ b/lib/lock.c
+@@ -251,6 +251,8 @@
+                 g_free (msg);
+                 goto ret;
+                 break;          /* FIXME: unneeded? */
++            default:
++                break;
+             }
+             g_free (msg);
+         }
+--- a/lib/search/glob.c
++++ b/lib/search/glob.c
+@@ -146,6 +146,8 @@
+             if (!escaped_mode)
+                 g_string_append_c (buff, '\\');
+             break;
++        default:
++            break;
+         }
+         g_string_append_c (buff, c);
+         escaped_mode = FALSE;
+--- a/lib/serialize.c
++++ b/lib/serialize.c
+@@ -330,6 +330,8 @@
+             g_free (current_value);
+             current_status = WAIT_GROUP;
+             break;
++        default:
++            break;
+         }
+     }
+     g_free (current_group);
+--- a/lib/strutil/strescape.c
++++ b/lib/strutil/strescape.c
+@@ -81,6 +81,8 @@
+             case '\0':
+                 g_string_append (ret, "\\0");
+                 continue;
++            default:
++                break;
+             }
+         }
+ 
+@@ -145,6 +147,8 @@
+                 case '0':
+                     g_string_append_c (ret, '\0');
+                     continue;
++                default:
++                    break;
+                 }
+             }
+ 
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -286,6 +286,8 @@
+         case J_RIGHT:
+             ident = width - length;
+             break;
++        default:
++            break;
+         }
+ 
+         if ((int) remain <= ident)
+@@ -330,6 +332,8 @@
+         case J_RIGHT:
+             ident = length - width;
+             break;
++        default:
++            break;
+         }
+ 
+         pos += ident;
+--- a/lib/strutil/strutilascii.c
++++ b/lib/strutil/strutilascii.c
+@@ -230,6 +230,8 @@
+         case J_RIGHT:
+             ident = width - length;
+             break;
++        default:
++            break;
+         }
+ 
+         /* add space before text */
+@@ -289,6 +291,8 @@
+         case J_RIGHT:
+             ident = length - width;
+             break;
++        default:
++            break;
+         }
+ 
+         /* copy substring text, substring start from ident and take width 
+--- a/lib/strutil/strutilutf8.c
++++ b/lib/strutil/strutilutf8.c
+@@ -619,6 +619,8 @@
+         case J_RIGHT:
+             tool.ident = width - pre_form->width;
+             break;
++        default:
++            break;
+         }
+ 
+         utf8_tool_insert_space (&tool, tool.ident);
+@@ -647,6 +649,8 @@
+         case J_RIGHT:
+             tool.ident = width - pre_form->width;
+             break;
++        default:
++            break;
+         }
+ 
+         utf8_tool_skip_chars_to (&tool, 0);
+--- a/lib/strutil/xstrtol.c
++++ b/lib/strutil/xstrtol.c
+@@ -163,6 +163,8 @@
+                 base = 1000;
+                 suffixes++;
+                 break;
++            default:
++                break;
+             }
+         }
+ 
+--- a/lib/tty/color-ncurses.c
++++ b/lib/tty/color-ncurses.c
+@@ -169,6 +169,8 @@
+                                             COLOR_WHITE, COLOR_BLACK,
+                                             COLOR_WHITE, COLOR_BLACK, A_UNDERLINE);
+             break;
++        default:
++            break;
+         }
+     }
+     else
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1123,6 +1123,8 @@
+         case KEY_KP_MULTIPLY:
+             c = '*';
+             break;
++        default:
++            break;
+         }
+ 
+     return (mod | c);
+--- a/lib/tty/color-slang.c
++++ b/lib/tty/color-slang.c
+@@ -165,6 +165,8 @@
+             mc_tty_color_pair_init_special (mc_color_pair,
+                                             "white", "black", "white", "black", SLTT_ULINE_MASK);
+             break;
++        default:
++            break;
+         }
+     }
+     else
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -296,6 +296,8 @@
+             if (ret->len == 0)
+                 g_string_append_c (ret, '\\');
+             break;
++        default:
++            break;
+         }
+         g_string_append_c (ret, *s);
+     }
+@@ -773,6 +775,8 @@
+                             r = new_r + 1;
+                             goto osc_out;
+                         }
++                    default:
++                        break;
+                     }
+                 }
+               osc_out:
+@@ -854,6 +858,8 @@
+             return COMPRESSION_BZIP;
+         case 'h':
+             return COMPRESSION_BZIP2;
++        default:
++            break;
+         }
+     }
+ 
+@@ -901,6 +907,8 @@
+         return "/ulzma" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_XZ:
+         return "/uxz" VFS_PATH_URL_DELIMITER;
++    default:
++        break;
+     }
+     /* Should never reach this place */
+     fprintf (stderr, "Fatal: decompress_extension called with an unknown argument\n");
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -640,6 +640,8 @@
+     case SEEK_END:
+         offset += size;
+         break;
++    default:
++        break;
+     }
+     if (offset < 0)
+         FH->pos = 0;
+@@ -822,6 +824,8 @@
+     case VFS_SETCTL_FLUSH:
+         ((struct vfs_s_subclass *) path_element->class->data)->flush = 1;
+         return 1;
++    default:
++        break;
+     }
+     return 0;
+ }
+--- a/lib/vfs/path.c
++++ b/lib/vfs/path.c
+@@ -309,6 +309,8 @@
+                 case 'r':
+                     path_element->port = 2;
+                     break;
++                default:
++                    break;
+                 }
+             }
+     }
+--- a/lib/vfs/utilvfs.c
++++ b/lib/vfs/utilvfs.c
+@@ -334,6 +334,8 @@
+                 case 'r':
+                     path_element->port = 2;
+                     break;
++                default:
++                    break;
+                 }
+             }
+     }
+--- a/src/vfs/smbfs/helpers/lib/kanji.c
++++ b/src/vfs/smbfs/helpers/lib/kanji.c
+@@ -673,6 +673,8 @@
+                 *out++ = jis_kso;
+                 shifted = _KJ_KANJI;
+                 break;
++            default:
++                break;
+             }
+             code = sjis2jis ((int) from[0] & 0xff, (int) from[1] & 0xff);
+             *out++ = (code >> 8) & 0xff;
+@@ -689,6 +691,8 @@
+                 *out++ = jis_ksi;
+                 shifted = _KJ_ROMAN;
+                 break;
++            default:
++                break;
+             }
+             *out++ = *from++;
+         }
+@@ -701,6 +705,8 @@
+         *out++ = jis_ksi;
+         shifted = _KJ_ROMAN;
+         break;
++    default:
++        break;
+     }
+     *out = 0;
+     if (overwrite)
+@@ -819,6 +825,8 @@
+                 *out++ = jis_kso;
+                 shifted = _KJ_KANJI;
+                 break;
++            default:
++                break;
+             }
+             code = sjis2jis ((int) from[0] & 0xff, (int) from[1] & 0xff);
+             *out++ = (code >> 8) & 0xff;
+@@ -837,6 +845,8 @@
+                 *out++ = jis_so;
+                 shifted = _KJ_KANA;
+                 break;
++            default:
++                break;
+             }
+             *out++ = ((int) *from++) - 0x80;
+         }
+@@ -854,6 +864,8 @@
+                 *out++ = jis_ksi;
+                 shifted = _KJ_ROMAN;
+                 break;
++            default:
++                break;
+             }
+             *out++ = *from++;
+         }
+@@ -868,6 +880,8 @@
+         *out++ = jis_si1;
+         *out++ = jis_ksi;
+         break;
++    default:
++        break;
+     }
+     *out = 0;
+     if (overwrite)
+@@ -980,6 +994,8 @@
+                 *out++ = jis_so2;
+                 shifted = _KJ_KANJI;
+                 break;
++            default:
++                break;
+             }
+             code = sjis2jis ((int) from[0] & 0xff, (int) from[1] & 0xff);
+             *out++ = (code >> 8) & 0xff;
+@@ -997,6 +1013,8 @@
+                 *out++ = junet_kana2;
+                 shifted = _KJ_KANA;
+                 break;
++            default:
++                break;
+             }
+             *out++ = ((int) *from++) - 0x80;
+         }
+@@ -1011,6 +1029,8 @@
+                 *out++ = jis_si2;
+                 shifted = _KJ_ROMAN;
+                 break;
++            default:
++                break;
+             }
+             *out++ = *from++;
+         }
+@@ -1023,6 +1043,8 @@
+         *out++ = jis_si1;
+         *out++ = jis_si2;
+         break;
++    default:
++        break;
+     }
+     *out = 0;
+     if (overwrite)
+--- a/src/vfs/smbfs/helpers/lib/util_sock.c
++++ b/src/vfs/smbfs/helpers/lib/util_sock.c
+@@ -174,6 +174,8 @@
+                                   socket_options[i].option, (char *) &on, sizeof (int));
+             }
+             break;
++        default:
++            break;
+         }
+ 
+         if (ret != 0)
+--- a/src/vfs/smbfs/helpers/libsmb/clientgen.c
++++ b/src/vfs/smbfs/helpers/libsmb/clientgen.c
+@@ -2142,6 +2142,8 @@
+             return (ret);
+         }
+         return (SVAL (p, 0));
++    default:
++        break;
+     }
+ 
+     DEBUG (1, ("Unknown long filename format %d\n", level));
+@@ -2277,6 +2279,8 @@
+                 pstrcpy (mask, p + ff_lastname + 1);
+                 ff_resume_key = 0;
+                 break;
++            default:
++                break;
+             }
+         }
+         else
+@@ -2664,6 +2668,8 @@
+             return ENOTDIR;
+         case NT_STATUS_OBJECT_NAME_COLLISION:
+             return EEXIST;
++        default:
++            break;
+         }
+ 
+         /* for all other cases - a default code */
+@@ -2698,6 +2704,8 @@
+             return EBUSY;
+         case ERRlock:
+             return EBUSY;
++        default:
++            break;
+         }
+     }
+     if (rcls == ERRSRV)
+@@ -2714,6 +2722,8 @@
+             return ENODEV;
+         case ERRinvnetname:
+             return ENODEV;
++        default:
++            break;
+         }
+     }
+     /* for other cases */
+--- a/src/vfs/smbfs/helpers/param/loadparm.c
++++ b/src/vfs/smbfs/helpers/param/loadparm.c
+@@ -2080,6 +2080,8 @@
+         break;
+     case P_SEP:
+         break;
++    default:
++        break;
+     }
+ 
+     return (True);
+@@ -2142,6 +2144,8 @@
+         }
+     case P_SEP:
+         break;
++    default:
++        break;
+     }
+     return (False);
+ }
+@@ -2381,6 +2385,8 @@
+             break;
+         case P_SEP:
+             break;
++        default:
++            break;
+         }
+     }
+     defaults_saved = True;
+--- a/src/vfs/smbfs/smbfs.c
++++ b/src/vfs/smbfs/smbfs.c
+@@ -572,6 +572,8 @@
+     case STYPE_IPC:
+         typestr = "IPC";
+         break;
++    default:
++        break;
+     }
+     DEBUG (3, ("\t%-15.15s%-10.10s%s\n", name, typestr, comment));
+ }
+@@ -1860,6 +1862,8 @@
+         }
+         info->nread = size + offset;
+         break;
++    default:
++        break;
+     }
+ 
+     return info->nread;
+@@ -2030,6 +2034,8 @@
+     case VFS_SETCTL_LOGFILE:
+         smbfs_set_debugf ((const char *) arg);
+         break;
++    default:
++        break;
+     }
+     return 0;
+ }
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -242,6 +242,8 @@
+         case SELECT_PREV:
+             h->current = dlg_widget_prev (h, h->current);
+             break;
++        default:
++            break;
+         }
+     }
+     while (h->current != w /* && (WIDGET (h->current->data)->options & W_DISABLED) == 0 */ );
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -659,6 +659,8 @@
+             if (!found)
+                 MC_PTR_FREE (cur_word);
+         }
++    default:
++        break;
+     }
+ 
+     if (found == NULL)
+@@ -1088,6 +1090,8 @@
+                     /* fallthrough */
+                 case -2:
+                     return MSG_HANDLED;
++                default:
++                    break;
+                 }
+ 
+                 for (i = 0, e = listbox_get_first_link (LISTBOX (h->current->data));
+--- a/lib/widget/menu.c
++++ b/lib/widget/menu.c
+@@ -484,6 +484,8 @@
+     case XCTRL ('f'):
+         menubar_right (menubar);
+         return 1;
++    default:
++        break;
+     }
+ 
+     if (!menubar->is_dropped)
+@@ -554,6 +556,8 @@
+         case XCTRL ('p'):
+             menubar_up (menubar);
+             break;
++        default:
++            break;
+         }
+     }
+ 
+--- a/lib/widget/radio.c
++++ b/lib/widget/radio.c
+@@ -105,6 +105,8 @@
+                 r->pos++;
+                 return MSG_HANDLED;
+             }
++        default:
++            break;
+         }
+         return MSG_NOT_HANDLED;
+ 
+--- a/src/background.c
++++ b/src/background.c
+@@ -316,6 +316,8 @@
+             case 4:
+                 result = routine.have_ctx4 (Background, data[0], data[1], data[2], data[3]);
+                 break;
++            default:
++                break;
+             }
+         else
+             switch (argc)
+@@ -336,6 +338,8 @@
+                 result =
+                     routine.non_have_ctx4 (ctx, Background, data[0], data[1], data[2], data[3]);
+                 break;
++            default:
++                break;
+             }
+ 
+         /* Send the result code and the value for shared variables */
+--- a/src/consaver/cons.saver.c
++++ b/src/consaver/cons.saver.c
+@@ -267,6 +267,8 @@
+         case CONSOLE_CONTENTS:
+             send_contents (buffer + 4, winsz.ws_col, winsz.ws_row);
+             break;
++        default:
++            break;
+         }
+ 
+         if (write (1, &console_flag, 1) != 1)
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -2004,6 +2004,8 @@
+         case CHG_CH:
+             res = DIFF_CHG;
+             break;
++        default:
++            break;
+         }
+         while (pos > 0 && ((DIFFLN *) & g_array_index (a0, DIFFLN, pos))->ch != EQU_CH)
+             pos--;
+@@ -2239,6 +2241,8 @@
+         case DIFF_CHG:
+             dview_replace_hunk (dview, merge_file, from1, to1, from2, to2, merge_direction);
+             break;
++        default:
++            break;
+         }
+         fflush (merge_file);
+         fclose (merge_file);
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -1168,6 +1168,8 @@
+         case COLUMN_OFF:
+             edit->column_highlight = 0;
+             break;
++        default:
++            break;
+         }
+         if (ac >= 256 && ac < 512)
+             edit_insert_ahead (edit, ac - 256);
+@@ -1251,6 +1253,8 @@
+         case COLUMN_OFF:
+             edit->column_highlight = 0;
+             break;
++        default:
++            break;
+         }
+         if (ac >= 256 && ac < 512)
+             edit_insert_ahead (edit, ac - 256);
+@@ -1913,6 +1917,8 @@
+                 break;
+             case LB_ASIS:      /* default without changes */
+                 break;
++            default:
++                break;
+             }
+         }
+     }
+@@ -3404,6 +3410,8 @@
+             edit->column_highlight = 0;
+             edit_mark_cmd (edit, TRUE);
+         }
++    default:
++        break;
+     }
+ 
+     switch (command)
+@@ -3429,6 +3437,8 @@
+     case CK_MarkLeft:
+     case CK_MarkRight:
+         edit->force |= REDRAW_CHAR_ONLY;
++    default:
++        break;
+     }
+ 
+     /* basic cursor key commands */
+@@ -3961,6 +3971,8 @@
+         case CK_DeleteToEnd:
+             format_paragraph (edit, FALSE);
+             edit->force |= REDRAW_PAGE;
++        default:
++            break;
+         }
+     }
+ }
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -2879,6 +2879,8 @@
+     case 2:                    /* Cancel quit */
+     case -1:                   /* Esc */
+         return FALSE;
++    default:
++        break;
+     }
+ 
+     return TRUE;
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -1459,6 +1459,8 @@
+             break;
+         }
+         break;
++    default:
++        break;
+     }
+ 
+     return ret;
+--- a/src/editor/etags.c
++++ b/src/editor/etags.c
+@@ -153,6 +153,8 @@
+             *short_name = shortdef;
+             *line = atol (linedef);
+             return TRUE;
++        default:
++            break;
+         }
+         buf++;
+         c = *buf;
+@@ -250,6 +252,8 @@
+                 }
+             }
+             break;
++        default:
++            break;
+         }
+     }
+ 
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -303,6 +303,8 @@
+                 h->ret_value = parm;
+                 dlg_stop (h);
+             }
++        default:
++            break;
+         }
+ 
+     default:
+@@ -615,6 +617,8 @@
+                     dlg_one_down (h);
+             }
+             break;
++        default:
++            break;
+         }
+         return MSG_NOT_HANDLED;
+ 
+@@ -888,6 +892,8 @@
+ 
+         case B_SKIP:
+             break;
++        default:
++            break;
+         }
+ 
+         if (current_panel->marked && result != B_CANCEL)
+--- a/src/filemanager/chmod.c
++++ b/src/filemanager/chmod.c
+@@ -541,6 +541,8 @@
+ 
+             apply_mask (&sf_stat);
+             break;
++        default:
++            break;
+         }
+ 
+         if (current_panel->marked != 0 && result != B_CANCEL)
+--- a/src/filemanager/chown.c
++++ b/src/filemanager/chown.c
+@@ -436,6 +436,8 @@
+                     apply_chowns (new_user, new_group);
+                 break;
+             }
++        default:
++            break;
+         }                       /* switch */
+ 
+         if (current_panel->marked && ch_dlg->ret_value != B_CANCEL)
+--- a/src/filemanager/command.c
++++ b/src/filemanager/command.c
+@@ -181,6 +181,8 @@
+                 state = copy_sym;
+                 break;
+             }
++        default:
++            break;
+         }
+     }
+ 
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -1538,6 +1538,8 @@
+         case HL_TYPE_DOTDOT:
+             /* do nothing */
+             break;
++        default:
++            break;
+         }
+ }
+ 
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -1022,6 +1022,8 @@
+ 
+         mcview_load ((struct mcview_struct *) new_widget, 0, file_name, 0);
+         break;
++    default:
++        break;
+     }
+ 
+     if (type != view_listing)
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3376,6 +3376,8 @@
+         /* reset state of marks flag */
+         state_mark = -1;
+         break;
++    default:
++        break;
+     }
+     switch (command)
+     {
+@@ -3525,6 +3527,8 @@
+     case CK_SortByMTime:
+         panel_set_sort_type_by_id (panel, "mtime");
+         break;
++    default:
++        break;
+     }
+     return res;
+ }
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -549,6 +549,8 @@
+             return;
+         }
+         break;
++    default:
++        break;
+     }
+ 
+     panelize_done ();
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -192,6 +192,8 @@
+         case '\\':
+             *q = '\\';
+             break;
++        default:
++            break;
+         }
+     }
+     *q = *p;
+--- a/src/filemanager/usermenu.c
++++ b/src/filemanager/usermenu.c
+@@ -905,6 +905,8 @@
+             result = g_string_free (block, FALSE);
+             goto ret;
+         }                       /* sub case block */
++    default:
++        break;
+     }                           /* switch */
+     result = g_strdup ("% ");
+     result[1] = c;
+--- a/src/learn.c
++++ b/src/learn.c
+@@ -218,6 +218,8 @@
+     case 'k':
+         dlg_one_up (learn_dlg);
+         return TRUE;
++    default:
++        break;
+     }
+ 
+     /* Prevent from disappearing if a non-defined sequence is pressed
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -335,6 +335,8 @@
+     case FISH:
+         execl (mc_global.tty.shell, "fish", (char *) NULL);
+         break;
++    default:
++        break;
+     }
+ 
+     /* If we get this far, everything failed miserably */
+@@ -770,6 +772,8 @@
+         mc_global.tty.use_subshell = FALSE;
+         mc_global.midnight_shutdown = TRUE;
+         return;
++    default:
++        break;
+     }
+ 
+     /* Take the current (hopefully pristine) tty mode and make */
+@@ -897,7 +901,8 @@
+                     "function fish_prompt; echo $PWD>&%d; fish_prompt_mc; kill -STOP %%self; end\n",
+                     subshell_pipe[WRITE]);
+         break;
+-
++    default:
++        break;
+     }
+     write_all (mc_global.tty.subshell_pty, precmd, strlen (precmd));
+ 
+--- a/src/vfs/cpio/cpio.c
++++ b/src/vfs/cpio/cpio.c
+@@ -751,6 +751,8 @@
+             continue;
+         case STATUS_TRAIL:
+             break;
++        default:
++            break;
+         }
+         break;
+     }
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -829,6 +829,8 @@
+                 ST.st_rdev = makedev (maj, min);
+ #endif
+             }
++        default:
++            break;
+         }
+     }
+ 
+--- a/src/vfs/ftpfs/ftpfs.c
++++ b/src/vfs/ftpfs/ftpfs.c
+@@ -410,6 +410,8 @@
+             if (string_buf != NULL)
+                 g_strlcpy (string_buf, answer, string_len);
+             return code / 100;
++        default:
++            break;
+         }
+     }
+ }
+@@ -1145,6 +1147,8 @@
+     case AF_INET6:
+         ((struct sockaddr_in6 *) sa)->sin6_port = port;
+         break;
++    default:
++        break;
+     }
+ 
+     return (connect (my_socket, (struct sockaddr *) sa, *salen) < 0) ? 0 : 1;
+--- a/src/vfs/sfs/sfs.c
++++ b/src/vfs/sfs/sfs.c
+@@ -188,6 +188,8 @@
+             case '%':
+                 COPY_CHAR;
+                 continue;
++            default:
++                break;
+             }
+             if (ptr != NULL)
+             {
+--- a/src/vfs/sftpfs/file.c
++++ b/src/vfs/sftpfs/file.c
+@@ -399,6 +399,8 @@
+         }
+         file_handler->pos = file_handler->ino->st.st_size - offset;
+         break;
++    default:
++        break;
+     }
+ 
+     file_handler_data = (sftpfs_file_handler_data_t *) file_handler->data;
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -423,6 +423,8 @@
+             st->st_rdev =
+                 (tar_from_oct (8, header->header.devmajor) << 8) |
+                 tar_from_oct (8, header->header.devminor);
++        default:
++            break;
+         }
+     default:
+         st->st_uid = tar_from_oct (8, header->header.uid);
+@@ -800,6 +802,8 @@
+ 
+             case STATUS_EOF:
+                 return 0;
++            default:
++                break;
+             }
+ 
+             /* Record of zeroes */
+@@ -808,6 +812,8 @@
+             /* exit from loop */
+         case STATUS_EOF:       /* End of archive */
+             break;
++        default:
++            break;
+         }
+         break;
+     }
+--- a/src/viewer/coord_cache.c
++++ b/src/viewer/coord_cache.c
+@@ -417,6 +417,8 @@
+         case NROFF_BACKSPACE:
+             nroff_state = NROFF_CONTINUATION;
+             break;
++        default:
++            break;
+         }
+ 
+         /* Cache entries must guarantee that for each i < j,
+--- a/src/viewer/datasource.c
++++ b/src/viewer/datasource.c
+@@ -177,6 +177,8 @@
+         break;
+     case DS_NONE:
+         break;
++    default:
++        break;
+     }
+ 
+     if (str == NULL)
+--- a/src/viewer/inlines.h
++++ b/src/viewer/inlines.h
+@@ -109,6 +109,8 @@
+         return mcview_get_byte_string (view, offset, retval);
+     case DS_NONE:
+         return mcview_get_byte_none (view, offset, retval);
++    default:
++        break;
+     }
+ #ifdef HAVE_ASSERT_H
+     assert (!"Unknown datasource type");

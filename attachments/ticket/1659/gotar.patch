@@ -1,0 +1,10 @@
+--- gotar.ini	2009-10-30 20:35:32.000000000 +0100
++++ gotar.ini	2009-10-30 23:19:55.000000000 +0100
+@@ -78,5 +78,5 @@
+ 	viewunderline=brightgreen;black
+ 
+ [buttonbar]
+-	hotkey=brightgreen;white
+-	button=black;blue
++	hotkey=lightgray.black
++	button=white;blue

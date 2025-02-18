@@ -1,0 +1,43 @@
+From a36b410b4368745011f683421d24cc22d13fd624 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 May 2016 14:31:38 +0000
+Subject: [PATCH] Handle user abort on backwards view search
+
+Currently backwards view search loops mc_search_run() until match or search end,
+but not on user abort request.
+
+Respect newly introduced MC_SEARCH_E_ABORT error status
+and exit backwards search loop on user request.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/search.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/src/viewer/search.c b/src/viewer/search.c
+index 34ecfba..e0cf17b 100644
+--- a/src/viewer/search.c
++++ b/src/viewer/search.c
+@@ -136,13 +136,17 @@ mcview_find (mcview_search_status_msg_t * ssm, off_t search_start, off_t search_
+                 && mc_search_is_fixed_search_str (view->search))
+                 search_end = search_start + view->search->original_len;
+ 
+-            if (mc_search_run (view->search, (void *) ssm, search_start, search_end, len)
+-                && view->search->normal_offset == search_start)
++            if (mc_search_run (view->search, (void *) ssm, search_start, search_end, len))
+             {
+-                if (view->text_nroff_mode)
+-                    view->search->normal_offset++;
+-                return TRUE;
++                if (view->search->normal_offset == search_start)
++                {
++                    if (view->text_nroff_mode)
++                        view->search->normal_offset++;
++                    return TRUE;
++                }
+             }
++            else if (view->search->error == MC_SEARCH_E_ABORT)
++                return FALSE;
+ 
+             search_start--;
+         }

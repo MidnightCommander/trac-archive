@@ -1,0 +1,279 @@
+From a9f7ecf0a624ea87af758db627ca89fe6fb71de1 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 17 Jul 2016 20:32:50 +0300
+Subject: [PATCH 2/2] Ticket #3664: (midnight_callback): don't hardcode +, -,
+ \, *.
+
+---
+ lib/keybind.h              |  1 +
+ lib/tty/key.c              | 33 +++++++++++++++++++++++++++++++
+ lib/tty/key.h              |  1 +
+ misc/mc.default.keymap     |  5 +++++
+ misc/mc.emacs.keymap       |  5 +++++
+ src/filemanager/midnight.c | 48 ++++++++++++++++------------------------------
+ src/keybind-defaults.c     | 11 +++++++++++
+ src/keybind-defaults.h     |  2 ++
+ src/setup.c                |  9 +++++++--
+ 9 files changed, 82 insertions(+), 33 deletions(-)
+
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 3484591..094ddb1 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -11,6 +11,7 @@
+ /* keymap sections */
+ #define KEYMAP_SECTION_MAIN "main"
+ #define KEYMAP_SECTION_MAIN_EXT "main:xmap"
++#define KEYMAP_SECTION_MAIN_EMPTY_CMDLINE "main:empty-cmdline"
+ #define KEYMAP_SECTION_PANEL "panel"
+ #define KEYMAP_SECTION_DIALOG "dialog"
+ #define KEYMAP_SECTION_INPUT "input"
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 344141c..4a9afdf 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -2275,6 +2275,39 @@ application_keypad_mode (void)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Returns TRUE if a user has asked to prefer the keypad version of a key.
++ *
++ * That is, if the user has asked for "+ - / *" to be effective (in some
++ * situations) only if typed via the keypad.
++ *
++ * @see application_keypad_mode(), numeric_keypad_mode().
++ */
++gboolean
++tty_has_alternate_key_representation (int keycode)
++{
++    if (mc_global.tty.alternate_plus_minus
++        && (mc_global.tty.console_flag != '\0' || mc_global.tty.xterm_flag))
++    {
++        /* Yes, "application mode" is active. The following keys have a
++         * different representation when typed via the keypad. */
++        switch (keycode)
++        {
++        case '+':
++        case '-':
++        case '/': /* Note: This is slash. It's not the *backslash* used (by default) to Unselect files. */
++        case '*':
++            return TRUE;
++        default:
++            break;
++        }
++    }
++
++    return FALSE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ enable_bracketed_paste (void)
+ {
+diff --git a/lib/tty/key.h b/lib/tty/key.h
+index 7b866ac..b050924 100644
+--- a/lib/tty/key.h
++++ b/lib/tty/key.h
+@@ -106,6 +106,7 @@ int get_key_code (int nodelay);
+ /* Set keypad mode (xterm and linux console only) */
+ void numeric_keypad_mode (void);
+ void application_keypad_mode (void);
++gboolean tty_has_alternate_key_representation (int keycode);
+ 
+ /* Bracketed paste mode */
+ void enable_bracketed_paste (void);
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 7d61ff8..3ab1d19 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -78,6 +78,11 @@ PutOtherTagged = ctrl-t
+ PutCurrentLink = r
+ PutOtherLink = ctrl-r
+ 
++[main:empty-cmdline]
++Select = plus
++Unselect = minus; backslash
++SelectInvert = asterisk
++
+ [panel]
+ Search = ctrl-s; alt-s
+ Mark = insert; ctrl-t
+diff --git a/misc/mc.emacs.keymap b/misc/mc.emacs.keymap
+index 8b4842a..e340c31 100644
+--- a/misc/mc.emacs.keymap
++++ b/misc/mc.emacs.keymap
+@@ -78,6 +78,11 @@ PutOtherTagged = ctrl-t
+ PutCurrentLink = r
+ PutOtherLink = ctrl-r
+ 
++[main:empty-cmdline]
++Select = plus
++Unselect = minus; backslash
++SelectInvert = asterisk
++
+ [panel]
+ Search = ctrl-s; alt-s
+ Mark = insert; ctrl-t
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index e312b2c..e1c93c5 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -1491,39 +1491,25 @@ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+             cmdline->point = 0;
+         }
+ 
+-        if ((!mc_global.tty.alternate_plus_minus
+-             || !(mc_global.tty.console_flag != '\0' || mc_global.tty.xterm_flag)) && !quote
+-            && !current_panel->searching)
++        /*
++         * Handle '+' (Select), '-' '\\' (Unselect), '*' (SelectInvert), and
++         * possibly other punctuation keys, "when they're typed as the first
++         * character on the command-line".
++         */
++        if (!tty_has_alternate_key_representation (parm) && !quote && !current_panel->searching)
+         {
+-            if (!only_leading_plus_minus)
++            /*
++             * The idea behind the 'main_empty_cmdline_map' keymap is to utilize
++             * some characters, like punctuation marks, that are unlikely to start
++             * a shell command. This keymap, therefore, is only effective when the
++             * command-line is still empty. Or when the user (by turning off the
++             * 'only_leading_plus_minus' option) asks to make it dominant.
++             */
++            if (!only_leading_plus_minus || !command_prompt || input_is_empty (cmdline))
+             {
+-                /* Special treatement, since the input line will eat them */
+-                if (parm == '+')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Select, NULL);
+-
+-                if (parm == '\\' || parm == '-')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Unselect,
+-                                         NULL);
+-
+-                if (parm == '*')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_SelectInvert,
+-                                         NULL);
+-            }
+-            else if (!command_prompt || cmdline->buffer[0] == '\0')
+-            {
+-                /* Special treatement '+', '-', '\', '*' only when this is
+-                 * first char on input line
+-                 */
+-                if (parm == '+')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Select, NULL);
+-
+-                if (parm == '\\' || parm == '-')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Unselect,
+-                                         NULL);
+-
+-                if (parm == '*')
+-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_SelectInvert,
+-                                         NULL);
++                command = keybind_lookup_keymap_command (main_empty_cmdline_map, parm);
++                if (command != CK_IgnoreKey)
++                    return midnight_execute_cmd (NULL, command);
+             }
+         }
+         return MSG_NOT_HANDLED;
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 38b4afb..a7166fa 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -36,6 +36,7 @@
+ 
+ GArray *main_keymap = NULL;
+ GArray *main_x_keymap = NULL;
++GArray *main_empty_cmdline_keymap = NULL;
+ GArray *panel_keymap = NULL;
+ GArray *dialog_keymap = NULL;
+ GArray *input_keymap = NULL;
+@@ -54,6 +55,7 @@ GArray *diff_keymap = NULL;
+ 
+ const global_keymap_t *main_map = NULL;
+ const global_keymap_t *main_x_map = NULL;
++const global_keymap_t *main_empty_cmdline_map = NULL;
+ const global_keymap_t *panel_map = NULL;
+ const global_keymap_t *tree_map = NULL;
+ const global_keymap_t *help_map = NULL;
+@@ -165,6 +167,13 @@ static const global_keymap_ini_t default_main_x_keymap[] = {
+     {NULL, NULL}
+ };
+ 
++static const global_keymap_ini_t default_main_empty_cmdline_keymap[] = {
++    {"Select", "plus"},
++    {"Unselect", "minus; backslash"},
++    {"SelectInvert", "asterisk"},
++    {NULL, NULL}
++};
++
+ /* panel */
+ static const global_keymap_ini_t default_panel_keymap[] = {
+     {"PanelOtherCd", "alt-o"},
+@@ -585,6 +594,8 @@ create_default_keymap (void)
+ 
+     create_default_keymap_section (keymap, KEYMAP_SECTION_MAIN, default_main_keymap);
+     create_default_keymap_section (keymap, KEYMAP_SECTION_MAIN_EXT, default_main_x_keymap);
++    create_default_keymap_section (keymap, KEYMAP_SECTION_MAIN_EMPTY_CMDLINE,
++                                   default_main_empty_cmdline_keymap);
+     create_default_keymap_section (keymap, KEYMAP_SECTION_PANEL, default_panel_keymap);
+     create_default_keymap_section (keymap, KEYMAP_SECTION_DIALOG, default_dialog_keymap);
+     create_default_keymap_section (keymap, KEYMAP_SECTION_INPUT, default_input_keymap);
+diff --git a/src/keybind-defaults.h b/src/keybind-defaults.h
+index 7b569c6..1845a3b 100644
+--- a/src/keybind-defaults.h
++++ b/src/keybind-defaults.h
+@@ -15,6 +15,7 @@
+ 
+ extern GArray *main_keymap;
+ extern GArray *main_x_keymap;
++extern GArray *main_empty_cmdline_keymap;
+ extern GArray *panel_keymap;
+ extern GArray *dialog_keymap;
+ extern GArray *input_keymap;
+@@ -34,6 +35,7 @@ extern GArray *diff_keymap;
+ 
+ extern const global_keymap_t *main_map;
+ extern const global_keymap_t *main_x_map;
++extern const global_keymap_t *main_empty_cmdline_map;
+ extern const global_keymap_t *panel_map;
+ extern const global_keymap_t *tree_map;
+ extern const global_keymap_t *help_map;
+diff --git a/src/setup.c b/src/setup.c
+index 951edb8..a74436f 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -153,8 +153,9 @@ int easy_patterns = 1;
+ /* It true saves the setup when quitting */
+ int auto_save_setup = 1;
+ 
+-/* If true, then the +, - and \ keys have their special meaning only if the
+- * command line is emtpy, otherwise they behave like regular letters
++/* If true, then the +, -, \ and * keys have their special meaning only if the
++ * command line is empty, otherwise they're *always* special (and you'll have
++ * to quote them (C-q) whenever you want to use them in the command line.
+  */
+ int only_leading_plus_minus = 1;
+ 
+@@ -1323,6 +1324,9 @@ load_keymap_defs (gboolean load_from_file)
+         load_keymap_from_section (KEYMAP_SECTION_MAIN, main_keymap, mc_global_keymap);
+         main_x_keymap = g_array_new (TRUE, FALSE, sizeof (global_keymap_t));
+         load_keymap_from_section (KEYMAP_SECTION_MAIN_EXT, main_x_keymap, mc_global_keymap);
++        main_empty_cmdline_keymap = g_array_new (TRUE, FALSE, sizeof (global_keymap_t));
++        load_keymap_from_section (KEYMAP_SECTION_MAIN_EMPTY_CMDLINE, main_empty_cmdline_keymap,
++                                  mc_global_keymap);
+ 
+         panel_keymap = g_array_new (TRUE, FALSE, sizeof (global_keymap_t));
+         load_keymap_from_section (KEYMAP_SECTION_PANEL, panel_keymap, mc_global_keymap);
+@@ -1364,6 +1368,7 @@ load_keymap_defs (gboolean load_from_file)
+ 
+     main_map = (global_keymap_t *) main_keymap->data;
+     main_x_map = (global_keymap_t *) main_x_keymap->data;
++    main_empty_cmdline_map = (global_keymap_t *) main_empty_cmdline_keymap->data;
+     panel_map = (global_keymap_t *) panel_keymap->data;
+     dialog_map = (global_keymap_t *) dialog_keymap->data;
+     input_map = (global_keymap_t *) input_keymap->data;
+-- 
+2.5.0
+

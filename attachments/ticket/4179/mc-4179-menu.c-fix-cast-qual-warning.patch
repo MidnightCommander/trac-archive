@@ -1,0 +1,32 @@
+From 16a61e6cbb1c13d7722e896ba492d368344eba2c Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 14:30:51 +0000
+Subject: [PATCH] (menu.c) Fix -Wcast-qual warning
+
+menu.c:716:17: warning: cast from 'const struct WMenuBar *' to 'struct Widget *' drops const qualifier [-Wcast-qual]
+    Widget *w = WIDGET (menubar);
+                ^
+../../lib/widget/widget-common.h:15:30: note: expanded from macro 'WIDGET'
+#define WIDGET(x) ((Widget *)(x))
+                             ^
+
+Found by Clang-11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/menu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/menu.c b/lib/widget/menu.c
+index 271832e9d..1219c1f50 100644
+--- a/lib/widget/menu.c
++++ b/lib/widget/menu.c
+@@ -713,7 +713,7 @@ menubar_get_menu_by_x_coord (const WMenuBar * menubar, int x)
+ static gboolean
+ menubar_mouse_on_menu (const WMenuBar * menubar, int y, int x)
+ {
+-    Widget *w = WIDGET (menubar);
++    const Widget *w = CONST_WIDGET(menubar);
+     menu_t *menu;
+     int left_x, right_x, bottom_y;
+ 

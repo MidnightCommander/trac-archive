@@ -1,0 +1,54 @@
+From b1bc205fe64d9b921ef4c3cccf0065d7e9909073 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 9 Jan 2016 11:07:45 +0000
+Subject: [PATCH] panelinfo: rely on realpath for device info
+
+when cd_symlinks enabled cwd_vpath don't pointed to real path
+hence device info may wrong
+
+(support for local filesystems only)
+
+Thanks Alain and Denis for reporting
+
+fix it and resolve #3412
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/info.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index 0824dbc..6587ca8 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -31,6 +31,7 @@
+ #include <config.h>
+ 
+ #include <stdio.h>
++#include <stdlib.h>             /* realpath */
+ #include <sys/stat.h>
+ #include <inttypes.h>           /* PRIuMAX */
+ 
+@@ -108,6 +109,8 @@ info_show_info (WInfo * info)
+     static const char *file_label;
+     GString *buff;
+     struct stat st;
++    char rp_cwd[PATH_MAX];
++    const char *p_rp_cwd;
+ 
+     if (!is_idle ())
+         return;
+@@ -124,7 +127,12 @@ info_show_info (WInfo * info)
+     if (get_current_type () != view_listing)
+         return;
+ 
+-    my_statfs (&myfs_stats, vfs_path_as_str (current_panel->cwd_vpath));
++    /* don't rely on vpath CWD when cd_symlinks enabled */
++    p_rp_cwd = mc_realpath (vfs_path_as_str (current_panel->cwd_vpath), rp_cwd);
++    if (p_rp_cwd == NULL)
++        p_rp_cwd = vfs_path_as_str (current_panel->cwd_vpath);
++
++    my_statfs (&myfs_stats, p_rp_cwd);
+ 
+     st = current_panel->dir.list[current_panel->selected].st;
+ 

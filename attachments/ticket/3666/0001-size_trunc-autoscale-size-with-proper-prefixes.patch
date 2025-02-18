@@ -1,0 +1,112 @@
+From 46b21450aca8291f789aee3d5166a78e427f6b84 Mon Sep 17 00:00:00 2001
+From: Michael Osipov <1983-01-06@gmx.net>
+Date: Sat, 30 Jul 2016 22:51:25 +0200
+Subject: [PATCH 1/2] size_trunc(): autoscale size with proper prefixes
+
+An input in bytes will properly scale between bytes, kilobytes/kibibytes,
+megabytes/mebibytes and gigabytes/gibibytes.
+Scaled size in the range (0.05, 10) will be a float with one decimal precision.
+The rest is formatted as integer.
+---
+ lib/util.c              | 41 ++++++++++++++++++++++++++---------------
+ src/filemanager/file.c  |  2 +-
+ src/filemanager/panel.c |  6 +++---
+ 3 files changed, 30 insertions(+), 19 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 304351d..8de5314 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -346,26 +346,37 @@ size_trunc (uintmax_t size, gboolean use_si)
+ {
+     static char x[BUF_TINY];
+     uintmax_t divisor = 1;
+-    const char *xtra = _("B");
++    const char *scaled_symbol = _("B");
++    double scaled_size;
+ 
+-    if (size > 999999999UL)
++    if ((use_si && size >= 1000000000UL) || size >= (1024UL * 1024UL * 1024UL))
++    {
++        divisor = use_si ? (1000 * 1000 * 1000) : (1024 * 1024 * 1024);
++        scaled_symbol = use_si ? _("GB") : _("GiB");
++    }
++    else if ((use_si && size >= 1000000UL) || size >= (1024UL * 1024UL))
++    {
++        divisor = use_si ? (1000 * 1000) : (1024 * 1024);
++        scaled_symbol = use_si ? _("MB") : _("MiB");
++    }
++    else if ((use_si && size >= 1000UL) || size >= 1024UL)
+     {
+         divisor = use_si ? 1000 : 1024;
+-        xtra = use_si ? _("kB") : _("KiB");
++        scaled_symbol = use_si ? _("kB") : _("KiB");
++    }
++    else
++    {
++        g_snprintf (x, sizeof (x), "%" PRIuMAX " %s", size, scaled_symbol);
++        return x;
++    }
+ 
+-        if (size / divisor > 999999999UL)
+-        {
+-            divisor = use_si ? (1000 * 1000) : (1024 * 1024);
+-            xtra = use_si ? _("MB") : _("MiB");
++   scaled_size = 1.0 * size / divisor;
++
++   if (scaled_size < 0.05 || scaled_size >= 10.0)
++       g_snprintf (x, sizeof (x), "%.0f %s", scaled_size, scaled_symbol);
++   else
++       g_snprintf (x, sizeof (x), "%.1f %s", scaled_size, scaled_symbol);
+ 
+-            if (size / divisor > 999999999UL)
+-            {
+-                divisor = use_si ? (1000 * 1000 * 1000) : (1024 * 1024 * 1024);
+-                xtra = use_si ? _("GB") : _("GiB");
+-            }
+-        }
+-    }
+-    g_snprintf (x, sizeof (x), "%.0f %s", 1.0 * size / divisor, xtra);
+     return x;
+ }
+ 
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index b9bee62..921099e 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -2524,7 +2524,7 @@ dirsize_status_update_cb (status_msg_t * sm)
+ 
+     /* update second (longer label) */
+     label_set_textv (dsm->count_size, _("Directories: %zd, total size: %s"),
+-                     dsm->dir_count, size_trunc_sep (dsm->total_size, panels_options.kilobyte_si));
++                     dsm->dir_count, size_trunc (dsm->total_size, panels_options.kilobyte_si));
+ 
+     /* enlarge dialog if required */
+     if (WIDGET (dsm->count_size)->cols + 6 > wd->cols)
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index b18cbac..38e740a 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1079,7 +1079,7 @@ display_total_marked_size (const WPanel * panel, int y, int x, gboolean size_onl
+     buf = size_only ? b_bytes : buffer;
+     cols = w->cols - 2;
+ 
+-    g_strlcpy (b_bytes, size_trunc_sep (panel->total, panels_options.kilobyte_si),
++    g_strlcpy (b_bytes, size_trunc (panel->total, panels_options.kilobyte_si),
+                sizeof (b_bytes));
+ 
+     if (!size_only)
+@@ -1319,8 +1319,8 @@ show_dir (const WPanel * panel)
+                 char buffer[BUF_SMALL];
+ 
+                 g_snprintf (buffer, sizeof (buffer), " %s ",
+-                            size_trunc_sep (panel->dir.list[panel->selected].st.st_size,
+-                                            panels_options.kilobyte_si));
++                            size_trunc (panel->dir.list[panel->selected].st.st_size,
++                                        panels_options.kilobyte_si));
+                 tty_setcolor (NORMAL_COLOR);
+                 widget_move (w, w->lines - 1, 4);
+                 tty_print_string (buffer);
+-- 
+2.9.2
+

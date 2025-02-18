@@ -1,0 +1,67 @@
+parent 78019b896ba0e59ba886ecf500747cbe77dbc7cb (4.7.5-189-g78019b8)
+commit 184c812af135a66c5e60ed09741bf1fecfe01666
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Mar 31 02:52:16 2011 +0200
+
+mcedit: use Office/Word-style tab markers
+
+Less clutter on screen.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ src/editor/editdraw.c |   33 +++++----------------------------
+ 1 files changed, 5 insertions(+), 28 deletions(-)
+
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 7fbb294..679846e 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -426,41 +426,18 @@ edit_draw_this_line (WEdit * edit, long b, long row, long start_col, long end_co
+                     if (tty_use_colors () &&
+                         ((visible_tabs || (visible_tws && q >= tws)) && enable_show_tabs_tws))
+                     {
++                        int m = (i - 1) / 2;
+                         if (p->style & MOD_MARKED)
+                             c = p->style;
+                         else if (book_mark)
+                             c |= book_mark << 16;
+                         else
+                             c = p->style | MOD_WHITESPACE;
+-                        if (i > 2)
+-                        {
+-                            p->ch = '<';
++                        while (i > 0) {
++                            --i;
+                             p->style = c;
+-                            p++;
+-                            while (--i > 1)
+-                            {
+-                                p->ch = '-';
+-                                p->style = c;
+-                                p++;
+-                            }
+-                            p->ch = '>';
+-                            p->style = c;
+-                            p++;
+-                        }
+-                        else if (i > 1)
+-                        {
+-                            p->ch = '<';
+-                            p->style = c;
+-                            p++;
+-                            p->ch = '>';
+-                            p->style = c;
+-                            p++;
+-                        }
+-                        else
+-                        {
+-                            p->ch = '>';
+-                            p->style = c;
+-                            p++;
++                            p->ch = (i != m) ? ' ' : 0x2192;
++                            ++p;
+                         }
+                     }
+                     else if (tty_use_colors () && visible_tws && q >= tws && enable_show_tabs_tws)
+-- 
+# Created with git-export-patch

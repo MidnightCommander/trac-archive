@@ -1,0 +1,229 @@
+#######################################################
+####### Arch ZSH ONF's configuration file        #######
+#######################################################
+
+###### References
+## http://zsh.sourceforge.net/
+## https://grml.org/zsh/
+## https://github.com/robbyrussell/oh-my-zsh
+## https://github.com/git/git/tree/master/contrib/completion
+### https://github.com/meskarune/dotfiles
+### https://github.com/olivierverdier/zsh-git-prompt
+#### https://github.com/Chrysostomus/manjaro-zsh-config
+
+######
+
+### Set/unset ZSH options
+########################
+
+### Shell
+setopt auto_cd                                 # if a command is issued that can't be executed as a normal command, and the command is the name of a directory, perform the cd command to that directory
+setopt autolist                                # Automatically list choices on an ambiguous completion
+setopt autoparamslash                        # If a parameter is completed whose content is the name of a directory, then add a trailing slash instead of a space
+setopt cdable_vars                            # If the argument to a cd command (or an implied cd with the AUTO_CD option set) is not a directory, and does not begin with a slash, try to expand the expression as if it were preceded by a ‘~’ (see Filename Expansion).
+setopt nobeep                                # Avoid "beep"ing
+setopt nohup                                 # Don't send SIGHUP to background processes when the shell exits (Don't kill processes when exiting)
+
+setopt unset                                 # don't error out when unset parameters are used
+
+#### Correction
+setopt correct                                 # Try to correct the spelling of commands. Note that, this may falsely report spelling errors the first time some commands are used
+setopt correctall                            # correct_all: Try to correct the spelling of all arguments in a line
+
+setopt menu_complete
+
+#### HISTORY
+setopt append_history                         # append history list to the history file: Immediately append history instead of overwriting
+setopt histignorealldups                    # If a new command line being added to the history list duplicates an older one, the older command is removed from the list
+setopt histignorespace                        # remove command lines from the history list when the first character on the line is a space
+setopt inc_append_history share_history        # import new commands from the history file also in other zsh-session
+
+
+setopt extended_glob                        # Extended globbing. Allows using regular expressions with *
+setopt nocaseglob                           # Case insensitive globbing
+
+setopt prompt_subst                            # enable substitution for prompt
+
+### Autoload zsh modules when they are referenced
+#################################################
+autoload -U colors 
+autoload -U compinit
+autoload -U history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+
+### Reference modules
+###############
+colors                                         # Enable color support
+compinit -d                                 # The "-d" flag speeds up the completion system using a ".zcompdump" file.
+
+### Set variables
+#################
+PATH="/usr/local/bin:/usr/local/sbin/:$PATH"
+HISTFILE=~/.zhistory
+HISTSIZE=1000
+SAVEHIST=1000
+LS_COLORS='rs=0:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44:ex=01;32:fi=96:';
+export EDITOR=/usr/bin/nano
+export VISUAL=/usr/bin/nano
+export LS_COLORS
+
+### Set alias
+#############
+alias ls='ls --group-directories-first --time-style=+"%d.%m.%Y %H:%M" --color=auto -F'
+alias ll='ls -l'
+alias la='ls -lha'
+alias Z='source ~/.zshrc'
+alias cp="cp -i"                                                # Confirm before overwriting something
+alias df='df -h'                                                # Human-readable sizes
+alias free='free -m'                                            # Show sizes in MB
+alias x='startx ~/.xinitrc'                                     # Type name of desired desktop after x, xinitrc is configured for it
+alias cpz='cp /media/sf_SharedVM/zshcomparison/.zshrc ~/.zshrc'
+alias grep='grep --color=tty -d skip'
+
+### Bind keys
+#############
+bindkey "^?" backward-delete-char
+bindkey '^[OH' beginning-of-line
+bindkey '^[OF' end-of-line
+bindkey '^[[5~' up-line-or-history
+bindkey '^[[6~' down-line-or-history
+bindkey "^[[A" history-beginning-search-backward-end    #Up arrow
+bindkey "^[[B" history-beginning-search-forward-end        #Down arrow
+bindkey "^r" history-incremental-search-backward
+bindkey ' ' magic-space    # also do history expansion on space
+bindkey '^I' complete-word # complete on tab, leave expansion to _expand
+
+### Set prompt
+#################
+echo $(uname -srm) $(lsb_release -rs) # Print some system information when the shell is first started
+
+# Prompt with different colors for root
+PROMPT="%(!.[%{$fg[red]%}%n %{$fg[cyan]%}%(4~|%-1~/.../%2~|%~)%{$reset_color%}]# .[%{$fg[green]%}%n %{$fg[cyan]%}%(4~|%-1~/.../%2~|%~)%{$reset_color%}]$ "
+
+### Set completion
+#############
+# list of completers to use
+zstyle ':completion:*::::' completer _oldlist _expand _complete _files _ignored _approximate 
+
+# formatting and messages
+zstyle ':completion:*' verbose yes
+
+zstyle ':completion:*:descriptions'    format $'%{\e[0;31m%}completing %B%d%b%{\e[0m%}'
+zstyle ':completion:*:messages'        format '%d'
+zstyle ':completion:*:warnings'        format 'No matches for: %d'
+zstyle ':completion:*:corrections'     format $'%{\e[0;31m%}%d (errors: %e)%{\e[0m%}'
+
+# separate matches into groups
+zstyle ':completion:*:matches'         group 'yes'
+zstyle ':completion:*'                 group-name ''
+
+zstyle ':completion:*' menu select _complete _ignored _approximate # activate menu for selection
+
+zstyle -e ':completion:*:approximate:'    max-errors 'reply=( $((($#PREFIX+$#SUFFIX)/3 )) numeric )' # allow one error for every three characters typed in approximate completer
+
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"         # Colored completion (different colors for dirs/files/etc)
+zstyle ':completion:*' rehash true                              # automatically find new executables in path 
+zstyle ':completion::complete:*' cache-path ~/.zsh/cache/$HOST
+zstyle ':completion::complete:*' use-cache on
+
+# Process management
+zstyle ':completion:*:processes'       command 'ps -au$USER' #on processes completion complete all user processes
+zstyle ':completion:*:processes-names' command 'ps c -u ${USER} -o command | uniq' # Provide more processes in completion of programs like killall:
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31' ## add colors to processes for kill completion
+
+
+# Search path for sudo completion
+zstyle ':completion:*:sudo:*' command-path /usr/local/sbin \
+                                           /usr/local/bin  \
+                                           /usr/sbin       \
+                                           /usr/bin        \
+                                           /sbin           \
+                                           /bin
+
+### Color man pages
+#############
+export LESS_TERMCAP_mb=$'\E[01;32m'
+export LESS_TERMCAP_md=$'\E[01;32m'
+export LESS_TERMCAP_me=$'\E[0m'
+export LESS_TERMCAP_se=$'\E[0m'
+export LESS_TERMCAP_so=$'\E[01;47;34m'
+export LESS_TERMCAP_ue=$'\E[0m'
+export LESS_TERMCAP_us=$'\E[01;36m'
+export LESS=-r
+
+### GIT management
+#############
+
+# Modify the colors and symbols in these variables as desired.
+GIT_PROMPT_PREFIX="%{$fg[green]%}[%{$reset_color%}"
+GIT_PROMPT_SUFFIX="%{$fg[green]%}]%{$reset_color%}"
+GIT_PROMPT_AHEAD="%{$fg[red]%}ANUM%{$reset_color%}"                 # A"NUM"         - ahead by "NUM" commits
+GIT_PROMPT_BEHIND="%{$fg[cyan]%}BNUM%{$reset_color%}"               # B"NUM"         - behind by "NUM" commits
+if [[ ${TERM} == "linux" ]]; then
+  GIT_PROMPT_SYMBOL="%{$fg[cyan]%}C"                              # plus/minus     - clean repo
+    GIT_PROMPT_MERGING="%{$fg_bold[magenta]%}Y︎%{$reset_color%}"     # lightning bolt - merge conflict
+    GIT_PROMPT_UNTRACKED="%{$fg_bold[yellow]%}+%{$reset_color%}"    # red circle     - untracked files
+    GIT_PROMPT_MODIFIED="%{$fg_bold[red]%}!%{$reset_color%}"         # yellow circle  - modified files (which are tracked)
+    GIT_PROMPT_STAGED="%{$fg_bold[green]%}=%{$reset_color%}"        # green circle   - staged changes present = ready for "git push"
+else
+    GIT_PROMPT_SYMBOL="%{$fg[cyan]%}⎇"                                # plus/minus     - clean repo
+    GIT_PROMPT_MERGING="%{$fg_bold[magenta]%}🜉%{$reset_color%}"     # lightning bolt - merge conflict
+    GIT_PROMPT_UNTRACKED="%{$fg_bold[yellow]%}✗%{$reset_color%}"    # red circle     - untracked files
+    GIT_PROMPT_MODIFIED="%{$fg_bold[red]%}●%{$reset_color%}"         # yellow circle  - modified files (which are tracked)
+    GIT_PROMPT_STAGED="%{$fg_bold[green]%}●%{$reset_color%}"        # green circle   - staged changes present = ready for "git push"
+fi
+
+parse_git_branch() {
+  # Show Git branch/tag, or name-rev if on detached head
+  ( git symbolic-ref -q HEAD || git name-rev --name-only --no-undefined --always HEAD ) 2> /dev/null
+}
+
+parse_git_state() {
+  # Show different symbols as appropriate for various Git repository states
+  # Compose this value via multiple conditional appends.
+  local GIT_STATE=""
+  local NUM_AHEAD="$(git log --oneline @{u}.. 2> /dev/null | wc -l | tr -d ' ')"
+  if [ "$NUM_AHEAD" -gt 0 ]; then
+    GIT_STATE=$GIT_STATE${GIT_PROMPT_AHEAD//NUM/$NUM_AHEAD}
+  fi
+  local NUM_BEHIND="$(git log --oneline ..@{u} 2> /dev/null | wc -l | tr -d ' ')"
+  if [ "$NUM_BEHIND" -gt 0 ]; then
+    GIT_STATE=$GIT_STATE${GIT_PROMPT_BEHIND//NUM/$NUM_BEHIND}
+  fi
+  local GIT_DIR="$(git rev-parse --git-dir 2> /dev/null)"
+  if [ -n $GIT_DIR ] && test -r $GIT_DIR/MERGE_HEAD; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_MERGING
+  fi
+  if [[ -n $(git ls-files --other --exclude-standard 2> /dev/null) ]]; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_UNTRACKED
+  fi
+  if ! git diff --quiet 2> /dev/null; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_MODIFIED
+  fi
+  if ! git diff --cached --quiet 2> /dev/null; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_STAGED
+  fi
+  if [[ -n $GIT_STATE ]]; then
+    echo "$GIT_PROMPT_PREFIX$GIT_STATE$GIT_PROMPT_SUFFIX"
+  fi
+}
+
+git_prompt_string() {
+  local git_where="$(parse_git_branch)"
+  
+  # If inside a Git repository, print its branch and state
+  [ -n "$git_where" ] && echo "$GIT_PROMPT_SYMBOL$(parse_git_state)$GIT_PROMPT_PREFIX%{$fg[yellow]%}${git_where#(refs/heads/|tags/)}$GIT_PROMPT_SUFFIX"
+  
+  # If not inside the Git repo, print exit codes of last command (only if it failed)
+  [ ! -n "$git_where" ] && echo "%{$fg[red]%} %(?..[%?])"
+}
+
+### Display right promp with git info if in a git folder
+#############
+RPROMPT='$(git_prompt_string)%{$fg_bold[yellow]%}(%D{%d-%b %H:%M})%{$reset_color%}'
+
+## Plugins section:
+# Use syntax highlighting
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

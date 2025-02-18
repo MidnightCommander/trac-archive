@@ -1,0 +1,56 @@
+From a054851c8f070262d3764cc6450c0585c4f009ff Mon Sep 17 00:00:00 2001
+From: Andrew Borodin <aborodin@vmail.ru>
+Date: Thu, 31 Jan 2013 14:10:50 +0400
+Subject: [PATCH] mcedit: fix autocompletion.
+
+Signed-off-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ src/editor/editcmd_dialogs.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index aa9f145..c3500a6 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -386,28 +386,24 @@ editcmd_dialog_completion_show (WEdit * edit, int max_len, int word_len,
+     if (run_dlg (compl_dlg) == B_ENTER)
+     {
+         listbox_get_current (compl_list, &curr, NULL);
+-        if (curr)
++        if (curr != NULL)
+         {
+ #ifdef HAVE_CHARSET
+             GString *temp, *temp2;
+-            temp = g_string_new ("");
+-            for (curr += word_len; *curr; curr++)
+-                g_string_append_c (temp, *curr);
+ 
+-            temp2 = str_convert_to_input (temp->str);
++            temp = g_string_sized_new (8);
++            temp2 = str_convert_to_input (curr);
++            curr = temp2->str;
+ 
+-            if (temp2 && temp2->len)
+-            {
+-                g_string_free (temp, TRUE);
+-                temp = temp2;
+-            }
+-            else
+-                g_string_free (temp2, TRUE);
+-            for (curr = temp->str; *curr; curr++)
++            for (curr += word_len; *curr != '\0'; curr++)
++                g_string_append_c (temp, *curr);
++            g_string_free (temp2, TRUE);
++
++            for (curr = temp->str; *curr != '\0'; curr++)
+                 edit_insert (edit, *curr);
+             g_string_free (temp, TRUE);
+ #else
+-            for (curr += word_len; *curr; curr++)
++            for (curr += word_len; *curr != '\0'; curr++)
+                 edit_insert (edit, *curr);
+ #endif
+         }
+-- 
+1.8.1.1
+

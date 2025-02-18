@@ -1,0 +1,18 @@
+diff --git a/misc/ext.d/doc.sh.in b/misc/ext.d/doc.sh.in
+index c296ca270..4f460aa9b 100644
+--- a/misc/ext.d/doc.sh.in
++++ b/misc/ext.d/doc.sh.in
+@@ -52,7 +52,12 @@ do_view_action() {
+         fi
+         ;;
+     msdoc)
+-        if which wvHtml >/dev/null 2>&1; then
++        OOFFICE=`get_ooffice_executable`
++        if [ -n "${OOFFICE}" ]; then
++            tmp=`mktemp -d ${TMPDIR:-/tmp}/tmp.XXXXXXXXXX`
++            "${OOFFICE}" "-env:UserInstallation=file://$tmp" --headless --cat "${MC_EXT_FILENAME}"
++            rm -rf "$tmp"
++        elif which wvHtml >/dev/null 2>&1; then
+             tmp=`mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`
+             wvHtml "${MC_EXT_FILENAME}" --targetdir="$tmp" page.html
+             elinks -dump "$tmp/page.html"

@@ -1,0 +1,620 @@
+diff -Naur mc-4.8.0/lib/keybind.c mc-4.8.0-fasterStartup/lib/keybind.c
+--- mc-4.8.0/lib/keybind.c	2011-10-18 13:39:19.000000000 +0200
++++ mc-4.8.0-fasterStartup/lib/keybind.c	2011-10-21 12:12:54.743472517 +0200
+@@ -47,293 +47,293 @@
+ 
+ static name_keymap_t command_names[] = {
+     /* common */
+-    {"Enter", CK_Enter},
+-    {"Up", CK_Up},
+-    {"Down", CK_Down},
+-    {"Left", CK_Left},
+-    {"Right", CK_Right},
+-    {"LeftQuick", CK_LeftQuick},
+-    {"RightQuick", CK_RightQuick},
+-    {"Home", CK_Home},
+-    {"End", CK_End},
+-    {"PageUp", CK_PageUp},
+-    {"PageDown", CK_PageDown},
+-    {"HalfPageUp", CK_HalfPageUp},
+-    {"HalfPageDown", CK_HalfPageDown},
+-    {"Top", CK_Top},
+-    {"Bottom", CK_Bottom},
+-    {"TopOnScreen", CK_TopOnScreen},
+-    {"MiddleOnScreen", CK_MiddleOnScreen},
+-    {"BottomOnScreen", CK_BottomOnScreen},
+-    {"WordLeft", CK_WordLeft},
+-    {"WordRight", CK_WordRight},
+-    {"Copy", CK_Copy},
+-    {"Move", CK_Move},
+-    {"Delete", CK_Delete},
+-    {"MakeDir", CK_MakeDir},
+-    {"ChangeMode", CK_ChangeMode},
+-    {"ChangeOwn", CK_ChangeOwn},
+-    {"ChangeOwnAdvanced", CK_ChangeOwnAdvanced},
+-    {"Remove", CK_Remove},
+-    {"BackSpace", CK_BackSpace},
+-    {"Undo", CK_Undo},
+-    {"Redo", CK_Redo},
+-    {"Clear", CK_Clear},
+-    {"Menu", CK_Menu},
+-    {"MenuLastSelected", CK_MenuLastSelected},
+-    {"UserMenu", CK_UserMenu},
+-    {"EditUserMenu", CK_EditUserMenu},
+-    {"Search", CK_Search},
+-    {"SearchContinue", CK_SearchContinue},
+-    {"Replace", CK_Replace},
+-    {"ReplaceContinue", CK_ReplaceContinue},
+-    {"Help", CK_Help},
+-    {"Shell", CK_Shell},
+-    {"Edit", CK_Edit},
+-    {"EditNew", CK_EditNew},
++    {"Enter", NULL, CK_Enter},
++    {"Up", NULL, CK_Up},
++    {"Down", NULL, CK_Down},
++    {"Left", NULL, CK_Left},
++    {"Right", NULL, CK_Right},
++    {"LeftQuick", NULL, CK_LeftQuick},
++    {"RightQuick", NULL, CK_RightQuick},
++    {"Home", NULL, CK_Home},
++    {"End", NULL, CK_End},
++    {"PageUp", NULL, CK_PageUp},
++    {"PageDown", NULL, CK_PageDown},
++    {"HalfPageUp", NULL, CK_HalfPageUp},
++    {"HalfPageDown", NULL, CK_HalfPageDown},
++    {"Top", NULL, CK_Top},
++    {"Bottom", NULL, CK_Bottom},
++    {"TopOnScreen", NULL, CK_TopOnScreen},
++    {"MiddleOnScreen", NULL, CK_MiddleOnScreen},
++    {"BottomOnScreen", NULL, CK_BottomOnScreen},
++    {"WordLeft", NULL, CK_WordLeft},
++    {"WordRight", NULL, CK_WordRight},
++    {"Copy", NULL, CK_Copy},
++    {"Move", NULL, CK_Move},
++    {"Delete", NULL, CK_Delete},
++    {"MakeDir", NULL, CK_MakeDir},
++    {"ChangeMode", NULL, CK_ChangeMode},
++    {"ChangeOwn", NULL, CK_ChangeOwn},
++    {"ChangeOwnAdvanced", NULL, CK_ChangeOwnAdvanced},
++    {"Remove", NULL, CK_Remove},
++    {"BackSpace", NULL, CK_BackSpace},
++    {"Undo", NULL, CK_Undo},
++    {"Redo", NULL, CK_Redo},
++    {"Clear", NULL, CK_Clear},
++    {"Menu", NULL, CK_Menu},
++    {"MenuLastSelected", NULL, CK_MenuLastSelected},
++    {"UserMenu", NULL, CK_UserMenu},
++    {"EditUserMenu", NULL, CK_EditUserMenu},
++    {"Search", NULL, CK_Search},
++    {"SearchContinue", NULL, CK_SearchContinue},
++    {"Replace", NULL, CK_Replace},
++    {"ReplaceContinue", NULL, CK_ReplaceContinue},
++    {"Help", NULL, CK_Help},
++    {"Shell", NULL, CK_Shell},
++    {"Edit", NULL, CK_Edit},
++    {"EditNew", NULL, CK_EditNew},
+ #ifdef HAVE_CHARSET
+-    {"SelectCodepage", CK_SelectCodepage},
++    {"SelectCodepage", NULL, CK_SelectCodepage},
+ #endif
+-    {"History", CK_History},
+-    {"HistoryNext", CK_HistoryNext},
+-    {"HistoryPrev", CK_HistoryPrev},
+-    {"Complete", CK_Complete},
+-    {"Save", CK_Save},
+-    {"SaveAs", CK_SaveAs},
+-    {"Goto", CK_Goto},
+-    {"Reread", CK_Reread},
+-    {"Refresh", CK_Refresh},
+-    {"Suspend", CK_Suspend},
+-    {"Swap", CK_Swap},
+-    {"HotList", CK_HotList},
+-    {"SelectInvert", CK_SelectInvert},
+-    {"ScreenList", CK_ScreenList},
+-    {"ScreenNext", CK_ScreenNext},
+-    {"ScreenPrev", CK_ScreenPrev},
+-    {"FileNext", CK_FileNext},
+-    {"FilePrev", CK_FilePrev},
+-    {"DeleteToWordBegin", CK_DeleteToWordBegin},
+-    {"DeleteToWordEnd", CK_DeleteToWordEnd},
+-    {"Cut", CK_Cut},
+-    {"Store", CK_Store},
+-    {"Paste", CK_Paste},
+-    {"Mark", CK_Mark},
+-    {"MarkLeft", CK_MarkLeft},
+-    {"MarkRight", CK_MarkRight},
+-    {"MarkUp", CK_MarkUp},
+-    {"MarkDown", CK_MarkDown},
+-    {"MarkToWordBegin", CK_MarkToWordBegin},
+-    {"MarkToWordEnd", CK_MarkToWordEnd},
+-    {"MarkToHome", CK_MarkToHome},
+-    {"MarkToEnd", CK_MarkToEnd},
+-    {"ToggleNavigation", CK_ToggleNavigation},
+-    {"Sort", CK_Sort},
+-    {"Options", CK_Options},
+-    {"LearnKeys", CK_LearnKeys},
+-    {"Bookmark", CK_Bookmark},
+-    {"Quit", CK_Quit},
+-    {"QuitQuiet", CK_QuitQuiet},
+-    {"ExtendedKeyMap", CK_ExtendedKeyMap},
++    {"History", NULL, CK_History},
++    {"HistoryNext", NULL, CK_HistoryNext},
++    {"HistoryPrev", NULL, CK_HistoryPrev},
++    {"Complete", NULL, CK_Complete},
++    {"Save", NULL, CK_Save},
++    {"SaveAs", NULL, CK_SaveAs},
++    {"Goto", NULL, CK_Goto},
++    {"Reread", NULL, CK_Reread},
++    {"Refresh", NULL, CK_Refresh},
++    {"Suspend", NULL, CK_Suspend},
++    {"Swap", NULL, CK_Swap},
++    {"HotList", NULL, CK_HotList},
++    {"SelectInvert", NULL, CK_SelectInvert},
++    {"ScreenList", NULL, CK_ScreenList},
++    {"ScreenNext", NULL, CK_ScreenNext},
++    {"ScreenPrev", NULL, CK_ScreenPrev},
++    {"FileNext", NULL, CK_FileNext},
++    {"FilePrev", NULL, CK_FilePrev},
++    {"DeleteToWordBegin", NULL, CK_DeleteToWordBegin},
++    {"DeleteToWordEnd", NULL, CK_DeleteToWordEnd},
++    {"Cut", NULL, CK_Cut},
++    {"Store", NULL, CK_Store},
++    {"Paste", NULL, CK_Paste},
++    {"Mark", NULL, CK_Mark},
++    {"MarkLeft", NULL, CK_MarkLeft},
++    {"MarkRight", NULL, CK_MarkRight},
++    {"MarkUp", NULL, CK_MarkUp},
++    {"MarkDown", NULL, CK_MarkDown},
++    {"MarkToWordBegin", NULL, CK_MarkToWordBegin},
++    {"MarkToWordEnd", NULL, CK_MarkToWordEnd},
++    {"MarkToHome", NULL, CK_MarkToHome},
++    {"MarkToEnd", NULL, CK_MarkToEnd},
++    {"ToggleNavigation", NULL, CK_ToggleNavigation},
++    {"Sort", NULL, CK_Sort},
++    {"Options", NULL, CK_Options},
++    {"LearnKeys", NULL, CK_LearnKeys},
++    {"Bookmark", NULL, CK_Bookmark},
++    {"Quit", NULL, CK_Quit},
++    {"QuitQuiet", NULL, CK_QuitQuiet},
++    {"ExtendedKeyMap", NULL, CK_ExtendedKeyMap},
+ 
+     /* main commands */
+ #ifdef USE_INTERNAL_EDIT
+-    {"EditForceInternal", CK_EditForceInternal},
++    {"EditForceInternal", NULL, CK_EditForceInternal},
+ #endif
+-    {"View", CK_View},
+-    {"ViewRaw", CK_ViewRaw},
+-    {"ViewFile", CK_ViewFile},
+-    {"ViewFiltered", CK_ViewFiltered},
+-    {"Find", CK_Find},
+-    {"DirSize", CK_DirSize},
+-    {"PanelListingSwitch", CK_PanelListingSwitch},
+-    {"CompareDirs", CK_CompareDirs},
++    {"View", NULL, CK_View},
++    {"ViewRaw", NULL, CK_ViewRaw},
++    {"ViewFile", NULL, CK_ViewFile},
++    {"ViewFiltered", NULL, CK_ViewFiltered},
++    {"Find", NULL, CK_Find},
++    {"DirSize", NULL, CK_DirSize},
++    {"PanelListingSwitch", NULL, CK_PanelListingSwitch},
++    {"CompareDirs", NULL, CK_CompareDirs},
+ #ifdef USE_DIFF_VIEW
+-    {"CompareFiles", CK_CompareFiles},
++    {"CompareFiles", NULL, CK_CompareFiles},
+ #endif
+-    {"OptionsVfs", CK_OptionsVfs},
+-    {"OptionsConfirm", CK_OptionsConfirm},
+-    {"OptionsDisplayBits", CK_OptionsDisplayBits},
+-    {"EditExtensionsFile", CK_EditExtensionsFile},
+-    {"EditFileHighlightFile", CK_EditFileHighlightFile},
+-    {"LinkSymbolicEdit", CK_LinkSymbolicEdit},
+-    {"ExternalPanelize", CK_ExternalPanelize},
+-    {"Filter", CK_Filter},
++    {"OptionsVfs", NULL, CK_OptionsVfs},
++    {"OptionsConfirm", NULL, CK_OptionsConfirm},
++    {"OptionsDisplayBits", NULL, CK_OptionsDisplayBits},
++    {"EditExtensionsFile", NULL, CK_EditExtensionsFile},
++    {"EditFileHighlightFile", NULL, CK_EditFileHighlightFile},
++    {"LinkSymbolicEdit", NULL, CK_LinkSymbolicEdit},
++    {"ExternalPanelize", NULL, CK_ExternalPanelize},
++    {"Filter", NULL, CK_Filter},
+ #ifdef ENABLE_VFS_FISH
+-    {"ConnectFish", CK_ConnectFish},
++    {"ConnectFish", NULL, CK_ConnectFish},
+ #endif
+ #ifdef ENABLE_VFS_FTP
+-    {"ConnectFtp", CK_ConnectFtp},
++    {"ConnectFtp", NULL, CK_ConnectFtp},
+ #endif
+ #ifdef ENABLE_VFS_SMB
+-    {"ConnectSmb", CK_ConnectSmb},
++    {"ConnectSmb", NULL, CK_ConnectSmb},
+ #endif
+-    {"PanelInfo", CK_PanelInfo},
++    {"PanelInfo", NULL, CK_PanelInfo},
+ #ifdef WITH_BACKGROUND
+-    {"Jobs", CK_Jobs},
++    {"Jobs", NULL, CK_Jobs},
+ #endif
+-    {"OptionsLayout", CK_OptionsLayout},
+-    {"Link", CK_Link},
+-    {"PanelListingChange", CK_PanelListingChange},
+-    {"PanelListing", CK_PanelListing},
++    {"OptionsLayout", NULL, CK_OptionsLayout},
++    {"Link", NULL, CK_Link},
++    {"PanelListingChange", NULL, CK_PanelListingChange},
++    {"PanelListing", NULL, CK_PanelListing},
+ #ifdef LISTMODE_EDITOR
+-    {"ListMode", CK_ListMode}.
++    {"ListMode", NULL, CK_ListMode}.
+ #endif
+-    {"OptionsPanel", CK_OptionsPanel},
+-    {"CdQuick", CK_CdQuick},
+-    {"PanelQuickView", CK_PanelQuickView},
+-    {"LinkSymbolicRelative", CK_LinkSymbolicRelative},
+-    {"VfsList", CK_VfsList},
+-    {"SaveSetup", CK_SaveSetup},
+-    {"LinkSymbolic", CK_LinkSymbolic},
+-    {"PanelTree", CK_PanelTree},
+-    {"Tree", CK_Tree},
++    {"OptionsPanel", NULL, CK_OptionsPanel},
++    {"CdQuick", NULL, CK_CdQuick},
++    {"PanelQuickView", NULL, CK_PanelQuickView},
++    {"LinkSymbolicRelative", NULL, CK_LinkSymbolicRelative},
++    {"VfsList", NULL, CK_VfsList},
++    {"SaveSetup", NULL, CK_SaveSetup},
++    {"LinkSymbolic", NULL, CK_LinkSymbolic},
++    {"PanelTree", NULL, CK_PanelTree},
++    {"Tree", NULL, CK_Tree},
+ #ifdef ENABLE_VFS_UNDELFS
+-    {"Undelete", CK_Undelete},
++    {"Undelete", NULL, CK_Undelete},
+ #endif
+-    {"PutCurrentLink", CK_PutCurrentLink},
+-    {"PutOtherLink", CK_PutOtherLink},
+-    {"HotListAdd", CK_HotListAdd},
+-    {"ShowHidden", CK_ShowHidden},
+-    {"SplitVertHoriz", CK_SplitVertHoriz},
+-    {"PutCurrentPath", CK_PutCurrentPath},
+-    {"PutOtherPath", CK_PutOtherPath},
+-    {"PutCurrentTagged", CK_PutCurrentTagged},
+-    {"PutOtherTagged", CK_PutOtherTagged},
+-    {"Select", CK_Select},
+-    {"Unselect", CK_Unselect},
++    {"PutCurrentLink", NULL, CK_PutCurrentLink},
++    {"PutOtherLink", NULL, CK_PutOtherLink},
++    {"HotListAdd", NULL, CK_HotListAdd},
++    {"ShowHidden", NULL, CK_ShowHidden},
++    {"SplitVertHoriz", NULL, CK_SplitVertHoriz},
++    {"PutCurrentPath", NULL, CK_PutCurrentPath},
++    {"PutOtherPath", NULL, CK_PutOtherPath},
++    {"PutCurrentTagged", NULL, CK_PutCurrentTagged},
++    {"PutOtherTagged", NULL, CK_PutOtherTagged},
++    {"Select", NULL, CK_Select},
++    {"Unselect", NULL, CK_Unselect},
+ 
+     /* panel */
+-    {"PanelOtherCd", CK_PanelOtherCd},
+-    {"PanelOtherCdLink", CK_PanelOtherCdLink},
+-    {"CopySingle", CK_CopySingle},
+-    {"MoveSingle", CK_MoveSingle},
+-    {"DeleteSingle", CK_DeleteSingle},
+-    {"CdParent", CK_CdParent},
+-    {"CdChild", CK_CdChild},
+-    {"PanelOtherSync", CK_PanelOtherSync},
+-    {"SortNext", CK_SortNext},
+-    {"SortPrev", CK_SortPrev},
+-    {"SortReverse", CK_SortReverse},
+-    {"SortByName", CK_SortByName},
+-    {"SortByExt", CK_SortByExt},
+-    {"SortBySize", CK_SortBySize},
+-    {"SortByMTime", CK_SortByMTime},
+-    {"CdParentSmart", CK_CdParentSmart},
++    {"PanelOtherCd", NULL, CK_PanelOtherCd},
++    {"PanelOtherCdLink", NULL, CK_PanelOtherCdLink},
++    {"CopySingle", NULL, CK_CopySingle},
++    {"MoveSingle", NULL, CK_MoveSingle},
++    {"DeleteSingle", NULL, CK_DeleteSingle},
++    {"CdParent", NULL, CK_CdParent},
++    {"CdChild", NULL, CK_CdChild},
++    {"PanelOtherSync", NULL, CK_PanelOtherSync},
++    {"SortNext", NULL, CK_SortNext},
++    {"SortPrev", NULL, CK_SortPrev},
++    {"SortReverse", NULL, CK_SortReverse},
++    {"SortByName", NULL, CK_SortByName},
++    {"SortByExt", NULL, CK_SortByExt},
++    {"SortBySize", NULL, CK_SortBySize},
++    {"SortByMTime", NULL, CK_SortByMTime},
++    {"CdParentSmart", NULL, CK_CdParentSmart},
+ 
+     /* dialog */
+-    {"Ok", CK_Ok},
+-    {"Cancel", CK_Cancel},
++    {"Ok", NULL, CK_Ok},
++    {"Cancel", NULL, CK_Cancel},
+ 
+     /* input line */
+-    {"Yank", CK_Yank},
++    {"Yank", NULL, CK_Yank},
+ 
+     /* help */
+-    {"Index", CK_Index},
+-    {"Back", CK_Back},
+-    {"LinkNext", CK_LinkNext},
+-    {"LinkPrev", CK_LinkPrev},
+-    {"NodeNext", CK_NodeNext},
+-    {"NodePrev", CK_NodePrev},
++    {"Index", NULL, CK_Index},
++    {"Back", NULL, CK_Back},
++    {"LinkNext", NULL, CK_LinkNext},
++    {"LinkPrev", NULL, CK_LinkPrev},
++    {"NodeNext", NULL, CK_NodeNext},
++    {"NodePrev", NULL, CK_NodePrev},
+ 
+     /* tree */
+-    {"Forget", CK_Forget},
++    {"Forget", NULL, CK_Forget},
+ 
+ #if defined (USE_INTERNAL_EDIT) || defined (USE_DIFF_VIEW)
+-    {"ShowNumbers", CK_ShowNumbers},
++    {"ShowNumbers", NULL, CK_ShowNumbers},
+ #endif
+ 
+ #ifdef USE_INTERNAL_EDIT
+-    {"Tab", CK_Tab},
+-    {"ScrollUp", CK_ScrollUp},
+-    {"ScrollDown", CK_ScrollDown},
+-    {"Return", CK_Return},
+-    {"ParagraphUp", CK_ParagraphUp},
+-    {"ParagraphDown", CK_ParagraphDown},
+-    {"EditFile", CK_EditFile},
+-    {"MarkWord", CK_MarkWord},
+-    {"MarkLine", CK_MarkLine},
+-    {"MarkAll", CK_MarkAll},
+-    {"Unmark", CK_Unmark},
+-    {"MarkColumn", CK_MarkColumn},
+-    {"BlockSave", CK_BlockSave},
+-    {"InsertFile", CK_InsertFile},
+-    {"InsertOverwrite", CK_InsertOverwrite},
+-    {"Date", CK_Date},
+-    {"DeleteLine", CK_DeleteLine},
+-    {"DeleteToHome", CK_DeleteToHome},
+-    {"DeleteToEnd", CK_DeleteToEnd},
+-    {"EditMail", CK_Mail},
+-    {"ParagraphFormat", CK_ParagraphFormat},
+-    {"MatchBracket", CK_MatchBracket},
+-    {"ExternalCommand", CK_ExternalCommand},
+-    {"MacroStartRecord", CK_MacroStartRecord},
+-    {"MacroStopRecord", CK_MacroStopRecord},
+-    {"MacroStartStopRecord", CK_MacroStartStopRecord},
+-    {"MacroDelete", CK_MacroDelete},
+-    {"RepeatStartStopRecord", CK_RepeatStartStopRecord},
+-    {"BookmarkFlush", CK_BookmarkFlush},
+-    {"BookmarkNext", CK_BookmarkNext},
+-    {"BookmarkPrev", CK_BookmarkPrev},
+-    {"MarkPageUp", CK_MarkPageUp},
+-    {"MarkPageDown", CK_MarkPageDown},
+-    {"MarkToFileBegin", CK_MarkToFileBegin},
+-    {"MarkToFileEnd", CK_MarkToFileEnd},
+-    {"MarkToPageBegin", CK_MarkToPageBegin},
+-    {"MarkToPageEnd", CK_MarkToPageEnd},
+-    {"MarkScrollUp", CK_MarkScrollUp},
+-    {"MarkScrollDown", CK_MarkScrollDown},
+-    {"MarkParagraphUp", CK_MarkParagraphUp},
+-    {"MarkParagraphDown", CK_MarkParagraphDown},
+-    {"MarkColumnPageUp", CK_MarkColumnPageUp},
+-    {"MarkColumnPageDown", CK_MarkColumnPageDown},
+-    {"MarkColumnLeft", CK_MarkColumnLeft},
+-    {"MarkColumnRight", CK_MarkColumnRight},
+-    {"MarkColumnUp", CK_MarkColumnUp},
+-    {"MarkColumnDown", CK_MarkColumnDown},
+-    {"MarkColumnScrollUp", CK_MarkColumnScrollUp},
+-    {"MarkColumnScrollDown", CK_MarkColumnScrollDown},
+-    {"MarkColumnParagraphUp", CK_MarkColumnParagraphUp},
+-    {"MarkColumnParagraphDown", CK_MarkColumnParagraphDown},
+-    {"BlockShiftLeft", CK_BlockShiftLeft},
+-    {"BlockShiftRight", CK_BlockShiftRight},
+-    {"InsertLiteral", CK_InsertLiteral},
+-    {"ShowTabTws", CK_ShowTabTws},
+-    {"SyntaxOnOff", CK_SyntaxOnOff},
+-    {"SyntaxChoose", CK_SyntaxChoose},
+-    {"ShowMargin", CK_ShowMargin},
+-    {"OptionsSaveMode", CK_OptionsSaveMode},
+-    {"About", CK_About},
++    {"Tab", NULL, CK_Tab},
++    {"ScrollUp", NULL, CK_ScrollUp},
++    {"ScrollDown", NULL, CK_ScrollDown},
++    {"Return", NULL, CK_Return},
++    {"ParagraphUp", NULL, CK_ParagraphUp},
++    {"ParagraphDown", NULL, CK_ParagraphDown},
++    {"EditFile", NULL, CK_EditFile},
++    {"MarkWord", NULL, CK_MarkWord},
++    {"MarkLine", NULL, CK_MarkLine},
++    {"MarkAll", NULL, CK_MarkAll},
++    {"Unmark", NULL, CK_Unmark},
++    {"MarkColumn", NULL, CK_MarkColumn},
++    {"BlockSave", NULL, CK_BlockSave},
++    {"InsertFile", NULL, CK_InsertFile},
++    {"InsertOverwrite", NULL, CK_InsertOverwrite},
++    {"Date", NULL, CK_Date},
++    {"DeleteLine", NULL, CK_DeleteLine},
++    {"DeleteToHome", NULL, CK_DeleteToHome},
++    {"DeleteToEnd", NULL, CK_DeleteToEnd},
++    {"EditMail", NULL, CK_Mail},
++    {"ParagraphFormat", NULL, CK_ParagraphFormat},
++    {"MatchBracket", NULL, CK_MatchBracket},
++    {"ExternalCommand", NULL, CK_ExternalCommand},
++    {"MacroStartRecord", NULL, CK_MacroStartRecord},
++    {"MacroStopRecord", NULL, CK_MacroStopRecord},
++    {"MacroStartStopRecord", NULL, CK_MacroStartStopRecord},
++    {"MacroDelete", NULL, CK_MacroDelete},
++    {"RepeatStartStopRecord", NULL, CK_RepeatStartStopRecord},
++    {"BookmarkFlush", NULL, CK_BookmarkFlush},
++    {"BookmarkNext", NULL, CK_BookmarkNext},
++    {"BookmarkPrev", NULL, CK_BookmarkPrev},
++    {"MarkPageUp", NULL, CK_MarkPageUp},
++    {"MarkPageDown", NULL, CK_MarkPageDown},
++    {"MarkToFileBegin", NULL, CK_MarkToFileBegin},
++    {"MarkToFileEnd", NULL, CK_MarkToFileEnd},
++    {"MarkToPageBegin", NULL, CK_MarkToPageBegin},
++    {"MarkToPageEnd", NULL, CK_MarkToPageEnd},
++    {"MarkScrollUp", NULL, CK_MarkScrollUp},
++    {"MarkScrollDown", NULL, CK_MarkScrollDown},
++    {"MarkParagraphUp", NULL, CK_MarkParagraphUp},
++    {"MarkParagraphDown", NULL, CK_MarkParagraphDown},
++    {"MarkColumnPageUp", NULL, CK_MarkColumnPageUp},
++    {"MarkColumnPageDown", NULL, CK_MarkColumnPageDown},
++    {"MarkColumnLeft", NULL, CK_MarkColumnLeft},
++    {"MarkColumnRight", NULL, CK_MarkColumnRight},
++    {"MarkColumnUp", NULL, CK_MarkColumnUp},
++    {"MarkColumnDown", NULL, CK_MarkColumnDown},
++    {"MarkColumnScrollUp", NULL, CK_MarkColumnScrollUp},
++    {"MarkColumnScrollDown", NULL, CK_MarkColumnScrollDown},
++    {"MarkColumnParagraphUp", NULL, CK_MarkColumnParagraphUp},
++    {"MarkColumnParagraphDown", NULL, CK_MarkColumnParagraphDown},
++    {"BlockShiftLeft", NULL, CK_BlockShiftLeft},
++    {"BlockShiftRight", NULL, CK_BlockShiftRight},
++    {"InsertLiteral", NULL, CK_InsertLiteral},
++    {"ShowTabTws", NULL, CK_ShowTabTws},
++    {"SyntaxOnOff", NULL, CK_SyntaxOnOff},
++    {"SyntaxChoose", NULL, CK_SyntaxChoose},
++    {"ShowMargin", NULL, CK_ShowMargin},
++    {"OptionsSaveMode", NULL, CK_OptionsSaveMode},
++    {"About", NULL, CK_About},
+     /* An action to run external script from macro */
+-    {"ExecuteScript", CK_PipeBlock (0)},
++    {"ExecuteScript", NULL, CK_PipeBlock (0)},
+ #endif /* USE_INTERNAL_EDIT */
+ 
+     /* viewer */
+-    {"WrapMode", CK_WrapMode},
+-    {"HexEditMode", CK_HexEditMode},
+-    {"HexMode", CK_HexMode},
+-    {"MagicMode", CK_MagicMode},
+-    {"NroffMode", CK_NroffMode},
+-    {"BookmarkGoto", CK_BookmarkGoto},
+-    {"Ruler", CK_Ruler},
++    {"WrapMode", NULL, CK_WrapMode},
++    {"HexEditMode", NULL, CK_HexEditMode},
++    {"HexMode", NULL, CK_HexMode},
++    {"MagicMode", NULL, CK_MagicMode},
++    {"NroffMode", NULL, CK_NroffMode},
++    {"BookmarkGoto", NULL, CK_BookmarkGoto},
++    {"Ruler", NULL, CK_Ruler},
+ 
+ #ifdef USE_DIFF_VIEW
+     /* diff viewer */
+-    {"ShowSymbols", CK_ShowSymbols},
+-    {"SplitFull", CK_SplitFull},
+-    {"SplitEqual", CK_SplitEqual},
+-    {"SplitMore", CK_SplitMore},
+-    {"SplitLess", CK_SplitLess},
+-    {"Tab2", CK_Tab2},
+-    {"Tab3", CK_Tab3},
+-    {"Tab4", CK_Tab4},
+-    {"Tab8", CK_Tab8},
+-    {"HunkNext", CK_HunkNext},
+-    {"HunkPrev", CK_HunkPrev},
+-    {"EditOther", CK_EditOther},
+-    {"Merge", CK_Merge},
++    {"ShowSymbols", NULL, CK_ShowSymbols},
++    {"SplitFull", NULL, CK_SplitFull},
++    {"SplitEqual", NULL, CK_SplitEqual},
++    {"SplitMore", NULL, CK_SplitMore},
++    {"SplitLess", NULL, CK_SplitLess},
++    {"Tab2", NULL, CK_Tab2},
++    {"Tab3", NULL, CK_Tab3},
++    {"Tab4", NULL, CK_Tab4},
++    {"Tab8", NULL, CK_Tab8},
++    {"HunkNext", NULL, CK_HunkNext},
++    {"HunkPrev", NULL, CK_HunkPrev},
++    {"EditOther", NULL, CK_EditOther},
++    {"Merge", NULL, CK_Merge},
+ #endif /* USE_DIFF_VIEW */
+ 
+-    {NULL, CK_IgnoreKey}
++    {NULL, NULL, CK_IgnoreKey}
+ };
+ 
+ /* *INDENT-OFF* */
+@@ -346,10 +346,15 @@
+ static int
+ name_keymap_comparator (const void *p1, const void *p2)
+ {
+-    const name_keymap_t *m1 = (const name_keymap_t *) p1;
+-    const name_keymap_t *m2 = (const name_keymap_t *) p2;
++    name_keymap_t *m1 = (name_keymap_t *) p1;
++    name_keymap_t *m2 = (name_keymap_t *) p2;
+ 
+-    return str_casecmp (m1->name, m2->name);
++    if (m1->casefolded_normalized_name == NULL)
++        m1->casefolded_normalized_name = str_create_search_needle (m1->name, FALSE);
++    if (m2->casefolded_normalized_name == NULL)
++        m2->casefolded_normalized_name = str_create_search_needle (m2->name, FALSE);
++
++    return strcmp (m1->casefolded_normalized_name, m2->casefolded_normalized_name);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -403,7 +408,7 @@
+ unsigned long
+ keybind_lookup_action (const char *name)
+ {
+-    const name_keymap_t key = { name, 0 };
++    const name_keymap_t key = { name, NULL, 0 };
+     name_keymap_t *res;
+ 
+     sort_command_names ();
+@@ -411,6 +416,9 @@
+     res = bsearch (&key, command_names, num_command_names,
+                    sizeof (command_names[0]), name_keymap_comparator);
+ 
++    if (key.casefolded_normalized_name != NULL)
++        str_release_search_needle (key.casefolded_normalized_name, FALSE);
++
+     return (res != NULL) ? res->val : CK_IgnoreKey;
+ }
+ 
+diff -Naur mc-4.8.0/lib/keybind.h mc-4.8.0-fasterStartup/lib/keybind.h
+--- mc-4.8.0/lib/keybind.h	2011-10-17 11:33:45.000000000 +0200
++++ mc-4.8.0-fasterStartup/lib/keybind.h	2011-10-21 12:08:02.401566638 +0200
+@@ -317,6 +317,7 @@
+ typedef struct name_keymap_t
+ {
+     const char *name;
++    char *casefolded_normalized_name;	/* initially NULL */
+     unsigned long val;
+ } name_keymap_t;
+ 
+diff -Naur mc-4.8.0/lib/strutil/strutilutf8.c mc-4.8.0-fasterStartup/lib/strutil/strutilutf8.c
+--- mc-4.8.0/lib/strutil/strutilutf8.c	2011-10-18 13:39:19.000000000 +0200
++++ mc-4.8.0-fasterStartup/lib/strutil/strutilutf8.c	2011-10-21 12:09:29.146658030 +0200
+@@ -1025,7 +1025,7 @@
+ static char *
+ str_utf8_casefold_normalize (const char *text)
+ {
+-    GString *fixed = g_string_new ("");
++    GString *fixed = NULL;
+     char *tmp, *fold;
+     char *result;
+     const char *start;
+@@ -1034,6 +1034,8 @@
+     start = text;
+     while (!g_utf8_validate (start, -1, &end) && start[0] != '\0')
+     {
++        if (fixed == NULL)
++            fixed = g_string_new ("");
+         if (start != end)
+         {
+             fold = g_utf8_casefold (start, end - start);
+@@ -1064,7 +1066,8 @@
+         }
+         result = g_strdup (fixed->str);
+     }
+-    g_string_free (fixed, TRUE);
++    if (fixed != NULL)
++        g_string_free (fixed, TRUE);
+ 
+     return result;
+ }

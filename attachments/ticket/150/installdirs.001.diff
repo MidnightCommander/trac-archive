@@ -1,0 +1,2345 @@
+diff --git a/ChangeLog b/ChangeLog
+index 291791f..810ccdf 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,12 @@
++
++2009-01-05  Enrico Weigelt <weigelt@metux.de>
++	* core: most config/data pathenames are now hold in global
++	        vars, initiallized in main.c
++	* vfs/extfs.c: config file now taken from $sysconfdir/mc
++	* vfs/sfs.c: config file now taken from $sysconfdir/mc
++	* core: mc.ext, mc.menu, mc.lib now taken from $sysconfdir/mc
++	* cedit: cedit.menu now taken from $sysconfdir/mc
++
+ 2008-12-18  Roland Illig  <roland.illig@gmx.de>
+ 
+ 	* doc/mcedit.1: Documented the newly added filename:lineno
+diff --git a/doc/es/mc.1.in b/doc/es/mc.1.in
+index 2a27306..839188a 100644
+--- a/doc/es/mc.1.in
++++ b/doc/es/mc.1.in
+@@ -1300,7 +1300,7 @@ Abre el archivo
+ .I ~/.mc/bindings
+ en nuestro editor. El administrador puede optar por editar, en su lugar,
+ el archivo de extensiones del sistema
+-.IR @prefix@/share/mc/mc.ext .
++.IR @sysconfdir@/mc/mc.ext .
+ El formato del archivo (formato nuevo cambiado desde la versiÛn 3.0)
+ es como sigue:
+ .PP
+@@ -1372,7 +1372,7 @@ el archivo .mc.menu del directorio actual, pero s
+ usuario o del superusuario y no es modificable por todos.
+ Si no se encuentra allÌ el archivo, se intenta de la misma manera con ~/.mc/menu,
+ y si no, mc utiliza el men˙ por defecto para todo el sistema
+-@prefix@/share/mc/mc.menu.
++@sysconfdir@/mc/mc.menu.
+ .PP
+ El formato del men˙ de archivo es muy simple.  Todas las lÌneas, salvo
+ las que empiezan con espacio o tabulaciÛn, son consideradas entradas
+@@ -1870,7 +1870,7 @@ y puede ser impedida por alg
+ .SH "    Guardar ConfiguraciÛn"
+ Al arrancar Midnight Commander se carga la informaciÛn de inicio del
+ archivo ~/.mc/ini.  Si Èste no existe, se cargar· la informaciÛn del
+-archivo de configuraciÛn genÈrico del sistema, @prefix@/share/mc/mc.ini.
++archivo de configuraciÛn genÈrico del sistema, @sysconfdir@/mc/mc.ini.
+ Si el archivo de configuraciÛn genÈrico del sistema no existe, MC utiliza
+ la configuraciÛn por defecto.
+ .PP
+@@ -3190,7 +3190,7 @@ seleccionado en cada momento.
+ Midnight Commander permite hacer ajustes a la base de datos de terminales
+ del sistema sin necesidad de privilegios de superusuario. El programa
+ busca definiciones de teclas en el archivo de inicializaciÛn del sistema
+-.B @prefix@/share/mc/mc.lib
++.B @sysconfdir@/mc/mc.lib
+ o en el del usuario
+ .BR ~/.mc/ini ,
+ en la secciÛn "terminal:nuestro-terminal" y si no en "terminal:general".
+@@ -3244,7 +3244,7 @@ entorno MC_DATADIR, que de estar definida se emplear
+ .IP
+ Archivo de ayuda.
+ .PP
+-.I @prefix@/share/mc/mc.ext
++.I @sysconfdir@/mc/mc.ext
+ .IP
+ Archivo de extensiones por defecto del sistema.
+ .PP
+@@ -3253,12 +3253,12 @@ Archivo de extensiones por defecto del sistema.
+ Archivo de usuario de extensiones y configuraciÛn de visor y editor. Si
+ est· presente prevalece sobre el contenido de los archivos del sistema.
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ Archivo de configuraciÛn del sistema para Midnight Commander, sÛlo si
+ el usuario no dispone de su propio ~/.mc/ini.
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ Opciones globales de Midnight Commander. Se aplican siempre a todos los
+ usuarios, tengan ~/.mc/ini o no. Actualmente sÛlo se emplea para los
+@@ -3277,7 +3277,7 @@ configuraci
+ Este archivo contiene los mensajes cortos de ayuda mostrados por el
+ programa.
+ .PP
+-.I @prefix@/share/mc/mc.menu
++.I @sysconfdir@/mc/mc.menu
+ .IP
+ Este archivo contiene el men˙ de aplicaciones por defecto para el sistema.
+ .PP
+diff --git a/doc/hu/mc.1.in b/doc/hu/mc.1.in
+index 963c4f2..63250b6 100644
+--- a/doc/hu/mc.1.in
++++ b/doc/hu/mc.1.in
+@@ -1357,8 +1357,8 @@ nem tal
+ .I ~/.mc/menu
+ keresÈse a kˆvetkezı lÈpÈs, egyÈbkÈnt pedig az mc az alapÈrtelmezett
+ rendszerszint˚ men¸t haszn·lja, pl.:
+-.IR @prefix@/share/mc/mc.menu ,
+-esetleg /etc/mc/mc.menu.
++.IR @sysconfdir@/mc/mc.menu ,
++esetleg @sysconfdir@/mc/mc.menu.
+ .PP
+ A men¸ f·jl form·tuma nagyon egyszer˚. A sorok, amelyek b·rmivel
+ kezdıdhetnek, de a space, vagy a tab megk¸lˆnbˆztetett men¸bejegyzÈsek
+@@ -1865,7 +1865,7 @@ beolvasni az
+ .I ~/.mc/ini
+ f·jlbÛl. Ha ez a f·jl nem lÈtezik, ezeket az inform·ciÛkat a
+ rendszerszint˚ konfigur·ciÛs f·jlbÛl fogja beolvasni, amelyek a
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ f·jlban tal·lhatÛak meg. Ha ez a rendszerszint˚ konfigur·ciÛs f·jl sem
+ lÈtezik, a MC az alapÈrtelmezett be·llÌt·sokat haszn·lja.
+ .PP
+@@ -3093,7 +3093,7 @@ fog 
+ .IP
+ A program s˙gÛ f·jlja.
+ .PP
+-.I @prefix@/share/mc/mc.ext
++.I @sysconfdir@/mc/mc.ext
+ .IP
+ Az alapÈrtelmezett rendszerszint˚ kiterjesztÈs f·jl.
+ .PP
+@@ -3103,12 +3103,12 @@ A felhaszn
+ be·llÌt·sok. Ezek fel¸lbÌr·lj·k a rendszerszint˚ f·jl bejegyzÈseit, ha
+ van ilyen.
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ Az alapÈrtelmezett rendszerszint˚ Midnight Commander be·llÌt·s, amelyet
+ csak akkor haszn·l, ha a felhaszn·lÛnak nincs saj·t ~/.mc/ini f·jlja.
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ A Midnight Commander glob·lis be·llÌt·sai. Az ebben a f·jlban elvÈgzett
+ be·llÌt·sok minden felhaszn·lÛ Midnight Commander-jÈre vonatkoznak, ez
+@@ -3125,7 +3125,7 @@ helyett.
+ Ez a f·jl tartalmazza a program ·ltal megjelenÌtett ˙tmutatt·sokat
+ (cookie-kat).
+ .PP
+-.I @prefix@/share/mc/mc.menu
++.I @sysconfdir@/mc/mc.menu
+ .IP
+ Ez a f·jl azonos a rendszerszint˚ alkalmaz·s men¸vel.
+ .PP
+diff --git a/doc/it/mc.1.in b/doc/it/mc.1.in
+index af61b19..e89c510 100644
+--- a/doc/it/mc.1.in
++++ b/doc/it/mc.1.in
+@@ -1365,7 +1365,7 @@ utilizzato, se esiste, il file .mc.menu dalla directory corrente,
+ ma solo se Ë di propriet‡ dell'utente o di root e se non Ë scrivibile
+ a tutti. Se tale file non viene trovato, mc alla stessa maniera 
+ prova con ~/.mc/menu altrimenti usa il menu di sistema
+-@prefix@/share/mc/mc.menu.
++@sysconfdir@/mc/mc.menu.
+ .PP
+ Il formato del file menu Ë molto semplice. Le righe che cominciano
+ con qualsiasi cosa che non sia uno spazio o una tabulazione sono
+@@ -1899,7 +1899,7 @@ funzionare con alcuni firewall.
+ Alla partenza il Midnight Commander prova a caricare le informazioni di
+ inizializzazione dal file ~/.mc/ini. Se questo file non esiste, 
+ caricher‡ le informazioni dal file di configurazione di sistema 
+-posizionato in @prefix@/share/mc/mc.ini. Se il file di configurazione di 
++posizionato in @sysconfdir@/mc/mc.ini. Se il file di configurazione di 
+ sistema non esiste, MC user‡ le impostazioni predefinite.
+ .PP
+ Il comando
+@@ -3117,7 +3117,7 @@ passer
+ .IP
+ Il file di aiuto per il programma.
+ .PP
+-.I @prefix@/share/mc/mc.ext
++.I @sysconfdir@/mc/mc.ext
+ .IP
+ Il file delle estensioni di sistema predefinito.
+ .PP
+@@ -3127,12 +3127,12 @@ Le estensioni dell'utente, la configurazione del visualizzatore e
+ dell'editor di file. Se presenti, questi file si sovrappongono ai file di 
+ sistema.
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ La configurazione di sistema predefinita per il Midnight Commander, usata solo
+ se l'utente non possiede il proprio file ~/.mc/ini.
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ Le impostazioni globali per il Midnight Commander. La modifica di questo
+ file influisce su tutti gli utenti, che abbiano o no il file ~/.mc/ini .
+@@ -3151,7 +3151,7 @@ viene caricata da qui invece che dal file di sistema.
+ .IP
+ Questo file contiene i suggerimenti (dritte) mostrate dal programma.
+ .PP
+-.I @prefix@/share/mc/mc.menu
++.I @sysconfdir@/mc/mc.menu
+ .IP
+ Questo file contiene il menu di sistema per le applicazioni.
+ .PP
+diff --git a/doc/mc.1.in b/doc/mc.1.in
+index e29d169..a8c1d73 100644
+--- a/doc/mc.1.in
++++ b/doc/mc.1.in
+@@ -1396,7 +1396,7 @@ file .mc.menu from the current directory is used if it exists,
+ but only if it is owned by user or root and is not world-writable.
+ If no such file found, ~/.mc/menu is tried in the same way,
+ and otherwise mc uses the default system-wide menu
+-@prefix@/share/mc/mc.menu.
++@sysconfdir@/mc/mc.menu.
+ .PP
+ The format of the menu file is very simple. Lines that start with
+ anything but space or tab are considered entries for the menu (in
+@@ -1923,7 +1923,7 @@ firewalls.
+ At startup the Midnight Commander will try to load initialization
+ information from the ~/.mc/ini file. If this file doesn't exist, it will
+ load the information from the system-wide configuration file, located in
+-@prefix@/share/mc/mc.ini. If the system-wide configuration file doesn't
++@sysconfdir@/mc/mc.ini. If the system-wide configuration file doesn't
+ exist, MC uses the default settings.
+ .PP
+ The
+@@ -3251,7 +3251,7 @@ instead of @prefix@/share/mc in the paths below.
+ .IP
+ The help file for the program.
+ .PP
+-.I @prefix@/share/mc/mc.ext
++.I @sysconfdir@/mc/mc.ext
+ .IP
+ The default system-wide extensions file.
+ .PP
+@@ -3260,12 +3260,12 @@ The default system-wide extensions file.
+ User's own extension, view configuration and edit configuration
+ file.  They override the contents of the system wide files if present.
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ The default system-wide setup for the Midnight Commander, used only if
+ the user doesn't have his own ~/.mc/ini file.
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ Global settings for the Midnight Commander.  Settings in this file
+ affect all users, whether they have ~/.mc/ini or not.  Currently, only
+@@ -3283,7 +3283,7 @@ from here instead of the system-wide startup file.
+ .IP
+ This file contains the hints displayed by the program.
+ .PP
+-.I @prefix@/share/mc/mc.menu
++.I @sysconfdir@/mc/mc.menu
+ .IP
+ This file contains the default system-wide applications menu.
+ .PP
+diff --git a/doc/mcedit.1.in b/doc/mcedit.1.in
+index 691d86e..9490c4f 100644
+--- a/doc/mcedit.1.in
++++ b/doc/mcedit.1.in
+@@ -467,12 +467,12 @@ clean.
+ .IP
+ The help file for the program.
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ The default system-wide setup for GNU Midnight Commander, used only if
+ the user's own ~/.mc/ini file is missing.
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ Global settings for the Midnight Commander.  Settings in this file
+ affect all users, whether they have ~/.mc/ini or not.
+diff --git a/doc/mcview.1.in b/doc/mcview.1.in
+index 327dbf1..f9257b1 100644
+--- a/doc/mcview.1.in
++++ b/doc/mcview.1.in
+@@ -65,12 +65,12 @@ selected=black,green"
+ .IP
+ The help file for the program.
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ The default system-wide setup for GNU Midnight Commander, used only if
+ the user's own ~/.mc/ini file is missing.
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ Global settings for the Midnight Commander.  Settings in this file
+ affect all users, whether they have ~/.mc/ini or not.
+diff --git a/doc/pl/mc.1.in b/doc/pl/mc.1.in
+index 910e661..4658763 100644
+--- a/doc/pl/mc.1.in
++++ b/doc/pl/mc.1.in
+@@ -1152,7 +1152,7 @@ przy u
+ tylko wtedy kiedy jest on w posiadaniu uøytkownika lub roota i mamy do niego
+ prawa zapisu. Je∂li takiego nie ma prÛbuje siÍ z plikiem ~/.mc/menu z tymi
+ samymi za≥oøeniami, je∂li jego teø nie ma - uøywa siÍ standardowego pliku
+-systemowego, ktÛry znajduje siÍ w @prefix@/share/mc/mc.menu.
++systemowego, ktÛry znajduje siÍ w @sysconfdir@/mc/mc.menu.
+ .PP
+ Format pliku z menu uøytkownika jest bardzo prosty. Linie zaczynaj±ce siÍ
+ od czegokolwiek innego niø spacja lub tabulacja, s± traktowane jako
+@@ -1590,7 +1590,7 @@ System plik
+ .SH "    Zapisz ustawienia (Save Setup)"
+ Na starcie Midnight Commander bÍdzie prÛbowa≥ odczytaÊ opcje startowe
+ z pliku ~/.mc/ini. Je∂li on nie istnieje, odczyta on konfiguracje z
+-ogÛlnodostÍpnego pliku @prefix@/share/mc/mc.ini. Je∂li on teø nie istnieje MC
++ogÛlnodostÍpnego pliku @sysconfdir@/mc/mc.ini. Je∂li on teø nie istnieje MC
+ uøyje swoich domy∂lnych ustawieÒ.
+ .PP
+ Komenda
+@@ -2793,7 +2793,7 @@ je
+ .IP
+ Plik pomocy dla programu.
+ .PP
+-@prefix@/share/mc/mc.ext
++@sysconfdir@/mc/mc.ext
+ .IP
+ Standardowy plik rozszerzeÒ plikÛw.
+ .PP
+@@ -2802,12 +2802,12 @@ Standardowy plik rozszerze
+ W≥asny plik uøytkownika, konfiguruje podgl±d i edycje plikÛw. Ma wyøszy
+ priorytet niø plik systemowy.
+ .PP
+-@prefix@/share/mc/mc.ini
++@sysconfdir@/mc/mc.ini
+ .IP
+ Standardowy plik setupu do Midnight Commandera, uøywany tylko wÛwczas,
+ kiedy uøytkownik nie ma swojego w≥asnego pliku ~/.mc/ini.
+ .PP
+-@prefix@/share/mc/mc.lib
++@sysconfdir@/mc/mc.lib
+ .IP
+ Globalne ustawienia Midnight Commandera. Ustawienia w tym pliku s±
+ uwzglÍdniane przez wszystkie sesje Midnight Commandera, uøyteczne do
+@@ -2822,7 +2822,7 @@ zamiast pliku globalnego.
+ .IP
+ Plik zawieraj±cy podpowiedzi (hints) wy∂wietlane przez program.
+ .PP
+-@prefix@/share/mc/mc.menu
++@sysconfdir@/mc/mc.menu
+ .IP
+ Ten plik zawiera informacje o ogÛlnosystemowych aplikacjach w menu.
+ .PP
+diff --git a/doc/ru/mc.1.in b/doc/ru/mc.1.in
+index a74d61f..3909491 100644
+--- a/doc/ru/mc.1.in
++++ b/doc/ru/mc.1.in
+@@ -1532,7 +1532,7 @@ View 
+ œ¬“¡⁄œÕ …›≈‘”— ∆¡ Ã
+ .B ~/.mc/menu
+ …, ◊ –œ”Ã≈ƒŒ¿¿ œﬁ≈“≈ƒÿ, mc …”–œÃÿ⁄’≈‘ œ¬›≈”…”‘≈ÕŒœ≈ Õ≈Œ¿
+-.BR @prefix@/share/mc/mc.menu .
++.BR @sysconfdir@/mc/mc.menu .
+ .PP
+ Êœ“Õ¡‘ ◊”≈» ‘“≈» ∆¡ Ãœ◊ Õ≈Œ¿ œƒ…Œ¡Àœ◊ … œﬁ≈Œÿ –“œ”‘. Û‘“œÀ… ÀœÕÕ≈Œ‘¡“…≈◊
+ Œ¡ﬁ…Œ¡¿‘”— ” '#'. ‰œ–œÃŒ…‘≈ÃÿŒŸ≈ ÀœÕÕ≈Œ‘¡“…… ƒœÃ÷ŒŸ Œ¡ﬁ…Œ¡‘ÿ”— ” '#',
+@@ -3637,7 +3637,7 @@ insert=\\e[Op
+ .IP
+ Ê¡ Ã –œƒ”À¡⁄À… ƒÃ— –“œ«“¡ÕÕŸ.
+ .PP
+-.I @prefix@/share/mc/mc.ext
++.I @sysconfdir@/mc/mc.ext
+ .IP
+ È”–œÃÿ⁄’≈ÕŸ  –œ ’ÕœÃﬁ¡Œ…¿ œ¬›≈”…”‘≈ÕŒŸ  ∆¡ Ã “¡”€…“≈Œ… .
+ .PP
+@@ -3646,14 +3646,14 @@ insert=\\e[Op
+ Ê¡ Ã “¡”€…“≈Œ…  –œÃÿ⁄œ◊¡‘≈Ã—. Â”Ã… ‹‘œ‘ ∆¡ Ã ”’›≈”‘◊’≈‘, œŒ …”–œÃÿ⁄’≈‘”—
+ ◊Õ≈”‘œ œ¬›≈”…”‘≈ÕŒœ«œ ∆¡ Ã¡ “¡”€…“≈Œ… .
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ È”–œÃÿ⁄’≈ÕŸ  –œ ’ÕœÃﬁ¡Œ…¿ œ¬›≈”…”‘≈ÕŒŸ  ∆¡ Ã ’”‘¡Œœ◊œÀ ƒÃ— Midnight
+ Commander; …”–œÃÿ⁄’≈‘”— ‘œÃÿÀœ ◊ ‘≈» ”Ã’ﬁ¡—», Àœ«ƒ¡ –œÃÿ⁄œ◊¡‘≈Ãÿ Œ≈
+ …Õ≈≈‘ ”◊œ≈«œ ∆¡ Ã¡
+ .B ~/.mc/ini
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ ÁÃœ¬¡ÃÿŒŸ≈ ’”‘¡Œœ◊À… ƒÃ— Midnight Commander.  ı”‘¡Œœ◊À… …⁄ ‹‘œ«œ ∆¡ Ã¡
+ ƒ≈ ”‘◊…‘≈ÃÿŒŸ ƒÃ— ◊”≈» –œÃÿ⁄œ◊¡‘≈Ã≈ , Œ≈⁄¡◊…”…Õœ œ‘ ‘œ«œ, …Õ≈¿‘ Ã… œŒ…
+@@ -3674,7 +3674,7 @@ Commander; 
+ ¸‘œ‘ ∆¡ Ã ”œƒ≈“÷…‘ –œƒ”À¡⁄À… (hints …Ã… cookies), √…ÀÃ…ﬁ≈”À…
+ œ‘œ¬“¡÷¡≈ÕŸ≈ –“œ«“¡ÕÕœ .
+ .PP
+-.I @prefix@/share/mc/mc.menu
++.I @sysconfdir@/mc/mc.menu
+ .IP
+ ¸‘œ‘ ∆¡ Ã ”œƒ≈“÷…‘ œ¬›≈”…”‘≈ÕŒœ≈ Õ≈Œ¿ –“…Ãœ÷≈Œ… .
+ .PP
+diff --git a/doc/sr/mc.1.in b/doc/sr/mc.1.in
+index 84c1aa2..0f5617a 100644
+--- a/doc/sr/mc.1.in
++++ b/doc/sr/mc.1.in
+@@ -1358,7 +1358,7 @@ awk '$9 ~! /incoming/ { print $9 }' < /usr/adm/xferlog
+ ‘ﬁ◊“ﬁ˘’› „ﬂÿ· „ ˙„ ﬁ‘ ·‚‡–›’ ‘‡„”ÿÂ (·“’‚–). ∞⁄ﬁ ‚–⁄“– ‘–‚ﬁ‚’⁄– ›ÿ¯’
+ ›–Ú’›–, ›– ÿ·‚ÿ ›–Áÿ› ·’ ﬂﬁ⁄„Ë–“– ·– ‘–‚ﬁ‚’⁄ﬁ‹ ~/.mc/menu, – ÿ›–Á’ øΩ
+ ⁄ﬁ‡ÿ·‚ÿ ﬂﬁ‘‡–◊„‹’“–›„ ‘–‚ﬁ‚’⁄„ ‹’›ÿ¯– ◊– Ê’ﬁ ·ÿ·‚’‹
+-@prefix@/share/mc/mc.menu.
++@sysconfdir@/mc/mc.menu.
+ .PP
+ ƒﬁ‡‹–‚ ‘–‚ﬁ‚’⁄’ ‹’›ÿ¯– ¯’ “’ﬁ‹– ¯’‘›ﬁ·‚–“–›. ¿’‘ﬁ“ÿ ⁄ﬁ¯ÿ ﬂﬁÁÿ˙„ —ÿ€ﬁ
+ Áÿ‹ ﬁ·ÿ‹ ‡–◊‹–⁄– ÿ€ÿ ‚–—„€–‚ﬁ‡– ·’ „◊ÿ‹–¯„ ◊– ·‚–“⁄’ ‹’›ÿ¯– (‘– —ÿ ·’
+@@ -3247,7 +3247,7 @@ MC_DATADIR. 
+ .IP
+ ¥–‚ﬁ‚’⁄– ﬂﬁ‹ﬁ˚ÿ ◊– ﬂ‡ﬁ”‡–‹.
+ .PP
+-.I @prefix@/share/mc/mc.ext
++.I @sysconfdir@/mc/mc.ext
+ .IP
+ øﬁ‘‡–◊„‹’“–›– ·ÿ·‚’‹·⁄– ‘–‚ﬁ‚’⁄– “‡·‚–.
+ .PP
+@@ -3256,12 +3256,12 @@ MC_DATADIR. 
+ ∫ﬁ‡ÿ·›ÿÁ⁄’ ‘–‚ﬁ‚’⁄’ “‡·‚–, ﬂﬁ‘’Ë–“–˙– ﬂ‡’”€’‘–Á– ÿ „‡’Úÿ“–Á–. √⁄ﬁ€ÿ⁄ﬁ
+ ﬂﬁ·‚ﬁ¯’, ﬁ›’ ◊–ﬁ—ÿ€–◊’ ·ÿ·‚’‹·⁄’ ‘–‚ﬁ‚’⁄’.
+ .PP
+-.I @prefix@/share/mc/mc.ini
++.I @sysconfdir@/mc/mc.ini
+ .IP
+ øﬁ‘‡–◊„‹’“–›– ·ÿ·‚’‹·⁄– ﬂﬁ‘’Ë–“–˙– øﬁ›ﬁ˚›ﬁ” ›–‡’‘›ÿ⁄–; ⁄ﬁ‡ÿ·‚’ ·’ ·–‹ﬁ
+ „ ·€„Á–¯„ ‘– ⁄ﬁ‡ÿ·›ÿ⁄ ›’‹– ·ﬁﬂ·‚“’›„ ‘–‚ﬁ‚’⁄„ ~/.mc/ini.
+ .PP
+-.I @prefix@/share/mc/mc.lib
++.I @sysconfdir@/mc/mc.lib
+ .IP
+ ≥€ﬁ—–€›’ ﬂﬁ·‚–“⁄’ øﬁ›ﬁ˚›ﬁ” ›–‡’‘›ÿ⁄–. øﬁ·‚–“⁄’ ÿ◊ ﬁ“’ ‘–‚ﬁ‚’⁄’ ·’
+ ﬁ‘›ﬁ·’ ›– ·“’ ⁄ﬁ‡ÿ·›ÿ⁄’ —’◊ ﬁ—◊ÿ‡– ›– ‚ﬁ ‘– €ÿ ﬁ›ÿ ÿ‹–¯„ ·“ﬁ¯’
+@@ -3280,7 +3280,7 @@ MC_DATADIR. 
+ .IP
+ æ“– ‘–‚ﬁ‚’⁄– ·–‘‡÷ÿ ·–“’‚’ (⁄ﬁ€–Áÿ˚’) ⁄ﬁ¯ÿ ·’ ﬂ‡ÿ⁄–◊„¯„ „ ﬂ‡ﬁ”‡–‹„.
+ .PP
+-.I @prefix@/share/mc/mc.menu
++.I @sysconfdir@/mc/mc.menu
+ .IP
+ æ“– ‘–‚ﬁ‚’⁄– ·–‘‡÷ÿ ﬂﬁ‘‡–◊„‹’“–›ÿ ‹’›ÿ ﬂ‡ﬁ”‡–‹– ◊– Ê’ﬁ ·ÿ·‚’‹.
+ .PP
+diff --git a/edit/edit.h b/edit/edit.h
+index d7725b6..5b4fdd4 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -300,7 +300,6 @@ extern int column_highlighting;
+ 
+ /* File names */
+ #define EDIT_DIR           ".mc" PATH_SEP_STR "cedit"
+-#define SYNTAX_FILE        EDIT_DIR PATH_SEP_STR "Syntax"
+ #define CLIP_FILE          EDIT_DIR PATH_SEP_STR "cooledit.clip"
+ #define MACRO_FILE         EDIT_DIR PATH_SEP_STR "cooledit.macros"
+ #define BLOCK_FILE         EDIT_DIR PATH_SEP_STR "cooledit.block"
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 01262f1..4838230 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -50,13 +50,13 @@
+ #include "../src/tty.h"		/* LINES */
+ #include "../src/widget.h"	/* listbox_new() */
+ #include "../src/layout.h"	/* clr_scr() */
+-#include "../src/main.h"	/* mc_home */
+ #include "../src/help.h"	/* interactive_display() */
+ #include "../src/key.h"		/* XCTRL */
+ #include "../src/dialog.h"	/* do_refresh() */
+ #include "../src/wtools.h"	/* message() */
+ #include "../src/charsets.h"
+ #include "../src/selcodepage.h"
++#include "../src/mc_conf.h"	/* MC global configuration */
+ 
+ #define edit_get_load_file(f,h) input_expand_dialog (h, _(" Enter file name: "), f)
+ #define edit_get_save_file(f,h) input_expand_dialog (h, _(" Enter file name: "), f)
+@@ -2517,7 +2517,7 @@ edit_block_process_cmd (WEdit *edit, const char *shell_cmd, int block)
+     const char *b = NULL;
+     char *quoted_name = NULL;
+ 
+-    o = catstrs (mc_home, shell_cmd, (char *) NULL);	/* original source script */
++    o = catstrs (mc_global_datadir, shell_cmd, (char *) NULL);	/* original source script */
+     h = catstrs (home_dir, PATH_SEP_STR EDIT_DIR, shell_cmd, (char *) NULL);	/* home script */
+     b = catstrs (home_dir, PATH_SEP_STR BLOCK_FILE, (char *) NULL);	/* block file */
+ 
+diff --git a/edit/syntax.c b/edit/syntax.c
+index 23e8b6c..e5504e3 100644
+--- a/edit/syntax.c
++++ b/edit/syntax.c
+@@ -38,8 +38,8 @@
+ #include "edit.h"
+ #include "edit-widget.h"
+ #include "../src/color.h"	/* use_colors */
+-#include "../src/main.h"	/* mc_home */
+ #include "../src/wtools.h"	/* message() */
++#include "../src/mc_conf.h"	/* MC global configuration */
+ 
+ /* bytes */
+ #define SYNTAX_MARKER_DENSITY 512
+@@ -104,6 +104,8 @@ char *option_syntax_type = NULL;
+ 
+ #define syntax_g_free(x) do {g_free(x); (x)=0;} while (0)
+ 
++#define _syntaxfile(fn)		(_strcatdup(mc_global_syntaxdir, fn))
++
+ static gint
+ mc_defines_destroy (gpointer key, gpointer value, gpointer data)
+ {
+@@ -662,6 +664,14 @@ this_try_alloc_color_pair (const char *fg, const char *bg)
+ 
+ static char *error_file_name = 0;
+ 
++/* the the filename of last error occourence */
++static inline void _set_err_fn(const char* filename)
++{
++    if (error_file_name)
++	free(error_file_name);
++    error_file_name = g_strdup(filename);
++}
++
+ static FILE *open_include_file (const char *filename)
+ {
+     FILE *f;
+@@ -679,8 +689,8 @@ static FILE *open_include_file (const char *filename)
+ 	return f;
+ 
+     g_free (error_file_name);
+-    error_file_name = g_strconcat (mc_home, PATH_SEP_STR "syntax" PATH_SEP_STR,
+-				   filename, (char *) NULL);
++    error_file_name = _syntaxfile(filename);
++
+     return fopen (error_file_name, "r");
+ }
+ 
+@@ -1026,7 +1036,7 @@ edit_read_syntax_file (WEdit * edit, char ***pnames, const char *syntax_file,
+ 
+     f = fopen (syntax_file, "r");
+     if (!f){
+-	lib_file = concat_dir_and_file (mc_home, "syntax" PATH_SEP_STR "Syntax");
++	lib_file = _syntaxfile("Syntax");
+ 	f = fopen (lib_file, "r");
+ 	g_free (lib_file);
+ 	if (!f)
+@@ -1169,7 +1179,6 @@ void
+ edit_load_syntax (WEdit *edit, char ***pnames, const char *type)
+ {
+     int r;
+-    char *f = NULL;
+ 
+     if (option_auto_syntax)
+ 	type = NULL;
+@@ -1188,22 +1197,20 @@ edit_load_syntax (WEdit *edit, char ***pnames, const char *type)
+ 	if (!*edit->filename && !type)
+ 	    return;
+     }
+-    f = concat_dir_and_file (home_dir, SYNTAX_FILE);
+-    r = edit_read_syntax_file (edit, pnames, f, edit ? edit->filename : 0,
++    r = edit_read_syntax_file (edit, pnames, mc_user_syntaxfile, edit ? edit->filename : 0,
+ 			       get_first_editor_line (edit), type);
+     if (r == -1) {
+ 	edit_free_syntax_rules (edit);
+ 	message (D_ERROR, _(" Load syntax file "),
+-		 _(" Cannot open file %s \n %s "), f,
++		 _(" Cannot open file %s \n %s "), mc_user_syntaxfile,
+ 		 unix_error_string (errno));
+     } else if (r) {
+ 	edit_free_syntax_rules (edit);
+ 	message (D_ERROR, _(" Load syntax file "),
+ 		 _(" Error in file %s on line %d "),
+-		 error_file_name ? error_file_name : f, r);
++		 error_file_name ? error_file_name : mc_user_syntaxfile, r);
+ 	syntax_g_free (error_file_name);
+     } else {
+ 	/* succeeded */
+     }
+-    g_free (f);
+ }
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index 5f61432..1c5457b 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -1,4 +1,5 @@
+ suppbindir = $(pkgdatadir)/bin
++mcconfdir = $(sysconfdir)/mc
+ 
+ if CHARSET
+ LIBFILES_ADD = mc.charsets
+@@ -6,11 +7,9 @@ else
+ LIBFILES_ADD =
+ endif
+ 
+-LIBFILES_OUT = mc.ext
+ LIBFILES_CONST = mc.hint mc.hint.cs mc.hint.es mc.hint.hu mc.hint.it	\
+ 	mc.hint.nl mc.hint.pl mc.hint.ru mc.hint.sr mc.hint.uk		\
+-	mc.hint.zh mc.lib mc.menu mc.menu.sr cedit.menu edit.indent.rc	\
+-	edit.spell.rc
++	mc.hint.zh edit.indent.rc edit.spell.rc
+ 
+ noinst_DATA = README.xterm mcserv.init mcserv.pamd xterm.ad
+ 
+@@ -19,7 +18,8 @@ SCRIPTS_OUT = mc.csh mc.sh mc-wrapper.csh mc-wrapper.sh
+ 
+ suppbin_SCRIPTS = $(SCRIPTS_OUT)
+ 
+-pkgdata_DATA = $(LIBFILES_CONST) $(LIBFILES_ADD) $(LIBFILES_OUT)
++pkgdata_DATA = $(LIBFILES_CONST) $(LIBFILES_ADD)
++mcconf_DATA = mc.ext cedit.menu mc.menu mc.menu.sr mc.lib
+ 
+ CLEANFILES = $(SCRIPTS_OUT)
+ 
+diff --git a/mc.qpg.in b/mc.qpg.in
+index 24f8983..d75f9ad 100644
+--- a/mc.qpg.in
++++ b/mc.qpg.in
+@@ -32,7 +32,7 @@
+          <QPG:Add file="./lib/mc-wrapper.sh" permissions="0755" install="/opt/share/mc/bin/"/>
+          <QPG:Add file="./lib/mc.csh" permissions="0755" install="/opt/share/mc/bin/"/>
+          <QPG:Add file="./lib/mc.sh" permissions="0755" install="/opt/share/mc/bin/"/>
+-         <QPG:Add file="./lib/cedit.menu" permissions="0644" install="/opt/share/mc/"/>
++         <QPG:Add file="./lib/cedit.menu" permissions="0644" install="/etc/mc/"/>
+          <QPG:Add file="./lib/edit.indent.rc" permissions="0644" install="/opt/share/mc/"/>
+          <QPG:Add file="./lib/edit.spell.rc" permissions="0644" install="/opt/share/mc/"/>
+          <QPG:Add file="./vfs/extfs/README" permissions="0644" install="/opt/share/mc/extfs/"/>
+@@ -44,7 +44,7 @@
+          <QPG:Add file="./vfs/extfs/deba" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/debd" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/dpkg" permissions="0755" install="/opt/share/mc/extfs/"/>
+-         <QPG:Add file="./vfs/extfs/extfs.ini" permissions="0644" install="/opt/share/mc/extfs/"/>
++         <QPG:Add file="./vfs/extfs/extfs.ini" permissions="0644" install="/etc/mc/"/>
+          <QPG:Add file="./vfs/extfs/hp48" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/iso9660" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/lslR" permissions="0755" install="/opt/share/mc/extfs/"/>
+@@ -52,7 +52,7 @@
+          <QPG:Add file="./vfs/extfs/patchfs" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/rpm" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/rpms" permissions="0755" install="/opt/share/mc/extfs/"/>
+-         <QPG:Add file="./vfs/extfs/sfs.ini" permissions="0755" install="/opt/share/mc/extfs/"/>
++         <QPG:Add file="./vfs/extfs/sfs.ini" permissions="0755" install="/etc/mc/"/>
+          <QPG:Add file="./vfs/extfs/trpm" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/uar" permissions="0755" install="/opt/share/mc/extfs/"/>
+          <QPG:Add file="./vfs/extfs/uarj" permissions="0755" install="/opt/share/mc/extfs/"/>
+@@ -81,9 +81,9 @@
+          <QPG:Add file="./doc/pl/mc.hlp.pl" permissions="0644" install="/opt/share/mc/"/>
+          <QPG:Add file="./doc/ru/mc.hlp.ru" permissions="0644" install="/opt/share/mc/"/>
+          <QPG:Add file="./doc/sr/mc.hlp.sr" permissions="0644" install="/opt/share/mc/"/>
+-         <QPG:Add file="./lib/mc.lib" permissions="0644" install="/opt/share/mc/"/>
+-         <QPG:Add file="./lib/mc.menu" permissions="0644" install="/opt/share/mc/"/>
+-         <QPG:Add file="./lib/mc.menu.sr" permissions="0644" install="/opt/share/mc/"/>
++         <QPG:Add file="./lib/mc.lib" permissions="0644" install="/etc/mc/"/>
++         <QPG:Add file="./lib/mc.menu" permissions="0644" install="/etc/mc/"/>
++         <QPG:Add file="./lib/mc.menu.sr" permissions="0644" install="/etc/mc/"/>
+          <QPG:Add file="./syntax/Syntax" permissions="0644" install="/opt/share/mc/syntax/"/>
+          <QPG:Add file="./syntax/ada95.syntax" permissions="0644" install="/opt/share/mc/syntax/"/>
+          <QPG:Add file="./syntax/aspx.syntax" permissions="0644" install="/opt/share/mc/syntax/"/>
+diff --git a/mc.spec.in b/mc.spec.in
+index 2ce44bc..ba730df 100644
+--- a/mc.spec.in
++++ b/mc.spec.in
+@@ -79,14 +79,14 @@ rm -rf $RPM_BUILD_ROOT
+ %{_mandir}/*/man1/*
+ 
+ %config %{_sysconfdir}/profile.d/*
+-%{_datadir}/mc/cedit.menu
++%{_sysconfdir}/mc/cedit.menu
+ %{_datadir}/mc/edit.indent.rc
+ %{_datadir}/mc/edit.spell.rc
+ %{_datadir}/mc/bin/*
+ %{_datadir}/mc/extfs/*
+-%{_datadir}/mc/mc.ext
+-%{_datadir}/mc/mc.lib
+-%{_datadir}/mc/mc.menu*
++%{_sysconfdir}/mc/mc.ext
++%{_sysconfdir}/mc/mc.lib
++%{_sysconfdirdir}/mc/mc.menu*
+ %{?_with_charset:%config %{_datadir}/mc/mc.charsets}
+ 
+ %{_datadir}/mc/mc.hint*
+diff --git a/prototype.in b/prototype.in
+index fd28cae..7bb6398 100644
+--- a/prototype.in
++++ b/prototype.in
+@@ -20,10 +20,10 @@ d none $datadir/mc/syntax
+ d none $docdir/mc
+ #
+ !default 644 root bin
+-f none $datadir/mc/cedit.menu
++f none $sysconfdir/mc/cedit.menu
+ f none $datadir/mc/edit.indent.rc
+ f none $datadir/mc/edit.spell.rc
+-f none $datadir/mc/mc.ext
++f none $sysconfdir/mc/mc.ext
+ f none $datadir/mc/mc.hint
+ f none $datadir/mc/mc.hint.cs
+ f none $datadir/mc/mc.hint.es
+@@ -40,8 +40,8 @@ f none $datadir/mc/mc.hlp.hu
+ f none $datadir/mc/mc.hlp.it
+ f none $datadir/mc/mc.hlp.pl
+ f none $datadir/mc/mc.hlp.ru
+-f none $datadir/mc/mc.lib
+-f none $datadir/mc/mc.menu
++f none $sysconfdir/mc/mc.lib
++f none $sysconfdir/mc/mc.menu
+ #
+ !search $datadir/mc/bin
+ #
+@@ -60,7 +60,7 @@ f none $datadir/mc/extfs/deb
+ f none $datadir/mc/extfs/deba
+ f none $datadir/mc/extfs/debd
+ f none $datadir/mc/extfs/dpkg
+-f none $datadir/mc/extfs/extfs.ini
++f none $sysconfdir/mc/extfs.ini
+ f none $datadir/mc/extfs/hp48
+ f none $datadir/mc/extfs/lslR
+ f none $datadir/mc/extfs/mailfs
+@@ -68,7 +68,7 @@ f none $datadir/mc/extfs/patchfs
+ f none $datadir/mc/extfs/README
+ f none $datadir/mc/extfs/rpm
+ f none $datadir/mc/extfs/rpms
+-f none $datadir/mc/extfs/sfs.ini
++f none $sysconfdir/mc/sfs.ini
+ f none $datadir/mc/extfs/trpm
+ f none $datadir/mc/extfs/uar
+ f none $datadir/mc/extfs/uarj
+diff --git a/src/Makefile.am b/src/Makefile.am
+index ccf0f8b..54dcd8c 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -1,16 +1,17 @@
+ AM_CFLAGS = $(GLIB_CFLAGS)
+ 
+ localedir = $(datadir)/locale
+-pkglibexecdir =		$(libexecdir)/@PACKAGE@
++pkglibexecdir =	$(libexecdir)/@PACKAGE@
++pkgsysconfdir = $(sysconfdir)/@PACKAGE@
+ 
+ bin_PROGRAMS = mc mcmfmt
+ 
+ if CONS_SAVER
+ pkglibexec_PROGRAMS = cons.saver
+-AM_CPPFLAGS = -DDATADIR=\""$(pkgdatadir)/"\" -DLOCALEDIR=\""$(localedir)"\" \
++AM_CPPFLAGS = -DDATADIR=\""$(pkgdatadir)/"\" -DLOCALEDIR=\""$(localedir)"\" -DMC_CONFIGDIR=\""$(pkgsysconfdir)"\" \
+ 	-DSAVERDIR=\""$(pkglibexecdir)"\"
+ else
+-AM_CPPFLAGS = -DDATADIR=\""$(pkgdatadir)/"\" -DLOCALEDIR=\""$(localedir)"\"
++AM_CPPFLAGS = -DDATADIR=\""$(pkgdatadir)/"\" -DLOCALEDIR=\""$(localedir)"\" -DMC_CONFIGDIR=\""$(pkgsysconfdir)"\" 
+ endif
+ 
+ noinst_PROGRAMS = man2hlp
+diff --git a/src/boxes.c b/src/boxes.c
+index 0fd2a0b..b10e1c9 100644
+--- a/src/boxes.c
++++ b/src/boxes.c
+@@ -38,7 +38,6 @@
+ #include "dialog.h"		/* The nice dialog manager */
+ #include "widget.h"		/* The widgets for the nice dialog manager */
+ #include "wtools.h"
+-#include "setup.h"		/* For profile_name */
+ #include "profile.h"		/* Load/save user formats */
+ #include "key.h"		/* XCTRL and ALT macros  */
+ #include "command.h"		/* For cmdline */
+@@ -49,6 +48,7 @@
+ #include "tree.h"
+ #include "layout.h"		/* for get_nth_panel_name proto */
+ #include "background.h"		/* task_list */
++#include "mc_conf.h"		/* MC global configuration */
+ 
+ #ifdef HAVE_CHARSET
+ #include "charsets.h"
+@@ -232,7 +232,7 @@ display_box (WPanel *panel, char **userp, char **minip, int *use_msformat, int n
+ 	for (i = 0; i < LIST_TYPES; i++)
+     	    panel->user_status_format[i] = g_strdup (DEFAULT_USER_FORMAT);
+         section = g_strconcat ("Temporal:", p, (char *) NULL);
+-        if (!profile_has_section (section, profile_name)) {
++        if (!profile_has_section (section, mc_current_mc_ini)) {
+             g_free (section);
+             section = g_strdup (p);
+         }
+diff --git a/src/charsets.c b/src/charsets.c
+index 5666c23..1ff2eaf 100644
+--- a/src/charsets.c
++++ b/src/charsets.c
+@@ -44,11 +44,10 @@ load_codepages_list (void)
+     FILE *f;
+     char *fname;
+     char buf[256];
+-    extern char *mc_home;
+     extern int display_codepage;
+     char *default_codepage = NULL;
+ 
+-    fname = concat_dir_and_file (mc_home, CHARSETS_INDEX);
++    fname = _strcatdup(mc_global_datadir, PATH_SEP_STR CHARSETS_INDEX);
+     if (!(f = fopen (fname, "r"))) {
+ 	fprintf (stderr, _("Warning: file %s not found\n"), fname);
+ 	g_free (fname);
+diff --git a/src/cmd.c b/src/cmd.c
+index 01d110f..3ff7bbe 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -53,14 +53,15 @@
+ #include "main.h"		/* change_panel() */
+ #include "panel.h"		/* current_panel */
+ #include "help.h"		/* interactive_display() */
+-#include "user.h"		/* MC_GLOBAL_MENU */
++#include "user.h"		/* user_menu_cmd() */
++#include "profile.h"		/* sync_profile() */
+ #include "command.h"		/* cmdline */
+ #include "layout.h"		/* get_current_type() */
+ #include "ext.h"		/* regex_command() */
+ #include "boxes.h"		/* cd_dialog() */
+ #include "setup.h"		/* save_setup() */
+-#include "profile.h"		/* PROFILE_NAME */
+ #include "execute.h"		/* toggle_panels() */
++#include "mc_conf.h"		/* MC global configuration */
+ 
+ #ifndef MAP_FILE
+ #   define MAP_FILE 0
+@@ -553,28 +554,30 @@ check_for_default(char *default_file, char *file)
+ 
+ void ext_cmd (void)
+ {
+-    char *buffer;
+-    char *extdir;
+-    int  dir;
++    int dir = 0;
+ 
+-    dir = 0;
+-    if (geteuid () == 0){
++    /* when root, ask whether to add global or users extfile */
++    if (geteuid () == 0)	
+ 	dir = query_dialog (_("Extension file edit"),
+ 			    _(" Which extension file you want to edit? "), 0, 2,
+ 			    _("&User"), _("&System Wide"));
++
++    switch(dir)
++    {
++	case 0:
++	    check_for_default (mc_global_mc_ext, mc_user_mc_ext);
++	    do_edit (mc_user_mc_ext);
++	break;
++	case 1:
++	    do_edit (mc_global_mc_ext);
+     }
+-    extdir = concat_dir_and_file (mc_home, MC_LIB_EXT);
+ 
+-    if (dir == 0){
+-	buffer = concat_dir_and_file (home_dir, MC_USER_EXT);
+-	check_for_default (extdir, buffer);
+-	do_edit (buffer);
+-	g_free (buffer);
+-    } else if (dir == 1)
+-	do_edit (extdir);
++    flush_extension_file ();
++}
++
++static inline void menu_edit_cmd_fn(const char* fn, int chm)
++{
+ 
+-   g_free (extdir);
+-   flush_extension_file ();
+ }
+ 
+ /* where  = 0 - do edit file menu for mc */
+@@ -582,43 +585,37 @@ void ext_cmd (void)
+ static void
+ menu_edit_cmd (int where)
+ {
+-    char *buffer;
+-    char *menufile;
+-    int dir = 0;
+-    
+-    dir = query_dialog (
++    int dir = query_dialog (
+ 	_(" Menu edit "),
+ 	_(" Which menu file do you want to edit? "), 
+ 	0, geteuid() ? 2 : 3,
+ 	_("&Local"), _("&User"), _("&System Wide")
+     );
+ 
+-    menufile = concat_dir_and_file (mc_home, where ? CEDIT_GLOBAL_MENU : MC_GLOBAL_MENU);
++    char* globalmenu = (where ? mc_global_cedit_menu : mc_global_mc_menu);
++    char* thismenu = NULL;
+ 
+     switch (dir) {
+ 	case 0:
+-	    buffer = g_strdup (where ? CEDIT_LOCAL_MENU : MC_LOCAL_MENU);
+-	    check_for_default (menufile, buffer);
++	    thismenu = (where ? CEDIT_LOCAL_MENU : MC_LOCAL_MENU);
++	    check_for_default (globalmenu, thismenu);
+ 	    break;
+ 
+ 	case 1:
+-	    buffer = concat_dir_and_file (home_dir, where ? CEDIT_HOME_MENU : MC_HOME_MENU);
+-	    check_for_default (menufile, buffer);
++	    thismenu = (where ? mc_user_cedit_menu : mc_user_mc_menu);
++	    check_for_default (globalmenu, thismenu);
+ 	    break;
+-	
++
+ 	case 2:
+-	    buffer = concat_dir_and_file (mc_home, where ? CEDIT_GLOBAL_MENU : MC_GLOBAL_MENU);
++	    thismenu = globalmenu;
+ 	    break;
+ 
+ 	default:
+-	   g_free (menufile);
+ 	    return;
+     }
+-    do_edit (buffer);
+-	if (dir == 0)
+-		chmod(buffer, 0600);
+-    g_free (buffer);
+-    g_free (menufile);
++    do_edit (thismenu);
++    if (dir == 0)
++	chmod(thismenu, 0600);
+ }
+ 
+ void quick_chdir_cmd (void)
+@@ -656,27 +653,24 @@ edit_user_menu_cmd (void)
+ void
+ edit_syntax_cmd (void)
+ {
+-    char *buffer;
+-    char *extdir;
+     int dir = 0;
+ 
+-    if (geteuid () == 0) {
++    if (geteuid () == 0)
+ 	dir =
+ 	    query_dialog (_("Syntax file edit"),
+ 			  _(" Which syntax file you want to edit? "), 0, 2,
+ 			  _("&User"), _("&System Wide"));
+-    }
+-    extdir = concat_dir_and_file (mc_home, "syntax" PATH_SEP_STR "Syntax");
+ 
+-    if (dir == 0) {
+-	buffer = concat_dir_and_file (home_dir, SYNTAX_FILE);
+-	check_for_default (extdir, buffer);
+-	do_edit (buffer);
+-	g_free (buffer);
+-    } else if (dir == 1)
+-	do_edit (extdir);
+-
+-    g_free (extdir);
++    switch (dir)
++    {
++	case 0:
++	    check_for_default (mc_global_syntaxfile, mc_user_syntaxfile);
++	    do_edit (mc_user_syntaxfile);
++	break;
++	case 1:
++	    do_edit (mc_global_syntaxfile);
++	break;
++    }
+ }
+ #endif
+ 
+@@ -1060,7 +1054,7 @@ get_random_hint (int force)
+ 	return g_strdup ("");
+     last_sec = tv.tv_sec;
+ 
+-    data = load_mc_home_file (MC_HINT, NULL);
++    data = load_i18n_data_file (MC_HINT, NULL);
+     if (!data)
+ 	return 0;
+ 
+@@ -1223,12 +1217,9 @@ dirsizes_cmd (void)
+ void
+ save_setup_cmd (void)
+ {
+-    char *str;
+-    
+     save_setup ();
+     sync_profiles ();
+-    
+-    message (0, _(" Setup "), _(" Setup saved to ~/%s"), PROFILE_NAME);
++    message (0, _(" Setup "), _(" Setup saved to ~/%s"), mc_user_mc_ini);
+ }
+ 
+ static void
+diff --git a/src/ext.c b/src/ext.c
+index 8e64d2c..6234925 100644
+--- a/src/ext.c
++++ b/src/ext.c
+@@ -36,7 +36,7 @@
+ #include "ext.h"
+ #include "view.h"
+ #include "execute.h"
+-
++#include "mc_conf.h"
+ #include "cons.saver.h"
+ #include "layout.h"
+ 
+@@ -436,19 +436,7 @@ regex_command (const char *filename, const char *action, int *move_dir)
+     }
+ 
+     if (data == NULL) {
+-	char *extension_file;
+-	int mc_user_ext = 1;
+-	int home_error = 0;
+-
+-	extension_file = concat_dir_and_file (home_dir, MC_USER_EXT);
+-	if (!exist_file (extension_file)) {
+-	    g_free (extension_file);
+-	  check_stock_mc_ext:
+-	    extension_file = concat_dir_and_file (mc_home, MC_LIB_EXT);
+-	    mc_user_ext = 0;
+-	}
+-	data = load_file (extension_file);
+-	g_free (extension_file);
++	data = load_file (mc_current_mc_ext);
+ 	if (data == NULL)
+ 	    return 0;
+ 
+@@ -457,31 +445,17 @@ regex_command (const char *filename, const char *action, int *move_dir)
+ 		&& !strstr (data, "type/")) {
+ 		g_free (data);
+ 		data = NULL;
+-		if (mc_user_ext) {
+-		    home_error = 1;
+-		    goto check_stock_mc_ext;
+-		} else {
+ 		    char *title =
+-			g_strdup_printf (_(" %s%s file error"),
+-			    mc_home, MC_LIB_EXT);
+-		    message (1, title, _("The format of the %smc.ext "
++			g_strdup_printf (_(" %s file error"),
++			    mc_global_mc_ext);
++		    message (1, title, _("The format of the %s "
+ 			"file has changed with version 3.0.  It seems that "
+ 			"the installation failed.  Please fetch a fresh "
+ 			"copy from the Midnight Commander package."),
+-			mc_home);
++			mc_global_mc_ext);
+ 		    g_free (title);
+ 		    return 0;
+ 		}
+-	    }
+-	}
+-	if (home_error) {
+-	    char *title =
+-		g_strdup_printf (_(" ~/%s file error "), MC_USER_EXT);
+-	    message (1, title, _("The format of the ~/%s file has "
+-		"changed with version 3.0.  You may either want to copy "
+-		"it from %smc.ext or use that file as an example of how "
+-		"to write it."), MC_USER_EXT, mc_home);
+-	    g_free (title);
+ 	}
+     }
+     mc_stat (filename, &mystat);
+diff --git a/src/ext.h b/src/ext.h
+index c5d07f8..143b4ab 100644
+--- a/src/ext.h
++++ b/src/ext.h
+@@ -8,7 +8,4 @@ int regex_command (const char *filename, const char *action, int *move_dir);
+  */
+ void flush_extension_file (void);
+ 
+-#define MC_USER_EXT ".mc/bindings"
+-#define MC_LIB_EXT  "mc.ext"
+-
+ #endif
+diff --git a/src/help.c b/src/help.c
+index 3261cbb..2dc5a0f 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -766,7 +766,7 @@ interactive_display (const char *filename, const char *node)
+     if (filename)
+ 	data = load_file (filename);
+     else
+-	data = load_mc_home_file ("mc.hlp", &hlpfile);
++	data = load_i18n_data_file ("mc.hlp", &hlpfile);
+ 
+     if (data == NULL) {
+ 	message (1, MSG_ERROR, _(" Cannot open file %s \n %s "), filename ? filename : hlpfile,
+diff --git a/src/hotlist.c b/src/hotlist.c
+index a1183cb..7a0d07e 100644
+--- a/src/hotlist.c
++++ b/src/hotlist.c
+@@ -42,7 +42,7 @@
+ #include "color.h"		/* dialog_colors */
+ #include "dialog.h"
+ #include "widget.h"
+-#include "setup.h"		/* For profile_bname */
++#include "mc_conf.h"		/* MC global configuration */
+ #include "profile.h"		/* Load/save directories hotlist */
+ #include "wtools.h"		/* QuickDialog */
+ #include "panel.h"		/* current_panel */
+@@ -615,7 +615,7 @@ init_hotlist (int list_type)
+ 
+     hotlist_state.expanded =
+ 	GetPrivateProfileInt ("HotlistConfig", "expanded_view_of_groups",
+-			      0, profile_name);
++			      0, mc_current_mc_ini);
+ 
+     if (list_type == LIST_VFSLIST) {
+ 	title = _("Active VFS directories");
+@@ -1174,7 +1174,7 @@ load_group (struct hotlist *grp)
+     
+     group_section = find_group_section (grp);
+ 
+-    profile_keys = profile_init_iterator (group_section, profile_name);
++    profile_keys = profile_init_iterator (group_section, mc_current_mc_ini);
+ 
+     current_group = grp;
+ 
+@@ -1184,7 +1184,7 @@ load_group (struct hotlist *grp)
+     }
+     g_free (group_section);
+ 
+-    profile_keys = profile_init_iterator (grp->directory, profile_name);
++    profile_keys = profile_init_iterator (grp->directory, mc_current_mc_ini);
+ 
+     while (profile_keys){
+ 	profile_keys = profile_iterator_next (profile_keys, &key, &value);
+@@ -1209,7 +1209,6 @@ static char *tkn_buf;
+ static int  tkn_buf_length;
+ static int  tkn_length;
+ 
+-static char *hotlist_file_name;
+ static FILE *hotlist_file;
+ static time_t hotlist_file_mtime;
+ 
+@@ -1415,16 +1414,16 @@ clean_up_hotlist_groups (const char *section)
+     char	*key, *value;
+ 
+     grp_section = g_strconcat (section, ".Group", (char *) NULL);
+-    if (profile_has_section (section, profile_name))
+-	profile_clean_section (section, profile_name);
+-    if (profile_has_section (grp_section, profile_name)) {
+-	profile_keys = profile_init_iterator (grp_section, profile_name);
++    if (profile_has_section (section, mc_current_mc_ini))
++	profile_clean_section (section, mc_current_mc_ini);
++    if (profile_has_section (grp_section, mc_current_mc_ini)) {
++	profile_keys = profile_init_iterator (grp_section, mc_current_mc_ini);
+ 
+ 	while (profile_keys) {
+ 	    profile_keys = profile_iterator_next (profile_keys, &key, &value);
+ 	    clean_up_hotlist_groups (key);
+ 	}
+-	profile_clean_section (grp_section, profile_name);
++	profile_clean_section (grp_section, mc_current_mc_ini);
+     }
+     g_free (grp_section);
+ }
+@@ -1438,16 +1437,13 @@ load_hotlist (void)
+     struct stat stat_buf;
+ 
+     if (hotlist_state.loaded) {
+-	stat (hotlist_file_name, &stat_buf);
++	stat (mc_user_hotlist, &stat_buf);
+ 	if (hotlist_file_mtime < stat_buf.st_mtime) 
+ 	    done_hotlist ();
+ 	else
+ 	    return;
+     }
+ 
+-    if (!hotlist_file_name)
+-	hotlist_file_name = concat_dir_and_file (home_dir, HOTLIST_FILENAME);
+-    
+     hotlist	       = new_hotlist ();
+     hotlist->type      = HL_TYPE_GROUP;
+     hotlist->label     = g_strdup (_(" Top level group "));
+@@ -1457,7 +1453,7 @@ load_hotlist (void)
+      */
+     hotlist->directory = g_strdup ("Hotlist");
+ 
+-    if ((hotlist_file = fopen (hotlist_file_name, "r")) == 0) {
++    if ((hotlist_file = fopen (mc_user_hotlist, "r")) == 0) {
+ 	int	result;
+ 
+ 	load_group (hotlist);
+@@ -1472,8 +1468,8 @@ load_hotlist (void)
+ 	    remove_old_list = 1;
+ 	} else {
+ 	    message (D_ERROR, _(" Hotlist Load "),
+-		     _("MC was unable to write ~/%s file, your old hotlist entries were not deleted"),
+-		     HOTLIST_FILENAME);
++		     _("MC was unable to write %s file, your old hotlist entries were not deleted"),
++		     mc_user_hotlist);
+ 	}
+     } else {
+ 	hot_load_file (hotlist);
+@@ -1486,7 +1482,7 @@ load_hotlist (void)
+ 	sync_profiles ();
+     }
+ 
+-    stat (hotlist_file_name, &stat_buf);
++    stat (mc_user_hotlist, &stat_buf);
+     hotlist_file_mtime = stat_buf.st_mtime;
+     current_group = hotlist;
+ }
+@@ -1499,12 +1495,12 @@ save_group (struct hotlist *grp)
+ 
+     group_section = find_group_section (grp);
+     
+-    profile_clean_section (group_section, profile_name);
++    profile_clean_section (group_section, mc_current_mc_ini);
+     for (;current && current->type == HL_TYPE_GROUP; current = current->next){
+ 	WritePrivateProfileString (group_section,
+ 				   current->directory,
+ 				   current->label,
+-				   profile_name);
++				   mc_current_mc_ini);
+     }
+     g_free (group_section);
+ 
+@@ -1512,13 +1508,13 @@ save_group (struct hotlist *grp)
+ 	 current && current->type == HL_TYPE_GROUP;
+ 	 current = current->next)
+ 	 save_group (current);
+-    
+-    profile_clean_section (grp->directory, profile_name);
++
++    profile_clean_section (grp->directory, mc_current_mc_ini);
+     for (;current; current = current->next){
+ 	WritePrivateProfileString (grp->directory,
+ 				   current->directory,
+ 				   current->label,
+-				   profile_name);
++				   mc_current_mc_ini);
+     }
+ }
+ 
+@@ -1584,23 +1580,23 @@ int save_hotlist (void)
+     int		saved = 0;
+     struct      stat stat_buf;
+     
+-    if (!hotlist_state.readonly && hotlist_state.modified && hotlist_file_name) {
+-	char	*fbak = g_strconcat (hotlist_file_name, ".bak", (char *) NULL);
++    if (!hotlist_state.readonly && hotlist_state.modified && mc_user_hotlist) {
++	char	*fbak = g_strconcat (mc_user_hotlist, ".bak", (char *) NULL);
+ 
+-	rename (hotlist_file_name, fbak);
+-	if ((hotlist_file = fopen (hotlist_file_name, "w")) != 0) {
++	rename (mc_user_hotlist, fbak);
++	if ((hotlist_file = fopen (mc_user_hotlist, "w")) != 0) {
+ 	    if (stat (fbak, &stat_buf) == 0)
+-		chmod (hotlist_file_name, stat_buf.st_mode);
++		chmod (mc_user_hotlist, stat_buf.st_mode);
+ 	    else
+-		chmod (hotlist_file_name, S_IRUSR | S_IWUSR);
++		chmod (mc_user_hotlist, S_IRUSR | S_IWUSR);
+ 	    hot_save_group (hotlist);
+ 	    fclose (hotlist_file);
+-	    stat (hotlist_file_name, &stat_buf);
++	    stat (mc_user_hotlist, &stat_buf);
+ 	    hotlist_file_mtime = stat_buf.st_mtime;
+ 	    saved = 1;
+ 	    hotlist_state.modified = 0;
+ 	} else
+-	    rename (fbak, hotlist_file_name);
++	    rename (fbak, mc_user_hotlist);
+ 	g_free (fbak);
+     }
+ 
+@@ -1623,8 +1619,6 @@ void done_hotlist (void)
+     
+     hotlist_state.loaded = 0;
+ 
+-    g_free (hotlist_file_name);
+-    hotlist_file_name = 0;
+     l_hotlist = 0;
+     current_group = 0;
+     if (tkn_buf){
+diff --git a/src/learn.c b/src/learn.c
+index dff560c..167caa9 100644
+--- a/src/learn.c
++++ b/src/learn.c
+@@ -42,6 +42,7 @@
+ #include "main.h"
+ #include "learn.h"
+ #include "wtools.h"
++#include "mc_conf.h"		/* MC global configuration */
+ 
+ #define UX		4
+ #define UY		3
+@@ -314,7 +315,7 @@ learn_save (void)
+ 	if (learnkeys [i].sequence != NULL) {
+ 	    profile_changed = 1;
+ 	    WritePrivateProfileString (section, key_name_conv_tab [i].name,
+-	        learnkeys [i].sequence, profile_name);
++	        learnkeys [i].sequence, mc_current_mc_ini);
+ 	}
+     }
+ 
+diff --git a/src/logging.c b/src/logging.c
+index bfd48e0..f1f364c 100644
+--- a/src/logging.c
++++ b/src/logging.c
+@@ -29,6 +29,7 @@
+ #include "global.h"
+ #include "logging.h"
+ #include "setup.h"
++#include "mc_conf.h"	/* MC global configuration */
+ 
+ /*** file scope functions **********************************************/
+ 
+@@ -37,13 +38,10 @@ is_logging_enabled(void)
+ {
+ 	static gboolean logging_initialized = FALSE;
+ 	static gboolean logging_enabled = FALSE;
+-	char *mc_ini;
+ 
+ 	if (!logging_initialized) {
+-		mc_ini = g_strdup_printf("%s/%s", home_dir, PROFILE_NAME);
+ 		logging_enabled =
+-		    get_int(mc_ini, "development.enable_logging", FALSE);
+-		g_free(mc_ini);
++		    get_int(mc_user_mc_ini, "development.enable_logging", FALSE);
+ 		logging_initialized = TRUE;
+ 	}
+ 	return logging_enabled;
+diff --git a/src/main.c b/src/main.c
+index 949dcf9..2c78646 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -276,8 +276,27 @@ int midnight_shutdown = 0;
+ /* The user's shell */
+ const char *shell = NULL;
+ 
+-/* mc_home: The home of MC */
+-char *mc_home = NULL;
++/* global config directory (can be set via $MC_CONFIGDIR, defaults to $sysconfdir/mc) */
++char *mc_global_confdir = NULL;
++
++/* global config filenames - generated in OS_Setup() */
++char *mc_global_mc_ini     = NULL;
++char *mc_global_mc_ext     = NULL;
++char *mc_global_mc_menu    = NULL;
++char *mc_global_mc_lib     = NULL;
++char *mc_global_cedit_menu = NULL;
++char *mc_global_datadir    = NULL;
++char *mc_global_syntaxdir  = NULL;
++char *mc_global_syntaxfile = NULL;
++char *mc_user_confdir      = NULL;
++char *mc_user_mc_ini       = NULL;
++char *mc_user_hotlist      = NULL;
++char *mc_user_mc_ext       = NULL;
++char *mc_user_mc_menu      = NULL;
++char *mc_user_cedit_menu   = NULL;
++char *mc_user_syntaxfile   = NULL;
++char *mc_current_mc_ini    = NULL;
++char *mc_current_mc_ext    = NULL;
+ 
+ char cmd_buf[512];
+ 
+@@ -1443,7 +1462,7 @@ static void
+ done_mc_profile (void)
+ {
+     if (!auto_save_setup)
+-	profile_forget_profile (profile_name);
++	profile_forget_profile (mc_current_mc_ini);
+     sync_profiles ();
+     done_setup ();
+     free_profiles ();
+@@ -1761,7 +1780,6 @@ do_nc (void)
+ static void
+ OS_Setup (void)
+ {
+-    const char *mc_libdir;
+     shell = getenv ("SHELL");
+     if (!shell || !*shell) {
+         struct passwd *pwd;
+@@ -1774,11 +1792,44 @@ OS_Setup (void)
+ 
+     /* This is the directory, where MC was installed, on Unix this is DATADIR */
+     /* and can be overriden by the MC_DATADIR environment variable */
+-    if ((mc_libdir = getenv ("MC_DATADIR")) != NULL) {
+-	mc_home = g_strdup (mc_libdir);
+-    } else {
+-	mc_home = g_strdup (DATADIR);
+-    }
++    if (!(mc_global_datadir = getenv("MC_DATADIR")))
++	mc_global_datadir = DATADIR;
++
++    /* User's home directory: used for subshell, profile location, etc */
++    if (!(home_dir = getenv ("HOME")))
++	home_dir = mc_global_datadir;
++
++    /* This is mc's global configuration directory, normally ${sysconfdir}/mc */
++    /* Can be overridden via MC_CONFIGDIR environment variable */
++    if (!(mc_global_confdir = getenv("MC_CONFIGDIR")))
++	mc_global_confdir = MC_CONFIGDIR;
++
++    /* Render the global filenames */
++    mc_global_mc_ini     = _strcatdup(mc_global_confdir,   "/mc.ini");
++    mc_global_mc_menu    = _strcatdup(mc_global_confdir,   "/mc.menu");
++    mc_global_mc_ext     = _strcatdup(mc_global_confdir,   "/mc.ext");
++    mc_global_mc_lib     = _strcatdup(mc_global_confdir,   "/mc.lib");
++    mc_global_cedit_menu = _strcatdup(mc_global_confdir,   "/cedit.menu");
++    mc_global_syntaxdir  = _strcatdup(mc_global_datadir,   "/syntax/");	// terminate with / !
++    mc_global_syntaxfile = _strcatdup(mc_global_syntaxdir, "Syntax");
++
++    /* Render user's config filenames */
++    mc_user_confdir      = _strcatdup(home_dir,        "/.mc");
++    mc_user_mc_ini       = _strcatdup(mc_user_confdir, "/mc.ini");
++    mc_user_mc_ext       = _strcatdup(mc_user_confdir, "/bindings");
++    mc_user_mc_menu      = _strcatdup(mc_user_confdir, "/mc.menu");
++    mc_user_cedit_menu   = _strcatdup(mc_user_confdir, "/cedit/menu");
++    mc_user_hotlist      = _strcatdup(mc_user_confdir, "/hotlist");
++    mc_user_syntaxfile   = _strcatdup(mc_user_confdir, "/cedit/Syntax");
++
++    /* Check which mc.ini to use currently */
++    if ((!exist_file(mc_user_mc_ini)) && (exist_file(mc_global_mc_ini)))
++	mc_current_mc_ini = mc_global_mc_ini;
++    else
++	mc_current_mc_ini = mc_user_mc_ini;
++
++    /* Check which mc.ext to use currently */
++    mc_current_mc_ext = (exist_file(mc_user_mc_ext) ? mc_user_mc_ext : mc_global_mc_ext);
+ }
+ 
+ static void
+@@ -1908,7 +1959,7 @@ process_args (poptContext ctx, int c, const char *option_arg)
+ 	break;
+ 
+     case 'f':
+-	printf ("%s\n", mc_home);
++	printf ("%s\n", mc_global_datadir);
+ 	exit (0);
+ 	break;
+ 
+@@ -2138,15 +2189,10 @@ main (int argc, char *argv[])
+     /* Set up temporary directory */
+     mc_tmpdir ();
+ 
++    /* Initialize OS-speficic stuff, mainly config file locations, etc */
+     OS_Setup ();
+ 
+-    /* This variable is used by the subshell */
+-    home_dir = getenv ("HOME");
+-    if (!home_dir) {
+-	/* mc_home was computed by OS_Setup */
+-	home_dir = mc_home;
+-    }
+-
++    /* Bring up the VFS layer */
+     vfs_init ();
+ 
+ #ifdef HAVE_SLANG
+@@ -2261,7 +2307,6 @@ main (int argc, char *argv[])
+     }
+     g_free (last_wd_string);
+ 
+-    g_free (mc_home);
+     done_key ();
+ #ifdef HAVE_CHARSET
+     free_codepages_list ();
+diff --git a/src/main.h b/src/main.h
+index 3f3c695..da57a88 100644
+--- a/src/main.h
++++ b/src/main.h
+@@ -110,7 +110,7 @@ void print_vfs_message(const char *msg, ...)
+ 
+ extern const char *prompt;
+ extern const char *edit_one_file;
+-extern char *mc_home;
++
+ char *get_mc_lib_dir (void);
+ 
+ int maybe_cd (int move_up_dir);
+diff --git a/src/mc_conf.h b/src/mc_conf.h
+new file mode 100644
+index 0000000..20ae138
+--- /dev/null
++++ b/src/mc_conf.h
+@@ -0,0 +1,32 @@
++#ifndef MC_CONF_H
++#define MC_CONF_H
++
++/* MC's global config directory - can be overridden by MC_CONFIGDIR environment variable */
++/* defaults to $sysconfdir/mc */
++extern char* mc_global_confir;
++
++/* MC's global config file names - generated from mc_configdir */
++extern char* mc_global_confdir;
++extern char* mc_global_mc_ini;
++extern char* mc_global_mc_menu;
++extern char* mc_global_mc_ext;
++extern char* mc_global_mc_lib;
++extern char* mc_global_cedit_menu;
++extern char* mc_global_datadir;
++extern char* mc_global_syntaxdir;
++extern char* mc_global_syntaxfile;
++extern char* mc_user_confdir;
++extern char* mc_user_mc_ini;
++extern char* mc_user_hotlist;
++extern char* mc_user_mc_ext;
++extern char* mc_user_mc_menu;
++extern char* mc_user_cedit_menu;
++extern char* mc_user_syntaxfile;
++extern char* mc_current_mc_ini;
++extern char* mc_current_mc_ext;
++
++#define CEDIT_LOCAL_MENU	".cedit.menu"
++#define MC_LOCAL_MENU		".mc.menu"
++#define MC_HINT			"mc.hint"
++
++#endif
+diff --git a/src/panelize.c b/src/panelize.c
+index c2d2121..2071ce7 100644
+--- a/src/panelize.c
++++ b/src/panelize.c
+@@ -43,6 +43,7 @@
+ #include "panel.h"		/* current_panel */
+ #include "main.h"		/* repaint_screen */
+ #include "panelize.h"
++#include "mc_conf.h"		/* MC global configuration */
+ 
+ #define UX		5
+ #define UY		2
+@@ -309,7 +310,7 @@ void load_panelize (void)
+     void *profile_keys;
+     char *key, *value;
+     
+-    profile_keys = profile_init_iterator (panelize_section, profile_name);
++    profile_keys = profile_init_iterator (panelize_section, mc_current_mc_ini);
+     
+     add2panelize (g_strdup (_("Other command")), g_strdup (""));
+ 
+@@ -330,13 +331,13 @@ void save_panelize (void)
+ {
+     struct panelize *current = panelize;
+     
+-    profile_clean_section (panelize_section, profile_name);
++    profile_clean_section (panelize_section, mc_current_mc_ini);
+     for (;current; current = current->next){
+     	if (strcmp (current->label, _("Other command")))
+ 	    WritePrivateProfileString (panelize_section,
+ 				       current->label,
+ 				       current->command,
+-				       profile_name);
++				       mc_current_mc_ini);
+     }
+     sync_profiles ();
+ }
+diff --git a/src/profile.c b/src/profile.c
+index cbd60e5..b948b3b 100644
+--- a/src/profile.c
++++ b/src/profile.c
+@@ -452,7 +452,7 @@ static void free_profile (TProfile *p)
+     g_free (p);
+ }
+ 
+-void free_profile_name (const char *s)
++void free_profile_by_name (const char *s)
+ {
+     TProfile *p;
+     
+diff --git a/src/profile.h b/src/profile.h
+index 7600c20..080245b 100644
+--- a/src/profile.h
++++ b/src/profile.h
+@@ -42,7 +42,7 @@ int profile_has_section (const char *section_name, const char *profile);
+ /* Forgets about a .ini file, to disable updating of it */
+ void profile_forget_profile (const char *file);
+ 
+-/* Removes information from a profile */
+-void free_profile_name (const char *s);
++/* Removes information coming from named profile */
++void free_profile_by_name (const char *s);
+ 
+ #endif
+diff --git a/src/screen.c b/src/screen.c
+index 74604f4..1064066 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -50,6 +50,7 @@
+ #define WANT_WIDGETS
+ #include "main.h"		/* the_menubar */
+ #include "unixcompat.h"
++#include "mc_conf.h"		/* MC global configuration */
+ 
+ #define ELEMENTS(arr) ( sizeof(arr) / sizeof((arr)[0]) )
+ 
+@@ -1038,7 +1039,7 @@ panel_new (const char *panel_name)
+     panel->search_buffer[0] = 0;
+     panel->frame_size = frame_half;
+     section = g_strconcat ("Temporal:", panel->panel_name, (char *) NULL);
+-    if (!profile_has_section (section, profile_name)) {
++    if (!profile_has_section (section, mc_current_mc_ini)) {
+ 	g_free (section);
+ 	section = g_strdup (panel->panel_name);
+     }
+diff --git a/src/setup.c b/src/setup.c
+index 026ac02..9e04b1d 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -42,6 +42,7 @@
+ #include "win.h"		/* lookup_key */
+ #include "cmd.h"
+ #include "file.h"		/* safe_delete */
++#include "mc_conf.h"		/* MC global configuration */
+ 
+ #ifdef USE_VFS
+ #include "../vfs/gc.h"
+@@ -65,15 +66,12 @@ extern char *find_ignore_dirs;
+ 
+ extern int num_history_items_recorded;
+ 
+-char *profile_name;		/* .mc/ini */
+-char *global_profile_name;	/* mc.lib */
+-
+ char setup_color_string [4096];
+ char term_color_string [4096];
+ char color_terminal_string [512];
+ 
+-#define load_int(a,b,c) GetPrivateProfileInt(a,b,c,profile_name)
+-#define load_string(a,b,c,d,e) GetPrivateProfileString(a,b,c,d,e,profile_name)
++#define load_int(a,b,c) GetPrivateProfileInt(a,b,c,mc_current_mc_ini)
++#define load_string(a,b,c,d,e) GetPrivateProfileString(a,b,c,d,e,mc_current_mc_ini)
+ #define save_string WritePrivateProfileString
+ 
+ int startup_left_mode;
+@@ -242,34 +240,34 @@ panel_save_setup (struct WPanel *panel, const char *section)
+     int  i;
+ 
+     g_snprintf (buffer, sizeof (buffer), "%d", panel->reverse);
+-    save_string (section, "reverse", buffer, profile_name);
++    save_string (section, "reverse", buffer, mc_current_mc_ini);
+     g_snprintf (buffer, sizeof (buffer), "%d", panel->case_sensitive);
+-    save_string (section, "case_sensitive", buffer, profile_name);
++    save_string (section, "case_sensitive", buffer, mc_current_mc_ini);
+     for (i = 0; sort_names [i].key; i++)
+ 	if (sort_names [i].sort_type == (sortfn *) panel->sort_type){
+ 	    save_string (section, "sort_order",
+-				       sort_names [i].key, profile_name);
++				       sort_names [i].key, mc_current_mc_ini);
+ 	    break;
+ 	}
+ 
+     for (i = 0; list_types [i].key; i++)
+ 	if (list_types [i].list_type == panel->list_type){
+-	    save_string (section, "list_mode", list_types [i].key, profile_name);
++	    save_string (section, "list_mode", list_types [i].key, mc_current_mc_ini);
+ 	    break;
+ 	}
+ 
+     save_string (section, "user_format",
+-			       panel->user_format, profile_name);
++			       panel->user_format, mc_current_mc_ini);
+ 
+     for (i = 0; i < LIST_TYPES; i++){
+ 	g_snprintf (buffer, sizeof (buffer), "user_status%d", i);
+ 	save_string (section, buffer,
+-	    panel->user_status_format [i], profile_name);
++	    panel->user_status_format [i], mc_current_mc_ini);
+     }
+ 
+     g_snprintf (buffer, sizeof (buffer), "%d", panel->user_mini_status);
+     save_string (section, "user_mini_status", buffer,
+-			       profile_name);
++			       mc_current_mc_ini);
+ }
+ 
+ void
+@@ -279,35 +277,26 @@ save_layout (void)
+     int  i;
+     char buffer [BUF_TINY];
+ 
+-    profile = concat_dir_and_file (home_dir, PROFILE_NAME);
+-
+     /* Save integer options */
+     for (i = 0; layout [i].opt_name; i++){
+ 	g_snprintf (buffer, sizeof (buffer), "%d", *layout [i].opt_addr);
+-	save_string ("Layout", layout [i].opt_name, buffer, profile);
++	save_string ("Layout", layout [i].opt_name, buffer, mc_user_mc_ini);
+     }
+-
+-    g_free (profile);
+ }
+ 
+ void
+ save_configure (void)
+ {
+-    char *profile;
+     int  i;
+ 
+-    profile = concat_dir_and_file (home_dir, PROFILE_NAME);
+-
+     /* Save integer options */
+     for (i = 0; int_options[i].opt_name; i++)
+-	set_int (profile, int_options[i].opt_name, *int_options[i].opt_addr);
++	set_int (mc_user_mc_ini, int_options[i].opt_name, *int_options[i].opt_addr);
+ 
+     /* Save string options */
+     for (i = 0; str_options[i].opt_name != NULL; i++)
+-	set_config_string (profile, str_options[i].opt_name,
++	set_config_string (mc_user_mc_ini, str_options[i].opt_name,
+ 	    *str_options[i].opt_addr);
+-
+-    g_free (profile);
+ }
+ 
+ static void
+@@ -318,7 +307,7 @@ panel_save_type (const char *section, int type)
+     for (i = 0; panel_types [i].opt_name; i++)
+ 	if (panel_types [i].opt_type == type){
+ 	    save_string (section, "display", panel_types [i].opt_name,
+-			 profile_name);
++			 mc_current_mc_ini);
+ 	    break;
+ 	}
+ }
+@@ -341,20 +330,17 @@ save_panel_types (void)
+ void
+ save_setup (void)
+ {
+-    char *profile;
+-
+     saving_setup = 1;
+-    profile = concat_dir_and_file (home_dir, PROFILE_NAME);
+ 
+     save_configure ();
+ 
+     save_layout ();
+     save_string ("Dirs", "other_dir",
+ 			       get_other_type () == view_listing
+-			       ? other_panel->cwd : ".", profile);
++			       ? other_panel->cwd : ".", mc_user_mc_ini);
+     if (current_panel != NULL)
+ 	    WritePrivateProfileString ("Dirs", "current_is_left",
+-				       get_current_index () == 0 ? "1" : "0", profile);
++				       get_current_index () == 0 ? "1" : "0", mc_user_mc_ini);
+     save_hotlist ();
+ 
+     save_panelize ();
+@@ -363,18 +349,17 @@ save_setup (void)
+ 
+ #if defined(USE_VFS) && defined (USE_NETCODE)
+     WritePrivateProfileString ("Misc", "ftpfs_password",
+-			       ftpfs_anonymous_passwd, profile);
++			       ftpfs_anonymous_passwd, mc_user_mc_ini);
+     if (ftpfs_proxy_host)
+ 	WritePrivateProfileString ("Misc", "ftp_proxy_host",
+-				   ftpfs_proxy_host, profile);
++				   ftpfs_proxy_host, mc_user_mc_ini);
+ #endif /* USE_VFS && USE_NETCODE */
+ 
+ #ifdef HAVE_CHARSET
+     save_string( "Misc", "display_codepage",
+-    		 get_codepage_id( display_codepage ), profile_name );
++    		 get_codepage_id( display_codepage ), mc_current_mc_ini );
+ #endif /* HAVE_CHARSET */
+ 
+-    g_free (profile);
+     saving_setup = 0;
+ }
+ 
+@@ -409,13 +394,13 @@ panel_load_setup (WPanel *panel, const char *section)
+     g_free (panel->user_format);
+     panel->user_format = g_strdup (get_profile_string (section, "user_format",
+ 						     DEFAULT_USER_FORMAT,
+-						     profile_name));
++						     mc_current_mc_ini));
+     for (i = 0; i < LIST_TYPES; i++){
+ 	g_free (panel->user_status_format [i]);
+ 	g_snprintf (buffer, sizeof (buffer), "user_status%d", i);
+ 	panel->user_status_format [i] =
+ 	    g_strdup (get_profile_string (section, buffer,
+-			DEFAULT_USER_FORMAT, profile_name));
++			DEFAULT_USER_FORMAT, mc_current_mc_ini));
+     }
+ 
+     panel->user_mini_status =
+@@ -423,8 +408,8 @@ panel_load_setup (WPanel *panel, const char *section)
+ 
+ }
+ 
+-static void
+-load_layout (char *profile_name)
++static inline void
++load_layout ()
+ {
+     int i;
+ 
+@@ -469,53 +454,22 @@ do_load_string (const char *s, const char *ss, const char *def)
+ }
+ #endif /* !USE_NETCODE */
+ 
+-char *
+-setup_init (void)
+-{
+-    char   *profile;
+-    char   *inifile;
+-
+-    if (profile_name)
+-	    return profile_name;
+-
+-    profile = concat_dir_and_file (home_dir, PROFILE_NAME);
+-    if (!exist_file (profile)){
+-	inifile = concat_dir_and_file (mc_home, "mc.ini");
+-	if (exist_file (inifile)){
+-	    g_free (profile);
+-	    profile = inifile;
+-	} else
+-	    g_free (inifile);
+-    }
+-
+-    profile_name = profile;
+-
+-    return profile;
+-}
+-
+ void
+ load_setup (void)
+ {
+-    char *profile;
+     int    i;
+ 
+-    profile = setup_init ();
+-
+-    /* mc.lib is common for all users, but has priority lower than
+-       ~/.mc/ini.  FIXME: it's only used for keys and treestore now */
+-    global_profile_name = concat_dir_and_file (mc_home, "mc.lib");
+-
+     /* Load integer boolean options */
+     for (i = 0; int_options[i].opt_name; i++)
+ 	*int_options[i].opt_addr =
+-	    get_int (profile, int_options[i].opt_name, *int_options[i].opt_addr);
++	    get_int (mc_current_mc_ini, int_options[i].opt_name, *int_options[i].opt_addr);
+ 
+     /* Load string options */
+     for (i = 0; str_options[i].opt_name != NULL; i++)
+-	*str_options[i].opt_addr = get_config_string (profile,
++	*str_options[i].opt_addr = get_config_string (mc_current_mc_ini,
+ 	    str_options[i].opt_name, str_options[i].opt_defval);
+ 
+-    load_layout (profile);
++    load_layout ();
+ 
+     load_panelize ();
+ 
+@@ -539,7 +493,7 @@ load_setup (void)
+     }
+ 
+     boot_current_is_left =
+-	GetPrivateProfileInt ("Dirs", "current_is_left", 1, profile);
++	GetPrivateProfileInt ("Dirs", "current_is_left", 1, mc_current_mc_ini);
+ 
+ #ifdef USE_NETCODE
+     ftpfs_proxy_host = do_load_string ("Misc", "ftp_proxy_host", "gate");
+@@ -561,8 +515,8 @@ load_setup (void)
+     /* Load the directory history */
+ /*    directory_history_load (); */
+     /* Remove the temporal entries */
+-    profile_clean_section ("Temporal:New Left Panel", profile_name);
+-    profile_clean_section ("Temporal:New Right Panel", profile_name);
++    profile_clean_section ("Temporal:New Left Panel", mc_current_mc_ini);
++    profile_clean_section ("Temporal:New Right Panel", mc_current_mc_ini);
+ #if defined(USE_VFS) && defined (USE_NETCODE)
+     ftpfs_init_passwd ();
+ #endif /* USE_VFS && USE_NETCODE */
+@@ -596,8 +550,6 @@ load_anon_passwd ()
+ 
+ void done_setup (void)
+ {
+-    g_free (profile_name);
+-    g_free (global_profile_name);
+     done_hotlist ();
+     done_panelize ();
+ /*    directory_history_free (); */
+@@ -641,11 +593,11 @@ void load_key_defs (void)
+      * Load keys from mc.lib before ~/.mc/ini, so that the user
+      * definitions override global settings.
+      */
+-    load_keys_from_section ("general", global_profile_name);
+-    load_keys_from_section (getenv ("TERM"), global_profile_name);
+-    load_keys_from_section ("general", profile_name);
+-    load_keys_from_section (getenv ("TERM"), profile_name);
++    load_keys_from_section ("general", mc_global_mc_lib);
++    load_keys_from_section (getenv ("TERM"), mc_global_mc_lib);
++    load_keys_from_section ("general", mc_current_mc_ini);
++    load_keys_from_section (getenv ("TERM"), mc_current_mc_ini);
+ 
+     /* We don't want a huge database loaded in core */
+-    free_profile_name (global_profile_name);
++    free_profile_by_name (mc_global_mc_lib);
+ }
+diff --git a/src/setup.h b/src/setup.h
+index c611e93..aa1de22 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -3,7 +3,6 @@
+ 
+ #include "panel.h"
+ 
+-char *setup_init (void);
+ void save_layout (void);
+ void save_configure (void);
+ void load_setup (void);
+@@ -15,9 +14,6 @@ char *load_anon_passwd (void);
+ void panel_save_setup (struct WPanel *panel, const char *section);
+ void panel_load_setup (struct WPanel *panel, const char *section);
+ 
+-extern char *profile_name;
+-extern char *global_profile_name;
+-
+ extern char setup_color_string[];
+ extern char term_color_string[];
+ extern char color_terminal_string[];
+@@ -26,7 +22,4 @@ extern int startup_left_mode;
+ extern int startup_right_mode;
+ extern int verbose;
+ 
+-#define PROFILE_NAME     ".mc/ini"
+-#define HOTLIST_FILENAME ".mc/hotlist"
+-
+ #endif
+diff --git a/src/treestore.c b/src/treestore.c
+index 426b0c2..493f34f 100644
+--- a/src/treestore.c
++++ b/src/treestore.c
+@@ -46,6 +46,7 @@
+ #include "treestore.h"
+ #include "profile.h"
+ #include "setup.h"
++#include "mc_conf.h"	/* MC global configuration */
+ 
+ #define TREE_SIGNATURE "Midnight Commander TreeStore v 2.0"
+ 
+@@ -752,9 +753,8 @@ should_skip_directory(const char *dir)
+ 
+     if (loaded == 0) {
+ 	loaded = 1;
+-	setup_init();
+-	process_special_dirs(&special_dirs, profile_name);
+-	process_special_dirs(&special_dirs, global_profile_name);
++	process_special_dirs(&special_dirs, mc_current_mc_ini);
++	process_special_dirs(&special_dirs, mc_global_mc_lib);
+     }
+ 
+     for (l = special_dirs; l; l = l->next) {
+diff --git a/src/user.c b/src/user.c
+index 01022aa..8a0fb20 100644
+--- a/src/user.c
++++ b/src/user.c
+@@ -33,6 +33,7 @@
+ #include "layout.h"
+ #include "execute.h"
+ #include "setup.h"
++#include "mc_conf.h"
+ 
+ #include "../edit/edit.h"		/* BLOCK_FILE */
+ #include "../edit/edit-widget.h"	/* WEdit */
+@@ -717,26 +718,21 @@ user_menu_cmd (struct WEdit *edit_widget)
+ 	return;
+     }
+     
+-    menu = g_strdup (edit_widget ? CEDIT_LOCAL_MENU : MC_LOCAL_MENU);
++    menu = (edit_widget ? CEDIT_LOCAL_MENU : MC_LOCAL_MENU);
+     if (!exist_file (menu) || !menu_file_own (menu)){
+-	g_free (menu);
+-        menu = concat_dir_and_file \
+-                            (home_dir, edit_widget ? CEDIT_HOME_MENU : MC_HOME_MENU);
++        menu = (edit_widget ? mc_user_cedit_menu : mc_user_mc_menu);
+ 	if (!exist_file (menu)){
+-	    g_free (menu);
+-	    menu = concat_dir_and_file \
+-                        (mc_home, edit_widget ? CEDIT_GLOBAL_MENU : MC_GLOBAL_MENU);
++	    menu = (edit_widget ? mc_global_cedit_menu : mc_global_mc_menu);
+ 	}
+     }
+ 
+     if ((data = load_file (menu)) == NULL){
+ 	message (1, MSG_ERROR, _(" Cannot open file %s \n %s "),
+ 		 menu, unix_error_string (errno));
+-	g_free (menu);
+ 	menu = NULL;
+ 	return;
+     }
+-    
++
+     max_cols = 0;
+     selected = 0;
+     menu_limit = 0;
+@@ -836,9 +832,8 @@ user_menu_cmd (struct WEdit *edit_widget)
+     do_refresh ();
+     }
+ 
+-    easy_patterns = old_patterns;
+-    g_free (menu);
+     menu = NULL;
++    easy_patterns = old_patterns;
+     g_free (entries);
+     g_free (data);
+ }
+diff --git a/src/user.h b/src/user.h
+index 72997dc..598d6b5 100644
+--- a/src/user.h
++++ b/src/user.h
+@@ -9,12 +9,4 @@ int check_format_view (const char *);
+ int check_format_var (const char *, char **);
+ int check_format_cd (const char *);
+ 
+-#define CEDIT_GLOBAL_MENU    "cedit.menu"
+-#define CEDIT_LOCAL_MENU     ".cedit.menu"
+-#define CEDIT_HOME_MENU      ".mc/cedit/menu"
+-#define MC_GLOBAL_MENU       "mc.menu"
+-#define MC_LOCAL_MENU        ".mc.menu"
+-#define MC_HOME_MENU         ".mc/menu"
+-#define MC_HINT              "mc.hint"
+-
+ #endif
+diff --git a/src/util.c b/src/util.c
+index da6d1b2..20a79b4 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -37,7 +37,8 @@
+ 
+ #include "global.h"
+ #include "profile.h"
+-#include "main.h"		/* mc_home */
++#include "main.h"
++#include "mc_conf.h"		/* MC global configuration */
+ #include "cmd.h"		/* guess_message_value */
+ #include "mountlist.h"
+ #include "win.h"		/* xterm_flag */
+@@ -644,12 +645,6 @@ set_config_string (const char *file, const char *key, const char *val)
+     (void)WritePrivateProfileString (app_text, key, val, file);
+ }
+ 
+-int
+-exist_file (const char *name)
+-{
+-    return access (name, R_OK) == 0;
+-}
+-
+ char *
+ load_file (const char *filename)
+ {
+@@ -679,13 +674,13 @@ load_file (const char *filename)
+ }
+ 
+ char *
+-load_mc_home_file (const char *filename, char **allocated_filename)
++load_i18n_data_file (const char *filename, char **allocated_filename)
+ {
+     char *hintfile_base, *hintfile;
+     char *lang;
+     char *data;
+ 
+-    hintfile_base = concat_dir_and_file (mc_home, filename);
++    hintfile_base = concat_dir_and_file (mc_global_datadir, filename);
+     lang = guess_message_value ();
+ 
+     hintfile = g_strconcat (hintfile_base, ".", lang, (char *) NULL);
+diff --git a/src/util.h b/src/util.h
+index 4e9a113..a26e434 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -92,7 +92,7 @@ extern char * get_config_string (const char *, const char *, const char *);
+ extern void set_config_string (const char *, const char *, const char *);
+ 
+ char *load_file (const char *filename);
+-char *load_mc_home_file (const char *filename, char ** allocated_filename);
++char *load_i18n_data_file (const char *filename, char ** allocated_filename);
+ 
+ /* uid/gid managing */
+ void init_groups (void);
+@@ -110,7 +110,7 @@ char *get_owner (int);
+ size_t i18n_checktimelength (void);
+ const char *file_date (time_t);
+ 
+-int exist_file (const char *name);
++#define exist_file(fn) (( access(fn, R_OK) == 0 ))
+ 
+ /* Returns a copy of *s until a \n is found and is below top */
+ const char *extract_line (const char *s, const char *top);
+@@ -256,4 +256,14 @@ extern int ascii_alpha_to_cntrl (int ch);
+ #undef Q_
+ const char *Q_ (const char *s);
+ 
++/* concat two strings into a new (malloc()'ed) buffer */
++static inline char* _strcatdup(const char* one, const char* two)
++{
++    int sz = strlen(one)+strlen(two)+2;
++    char* buf = (char*)malloc(sz);
++    strcpy(buf,one);
++    strcat(buf,two);
++    return buf;
++}
++
+ #endif
+diff --git a/vfs/extfs.c b/vfs/extfs.c
+index d634e33..6c8eede 100644
+--- a/vfs/extfs.c
++++ b/vfs/extfs.c
+@@ -43,7 +43,8 @@
+ #include "../src/execute.h"	/* For shell_execute */
+ #include "vfs.h"
+ #include "vfs-impl.h"
+-#include "gc.h"		/* vfs_rmstamp */
++#include "gc.h"			/* vfs_rmstamp */
++#include "../src/mc_conf.h"	/* MC global configuration */
+ 
+ #undef ERRNOR
+ #define ERRNOR(x,y) do { my_errno = x; return y; } while(0)
+@@ -109,6 +110,36 @@ static char *extfs_prefixes [MAXEXTFS];
+ static char extfs_need_archive [MAXEXTFS];
+ static int extfs_no = 0;
+ 
++static char *mc_extfs_ini;
++static char *mc_extfs_scripts;
++
++/* initialize and return script directory name */
++static inline char* _getscriptdir()
++{
++    if (mc_extfs_scripts)
++	return mc_extfs_scripts;
++
++    mc_extfs_scripts = _strcatdup(mc_global_confdir, PATH_SEP_STR "extfs" PATH_SEP_STR);
++    return mc_extfs_scripts;
++}
++
++/* initialize and return extfs.ini pathname */
++static inline char* _getini()
++{
++    if (mc_extfs_ini)
++	return mc_extfs_ini;
++
++    /* first try to open user's own extfs.ini, then fallback to global one */
++    mc_extfs_ini = _strcatdup(mc_user_confdir, PATH_SEP_STR "extfs.ini");
++    if (exist_file(mc_extfs_ini))
++	return mc_extfs_ini;
++
++    free(mc_extfs_ini);
++    mc_extfs_ini = _strcatdup(mc_global_confdir, PATH_SEP_STR "extfs.ini");
++
++    return mc_extfs_ini;
++}
++
+ static void
+ extfs_fill_names (struct vfs_class *me, fill_names_f func)
+ {
+@@ -228,7 +259,6 @@ extfs_open_archive (int fstype, const char *name, struct archive **pparc)
+     FILE *result;
+     mode_t mode;
+     char *cmd;
+-    char *mc_extfsdir;
+     struct stat mystat;
+     struct archive *current_archive;
+     struct entry *root_entry;
+@@ -246,12 +276,10 @@ extfs_open_archive (int fstype, const char *name, struct archive **pparc)
+ 	tmp = name_quote (name, 0);
+     }
+ 
+-    mc_extfsdir = concat_dir_and_file (mc_home, "extfs" PATH_SEP_STR);
+     cmd =
+-	g_strconcat (mc_extfsdir, extfs_prefixes[fstype], " list ",
++	g_strconcat (_getscriptdir(), extfs_prefixes[fstype], " list ",
+ 		     local_name ? local_name : tmp, (char *) NULL);
+     g_free (tmp);
+-    g_free (mc_extfsdir);
+     open_error_pipe ();
+     result = popen (cmd, "r");
+     g_free (cmd);
+@@ -611,7 +639,6 @@ extfs_cmd (const char *extfs_cmd, struct archive *archive,
+     char *quoted_file;
+     char *quoted_localname;
+     char *archive_name;
+-    char *mc_extfsdir;
+     char *cmd;
+     int retval;
+ 
+@@ -621,13 +648,11 @@ extfs_cmd (const char *extfs_cmd, struct archive *archive,
+     archive_name = name_quote (extfs_get_archive_name (archive), 0);
+     quoted_localname = name_quote (localname, 0);
+ 
+-    mc_extfsdir = concat_dir_and_file (mc_home, "extfs" PATH_SEP_STR);
+-    cmd = g_strconcat (mc_extfsdir, extfs_prefixes[archive->fstype],
++    cmd = g_strconcat (_getscriptdir, extfs_prefixes[archive->fstype],
+ 		       extfs_cmd, archive_name, " ", quoted_file, " ",
+ 		       quoted_localname, (char *) NULL);
+     g_free (quoted_file);
+     g_free (quoted_localname);
+-    g_free (mc_extfsdir);
+     g_free (archive_name);
+ 
+     open_error_pipe ();
+@@ -641,7 +666,7 @@ static void
+ extfs_run (struct vfs_class *me, const char *file)
+ {
+     struct archive *archive = NULL;
+-    char *p, *q, *archive_name, *mc_extfsdir;
++    char *p, *q, *archive_name;
+     char *cmd;
+ 
+     if ((p = extfs_get_path (me, file, &archive, 0)) == NULL)
+@@ -650,10 +675,8 @@ extfs_run (struct vfs_class *me, const char *file)
+     g_free (p);
+ 
+     archive_name = name_quote (extfs_get_archive_name (archive), 0);
+-    mc_extfsdir = concat_dir_and_file (mc_home, "extfs" PATH_SEP_STR);
+-    cmd = g_strconcat (mc_extfsdir, extfs_prefixes[archive->fstype],
++    cmd = g_strconcat (_getscriptdir(), extfs_prefixes[archive->fstype],
+ 		       " run ", archive_name, " ", q, (char *) NULL);
+-    g_free (mc_extfsdir);
+     g_free (archive_name);
+     g_free (q);
+     shell_execute (cmd, 0);
+@@ -1286,24 +1309,20 @@ extfs_ungetlocalcopy (struct vfs_class *me, const char *path,
+     }
+ }
+ 
+-
+ static int extfs_init (struct vfs_class *me)
+ {
+     FILE *cfg;
+-    char *mc_extfsini;
+     char key[256];
+ 
+     (void) me;
+ 
+-    mc_extfsini = concat_dir_and_file (mc_home, "extfs" PATH_SEP_STR "extfs.ini");
+-    cfg = fopen (mc_extfsini, "r");
+-
+     /* We may not use vfs_die() message or message or similar,
+      * UI is not initialized at this time and message would not
+      * appear on screen. */
+-    if (!cfg) {
+-	fprintf (stderr, _("Warning: file %s not found\n"), mc_extfsini);
+-	g_free (mc_extfsini);
++    if ((cfg=fopen(_getini(), "r"))==NULL) {
++	fprintf (stderr, _("Warning: file %s not found\n"), mc_extfs_ini);
++	free (mc_extfs_ini);
++	mc_extfs_ini = NULL;
+ 	return 0;
+     }
+ 
+@@ -1317,9 +1336,10 @@ static int extfs_init (struct vfs_class *me)
+ 
+ 	if (*key == '[') {
+ 	    fprintf(stderr, "Warning: You need to update your %s file.\n",
+-		    mc_extfsini);
++		    mc_extfs_ini);
+ 	    fclose(cfg);
+-	    g_free (mc_extfsini);
++	    free (mc_extfs_ini);
++	    mc_extfs_ini = NULL;
+ 	    return 0;
+ 	}
+ 	if (*key == '#' || *key == '\n')
+@@ -1339,7 +1359,8 @@ static int extfs_init (struct vfs_class *me)
+ 	extfs_prefixes [extfs_no++] = g_strdup (key);
+     }
+     fclose(cfg);
+-    g_free (mc_extfsini);
++    free (mc_extfs_ini);
++    mc_extfs_ini = NULL;
+     return 1;
+ }
+ 
+diff --git a/vfs/extfs/Makefile.am b/vfs/extfs/Makefile.am
+index e7efbe4..e4149df 100644
+--- a/vfs/extfs/Makefile.am
++++ b/vfs/extfs/Makefile.am
+@@ -1,7 +1,11 @@
+ extfsdir = $(pkgdatadir)/extfs
++extfsconfdir = $(sysconfdir)/mc
++
++# Extfs config files
++EXTFS_CONF  = extfs.ini sfs.ini
+ 
+ # Files to install and distribute other than extfs scripts
+-EXTFS_MISC  = README extfs.ini sfs.ini
++EXTFS_MISC  = README
+ 
+ # Scripts hat don't need adaptation to the local system
+ EXTFS_CONST = bpp rpm trpm u7z
+@@ -57,6 +61,7 @@ EXTFS_OUT = 			\
+ if USE_VFS
+ extfs_DATA = $(EXTFS_MISC)
+ extfs_SCRIPTS = $(EXTFS_CONST) $(EXTFS_OUT)
++extfsconf_DATA = $(EXTFS_CONF)
+ endif
+ 
+ EXTRA_DIST = $(EXTFS_MISC) $(EXTFS_CONST)
+diff --git a/vfs/ftpfs.c b/vfs/ftpfs.c
+index 43d363c..a3a511b 100644
+--- a/vfs/ftpfs.c
++++ b/vfs/ftpfs.c
+@@ -73,6 +73,7 @@ What to do with this?
+ #include "../src/tty.h"		/* enable/disable interrupt key */
+ #include "../src/wtools.h"	/* message() */
+ #include "../src/main.h"	/* print_vfs_message */
++#include "../src/mc_conf.h"	/* MC global configuration */
+ #include "utilvfs.h"
+ #include "xdirentry.h"
+ #include "vfs.h"
+@@ -554,7 +555,7 @@ ftpfs_load_no_proxy_list (void)
+     if (mc_file)
+ 	return;
+ 
+-    mc_file = concat_dir_and_file (mc_home, "mc.no_proxy");
++    mc_file = _strcatdup(mc_global_confdir, "mc.no_proxy");
+     if (exist_file (mc_file) &&
+ 	(npf = fopen (mc_file, "r"))) {
+ 	while (fgets (s, sizeof (s), npf)) {
+diff --git a/vfs/sfs.c b/vfs/sfs.c
+index f4989ca..cac218a 100644
+--- a/vfs/sfs.c
++++ b/vfs/sfs.c
+@@ -38,6 +38,7 @@
+ #include "../src/tty.h"		/* enable/disable interrupt key */
+ #include "../src/wtools.h"	/* message() */
+ #include "../src/main.h"	/* print_vfs_message */
++#include "../src/mc_conf.h"	/* MC global configuration */
+ #include "utilvfs.h"
+ #include "vfs.h"
+ #include "vfs-impl.h"
+@@ -330,21 +331,26 @@ sfs_ungetlocalcopy (struct vfs_class *me, const char *path,
+ 
+ static int sfs_init (struct vfs_class *me)
+ {
+-    char *mc_sfsini;
++    char *mc_sfs_ini;
+     FILE *cfg;
+     char key[256];
+ 
+     (void) me;
+ 
+-    mc_sfsini = concat_dir_and_file (mc_home, "extfs" PATH_SEP_STR "sfs.ini");
+-    cfg = fopen (mc_sfsini, "r");
++    /* first try to use user's config file, then fallback to global one */
++    mc_sfs_ini = _strcatdup(mc_user_confdir, PATH_SEP_STR "sfs.ini");
++    if (!exist_file(mc_sfs_ini))
++    {
++	free(mc_sfs_ini);
++	mc_sfs_ini = _strcatdup(mc_global_confdir, PATH_SEP_STR "sfs.ini");
++    }
+ 
+-    if (!cfg){
+-	fprintf (stderr, _("Warning: file %s not found\n"), mc_sfsini);
+-	g_free (mc_sfsini);
++    if ((cfg=fopen(mc_sfs_ini, "r"))==NULL) {
++	fprintf (stderr, _("Warning: file %s not found\n"), mc_sfs_ini);
++	free (mc_sfs_ini);
+ 	return 0;
+     }
+-    g_free (mc_sfsini);
++    free (mc_sfs_ini);
+ 
+     sfs_no = 0;
+     while (sfs_no < MAXFS && fgets (key, sizeof (key), cfg)) {

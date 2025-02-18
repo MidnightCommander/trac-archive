@@ -1,0 +1,35 @@
+From 765b12cfaaf1c8e3c213030a2a16ab8a9cd8fd2d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 8 Jan 2019 06:55:21 +0000
+Subject: [PATCH] setup.c: Cleanup cppcheck style warning
+
+Found by cppcheck 1.81
+
+[src/setup.c:1079]: (style) The scope of the variable 'buffer' can be reduced.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/setup.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/setup.c b/src/setup.c
+index dec1accbd..04f770ee9 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -1076,7 +1076,6 @@ load_setup (void)
+     const char *profile;
+ 
+ #ifdef HAVE_CHARSET
+-    char *buffer;
+     const char *cbuffer;
+ 
+     load_codepages_list ();
+@@ -1138,6 +1137,8 @@ load_setup (void)
+ #ifdef HAVE_CHARSET
+     if (codepages->len > 1)
+     {
++        char *buffer;
++
+         buffer =
+             mc_config_get_string (mc_global.main_config, CONFIG_MISC_SECTION, "display_codepage",
+                                   "");

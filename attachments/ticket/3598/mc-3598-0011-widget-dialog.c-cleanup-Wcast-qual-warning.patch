@@ -1,0 +1,56 @@
+From 643254d461a4177efc2838aeea669c5de66bca97 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 15:09:10 +0000
+Subject: [PATCH] widget/dialog.c: cleanup -Wcast-qual warning
+
+In file included from ../../lib/widget.h:18:0,
+                 from dialog.c:43:
+dialog.c: In function 'dlg_find_widget_callback':
+../../lib/widget/widget-common.h:13:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define WIDGET(x) ((Widget *)(x))
+                    ^
+dialog.c:202:23: note: in expansion of macro 'WIDGET'
+     const Widget *w = WIDGET (a);
+                       ^
+dialog.c:203:22: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     widget_cb_fn f = (widget_cb_fn) b;
+                      ^
+In file included from ../../lib/widget.h:18:0,
+                 from dialog.c:43:
+dialog.c: In function 'dlg_find_widget_by_id':
+../../lib/widget/widget-common.h:13:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define WIDGET(x) ((Widget *)(x))
+                    ^
+dialog.c:582:17: note: in expansion of macro 'WIDGET'
+     Widget *w = WIDGET (a);
+                 ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/dialog.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index a53c046..19f9688 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -199,8 +199,8 @@ dlg_unfocus (WDialog * h)
+ static int
+ dlg_find_widget_callback (const void *a, const void *b)
+ {
+-    const Widget *w = WIDGET (a);
+-    widget_cb_fn f = (widget_cb_fn) b;
++    const Widget *w = CWIDGET (a);
++    const widget_cb_fn f = b;
+ 
+     return (w->callback == f) ? 0 : 1;
+ }
+@@ -579,7 +579,7 @@ frontend_dlg_run (WDialog * h)
+ static int
+ dlg_find_widget_by_id (gconstpointer a, gconstpointer b)
+ {
+-    Widget *w = WIDGET (a);
++    const Widget *w = CWIDGET (a);
+     unsigned long id = GPOINTER_TO_UINT (b);
+ 
+     return w->id == id ? 0 : 1;

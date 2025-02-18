@@ -1,0 +1,42 @@
+From 2b83e5bdadc3540770111c08ba55368c667e7ef5 Mon Sep 17 00:00:00 2001
+From: Janek Kozicki <janek_listy@wp.pl>
+Date: Sat, 22 May 2010 05:58:43 +0200
+Subject: [PATCH] ticket 2216 done: clicking on dirs in tree view will refresh the display
+
+---
+ src/tree.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/src/tree.c b/src/tree.c
+index 09b2d95..cc0e0ea 100644
+--- a/src/tree.c
++++ b/src/tree.c
+@@ -92,6 +92,7 @@ struct WTree
+ 
+ /* Forwards */
+ static void tree_rescan (void *data);
++static void tree_chdir_sel (WTree * tree, gboolean enter_key_was_pressed, gboolean mouse_clicked);
+ 
+ static tree_entry *
+ back_ptr (tree_entry * ptr, int *count)
+@@ -525,11 +526,17 @@ tree_move_to_bottom (WTree * tree)
+ static void
+ tree_event (WTree * tree, int y)
+ {
++    /* we want to refresh even if Active / xtree_mode is off */
++    gboolean refresh_always_tmp;
+     if (tree->tree_shown[y])
+     {
+         tree->selected_ptr = tree->tree_shown[y];
+         tree->topdiff = y;
+     }
++    refresh_always_tmp = xtree_mode;
++    xtree_mode = TRUE;
++    tree_chdir_sel (tree, FALSE, TRUE);
++    xtree_mode = refresh_always_tmp;
+     show_tree (tree);
+ }
+ 
+-- 
+1.7.1
+

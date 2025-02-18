@@ -1,0 +1,19 @@
+--- a/src/color.c	2009-01-31 23:31:58.000000000 +0100
++++ b/src/color.c	2009-01-31 23:27:05.000000000 +0100
+@@ -301,6 +301,7 @@
+ 
+     if (use_colors){
+ 	start_color ();
++	use_default_colors ();
+ 	configure_colors ();
+ 
+ #ifndef HAVE_SLANG
+@@ -410,7 +411,7 @@
+ void
+ mc_init_pair (int index, CTYPE foreground, CTYPE background)
+ {
+-    init_pair (index, foreground, background);
++    init_pair (index, foreground, (background==0?-1:background));
+     if (index > max_index)
+ 	max_index = index;
+ }

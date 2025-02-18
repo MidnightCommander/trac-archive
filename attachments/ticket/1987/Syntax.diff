@@ -1,0 +1,4 @@
+42,44d41
+< file ..\*\\.(cbl|CBL)$ Cobol\sProgram ^ PHASE.\*)
+< include cobol.syntax
+< 

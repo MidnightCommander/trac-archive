@@ -1,0 +1,39 @@
+diff -Naur mc-4.7.0-pre1~/edit/editcmd.c mc-4.7.0-pre1/edit/editcmd.c
+--- mc-4.7.0-pre1~/edit/editcmd.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd.c	2009-08-07 17:13:25.000000000 +0300
+@@ -1280,11 +1280,12 @@
+     gsize search_end;
+ 
+     if (edit->replace_backwards) {
+-	search_end = edit->curs1-1;
++	search_end = edit->last_byte;
+ 	while ((int) search_start >= 0) {
+-	    if (search_end - search_start > edit->search->original_len && mc_search_is_fixed_search_str(edit->search))
+-		search_end = search_start + edit->search->original_len +1;
+-	    if ( mc_search_run(edit->search, (void *) edit, search_start, search_end, len))
++	    if (search_end > search_start + edit->search->original_len && mc_search_is_fixed_search_str(edit->search))
++		search_end = search_start + edit->search->original_len;
++	    if ( mc_search_run(edit->search, (void *) edit, search_start, search_end, len)
++		&& edit->search->normal_offset == search_start )
+ 	    {
+ 		return TRUE;
+ 	    }
+diff -Naur mc-4.7.0-pre1~/src/view.c mc-4.7.0-pre1/src/view.c
+--- mc-4.7.0-pre1~/src/view.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/view.c	2009-08-07 17:15:36.000000000 +0300
+@@ -3146,12 +3146,13 @@
+     if (view->search_backwards) {
+         search_end = view_get_filesize (view);
+         while ((int) search_start >= 0) {
+-            if (search_end - search_start > view->search->original_len && mc_search_is_fixed_search_str(view->search))
++            if (search_end > search_start + view->search->original_len && mc_search_is_fixed_search_str(view->search))
+                 search_end = search_start + view->search->original_len;
+ 
+             view_read_start (view, &view->search_onechar_info, search_start);
+ 
+-            if ( mc_search_run(view->search, (void *) view, search_start, search_end, len))
++            if ( mc_search_run(view->search, (void *) view, search_start, search_end, len)
++		&& view->search->normal_offset == search_start )
+                 return TRUE;
+ 
+             search_start--;

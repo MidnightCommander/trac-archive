@@ -1,0 +1,71 @@
+--- mc-4.8.14/src/editor/edit-impl.h
++++ mc-4.8.14-1/src/editor/edit-impl.h
+@@ -61,7 +61,7 @@
+ 
+ /* Tabs spaces: (sofar only HALF_TAB_SIZE is used: */
+ #define TAB_SIZE      option_tab_spacing
+-#define HALF_TAB_SIZE ((int) option_tab_spacing / 2)
++#define HALF_TAB_SIZE (option_fake_half_tabs ? ((int) option_tab_spacing / 2) : option_tab_spacing)
+ 
+ /* max count stack files */
+ #define MAX_HISTORY_MOVETO     50
+--- mc-4.8.14/src/editor/edit.c
++++ mc-4.8.14-1/src/editor/edit.c
+@@ -1628,10 +1628,7 @@
+ 
+         edit_cursor_move (edit, cur_bol - edit->buffer.curs1);
+ 
+-        if (option_fake_half_tabs)
+-            del_tab_width = HALF_TAB_SIZE;
+-        else
+-            del_tab_width = option_tab_spacing;
++        del_tab_width = HALF_TAB_SIZE;
+ 
+         next_char = edit_buffer_get_current_byte (&edit->buffer);
+         if (next_char == '\t')
+@@ -2952,7 +2949,7 @@
+     else
+     {
+         edit->over_col = 0;
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer))
++        if (is_in_indent (&edit->buffer))
+         {
+             long fake_half_tabs;
+ 
+@@ -3445,8 +3442,7 @@
+             while (edit_buffer_get_previous_byte (&edit->buffer) != '\n' && edit->buffer.curs1 > 0)
+                 edit_backspace (edit, TRUE);
+         }
+-        else if (option_fake_half_tabs && is_in_indent (&edit->buffer)
+-                 && right_of_four_spaces (edit))
++        else if (is_in_indent (&edit->buffer) && right_of_four_spaces (edit))
+         {
+             int i;
+ 
+@@ -3465,7 +3461,7 @@
+             if (option_cursor_beyond_eol && edit->over_col > 0)
+                 edit_insert_over (edit);
+ 
+-            if (option_fake_half_tabs && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
++            if (is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
+             {
+                 int i;
+ 
+@@ -3531,7 +3527,7 @@
+         edit->column_highlight = 1;
+     case CK_Left:
+     case CK_MarkLeft:
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer) && right_of_four_spaces (edit))
++        if (is_in_indent (&edit->buffer) && right_of_four_spaces (edit))
+         {
+             if (option_cursor_beyond_eol && edit->over_col > 0)
+                 edit->over_col--;
+@@ -3546,7 +3542,7 @@
+         edit->column_highlight = 1;
+     case CK_Right:
+     case CK_MarkRight:
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
++        if (is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
+         {
+             edit_cursor_move (edit, HALF_TAB_SIZE);
+             edit->force &= (0xFFF - REDRAW_CHAR_ONLY);

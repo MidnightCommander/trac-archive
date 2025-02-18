@@ -1,0 +1,1 @@
+ '--with-subshell' '--enable-vfs-sftp' '--enable-vfs-smb' '--enable-charset' '--with-slang-includes=/usr/local/include' '--prefix=/usr/local' '--sysconfdir=/etc' '--mandir=/usr/local/man' '--infodir=/usr/local/info' '--localstatedir=/var' '--disable-silent-rules' '--disable-gtk-doc' 'CC=cc' 'CFLAGS=-O2 -pipe -g' 'LIBS=-lm'

@@ -1,0 +1,556 @@
+diff --git a/configure.ac b/configure.ac
+index 0066dbf..957e958 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -25,6 +25,21 @@ dnl Keep this check close to the beginning, so that the users
+ dnl without any glib won't have their time wasted by other checks.
+ dnl
+ 
++AC_DEFINE(WITH_GLIB, 1, [Use Glib functions])
++
++dnl TODO: make option --with-glib like this:
++dnl 
++dnl AC_ARG_WITH(glib, 
++dnl 	[AS_HELP_STRING([--with-glib], [Use glib (default is yes)])],
++dnl 	[with_glib=$enableval],
++dnl 	[with_glib=yes])
++dnl 
++dnl if test x${with_glib} = xyes; then
++dnl dnl	some checking stuff
++dnl	AC_DEFINE(WITH_GLIB, 1, [Use Glib functions])
++dnl fi
++
++
+ AC_ARG_WITH(glib12, 
+ 	[  --with-glib12            Force using glib 1.2.x [[no]]])
+ 
+diff --git a/mhl/README b/mhl/README
+new file mode 100644
+index 0000000..83fb3d7
+--- /dev/null
++++ b/mhl/README
+@@ -0,0 +1,103 @@
++
++Micro helper library.
++--
++
++This is a tiny library of helper functions/macros. 
++
++    * MACRO-FUNC:	macro w/ function syntax. (might become inline func)
++    * INLINE-FUNC:	inline function (might become macro func)
++    * MACRO:		strictly a macro (may never become a inline func)
++
++--
++
++memory.h:	Memory management functions
++
++    * mhl_mem_alloc_u(sz)				[MACRO-FUNC]
++    
++	Allocate sz bytes on stack, unitialized
++
++    * mhl_mem_alloc_z(sz)				[INLINE-FUNC]
++
++	Allocate sz bytes on stack, zero'ed
++
++    * mhl_mem_free(ptr)					[INLINE-FUNC]
++
++	Free chunk @ptr (MUST be allocated w/ mhl_mem_alloc_*()),
++	passing NULL is graciously allowed
++
++    * mhl_mem_realloc(ptr,newsize) -> returns newptr
++    
++	Re-allocates a heap chunk, just like realloc()
++
++    * MHL_PTR_FREE(ptr)					[MACRO-ONLY]
++    
++	like mhl_mem_free(), but with ptr as a variable that gets cleared
++	(use this as shortcut to "mhl_mem_free(foo); foo = NULL")
++
++string.h:	String helpers
++
++    * mhl_str_dup(const char*s) -> char*
++
++	[MACRO-FUNC] Safe version of strdup(), when NULL passed, returns strdup("")
++
++    * mhl_str_ndup(const char* s) -> char*
++
++	[MACRO-FUNC] Safe version of strndup(), when NULL passed, returns strdup("")
++
++    * mhl_str_trim(char* s) -> char*
++
++	[INLINE-FUNC] Trims the string (removing leading and trailing whitespacs), 
++	WITHIN the passed buffer, returning the string s itself.
++	When NULL passed returns NULL.
++
++    * mhl_str_toupper(char* s) -> char*
++
++	[INLINE-FUNC] Converts the string in passed buffer to uppercase, returns that
++	buffer. When NULL passed returns NULL.
++
++    * mhl_str_concat_1(const char* base, const char* one) -> char*
++
++	[INLINE-FUNC] Concatenates the string one onto the string base and returns the
++	result in a newly allocated buffer (free it w/ mhl_mem_free()).
++	For NULL strings, "" is assumed.
++
++    * mhl_str_concat_2(const char* base,const char* one,const char* two) -> char*
++      mhl_str_concat_3(const char* base,const char* one,const char* two,const char* three) -> char*
++      mhl_str_concat_4(const char* base,const char* one,const char* two,const char* three,const char* four) -> char*
++      mhl_str_concat_5(const char* base,const char* one,const char* two,const char* three,const char* four,const char* five) -> char*
++      mhl_str_concat_6(const char* base,const char* one,const char* two,const char* three,const char* four,const char* five,const char* six) -> char*
++      mhl_str_concat_7(const char* base,const char* one,const char* two,const char* three,const char* four,const char* five,const char* six,const char* seven) -> char*
++    
++	[INLINE-FUNC] Like str_concat_1() but adding more strings.
++
++    * mhl_str_reverse(char* str)	-> char*
++    
++	[INLINE-FUNC] Reverses the string in passed buffer and returns the buffer ptr itself.
++	If NULL is passed, returns NULL.
++
++shell_escape.h:	Shell-style string escaping
++
++    * mhl_shell_escape_toesc(char c) 	-> bool
++
++	[MACRO-FUNC] returns true when given char has to be escaped
++
++    * mhl_shell_escape_nottoesc(char c)	-> bool
++
++	[MACRO-FUNC] opposite of mhl_shell_escape_toesc()
++
++    * mhl_shell_escape_dup(const char* s) -> char*
++
++	[INLINE-FUNC] escapes an string and returns the result in a malloc()'ed chunk
++	Passing NULL returns an empty malloc()ed string.
++
++    * mhl_shell_unescape_buf(char* s) -> char*
++
++	[INLINE-FUNC] unescapes the string into given buffer (changes buffer!) and 
++	returns ptr to the buffer itself. When NULL passed returns NULL.
++
++env.h:	Environment variable helpers
++
++    * mhl_getenv_dup(const char* n)	-> char*
++    
++	[MACRO-FUNC] like getenv() but returns an strdup()'ed copy. When NULL passed,
++	returns strdup("")
+diff --git a/mhl/env.h b/mhl/env.h
+new file mode 100644
+index 0000000..4d02554
+--- /dev/null
++++ b/mhl/env.h
+@@ -0,0 +1,6 @@
++#ifndef __MHL_ENV_H
++#define __MHL_ENV_H
++
++#define mhl_getenv_dup(name)	(mhl_str_dup(name ? getenv(name) : ""))
++
++#endif
+diff --git a/mhl/memory.h b/mhl/memory.h
+new file mode 100644
+index 0000000..20db6c0
+--- /dev/null
++++ b/mhl/memory.h
+@@ -0,0 +1,100 @@
++#ifndef __MHL_MEM
++#define __MHL_MEM
++
++#if defined _AIX && !defined REGEX_MALLOC
++  #pragma alloca
++#endif
++
++#include <config.h>
++#include <memory.h>
++#include <stdlib.h>
++
++#ifdef __GNUC__
++#    define alloca __builtin_alloca
++#else
++#    ifdef _MSC_VER
++#        include <malloc.h>
++#        define alloca _alloca
++#    else
++#        if HAVE_ALLOCA_H
++#            include <alloca.h>
++#        else
++#            ifdef _AIX
++#pragma alloca
++#            else
++#                ifndef alloca /* predefined by HP cc +Olibcalls */
++char *alloca ();
++#                endif
++#            endif
++#        endif
++#    endif
++#endif
++
++#ifndef HAVE_ALLOCA
++#    include <stdlib.h>
++#    if !defined(STDC_HEADERS) && defined(HAVE_MALLOC_H)
++#        include <malloc.h>
++#    endif
++#    define alloca malloc
++#endif
++
++#ifdef WITH_GLIB
++#	include <glib.h>
++
++#	if GLIB_MAJOR_VERSION >= 2
++		/* allocate a chunk of stack memory, uninitialized */
++#		define 	mhl_mem_alloc_u(sz)	(g_try_malloc(sz))
++
++		/* allocate a chunk of stack memory, zeroed */
++#		define		mhl_mem_alloc_z(sz)	(g_try_malloc0(sz))
++
++		/* re-alloc memory chunk */
++#		define		mhl_mem_realloc(ptr,sz)	(g_try_realloc(ptr,sz))
++
++#	else
++
++		/* allocate a chunk of stack memory, uninitialized */
++#		define 	mhl_mem_alloc_u(sz)	(g_malloc(sz))
++
++		/* allocate a chunk of stack memory, zeroed */
++#		define		mhl_mem_alloc_z(sz)	(g_malloc0(sz))
++
++		/* re-alloc memory chunk */
++#		define		mhl_mem_realloc(ptr,sz)	(g_realloc(ptr,sz))
++
++#	endif
++
++	/* allocate a chunk on stack - automatically free'd on function exit */
++#	define		mhl_stack_alloc(sz)	(g_alloca(sz))
++
++#else
++
++	/* allocate a chunk of stack memory, uninitialized */
++#	define 	mhl_mem_alloc_u(sz)	(malloc(sz))
++
++	/* allocate a chunk of stack memory, zeroed */
++#	define		mhl_mem_alloc_z(sz)	(calloc(1,sz))
++
++	/* re-alloc memory chunk */
++#	define		mhl_mem_realloc(ptr,sz)	(realloc(ptr,sz))
++
++	/* allocate a chunk on stack - automatically free'd on function exit */
++#	define		mhl_stack_alloc(sz)	(alloca(sz))
++
++#endif
++
++/* free a chunk of memory from stack, passing NULL does no harm */
++static inline void mhl_mem_free(void* ptr)
++{
++    if (ptr)
++#ifdef WITH_GLIB
++	g_free(ptr);
++#else
++	free(ptr);
++#endif
++}
++
++/* free an ptr and NULL it */
++#define 	MHL_PTR_FREE(ptr)	do { mhl_mem_free(ptr); (ptr) = NULL; } while (0); 
++
++#endif
+diff --git a/mhl/shell_escape.h b/mhl/shell_escape.h
+new file mode 100644
+index 0000000..2533388
+--- /dev/null
++++ b/mhl/shell_escape.h
+@@ -0,0 +1,112 @@
++#ifndef __MHL_SHELL_ESCAPE_H
++#define __MHL_SHELL_ESCAPE_H
++
++/* Micro helper library: shell escaping functions */
++
++#include <string.h>
++#include <stdlib.h>
++
++#define mhl_shell_escape_toesc(x)	\
++    (((x)==' ')||((x)=='!')||((x)=='#')||((x)=='$')||((x)=='%')||	\
++     ((x)=='(')||((x)==')')||((x)=='\'')||((x)=='&')||((x)=='~')||	\
++     ((x)=='{')||((x)=='}')||((x)=='[')||((x)==']')||((x)=='`')||	\
++     ((x)=='?')||((x)=='|')||((x)=='<')||((x)=='>')||((x)==';')||	\
++     ((x)=='*')||((x)=='\\')||((x)=='"'))
++
++#define mhl_shell_escape_nottoesc(x)	\
++    (((x)!=0) && (!mhl_shell_escape_toesc((x))))
++
++static inline char* mhl_shell_escape_dup(const char* src)
++{
++    if ((src==NULL)||(!(*src)))
++	return strdup("");
++
++    char* buffer = calloc(1, strlen(src)*2+2);
++    char* ptr = buffer;
++
++    /* look for the first char to escape */
++    while (1)
++    {
++	char c;
++	/* copy over all chars not to escape */
++	while ((c=(*src)) && mhl_shell_escape_nottoesc(c))
++	{
++	    *ptr = c;
++	    ptr++;
++	    src++;
++	}
++
++	/* at this point we either have an \0 or an char to escape */
++	if (!c)
++	    return buffer;
++
++	*ptr = '\\';
++	ptr++;
++	*ptr = c;
++	ptr++;
++	src++;
++    }
++}
++
++/* shell-unescape within a given buffer (writing to it!) */
++static inline char* mhl_shell_unescape_buf(char* text)
++{
++    if (!text)
++	return NULL;
++
++    // look for the first \ - that's quick skipover if there's nothing to escape
++    char* readptr = text;
++    while ((*readptr) && ((*readptr)!='\\'))	readptr++;
++    if (!(*readptr)) return text;
++
++    // if we're here, we're standing on the first '\'
++    char* writeptr = readptr;
++    char c;
++    while ((c = *readptr))
++    {
++	if (c=='\\')
++	{
++	    readptr++;
++	    switch ((c = *readptr))
++	    {
++		case 'n':	(*writeptr) = '\n'; writeptr++;	break;
++		case 'r':	(*writeptr) = '\r'; writeptr++;	break;
++		case 't':	(*writeptr) = '\t'; writeptr++;	break;
++
++		case ' ':
++		case '\\':
++		case '#':
++		case '$':
++		case '%':
++		case '(':
++		case ')':
++		case '[':
++		case ']':
++		case '{':
++		case '}':
++		case '<':
++		case '>':
++		case '!':
++		case '*':
++		case '?':
++		case '~':
++		case '`':
++		case '"':
++		case ';':
++		default:
++		    (*writeptr) = c; writeptr++; break;
++	    }
++	}
++	else	// got a normal character
++	{
++	    (*writeptr) = *readptr;
++	    writeptr++;
++	}
++	readptr++;
++    }
++    *writeptr = 0;
++
++    return text;
++}
++
++#endif
+diff --git a/mhl/strhash.h b/mhl/strhash.h
+new file mode 100644
+index 0000000..76c14e8
+--- /dev/null
++++ b/mhl/strhash.h
+@@ -0,0 +1,49 @@
++#ifndef __MHL_STRHASH_H
++#define __MHL_STRHASH_H
++
++#include <hash.h>
++#include "../mhl/memory.h"
++
++static void __mhl_strhash_free_key(void* ptr)
++{
++    mhl_mem_free(ptr);
++}
++
++static void __mhl_strhash_free_dummy(void* ptr)
++{
++}
++
++typedef	hash	MHL_STRHASH;
++
++#define MHL_STRHASH_DECLARE(n)		MHL_STRHASH n;
++
++#define MHL_STRHASH_INIT(h)			\
++	hash_initialise(h, 997U, 		\
++		hash_hash_string, 		\
++		hash_compare_string, 		\
++		hash_copy_string, 		\
++		__mhl_strhash_free_key, 	\
++		__mhl_strhash_free_dummy)
++
++#define MHL_STRHASH_DECLARE_INIT(n)		\
++	MHL_STRHASH_DECLARE(n);			\
++	MHL_STRHASH_INIT(&n);
++
++#define MHL_STRHASH_DEINIT(ht)			\
++	hash_deinitialise(ht)
++
++static inline void mhl_strhash_addkey(MHL_STRHASH* ht, const char* key, void* value)
++{
++    hash_insert(ht, (char*)key, value);
++}
++
++static inline void* mhl_strhash_lookup(MHL_STRHASH* ht, const char* key)
++{
++    void* retptr;
++    if (hash_retrieve(ht, (char*)key, &retptr))
++	return retptr;
++    else
++	return NULL;
++}
++
++#endif
+diff --git a/mhl/string.h b/mhl/string.h
+new file mode 100644
+index 0000000..fa99a7b
+--- /dev/null
++++ b/mhl/string.h
+@@ -0,0 +1,124 @@
++#ifndef __MHL_STRING_H
++#define __MHL_STRING_H
++
++#include <ctype.h>
++#include <stdarg.h>
++#include "../mhl/memory.h"
++
++#define	mhl_str_dup(str)	((str ? strdup(str) : strdup("")))
++#define mhl_str_ndup(str,len)	((str ? strndup(str,len) : strdup("")))
++#define mhl_str_len(str)	((str ? strlen(str) : 0))
++
++static inline char* mhl_str_trim(char* str)
++{
++    if (!str) return NULL;	// NULL string ?! bail out.
++
++    // find the first non-space
++    char* start; for (start=str; ((*str) && (!isspace(*str))); str++);
++
++    // only spaces ?
++    if (!(*str)) { *str = 0; return str; }
++
++    // get the size (cannot be empty - catched above)
++    size_t _sz = strlen(str);
++
++    // find the proper end
++    char* end;
++    for (end=(str+_sz-1); ((end>str) && (isspace(*end))); end--);
++    end[1] = 0;		// terminate, just to be sure
++
++    // if we have no leading spaces, just trucate
++    if (start==str) { end++; *end = 0; return str; }
++
++
++    // if it' only one char, dont need memmove for that    
++    if (start==end) { str[0]=*start; str[1]=0; return str; }
++
++    // by here we have a (non-empty) region between start end end 
++    memmove(str,start,(end-start+1));
++    return str;
++}
++
++static inline void mhl_str_toupper(char* str)
++{
++    if (str)
++	for (;*str;str++)
++	    *str = toupper(*str);
++}
++
++#define __STR_CONCAT_MAX	32
++/* _NEVER_ call this function directly ! */
++static inline char* __mhl_str_concat_hlp(const char* base, ...)
++{
++    static const char* arg_ptr[__STR_CONCAT_MAX];
++    static size_t      arg_sz[__STR_CONCAT_MAX];
++    int         count = 0;
++    size_t      totalsize = 0;
++
++    // first pass: scan through the params and count string sizes
++    va_list par;
++
++    if (base)
++    {
++	arg_ptr[0] = base;
++	arg_sz[0]  = totalsize = strlen(base);
++	count = 1;
++    }
++
++    va_list args;
++    va_start(args,base);
++    char* a;
++    // note: we use ((char*)(1)) as terminator - NULL is a valid argument !
++    while ((a = va_arg(args, char*))!=(char*)1)
++    {
++//	printf("a=%u\n", a);
++	if (a)
++	{
++	    arg_ptr[count] = a;
++	    arg_sz[count]  = strlen(a);
++	    totalsize += arg_sz[count];
++	    count++;
++	}
++    }
++
++    if (!count)
++	return mhl_str_dup("");
++
++    // now as we know how much to copy, allocate the buffer
++    char* buffer = (char*)mhl_mem_alloc_u(totalsize+2);
++    char* current = buffer;
++    int x=0;
++    for (x=0; x<count; x++)
++    {
++	memcpy(current, arg_ptr[x], arg_sz[x]);
++	current += arg_sz[x];
++    }
++
++    *current = 0;
++    return buffer;
++}
++
++#define mhl_str_concat(...)	(__mhl_str_concat_hlp(__VA_ARGS__, (char*)(1)))
++
++static inline char* mhl_str_reverse(char* ptr)
++{
++    if (!ptr) 	 		return NULL;	// missing string
++    if (!(ptr[0] && ptr[1]))	return ptr;	// empty or 1-ch string
++
++    size_t _sz = strlen(ptr);
++    char* start = ptr;
++    char* end   = ptr+_sz-1;
++
++    while (start<end)
++    {
++	char c = *start;
++	*start = *end;
++	*end = c;
++	start++;
++	end--;
++    }
++
++    return ptr;
++}
++
++#endif

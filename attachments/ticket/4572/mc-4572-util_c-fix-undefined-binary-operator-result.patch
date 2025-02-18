@@ -1,0 +1,54 @@
+From 7a42d4f0e5f40f18d395cfc7881f70c44c1193f1 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 19 Dec 2024 20:00:00 +0000
+Subject: [PATCH] (util.c) fix Undefined Binary Operator Result
+
+lib/util.c:493:28: warning: The left operand of '!=' is a garbage value due to array index out of bounds [clang-analyzer-core.UndefinedBinaryOperatorResult]
+  493 |     for (j = units; sfx[j] != NULL; j++)
+      |                     ~~~~~~ ^
+
+ - verify and limit input 'units' value
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/util.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index ecc219ed8..a5a977312 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -460,8 +460,13 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+     /* *INDENT-ON* */
+ 
+     const char *const *sfx = use_si ? suffix_lc : suffix;
++    int sfx_count = 0;
+     int j = 0;
+ 
++    while (sfx[sfx_count]) {
++        sfx_count++;
++    }
++
+     if (len == 0)
+         len = 9;
+ #if SIZEOF_UINTMAX_T == 8
+@@ -480,7 +485,7 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+      * if uintmax_t type is too small
+      */
+     if (use_si)
+-        for (j = 0; j < units; j++)
++        for (j = 0; j < MIN (units, sfx_count - 1); j++)
+         {
+             uintmax_t size_remain;
+ 
+@@ -490,7 +495,7 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+             size += size_remain;        /* Re-add remainder lost by division/multiplication */
+         }
+ 
+-    for (j = units; sfx[j] != NULL; j++)
++    for (j = MIN (units, sfx_count - 1); sfx[j] != NULL; j++)
+     {
+         if (size == 0)
+         {

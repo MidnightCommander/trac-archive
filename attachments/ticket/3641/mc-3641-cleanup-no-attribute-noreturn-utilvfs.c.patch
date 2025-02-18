@@ -1,0 +1,30 @@
+From 6edb7f177e0a24a52189350468bc67a478f0d03a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 19:46:22 +0000
+Subject: [PATCH] (utilvfs.c)  Cleanup no attribute noreturn warning
+
+Cleanup -Wsuggest-attribute=noreturn warning.
+
+utilvfs.c: In function 'vfs_die':
+utilvfs.c:354:1: warning: function might be candidate for attribute 'noreturn' [-Wsuggest-attribute=noreturn]
+ vfs_die (const char *m)
+ ^~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/vfs/utilvfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/vfs/utilvfs.c b/lib/vfs/utilvfs.c
+index 6b6ef38..2cf438e 100644
+--- a/lib/vfs/utilvfs.c
++++ b/lib/vfs/utilvfs.c
+@@ -350,7 +350,7 @@ vfs_url_split (const char *path, int default_port, vfs_url_flags_t flags)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-void
++void __attribute__ ((noreturn))
+ vfs_die (const char *m)
+ {
+     message (D_ERROR, _("Internal error:"), "%s", m);

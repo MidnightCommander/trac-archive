@@ -1,0 +1,22 @@
+--- widget.c.origin	2009-06-15 00:55:42.000000000 +0400
++++ widget.c	2009-06-15 01:57:31.000000000 +0400
+@@ -1415,13 +1415,14 @@
+    int last  = max (x_first, x_last);
+     size_t len;
+ 
++   if (in->mark > first)
++       in->mark  = first;
+    in->point = first;
+-   in->mark  = first;
+-    last = str_offset_to_pos (in->buffer, last);
+-    first = str_offset_to_pos (in->buffer, first);
+-    len = strlen (&in->buffer[last]) + 1;
+-    memmove (&in->buffer[first], &in->buffer[last], len);
+-    in->charpoint = 0;
++   last = str_offset_to_pos (in->buffer, last);
++   first = str_offset_to_pos (in->buffer, first);
++   len = strlen (&in->buffer[last]) + 1;
++   memmove (&in->buffer[first], &in->buffer[last], len);
++   in->charpoint = 0;
+    in->need_push = 1;
+ }

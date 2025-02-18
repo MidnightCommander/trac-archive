@@ -1,0 +1,17 @@
+--- mc-4.8.26/src/usermenu.c.org	2021-05-14 03:48:51.393310883 +0200
++++ mc-4.8.26/src/usermenu.c	2021-05-14 03:49:07.586643857 +0200
+@@ -546,7 +546,13 @@
+ 
+     if (run_view)
+     {
+-        mcview_viewer (vfs_path_as_str (file_name_vpath), NULL, 0, 0, 0);
++        /* execute the command indirectly to allow execution even
++         * on no-exec filesystems. */
++        char *cmd;
++
++        cmd = g_strconcat ("/bin/sh ", vfs_path_as_str (file_name_vpath), (char *) NULL);
++
++        mcview_viewer (cmd, NULL, 0, 0, 0);
+         dialog_switch_process_pending ();
+     }
+     else

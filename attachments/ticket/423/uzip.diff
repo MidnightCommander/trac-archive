@@ -1,0 +1,54 @@
+--- uzip.orig	2009-06-20 10:19:18.000000000 +0200
++++ uzip	2009-06-20 14:20:18.000000000 +0200
+@@ -38,9 +38,14 @@
+ # (perm) (?) (?) (size) (?) (zippedsize) (method) (yyyy)(mm)(dd)(HH)(MM) (fname)
+ my $regex_zipinfo_line = qr"^(\S{7,10})\s+(\d+\.\d+)\s+(\S+)\s+(\d+)\s+(\S\S)\s+(\d+)\s+(\S{4})\s+(\d{4})(\d\d)(\d\d)\.(\d\d)(\d\d)(\d\d)\s(.*)$";
+ 
++# unzip 5.x
+ #     2891  Defl:N     1435  50%  03-30-00 21:19  50cbaaf8  ./edit.html
+ # (size) (method) (zippedsize) (zipratio) (mm)(dd)(yy)(HH)(MM) (cksum) (fname)
+-my $regex_nonzipinfo_line = qr"^\s*(\d+)\s+(\S+)\s+(\d+)\s+(-?\d+\%)\s+(\d?\d)-(\d?\d)-(\d\d)\s+(\d?\d):(\d\d)\s+([0-9a-f]+)\s\s(.*)$";
++my $regex_nonzipinfo_line_5 = qr"^\s*(\d+)\s+(\S+)\s+(\d+)\s+(-?\d+\%)\s+(\d?\d)-(\d?\d)-(\d\d)\s+(\d?\d):(\d\d)\s+([0-9a-f]+)\s\s(.*)$";
++# unzip 6.x 
++#     2891  Defl:N     1435  50%  2000-03-30 21:19  50cbaaf8  ./edit.html
++# (size) (method) (zippedsize) (zipratio) (yyyy)(mm)(dd)(HH)(MM) (cksum) (fname)
++my $regex_nonzipinfo_line_6 = qr"^\s*(\d+)\s+(\S+)\s+(\d+)\s+(-?\d+\%)\s+(\d{4})-(\d?\d)-(\d\d)\s+(\d?\d):(\d\d)\s+([0-9a-f]+)\s\s(.*)$";
+ 
+ #
+ # Main code
+@@ -86,7 +91,7 @@
+ 		    $zipfs_realpathname_table->{zipfs_canonicalize_pathname($fname)} = $fname;
+ 		}
+ 	    } else {
+-		if ($line =~ $regex_nonzipinfo_line) {
++		if ($line =~ $regex_nonzipinfo_line_5 || $line =~ $regex_nonzipinfo_line_6) {
+ 		    my ($fname) = ($11);
+ 		    $zipfs_realpathname_table->{zipfs_canonicalize_pathname($fname)} = $fname;
+ 		}
+@@ -259,11 +264,23 @@
+ 	} else {
+ 		while (<PIPE>) {
+ 			chomp;
+-			my @match = /$regex_nonzipinfo_line/;
+-			next if ($#match != 10);
+-			my @rmatch = ('', '', 'unknown', $match[0], '', $match[2], $match[1],
++			my (@match, @rmatch);
++			if (@match = /$regex_nonzipinfo_line_5/)
++			{
++				@rmatch = ('', '', 'unknown', $match[0], '', $match[2], $match[1],
+ 					$match[6] + ($match[6] < 70 ? 2000 : 1900), $match[4], $match[5],
+ 					$match[7], $match[8], "00", $match[10]);
++			}
++			elsif (@match = /$regex_nonzipinfo_line_6/)
++			{
++				@rmatch = ('', '', 'unknown', $match[0], '', $match[2], $match[1],
++					$match[4], $match[5], $match[6],
++					$match[7], $match[8], "00", $match[10]);
++			}
++			else
++			{
++				next;
++			}
+ 			&checked_print_file(@rmatch);
+ 		}
+ 	}

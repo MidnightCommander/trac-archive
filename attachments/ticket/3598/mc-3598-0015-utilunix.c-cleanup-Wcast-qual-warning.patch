@@ -1,0 +1,59 @@
+From d8b935c509254f6a3523184a59fb40837bea398a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 11:27:18 +0000
+Subject: [PATCH] utilunix.c: cleanup -Wcast-qual warning
+
+utilunix.c:218:38: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         g_ptr_array_add (args_array, (gpointer) shell);
+                                      ^
+utilunix.c:219:38: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         g_ptr_array_add (args_array, (gpointer) "-c");
+                                      ^
+utilunix.c:232:38: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         g_ptr_array_add (args_array, (gpointer) shell);
+                                      ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/utilunix.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index f4a81d5..ed873f5 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -215,8 +215,8 @@ my_system_make_arg_array (int flags, const char *shell, char **execute_name)
+ 
+     if ((flags & EXECUTE_AS_SHELL) != 0)
+     {
+-        g_ptr_array_add (args_array, (gpointer) shell);
+-        g_ptr_array_add (args_array, (gpointer) "-c");
++        g_ptr_array_add (args_array, g_strdup (shell));
++        g_ptr_array_add (args_array, g_strdup ("-c"));
+         *execute_name = g_strdup (shell);
+     }
+     else
+@@ -229,7 +229,7 @@ my_system_make_arg_array (int flags, const char *shell, char **execute_name)
+         else
+             *execute_name = g_strndup (shell, (gsize) (shell_token - shell));
+ 
+-        g_ptr_array_add (args_array, (gpointer) shell);
++        g_ptr_array_add (args_array, g_strdup (shell));
+     }
+     return args_array;
+ }
+@@ -485,12 +485,13 @@ my_systemv_flags (int flags, const char *command, char *const argv[])
+     args_array = my_system_make_arg_array (flags, command, &execute_name);
+ 
+     for (; argv != NULL && *argv != NULL; argv++)
+-        g_ptr_array_add (args_array, *argv);
++        g_ptr_array_add (args_array, g_strdup (*argv));
+ 
+     g_ptr_array_add (args_array, NULL);
+     status = my_systemv (execute_name, (char *const *) args_array->pdata);
+ 
+     g_free (execute_name);
++    g_ptr_array_foreach (args_array, (GFunc) g_free, NULL);
+     g_ptr_array_free (args_array, TRUE);
+ 
+     return status;

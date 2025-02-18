@@ -1,0 +1,16 @@
+--- iso9660.b	2014-03-17 22:35:33.967807336 +0100
++++ iso9660	2014-03-17 22:31:41.847807915 +0100
+@@ -40,11 +40,11 @@
+     fi
+     local dir attr ln usr gr sz dt1 dt2 dt3 nm len name lsl r
+     dir="${2:-/}"
+-    lsl=$($XORRISO -abort_on FATAL -dev stdio:"$1" -cd "$dir" -lsl 2> /dev/null ) 
++    lsl=$($XORRISO -abort_on FATAL -dev stdio:"$1" -cd "$dir" -lsl 2> /dev/null | /bin/grep "^[-d]" ) 
+     r=$? 
+     test $r -gt 0 && return $r 
+ 
+-    echo "$lsl" | /bin/grep "^[-d]" | \
++    echo "$lsl" |
+     while read attr ln usr gr sz dt1 dt2 dt3 nm ; do
+         len=$((${#nm} - 1))
+         name=$(printf -- "$nm" | cut -c2-$len)  # remove quotes 

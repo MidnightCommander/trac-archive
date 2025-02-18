@@ -1,0 +1,57 @@
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index abea936..ab03e8a 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -1261,6 +1261,42 @@ subshell_name_quote (const char *s)
+     return ret;
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++/**
++ *  This function checks the pipe from which we receive data
++ *  about the current working directory. If there is any data
++ *  waiting, we clear it.
++ */
++
++static void
++clear_cwd_pipe (void)
++{
++    fd_set read_set;
++
++    struct timeval wtime = {0, 0};
++
++    int maxfdp;
++
++    FD_ZERO (&read_set);
++    FD_SET (subshell_pipe[READ], &read_set);
++    maxfdp = subshell_pipe[READ];
++    if (select (maxfdp + 1, &read_set, NULL, NULL, &wtime) > 0)
++    {
++
++        if (FD_ISSET (subshell_pipe[READ], &read_set))
++        {
++            if (read (subshell_pipe[READ], subshell_cwd, sizeof (subshell_cwd)) <= 0)
++            {
++                tcsetattr (STDOUT_FILENO, TCSANOW, &shell_mode);
++                fprintf (stderr, "read (subshell_pipe[READ]...): %s\r\n",
++                         unix_error_string (errno));
++                exit (EXIT_FAILURE);
++            }
++            synchronize ();
++        }
++    }
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1468,6 +1504,9 @@ invoke_subshell (const char *command, int how, vfs_path_t ** new_dir_vpath)
+                 feed_subshell (QUIETLY, FALSE);
+             }
+         }
++        else
++            clear_cwd_pipe ();
++
+ 
+         if (how == QUIETLY)
+             write_all (mc_global.tty.subshell_pty, " ", 1);

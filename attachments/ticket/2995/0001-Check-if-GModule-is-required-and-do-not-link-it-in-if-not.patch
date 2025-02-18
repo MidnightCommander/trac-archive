@@ -1,0 +1,55 @@
+From 5d48c7c4ac5e158e89610d9f57008b20a1757d4f Mon Sep 17 00:00:00 2001
+From: Eugene Rudoy <gene.devel@gmail.com>
+Date: Sat, 6 Apr 2013 18:09:13 +0200
+Subject: [PATCH] Check if GModule is required and do not link it in if not
+ (saves space on embedded systems)
+
+---
+ configure.ac        | 3 +++
+ lib/Makefile.am     | 2 +-
+ lib/tty/Makefile.am | 2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 2c35d06..ae6652d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -495,6 +495,9 @@ AM_CONDITIONAL(USE_DIFF, [test -n "$use_diff"])
+ AM_CONDITIONAL(CHARSET, [test -n "$have_charset"])
+ AM_CONDITIONAL(CONS_SAVER, [test -n "$cons_saver"])
+ 
++# check if GModule is required and do not link it in if not (saves space on embedded systems)
++AM_CONDITIONAL(HAVE_GMODULE_AND_GMODULE_REQUIRED, [test x"$g_module_supported" != x -a x"$enable_aspell" = xyes -a x"$textmode_x11_support" = xyes])
++
+ AC_DEFINE_UNQUOTED([MC_CONFIGURE_ARGS], ["$ac_configure_args"], [MC configure arguments])
+ 
+ AC_CONFIG_FILES(
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index 18bf836..26442aa 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -65,7 +65,7 @@ libmc_la_LIBADD = \
+ 
+ libmc_la_LIBADD += $(MCLIBS) $(SLANGLIB)
+ 
+-if HAVE_GMODULE
++if HAVE_GMODULE_AND_GMODULE_REQUIRED
+     libmc_la_LIBADD += $(GMODULE_LIBS)
+ else
+     libmc_la_LIBADD += $(GLIB_LIBS)
+diff --git a/lib/tty/Makefile.am b/lib/tty/Makefile.am
+index 30ba305..cb5e898 100644
+--- a/lib/tty/Makefile.am
++++ b/lib/tty/Makefile.am
+@@ -27,7 +27,7 @@ libmctty_la_SOURCES = $(TTY_SRC) $(TTY_SCREEN_SRC)
+ 
+ AM_CPPFLAGS = -I$(top_srcdir)
+ 
+-if HAVE_GMODULE
++if HAVE_GMODULE_AND_GMODULE_REQUIRED
+ AM_CPPFLAGS += $(GMODULE_CFLAGS)
+ else
+ AM_CPPFLAGS += $(GLIB_CFLAGS)
+-- 
+1.8.2
+

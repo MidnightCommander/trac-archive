@@ -1,0 +1,83 @@
+From cd77f3bbebf34e41a8d52f36fd06ac9c6d44a98e Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Sun, 24 Jan 2021 04:45:51 -0600
+Subject: Add -w/-T options.
+
+---
+ src/args.c              | 18 ++++++++++++++++++
+ src/args.h              |  2 ++
+ src/editor/editwidget.c |  9 +++++++++
+ 3 files changed, 29 insertions(+)
+
+diff --git a/src/args.c b/src/args.c
+index 3f6a8b2a4..df49bbd94 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -46,6 +46,9 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
++gboolean mc_args__cascade = FALSE;
++gboolean mc_args__tile = FALSE;
++
+ /* If true, assume we are running on an xterm terminal */
+ gboolean mc_args__force_xterm = FALSE;
+ 
+@@ -178,6 +181,21 @@ static const GOptionEntry argument_main_table[] = {
+     },
+ #endif /* ENABLE_VFS_SMB */
+ 
++    /* options for non-fullscreen mcedit startup */
++    {
++     "cascade", 'w', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
++     &mc_args__cascade,
++     N_("Start editor with windows arranged in cascade"),
++     NULL
++    },
++
++    {
++     "tile", 'T', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
++     &mc_args__tile,
++     N_("Start editor with windows tiled"),
++     NULL
++    },
++
+     {
+      /* handle arguments manually */
+      "view", 'v', G_OPTION_FLAG_IN_MAIN | G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
+diff --git a/src/args.h b/src/args.h
+index 616864d00..69b25ec16 100644
+--- a/src/args.h
++++ b/src/args.h
+@@ -22,6 +22,8 @@ extern gboolean mc_args__force_xterm;
+ extern gboolean mc_args__nomouse;
+ extern gboolean mc_args__force_colors;
+ extern gboolean mc_args__nokeymap;
++extern gboolean mc_args__cascade;
++extern gboolean mc_args__tile;
+ extern char *mc_args__last_wd_file;
+ extern char *mc_args__netfs_logfile;
+ extern char *mc_args__keymap_file;
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 41d9bc5da..d1a41de45 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -1387,6 +1387,15 @@ edit_files (const GList * files)
+         ok = ok || f_ok;
+     }
+ 
++    if (mc_args__cascade)
++    {
++        edit_window_cascade (edit_dlg);
++    }
++    else if (mc_args__tile)
++    {
++        edit_window_tile (edit_dlg);
++    }
++
+     if (ok)
+         dlg_run (edit_dlg);
+ 
+-- 
+2.28.0
+

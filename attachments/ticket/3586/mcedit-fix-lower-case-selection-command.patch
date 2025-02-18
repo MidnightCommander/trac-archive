@@ -1,0 +1,13 @@
+diff --git a/misc/mcedit.menu.in b/misc/mcedit.menu.in
+index e64e55f..9585526 100644
+--- a/misc/mcedit.menu.in
++++ b/misc/mcedit.menu.in
+@@ -477,7 +477,7 @@ u       Upper case selection
+ l       Lower case selection
+         TMPFILE=`mktemp ${MC_TMPDIR:-/tmp}/up.XXXXXX` || exit 1
+         cat %b > $TMPFILE
+-        cat $TMPFILE| sed 's/\(.*\)/\U\1/' >%b
++        cat $TMPFILE| sed 's/\(.*\)/\L\1/' >%b
+         rm -f $TMPFILE
+ 
+ #-------------------------- End of common section -----------------------------

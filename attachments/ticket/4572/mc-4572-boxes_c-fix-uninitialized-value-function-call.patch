@@ -1,0 +1,31 @@
+From 259cf2ff218bf00641254d6a3dca2181bc23f471 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 Dec 2024 15:00:00 +0000
+Subject: [PATCH] (boxes.c) fix uninitialized value function call
+
+Make Static Analyzer happy.
+
+src/filemanager/boxes.c:623:9: warning: 1st function call argument is an uninitialized value [clang-analyzer-core.CallAndMessage]
+  623 |         g_free (time_out_new);
+      |         ^       ~~~~~~~~~~~~
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/boxes.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 6c7f0cda2..3a1b9afa7 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -543,7 +543,7 @@ configure_box (void)
+ 
+     {
+         char time_out[BUF_TINY] = "";
+-        char *time_out_new;
++        char *time_out_new = NULL;
+ 
+         quick_widget_t quick_widgets[] = {
+             /* *INDENT-OFF* */

@@ -1,0 +1,36 @@
+diff -uNr a/lib/vfs/interface.c b/lib/vfs/interface.c
+--- a/lib/vfs/interface.c	2013-03-10 17:02:54.299802958 +0100
++++ b/lib/vfs/interface.c	2013-03-10 17:05:01.385797968 +0100
+@@ -844,21 +844,19 @@
+ 
+     canonicalize_pathname (buffer);
+ 
+-    if (lstat (buffer, &st) == 0)
++    /* Try to create directory */
++    if (mkdir (buffer, S_IRWXU) != 0)
+     {
+-        /* Sanity check for existing directory */
+-        if (!S_ISDIR (st.st_mode))
+-            error = _("%s is not a directory\n");
+-        else if (st.st_uid != getuid ())
+-            error = _("Directory %s is not owned by you\n");
+-        else if (((st.st_mode & 0777) != 0700) && (chmod (buffer, 0700) != 0))
+-            error = _("Cannot set correct permissions for directory %s\n");
+-    }
+-    else
+-    {
+-        /* Need to create directory */
+-        if (mkdir (buffer, S_IRWXU) != 0)
++        if (errno == EEXIST && lstat (buffer, &st) == 0)
+         {
++            /* Sanity check for existing directory */
++            if (!S_ISDIR (st.st_mode))
++                error = _("%s is not a directory\n");
++            else if (st.st_uid != getuid ())
++                error = _("Directory %s is not owned by you\n");
++            else if (((st.st_mode & 0777) != 0700) && (chmod (buffer, 0700) != 0))
++                error = _("Cannot set correct permissions for directory %s\n");
++        } else {
+             fprintf (stderr,
+                      _("Cannot create temporary directory %s: %s\n"),
+                      buffer, unix_error_string (errno));

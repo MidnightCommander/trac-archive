@@ -1,0 +1,30 @@
+From 09dbef88bfc4286615dc436ced85f629179f857a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 16 Dec 2024 22:00:00 +0000
+Subject: [PATCH] (ftpfs.c) fix error handling
+
+Assuming that 'close' is successful; 'errno' becomes undefined after the call
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/ftpfs/ftpfs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/vfs/ftpfs/ftpfs.c b/src/vfs/ftpfs/ftpfs.c
+index 6eb9c2aaf..1240160ba 100644
+--- a/src/vfs/ftpfs/ftpfs.c
++++ b/src/vfs/ftpfs/ftpfs.c
+@@ -933,9 +933,9 @@ ftpfs_open_socket (struct vfs_class *me, struct vfs_s_super *super)
+             break;
+ 
+         me->verrno = errno;
+-        close (my_socket);
++        e = close (my_socket);
+ 
+-        if (errno == EINTR && tty_got_interrupt ())
++        if (e < 0 && errno == EINTR && tty_got_interrupt ())
+             vfs_print_message ("%s", _("ftpfs: connection interrupted by user"));
+         else if (res->ai_next == NULL)
+             vfs_print_message (_("ftpfs: connection to server failed: %s"),

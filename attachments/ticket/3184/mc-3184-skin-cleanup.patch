@@ -1,0 +1,4623 @@
+diff --git a/misc/skins/dark.ini b/misc/skins/dark.ini
+index b7d52cf..07db093 100644
+--- a/misc/skins/dark.ini
++++ b/misc/skins/dark.ini
+@@ -1,140 +1,140 @@
+ [skin]
+-    description=Dark skin
++    description = Dark skin
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=─
+-    dvert=│
+-    dlefttop=┌
+-    drighttop=┐
+-    dleftbottom=└
+-    drightbottom=┘
+-    dtopmiddle=┬
+-    dbottommiddle=┴
+-    dleftmiddle=├
+-    drightmiddle=┤
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ─
++    dvert = │
++    dlefttop = ┌
++    drighttop = ┐
++    dleftbottom = └
++    drightbottom = ┘
++    dtopmiddle = ┬
++    dbottommiddle = ┴
++    dleftmiddle = ├
++    drightmiddle = ┤
+ 
+ [core]
+-    _default_=lightgray;black
+-    selected=black;cyan
+-    marked=yellow;black
+-    markselect=yellow;cyan
+-    gauge=white;black
+-    input=black;cyan
+-    inputunchanged=gray;cyan
+-    inputmark=cyan;black
+-    disabled=gray;blue
+-    reverse=black;lightgray
+-    commandlinemark=black;lightgray
+-    header=yellow;black
+-    inputhistory=
+-    commandhistory=
++    _default_ = lightgray;black
++    selected = black;cyan
++    marked = yellow;black
++    markselect = yellow;cyan
++    gauge = white;black
++    input = black;cyan
++    inputunchanged = gray;cyan
++    inputmark = cyan;black
++    disabled = gray;blue
++    reverse = black;lightgray
++    commandlinemark = black;lightgray
++    header = yellow;black
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-    _default_=brightcyan;blue
+-    dfocus=blue;cyan
+-    dhotnormal=white;
+-    dhotfocus=white;cyan
+-    dtitle=white;
++    _default_ = brightcyan;blue
++    dfocus = blue;cyan
++    dhotnormal = white;
++    dhotfocus = white;cyan
++    dtitle = white;
+ 
+ [error]
+-    _default_=white;red
+-    errdfocus=black;lightgray
+-    errdhotnormal=yellow;red
+-    errdhotfocus=yellow;lightgray
+-    errdtitle=yellow;red
++    _default_ = white;red
++    errdfocus = black;lightgray
++    errdhotnormal = yellow;red
++    errdhotfocus = yellow;lightgray
++    errdtitle = yellow;red
+ 
+ [filehighlight]
+-    directory=white;
+-    executable=brightmagenta;
+-    symlink=lightgray;
+-    hardlink=
+-    stalelink=brightred;
+-    device=brightmagenta;
+-    special=brightblue;
+-    core=red;
+-    temp=gray;
+-    archive=brightgreen;
+-    doc=brown;
+-    source=cyan;
+-    media=green;
+-    graph=brightcyan;
+-    database=brightred;
++    directory = white;
++    executable = brightmagenta;
++    symlink = lightgray;
++    hardlink =
++    stalelink = brightred;
++    device = brightmagenta;
++    special = brightblue;
++    core = red;
++    temp = gray;
++    archive = brightgreen;
++    doc = brown;
++    source = cyan;
++    media = green;
++    graph = brightcyan;
++    database = brightred;
+ 
+ [menu]
+-    _default_=lightgray;blue
+-    menuhot=white;blue
+-    menusel=black;cyan
+-    menuhotsel=white;cyan
+-    menuinactive=black;lightgray
++    _default_ = lightgray;blue
++    menusel = black;cyan
++    menuhot = white;blue
++    menuhotsel = white;cyan
++    menuinactive = black;lightgray
++
++[popupmenu]
++    _default_ = lightgray;blue
++    menusel = black;cyan
++    menutitle = lightgray;blue
++
++[buttonbar]
++    hotkey = red;lightgray
++    button = black;lightgray
++
++[statusbar]
++    _default_ = black;lightgray
+ 
+ [help]
+-    _default_=black;lightgray
+-    helpitalic=red;lightgray
+-    helpbold=blue;lightgray
+-    helplink=black;cyan
+-    helpslink=yellow;blue
+-    helptitle=blue;lightgray
++    _default_ = black;lightgray
++    helpitalic = red;lightgray
++    helpbold = blue;lightgray
++    helplink = black;cyan
++    helpslink = yellow;blue
++    helptitle = blue;lightgray
+ 
+ [editor]
+-    _default_=lightgray;black
+-    editbold=yellow;green
+-    editmarked=black;lightgray
+-    editwhitespace=brightblue;black
+-    editlinestate=white;cyan
+-    bookmark=white;red
+-    bookmarkfound=black;green
+-    editrightmargin=white;blue
+-#    editbg=
+-    editframe=gray;
+-    editframeactive=lightgray;
+-    editframedrag=red;
++    _default_ = lightgray;black
++    editbold = yellow;green
++    editmarked = black;lightgray
++    editwhitespace = brightblue;black
++    editlinestate = white;cyan
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = white;blue
++#    editbg =
++    editframe = gray;
++    editframeactive = lightgray;
++    editframedrag = red;
+     window-state-char = ↕
+     window-close-char = ✕
+ 
+ [viewer]
+-    viewbold=yellow;black
+-    viewunderline=brightred;black
+-    viewselected=yellow;cyan
++    viewbold = yellow;black
++    viewunderline = brightred;black
++    viewselected = yellow;cyan
+ 
+ [diffviewer]
+-    added=white;green
+-    changedline=blue;cyan
+-    changednew=red;cyan
+-    changed=white;cyan
+-    removed=white;red
+-    folder=blue;black
+-    error=red;lightgray
+-
+-[buttonbar]
+-    hotkey=red;lightgray
+-    button=black;lightgray
+-
+-[statusbar]
+-    _default_=black;lightgray
+-
+-[popupmenu]
+-    _default_=lightgray;blue
+-    menusel=black;cyan
+-    menutitle=lightgray;blue
++    added = white;green
++    changedline = blue;cyan
++    changednew = red;cyan
++    changed = white;cyan
++    removed = white;red
++    folder = blue;black
++    error = red;lightgray
+ 
+ [widget-common]
+-    sort-sign-up=↑
+-    sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-    hiddenfiles-sign-show  = •
+-    hiddenfiles-sign-hide  = ○
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
+     history-prev-item-sign = ←
+     history-next-item-sign = →
+     history-show-list-sign = ↓
+@@ -142,10 +142,10 @@
+     filename-scroll-right-char = »
+ 
+ [widget-scollbar]
+-    first-vert-char=↑
+-    last-vert-char=↓
+-    first-horiz-char=«
+-    last-horiz-char=»
+-    current-char=■
+-    background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+ 
+diff --git a/misc/skins/darkfar.ini b/misc/skins/darkfar.ini
+index 260d23f..68bb6b5 100644
+--- a/misc/skins/darkfar.ini
++++ b/misc/skins/darkfar.ini
+@@ -1,140 +1,140 @@
+ [skin]
+-    description=Dark Far skin
++    description = Dark Far skin
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=═
+-    dvert=║
+-    dlefttop=╔
+-    drighttop=╗
+-    dleftbottom=╚
+-    drightbottom=╝
+-    dtopmiddle=╤
+-    dbottommiddle=╧
+-    dleftmiddle=╟
+-    drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-    _default_=lightgray;black
+-    selected=black;cyan
+-    marked=yellow;black
+-    markselect=yellow;cyan
+-    gauge=white;black
+-    input=black;cyan
+-    inputunchanged=gray;cyan
+-    inputmark=cyan;black
+-    disabled=gray;blue
+-    reverse=black;lightgray
+-    commandlinemark=black;lightgray
+-    header=yellow;black
+-    inputhistory=
+-    commandhistory=
++    _default_ = lightgray;black
++    selected = black;cyan
++    marked = yellow;black
++    markselect = yellow;cyan
++    gauge = white;black
++    input = black;cyan
++    inputunchanged = gray;cyan
++    inputmark = cyan;black
++    disabled = gray;blue
++    reverse = black;lightgray
++    commandlinemark = black;lightgray
++    header = yellow;black
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-    _default_=brightcyan;blue
+-    dfocus=blue;cyan
+-    dhotnormal=white;
+-    dhotfocus=white;cyan
+-    dtitle=white;
++    _default_ = brightcyan;blue
++    dfocus = blue;cyan
++    dhotnormal = white;
++    dhotfocus = white;cyan
++    dtitle = white;
+ 
+ [error]
+-    _default_=white;red
+-    errdfocus=black;lightgray
+-    errdhotnormal=yellow;red
+-    errdhotfocus=yellow;lightgray
+-    errdtitle=yellow;red
++    _default_ = white;red
++    errdfocus = black;lightgray
++    errdhotnormal = yellow;red
++    errdhotfocus = yellow;lightgray
++    errdtitle = yellow;red
+ 
+ [filehighlight]
+-    directory=white;
+-    executable=brightmagenta;
+-    symlink=lightgray;
+-    hardlink=
+-    stalelink=brightred;
+-    device=brightmagenta;
+-    special=brightblue;
+-    core=red;
+-    temp=gray;
+-    archive=brightgreen;
+-    doc=brown;
+-    source=cyan;
+-    media=green;
+-    graph=brightcyan;
+-    database=brightred;
++    directory = white;
++    executable = brightmagenta;
++    symlink = lightgray;
++    hardlink =
++    stalelink = brightred;
++    device = brightmagenta;
++    special = brightblue;
++    core = red;
++    temp = gray;
++    archive = brightgreen;
++    doc = brown;
++    source = cyan;
++    media = green;
++    graph = brightcyan;
++    database = brightred;
+ 
+ [menu]
+-    _default_=lightgray;blue
+-    menuhot=white;blue
+-    menusel=black;cyan
+-    menuhotsel=white;cyan
+-    menuinactive=black;lightgray
++    _default_ = lightgray;blue
++    menusel = black;cyan
++    menuhot = white;blue
++    menuhotsel = white;cyan
++    menuinactive = black;lightgray
++
++[popupmenu]
++    _default_ = lightgray;blue
++    menusel = black;cyan
++    menutitle = lightgray;blue
++
++[buttonbar]
++    hotkey = red;lightgray
++    button = black;lightgray
++
++[statusbar]
++    _default_ = black;lightgray
+ 
+ [help]
+-    _default_=black;lightgray
+-    helpitalic=red;lightgray
+-    helpbold=blue;lightgray
+-    helplink=black;cyan
+-    helpslink=yellow;blue
+-    helptitle=blue;lightgray
++    _default_ = black;lightgray
++    helpitalic = red;lightgray
++    helpbold = blue;lightgray
++    helplink = black;cyan
++    helpslink = yellow;blue
++    helptitle = blue;lightgray
+ 
+ [editor]
+-    _default_=lightgray;black
+-    editbold=yellow;green
+-    editmarked=black;lightgray
+-    editwhitespace=brightblue;black
+-    editlinestate=white;cyan
+-    bookmark=white;red
+-    bookmarkfound=black;green
+-    editrightmargin=white;blue
+-#    editbg=
+-    editframe=gray;
+-    editframeactive=lightgray;
+-    editframedrag=white;
++    _default_ = lightgray;black
++    editbold = yellow;green
++    editmarked = black;lightgray
++    editwhitespace = brightblue;black
++    editlinestate = white;cyan
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = white;blue
++#    editbg =
++    editframe = gray;
++    editframeactive = lightgray;
++    editframedrag = white;
+     window-state-char = ↕
+     window-close-char = ×
+ 
+ [viewer]
+-    viewbold=yellow;black
+-    viewunderline=brightred;black
+-    viewselected=yellow;cyan
++    viewbold = yellow;black
++    viewunderline = brightred;black
++    viewselected = yellow;cyan
+ 
+ [diffviewer]
+-    added=white;green
+-    changedline=blue;cyan
+-    changednew=red;cyan
+-    changed=white;cyan
+-    removed=white;red
+-    folder=blue;black
+-    error=red;
+-
+-[buttonbar]
+-    hotkey=red;lightgray
+-    button=black;lightgray
+-
+-[statusbar]
+-    _default_=black;lightgray
+-
+-[popupmenu]
+-    _default_=lightgray;blue
+-    menusel=black;cyan
+-    menutitle=lightgray;blue
++    added = white;green
++    changedline = blue;cyan
++    changednew = red;cyan
++    changed = white;cyan
++    removed = white;red
++    folder = blue;black
++    error = red;
+ 
+ [widget-common]
+-    sort-sign-up=↑
+-    sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-    hiddenfiles-sign-show  = •
+-    hiddenfiles-sign-hide  = ○
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
+     history-prev-item-sign = ←
+     history-next-item-sign = →
+     history-show-list-sign = ↓
+@@ -142,9 +142,9 @@
+     filename-scroll-right-char = »
+ 
+ [widget-scollbar]
+-    first-vert-char=↑
+-    last-vert-char=↓
+-    first-horiz-char=«
+-    last-horiz-char=»
+-    current-char=■
+-    background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/default.ini b/misc/skins/default.ini
+index 72cdccf..8a99567 100644
+--- a/misc/skins/default.ini
++++ b/misc/skins/default.ini
+@@ -1,133 +1,132 @@
+ [skin]
+-    description=Standard skin
++    description = Standard skin
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=─
+-    dvert=│
+-    dlefttop=┌
+-    drighttop=┐
+-    dleftbottom=└
+-    drightbottom=┘
+-    dtopmiddle=┬
+-    dbottommiddle=┴
+-    dleftmiddle=├
+-    drightmiddle=┤
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ─
++    dvert = │
++    dlefttop = ┌
++    drighttop = ┐
++    dleftbottom = └
++    drightbottom = ┘
++    dtopmiddle = ┬
++    dbottommiddle = ┴
++    dleftmiddle = ├
++    drightmiddle = ┤
+ 
+ [core]
+-    _default_=lightgray;blue
+-    selected=black;cyan
+-    marked=yellow;blue
+-    markselect=yellow;cyan
+-    gauge=white;black
+-    input=black;cyan
+-    inputunchanged=gray;cyan
+-    inputmark=cyan;black
+-    disabled=gray;lightgray
+-    reverse=black;lightgray
+-    commandlinemark=black;lightgray
+-    header=yellow;blue
+-    inputhistory=
+-    commandhistory=
++    _default_ = lightgray;blue
++    selected = black;cyan
++    marked = yellow;blue
++    markselect = yellow;cyan
++    gauge = white;black
++    input = black;cyan
++    inputunchanged = gray;cyan
++    inputmark = cyan;black
++    disabled = gray;lightgray
++    reverse = black;lightgray
++    commandlinemark = black;lightgray
++    header = yellow;blue
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-    _default_=black;lightgray
+-    dfocus=black;cyan
+-    dhotnormal=blue;lightgray
+-    dhotfocus=blue;cyan
+-    dtitle=blue;lightgray
++    _default_ = black;lightgray
++    dfocus = black;cyan
++    dhotnormal = blue;lightgray
++    dhotfocus = blue;cyan
++    dtitle = blue;lightgray
+ 
+ [error]
+-    _default_=white;red
+-    errdfocus=black;lightgray
+-    errdhotnormal=yellow;red
+-    errdtitle=yellow;red
+-    errdhotfocus=yellow;lightgray
+-    errdtitle=yellow;red
++    _default_ = white;red
++    errdfocus = black;lightgray
++    errdhotnormal = yellow;red
++    errdhotfocus = yellow;lightgray
++    errdtitle = yellow;red
+ 
+ [filehighlight]
+-    directory=white;
+-    executable=brightgreen;
+-    symlink=lightgray;
+-    hardlink=
+-    stalelink=brightred;
+-    device=brightmagenta;
+-    special=black;
+-    core=red;
+-    temp=gray;
+-    archive=brightmagenta;
+-    doc=brown;
+-    source=cyan;
+-    media=green;
+-    graph=brightcyan;
+-    database=brightred;
++    directory = white;
++    executable = brightgreen;
++    symlink = lightgray;
++    hardlink =
++    stalelink = brightred;
++    device = brightmagenta;
++    special = black;
++    core = red;
++    temp = gray;
++    archive = brightmagenta;
++    doc = brown;
++    source = cyan;
++    media = green;
++    graph = brightcyan;
++    database = brightred;
+ 
+ [menu]
+-    _default_=white;cyan
+-    menuhot=yellow;cyan
+-    menusel=white;black
+-    menuhotsel=yellow;black
+-    menuinactive=black;cyan
++    _default_ = white;cyan
++    menusel = white;black
++    menuhot = yellow;cyan
++    menuhotsel = yellow;black
++    menuinactive = black;cyan
++
++[popupmenu]
++    _default_ = white;cyan
++    menusel = yellow;black
++    menutitle = yellow;cyan
+ 
+ [buttonbar]
+-    hotkey=white;black
+-    button=black;cyan
++    hotkey = white;black
++    button = black;cyan
+ 
+ [statusbar]
+-    _default_=black;cyan
++    _default_ = black;cyan
+ 
+ [help]
+-    _default_=black;lightgray
+-    helpitalic=red;lightgray
+-    helpbold=blue;lightgray
+-    helplink=black;cyan
+-    helpslink=yellow;blue
+-    helptitle=blue;lightgray
++    _default_ = black;lightgray
++    helpitalic = red;lightgray
++    helpbold = blue;lightgray
++    helplink = black;cyan
++    helpslink = yellow;blue
++    helptitle = blue;lightgray
+ 
+ [editor]
+-    _default_=lightgray;blue
+-    editbold=yellow;green
+-    editmarked=black;cyan
+-    editwhitespace=brightblue;blue
+-    editlinestate=white;cyan
+-    bookmark=white;red
+-    bookmarkfound=black;green
+-    editrightmargin=brightblue;black
+-#    editbg=lightgray;
+-#    editframe=lightgray;
+-    editframeactive=white;
+-    editframedrag=green;
++    _default_ = lightgray;blue
++    editbold = yellow;green
++    editmarked = black;cyan
++    editwhitespace = brightblue;blue
++    editlinestate = white;cyan
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = brightblue;black
++#    editbg = lightgray;
++#    editframe = lightgray;
++    editframeactive = white;
++    editframedrag = green;
+     window-state-char = *
+     window-close-char = X
+ 
+ [viewer]
+-    viewbold=yellow;blue
+-    viewunderline=brightred;blue
+-    viewselected=yellow;cyan
++    viewbold = yellow;blue
++    viewunderline = brightred;blue
++    viewselected = yellow;cyan
+ 
+ [diffviewer]
+-    added=white;green
+-    changedline=blue;cyan
+-    changednew=red;cyan
+-    changed=white;cyan
+-    removed=white;red
+-    folder=blue;black
+-    error=red;lightgray
+-
+-[popupmenu]
+-    _default_=white;cyan
+-    menusel=yellow;black
+-    menutitle=yellow;cyan
++    added = white;green
++    changedline = blue;cyan
++    changednew = red;cyan
++    changed = white;cyan
++    removed = white;red
++    folder = blue;black
++    error = red;lightgray
+ 
+ [widget-common]
+     sort-sign-up = '
+diff --git a/misc/skins/double-lines.ini b/misc/skins/double-lines.ini
+index 389f461..26b20fc 100644
+--- a/misc/skins/double-lines.ini
++++ b/misc/skins/double-lines.ini
+@@ -1,132 +1,132 @@
+ [skin]
+-    description=Far-like skin
++    description = Far-like skin
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=═
+-    dvert=║
+-    dlefttop=╔
+-    drighttop=╗
+-    dleftbottom=╚
+-    drightbottom=╝
+-    dtopmiddle=╤
+-    dbottommiddle=╧
+-    dleftmiddle=╟
+-    drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-    _default_=lightgray;blue
+-    selected=black;cyan
+-    marked=yellow;blue
+-    markselect=yellow;cyan
+-    gauge=white;black
+-    input=black;cyan
+-    inputunchanged=gray;cyan
+-    inputmark=cyan;black
+-    commandlinemark=black;lightgray
+-    disabled=gray;lightgray
+-    reverse=black;lightgray
+-    header=yellow;blue
+-    inputhistory=
+-    commandhistory=
++    _default_ = lightgray;blue
++    selected = black;cyan
++    marked = yellow;blue
++    markselect = yellow;cyan
++    gauge = white;black
++    input = black;cyan
++    inputunchanged = gray;cyan
++    inputmark = cyan;black
++    commandlinemark = black;lightgray
++    disabled = gray;lightgray
++    reverse = black;lightgray
++    header = yellow;blue
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-    _default_=black;lightgray
+-    dfocus=black;cyan
+-    dhotnormal=blue;lightgray
+-    dhotfocus=blue;cyan
+-    dtitle=blue;lightgray
++    _default_ = black;lightgray
++    dfocus = black;cyan
++    dhotnormal = blue;lightgray
++    dhotfocus = blue;cyan
++    dtitle = blue;lightgray
+ 
+ [error]
+-    _default_=white;red
+-    errdfocus=black;lightgray
+-    errdhotnormal=yellow;red
+-    errdhotfocus=yellow;lightgray
+-    errdtitle=yellow;red
++    _default_ = white;red
++    errdfocus = black;lightgray
++    errdhotnormal = yellow;red
++    errdhotfocus = yellow;lightgray
++    errdtitle = yellow;red
+ 
+ [filehighlight]
+-    directory=white;
+-    executable=brightgreen;
+-    symlink=lightgray;
+-    hardlink=
+-    stalelink=brightred;
+-    device=brightmagenta;
+-    special=black;
+-    core=red;
+-    temp=gray;
+-    archive=brightmagenta;
+-    doc=brown;
+-    source=cyan;
+-    media=green;
+-    graph=brightcyan;
+-    database=brightred;
++    directory = white;
++    executable = brightgreen;
++    symlink = lightgray;
++    hardlink =
++    stalelink = brightred;
++    device = brightmagenta;
++    special = black;
++    core = red;
++    temp = gray;
++    archive = brightmagenta;
++    doc = brown;
++    source = cyan;
++    media = green;
++    graph = brightcyan;
++    database = brightred;
+ 
+ [menu]
+-    _default_=white;cyan
+-    menuhot=yellow;cyan
+-    menusel=white;black
+-    menuhotsel=yellow;black
+-    menuinactive=lightgray;blue
++    _default_ = white;cyan
++    menusel = white;black
++    menuhot = yellow;cyan
++    menuhotsel = yellow;black
++    menuinactive = lightgray;blue
++
++[popupmenu]
++    _default_ = white;cyan
++    menusel = white;black
++    menutitle = white;cyan
+ 
+ [buttonbar]
+-    hotkey=lightgray;blue
+-    button=lightgray;blue
++    hotkey = lightgray;blue
++    button = lightgray;blue
+ 
+ [statusbar]
+-    _default_=black;cyan
++    _default_ = black;cyan
+ 
+ [help]
+-    _default_=black;lightgray
+-    helpitalic=red;lightgray
+-    helpbold=blue;lightgray
+-    helplink=black;cyan
+-    helpslink=yellow;blue
+-    helptitle=blue;lightgray
++    _default_ = black;lightgray
++    helpitalic = red;lightgray
++    helpbold = blue;lightgray
++    helplink = black;cyan
++    helpslink = yellow;blue
++    helptitle = blue;lightgray
+ 
+ [editor]
+-    _default_=lightgray;blue
+-    editbold=yellow;green
+-    editmarked=black;cyan
+-    editwhitespace=brightblue;blue
+-    editlinestate=white;cyan
+-    bookmark=white;red
+-    bookmarkfound=black;green
+-    editrightmargin=brightblue;black
+-#    editbg=
+-#    editframe=
+-    editframeactive=white;
+-    editframedrag=green;
++    _default_ = lightgray;blue
++    editbold = yellow;green
++    editmarked = black;cyan
++    editwhitespace = brightblue;blue
++    editlinestate = white;cyan
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = brightblue;black
++#    editbg =
++#    editframe =
++    editframeactive = white;
++    editframedrag = green;
+     window-state-char = *
+     window-close-char = X
+ 
+ [viewer]
+-    viewbold=yellow;blue
+-    viewunderline=brightred;blue
+-    viewselected=yellow;cyan
++    viewbold = yellow;blue
++    viewunderline = brightred;blue
++    viewselected = yellow;cyan
+ 
+ [diffviewer]
+-    added=white;green
+-    changedline=blue;cyan
+-    changednew=red;cyan
+-    changed=white;cyan
+-    removed=white;red
+-    folder=blue;black
+-    error=red;lightgray
+-
+-[popupmenu]
+-    _default_=white;cyan
+-    menusel=white;black
+-    menutitle=white;cyan
++    added = white;green
++    changedline = blue;cyan
++    changednew = red;cyan
++    changed = white;cyan
++    removed = white;red
++    folder = blue;black
++    error = red;lightgray
+ 
+ [widget-common]
+     sort-sign-up = '
+diff --git a/misc/skins/featured.ini b/misc/skins/featured.ini
+index c42be51..b6aa472 100644
+--- a/misc/skins/featured.ini
++++ b/misc/skins/featured.ini
+@@ -1,134 +1,134 @@
+ # Please, use this skin in UTF-8 system codepage only.
+ 
+ [skin]
+-    description=Enhanced standart skin
++    description = Enhanced standard skin
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=═
+-    dvert=║
+-    dlefttop=╔
+-    drighttop=╗
+-    dleftbottom=╚
+-    drightbottom=╝
+-    dtopmiddle=╤
+-    dbottommiddle=╧
+-    dleftmiddle=╟
+-    drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-    _default_=lightgray;blue
+-    selected=black;cyan
+-    marked=yellow;blue
+-    markselect=yellow;cyan
+-    gauge=white;black
+-    input=black;cyan
+-    inputunchanged=gray;cyan
+-    inputmark=cyan;black
+-    disabled=gray;lightgray
+-    reverse=black;lightgray
+-    commandlinemark=black;lightgray
+-    header=yellow;blue
+-    inputhistory=
+-    commandhistory=
++    _default_ = lightgray;blue
++    selected = black;cyan
++    marked = yellow;blue
++    markselect = yellow;cyan
++    gauge = white;black
++    input = black;cyan
++    inputunchanged = gray;cyan
++    inputmark = cyan;black
++    disabled = gray;lightgray
++    reverse = black;lightgray
++    commandlinemark = black;lightgray
++    header = yellow;blue
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-    _default_=black;lightgray
+-    dfocus=black;cyan
+-    dhotnormal=blue;lightgray
+-    dhotfocus=blue;cyan
+-    dtitle=blue;lightgray
++    _default_ = black;lightgray
++    dfocus = black;cyan
++    dhotnormal = blue;lightgray
++    dhotfocus = blue;cyan
++    dtitle = blue;lightgray
+ 
+ [error]
+-    _default_=white;red
+-    errdfocus=black;lightgray
+-    errdhotnormal=yellow;red
+-    errdhotfocus=yellow;lightgray
+-    errdtitle=yellow;red
++    _default_ = white;red
++    errdfocus = black;lightgray
++    errdhotnormal = yellow;red
++    errdhotfocus = yellow;lightgray
++    errdtitle = yellow;red
+ 
+ [filehighlight]
+-    directory=white;
+-    executable=brightgreen;
+-    symlink=lightgray;
+-    hardlink=
+-    stalelink=brightred;
+-    device=brightmagenta;
+-    special=black;
+-    core=red;
+-    temp=gray;
+-    archive=brightmagenta;
+-    doc=brown;
+-    source=cyan;
+-    media=green;
+-    graph=brightcyan;
+-    database=brightred;
++    directory = white;
++    executable = brightgreen;
++    symlink = lightgray;
++    hardlink =
++    stalelink = brightred;
++    device = brightmagenta;
++    special = black;
++    core = red;
++    temp = gray;
++    archive = brightmagenta;
++    doc = brown;
++    source = cyan;
++    media = green;
++    graph = brightcyan;
++    database = brightred;
+ 
+ [menu]
+-    _default_=white;cyan
+-    menuhot=yellow;cyan
+-    menusel=white;black
+-    menuhotsel=yellow;black
+-    menuinactive=black;cyan
++    _default_ = white;cyan
++    menusel = white;black
++    menuhot = yellow;cyan
++    menuhotsel = yellow;black
++    menuinactive = black;cyan
++
++[popupmenu]
++    _default_ = white;cyan
++    menusel = white;black
++    menutitle = white;cyan
+ 
+ [buttonbar]
+-    hotkey=white;black
+-    button=black;cyan
++    hotkey = white;black
++    button = black;cyan
+ 
+ [statusbar]
+-    _default_=black;cyan
++    _default_ = black;cyan
+ 
+ [help]
+-    _default_=black;lightgray
+-    helpitalic=red;lightgray
+-    helpbold=blue;lightgray
+-    helplink=black;cyan
+-    helpslink=yellow;blue
+-    helptitle=blue;lightgray
++    _default_ = black;lightgray
++    helpitalic = red;lightgray
++    helpbold = blue;lightgray
++    helplink = black;cyan
++    helpslink = yellow;blue
++    helptitle = blue;lightgray
+ 
+ [editor]
+-    _default_=lightgray;blue
+-    editbold=yellow;green
+-    editmarked=black;cyan
+-    editwhitespace=brightblue;blue
+-    editlinestate=white;cyan
+-    bookmark=white;red
+-    bookmarkfound=black;green
+-    editrightmargin=brightblue;black
+-#    editbg=
+-#    editframe=
+-    editframeactive=lightgray;
+-    editframedrag=cyan;
++    _default_ = lightgray;blue
++    editbold = yellow;green
++    editmarked = black;cyan
++    editwhitespace = brightblue;blue
++    editlinestate = white;cyan
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = brightblue;black
++#    editbg =
++#    editframe =
++    editframeactive = lightgray;
++    editframedrag = cyan;
+     window-state-char = ↕
+     window-close-char = ✕
+ 
+ [viewer]
+-    viewbold=yellow;blue
+-    viewunderline=brightred;blue
+-    viewselected=yellow;cyan
++    viewbold = yellow;blue
++    viewunderline = brightred;blue
++    viewselected = yellow;cyan
+ 
+ [diffviewer]
+-    added=white;green
+-    changedline=blue;cyan
+-    changednew=red;cyan
+-    changed=white;cyan
+-    removed=white;red
+-    folder=blue;black
+-    error=red;lightgray
+-
+-[popupmenu]
+-    _default_=white;cyan
+-    menusel=white;black
+-    menutitle=white;cyan
++    added = white;green
++    changedline = blue;cyan
++    changednew = red;cyan
++    changed = white;cyan
++    removed = white;red
++    folder = blue;black
++    error = red;lightgray
+ 
+ [widget-common]
+     sort-sign-up = ↑
+@@ -142,15 +142,15 @@
+     history-show-list-sign = ^
+     filename-scroll-left-char = «
+     filename-scroll-right-char = »
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
+ 
+diff --git a/misc/skins/gotar.ini b/misc/skins/gotar.ini
+index 994df30..c1ed9b9 100644
+--- a/misc/skins/gotar.ini
++++ b/misc/skins/gotar.ini
+@@ -1,131 +1,131 @@
+ [skin]
+-	description=GoTaR @PLD Linux
++    description = GoTaR @PLD Linux
+ 
+ [Lines]
+-	horiz=─
+-	vert=│
+-	lefttop=┌
+-	righttop=┐
+-	leftbottom=└
+-	rightbottom=┘
+-	topmiddle=┬
+-	bottommiddle=┴
+-	leftmiddle=├
+-	rightmiddle=┤
+-	cross=┼
+-	dhoriz=─
+-	dvert=│
+-	dlefttop=┌
+-	drighttop=┐
+-	dleftbottom=└
+-	drightbottom=┘
+-	dtopmiddle=┬
+-	dbottommiddle=┴
+-	dleftmiddle=├
+-	drightmiddle=┤
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ─
++    dvert = │
++    dlefttop = ┌
++    drighttop = ┐
++    dleftbottom = └
++    drightbottom = ┘
++    dtopmiddle = ┬
++    dbottommiddle = ┴
++    dleftmiddle = ├
++    drightmiddle = ┤
+ 
+ [core]
+-	_default_=lightgray;black
+-	selected=white;blue
+-	marked=brightred;
+-	markselect=yellow;
+-	gauge=;brown
+-	input=brightgreen;
+-	disabled=gray;blue
+-	reverse=brightgreen;blue
+-	header=brightred;
+-	inputhistory=
+-	commandhistory=
++    _default_ = lightgray;black
++    selected = white;blue
++    marked = brightred;
++    markselect = yellow;
++    gauge = ;brown
++    input = brightgreen;
++    disabled = gray;blue
++    reverse = brightgreen;blue
++    header = brightred;
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-	_default_=brightcyan;blue
+-	dfocus=brightred;black
+-	dhotnormal=brightred;
+-	dhotfocus=yellow;black
+-	dtitle=brightred;
++    _default_ = brightcyan;blue
++    dfocus = brightred;black
++    dhotnormal = brightred;
++    dhotfocus = yellow;black
++    dtitle = brightred;
+ 
+ [error]
+-	_default_=white;red
+-	errdfocus=brightgreen;blue
+-	errdhotnormal=yellow;
+-	errdhotfocus=yellow;blue
+-	errdtitle=yellow;
++    _default_ = white;red
++    errdfocus = brightgreen;blue
++    errdhotnormal = yellow;
++    errdhotfocus = yellow;blue
++    errdtitle = yellow;
+ 
+ [filehighlight]
+-	directory=brightcyan;
+-	executable=brightgreen;
+-	symlink=red;
+-	hardlink=
+-	stalelink=yellow;blue
+-	device=green;
+-	special=brightblue;
+-	core=red;
+-	temp=gray;
+-	archive=cyan;
+-	doc=brown;
+-	source=green;
+-	media=white;
+-	graph=magenta;
+-	database=;
++    directory = brightcyan;
++    executable = brightgreen;
++    symlink = red;
++    hardlink =
++    stalelink = yellow;blue
++    device = green;
++    special = brightblue;
++    core = red;
++    temp = gray;
++    archive = cyan;
++    doc = brown;
++    source = green;
++    media = white;
++    graph = magenta;
++    database = ;
+ 
+ [menu]
+-	_default_=brightgreen;black
+-	menuhot=brightred;
+-	menusel=brightcyan;blue
+-	menuhotsel=yellow;
+-	menuinactive=lightgray;
++    _default_ = brightgreen;black
++    menusel = brightcyan;blue
++    menuhot = brightred;
++    menuhotsel = yellow;
++    menuinactive = lightgray;
++
++[popupmenu]
++    _default_ = brightgreen;black
++    menusel = brightcyan;blue
++    menutitle = brightcyan;black
+ 
+ [buttonbar]
+-	hotkey=lightgray;black
+-	button=white;blue
++    hotkey = lightgray;black
++    button = white;blue
+ 
+ [statusbar]
+-	_default_=white;blue
++    _default_ = white;blue
+ 
+ [help]
+-	_default_=brightred;black
+-	helpitalic=brightcyan;
+-	helpbold=brightgreen;
+-	helplink=white;
+-	helpslink=yellow;blue
+-	helptitle=brightgreen;
++    _default_ = brightred;black
++    helpitalic = brightcyan;
++    helpbold = brightgreen;
++    helplink = white;
++    helpslink = yellow;blue
++    helptitle = brightgreen;
+ 
+ [editor]
+-	_default_=lightgray;black
+-	editbold=yellow;blue
+-	editmarked=brightgreen;red
+-	editwhitespace=brightblue;blue
+-	editlinestate=brightgreen
+-	bookmark=white;red
+-	bookmarkfound=black;green
+-	editrightmargin=brightblue;blue
+-#	editbg=
+-#	editframe=
+-	editframeactive=white;
+-	editframedrag=green;
+-	window-state-char = *
+-	window-close-char = X
++    _default_ = lightgray;black
++    editbold = yellow;blue
++    editmarked = brightgreen;red
++    editwhitespace = brightblue;blue
++    editlinestate = brightgreen
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = brightblue;blue
++#    editbg =
++#    editframe =
++    editframeactive = white;
++    editframedrag = green;
++    window-state-char = *
++    window-close-char = X
+ 
+ [viewer]
+-	viewbold=brightred;black
+-	viewunderline=brightgreen;black
+-	viewselected=yellow;black
++    viewbold = brightred;black
++    viewunderline = brightgreen;black
++    viewselected = yellow;black
+ 
+ [diffviewer]
+-	_default_=lightgray;black
+-	added=brightgreen;
+-	changedline=cyan;
+-	changednew=yellow;
+-	changed=;brown
+-	removed=;blue
+-	folder=brightblue;
+-	error=white;red
+-
+-[popupmenu]
+-	_default_=brightgreen;black
+-	menusel=brightcyan;blue
+-	menutitle=brightcyan;black
++    _default_ = lightgray;black
++    added = brightgreen;
++    changedline = cyan;
++    changednew = yellow;
++    changed = ;brown
++    removed = ;blue
++    folder = brightblue;
++    error = white;red
+ 
+ [widget-panel]
+-	filename-scroll-left-char = {
+-	filename-scroll-right-char = }
++    filename-scroll-left-char = {
++    filename-scroll-right-char = }
+diff --git a/misc/skins/mc46.ini b/misc/skins/mc46.ini
+index 660b6a7..6c79c0e 100644
+--- a/misc/skins/mc46.ini
++++ b/misc/skins/mc46.ini
+@@ -1,129 +1,128 @@
+ [skin]
+-	description=mc-4.6 skin
++    description = mc-4.6 skin
+ 
+ [Lines]
+-	horiz=─
+-	vert=│
+-	lefttop=┌
+-	righttop=┐
+-	leftbottom=└
+-	rightbottom=┘
+-	topmiddle=┬
+-	bottommiddle=┴
+-	leftmiddle=├
+-	rightmiddle=┤
+-	cross=┼
+-	dhoriz=─
+-	dvert=│
+-	dlefttop=┌
+-	drighttop=┐
+-	dleftbottom=└
+-	drightbottom=┘
+-	dtopmiddle=┬
+-	dbottommiddle=┴
+-	dleftmiddle=├
+-	drightmiddle=┤
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ─
++    dvert = │
++    dlefttop = ┌
++    drighttop = ┐
++    dleftbottom = └
++    drightbottom = ┘
++    dtopmiddle = ┬
++    dbottommiddle = ┴
++    dleftmiddle = ├
++    drightmiddle = ┤
+ 
+ [core]
+-	_default_=lightgray;blue
+-	selected=black;cyan
+-	marked=yellow;blue
+-	markselect=yellow;cyan
+-	gauge=white;black
+-	input=black;cyan
+-	inputunchanged=black;cyan
+-	inputmark=cyan;black
+-	disabled=gray;lightgray
+-	reverse=black;lightgray
+-	commandlinemark=black;lightgray
+-	header=yellow;blue
+-	inputhistory=
+-	commandhistory=
++    _default_ = lightgray;blue
++    selected = black;cyan
++    marked = yellow;blue
++    markselect = yellow;cyan
++    gauge = white;black
++    input = black;cyan
++    inputunchanged = black;cyan
++    inputmark = cyan;black
++    disabled = gray;lightgray
++    reverse = black;lightgray
++    commandlinemark = black;lightgray
++    header = yellow;blue
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-	_default_=black;lightgray
+-	dfocus=black;cyan
+-	dhotnormal=blue;lightgray
+-	dhotfocus=blue;cyan
+-	dtitle=blue;lightgray
++    _default_ = black;lightgray
++    dfocus = black;cyan
++    dhotnormal = blue;lightgray
++    dhotfocus = blue;cyan
++    dtitle = blue;lightgray
+ 
+ [error]
+-	_default_=white;red
+-	errdfocus=black;lightgray
+-	errdhotnormal=yellow;red
+-	errdtitle=yellow;red
+-	errdhotfocus=yellow;lightgray
+-	errdtitle=yellow;red
++    _default_ = white;red
++    errdfocus = black;lightgray
++    errdhotnormal = yellow;red
++    errdhotfocus = yellow;lightgray
++    errdtitle = yellow;red
+ 
+ [filehighlight]
+-	directory=white;
+-	executable=brightgreen;
+-	symlink=lightgray;
+-	stalelink=brightred;
+-	device=brightmagenta;
+-	special=black;
++    directory = white;
++    executable = brightgreen;
++    symlink = lightgray;
++    stalelink = brightred;
++    device = brightmagenta;
++    special = black;
+ 
+ [menu]
+-	_default_=black;cyan
+-	menuhot=yellow;cyan
+-	menusel=white;black
+-	menuhotsel=yellow;black
+-	menuinactive=gray;cyan
++    _default_ = black;cyan
++    menusel = white;black
++    menuhot = yellow;cyan
++    menuhotsel = yellow;black
++    menuinactive = gray;cyan
++
++[popupmenu]
++    _default_ = white;cyan
++    menusel = yellow;black
++    menutitle = yellow;cyan
+ 
+ [buttonbar]
+-	hotkey=lightgray;black
+-	button=black;cyan
++    hotkey = lightgray;black
++    button = black;cyan
+ 
+ [statusbar]
+-	_default_=black;cyan
++    _default_ = black;cyan
+ 
+ [help]
+-	_default_=black;lightgray
+-	helpitalic=red;lightgray
+-	helpbold=blue;lightgray
+-	helplink=black;cyan
+-	helpslink=yellow;blue
+-	helptitle=blue;lightgray
++    _default_ = black;lightgray
++    helpitalic = red;lightgray
++    helpbold = blue;lightgray
++    helplink = black;cyan
++    helpslink = yellow;blue
++    helptitle = blue;lightgray
+ 
+ [editor]
+-	_default_=lightgray;blue
+-	editbold=yellow;
+-	editmarked=black;cyan
+-	editwhitespace=brightblue;blue
+-	editlinestate=white;cyan
+-	bookmark=white;red
+-	bookmarkfound=black;green
+-	editrightmargin=brightblue;black
+-#	editbg=
+-#	editframe=
+-	editframeactive=lightgray;
+-	editframedrag=cyan;
+-	window-state-char = *
+-	window-close-char = X
++    _default_ = lightgray;blue
++    editbold = yellow;
++    editmarked = black;cyan
++    editwhitespace = brightblue;blue
++    editlinestate = white;cyan
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = brightblue;black
++#    editbg =
++#    editframe =
++    editframeactive = lightgray;
++    editframedrag = cyan;
++    window-state-char = *
++    window-close-char = X
+ 
+ [viewer]
+-	viewbold=yellow;blue
+-	viewunderline=brightred;blue
+-	viewselected=yellow;cyan
++    viewbold = yellow;blue
++    viewunderline = brightred;blue
++    viewselected = yellow;cyan
+ 
+ [diffviewer]
+-	added=white;green
+-	changedline=blue;cyan
+-	changednew=red;cyan
+-	changed=white;cyan
+-	removed=white;red
+-	folder=blue;black
+-	error=red;lightgray
+-
+-[popupmenu]
+-	_default_=white;cyan
+-	menusel=yellow;black
+-	menutitle=yellow;cyan
++    added = white;green
++    changedline = blue;cyan
++    changednew = red;cyan
++    changed = white;cyan
++    removed = white;red
++    folder = blue;black
++    error = red;lightgray
+ 
+ [widget-common]
+-	sort-sign-up = '
+-	sort-sign-down = .
++    sort-sign-up = '
++    sort-sign-down = .
+ 
+ [widget-panel]
+-	filename-scroll-left-char = {
+-	filename-scroll-right-char = }
++    filename-scroll-left-char = {
++    filename-scroll-right-char = }
+diff --git a/misc/skins/modarcon16-defbg.ini b/misc/skins/modarcon16-defbg.ini
+index fda4cf0..edc860b 100644
+--- a/misc/skins/modarcon16-defbg.ini
++++ b/misc/skins/modarcon16-defbg.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarCon16-DefaultBG (user)
+-  256colors=false
++    description = MoDarCon16-DefaultBG (user)
++    256colors = false
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color7;default
+-  selected=color15;color2
+-  marked=color11;;bold
+-  markselect=color11;color2;bold
+-  gauge=color15;color2
+-  input=color15;color0
+-  inputmark=color11;color2;bold
+-  inputunchanged=;color0
+-  commandlinemark=color11;color2;bold
+-  reverse=color0;color10
+-  header=color3
+-  disabled=color8;color7
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color7;default
++    selected = color15;color2
++    marked = color11;;bold
++    markselect = color11;color2;bold
++    gauge = color15;color2
++    input = color15;color0
++    inputmark = color11;color2;bold
++    inputunchanged = ;color0
++    commandlinemark = color11;color2;bold
++    reverse = color0;color10
++    header = color3
++    disabled = color8;color7
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color0;color7
+-  dhotnormal=color3
+-  dfocus=color11;color2;bold
+-  dhotfocus=color3;color2
+-  dtitle=color11;;bold
++    _default_ = color0;color7
++    dhotnormal = color3
++    dfocus = color11;color2;bold
++    dhotfocus = color3;color2
++    dtitle = color11;;bold
+ 
+ [error]
+-  _default_=color15;color1
+-  errdfocus=color11;color2;bold
+-  errdhotnormal=color13
+-  errdhotfocus=color13;color2
+-  errdtitle=color11;;bold
++    _default_ = color15;color1
++    errdfocus = color11;color2;bold
++    errdhotnormal = color13
++    errdhotfocus = color13;color2
++    errdtitle = color11;;bold
+ 
+ [filehighlight]
+-  directory=color15;;bold
+-  executable=color10
+-  symlink=color12
+-  hardlink=
+-  stalelink=color9
+-  device=color13
+-  special=color3
+-  core=color1
+-  temp=color8
+-  archive=color3
+-  doc=color14
+-  source=color6
+-  media=color5
+-  graph=color13
+-  database=color2
++    directory = color15;;bold
++    executable = color10
++    symlink = color12
++    hardlink =
++    stalelink = color9
++    device = color13
++    special = color3
++    core = color1
++    temp = color8
++    archive = color3
++    doc = color14
++    source = color6
++    media = color5
++    graph = color13
++    database = color2
+ 
+ [menu]
+-  _default_=color7;default
+-  menuhot=color3
+-  menusel=color11;color2;bold
+-  menuhotsel=color3;color2
+-  menuinactive=color8
++    _default_ = color7;default
++    menusel = color11;color2;bold
++    menuhot = color3
++    menuhotsel = color3;color2
++    menuinactive = color8
+ 
+ [popupmenu]
+-  _default_=color7;default
+-  menusel=color11;color2;bold
+-  menutitle=color11;;bold
++    _default_ = color7;default
++    menusel = color11;color2;bold
++    menutitle = color11;;bold
+ 
+ [buttonbar]
+-  button=color7
+-  hotkey=color15;color3
++    button = color7
++    hotkey = color15;color3
+ 
+ [statusbar]
+-  _default_=color15;color2
++    _default_ = color15;color2
+ 
+ [help]
+-  _default_=color0;color7
+-  helpitalic=color10;;bold
+-  helpbold=color5
+-  helplink=color14
+-  helpslink=color11;color2;bold
++    _default_ = color0;color7
++    helpitalic = color10;;bold
++    helpbold = color5
++    helplink = color14
++    helpslink = color11;color2;bold
++    helptitle = color11;;bold
+ 
+ [editor]
+-  _default_=color7;default
+-  editbold=color15;;bold
+-  editmarked=color11;color2;bold
+-  editwhitespace=color12;color4
+-  editlinestate=color2;color0
+-  bookmark=color0;color7
+-  bookmarkfound=color0;color7
+-  editrightmargin=color0;color7
++    _default_ = color7;default
++    editbold = color15;;bold
++    editmarked = color11;color2;bold
++    editwhitespace = color12;color4
++    editlinestate = color2;color0
++    bookmark = color0;color7
++    bookmarkfound = color0;color7
++    editrightmargin = color0;color7
+ 
+ [viewer]
+-  _default_=color7;default
+-  viewunderline=;;underline
++    _default_ = color7;default
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color15;color4
+-  changednew=color15;color2
+-  changed=color15;color6
+-  added=color0;color7
+-  removed=color8;color0
+-  folder=color11;color0;bold
+-  error=color15;color1
++    changedline = color15;color4
++    changednew = color15;color2
++    changed = color15;color6
++    added = color0;color7
++    removed = color8;color0
++    folder = color11;color0;bold
++    error = color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/modarcon16.ini b/misc/skins/modarcon16.ini
+index 07acfb5..bab113c 100644
+--- a/misc/skins/modarcon16.ini
++++ b/misc/skins/modarcon16.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarCon16 (user)
+-  256colors=false
++    description = MoDarCon16 (user)
++    256colors = false
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color7;color0
+-  selected=color15;color2
+-  marked=color11;;bold
+-  markselect=color11;color2;bold
+-  gauge=color15;color2
+-  input=color15
+-  inputmark=color11;color2;bold
+-  inputunchanged=
+-  commandlinemark=color11;color2;bold
+-  reverse=color0;color10
+-  header=color3
+-  disabled=color8;color7
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color7;color0
++    selected = color15;color2
++    marked = color11;;bold
++    markselect = color11;color2;bold
++    gauge = color15;color2
++    input = color15
++    inputmark = color11;color2;bold
++    inputunchanged =
++    commandlinemark = color11;color2;bold
++    reverse = color0;color10
++    header = color3
++    disabled = color8;color7
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color0;color7
+-  dhotnormal=color3
+-  dfocus=color11;color2;bold
+-  dhotfocus=color3;color2
+-  dtitle=color11;;bold
++    _default_ = color0;color7
++    dhotnormal = color3
++    dfocus = color11;color2;bold
++    dhotfocus = color3;color2
++    dtitle = color11;;bold
+ 
+ [error]
+-  _default_=color15;color1
+-  errdfocus=color11;color2;bold
+-  errdhotnormal=color13
+-  errdhotfocus=color13;color2
+-  errdtitle=color11;;bold
++    _default_ = color15;color1
++    errdfocus = color11;color2;bold
++    errdhotnormal = color13
++    errdhotfocus = color13;color2
++    errdtitle = color11;;bold
+ 
+ [filehighlight]
+-  directory=color15;;bold
+-  executable=color10
+-  symlink=color12
+-  hardlink=
+-  stalelink=color9
+-  device=color13
+-  special=color3
+-  core=color1
+-  temp=color8
+-  archive=color3
+-  doc=color14
+-  source=color6
+-  media=color5
+-  graph=color13
+-  database=color2
++    directory = color15;;bold
++    executable = color10
++    symlink = color12
++    hardlink =
++    stalelink = color9
++    device = color13
++    special = color3
++    core = color1
++    temp = color8
++    archive = color3
++    doc = color14
++    source = color6
++    media = color5
++    graph = color13
++    database = color2
+ 
+ [menu]
+-  _default_=color0;color7
+-  menuhot=color3
+-  menusel=color11;color2;bold
+-  menuhotsel=color3;color2
+-  menuinactive=color8
++    _default_ = color0;color7
++    menusel = color11;color2;bold
++    menuhot = color3
++    menuhotsel = color3;color2
++    menuinactive = color8
+ 
+ [popupmenu]
+-  _default_=color0;color7
+-  menusel=color11;color2;bold
+-  menutitle=color11;;bold
++    _default_ = color0;color7
++    menusel = color11;color2;bold
++    menutitle = color11;;bold
+ 
+ [buttonbar]
+-  button=color7
+-  hotkey=color15;color3
++    button = color7
++    hotkey = color15;color3
+ 
+ [statusbar]
+-  _default_=color15;color2
++    _default_ = color15;color2
+ 
+ [help]
+-  _default_=color0;color7
+-  helpitalic=color10;;bold
+-  helpbold=color5
+-  helplink=color14
+-  helpslink=color11;color2;bold
++    _default_ = color0;color7
++    helpitalic = color10;;bold
++    helpbold = color5
++    helplink = color14
++    helpslink = color11;color2;bold
++    helptitle = color11;;bold
+ 
+ [editor]
+-  _default_=color7;color0
+-  editbold=color15;;bold
+-  editmarked=color11;color2;bold
+-  editwhitespace=color12;color4
+-  editlinestate=color2;color0
+-  bookmark=color0;color7
+-  bookmarkfound=color0;color7
+-  editrightmargin=color0;color7
++    _default_ = color7;color0
++    editbold = color15;;bold
++    editmarked = color11;color2;bold
++    editwhitespace = color12;color4
++    editlinestate = color2;color0
++    bookmark = color0;color7
++    bookmarkfound = color0;color7
++    editrightmargin = color0;color7
+ 
+ [viewer]
+-  _default_=color7;color0
+-  viewunderline=;;underline
++    _default_ = color7;color0
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color15;color4
+-  changednew=color15;color2
+-  changed=color15;color6
+-  added=color0;color7
+-  removed=color8;color0
+-  folder=color11;color0;bold
+-  error=color15;color1
++    changedline = color15;color4
++    changednew = color15;color2
++    changed = color15;color6
++    added = color0;color7
++    removed = color8;color0
++    folder = color11;color0;bold
++    error = color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/modarcon16root-defbg.ini b/misc/skins/modarcon16root-defbg.ini
+index 4ef90f2..18d40e3 100644
+--- a/misc/skins/modarcon16root-defbg.ini
++++ b/misc/skins/modarcon16root-defbg.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarCon16root-DefaultBG (root)
+-  256colors=false
++    description = MoDarCon16root-DefaultBG (root)
++    256colors = false
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color7;default
+-  selected=color15;color1
+-  marked=color11;;bold
+-  markselect=color11;color1;bold
+-  gauge=color15;color1
+-  input=color15;color0
+-  inputmark=color11;color1;bold
+-  inputunchanged=;color0
+-  commandlinemark=color11;color1;bold
+-  reverse=color0;color9
+-  header=color3
+-  disabled=color8;color7
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color7;default
++    selected = color15;color1
++    marked = color11;;bold
++    markselect = color11;color1;bold
++    gauge = color15;color1
++    input = color15;color0
++    inputmark = color11;color1;bold
++    inputunchanged = ;color0
++    commandlinemark = color11;color1;bold
++    reverse = color0;color9
++    header = color3
++    disabled = color8;color7
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color0;color7
+-  dhotnormal=color3
+-  dfocus=color11;color1;bold
+-  dhotfocus=color5;color1;bold
+-  dtitle=color11;;bold
++    _default_ = color0;color7
++    dhotnormal = color3
++    dfocus = color11;color1;bold
++    dhotfocus = color5;color1;bold
++    dtitle = color11;;bold
+ 
+ [error]
+-  _default_=color15;color1
+-  errdfocus=color11;color3;bold
+-  errdhotnormal=color13
+-  errdhotfocus=color13;color3
+-  errdtitle=color11;;bold
++    _default_ = color15;color1
++    errdfocus = color11;color3;bold
++    errdhotnormal = color13
++    errdhotfocus = color13;color3
++    errdtitle = color11;;bold
+ 
+ [filehighlight]
+-  directory=color15;;bold
+-  executable=color10
+-  symlink=color12
+-  hardlink=
+-  stalelink=color9
+-  device=color13
+-  special=color3
+-  core=color1
+-  temp=color8
+-  archive=color3
+-  doc=color14
+-  source=color6
+-  media=color5
+-  graph=color13
+-  database=color2
++    directory = color15;;bold
++    executable = color10
++    symlink = color12
++    hardlink =
++    stalelink = color9
++    device = color13
++    special = color3
++    core = color1
++    temp = color8
++    archive = color3
++    doc = color14
++    source = color6
++    media = color5
++    graph = color13
++    database = color2
+ 
+ [menu]
+-  _default_=color7;default
+-  menuhot=color3
+-  menusel=color11;color1;bold
+-  menuhotsel=color5;color1;bold
+-  menuinactive=color8
++    _default_ = color7;default
++    menusel = color11;color1;bold
++    menuhot = color3
++    menuhotsel = color5;color1;bold
++    menuinactive = color8
+ 
+ [popupmenu]
+-  _default_=color7;default
+-  menusel=color11;color1;bold
+-  menutitle=color11;;bold
++    _default_ = color7;default
++    menusel = color11;color1;bold
++    menutitle = color11;;bold
+ 
+ [buttonbar]
+-  button=color7
+-  hotkey=color15;color3
++    button = color7
++    hotkey = color15;color3
+ 
+ [statusbar]
+-  _default_=color15;color1
++    _default_ = color15;color1
+ 
+ [help]
+-  _default_=color0;color7
+-  helpitalic=color10;;bold
+-  helpbold=color5
+-  helplink=color14
+-  helpslink=color11;color1;bold
++    _default_ = color0;color7
++    helpitalic = color10;;bold
++    helpbold = color5
++    helplink = color14
++    helpslink = color11;color1;bold
++    helptitle = color11;;bold
+ 
+ [editor]
+-  _default_=color7;default
+-  editbold=color15;;bold
+-  editmarked=color11;color1;bold
+-  editwhitespace=color12;color4
+-  editlinestate=color1;color0
+-  bookmark=color0;color7
+-  bookmarkfound=color0;color7
+-  editrightmargin=color0;color7
++    _default_ = color7;default
++    editbold = color15;;bold
++    editmarked = color11;color1;bold
++    editwhitespace = color12;color4
++    editlinestate = color1;color0
++    bookmark = color0;color7
++    bookmarkfound = color0;color7
++    editrightmargin = color0;color7
+ 
+ [viewer]
+-  _default_=color7;default
+-  viewunderline=;;underline
++    _default_ = color7;default
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color15;color4
+-  changednew=color15;color5
+-  changed=color15;color3
+-  added=color0;color7
+-  removed=color8;color0
+-  folder=color11;color0;bold
+-  error=color15;color1
++    changedline = color15;color4
++    changednew = color15;color5
++    changed = color15;color3
++    added = color0;color7
++    removed = color8;color0
++    folder = color11;color0;bold
++    error = color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/modarcon16root.ini b/misc/skins/modarcon16root.ini
+index 16baac5..c0ee27a 100644
+--- a/misc/skins/modarcon16root.ini
++++ b/misc/skins/modarcon16root.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarCon16root (root)
+-  256colors=false
++    description = MoDarCon16root (root)
++    256colors = false
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color7;color0
+-  selected=color15;color1
+-  marked=color11;;bold
+-  markselect=color11;color1;bold
+-  gauge=color15;color1
+-  input=color15
+-  inputmark=color11;color1;bold
+-  inputunchanged=
+-  commandlinemark=color11;color1;bold
+-  reverse=color0;color9
+-  header=color3
+-  disabled=color8;color7
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color7;color0
++    selected = color15;color1
++    marked = color11;;bold
++    markselect = color11;color1;bold
++    gauge = color15;color1
++    input = color15
++    inputmark = color11;color1;bold
++    inputunchanged =
++    commandlinemark = color11;color1;bold
++    reverse = color0;color9
++    header = color3
++    disabled = color8;color7
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color0;color7
+-  dhotnormal=color3
+-  dfocus=color11;color1;bold
+-  dhotfocus=color5;color1;bold
+-  dtitle=color11;;bold
++    _default_ = color0;color7
++    dhotnormal = color3
++    dfocus = color11;color1;bold
++    dhotfocus = color5;color1;bold
++    dtitle = color11;;bold
+ 
+ [error]
+-  _default_=color15;color1
+-  errdfocus=color11;color3;bold
+-  errdhotnormal=color13
+-  errdhotfocus=color13;color3
+-  errdtitle=color11;;bold
++    _default_ = color15;color1
++    errdfocus = color11;color3;bold
++    errdhotnormal = color13
++    errdhotfocus = color13;color3
++    errdtitle = color11;;bold
+ 
+ [filehighlight]
+-  directory=color15;;bold
+-  executable=color10
+-  symlink=color12
+-  hardlink=
+-  stalelink=color9
+-  device=color13
+-  special=color3
+-  core=color1
+-  temp=color8
+-  archive=color3
+-  doc=color14
+-  source=color6
+-  media=color5
+-  graph=color13
+-  database=color2
++    directory = color15;;bold
++    executable = color10
++    symlink = color12
++    hardlink =
++    stalelink = color9
++    device = color13
++    special = color3
++    core = color1
++    temp = color8
++    archive = color3
++    doc = color14
++    source = color6
++    media = color5
++    graph = color13
++    database = color2
+ 
+ [menu]
+-  _default_=color0;color7
+-  menuhot=color3
+-  menusel=color11;color1;bold
+-  menuhotsel=color5;color1;bold
+-  menuinactive=color8
++    _default_ = color0;color7
++    menusel = color11;color1;bold
++    menuhot = color3
++    menuhotsel = color5;color1;bold
++    menuinactive = color8
+ 
+ [popupmenu]
+-  _default_=color0;color7
+-  menusel=color11;color1;bold
+-  menutitle=color11;;bold
++    _default_ = color0;color7
++    menusel = color11;color1;bold
++    menutitle = color11;;bold
+ 
+ [buttonbar]
+-  button=color7
+-  hotkey=color15;color3
++    button = color7
++    hotkey = color15;color3
+ 
+ [statusbar]
+-  _default_=color15;color1
++    _default_ = color15;color1
+ 
+ [help]
+-  _default_=color0;color7
+-  helpitalic=color10;;bold
+-  helpbold=color5
+-  helplink=color14
+-  helpslink=color11;color1;bold
++    _default_ = color0;color7
++    helpitalic = color10;;bold
++    helpbold = color5
++    helplink = color14
++    helpslink = color11;color1;bold
++    helptitle = color11;;bold
+ 
+ [editor]
+-  _default_=color7;color0
+-  editbold=color15;;bold
+-  editmarked=color11;color1;bold
+-  editwhitespace=color12;color4
+-  editlinestate=color1;color0
+-  bookmark=color0;color7
+-  bookmarkfound=color0;color7
+-  editrightmargin=color0;color7
++    _default_ = color7;color0
++    editbold = color15;;bold
++    editmarked = color11;color1;bold
++    editwhitespace = color12;color4
++    editlinestate = color1;color0
++    bookmark = color0;color7
++    bookmarkfound = color0;color7
++    editrightmargin = color0;color7
+ 
+ [viewer]
+-  _default_=color7;color0
+-  viewunderline=;;underline
++    _default_ = color7;color0
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color15;color4
+-  changednew=color15;color5
+-  changed=color15;color3
+-  added=color0;color7
+-  removed=color8;color0
+-  folder=color11;color0;bold
+-  error=color15;color1
++    changedline = color15;color4
++    changednew = color15;color5
++    changed = color15;color3
++    added = color0;color7
++    removed = color8;color0
++    folder = color11;color0;bold
++    error = color15;color1
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/modarin256-defbg.ini b/misc/skins/modarin256-defbg.ini
+index 2dfb020..3d452d6 100644
+--- a/misc/skins/modarin256-defbg.ini
++++ b/misc/skins/modarin256-defbg.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarIn256-DefaultBG (user)
+-  256colors=true
++    description = MoDarIn256-DefaultBG (user)
++    256colors = true
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color250;default
+-  selected=color253;color23
+-  marked=color228;;bold
+-  markselect=color228;color23;bold
+-  gauge=color250;color66
+-  input=color187;color235;bold
+-  inputmark=color228;color23;bold
+-  inputunchanged=color144;color235;bold
+-  commandlinemark=color228;color23;bold
+-  reverse=color254;color66
+-  header=color180;;bold
+-  disabled=color246;color239
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color250;default
++    selected = color253;color23
++    marked = color228;;bold
++    markselect = color228;color23;bold
++    gauge = color250;color66
++    input = color187;color235;bold
++    inputmark = color228;color23;bold
++    inputunchanged = color144;color235;bold
++    commandlinemark = color228;color23;bold
++    reverse = color254;color66
++    header = color180;;bold
++    disabled = color246;color239
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color252;color239
+-  dhotnormal=color214
+-  dfocus=color228;color23;bold
+-  dhotfocus=color214;color23
+-  dtitle=color180;;bold
++    _default_ = color252;color239
++    dhotnormal = color214
++    dfocus = color228;color23;bold
++    dhotfocus = color214;color23
++    dtitle = color180;;bold
+ 
+ [error]
+-  _default_=color230;color52
+-  errdfocus=color254;color23;bold
+-  errdhotnormal=color203;color52
+-  errdhotfocus=color203;color23;bold
+-  errdtitle=color227;;bold
++    _default_ = color230;color52
++    errdfocus = color254;color23;bold
++    errdhotnormal = color203;color52
++    errdhotfocus = color203;color23;bold
++    errdtitle = color227;;bold
+ 
+ [filehighlight]
+-  directory=color144;;bold
+-  executable=color114
+-  symlink=color45
+-  hardlink=
+-  stalelink=color203
+-  device=color170
+-  special=color142
+-  core=color197
+-  temp=color245
+-  archive=color172
+-  doc=color153
+-  source=color109
+-  media=color141
+-  graph=color216
+-  database=color103
++    directory = color144;;bold
++    executable = color114
++    symlink = color45
++    hardlink =
++    stalelink = color203
++    device = color170
++    special = color142
++    core = color197
++    temp = color245
++    archive = color172
++    doc = color153
++    source = color109
++    media = color141
++    graph = color216
++    database = color103
+ 
+ [menu]
+-  _default_=color250;default
+-  menuhot=color214
+-  menusel=color253;color23
+-  menuhotsel=color214;color23
+-  menuinactive=color245
++    _default_ = color250;default
++    menusel = color253;color23
++    menuhot = color214
++    menuhotsel = color214;color23
++    menuinactive = color245
+ 
+ [popupmenu]
+-  _default_=color250;default
+-  menusel=color253;color23
+-  menutitle=color180;;bold
++    _default_ = color250;default
++    menusel = color253;color23
++    menutitle = color180;;bold
+ 
+ [buttonbar]
+-  button=color253;color236
+-  hotkey=color214;color238;bold
++    button = color253;color236
++    hotkey = color214;color238;bold
+ 
+ [statusbar]
+-  _default_=color253;color66
++    _default_ = color253;color66
+ 
+ [help]
+-  _default_=color252;color239
+-  helpitalic=color114;;bold
+-  helpbold=color180;;bold
+-  helplink=color45
+-  helpslink=color228;color23;bold
++    _default_ = color252;color239
++    helpitalic = color114;;bold
++    helpbold = color180;;bold
++    helplink = color45
++    helpslink = color228;color23;bold
++    helptitle = color180;;bold
+ 
+ [editor]
+-  _default_=color250;default
+-  editbold=color228;;bold
+-  editmarked=color228;color23;bold
+-  editwhitespace=color56;color234
+-  editlinestate=color66;color235
+-  bookmark=;color239
+-  bookmarkfound=;color239;bold
+-  editrightmargin=;color235;bold
++    _default_ = color250;default
++    editbold = color228;;bold
++    editmarked = color228;color23;bold
++    editwhitespace = color56;color234
++    editlinestate = color66;color235
++    bookmark = ;color239
++    bookmarkfound = ;color239;bold
++    editrightmargin = ;color235;bold
+ 
+ [viewer]
+-  _default_=color250;default
+-  viewunderline=;;underline
++    _default_ = color250;default
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color231;color29
+-  changednew=color232;color78
+-  changed=color231;color39
+-  added=color232;color81
+-  removed=;color234
+-  folder=color232;color185
+-  error=color231;color160
++    changedline = color231;color29
++    changednew = color232;color78
++    changed = color231;color39
++    added = color232;color81
++    removed = ;color234
++    folder = color232;color185
++    error = color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/modarin256.ini b/misc/skins/modarin256.ini
+index 92279a6..bc10144 100644
+--- a/misc/skins/modarin256.ini
++++ b/misc/skins/modarin256.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarIn256 (user)
+-  256colors=true
++    description = MoDarIn256 (user)
++    256colors = true
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color252;color237
+-  selected=color253;color23
+-  marked=color228;;bold
+-  markselect=color228;color23;bold
+-  gauge=color250;color66
+-  input=color187;color235;bold
+-  inputmark=color228;color23;bold
+-  inputunchanged=color144;color235;bold
+-  commandlinemark=color228;color23;bold
+-  reverse=color254;color66
+-  header=color180;;bold
+-  disabled=color246;color239
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color252;color237
++    selected = color253;color23
++    marked = color228;;bold
++    markselect = color228;color23;bold
++    gauge = color250;color66
++    input = color187;color235;bold
++    inputmark = color228;color23;bold
++    inputunchanged = color144;color235;bold
++    commandlinemark = color228;color23;bold
++    reverse = color254;color66
++    header = color180;;bold
++    disabled = color246;color239
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color252;color239
+-  dhotnormal=color214
+-  dfocus=color228;color23;bold
+-  dhotfocus=color214;color23
+-  dtitle=color180;;bold
++    _default_ = color252;color239
++    dhotnormal = color214
++    dfocus = color228;color23;bold
++    dhotfocus = color214;color23
++    dtitle = color180;;bold
+ 
+ [error]
+-  _default_=color230;color52
+-  errdfocus=color254;color23;bold
+-  errdhotnormal=color203;color52
+-  errdhotfocus=color203;color23;bold
+-  errdtitle=color227;;bold
++    _default_ = color230;color52
++    errdfocus = color254;color23;bold
++    errdhotnormal = color203;color52
++    errdhotfocus = color203;color23;bold
++    errdtitle = color227;;bold
+ 
+ [filehighlight]
+-  directory=color144;;bold
+-  executable=color114
+-  symlink=color45
+-  hardlink=
+-  stalelink=color203
+-  device=color170
+-  special=color142
+-  core=color197
+-  temp=color245
+-  archive=color172
+-  doc=color153
+-  source=color109
+-  media=color141
+-  graph=color216
+-  database=color103
++    directory = color144;;bold
++    executable = color114
++    symlink = color45
++    hardlink =
++    stalelink = color203
++    device = color170
++    special = color142
++    core = color197
++    temp = color245
++    archive = color172
++    doc = color153
++    source = color109
++    media = color141
++    graph = color216
++    database = color103
+ 
+ [menu]
+-  _default_=color252;color239
+-  menuhot=color214
+-  menusel=color253;color23
+-  menuhotsel=color214;color23
+-  menuinactive=color246
++    _default_ = color252;color239
++    menusel = color253;color23
++    menuhot = color214
++    menuhotsel = color214;color23
++    menuinactive = color246
+ 
+ [popupmenu]
+-  _default_=color252;color239
+-  menusel=color253;color23
+-  menutitle=color180;;bold
++    _default_ = color252;color239
++    menusel = color253;color23
++    menutitle = color180;;bold
+ 
+ [buttonbar]
+-  button=color253;color236
+-  hotkey=color214;color238;bold
++    button = color253;color236
++    hotkey = color214;color238;bold
+ 
+ [statusbar]
+-  _default_=color253;color66
++    _default_ = color253;color66
+ 
+ [help]
+-  _default_=color252;color239
+-  helpitalic=color114;;bold
+-  helpbold=color180;;bold
+-  helplink=color45
+-  helpslink=color228;color23;bold
++    _default_ = color252;color239
++    helpitalic = color114;;bold
++    helpbold = color180;;bold
++    helplink = color45
++    helpslink = color228;color23;bold
++    helptitle = color180;;bold
+ 
+ [editor]
+-  _default_=color252;color237
+-  editbold=color228;;bold
+-  editmarked=color228;color23;bold
+-  editwhitespace=color56;color234
+-  editlinestate=color66;color235
+-  bookmark=;color239
+-  bookmarkfound=;color239;bold
+-  editrightmargin=;color235;bold
++    _default_ = color252;color237
++    editbold = color228;;bold
++    editmarked = color228;color23;bold
++    editwhitespace = color56;color234
++    editlinestate = color66;color235
++    bookmark = ;color239
++    bookmarkfound = ;color239;bold
++    editrightmargin = ;color235;bold
+ 
+ [viewer]
+-  _default_=color252;color237
+-  viewunderline=;;underline
++    _default_ = color252;color237
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color231;color29
+-  changednew=color232;color78
+-  changed=color231;color39
+-  added=color232;color81
+-  removed=;color235
+-  folder=color232;color185
+-  error=color231;color160
++    changedline = color231;color29
++    changednew = color232;color78
++    changed = color231;color39
++    added = color232;color81
++    removed = ;color235
++    folder = color232;color185
++    error = color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/modarin256root-defbg.ini b/misc/skins/modarin256root-defbg.ini
+index 3bc08d0..c0d6d94 100644
+--- a/misc/skins/modarin256root-defbg.ini
++++ b/misc/skins/modarin256root-defbg.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarIn256root-DefaultBG (root)
+-  256colors=true
++    description = MoDarIn256root-DefaultBG (root)
++    256colors = true
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color250;default
+-  selected=color253;color88
+-  marked=color228;;bold
+-  markselect=color228;color88;bold
+-  gauge=color250;color95
+-  input=color187;color235;bold
+-  inputmark=color228;color88;bold
+-  inputunchanged=color144;color235;bold
+-  commandlinemark=color228;color88;bold
+-  reverse=color254;color95
+-  header=color180;;bold
+-  disabled=color246;color239
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color250;default
++    selected = color253;color88
++    marked = color228;;bold
++    markselect = color228;color88;bold
++    gauge = color250;color95
++    input = color187;color235;bold
++    inputmark = color228;color88;bold
++    inputunchanged = color144;color235;bold
++    commandlinemark = color228;color88;bold
++    reverse = color254;color95
++    header = color180;;bold
++    disabled = color246;color239
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color252;color239
+-  dhotnormal=color214
+-  dfocus=color228;color88;bold
+-  dhotfocus=color214;color88;bold
+-  dtitle=color180;;bold
++    _default_ = color252;color239
++    dhotnormal = color214
++    dfocus = color228;color88;bold
++    dhotfocus = color214;color88;bold
++    dtitle = color180;;bold
+ 
+ [error]
+-  _default_=color230;color52
+-  errdfocus=color254;color95;bold
+-  errdhotnormal=color203;color52
+-  errdhotfocus=color203;color95;bold
+-  errdtitle=color227;;bold
++    _default_ = color230;color52
++    errdfocus = color254;color95;bold
++    errdhotnormal = color203;color52
++    errdhotfocus = color203;color95;bold
++    errdtitle = color227;;bold
+ 
+ [filehighlight]
+-  directory=color144;;bold
+-  executable=color114
+-  symlink=color45
+-  hardlink=
+-  stalelink=color203
+-  device=color170
+-  special=color142
+-  core=color197
+-  temp=color245
+-  archive=color172
+-  doc=color153
+-  source=color109
+-  media=color141
+-  graph=color216
+-  database=color103
++    directory = color144;;bold
++    executable = color114
++    symlink = color45
++    hardlink =
++    stalelink = color203
++    device = color170
++    special = color142
++    core = color197
++    temp = color245
++    archive = color172
++    doc = color153
++    source = color109
++    media = color141
++    graph = color216
++    database = color103
+ 
+ [menu]
+-  _default_=color250;default
+-  menuhot=color214
+-  menusel=color253;color88
+-  menuhotsel=color214;color88
+-  menuinactive=color245
++    _default_ = color250;default
++    menusel = color253;color88
++    menuhot = color214
++    menuhotsel = color214;color88
++    menuinactive = color245
+ 
+ [popupmenu]
+-  _default_=color250;default
+-  menusel=color253;color88
+-  menutitle=color180;;bold
++    _default_ = color250;default
++    menusel = color253;color88
++    menutitle = color180;;bold
+ 
+ [buttonbar]
+-  button=color253;color236
+-  hotkey=color214;color238;bold
++    button = color253;color236
++    hotkey = color214;color238;bold
+ 
+ [statusbar]
+-  _default_=color254;color95
++    _default_ = color254;color95
+ 
+ [help]
+-  _default_=color252;color239
+-  helpitalic=color114;;bold
+-  helpbold=color180;;bold
+-  helplink=color45
+-  helpslink=color228;color88;bold
++    _default_ = color252;color239
++    helpitalic = color114;;bold
++    helpbold = color180;;bold
++    helplink = color45
++    helpslink = color228;color88;bold
++    helptitle = color180;;bold
+ 
+ [editor]
+-  _default_=color250;default
+-  editbold=color228;;bold
+-  editmarked=color228;color88;bold
+-  editwhitespace=color56;color234
+-  editlinestate=color95;color235
+-  bookmark=;color239
+-  bookmarkfound=;color239;bold
+-  editrightmargin=;color235;bold
++    _default_ = color250;default
++    editbold = color228;;bold
++    editmarked = color228;color88;bold
++    editwhitespace = color56;color234
++    editlinestate = color95;color235
++    bookmark = ;color239
++    bookmarkfound = ;color239;bold
++    editrightmargin = ;color235;bold
+ 
+ [viewer]
+-  _default_=color250;default
+-  viewunderline=;;underline
++    _default_ = color250;default
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color231;color130
+-  changednew=color232;color208
+-  changed=color231;color96
+-  added=color232;color218
+-  removed=;color234
+-  folder=color232;color185
+-  error=color231;color160
++    changedline = color231;color130
++    changednew = color232;color208
++    changed = color231;color96
++    added = color232;color218
++    removed = ;color234
++    folder = color232;color185
++    error = color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/modarin256root.ini b/misc/skins/modarin256root.ini
+index 7cab9fa..3168c2e 100644
+--- a/misc/skins/modarin256root.ini
++++ b/misc/skins/modarin256root.ini
+@@ -40,143 +40,144 @@
+ #
+ 
+ [skin]
+-  description=MoDarIn256root (root)
+-  256colors=true
++    description = MoDarIn256root (root)
++    256colors = true
+ 
+ [Lines]
+-  horiz=─
+-  vert=│
+-  lefttop=┌
+-  righttop=┐
+-  leftbottom=└
+-  rightbottom=┘
+-  topmiddle=┬
+-  bottommiddle=┴
+-  leftmiddle=├
+-  rightmiddle=┤
+-  cross=┼
+-  dhoriz=═
+-  dvert=║
+-  dlefttop=╔
+-  drighttop=╗
+-  dleftbottom=╚
+-  drightbottom=╝
+-  dtopmiddle=╤
+-  dbottommiddle=╧
+-  dleftmiddle=╟
+-  drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-  _default_=color252;color237
+-  selected=color253;color88
+-  marked=color228;;bold
+-  markselect=color228;color88;bold
+-  gauge=color250;color95
+-  input=color187;color235;bold
+-  inputmark=color228;color88;bold
+-  inputunchanged=color144;color235;bold
+-  commandlinemark=color228;color88;bold
+-  reverse=color254;color95
+-  header=color180;;bold
+-  disabled=color246;color239
+-  #inputhistory=
+-  #commandhistory=
++    _default_ = color252;color237
++    selected = color253;color88
++    marked = color228;;bold
++    markselect = color228;color88;bold
++    gauge = color250;color95
++    input = color187;color235;bold
++    inputmark = color228;color88;bold
++    inputunchanged = color144;color235;bold
++    commandlinemark = color228;color88;bold
++    reverse = color254;color95
++    header = color180;;bold
++    disabled = color246;color239
++    #inputhistory =
++    #commandhistory =
+ 
+ [dialog]
+-  _default_=color252;color239
+-  dhotnormal=color214
+-  dfocus=color228;color88;bold
+-  dhotfocus=color214;color88;bold
+-  dtitle=color180;;bold
++    _default_ = color252;color239
++    dhotnormal = color214
++    dfocus = color228;color88;bold
++    dhotfocus = color214;color88;bold
++    dtitle = color180;;bold
+ 
+ [error]
+-  _default_=color230;color52
+-  errdfocus=color254;color95;bold
+-  errdhotnormal=color203;color52
+-  errdhotfocus=color203;color95;bold
+-  errdtitle=color227;;bold
++    _default_ = color230;color52
++    errdfocus = color254;color95;bold
++    errdhotnormal = color203;color52
++    errdhotfocus = color203;color95;bold
++    errdtitle = color227;;bold
+ 
+ [filehighlight]
+-  directory=color144;;bold
+-  executable=color114
+-  symlink=color45
+-  hardlink=
+-  stalelink=color203
+-  device=color170
+-  special=color142
+-  core=color197
+-  temp=color245
+-  archive=color172
+-  doc=color153
+-  source=color109
+-  media=color141
+-  graph=color216
+-  database=color103
++    directory = color144;;bold
++    executable = color114
++    symlink = color45
++    hardlink =
++    stalelink = color203
++    device = color170
++    special = color142
++    core = color197
++    temp = color245
++    archive = color172
++    doc = color153
++    source = color109
++    media = color141
++    graph = color216
++    database = color103
+ 
+ [menu]
+-  _default_=color252;color239
+-  menuhot=color214
+-  menusel=color253;color88
+-  menuhotsel=color214;color88
+-  menuinactive=color246
++    _default_ = color252;color239
++    menusel = color253;color88
++    menuhot = color214
++    menuhotsel = color214;color88
++    menuinactive = color246
+ 
+ [popupmenu]
+-  _default_=color252;color239
+-  menusel=color253;color88
+-  menutitle=color180;;bold
++    _default_ = color252;color239
++    menusel = color253;color88
++    menutitle = color180;;bold
+ 
+ [buttonbar]
+-  button=color253;color236
+-  hotkey=color214;color238;bold
++    button = color253;color236
++    hotkey = color214;color238;bold
+ 
+ [statusbar]
+-  _default_=color254;color95
++    _default_ = color254;color95
+ 
+ [help]
+-  _default_=color252;color239
+-  helpitalic=color114;;bold
+-  helpbold=color180;;bold
+-  helplink=color45
+-  helpslink=color228;color88;bold
++    _default_ = color252;color239
++    helpitalic = color114;;bold
++    helpbold = color180;;bold
++    helplink = color45
++    helpslink = color228;color88;bold
++    helptitle = color180;;bold
+ 
+ [editor]
+-  _default_=color252;color237
+-  editbold=color228;;bold
+-  editmarked=color228;color88;bold
+-  editwhitespace=color56;color234
+-  editlinestate=color95;color235
+-  bookmark=;color239
+-  bookmarkfound=;color239;bold
+-  editrightmargin=;color235;bold
++    _default_ = color252;color237
++    editbold = color228;;bold
++    editmarked = color228;color88;bold
++    editwhitespace = color56;color234
++    editlinestate = color95;color235
++    bookmark = ;color239
++    bookmarkfound = ;color239;bold
++    editrightmargin = ;color235;bold
+ 
+ [viewer]
+-  _default_=color252;color237
+-  viewunderline=;;underline
++    _default_ = color252;color237
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-  changedline=color231;color130
+-  changednew=color232;color208
+-  changed=color231;color96
+-  added=color232;color218
+-  removed=;color235
+-  folder=color232;color185
+-  error=color231;color160
++    changedline = color231;color130
++    changednew = color232;color208
++    changed = color231;color96
++    added = color232;color218
++    removed = ;color235
++    folder = color232;color185
++    error = color231;color160
+ 
+ [widget-common]
+-  sort-sign-up=↑
+-  sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-  hiddenfiles-sign-show=•
+-  hiddenfiles-sign-hide=○
+-  history-prev-item-sign=«
+-  history-next-item-sign=»
+-  history-show-list-sign=^
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
++    history-prev-item-sign = «
++    history-next-item-sign = »
++    history-show-list-sign = ^
+ 
+ [widget-scollbar]
+-  first-vert-char=↑
+-  last-vert-char=↓
+-  first-horiz-char=«
+-  last-horiz-char=»
+-  current-char=■
+-  background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+diff --git a/misc/skins/nicedark.ini b/misc/skins/nicedark.ini
+index 518e575..57ef2ab 100644
+--- a/misc/skins/nicedark.ini
++++ b/misc/skins/nicedark.ini
+@@ -1,140 +1,140 @@
+ [skin]
+-    description=Nice and Dark
++    description = Nice and Dark
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=─
+-    dvert=│
+-    dlefttop=┌
+-    drighttop=┐
+-    dleftbottom=└
+-    drightbottom=┘
+-    dtopmiddle=┬
+-    dbottommiddle=┴
+-    dleftmiddle=├
+-    drightmiddle=┤
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ─
++    dvert = │
++    dlefttop = ┌
++    drighttop = ┐
++    dleftbottom = └
++    drightbottom = ┘
++    dtopmiddle = ┬
++    dbottommiddle = ┴
++    dleftmiddle = ├
++    drightmiddle = ┤
+ 
+ [core]
+-    _default_=lightgray;black
+-    selected=lightgray;blue
+-    marked=brown;black
+-    markselect=brown;blue
+-    gauge=black;lightgray
+-    input=lightgray;black
+-    inputunchanged=gray;black
+-    inputmark=black;lightgray
+-    disabled=gray;black
+-    reverse=brown;black
+-    commandlinemark=black;lightgray
+-    header=lightgray;black
+-    inputhistory=
+-    commandhistory=
++    _default_ = lightgray;black
++    selected = lightgray;blue
++    marked = brown;black
++    markselect = brown;blue
++    gauge = black;lightgray
++    input = lightgray;black
++    inputunchanged = gray;black
++    inputmark = black;lightgray
++    disabled = gray;black
++    reverse = brown;black
++    commandlinemark = black;lightgray
++    header = lightgray;black
++    inputhistory =
++    commandhistory =
+ 
+ [dialog]
+-    _default_=lightgray;black
+-    dfocus=lightgray;blue
+-    dhotnormal=brown;black
+-    dhotfocus=brown;blue
+-    dtitle=brown;black
++    _default_ = lightgray;black
++    dfocus = lightgray;blue
++    dhotnormal = brown;black
++    dhotfocus = brown;blue
++    dtitle = brown;black
+ 
+ [error]
+-    _default_=red;black
+-    errdfocus=black;red
+-    errdhotnormal=brightred;black
+-    errdhotfocus=brown;red
+-    errdtitle=brown;black
++    _default_ = red;black
++    errdfocus = black;red
++    errdhotnormal = brightred;black
++    errdhotfocus = brown;red
++    errdtitle = brown;black
+ 
+ [filehighlight]
+-    directory=blue;
+-    executable=brightgreen;
+-    symlink=gray;
+-    hardlink=
+-    stalelink=brightred;
+-    device=brightmagenta;
+-    special=gray;
+-    core=red;
+-    temp=gray;
+-    archive=magenta;
+-    doc=lightgray;
+-    source=brightcyan;
+-    media=green;
+-    graph=cyan;
+-    database=brightred;
++    directory = blue;
++    executable = brightgreen;
++    symlink = gray;
++    hardlink =
++    stalelink = brightred;
++    device = brightmagenta;
++    special = gray;
++    core = red;
++    temp = gray;
++    archive = magenta;
++    doc = lightgray;
++    source = brightcyan;
++    media = green;
++    graph = cyan;
++    database = brightred;
+ 
+ [menu]
+-    _default_=lightgray;black
+-    menuhot=brown;black
+-    menusel=lightgray;blue
+-    menuhotsel=brown;blue
+-    menuinactive=gray;black
++    _default_ = lightgray;black
++    menusel = lightgray;blue
++    menuhot = brown;black
++    menuhotsel = brown;blue
++    menuinactive = gray;black
++
++[popupmenu]
++    _default_ = lightgray;black
++    menusel = lightgray;blue
++    menutitle = lightgray;black
+ 
+ [buttonbar]
+-    hotkey=lightgray;blue
+-    button=lightgray;black
++    hotkey = lightgray;blue
++    button = lightgray;black
+ 
+ [statusbar]
+-    _default_=lightgray;black
++    _default_ = lightgray;black
+ 
+ [help]
+-    _default_=lightgray;black
+-    helpitalic=red;black
+-    helpbold=brown;black
+-    helplink=blue;black
+-    helpslink=lightgray;blue
+-    helptitle=brown;black
++    _default_ = lightgray;black
++    helpitalic = red;black
++    helpbold = brown;black
++    helplink = blue;black
++    helpslink = lightgray;blue
++    helptitle = brown;black
+ 
+ [editor]
+-    _default_=lightgray;black
+-    editbold=brown;blue
+-    editmarked=black;cyan
+-    editwhitespace=brightblue;blue
+-    editlinestate=white;cyan
+-    bookmark=white;red
+-    bookmarkfound=black;green
+-    editrightmargin=brightblue;black
+-#    editbg=
+-    editframe=gray;
+-    editframeactive=lightgray;
+-    editframedrag=brightblue;
++    _default_ = lightgray;black
++    editbold = brown;blue
++    editmarked = black;cyan
++    editwhitespace = brightblue;blue
++    editlinestate = white;cyan
++    bookmark = white;red
++    bookmarkfound = black;green
++    editrightmargin = brightblue;black
++#    editbg =
++    editframe = gray;
++    editframeactive = lightgray;
++    editframedrag = brightblue;
+     window-state-char = ↕
+     window-close-char = ✕
+ 
+ [viewer]
+-    viewbold=brown;blue
+-    viewunderline=brightred;blue
+-    viewselected=brown;cyan
++    viewbold = brown;blue
++    viewunderline = brightred;blue
++    viewselected = brown;cyan
+ 
+ [diffviewer]
+-    added=white;brown
+-    changedline=blue;cyan
+-    changednew=red;cyan
+-    changed=white;cyan
+-    removed=white;red
+-    folder=blue;black
+-    error=red;lightgray
+-
+-[popupmenu]
+-    _default_=lightgray;black
+-    menusel=lightgray;blue
+-    menutitle=lightgray;black
++    added = white;brown
++    changedline = blue;cyan
++    changednew = red;cyan
++    changed = white;cyan
++    removed = white;red
++    folder = blue;black
++    error = red;lightgray
+ 
+ [widget-common]
+-    sort-sign-up=↑
+-    sort-sign-down=↓
++    sort-sign-up = ↑
++    sort-sign-down = ↓
+ 
+ [widget-panel]
+-    hiddenfiles-sign-show  = •
+-    hiddenfiles-sign-hide  = ○
++    hiddenfiles-sign-show = •
++    hiddenfiles-sign-hide = ○
+     history-prev-item-sign = «
+     history-next-item-sign = »
+     history-show-list-sign = ^
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index adb29e0..f0b3082 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -52,131 +52,132 @@
+ # Use any other word (e.g. "none") to prevent fallback and disable all flags.
+ 
+ [skin]
+-    description=Sand skin using 256 colors
+-    256colors=true
++    description = Sand skin using 256 colors
++    256colors = true
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=─
+-    dvert=│
+-    dlefttop=┌
+-    drighttop=┐
+-    dleftbottom=└
+-    drightbottom=┘
+-    dtopmiddle=┬
+-    dbottommiddle=┴
+-    dleftmiddle=├
+-    drightmiddle=┤
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ─
++    dvert = │
++    dlefttop = ┌
++    drighttop = ┐
++    dleftbottom = └
++    drightbottom = ┘
++    dtopmiddle = ┬
++    dbottommiddle = ┴
++    dleftmiddle = ├
++    drightmiddle = ┤
+ 
+ [core]
+-    _default_=black;rgb554
+-    selected=;rgb452
+-    marked=rgb400
+-    markselect=rgb400;rgb452
+-    gauge=;rgb452
+-    input=;rgb452
+-    inputunchanged=gray;rgb452
+-    inputmark=rgb452;gray
+-    disabled=gray;rgb553
+-    reverse=;rgb452
+-    commandlinemark=white;gray
+-    header=red
++    _default_ = black;rgb554
++    selected = ;rgb452
++    marked = rgb400
++    markselect = rgb400;rgb452
++    gauge = ;rgb452
++    input = ;rgb452
++    inputunchanged = gray;rgb452
++    inputmark = rgb452;gray
++    disabled = gray;rgb553
++    reverse = ;rgb452
++    commandlinemark = white;gray
++    header = red
+ 
+ [dialog]
+-    _default_=black;rgb553
+-    dfocus=;rgb452
+-    dhotnormal=;;underline
+-    dhotfocus=;rgb452;underline
+-    dtitle=;;underline
++    _default_ = black;rgb553
++    dfocus = ;rgb452
++    dhotnormal = ;;underline
++    dhotfocus = ;rgb452;underline
++    dtitle = ;;underline
+ 
+ [error]
+-    _default_=rgb554;rgb320;bold
+-    errdfocus=black;rgb452;bold
+-    errdhotnormal=;;bold+underline
+-    errdhotfocus=black;rgb452;bold+underline 
+-    errdtitle=;;bold+underline 
++    _default_ = rgb554;rgb320;bold
++    errdfocus = black;rgb452;bold
++    errdhotnormal = ;;bold+underline
++    errdhotfocus = black;rgb452;bold+underline
++    errdtitle = ;;bold+underline
+ 
+ [filehighlight]
+-    directory=
+-    executable=rgb030
+-    symlink=rgb202
+-    hardlink=
++    directory =
++    executable = rgb030
++    symlink = rgb202
++    hardlink =
+     # 404 Not Found :)
+-    stalelink=rgb404
+-    device=rgb231
+-    special=rgb331
+-    core=rgb430
+-    temp=gray15
+-    archive=rgb012
+-    doc=rgb103
+-    source=rgb310
+-    media=rgb024
+-    graph=rgb033
+-    database=rgb421
++    stalelink = rgb404
++    device = rgb231
++    special = rgb331
++    core = rgb430
++    temp = gray15
++    archive = rgb012
++    doc = rgb103
++    source = rgb310
++    media = rgb024
++    graph = rgb033
++    database = rgb421
+ 
+ [menu]
+-    _default_=black;rgb452
+-    menuhot=;;underline
+-    menusel=;rgb551
+-    menuhotsel=;rgb551;underline
+-    menuinactive=
++    _default_ = black;rgb452
++    menusel = ;rgb551
++    menuhot = ;;underline
++    menuhotsel = ;rgb551;underline
++    menuinactive =
+ 
+ [popupmenu]
+-    _default_=black;rgb553 
+-    menusel=;rgb452;underline
+-    menutitle=;;underline
++    _default_ = black;rgb553
++    menusel = ;rgb452;underline
++    menutitle = ;;underline
+ 
+ [buttonbar]
+-    hotkey=black;rgb554
+-    button=black;rgb452
++    hotkey = black;rgb554
++    button = black;rgb452
+ 
+ [statusbar]
+-    _default_=black;rgb452
++    _default_ = black;rgb452
+ 
+ [help]
+-    _default_=black;rgb553
+-    helpitalic=green
+-    helpbold=red
+-    helplink=blue;;underline
+-    helpslink=blue;;reverse
++    _default_ = black;rgb553
++    helpitalic = green
++    helpbold = red
++    helplink = blue;;underline
++    helpslink = blue;;reverse
++    helptitle = ;;underline
+ 
+ [editor]
+-    _default_=black;rgb554
+-    editbold=rgb400
+-    editmarked=;rgb452
+-    editwhitespace=rgb400;rgb553
+-    editlinestate=;rgb553
+-    bookmark=;rgb551
+-    bookmarkfound=;rgb530
+-    editrightmargin=rgb400;rgb553
+-#    editbg=
+-    editframe=rgb530;
+-    editframeactive=black;
+-    editframedrag=rgb400;
++    _default_ = black;rgb554
++    editbold = rgb400
++    editmarked = ;rgb452
++    editwhitespace = rgb400;rgb553
++    editlinestate = ;rgb553
++    bookmark = ;rgb551
++    bookmarkfound = ;rgb530
++    editrightmargin = rgb400;rgb553
++#    editbg =
++    editframe = rgb530;
++    editframeactive = black;
++    editframedrag = rgb400;
+     window-state-char = ↕
+     window-close-char = ✕
+ 
+ [viewer]
+-    viewunderline=;;underline
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-    added=;rgb450
+-    changedline=blue;rgb553
+-    changednew=rgb400;rgb553
+-    changed=;rgb553
+-    removed=;rgb511
+-    folder=;rgb530
+-    error=rgb554;rgb320
++    added = ;rgb450
++    changedline = blue;rgb553
++    changednew = rgb400;rgb553
++    changed = ;rgb553
++    removed = ;rgb511
++    folder = ;rgb530
++    error = rgb554;rgb320
+ 
+ [widget-common]
+     sort-sign-up = ↑
+@@ -192,10 +193,10 @@
+     filename-scroll-right-char = »
+ 
+ [widget-scollbar]
+-    first-vert-char=↑
+-    last-vert-char=↓
+-    first-horiz-char=«
+-    last-horiz-char=»
+-    current-char=■
+-    background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+ 
+diff --git a/misc/skins/xoria256.ini b/misc/skins/xoria256.ini
+index ffb2c05..31209bb 100644
+--- a/misc/skins/xoria256.ini
++++ b/misc/skins/xoria256.ini
+@@ -13,161 +13,162 @@
+ 
+ 
+ [skin]
+-    description=Xoria256
+-    256colors=true
++    description = Xoria256
++    256colors = true
+ 
+ # [Lines]
+-#     horiz=─
+-#     vert=│
+-#     lefttop=┌
+-#     righttop=┐
+-#     leftbottom=└
+-#     rightbottom=┘
+-#     topmiddle=┬
+-#     bottommiddle=┴
+-#     leftmiddle=├
+-#     rightmiddle=┤
+-#     cross=┼
+-#     dhoriz=─
+-#     dvert=│
+-#     dlefttop=┌
+-#     drighttop=┐
+-#     dleftbottom=└
+-#     drightbottom=┘
+-#     dtopmiddle=┬
+-#     dbottommiddle=┴
+-#     dleftmiddle=├
+-#     drightmiddle=┤
++#     horiz = ─
++#     vert = │
++#     lefttop = ┌
++#     righttop = ┐
++#     leftbottom = └
++#     rightbottom = ┘
++#     topmiddle = ┬
++#     bottommiddle = ┴
++#     leftmiddle = ├
++#     rightmiddle = ┤
++#     cross = ┼
++#     dhoriz = ─
++#     dvert = │
++#     dlefttop = ┌
++#     drighttop = ┐
++#     dleftbottom = └
++#     drightbottom = ┘
++#     dtopmiddle = ┬
++#     dbottommiddle = ┴
++#     dleftmiddle = ├
++#     drightmiddle = ┤
+ 
+ [Lines]
+-    horiz=─
+-    vert=│
+-    lefttop=┌
+-    righttop=┐
+-    leftbottom=└
+-    rightbottom=┘
+-    topmiddle=┬
+-    bottommiddle=┴
+-    leftmiddle=├
+-    rightmiddle=┤
+-    cross=┼
+-    dhoriz=═
+-    dvert=║
+-    dlefttop=╔
+-    drighttop=╗
+-    dleftbottom=╚
+-    drightbottom=╝
+-    dtopmiddle=╤
+-    dbottommiddle=╧
+-    dleftmiddle=╟
+-    drightmiddle=╢
++    horiz = ─
++    vert = │
++    lefttop = ┌
++    righttop = ┐
++    leftbottom = └
++    rightbottom = ┘
++    topmiddle = ┬
++    bottommiddle = ┴
++    leftmiddle = ├
++    rightmiddle = ┤
++    cross = ┼
++    dhoriz = ═
++    dvert = ║
++    dlefttop = ╔
++    drighttop = ╗
++    dleftbottom = ╚
++    drightbottom = ╝
++    dtopmiddle = ╤
++    dbottommiddle = ╧
++    dleftmiddle = ╟
++    drightmiddle = ╢
+ 
+ [core]
+-    _default_=color250;color234
+-    selected=;color60
+-    marked=color228
+-    markselect=color228;color60
+-    reverse=color234;color250;
+-    header=color180;;bold
++    _default_ = color250;color234
++    selected = ;color60
++    marked = color228
++    markselect = color228;color60
++    reverse = color234;color250;
++    header = color180;;bold
+ 
+-    gauge=white;black
++    gauge = white;black
+ 
+-    input=color252;color60;bold
+-    inputunchanged=color250;color60;bold
+-    inputmark=color228;color236;bold
++    input = color252;color60;bold
++    inputunchanged = color250;color60;bold
++    inputmark = color228;color236;bold
+ 
+-    disabled=color244;color250
++    disabled = color244;color250
+ 
+-    #inputhistory=
+-    #commandhistory=
+-    #commandlinemark=black;lightgray
++    #inputhistory =
++    #commandhistory =
++    #commandlinemark = black;lightgray
+ 
+ [dialog]
+-    _default_=black;color250
+-    dhotnormal=color88;;
+-    dfocus=black;color73;
+-    dhotfocus=color88;color73;
+-    dtitle=color235;;bold
++    _default_ = black;color250
++    dhotnormal = color88;;
++    dfocus = black;color73;
++    dhotfocus = color88;color73;
++    dtitle = color235;;bold
+ 
+ [error]
+-    _default_=white;red
+-    errdfocus=black;lightgray
+-    errdhotnormal=yellow;red
+-    errdhotfocus=yellow;lightgray
+-    errdtitle=yellow;red;bold
++    _default_ = white;red
++    errdfocus = black;lightgray
++    errdhotnormal = yellow;red
++    errdhotfocus = yellow;lightgray
++    errdtitle = yellow;red;bold
+ 
+ [filehighlight]
+-    directory=;;bold
+-    executable=color114
+-    symlink=color180
+-    hardlink=
+-    stalelink=rgb404
+-    device=rgb231
+-    special=rgb331
+-    core=rgb430
+-    temp=color239
+-    archive=color174
+-    doc=rgb033
+-    source=color29
+-    media=color110
+-    graph=color182
+-    database=color31
++    directory = ;;bold
++    executable = color114
++    symlink = color180
++    hardlink =
++    stalelink = rgb404
++    device = rgb231
++    special = rgb331
++    core = rgb430
++    temp = color239
++    archive = color174
++    doc = rgb033
++    source = color29
++    media = color110
++    graph = color182
++    database = color31
+ 
+ [menu]
+-    _default_=black;color250
+-    menuhot=color88;;
+-    menusel=black;color73;
+-    menuhotsel=color88;color73;
+-    menuinactive=color244
++    _default_ = black;color250
++    menusel = black;color73;
++    menuhot = color88;;
++    menuhotsel = color88;color73;
++    menuinactive = color244
+ 
+ [popupmenu]
+-    _default_=black;color250
+-    menusel=black;color73
+-    menutitle=;;bold
++    _default_ = black;color250
++    menusel = black;color73
++    menutitle = ;;bold
+ 
+ [buttonbar]
+-    button=black;color250
+-    hotkey=color88;color181;bold
++    button = black;color250
++    hotkey = color88;color181;bold
+ 
+ [statusbar]
+-    _default_=black;color250
++    _default_ = black;color250
+ 
+ [help]
+-    _default_=black;color250
+-    helpitalic=color88;;bold
+-    helpbold=color235;;bold
+-    helplink=color19;;
+-    helpslink=black;color73;inverse
++    _default_ = black;color250
++    helpitalic = color88;;bold
++    helpbold = color235;;bold
++    helplink = color19;;
++    helpslink = black;color73;inverse
++    helptitle = color235;;bold
+ 
+ [editor]
+-    _default_=color250;color234
+-    editbold=;;bold
+-    editmarked=;color60
+-    editwhitespace=color236;color234
+-    editlinestate=;color235
+-    bookmark=;color239;
+-    bookmarkfound=;color239;bold
+-    editrightmargin=color180;color235;bold
+-#    editbg=
+-    editframe=color244;
+-    editframeactive=color250;
+-    editframedrag=color73;
++    _default_ = color250;color234
++    editbold = ;;bold
++    editmarked = ;color60
++    editwhitespace = color236;color234
++    editlinestate = ;color235
++    bookmark = ;color239;
++    bookmarkfound = ;color239;bold
++    editrightmargin = color180;color235;bold
++#    editbg =
++    editframe = color244;
++    editframeactive = color250;
++    editframedrag = color73;
+     window-state-char = ↕
+     window-close-char = ✕
+ 
+ [viewer]
+-    viewunderline=;;underline
++    viewunderline = ;;underline
+ 
+ [diffviewer]
+-    changedline=;color60
+-    changednew=black;color174
++    changedline = ;color60
++    changednew = black;color174
+ 
+-    added=black;color181
+-    changed=black;color151
+-    removed=;color235
++    added = black;color181
++    changed = black;color151
++    removed = ;color235
+ 
+-    folder=;color60
+-    error=rgb554;rgb320
++    folder = ;color60
++    error = rgb554;rgb320
+ 
+ [widget-common]
+     sort-sign-up = ↑
+@@ -183,10 +184,10 @@
+     filename-scroll-right-char = »
+ 
+ [widget-scollbar]
+-    first-vert-char=↑
+-    last-vert-char=↓
+-    first-horiz-char=«
+-    last-horiz-char=»
+-    current-char=■
+-    background-char=▒
++    first-vert-char = ↑
++    last-vert-char = ↓
++    first-horiz-char = «
++    last-horiz-char = »
++    current-char = ■
++    background-char = ▒
+ 

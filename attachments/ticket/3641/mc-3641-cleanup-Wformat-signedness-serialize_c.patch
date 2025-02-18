@@ -1,0 +1,88 @@
+From b69a66c1980fbb13ccce14a33f53ec7b829f3900 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 12:05:09 +0000
+Subject: [PATCH] (serialize.c) Cleanup -Wformat-signedness warning
+
+Cleanup -Wformat-signedness warning.
+
+serialize.c: In function 'mc_serialize_str':
+serialize.c:116:34: error: format '%zd' expects argument of type 'signed size_t', but argument 3 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+     return g_strdup_printf ("%c%zd" SRLZ_DELIM_S "%s", prefix, strlen (data), data);
+                                  ^
+serialize.c:130:19: error: format '%zd' expects argument of type 'signed size_t', but argument 5 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+ #define FUNC_NAME "mc_serialize_str()"
+                   ^
+serialize.c:175:22: note: in expansion of macro 'FUNC_NAME'
+                      FUNC_NAME
+                      ^~~~~~~~~
+serialize.c:130:19: error: format '%zd' expects argument of type 'signed size_t', but argument 6 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+ #define FUNC_NAME "mc_serialize_str()"
+                   ^
+serialize.c:175:22: note: in expansion of macro 'FUNC_NAME'
+                      FUNC_NAME
+                      ^~~~~~~~~
+serialize.c: In function 'mc_deserialize_config':
+serialize.c:267:19: error: format '%zd' expects argument of type 'signed size_t', but argument 3 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+ #define FUNC_NAME "mc_deserialize_config()"
+                   ^
+serialize.c:269:35: note: in expansion of macro 'FUNC_NAME'
+     prepend_error_message (error, FUNC_NAME " at %zd", current_position + 1); \
+                                   ^~~~~~~~~
+serialize.c:301:17: note: in expansion of macro 'prepend_error_and_exit'
+                 prepend_error_and_exit ();
+                 ^~~~~~~~~~~~~~~~~~~~~~
+serialize.c:267:19: error: format '%zd' expects argument of type 'signed size_t', but argument 3 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+ #define FUNC_NAME "mc_deserialize_config()"
+                   ^
+serialize.c:269:35: note: in expansion of macro 'FUNC_NAME'
+     prepend_error_message (error, FUNC_NAME " at %zd", current_position + 1); \
+                                   ^~~~~~~~~
+serialize.c:313:17: note: in expansion of macro 'prepend_error_and_exit'
+                 prepend_error_and_exit ();
+                 ^~~~~~~~~~~~~~~~~~~~~~
+serialize.c:267:19: error: format '%zd' expects argument of type 'signed size_t', but argument 3 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+ #define FUNC_NAME "mc_deserialize_config()"
+                   ^
+serialize.c:269:35: note: in expansion of macro 'FUNC_NAME'
+     prepend_error_message (error, FUNC_NAME " at %zd", current_position + 1); \
+                                   ^~~~~~~~~
+serialize.c:325:17: note: in expansion of macro 'prepend_error_and_exit'
+                 prepend_error_and_exit ();
+                 ^~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/serialize.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/serialize.c b/lib/serialize.c
+index 78504c5..df4edee 100644
+--- a/lib/serialize.c
++++ b/lib/serialize.c
+@@ -113,7 +113,7 @@ mc_serialize_str (const char prefix, const char *data, GError ** error)
+         g_set_error (error, MC_ERROR, 0, "mc_serialize_str(): Input data is NULL.");
+         return NULL;
+     }
+-    return g_strdup_printf ("%c%zd" SRLZ_DELIM_S "%s", prefix, strlen (data), data);
++    return g_strdup_printf ("%c%zu" SRLZ_DELIM_S "%s", prefix, strlen (data), data);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -173,7 +173,7 @@ mc_deserialize_str (const char prefix, const char *data, GError ** error)
+     {
+         g_set_error (error, MC_ERROR, 0,
+                      FUNC_NAME
+-                     ": Specified data length (%zd) is greater than actual data length (%zd)",
++                     ": Specified data length (%zu) is greater than actual data length (%zu)",
+                      data_len, strlen (data));
+         return NULL;
+     }
+@@ -266,7 +266,7 @@ mc_serialize_config (const mc_config_t * data, GError ** error)
+ 
+ #define FUNC_NAME "mc_deserialize_config()"
+ #define prepend_error_and_exit() { \
+-    prepend_error_message (error, FUNC_NAME " at %zd", current_position + 1); \
++    prepend_error_message (error, FUNC_NAME " at %zu", current_position + 1); \
+                 mc_config_deinit (ret_data); \
+                 return NULL; \
+ }

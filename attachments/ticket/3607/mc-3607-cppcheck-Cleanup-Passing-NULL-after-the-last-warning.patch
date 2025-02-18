@@ -1,0 +1,311 @@
+From d5ae5fdfa488d71d76f9be66a5d3340beb4e5e7f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 25 Mar 2016 18:33:44 +0000
+Subject: [PATCH] cppcheck: Cleanup Passing NULL after the last typed argument warning
+
+Cleanup Passing NULL after the last typed argument warning.
+
+Found  by cppcheck:
+[src/diffviewer/ydiff.c:3549]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/diffviewer/ydiff.c:3558]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/cmd.c:336]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/cmd.c:337]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/cmd.c:374]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/cmd.c:377]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/cmd.c:878]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/command.c:429]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/dir.c:211]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/file.c:562]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/file.c:1130]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/file.c:1296]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/file.c:2139]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/file.c:2328]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/filenot.c:95]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/midnight.c:754]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/midnight.c:972]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/panel.c:1012]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/panel.c:2774]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/panel.c:2783]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/panel.c:2802]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/panel.c:2849]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/panel.c:2934]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/panelize.c:421]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/treestore.c:750]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+[src/filemanager/treestore.c:926]: (portability) Passing NULL after the last typed argument to a variadic function leads to undefined behaviour.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/diffviewer/ydiff.c      |  4 ++--
+ src/filemanager/cmd.c       | 10 +++++-----
+ src/filemanager/command.c   |  2 +-
+ src/filemanager/dir.c       |  2 +-
+ src/filemanager/file.c      | 10 +++++-----
+ src/filemanager/filenot.c   |  2 +-
+ src/filemanager/midnight.c  |  4 ++--
+ src/filemanager/panel.c     | 12 ++++++------
+ src/filemanager/panelize.c  |  2 +-
+ src/filemanager/treestore.c |  4 ++--
+ 10 files changed, 26 insertions(+), 26 deletions(-)
+
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index c4c8f67..0c7acfd 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -3546,7 +3546,7 @@ dview_diff_cmd (const void *f0, const void *f1)
+             const WPanel *panel0 = (const WPanel *) f0;
+             const WPanel *panel1 = (const WPanel *) f1;
+ 
+-            file0 = vfs_path_append_new (panel0->cwd_vpath, selection (panel0)->fname, NULL);
++            file0 = vfs_path_append_new (panel0->cwd_vpath, selection (panel0)->fname, (char *) NULL);
+             is_dir0 = S_ISDIR (selection (panel0)->st.st_mode);
+             if (is_dir0)
+             {
+@@ -3555,7 +3555,7 @@ dview_diff_cmd (const void *f0, const void *f1)
+                 goto ret;
+             }
+ 
+-            file1 = vfs_path_append_new (panel1->cwd_vpath, selection (panel1)->fname, NULL);
++            file1 = vfs_path_append_new (panel1->cwd_vpath, selection (panel1)->fname, (char *) NULL);
+             is_dir1 = S_ISDIR (selection (panel1)->st.st_mode);
+             if (is_dir1)
+             {
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index d384273..5435fb3 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -333,8 +333,8 @@ compare_dir (WPanel * panel, WPanel * other, enum CompareMode mode)
+             {
+                 vfs_path_t *src_name, *dst_name;
+ 
+-                src_name = vfs_path_append_new (panel->cwd_vpath, source->fname, NULL);
+-                dst_name = vfs_path_append_new (other->cwd_vpath, target->fname, NULL);
++                src_name = vfs_path_append_new (panel->cwd_vpath, source->fname, (char *) NULL);
++                dst_name = vfs_path_append_new (other->cwd_vpath, target->fname, (char *) NULL);
+                 if (compare_files (src_name, dst_name, source->st.st_size))
+                     do_file_mark (panel, i, 1);
+                 vfs_path_free (src_name);
+@@ -371,10 +371,10 @@ do_link (link_type_t link_type, const char *fname)
+ 
+         /* suggest the full path for symlink, and either the full or
+            relative path to the file it points to  */
+-        s = vfs_path_append_new (current_panel->cwd_vpath, fname, NULL);
++        s = vfs_path_append_new (current_panel->cwd_vpath, fname, (char *) NULL);
+ 
+         if (get_other_type () == view_listing)
+-            d = vfs_path_append_new (other_panel->cwd_vpath, fname, NULL);
++            d = vfs_path_append_new (other_panel->cwd_vpath, fname, (char *) NULL);
+         else
+             d = vfs_path_from_str (fname);
+ 
+@@ -875,7 +875,7 @@ mkdir_cmd (void)
+             if (dir[0] == '\\' && dir[1] == '~')
+                 tmpdir = dir + 1;
+ 
+-            absdir = vfs_path_append_new (current_panel->cwd_vpath, tmpdir, NULL);
++            absdir = vfs_path_append_new (current_panel->cwd_vpath, tmpdir, (char *) NULL);
+         }
+ 
+         save_cwds_stat ();
+diff --git a/src/filemanager/command.c b/src/filemanager/command.c
+index c2a9225..d68e773 100644
+--- a/src/filemanager/command.c
++++ b/src/filemanager/command.c
+@@ -426,7 +426,7 @@ do_cd_command (char *orig_cmd)
+             if (IS_PATH_SEP (cmd[operand_pos]))
+                 new_vpath = vfs_path_from_str (cmd + operand_pos);
+             else
+-                new_vpath = vfs_path_append_new (current_panel->cwd_vpath, cmd + operand_pos, NULL);
++                new_vpath = vfs_path_append_new (current_panel->cwd_vpath, cmd + operand_pos, (char *) NULL);
+ 
+             sync_tree (new_vpath);
+         }
+diff --git a/src/filemanager/dir.c b/src/filemanager/dir.c
+index da689dd..232dcbb 100644
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -208,7 +208,7 @@ dir_get_dotdot_stat (const vfs_path_t * vpath, struct stat *st)
+         {
+             vfs_path_t *tmp_vpath;
+ 
+-            tmp_vpath = vfs_path_append_new (vpath, "..", NULL);
++            tmp_vpath = vfs_path_append_new (vpath, "..", (char *) NULL);
+             ret = mc_stat (tmp_vpath, st) == 0;
+             vfs_path_free (tmp_vpath);
+         }
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 188b2fa..c1784ab 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -559,7 +559,7 @@ do_compute_dir_size (const vfs_path_t * dirname_vpath, dirsize_status_msg_t * ds
+         if (DIR_IS_DOT (dirent->d_name) || DIR_IS_DOTDOT (dirent->d_name))
+             continue;
+ 
+-        tmp_vpath = vfs_path_append_new (dirname_vpath, dirent->d_name, NULL);
++        tmp_vpath = vfs_path_append_new (dirname_vpath, dirent->d_name, (char *) NULL);
+ 
+         res = mc_lstat (tmp_vpath, &s);
+         if (res == 0)
+@@ -1127,7 +1127,7 @@ recursive_erase (file_op_total_context_t * tctx, file_op_context_t * ctx, const
+         if (DIR_IS_DOT (next->d_name) || DIR_IS_DOTDOT (next->d_name))
+             continue;
+ 
+-        tmp_vpath = vfs_path_append_new (vpath, next->d_name, NULL);
++        tmp_vpath = vfs_path_append_new (vpath, next->d_name, (char *) NULL);
+         if (mc_lstat (tmp_vpath, &buf) != 0)
+         {
+             mc_closedir (reading);
+@@ -1293,7 +1293,7 @@ panel_compute_totals (const WPanel * panel, dirsize_status_msg_t * sm, size_t *
+             vfs_path_t *p;
+             FileProgressStatus status;
+ 
+-            p = vfs_path_append_new (panel->cwd_vpath, panel->dir.list[i].fname, NULL);
++            p = vfs_path_append_new (panel->cwd_vpath, panel->dir.list[i].fname, (char *) NULL);
+             status = compute_dir_size (p, sm, &dir_count, ret_count, ret_total, compute_symlinks);
+             vfs_path_free (p);
+ 
+@@ -2136,7 +2136,7 @@ copy_dir_dir (file_op_total_context_t * tctx, file_op_context_t * ctx, const cha
+             vfs_path_t *tmp;
+ 
+             tmp = dst_vpath;
+-            dst_vpath = vfs_path_append_new (dst_vpath, x_basename (s), NULL);
++            dst_vpath = vfs_path_append_new (dst_vpath, x_basename (s), (char *) NULL);
+             vfs_path_free (tmp);
+ 
+         }
+@@ -2325,7 +2325,7 @@ move_dir_dir (file_op_total_context_t * tctx, file_op_context_t * ctx, const cha
+         vfs_path_t *tmp;
+ 
+         tmp = dst_vpath;
+-        dst_vpath = vfs_path_append_new (dst_vpath, x_basename (s), NULL);
++        dst_vpath = vfs_path_append_new (dst_vpath, x_basename (s), (char *) NULL);
+         vfs_path_free (tmp);
+     }
+ 
+diff --git a/src/filemanager/filenot.c b/src/filemanager/filenot.c
+index 90de998..4e4224e 100644
+--- a/src/filemanager/filenot.c
++++ b/src/filemanager/filenot.c
+@@ -92,7 +92,7 @@ my_mkdir_rec (const vfs_path_t * s_vpath, mode_t mode)
+         return (-1);
+     }
+ 
+-    q = vfs_path_append_new (s_vpath, "..", NULL);
++    q = vfs_path_append_new (s_vpath, "..", (char *) NULL);
+     result = my_mkdir_rec (q, mode);
+     vfs_path_free (q);
+ 
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index b4c9073..5561002 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -751,7 +751,7 @@ put_link (WPanel * panel)
+         vfs_path_t *vpath;
+         int i;
+ 
+-        vpath = vfs_path_append_new (panel->cwd_vpath, selection (panel)->fname, NULL);
++        vpath = vfs_path_append_new (panel->cwd_vpath, selection (panel)->fname, (char *) NULL);
+         i = mc_readlink (vpath, buffer, sizeof (buffer) - 1);
+         vfs_path_free (vpath);
+ 
+@@ -969,7 +969,7 @@ prepend_cwd_on_local (const char *filename)
+ 
+     vfs_path_free (vpath);
+ 
+-    return vfs_path_append_new (vfs_get_raw_current_dir (), filename, NULL);
++    return vfs_path_append_new (vfs_get_raw_current_dir (), filename, (char *) NULL);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 30d2706..d8dd364 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1009,7 +1009,7 @@ display_mini_info (WPanel * panel)
+         int len;
+ 
+         lc_link_vpath =
+-            vfs_path_append_new (panel->cwd_vpath, panel->dir.list[panel->selected].fname, NULL);
++            vfs_path_append_new (panel->cwd_vpath, panel->dir.list[panel->selected].fname, (char *) NULL);
+         len = mc_readlink (lc_link_vpath, link_target, MC_MAXPATHLEN - 1);
+         vfs_path_free (lc_link_vpath);
+         if (len > 0)
+@@ -2771,7 +2771,7 @@ do_enter_on_file_entry (file_entry_t * fe)
+         return TRUE;
+     }
+ 
+-    full_name_vpath = vfs_path_append_new (current_panel->cwd_vpath, fe->fname, NULL);
++    full_name_vpath = vfs_path_append_new (current_panel->cwd_vpath, fe->fname, (char *) NULL);
+ 
+     /* Try associated command */
+     ok = regex_command (full_name_vpath, "Open") != 0;
+@@ -2780,7 +2780,7 @@ do_enter_on_file_entry (file_entry_t * fe)
+         return TRUE;
+ 
+     /* Check if the file is executable */
+-    full_name_vpath = vfs_path_append_new (current_panel->cwd_vpath, fe->fname, NULL);
++    full_name_vpath = vfs_path_append_new (current_panel->cwd_vpath, fe->fname, (char *) NULL);
+     ok = (is_exe (fe->st.st_mode) && if_link_is_exe (full_name_vpath, fe));
+     vfs_path_free (full_name_vpath);
+     if (!ok)
+@@ -2799,7 +2799,7 @@ do_enter_on_file_entry (file_entry_t * fe)
+         int ret;
+         vfs_path_t *tmp_vpath;
+ 
+-        tmp_vpath = vfs_path_append_new (vfs_get_raw_current_dir (), fe->fname, NULL);
++        tmp_vpath = vfs_path_append_new (vfs_get_raw_current_dir (), fe->fname, (char *) NULL);
+         ret = mc_setctl (tmp_vpath, VFS_SETCTL_RUN, NULL);
+         vfs_path_free (tmp_vpath);
+         /* We took action only if the dialog was shown or the execution
+@@ -2846,7 +2846,7 @@ chdir_other_panel (WPanel * panel)
+         set_display_type (get_other_index (), view_listing);
+ 
+     if (S_ISDIR (entry->st.st_mode) || entry->f.link_to_dir)
+-        new_dir_vpath = vfs_path_append_new (panel->cwd_vpath, entry->fname, NULL);
++        new_dir_vpath = vfs_path_append_new (panel->cwd_vpath, entry->fname, (char *) NULL);
+     else
+     {
+         new_dir_vpath = vfs_path_append_new (panel->cwd_vpath, "..", (char *) NULL);
+@@ -2931,7 +2931,7 @@ chdir_to_readlink (WPanel * panel)
+     if (IS_PATH_SEP (*buffer))
+         new_dir_vpath = vfs_path_from_str (buffer);
+     else
+-        new_dir_vpath = vfs_path_append_new (panel->cwd_vpath, buffer, NULL);
++        new_dir_vpath = vfs_path_append_new (panel->cwd_vpath, buffer, (char *) NULL);
+ 
+     change_panel ();
+     do_cd (new_dir_vpath, cd_exact);
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 5742fea..3f48274 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -419,7 +419,7 @@ do_panelize_cd (WPanel * panel)
+ 
+             tmp_vpath =
+                 vfs_path_append_new (panelized_panel.root_vpath, panelized_panel.list.list[i].fname,
+-                                     NULL);
++                                     (char *) NULL);
+             fname = vfs_path_as_str (tmp_vpath);
+             list->list[i].fnamelen = strlen (fname);
+             list->list[i].fname = g_strndup (fname, list->list[i].fnamelen);
+diff --git a/src/filemanager/treestore.c b/src/filemanager/treestore.c
+index 41f19c3..badbbb9 100644
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -747,7 +747,7 @@ tree_store_mark_checked (const char *subname)
+     if (IS_PATH_SEP (cname[0]) && cname[1] == '\0')
+         name = vfs_path_build_filename (PATH_SEP_STR, subname, NULL);
+     else
+-        name = vfs_path_append_new (ts.check_name, subname, NULL);
++        name = vfs_path_append_new (ts.check_name, subname, (char *) NULL);
+ 
+     /* Search for the subdirectory */
+     current = ts.check_start;
+@@ -923,7 +923,7 @@ tree_store_rescan (const vfs_path_t * vpath)
+             if (DIR_IS_DOT (dp->d_name) || DIR_IS_DOTDOT (dp->d_name))
+                 continue;
+ 
+-            tmp_vpath = vfs_path_append_new (vpath, dp->d_name, NULL);
++            tmp_vpath = vfs_path_append_new (vpath, dp->d_name, (char *) NULL);
+             if (mc_lstat (tmp_vpath, &buf) != -1 && S_ISDIR (buf.st_mode))
+                 tree_store_mark_checked (dp->d_name);
+             vfs_path_free (tmp_vpath);

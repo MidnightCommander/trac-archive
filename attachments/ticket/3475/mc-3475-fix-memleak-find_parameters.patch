@@ -1,0 +1,44 @@
+
+fix memleak in filemanager/find.c:find_parameters()
+
+Direct leak of 40 byte(s) in 3 object(s) allocated from:
+    #0 0x4d5092 in malloc (/usr/bin/mc+0x4d5092)
+    #1 0x7f46e1eab7d4 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x677d4)
+    #2 0x7f46e1ed2111 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8e111)
+    #3 0x6ede48 in find_parameters /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:749:19
+    #4 0x6ec492 in find_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1768:12
+    #5 0x54bf5e in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1209:9
+    #6 0x5479e4 in midnight_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1559:21
+    #7 0x7f46e2c3391e in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:519:19
+    #8 0x7f46e2c341c6 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #9 0x7f46e2c33dd5 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #10 0x54722a in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1762:9
+    #11 0x4f98cc in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #12 0x7f46e0f7c133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #13 0x44e0c6 in _start (/usr/bin/mc+0x44e0c6)
+
+found by LeakSanitizer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -1770,7 +1770,10 @@
+         int v;
+ 
+         if (pattern[0] == '\0')
++        {
++            g_free (content);
+             break;              /* nothing search */
++        }
+ 
+         last_refresh.tv_sec = 0;
+         last_refresh.tv_usec = 0;
+@@ -1805,6 +1808,7 @@
+                 vfs_path_free (filename_vpath);
+             }
+ 
++            g_free (content);
+             g_free (dirname);
+             g_free (filename);
+             break;

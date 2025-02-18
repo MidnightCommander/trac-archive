@@ -1,0 +1,113 @@
+--- src/setup.h~	2016-05-07 08:42:52.000000000 -0700
++++ src/setup.h	2016-10-07 07:27:55.954722249 -0700
+@@ -119,6 +119,7 @@ extern char *spell_language;
+ 
+ /* Value of "other_dir" key in ini file */
+ extern char *saved_other_dir;
++extern char *saved_this_dir;
+ 
+ /* If set, then print to the given file the last directory we were at */
+ extern char *last_wd_string;
+--- src/setup.c~	2016-05-07 08:42:52.000000000 -0700
++++ src/setup.c	2016-10-07 07:32:42.751387247 -0700
+@@ -194,6 +194,7 @@ char *spell_language = NULL;
+ 
+ /* Value of "other_dir" key in ini file */
+ char *saved_other_dir = NULL;
++char *saved_this_dir = NULL;
+ 
+ /* If set, then print to the given file the last directory we were at */
+ char *last_wd_string = NULL;
+@@ -930,11 +931,18 @@ save_panel_types (void)
+         panel_save_setup (right_panel, right_panel->panel_name);
+ 
+     {
+-        char *dirs;
+ 
+-        dirs = get_panel_dir_for (other_panel);
+-        mc_config_set_string (mc_global.panels_config, "Dirs", "other_dir", dirs);
+-        g_free (dirs);
++        WPanel *this_panel = PANEL(get_panel_widget(get_current_index()));
++        char *this_dir;
++        char *other_dir;
++        
++        this_dir = get_panel_dir_for(this_panel);
++        mc_config_set_string (mc_global.panels_config, "Dirs", "this_dir", this_dir);
++        g_free (this_dir);
++        
++        other_dir = get_panel_dir_for (other_panel);
++        mc_config_set_string (mc_global.panels_config, "Dirs", "other_dir", other_dir);
++        g_free (other_dir);
+     }
+ 
+     if (current_panel != NULL)
+--- src/main.c~	2016-09-22 11:24:12.000000000 -0700
++++ src/main.c	2016-10-07 07:33:50.328053520 -0700
+@@ -282,11 +282,19 @@ main (int argc, char *argv[])
+     /* Must be done after load_setup because depends on mc_global.vfs.cd_symlinks */
+     vfs_setup_work_dir ();
+ 
+-    /* Resolve the other_dir panel option. Must be done after vfs_setup_work_dir */
++    /* Resolve this_dir/other_dir panel options. Must be done after vfs_setup_work_dir */
+     {
+         char *buffer;
+         vfs_path_t *vpath;
+ 
++        buffer = mc_config_get_string (mc_global.panels_config, "Dirs", "this_dir", ".");
++        vpath = vfs_path_from_str (buffer);
++        if (vfs_file_is_local (vpath))
++            saved_this_dir = buffer;
++        else
++            g_free (buffer);
++        vfs_path_free (vpath);
++
+         buffer = mc_config_get_string (mc_global.panels_config, "Dirs", "other_dir", ".");
+         vpath = vfs_path_from_str (buffer);
+         if (vfs_file_is_local (vpath))
+@@ -305,6 +313,7 @@ main (int argc, char *argv[])
+     {
+         vfs_shut ();
+         done_setup ();
++        g_free (saved_this_dir);
+         g_free (saved_other_dir);
+         mc_event_deinit (NULL);
+         goto startup_exit_falure;
+@@ -481,6 +490,7 @@ main (int argc, char *argv[])
+         g_list_free_full ((GList *) mc_run_param0, (GDestroyNotify) mcedit_arg_free);
+ 
+     g_free (mc_run_param1);
++    g_free (saved_this_dir);
+     g_free (saved_other_dir);
+ 
+     mc_config_deinit_config_paths ();
+--- src/filemanager/midnight.c~	2016-09-22 11:24:12.000000000 -0700
++++ src/filemanager/midnight.c	2016-10-07 08:01:20.404710583 -0700
+@@ -598,10 +598,15 @@ create_panels (void)
+         current_mode = startup_left_mode;
+         other_mode = startup_right_mode;
+ 
+         if (mc_run_param0 == NULL && mc_run_param1 == NULL)
+         {
+             /* no arguments */
+-            current_dir = NULL; /* assume current dir */
++            if (panels_options.auto_save_setup) { /* check if we should restore active panel */
++                current_dir = saved_this_dir;
++            } else {
++                current_dir = NULL; /* assume current dir */
++            }
+             other_dir = saved_other_dir;        /* from ini */
+         }
+         else if (mc_run_param0 != NULL && mc_run_param1 != NULL)
+@@ -628,7 +633,11 @@ create_panels (void)
+         if (mc_run_param0 == NULL && mc_run_param1 == NULL)
+         {
+             /* no arguments */
+-            current_dir = NULL; /* assume current dir */
++            if (panels_options.auto_save_setup) { /* check if we should restore active panel */
++                current_dir = saved_this_dir;
++            } else {
++                current_dir = NULL; /* assume current dir */
++            }
+             other_dir = saved_other_dir;        /* from ini */
+         }
+         else if (mc_run_param0 != NULL && mc_run_param1 != NULL)

@@ -1,0 +1,64 @@
+Patch by Danilo Schembri <danilo.schembri@gmail.com>
+
+*** mc-4.7.0-pre3/src/background.c	Thu Sep 24 11:46:42 2009
+--- mc-4.7.0-pre3/src/background.c	Sat Dec  5 21:57:01 2009
+***************
+*** 76,81 ****
+--- 76,95 ----
+      new->pid   = pid;
+      new->info  = info;
+      new->state = Task_Running;
++ 
++ // Dany: copy/move queue handling - Begin
++ // Dany is "Danilo Schembri" <danilo.schembri@gmail.com>
++     TaskList *p = task_list;
++     while (p){
++ 	if (p->state == Task_Running){
++ 	    kill (pid, SIGSTOP);
++ 	    new->state = Task_Stopped;
++ 	    break;
++ 	}
++ 	p = p->next;
++     }
++ // Dany: file copy/move queue handling - End
++ 
+      new->next  = task_list;
+      new->fd    = fd;
+      task_list  = new;
+***************
+*** 88,93 ****
+--- 102,108 ----
+  {
+      TaskList *p = task_list;
+      TaskList *prev = 0;
++     TaskList *presume = 0; // Dany: Remaining task list.
+  
+      while (p){
+  	if (p->pid == pid){
+***************
+*** 103,108 ****
+--- 118,141 ----
+  	p = p->next;
+      }
+      delete_select_channel (fd);
++ 
++ // Dany: copy/move queue handling - Begin
++     if (prev && prev->state == Task_Stopped){
++ 	kill (prev->pid, SIGCONT);
++ 	prev->state = Task_Running;
++     } else
++ 	presume = task_list; // Dany: Save remaining task list.
++ 
++     while (presume){
++ 	if (presume->state == Task_Stopped){
++ 	    kill (presume->pid, SIGCONT);
++ 	    presume->state = Task_Running;
++ 	    break;
++ 	}
++ 	presume = presume->next;
++     }
++ // Dany: copy/move queue handling - End
++ 
+  }
+  
+  /*

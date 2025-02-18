@@ -1,0 +1,11 @@
+--- editcmd-org.c	2009-05-15 17:31:57.986236800 -0400
++++ editcmd.c	2009-05-15 17:38:59.717912700 -0400
+@@ -743,7 +743,7 @@
+ 	f = edit_open_macro_file ("a+");
+ 	if (f) {
+ 	    fprintf (f, ("key '%d 0': "), s);
+-	    for (i = 0; i < n; i++)
++	    for (i = 0; i < n - 1; i++)
+ 		fprintf (f, "%hd %hd, ", macro[i].command, macro[i].ch);
+ 	    fprintf (f, ";\n");
+ 	    fclose (f);

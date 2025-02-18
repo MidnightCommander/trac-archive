@@ -1,0 +1,56 @@
+--- origsrc/mc-4.8.12/doc/man/es/mc.1.in	2013-10-15 11:52:40.000000000 +0200
++++ src/mc-4.8.12/doc/man/es/mc.1.in	2014-08-16 09:35:07.472584500 +0200
+@@ -1,4 +1,4 @@
+-.\" -*- mode: troff; coding: utf8 -*-
++.\" -*- mode: troff; coding: UTF-8 -*-
+ .\" Traducido el 6 de septiembre de 1998 por
+ .\"	Francisco Gabriel Aroca Tapia <fgat1@alu.um.es>
+ .\"
+--- origsrc/mc-4.8.12/doc/man/hu/mc.1.in	2013-06-20 13:14:20.000000000 +0200
++++ src/mc-4.8.12/doc/man/hu/mc.1.in	2014-08-16 09:35:07.597384700 +0200
+@@ -1,4 +1,4 @@
+-.\" -*- mode: troff; coding: utf8 -*-
++.\" -*- mode: troff; coding: UTF-8 -*-
+ .\"TOPICS "Tartalomjegyzék"
+ .TH MC 1 "%DATE_OF_MAN_PAGE%" "MC Version %DISTR_VERSION%" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+--- origsrc/mc-4.8.12/doc/man/it/mc.1.in	2013-10-15 11:52:40.000000000 +0200
++++ src/mc-4.8.12/doc/man/it/mc.1.in	2014-08-16 09:35:07.690984900 +0200
+@@ -1,4 +1,4 @@
+-.\" -*- mode: troff; coding: utf8 -*-
++.\" -*- mode: troff; coding: UTF-8 -*-
+ .\" Tradotto dal 15 agosto 2002 da
+ .\"     Marco Ciampa <ciampix@libero.it>
+ .\" Chi vuole contribuire aggiunga il nome qui sotto.
+--- origsrc/mc-4.8.12/doc/man/mc.1.in	2014-04-01 12:54:01.000000000 +0200
++++ src/mc-4.8.12/doc/man/mc.1.in	2014-08-16 09:35:07.800185100 +0200
+@@ -1,4 +1,4 @@
+-.\" -*- mode: troff; coding: utf8 -*-
++.\" -*- mode: troff; coding: UTF-8 -*-
+ .\"TOPICS "Topics:"
+ .TH MC 1 "%DATE_OF_MAN_PAGE%" "MC Version %DISTR_VERSION%" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+--- origsrc/mc-4.8.12/doc/man/pl/mc.1.in	2013-06-20 13:14:20.000000000 +0200
++++ src/mc-4.8.12/doc/man/pl/mc.1.in	2014-08-16 09:35:07.893785200 +0200
+@@ -1,4 +1,4 @@
+-.\" -*- mode: troff; coding: utf8 -*-
++.\" -*- mode: troff; coding: UTF-8 -*-
+ .\"Przetłumaczone przez by Macieja Wojciechowskiego    wojciech@staszic.waw.pl
+ .TH MC 1 "%DATE_OF_MAN_PAGE%" "MC Version %DISTR_VERSION%" "GNU Midnight Commander"
+ .\"SKIP_SECTION"
+--- origsrc/mc-4.8.12/doc/man/ru/mc.1.in	2014-04-01 12:54:01.000000000 +0200
++++ src/mc-4.8.12/doc/man/ru/mc.1.in	2014-08-16 09:35:08.018585400 +0200
+@@ -1,4 +1,4 @@
+-.\" -*- mode: troff; coding: utf8 -*-
++.\" -*- mode: troff; coding: UTF-8 -*-
+ .\"TOPICS "Разделы помощи:"
+ .\" TODO: Перевести раздел EXTernal File System
+ .TH MC 1 "%DATE_OF_MAN_PAGE%" "MC Version %DISTR_VERSION%" "GNU Midnight Commander"
+--- origsrc/mc-4.8.12/doc/man/sr/mc.1.in	2013-10-15 11:52:41.000000000 +0200
++++ src/mc-4.8.12/doc/man/sr/mc.1.in	2014-08-16 09:35:08.112185600 +0200
+@@ -1,4 +1,4 @@
+-.\" -*- mode: troff; coding: utf8 -*-
++.\" -*- mode: troff; coding: UTF-8 -*-
+ .\"TOPICS "Теме:"
+ .TH ПН 1 "%DATE_OF_MAN_PAGE%" "ПН верзија %DISTR_VERSION%" "ГНУ\-ов поноћни наредник"
+ .\"SKIP_SECTION"

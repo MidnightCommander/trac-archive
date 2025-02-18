@@ -1,0 +1,39 @@
+From 604c837c3d55b17b7e02353df7458d572ce71255 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 1 Jul 2015 14:22:56 +0300
+Subject: [PATCH] Use INPUT_LAST_TEXT for a few more input boxes.
+
+---
+ src/editor/editcmd.c  | 2 +-
+ src/filemanager/cmd.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index ea9f49f..fe0f268 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3219,7 +3219,7 @@ edit_ext_cmd (WEdit * edit)
+ 
+     exp =
+         input_dialog (_("Paste output of external command"),
+-                      _("Enter shell command(s):"), MC_HISTORY_EDIT_PASTE_EXTCMD, NULL,
++                      _("Enter shell command(s):"), MC_HISTORY_EDIT_PASTE_EXTCMD, INPUT_LAST_TEXT,
+                       INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_VARIABLES | INPUT_COMPLETE_USERNAMES
+                       | INPUT_COMPLETE_HOSTNAMES | INPUT_COMPLETE_CD | INPUT_COMPLETE_COMMANDS |
+                       INPUT_COMPLETE_SHELL_ESC);
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index d824c3f..697587f 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -427,7 +427,7 @@ nice_cd (const char *text, const char *xtext, const char *help,
+         return;
+ 
+     machine =
+-        input_dialog_help (text, xtext, help, history_name, "", strip_password,
++        input_dialog_help (text, xtext, help, history_name, INPUT_LAST_TEXT, strip_password,
+                            INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD | INPUT_COMPLETE_HOSTNAMES |
+                            INPUT_COMPLETE_USERNAMES);
+     if (machine == NULL)
+-- 
+2.1.4
+

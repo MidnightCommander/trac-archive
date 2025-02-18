@@ -1,0 +1,47 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index a093f88..c4dc68f 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -257,15 +257,15 @@ type/^ASCII\ mail\ text
+ 
+ # C
+ shell/.c
+-	Open=%var{EDITOR:vi} %f
++	Include=editor
+ 
+ # Fortran
+ shell/.f
+-	Open=%var{EDITOR:vi} %f
++	Include=editor
+ 
+ # Header
+ regex/\.(h|hpp)$
+-	Open=%var{EDITOR:vi} %f
++	Include=editor
+ 
+ # Object
+ type/^ELF
+@@ -274,10 +274,13 @@ type/^ELF
+ 
+ # Asm
+ shell/.s
+-	Open=%var{EDITOR:vi} %f
++	Include=editor
+ 
+ # C++
+ regex/\.(C|cc|cpp)$
++	Include=editor
++
++include/editor
+ 	Open=%var{EDITOR:vi} %f
+ 
+ 
+@@ -537,7 +540,7 @@ regex/\.([dD][vV][iI])$
+ 
+ # TeX
+ regex/\.([Tt][Ee][Xx])$
+-	Open=%var{EDITOR:vi} %f
++	Include=editor
+ 
+ 
+ ### Miscellaneous ###

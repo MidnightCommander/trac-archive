@@ -1,0 +1,176 @@
+diff --git a/tests/lib/search/Makefile.am b/tests/lib/search/Makefile.am
+index d01c0dc94..126a954ec 100644
+--- a/tests/lib/search/Makefile.am
++++ b/tests/lib/search/Makefile.am
+@@ -20,7 +20,8 @@ TESTS = \
+ 	hex_translate_to_regex \
+ 	regex_replace_esc_seq \
+ 	regex_process_escape_sequence \
+-	translate_replace_glob_to_regex
++	translate_replace_glob_to_regex \
++	search_test
+ 
+ check_PROGRAMS = $(TESTS)
+ 
+@@ -41,3 +42,6 @@ glob_translate_to_regex_SOURCES = \
+ 
+ hex_translate_to_regex_SOURCES = \
+ 	hex_translate_to_regex.c
++
++search_test_SOURCES = \
++	search_test.c
+diff --git a/tests/lib/search/search_test.c b/tests/lib/search/search_test.c
+new file mode 100644
+index 000000000..ab0c7de19
+--- /dev/null
++++ b/tests/lib/search/search_test.c
+@@ -0,0 +1,149 @@
++/*
++   libmc - checks search functions
++
++   Copyright (C) 2022
++   Free Software Foundation, Inc.
++
++   Written by:
++   Steef Boerrigter <sxmboer@gmail.com>, 2022
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#define TEST_SUITE_NAME "lib/search/search"
++
++#include "tests/mctest.h"
++
++#include "search.c"               /* for testing static functions */
++
++/* --------------------------------------------------------------------------------------------- */
++
++/* @DataSource("test_search_str_ds") */
++/* *INDENT-OFF* */
++static const struct test_search_str_ds
++{
++    const mc_search_type_t type;
++    const char *buffer;
++    const char *search_str;
++    const gboolean retval;
++} test_search_str_ds[] =
++{
++    { /* 1. */
++        MC_SEARCH_T_NORMAL,
++        "abcdefgh",
++        "nope",
++        FALSE
++    },
++    { /* 0. */
++        MC_SEARCH_T_NORMAL,
++        "abcdefgh",
++        "def",
++        TRUE
++    },
++    { /* 1. */
++        MC_SEARCH_T_NORMAL,
++        "abcdefgh",
++        "z",
++        FALSE
++    },
++    { /* 2. */
++        MC_SEARCH_T_NORMAL,
++        "abcd	\tefgh", 
++        "\t	",
++        TRUE
++    },
++    { /* 3. multiline */
++        MC_SEARCH_T_NORMAL,
++        "abcd\ne\nfgh",
++        "\ne\nf",
++        TRUE
++    },
++    { /* 4. */
++        MC_SEARCH_T_NORMAL,
++        "abcd\nefgh",
++        "d\ne",
++        TRUE
++    },
++    { /* 5. mc-4.8.28 fails this edge condition */
++        MC_SEARCH_T_NORMAL,
++        "abcdefgh\n",
++        "\n\n",
++        FALSE
++    },
++    { /* 6. regex including newline */
++        MC_SEARCH_T_REGEX,
++        "abcd\nefgh",
++        "abc[c-e]\nef",
++        TRUE
++    },
++    { /* 6. regex's newline support */
++        MC_SEARCH_T_REGEX,
++        "abcd\nefgh",
++        "abc[c-e]\\nef",
++        TRUE
++    },
++};
++/* *INDENT-ON* */
++
++/* @Test(dataSource = "test_search_str_ds") */
++/* *INDENT-OFF* */
++START_PARAMETRIZED_TEST (test_search_str, test_search_str_ds)
++/* *INDENT-ON* */
++{
++    /* given */
++    mc_search_t *s;
++    gboolean retval;
++
++    s = mc_search_new (data->buffer, NULL);
++    s->is_case_sensitive = FALSE;
++    s->search_type = data->type;
++
++    /* when */
++    retval = mc_search (data->search_str, DEFAULT_CHARSET, data->buffer, s->search_type);
++
++    /* then */
++    if (data->retval)
++      {
++       mctest_assert_true (retval);
++      }
++    else
++      {
++       mctest_assert_false (retval);
++      }
++
++    mc_search_free (s);
++}
++/* *INDENT-OFF* */
++END_PARAMETRIZED_TEST
++/* *INDENT-ON* */
++
++/* --------------------------------------------------------------------------------------------- */
++
++int
++main (void)
++{
++    TCase *tc_core;
++
++    tc_core = tcase_create ("Core");
++
++    /* Add new tests here: *************** */
++    mctest_add_parameterized_test (tc_core, test_search_str, test_search_str_ds);
++    /* *********************************** */
++
++    return mctest_run_all (tc_core);
++}
++
++/* --------------------------------------------------------------------------------------------- */

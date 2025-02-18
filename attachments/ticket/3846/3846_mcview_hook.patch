@@ -1,0 +1,12 @@
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index 3e23469..83eaa77 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -692,6 +692,7 @@ mcview_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *
+         if (mcview_is_in_panel (view))
+         {
+             delete_hook (&select_file_hook, mcview_hook);
++            delete_hook (&idle_hook, mcview_hook);
+ 
+             if (mc_global.midnight_shutdown)
+                 mcview_ok_to_quit (view);

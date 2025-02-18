@@ -1,0 +1,160 @@
+diff -urp mc-4.8.10.orig/doc/man/mc.1.in mc-4.8.10/doc/man/mc.1.in
+--- mc-4.8.10.orig/doc/man/mc.1.in	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/doc/man/mc.1.in	2013-10-01 23:15:23.362708082 +0200
+@@ -1950,6 +1950,11 @@ unintentionally becomes more difficult.
+ confirmation dialogs for deletion changes from "Yes" to "No".
+ This option is disabled by default.
+ .PP
++.I Auto cd new terminal.
++If this option is enabled, mc tells its current directory to the terminal.
++Some graphical terminals use this information to open new windows or tabs
++in that directory.
++.PP
+ .I Auto save setup.
+ If this option is enabled, when you exit the Midnight Commander the
+ configurable options of the Midnight Commander are saved in the
+diff -urp mc-4.8.10.orig/src/execute.c mc-4.8.10/src/execute.c
+--- mc-4.8.10.orig/src/execute.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/execute.c	2013-10-01 20:43:15.322329655 +0200
+@@ -363,6 +363,7 @@ do_executev (const char *shell, int flag
+     {
+         update_panels (UP_OPTIMIZE, UP_KEEPSEL);
+         update_xterm_title_path ();
++        update_terminal_cwd ();
+     }
+ 
+     do_refresh ();
+@@ -548,6 +549,7 @@ toggle_panels (void)
+     {
+         update_panels (UP_OPTIMIZE, UP_KEEPSEL);
+         update_xterm_title_path ();
++        update_terminal_cwd ();
+     }
+ 
+     if (was_sigwinch != 0 || mc_global.tty.winch_flag != 0)
+diff -urp mc-4.8.10.orig/src/filemanager/boxes.c mc-4.8.10/src/filemanager/boxes.c
+--- mc-4.8.10.orig/src/filemanager/boxes.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/filemanager/boxes.c	2013-10-01 22:50:46.230646844 +0200
+@@ -476,6 +476,7 @@ configure_box (void)
+                     QUICK_CHECKBOX (N_("Rotating d&ash"), &nice_rotating_dash, NULL),
+                     QUICK_CHECKBOX (N_("Cd follows lin&ks"), &mc_global.vfs.cd_symlinks, NULL),
+                     QUICK_CHECKBOX (N_("Sa&fe delete"), &safe_delete, NULL),
++                    QUICK_CHECKBOX (N_("Auto cd new terminal"), &auto_cd_new_terminal, NULL),  // TODO: shortcut key!
+                     QUICK_CHECKBOX (N_("A&uto save setup"), &auto_save_setup, NULL),
+                     QUICK_SEPARATOR (FALSE),
+                     QUICK_SEPARATOR (FALSE),
+diff -urp mc-4.8.10.orig/src/filemanager/layout.c mc-4.8.10/src/filemanager/layout.c
+--- mc-4.8.10.orig/src/filemanager/layout.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/filemanager/layout.c	2013-10-01 22:58:45.198666700 +0200
+@@ -757,6 +757,7 @@ setup_panels (void)
+         widget_set_size (WIDGET (the_hint), 0, 0, 0, 0);
+ 
+     update_xterm_title_path ();
++    update_terminal_cwd ();
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1408,4 +1409,41 @@ update_xterm_title_path (void)
+     }
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++
++/** Tell the current directory to the terminal, so it can open a new tab there */
++void
++update_terminal_cwd (void)
++{
++    if (mc_global.tty.xterm_flag && auto_cd_new_terminal && vfs_current_is_local ())
++    {
++        char host[BUF_TINY];
++        int res = 0;
++        char *path;
++        int pathlen, i;
++        unsigned char c;
++
++        path = vfs_path_to_str_flags (current_panel->cwd_vpath, 0, VPF_NONE);
++        pathlen = strlen (path);
++
++        res = gethostname (host, sizeof (host));
++        if (res != 0)
++            host[0] = '\0';
++        else
++            host[sizeof (host) - 1] = '\0';
++
++        fprintf (stdout, "\33]7;file://%s", host);
++        for (i = 0; i < pathlen; i++) {
++            c = path[i];
++	    if ((c >= '0' && c <= '9') || ((c & ~0x20) >= 'A' && (c & ~0x20) <= 'Z') || index("/_.-()~", c) != NULL)
++                fprintf(stdout, "%c", c);
++	    else
++	        fprintf(stdout, "%%%02X", c);
++        }
++        fprintf (stdout, "\7");
++        (void) fflush (stdout);
++        g_free (path);
++    }
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+diff -urp mc-4.8.10.orig/src/filemanager/layout.h mc-4.8.10/src/filemanager/layout.h
+--- mc-4.8.10.orig/src/filemanager/layout.h	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/filemanager/layout.h	2013-10-01 20:43:28.394330197 +0200
+@@ -87,6 +87,7 @@ int load_prompt (int fd, void *unused);
+ #endif
+ 
+ void update_xterm_title_path (void);
++void update_terminal_cwd (void);
+ 
+ void title_path_prepare (char **path, char **login);
+ 
+diff -urp mc-4.8.10.orig/src/filemanager/panel.c mc-4.8.10/src/filemanager/panel.c
+--- mc-4.8.10.orig/src/filemanager/panel.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/filemanager/panel.c	2013-10-01 20:43:00.338329034 +0200
+@@ -3072,6 +3072,7 @@ _do_panel_cd (WPanel * panel, const vfs_
+     load_hint (0);
+     panel->dirty = 1;
+     update_xterm_title_path ();
++    update_terminal_cwd ();
+ 
+     vfs_path_free (olddir_vpath);
+ 
+@@ -3436,6 +3437,7 @@ panel_callback (Widget * w, Widget * sen
+             subshell_chdir (panel->cwd_vpath);
+ 
+         update_xterm_title_path ();
++        update_terminal_cwd ();
+         select_item (panel);
+         show_dir (panel);
+         paint_dir (panel);
+diff -urp mc-4.8.10.orig/src/setup.c mc-4.8.10/src/setup.c
+--- mc-4.8.10.orig/src/setup.c	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/setup.c	2013-10-01 23:33:02.606751996 +0200
+@@ -117,6 +117,9 @@ int confirm_view_dir = 0;
+ /* Ask file name before start the editor */
+ int editor_ask_filename_before_edit = 0;
+ 
++/* Tell cwd to the terminal so it can open new tabs there */
++int auto_cd_new_terminal = 0;
++
+ panel_view_mode_t startup_left_mode;
+ panel_view_mode_t startup_right_mode;
+ 
+@@ -365,6 +368,7 @@ static const struct
+     { "auto_fill_mkdir_name", &auto_fill_mkdir_name },
+     { "copymove_persistent_attr", &setup_copymove_persistent_attr },
+     { "select_flags", &select_flags },
++    { "auto_cd_new_terminal", &auto_cd_new_terminal },
+     { NULL, NULL }
+ };
+ 
+diff -urp mc-4.8.10.orig/src/setup.h mc-4.8.10/src/setup.h
+--- mc-4.8.10.orig/src/setup.h	2013-08-02 17:02:39.000000000 +0200
++++ mc-4.8.10/src/setup.h	2013-10-01 22:49:11.062642898 +0200
+@@ -98,6 +98,7 @@ extern int output_starts_shell;
+ extern int use_file_to_check_type;
+ extern int file_op_compute_totals;
+ extern int editor_ask_filename_before_edit;
++extern int auto_cd_new_terminal;
+ 
+ extern panels_options_t panels_options;
+ 

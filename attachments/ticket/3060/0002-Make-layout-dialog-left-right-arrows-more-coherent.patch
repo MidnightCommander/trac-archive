@@ -1,0 +1,30 @@
+From c6e8a7ccf7dc57e1740cb0c4a8d32a7514a2b29c Mon Sep 17 00:00:00 2001
+From: Avi Kelman <patcherton.fixesthings@gmail.com>
+Date: Sat, 24 Aug 2013 16:08:13 -0400
+Subject: [PATCH 2/3] Make layout dialog left/right arrows more coherent
+
+ alt+shift+left_arrow and alt+shift+right_arrow directly influence the
+ divider position, but the < and > layout dialog buttons have the
+ reverse effect, which is unintuitive behavior. Reverse the direction of
+ < and > influence so that clicking left moves the divider left, and
+ clicking right moves the divider right.
+---
+ src/filemanager/layout.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 94d5635..da12ac9 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -259,7 +259,7 @@ b_left_right_cback (WButton * button, int action)
+ {
+     (void) action;
+ 
+-    if (button == bleft_widget)
++    if (button == bright_widget)
+     {
+         if (panels_layout.horizontal_split)
+             panels_layout.top_panel_size++;
+-- 
+1.8.3.1
+

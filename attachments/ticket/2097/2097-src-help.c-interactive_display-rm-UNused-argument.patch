@@ -1,0 +1,146 @@
+From f8741cf7eb3ec9a6618989b9ab5814548b0f4d9d Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sun, 14 Mar 2010 19:53:52 +0000
+Subject: [PATCH] src/help.c interactive_display () removing UN used argument
+
+---
+ src/cmd.c                |    4 ++--
+ src/dialog.c             |    2 +-
+ src/editor/editcmd.c     |    2 +-
+ src/help.c               |    9 +++------
+ src/help.h               |    2 +-
+ src/menu.c               |    5 ++---
+ src/tree.c               |    2 +-
+ src/viewer/actions_cmd.c |    2 +-
+ 8 files changed, 12 insertions(+), 16 deletions(-)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index 3436778..b95070b 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -1020,9 +1020,9 @@ void edit_symlink_cmd (void)
+ void help_cmd (void)
+ {
+     if (current_panel->searching)
+-       interactive_display (NULL, "[Quick search]");
++       interactive_display ("[Quick search]");
+     else
+-       interactive_display (NULL, "[main]");
++       interactive_display ("[main]");
+ }
+ 
+ void
+diff --git a/src/dialog.c b/src/dialog.c
+index 56b200f..fe8a71a 100644
+--- a/src/dialog.c
++++ b/src/dialog.c
+@@ -610,7 +610,7 @@ dialog_handle_key (Dlg_head *h, int d_key)
+ 	break;
+ 
+     case KEY_F(1):
+-	interactive_display (NULL, h->help_ctx);
++	interactive_display (h->help_ctx);
+ 	do_refresh ();
+ 	break;
+ 
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 81331e9..be2606b 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -129,7 +129,7 @@ edit_search_cmd_callback (const void *user_data, gsize char_offset)
+ void
+ edit_help_cmd (WEdit * edit)
+ {
+-    interactive_display (NULL, "[Internal File Editor]");
++    interactive_display ("[Internal File Editor]");
+     edit->force |= REDRAW_COMPLETELY;
+ }
+ 
+diff --git a/src/help.c b/src/help.c
+index ed0a479..54885fb 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -885,7 +885,7 @@ mousedispatch_new (int y, int x, int yl, int xl)
+ }
+ 
+ void
+-interactive_display (const char *filename, const char *node)
++interactive_display (const char *node)
+ {
+     const int help_colors[DLG_COLOR_NUM] =
+     {
+@@ -900,13 +900,10 @@ interactive_display (const char *filename, const char *node)
+     char *hlpfile = NULL;
+     char *filedata;
+ 
+-    if (filename != NULL)
+-	filedata = load_file (filename);
+-    else
+-	filedata = load_mc_home_file (mc_home, mc_home_alt, "mc.hlp", &hlpfile);
++    filedata = load_mc_home_file (mc_home, mc_home_alt, "mc.hlp", &hlpfile);
+ 
+     if (filedata == NULL)
+-	message (D_ERROR, MSG_ERROR, _(" Cannot open file %s \n %s "), filename ? filename : hlpfile,
++	message (D_ERROR, MSG_ERROR, _(" Cannot open file %s \n %s "), hlpfile,
+ 		 unix_error_string (errno));
+ 
+     g_free (hlpfile);
+diff --git a/src/help.h b/src/help.h
+index 638bc5d..167e28a 100644
+--- a/src/help.h
++++ b/src/help.h
+@@ -43,6 +43,6 @@
+ #define CHAR_FONT_NORMAL	'\013'	/* Ctrl-K */
+ #define CHAR_FONT_ITALIC	'\024'	/* Ctrl-T */
+ 
+-void interactive_display (const char *filename, const char *node);
++void interactive_display (const char *node);
+ 
+ #endif
+diff --git a/src/menu.c b/src/menu.c
+index 6a074b5..6758ddc 100644
+--- a/src/menu.c
++++ b/src/menu.c
+@@ -420,11 +420,10 @@ menubar_handle_key (WMenuBar *menubar, int key)
+     switch (key) {
+     case KEY_F(1):
+ 	if (menubar->is_dropped)
+-	    interactive_display (NULL,
+-		    ((Menu *) g_list_nth_data (menubar->menu,
++	    interactive_display (((Menu *) g_list_nth_data (menubar->menu,
+ 					menubar->selected))->help_node);
+ 	else
+-	    interactive_display (NULL, "[Menu Bar]");
++	    interactive_display ("[Menu Bar]");
+ 	menubar_draw (menubar);
+ 	return 1;
+ 
+diff --git a/src/tree.c b/src/tree.c
+index 109eeb1..074be67 100644
+--- a/src/tree.c
++++ b/src/tree.c
+@@ -883,7 +883,7 @@ tree_execute_cmd (WTree *tree, unsigned long command)
+ 
+     switch (command) {
+     case CK_TreeHelp:
+-	interactive_display (NULL, "[Directory Tree]");
++	interactive_display ("[Directory Tree]");
+ 	break;
+     case CK_TreeForget:
+ 	tree_forget (tree);
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index 016c0ef..ed804f9 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -324,7 +324,7 @@ mcview_execute_cmd (mcview_t * view, unsigned long command)
+     switch (command)
+     {
+     case CK_ViewHelp:
+-        interactive_display (NULL, "[Internal File Viewer]");
++        interactive_display ("[Internal File Viewer]");
+         break;
+     case CK_ViewToggleWrapMode:
+         /* Toggle between wrapped and unwrapped view */
+-- 
+1.6.4
+

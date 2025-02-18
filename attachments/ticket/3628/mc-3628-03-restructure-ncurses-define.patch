@@ -1,0 +1,47 @@
+From 380e7479ab9e22c7812d9b1e5d7c46950191d614 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 10 Apr 2016 16:00:10 +0000
+Subject: [PATCH] Restructure ncurses defines
+
+Restructure ncurses defines and remove ncursesw case.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/tty/tty-ncurses.h | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/lib/tty/tty-ncurses.h b/lib/tty/tty-ncurses.h
+index 4f0e603..a949628 100644
+--- a/lib/tty/tty-ncurses.h
++++ b/lib/tty/tty-ncurses.h
+@@ -2,23 +2,19 @@
+ #ifndef MC__TTY_NCURSES_H
+ #define MC__TTY_NCURSES_H
+ 
+-#ifdef USE_NCURSES
+-#ifdef HAVE_NCURSES_CURSES_H
+-#include <ncurses/curses.h>
+-#elif defined (HAVE_NCURSES_NCURSES_H)
+-#include <ncurses/ncurses.h>
++#ifdef HAVE_NCURSESW_NCURSES_H
++#include <ncursesw/ncurses.h>
+ #elif defined (HAVE_NCURSESW_CURSES_H)
+ #include <ncursesw/curses.h>
+-#elif defined (HAVE_NCURSES_HCURSES_H) || defined (HAVE_NCURSES_H)
++#elif defined (HAVE_NCURSES_NCURSES_H)
++#include <ncurses/ncurses.h>
++#elif defined (HAVE_NCURSES_CURSES_H)
++#include <ncurses/curses.h>
++#elif defined (HAVE_NCURSES_H)
+ #include <ncurses.h>
+ #else
+ #include <curses.h>
+ #endif
+-#endif /* USE_NCURSES */
+-
+-#ifdef USE_NCURSESW
+-#include <ncursesw/curses.h>
+-#endif /* USE_NCURSESW */
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 

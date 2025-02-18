@@ -1,0 +1,29 @@
+From ae3dd6d20d4b209c5c03557f13367229ed3df159 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 23 Nov 2024 15:00:00 +0000
+Subject: [PATCH] (tar-sparse.c): fix -Wunused-macros warning
+
+tar-sparse.c:81:9: warning: macro is not used [-Wunused-macros]
+   81 | #define SPARSES_INIT_COUNT SPARSES_IN_SPARSE_HEADER
+      |         ^
+
+Found by clang-18
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar-sparse.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/vfs/tar/tar-sparse.c b/src/vfs/tar/tar-sparse.c
+index 37ad4b11d..88dcc95c8 100644
+--- a/src/vfs/tar/tar-sparse.c
++++ b/src/vfs/tar/tar-sparse.c
+@@ -78,8 +78,6 @@
+ 
+ #define UINTMAX_STRSIZE_BOUND INT_BUFSIZE_BOUND (uintmax_t)
+ 
+-#define SPARSES_INIT_COUNT SPARSES_IN_SPARSE_HEADER
+-
+ #define COPY_BUF(arch,b,buf,src)                                         \
+ do                                                                       \
+ {                                                                        \

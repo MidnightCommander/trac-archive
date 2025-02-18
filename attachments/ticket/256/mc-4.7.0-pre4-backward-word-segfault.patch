@@ -1,0 +1,12 @@
+diff -urp mc-4.7.0-pre4.orig/src/widget.c mc-4.7.0-pre4/src/widget.c
+--- mc-4.7.0-pre4.orig/src/widget.c	2009-11-04 20:56:31.000000000 +0100
++++ mc-4.7.0-pre4/src/widget.c	2009-11-04 20:55:51.000000000 +0100
+@@ -1490,7 +1490,7 @@ backward_word (WInput *in)
+     for (
+         p = in->buffer + str_offset_to_pos (in->buffer, in->point);
+         (p != in->buffer) && (p[0] == '\0');
+-        p-- , in->point--
++        str_cprev_char (&p) , in->point--
+     );
+ 
+     while (p != in->buffer) {

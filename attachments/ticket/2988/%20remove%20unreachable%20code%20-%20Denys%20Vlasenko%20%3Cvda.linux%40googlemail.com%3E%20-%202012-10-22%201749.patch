@@ -1,0 +1,52 @@
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Date: Mon, 22 Oct 2012 16:49:43 +0200
+Subject: [PATCH 3/5] keyboard input: remove unreachable code
+
+With the recently rearranged code, it's easy to see that "this == NULL"
+can't be true here:
+
+note ->     if (!this->child)
+            {   ...
+                return correct_key_code (code);
+            }
+            if (!push_char (c))
+            {   ...
+                goto pend_send;
+            }
+            keylog (" push_char(%d) ok\n", c);
+            parent = this;
+never NULL->this = this->child;
+            if (parent->action == MCKEY_ESCAPE && old_esc_mode)
+            {
+                if (no_delay)
+                {
+                    GET_TIME (esctime);
+can't be true---->  if (this == NULL)
+
+This patch removes that if().
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+---
+ lib/tty/key.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 33732db..77185ce 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1999,12 +1999,6 @@ get_key_code (int no_delay)
+                 if (no_delay)
+                 {
+                     GET_TIME (esctime);
+-                    if (this == NULL)
+-                    {
+-                        /* Shouldn't happen */
+-                        fputs ("Internal error\n", stderr);
+-                        exit (EXIT_FAILURE);
+-                    }
+                     goto nodelay_try_again;
+                 }
+                 esctime.tv_sec = -1;
+-- 
+1.7.7.6
+

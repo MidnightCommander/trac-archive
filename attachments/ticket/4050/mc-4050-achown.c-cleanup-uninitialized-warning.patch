@@ -1,0 +1,32 @@
+From 9fd5537f02654ef60355235c6fcab0fc1ee7aacf Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 3 Apr 2020 09:31:20 +0000
+Subject: [PATCH] (achown.c): cleanup uninitialized warning
+
+Found by Clang 9.0.1
+
+achown.c:531:30: error: variable 'h' is uninitialized when used within its own initialization [-Werror,-Wuninitialized]
+        WDialog *h = DIALOG (h);
+                 ~           ^
+../../lib/widget/dialog.h:19:32: note: expanded from macro 'DIALOG'
+#define DIALOG(x) ((WDialog *)(x))
+                               ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/achown.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/achown.c b/src/filemanager/achown.c
+index 7a98bc069..7eb25ddc4 100644
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -528,7 +528,7 @@ user_group_button_cb (WButton * button, int action)
+     do
+     {
+         WGroup *g = w->owner;
+-        WDialog *h = DIALOG (h);
++        WDialog *h = DIALOG (g);
+         Widget *wh = WIDGET (h);
+ 
+         gboolean is_owner = (f_pos == BUTTONS_PERM - 2);

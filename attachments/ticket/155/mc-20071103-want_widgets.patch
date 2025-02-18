@@ -1,0 +1,51 @@
+diff -ru mc-20071103.orig/src/main.h mc-20071103/src/main.h
+--- mc-20071103.orig/src/main.h	2006-02-11 06:08:05 +0300
++++ mc-20071103/src/main.h	2007-11-14 09:29:21 +0300
+@@ -116,14 +116,12 @@
+ int maybe_cd (int move_up_dir);
+ void do_possible_cd (const char *dir);
+ 
+-#ifdef WANT_WIDGETS
+ extern WButtonBar *the_bar;
+ extern WLabel     *the_prompt;
+ extern WLabel     *the_hint;
+ extern Dlg_head   *midnight_dlg;
+ 
+ extern struct WMenu *the_menubar;
+-#endif /* WANT_WIDGETS */
+ 
+ void done_menu (void);
+ void init_menu (void);
+diff -ru mc-20071103.orig/src/filegui.c mc-20071103/src/filegui.c
+--- mc-20071103.orig/src/filegui.c	2007-09-26 19:01:54 +0400
++++ mc-20071103/src/filegui.c	2007-11-14 09:29:05 +0300
+@@ -58,7 +58,6 @@
+ #include "dialog.h"		/* do_refresh() */
+ #include "color.h"		/* dialog_colors */
+ #include "widget.h"		/* WLabel */
+-#define WANT_WIDGETS
+ #include "main.h"		/* the_hint */
+ #include "wtools.h"		/* QuickDialog */
+ #include "panel.h"		/* current_panel */
+diff -ru mc-20071103.orig/src/layout.c mc-20071103/src/layout.c
+--- mc-20071103.orig/src/layout.c	2007-10-23 22:22:41 +0400
++++ mc-20071103/src/layout.c	2007-11-14 09:29:11 +0300
+@@ -51,7 +51,6 @@
+ #include "command.h"
+ #include "profile.h"		/* For sync_profiles() */
+ #include "mouse.h"
+-#define WANT_WIDGETS
+ #include "main.h"
+ #include "subshell.h"	/* For use_subshell and resize_subshell() */
+ #include "tree.h"
+diff -ru mc-20071103.orig/src/screen.c mc-20071103/src/screen.c
+--- mc-20071103.orig/src/screen.c	2007-09-26 19:01:54 +0400
++++ mc-20071103/src/screen.c	2007-11-14 09:30:14 +0300
+@@ -47,7 +47,6 @@
+ #include "execute.h"
+ #include "widget.h"
+ #include "menu.h"		/* menubar_visible */
+-#define WANT_WIDGETS
+ #include "main.h"		/* the_menubar */
+ #include "unixcompat.h"
+ 

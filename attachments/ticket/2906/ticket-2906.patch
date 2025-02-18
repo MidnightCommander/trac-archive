@@ -1,0 +1,11 @@
+--- src/filemanager/filegui.c.orig	Thu Sep 27 16:58:54 2012
++++ src/filemanager/filegui.c	Thu Sep 27 16:59:15 2012
+@@ -243,7 +243,7 @@
+     if (!setup_copymove_persistent_attr)
+         return FALSE;
+ 
+-    if (statfs (fs_path, &stfs) != 0)
++    if (statvfs (fs_path, &stfs) != 0)
+         return TRUE;
+ 
+ #ifdef __linux__

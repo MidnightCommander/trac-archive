@@ -1,0 +1,137 @@
+diff --git a/syntax/Makefile.am b/syntax/Makefile.am
+index d99dc3a..49ee0a2 100644
+--- a/syntax/Makefile.am
++++ b/syntax/Makefile.am
+@@ -5,6 +5,10 @@ SYNTAXFILES =			\
+ 	assembler.syntax	\
+ 	c.syntax		\
+ 	changelog.syntax	\
++ 	debian-changelog.syntax \
++ 	debian-control.syntax   \
++	debian-description.syntax \
++ 	debian-sources-list.syntax \
+ 	cs.syntax		\
+ 	css.syntax		\
+ 	d.syntax		\
+diff --git a/syntax/Syntax b/syntax/Syntax
+index efdd50e..96df00e 100644
+--- a/syntax/Syntax
++++ b/syntax/Syntax
+@@ -148,5 +148,23 @@ include idl.syntax
+ file Don_t_match_me Mail\sfolder ^From\s
+ include mail.syntax
+ 
++file sources.list$ sources\slist
++include debian-sources-list.syntax
++
++file control$ Debian\scontrol\sfile
++include debian-control.syntax
++
++file (rules|rocks)$ Debian\srules
++include makefile.syntax
++
++file .\*changelog$ Debian\schangelog\sfile
++include debian-changelog.syntax
++
++file changelog.Debian$ Debian\schangelog\sfile
++include debian-changelog.syntax
++
++file .\*\\.dsc$ Debian\sdescriptiom\sfile
++include debian-description.syntax
++
+ file .\* unknown
+ include unknown.syntax
+diff --git a/syntax/debian-changelog.syntax b/syntax/debian-changelog.syntax
+new file mode 100644
+index 0000000..173b624
+--- /dev/null
++++ b/syntax/debian-changelog.syntax
+@@ -0,0 +1,20 @@
++context default
++
++    keyword linestart \s\s\*		brightcyan/17
++    keyword linestart \s--		brightred/19
++    keyword linestart \s\s\s\s\+     	cyan/17
++
++    keyword <*@*>			brightred/19
++    keyword whole experimental;		brightmagenta/magenta
++    keyword whole unstable;		brightmagenta/magenta
++    keyword whole stable;		brightmagenta/magenta
++    keyword whole urgency=low		yellow/24
++    keyword whole urgency=medium	brightgreen/6
++    keyword whole urgency=high		white/25
++    keyword whole urgency=LOW		yellow/24
++    keyword whole urgency=MEDIUM	brightgreen/6
++    keyword whole urgency=HIGH		white/25
++
++    keyword whole bug			white/25
++    keyword whole Bug			white/25
++    keyword whole BUG			white/25
+diff --git a/syntax/debian-control.syntax b/syntax/debian-control.syntax
+new file mode 100644
+index 0000000..8778cdd
+--- /dev/null
++++ b/syntax/debian-control.syntax
+@@ -0,0 +1,23 @@
++context default
++    keyword linestart Source		brightmagenta/20
++    keyword linestart Section		brightmagenta/20
++    keyword linestart Priority		brightmagenta/20
++    keyword linestart Maintainer	brightmagenta/20
++    keyword linestart Standards-Version	brightmagenta/20
++    keyword linestart Package		green/6
++    keyword linestart Architecture	green/6
++    keyword linestart Depends		green/6
++    keyword linestart Recommends	green/6
++    keyword linestart Suggests		green/6
++    keyword linestart Conflicts		green/6
++    keyword linestart Replaces		green/6
++    keyword linestart Provides		green/6
++    keyword linestart Pre-Depends	green/6
++    keyword linestart Build-Depends	green/6
++    keyword linestart Build-Depends-Indep	green/6
++    keyword linestart Build-Conflicts	green/6
++    keyword linestart Build-Conflicts-Indep	green/6
++    keyword linestart Description	green/6
++    keyword <*@*>			brightred/19
++
++context linestart \s \n brown/22
+diff --git a/syntax/debian-description.syntax b/syntax/debian-description.syntax
+new file mode 100644
+index 0000000..2a4815f
+--- /dev/null
++++ b/syntax/debian-description.syntax
+@@ -0,0 +1,15 @@
++context default
++    keyword linestart Format		green
++    keyword linestart Source		brightmagenta
++    keyword linestart Version		yellow
++    keyword linestart Binary		brightgreen
++    keyword linestart Maintainer	brightmagenta
++    keyword <*@*>			brightred
++    keyword linestart Architecture	cyan
++    keyword linestart Standards-Version	brightmagenta
++    keyword linestart Build-Depends	green
++    keyword linestart Files		green
++
++context --- \n				brightred
++    spellcheck
++
+diff --git a/syntax/debian-sources-list.syntax b/syntax/debian-sources-list.syntax
+new file mode 100644
+index 0000000..654fa8d
+--- /dev/null
++++ b/syntax/debian-sources-list.syntax
+@@ -0,0 +1,12 @@
++context default
++    keyword linestart deb-src	brightmagenta/20
++    keyword linestart deb	brightmagenta/20
++    keyword \$\(ARCH\) brightred/18
++
++context # \n brown/22
++context ftp\:\/\/ \s green/6
++context http\:\/\/ \s green/6
++context cdrom\:\/ \s yellow/24
++context file\:\/ \s brightcyan/14
++
++###############################################################################

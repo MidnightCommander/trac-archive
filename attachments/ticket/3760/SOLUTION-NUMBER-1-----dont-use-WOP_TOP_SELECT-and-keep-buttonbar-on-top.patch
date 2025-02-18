@@ -1,0 +1,140 @@
+From 031d7565f82ac9fe922a40b64ef975e6d8c01a37 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 25 Jan 2017 14:05:34 +0200
+Subject: [PATCH] Ticket #3760: keep buttonbar on top so WEdit doesn't steal
+ its mouse events.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ src/editor/edit-impl.h  |  1 +
+ src/editor/edit.c       |  2 +-
+ src/editor/editcmd.c    |  2 +-
+ src/editor/editwidget.c | 46 ++++++++++++++++++++++++++++++++++++++++++----
+ 4 files changed, 45 insertions(+), 6 deletions(-)
+
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 73d178b..f557c3b 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -144,6 +144,7 @@ gboolean edit_drop_hotkey_menu (WDialog * h, int key);
+ void edit_menu_cmd (WDialog * h);
+ void user_menu (WEdit * edit, const char *menu_file, int selected_entry);
+ void edit_init_menu (WMenuBar * menubar);
++void edit_bring_to_front (WEdit * edit);
+ void edit_save_mode_cmd (void);
+ off_t edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto);
+ void edit_scroll_screen_over_cursor (WEdit * edit);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index eaab3c4..b079d9a 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -2111,7 +2111,7 @@ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * f
+ 
+         w = WIDGET (edit);
+         widget_init (w, y, x, lines, cols, NULL, NULL);
+-        w->options |= WOP_SELECTABLE | WOP_TOP_SELECT | WOP_WANT_CURSOR;
++        w->options |= WOP_SELECTABLE | WOP_WANT_CURSOR;
+         edit->fullscreen = TRUE;
+         edit_save_size (edit);
+     }
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 4e1101d..8476800 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -2249,7 +2249,7 @@ edit_close_cmd (WEdit * edit)
+         {
+             edit = find_editor (h);
+             if (edit != NULL)
+-                widget_select (WIDGET (edit));
++                edit_bring_to_front (edit);
+         }
+     }
+ 
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 732db41..67986a1 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -351,7 +351,7 @@ edit_window_list (const WDialog * h)
+ 
+     selected = run_listbox_with_data (listbox, h->current->data);
+     if (selected != NULL)
+-        widget_select (WIDGET (selected));
++        edit_bring_to_front (selected);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -649,7 +649,7 @@ edit_quit (WDialog * h)
+ 
+             if (e->modified)
+             {
+-                widget_select (WIDGET (e));
++                edit_bring_to_front (e);
+ 
+                 if (!edit_ok_to_exit (e))
+                     return;
+@@ -898,7 +898,7 @@ edit_dialog_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+                 if (top != h->current)
+                 {
+                     /* Window is not active. Activate it */
+-                    widget_select (WIDGET (e));
++                    edit_bring_to_front (e);
+                 }
+ 
+                 /* Handle buttons */
+@@ -1074,7 +1074,7 @@ edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+     switch (msg)
+     {
+     case MSG_MOUSE_DOWN:
+-        widget_select (w);
++        edit_bring_to_front (edit);
+         edit_update_curs_row (edit);
+         edit_update_curs_col (edit);
+ 
+@@ -1263,6 +1263,44 @@ find_editor (const WDialog * h)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++/**
++ * Helper function to float a widget up in the Z order.
++ */
++static void
++bring_to_front (Widget * w)
++{
++    widget_options_t original_options;
++
++    original_options = w->options;
++    widget_set_options (w, WOP_TOP_SELECT | WOP_SELECTABLE, TRUE);
++    widget_select (w);
++    w->options = original_options;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/**
++ * Focuses a WEdit and bring it to the front so it obscures the other WEdit
++ * windows (in our MDI user interface).
++ *
++ * It makes sure to keep the buttonbar at the real front, or else
++ * an overlapping edit will receive its mouse events.
++ */
++void
++edit_bring_to_front (WEdit * edit)
++{
++    Widget *bar = WIDGET (find_buttonbar (WIDGET (edit)->owner));
++
++    /* Bring the edit to the top, then the buttonbar. */
++    bring_to_front (WIDGET (edit));
++    bring_to_front (bar);
++
++    /* ...and then move the focus back to the edit. */
++    widget_select (WIDGET (edit));
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ /**
+  * Check if widget is an WEdit class.
+  *
+-- 
+2.9.3
+

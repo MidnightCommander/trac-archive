@@ -1,0 +1,25 @@
+From e93c63b619cd4c26518f4a0b97016027f8d0a04c Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 8 Jan 2019 09:44:30 +0000
+Subject: [PATCH] autoconf: Cleanup AC_PROG_LIBTOOL obsolete warning
+
+configure.ac:50: warning: The macro `AC_PROG_LIBTOOL' is obsolete.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 62f025a8c..22bf30f2b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -47,7 +47,7 @@ fi
+ 
+ AX_GCC_FUNC_ATTRIBUTE([fallthrough])
+ 
+-AC_PROG_LIBTOOL
++LT_INIT
+ 
+ 
+ dnl ############################################################################

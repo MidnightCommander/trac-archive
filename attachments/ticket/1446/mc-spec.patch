@@ -1,0 +1,11 @@
+diff -ur mc.orig/syntax/spec.syntax mc/syntax/spec.syntax
+--- mc.orig/syntax/spec.syntax	2009-08-02 20:39:56 +0300
++++ mc/syntax/spec.syntax	2009-08-02 20:40:40 +0300
+@@ -80,6 +80,7 @@
+     keyword wholeright $+ brightgreen
+     keyword ftp://+ brightgreen
+     keyword http://+ brightgreen
++    keyword https://+ brightgreen
+     keyword cvs://+ brightgreen
+ 
+     keyword whole missingok brightcyan

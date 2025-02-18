@@ -1,0 +1,83 @@
+From 29f990dfb27de64733d9888b745b2af3dd7108f1 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 17:32:06 +0000
+Subject: [PATCH 02/05] sftp: fix connection memleaks
+
+mc missing to free up sftp session data
+this disclose that mc misleadingly freed an internal libssh2
+
+Indirect leak of 8 byte(s) in 1 object(s) allocated from:
+    #0 0x4c7370 in __interceptor_malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c7370)
+    #1 0x7feb83ffa366 in CRYPTO_malloc (/usr/lib64/libcrypto.so.1.0.0+0x1a8366)
+    #2 0x7feb83ee7316  (/usr/lib64/libcrypto.so.1.0.0+0x95316)
+    #3 0x7feb83ee7ae7 in bn_expand2 (/usr/lib64/libcrypto.so.1.0.0+0x95ae7)
+    #4 0x7feb83ee817e in BN_bin2bn (/usr/lib64/libcrypto.so.1.0.0+0x9617e)
+    #5 0x7feb85b80100  (/usr/lib64/libssh2.so.1+0x25100)
+    #6 0x7feb85b65d9f  (/usr/lib64/libssh2.so.1+0xad9f)
+    #7 0x7feb85b664d0  (/usr/lib64/libssh2.so.1+0xb4d0)
+    #8 0x7feb85b67a5c  (/usr/lib64/libssh2.so.1+0xca5c)
+    #9 0x7feb85b68756  (/usr/lib64/libssh2.so.1+0xd756)
+    #10 0x7feb85b71563 in libssh2_session_handshake (/usr/lib64/libssh2.so.1+0x16563)
+    #11 0x620dc1 in sftpfs_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/connection.c:389:10
+    #12 0x620dc1 in sftpfs_cb_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/vfs_subclass.c:123
+    #13 0x7feb863b8f29 in vfs_s_get_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:1139:18
+    #14 0x7feb863be10d in vfs_s_inode_from_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:380:9
+    #15 0x7feb863bc6f7 in vfs_s_opendir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:409:11
+    #16 0x7feb863bcc58 in vfs_s_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:476:12
+    #17 0x7feb863c1793 in mc_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/interface.c:687:14
+    #18 0x535bb4 in _do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3250:9
+    #19 0x5f3891 in do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4627:9
+    #20 0x5f3891 in nice_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:460
+    #21 0x5299d1 in fishlink_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:1430:5
+    #22 0x5299d1 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1208
+    #23 0x7feb863f207d in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #24 0x7feb863f207d in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341
+    #25 0x7feb863f12eb in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #26 0x7feb863ee53f in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #27 0x7feb863d4fcc in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #28 0x7feb863d4fcc in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450
+    #29 0x7feb863d4fcc in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509
+    #30 0x7feb863d4fcc in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1236
+    #31 0x7feb863d69c7 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #32 0x7feb863d5565 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #33 0x4fc818 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:954:5
+    #34 0x4fc818 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757
+    #35 0x4fc818 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:401
+    #36 0x7feb8493b953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #37 0x427148 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427148)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/connection.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index 5ccd397..3bed24e 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -170,6 +170,8 @@ sftpfs_recognize_auth_types (struct vfs_s_super *super)
+     super_data->auth_type = NONE;
+ 
+     /* check what authentication methods are available */
++    /* userauthlist is internally managed by libssh2 and
++       freed by libssh2_session_free() */
+     userauthlist = libssh2_userauth_list (super_data->session, super->path_element->user,
+                                           strlen (super->path_element->user));
+ 
+@@ -183,8 +185,6 @@ sftpfs_recognize_auth_types (struct vfs_s_super *super)
+ 
+     if ((super_data->config_auth_type & AGENT) != 0)
+         super_data->auth_type |= AGENT;
+-
+-    g_free (userauthlist);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -461,6 +461,7 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+     if (super_data->session != NULL)
+     {
+         libssh2_session_disconnect (super_data->session, shutdown_message);
++        libssh2_session_free(super_data->session);
+         super_data->session = NULL;
+     }
+ 

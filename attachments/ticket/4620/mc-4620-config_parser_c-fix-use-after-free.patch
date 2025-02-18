@@ -1,0 +1,41 @@
+From cda5c62926a8a8dccfcacb47e7ea4ab610987a0f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 18 Dec 2024 21:00:00 +0000
+Subject: [PATCH] (config_parser.c) fix use-after-free
+
+Fix Use-after-free in sftpfs_fill_connection_data_from_config()
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/config_parser.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/sftpfs/config_parser.c b/src/vfs/sftpfs/config_parser.c
+index 622ac3266..5e5741cfc 100644
+--- a/src/vfs/sftpfs/config_parser.c
++++ b/src/vfs/sftpfs/config_parser.c
+@@ -374,6 +374,7 @@ sftpfs_fill_connection_data_from_config (struct vfs_s_super *super, GError **mce
+ {
+     sftpfs_super_t *sftpfs_super = SFTP_SUPER (super);
+     sftpfs_ssh_config_entity_t *config_entity;
++    char *tmp_str = NULL;
+ 
+     mc_return_if_error (mcerror);
+ 
+@@ -393,9 +394,13 @@ sftpfs_fill_connection_data_from_config (struct vfs_s_super *super, GError **mce
+ 
+     if (config_entity->real_host != NULL)
+     {
++        tmp_str = g_strdup (super->path_element->host);
+         g_free (super->path_element->host);
++
+         super->path_element->host =
+-            sftpsfs_expand_hostname (super->path_element->host, config_entity->real_host);
++            sftpsfs_expand_hostname (tmp_str, config_entity->real_host);
++
++        g_free (tmp_str);
+     }
+ 
+     if (config_entity->identity_file != NULL)

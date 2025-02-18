@@ -1,0 +1,31 @@
+From 449febd34b07269092ca0af571496915a9a7b8dd Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 18 Jun 2022 14:23:18 +0000
+Subject: [PATCH] (input.c) fix maybe-uninitialized warning
+
+../../../lib/widget/input.c:573:8: error: 'event_data.ret' may be used uninitialized [-Werror=maybe-uninitialized]
+  573 |     if (event_data.ret)
+      |        ^
+../../../lib/widget/input.c:566:35: note: 'event_data.ret' was declared here
+  566 |     ev_clipboard_text_from_file_t event_data;
+
+Found by gcc-11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/input.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index c7c3cd46d..11c429915 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -563,7 +563,7 @@ static void
+ ins_from_clip (WInput * in)
+ {
+     char *p = NULL;
+-    ev_clipboard_text_from_file_t event_data;
++    ev_clipboard_text_from_file_t event_data = { NULL, FALSE };
+ 
+     /* try use external clipboard utility */
+     mc_event_raise (MCEVENT_GROUP_CORE, "clipboard_file_from_ext_clip", NULL);

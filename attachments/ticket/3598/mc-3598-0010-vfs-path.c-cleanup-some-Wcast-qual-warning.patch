@@ -1,0 +1,46 @@
+From 4d9930077953b37f4235879a1c6456dc5cb27a04 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 10:13:31 +0000
+Subject: [PATCH] vfs/path.c: cleanup some -Wcast-qual warning
+
+path.c:812:6: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     ((vfs_path_t *) vpath)->str = vfs_path_to_str_flags (vpath, 0, VPF_NONE);
+      ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/vfs/path.c | 4 ++--
+ lib/vfs/path.h | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/vfs/path.c b/lib/vfs/path.c
+index 5f64850..c4b687d 100644
+--- a/lib/vfs/path.c
++++ b/lib/vfs/path.c
+@@ -805,11 +805,11 @@ vfs_path_elements_count (const vfs_path_t * vpath)
+  */
+ 
+ void
+-vfs_path_add_element (const vfs_path_t * vpath, const vfs_path_element_t * path_element)
++vfs_path_add_element (vfs_path_t * vpath, const vfs_path_element_t * path_element)
+ {
+     g_array_append_val (vpath->path, path_element);
+     g_free (vpath->str);
+-    ((vfs_path_t *) vpath)->str = vfs_path_to_str_flags (vpath, 0, VPF_NONE);
++    vpath->str = vfs_path_to_str_flags (vpath, 0, VPF_NONE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/vfs/path.h b/lib/vfs/path.h
+index d4afbfd..c5dc4f5 100644
+--- a/lib/vfs/path.h
++++ b/lib/vfs/path.h
+@@ -74,7 +74,7 @@ size_t vfs_path_tokens_count (const vfs_path_t *);
+ char *vfs_path_tokens_get (const vfs_path_t * vpath, ssize_t start_position, ssize_t length);
+ vfs_path_t *vfs_path_vtokens_get (const vfs_path_t * vpath, ssize_t start_position, ssize_t length);
+ 
+-void vfs_path_add_element (const vfs_path_t * vpath, const vfs_path_element_t * path_element);
++void vfs_path_add_element (vfs_path_t * vpath, const vfs_path_element_t * path_element);
+ const vfs_path_element_t *vfs_path_get_by_index (const vfs_path_t * path, int element_index);
+ vfs_path_element_t *vfs_path_element_clone (const vfs_path_element_t * element);
+ void vfs_path_element_free (vfs_path_element_t * element);

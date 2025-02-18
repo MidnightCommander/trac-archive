@@ -1,0 +1,206 @@
+diff -ur mc-4.8.8.orig/src/filemanager/cmd.c mc-4.8.8/src/filemanager/cmd.c
+--- mc-4.8.8.orig/src/filemanager/cmd.c	2013-04-02 10:31:06.000000000 +0200
++++ mc-4.8.8/src/filemanager/cmd.c	2013-05-19 23:28:24.833894981 +0200
+@@ -320,7 +320,7 @@
+                 data2 = mmap (0, size, PROT_READ, MAP_FILE | MAP_PRIVATE, file2, 0);
+                 if (data2 != (char *) -1)
+                 {
+-                    rotate_dash ();
++                    rotate_dash (TRUE);
+                     result = memcmp (data1, data2, size);
+                     munmap (data2, size);
+                 }
+@@ -330,7 +330,7 @@
+             /* Don't have mmap() :( Even more ugly :) */
+             char buf1[BUFSIZ], buf2[BUFSIZ];
+             int n1, n2;
+-            rotate_dash ();
++            rotate_dash (TRUE);
+             do
+             {
+                 while ((n1 = read (file1, buf1, BUFSIZ)) == -1 && errno == EINTR);
+@@ -343,6 +343,7 @@
+         }
+         close (file1);
+     }
++    rotate_dash (FALSE);
+     return result;
+ }
+ 
+diff -ur mc-4.8.8.orig/src/filemanager/dir.c mc-4.8.8/src/filemanager/dir.c
+--- mc-4.8.8.orig/src/filemanager/dir.c	2013-03-07 11:45:57.000000000 +0100
++++ mc-4.8.8/src/filemanager/dir.c	2013-05-19 23:28:25.753895019 +0200
+@@ -599,7 +599,7 @@
+         next_free++;
+ 
+         if ((next_free & 31) == 0)
+-            rotate_dash ();
++            rotate_dash (TRUE);
+     }
+ 
+     if (next_free != 0)
+@@ -608,6 +608,7 @@
+   ret:
+     mc_closedir (dirp);
+     tree_store_end_check ();
++    rotate_dash (FALSE);
+     return next_free;
+ }
+ 
+@@ -738,7 +739,7 @@
+         list->list[next_free].second_sort_key = NULL;
+         next_free++;
+         if (!(next_free % 16))
+-            rotate_dash ();
++            rotate_dash (TRUE);
+     }
+     mc_closedir (dirp);
+     tree_store_end_check ();
+@@ -748,6 +749,7 @@
+         do_sort (list, sort, next_free - 1, lc_reverse, lc_case_sensitive, exec_ff);
+     }
+     clean_dir (&dir_copy, count);
++    rotate_dash (FALSE);
+     return next_free;
+ }
+ 
+diff -ur mc-4.8.8.orig/src/filemanager/file.c mc-4.8.8/src/filemanager/file.c
+--- mc-4.8.8.orig/src/filemanager/file.c	2013-03-21 11:01:18.000000000 +0100
++++ mc-4.8.8/src/filemanager/file.c	2013-05-19 23:29:49.469898489 +0200
+@@ -828,7 +828,7 @@
+     long dt;
+ 
+     /* 1. Update rotating dash after some time */
+-    rotate_dash ();
++    rotate_dash (TRUE);
+ 
+     /* 3. Compute ETA */
+     dt = (tv_current.tv_sec - tv_transfer_start.tv_sec);
+@@ -1922,6 +1922,7 @@
+     dst_status = DEST_FULL;     /* copy successful, don't remove target file */
+ 
+   ret:
++    rotate_dash (FALSE);
+     while (src_desc != -1 && mc_close (src_desc) < 0 && !ctx->skip_all)
+     {
+         temp_status = file_error (_("Cannot close source file \"%s\"\n%s"), src_path);
+diff -ur mc-4.8.8.orig/src/filemanager/find.c mc-4.8.8/src/filemanager/find.c
+--- mc-4.8.8.orig/src/filemanager/find.c	2013-03-21 11:01:18.000000000 +0100
++++ mc-4.8.8/src/filemanager/find.c	2013-05-20 00:31:18.562051430 +0200
+@@ -1185,7 +1185,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-find_rotate_dash (const WDialog * h, gboolean finish)
++find_rotate_dash (const WDialog * h, gboolean show)
+ {
+     static const char rotating_dash[] = "|/-\\";
+     static unsigned int pos = 0;
+@@ -1197,7 +1197,7 @@
+         pos = (pos + 1) % 4;
+         tty_setcolor (h->color[DLG_COLOR_NORMAL]);
+         widget_move (h, w->lines - 7, w->cols - 4);
+-        tty_print_char (finish ? ' ' : rotating_dash[pos]);
++        tty_print_char (show ? rotating_dash[pos] : ' ');
+         mc_refresh ();
+     }
+ }
+@@ -1261,7 +1261,7 @@
+                                                   ignore_count), ignore_count);
+                             status_update (msg);
+                         }
+-                        find_rotate_dash (h, TRUE);
++                        find_rotate_dash (h, FALSE);
+                         stop_idle (h);
+                         return 0;
+                     }
+@@ -1360,7 +1360,7 @@
+             ;
+     }                           /* for */
+ 
+-    find_rotate_dash (h, FALSE);
++    find_rotate_dash (h, TRUE);
+ 
+     return 1;
+ }
+@@ -1770,7 +1770,7 @@
+             next_free++;
+             g_free (name);
+             if (!(next_free & 15))
+-                rotate_dash ();
++                rotate_dash (TRUE);
+         }
+ 
+         if (next_free)
+@@ -1796,6 +1796,7 @@
+     do_search (NULL);           /* force do_search to release resources */
+     g_free (old_dir);
+     old_dir = NULL;
++    rotate_dash (FALSE);
+ 
+     return return_value;
+ }
+diff -ur mc-4.8.8.orig/src/filemanager/layout.c mc-4.8.8/src/filemanager/layout.c
+--- mc-4.8.8.orig/src/filemanager/layout.c	2013-03-21 11:01:18.000000000 +0100
++++ mc-4.8.8/src/filemanager/layout.c	2013-05-20 00:50:42.394099680 +0200
+@@ -863,7 +863,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-rotate_dash (void)
++rotate_dash (gboolean show)
+ {
+     static const char rotating_dash[] = "|/-\\";
+     static size_t pos = 0;
+@@ -871,6 +871,19 @@
+     if (!nice_rotating_dash || (ok_to_refresh <= 0))
+         return;
+ 
++    if (!show) {
++        tty_gotoyx (0, COLS - 1);
++        if (menubar_visible) {
++            tty_setcolor (MENU_INACTIVE_COLOR);
++            tty_print_char (' ');
++        } else {
++            tty_setcolor (NORMAL_COLOR);
++            tty_print_alt_char (ACS_URCORNER, FALSE);
++        }
++        mc_refresh ();
++        return;
++    }
++
+     if (pos >= sizeof (rotating_dash) - 1)
+         pos = 0;
+     tty_gotoyx (0, COLS - 1);
+diff -ur mc-4.8.8.orig/src/filemanager/layout.h mc-4.8.8/src/filemanager/layout.h
+--- mc-4.8.8.orig/src/filemanager/layout.h	2013-03-07 11:45:57.000000000 +0100
++++ mc-4.8.8/src/filemanager/layout.h	2013-05-19 23:30:11.665899410 +0200
+@@ -79,7 +79,7 @@
+ 
+ /* Rotating dash routines */
+ void use_dash (gboolean flag);  /* Disable/Enable rotate_dash routines */
+-void rotate_dash (void);
++void rotate_dash (gboolean show);
+ 
+ #ifdef ENABLE_SUBSHELL
+ gboolean do_load_prompt (void);
+diff -ur mc-4.8.8.orig/src/filemanager/panelize.c mc-4.8.8/src/filemanager/panelize.c
+--- mc-4.8.8.orig/src/filemanager/panelize.c	2013-03-21 11:01:18.000000000 +0100
++++ mc-4.8.8/src/filemanager/panelize.c	2013-05-19 23:31:42.501903175 +0200
+@@ -368,7 +368,7 @@
+         list->list[next_free].second_sort_key = NULL;
+         next_free++;
+         if (!(next_free & 32))
+-            rotate_dash ();
++            rotate_dash (TRUE);
+     }
+ 
+     current_panel->is_panelized = TRUE;
+@@ -392,6 +392,7 @@
+     close_error_pipe (D_NORMAL, NULL);
+     try_to_select (current_panel, NULL);
+     panel_re_sort (current_panel);
++    rotate_dash (FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

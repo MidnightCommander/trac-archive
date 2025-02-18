@@ -1,0 +1,149 @@
+diff -ur mc-4.7.5.5.orig/src/editor/edit.c mc-4.7.5.5/src/editor/edit.c
+--- mc-4.7.5.5.orig/src/editor/edit.c	2011-10-14 07:49:34.000000000 -0400
++++ mc-4.7.5.5/src/editor/edit.c	2011-10-14 10:32:27.000000000 -0400
+@@ -1651,31 +1651,6 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-char *
+-edit_get_buf_ptr (WEdit * edit, long byte_index)
+-{
+-    unsigned long p;
+-
+-    if (byte_index >= (edit->curs1 + edit->curs2))
+-        byte_index--;
+-
+-    if (byte_index < 0)
+-        return NULL;
+-
+-    if (byte_index >= edit->curs1)
+-    {
+-        p = edit->curs1 + edit->curs2 - 1;
+-        return (char *) (edit->buffers2[p >> S_EDIT_BUF_SIZE] +
+-                         (EDIT_BUF_SIZE - (p & M_EDIT_BUF_SIZE) - 1));
+-    }
+-    else
+-    {
+-        return (char *) (edit->buffers1[byte_index >> S_EDIT_BUF_SIZE] + (0 & M_EDIT_BUF_SIZE));
+-    }
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+ int
+ edit_get_utf (WEdit * edit, long byte_index, int *char_width)
+ {
+@@ -1742,70 +1717,38 @@
+ int
+ edit_get_prev_utf (WEdit * edit, long byte_index, int *char_width)
+ {
+-    gchar *str, *buf = NULL;
+-    int res = -1;
+-    gunichar ch;
+-    gchar *next_ch = NULL;
+-    int width = 0;
+-
+-    if (byte_index > 0)
+-        byte_index--;
+-
+-    if (byte_index >= (edit->curs1 + edit->curs2) || byte_index < 0)
+-    {
+-        *char_width = 0;
+-        return 0;
+-    }
+-
+-    ch = edit_get_utf (edit, byte_index, &width);
+-
+-    if (width == 1)
+-    {
+-        *char_width = width;
+-        return ch;
+-    }
+-
+-    str = edit_get_byte_ptr (edit, byte_index);
+-    buf = edit_get_buf_ptr (edit, byte_index);
+-    if (str == NULL || buf == NULL)
+-    {
+-        *char_width = 0;
+-        return 0;
+-    }
+-    /* get prev utf8 char */
+-    if (str != buf)
+-        str = g_utf8_find_prev_char (buf, str);
+-
+-    if (str == NULL)
+-    {
+-        *char_width = 0;
+-        return 0;
+-    }
+-    else
+-        res = g_utf8_get_char_validated (str, -1);
+-
+-    if (res < 0)
+-    {
+-        ch = *str;
+-        width = 0;
+-    }
+-    else
+-    {
+-        ch = res;
+-        /* Calculate UTF-8 char width */
+-        next_ch = g_utf8_next_char (str);
+-        if (next_ch)
+-        {
+-            width = next_ch - str;
+-        }
+-        else
+-        {
+-            ch = 0;
+-            width = 0;
+-        }
+-    }
+-    *char_width = width;
+-    return ch;
++    int i, res;
++    gchar tmpbuf[18 + 1], *str;
++
++    if (byte_index > (edit->curs1 + edit->curs2) || byte_index <= 0)
++    {
++        *char_width = 0;
++        return 0;
++    }
++
++    for (i = 0; i < 18; i++)
++        tmpbuf[i] = edit_get_byte (edit, byte_index + i - 12);
++    tmpbuf[18] = '\0';
++
++    str = g_utf8_find_prev_char (tmpbuf, tmpbuf + 12);
++    if (str == NULL || g_utf8_next_char(str) != tmpbuf + 12)
++    {
++        *char_width = 1;
++        return tmpbuf[11];
++    }
++    else
++        res = g_utf8_get_char_validated (str, -1);
++
++    if (res < 0)
++    {
++        *char_width = 1;
++        return tmpbuf[11];
++    }
++    else
++    {
++        *char_width = tmpbuf + 12 - str;
++        return res;
++    }
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff -ur mc-4.7.5.5.orig/src/editor/edit-impl.h mc-4.7.5.5/src/editor/edit-impl.h
+--- mc-4.7.5.5.orig/src/editor/edit-impl.h	2011-09-28 12:49:09.000000000 -0400
++++ mc-4.7.5.5/src/editor/edit-impl.h	2011-10-14 09:26:55.000000000 -0400
+@@ -206,7 +206,6 @@
+ int edit_translate_key (WEdit * edit, long x_key, int *cmd, int *ch);
+ int edit_get_byte (WEdit * edit, long byte_index);
+ char *edit_get_byte_ptr (WEdit * edit, long byte_index);
+-char *edit_get_buf_ptr (WEdit * edit, long byte_index);
+ int edit_get_utf (WEdit * edit, long byte_index, int *char_width);
+ int edit_get_prev_utf (WEdit * edit, long byte_index, int *char_width);
+ long edit_count_lines (WEdit * edit, long current, long upto);

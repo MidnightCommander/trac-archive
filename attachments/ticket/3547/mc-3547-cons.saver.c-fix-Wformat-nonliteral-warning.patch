@@ -1,0 +1,58 @@
+From d69b4d8b9b06ab1467903d82d105ff21505f392e Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 27 Nov 2015 18:07:31 +0000
+Subject: [PATCH] cons.saver.c: fix -Wformat-nonliteral warning
+
+Let's decide about fix warning over more fashionable code concept at this single section
+
+cons.saver.c:213:52: warning: format string is not a string literal [-Wformat-nonliteral]
+cons.saver.c:220:46: warning: format string is not a string literal [-Wformat-nonliteral]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/consaver/cons.saver.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/src/consaver/cons.saver.c b/src/consaver/cons.saver.c
+index 372fc55..4cfb4dc 100644
+--- a/src/consaver/cons.saver.c
++++ b/src/consaver/cons.saver.c
+@@ -163,7 +163,6 @@ main (int argc, char **argv)
+     struct stat st;
+     uid_t uid, euid;
+     char *buffer, *tty_name, console_name[16], vcsa_name[16];
+-    const char *p, *q;
+     struct winsize winsz;
+ 
+     close (STDERR_FILENO);
+@@ -198,26 +197,24 @@ main (int argc, char **argv)
+     {
+         /* devfs */
+     case 'v':
+-        p = "/dev/vc/%d";
+-        q = "/dev/vcc/a%d";
++        snprintf (console_name, sizeof (console_name), "/dev/vc/%d", console_minor);
++        snprintf (vcsa_name, sizeof (vcsa_name), "/dev/vcc/a%d", console_minor);
+         break;
+         /* /dev/ttyN */
+     case 't':
+-        p = "/dev/tty%d";
+-        q = "/dev/vcsa%d";
++        snprintf (console_name, sizeof (console_name), "/dev/tty%d", console_minor);
++        snprintf (vcsa_name, sizeof (vcsa_name), "/dev/vcsa%d", console_minor);
+         break;
+     default:
+         die ();
+     }
+ 
+-    snprintf (console_name, sizeof (console_name), p, console_minor);
+     if (strncmp (console_name, tty_name, sizeof (console_name)) != 0)
+         die ();
+ 
+     if (seteuid (euid) < 0)
+         die ();
+ 
+-    snprintf (vcsa_name, sizeof (vcsa_name), q, console_minor);
+     vcsa_fd = open (vcsa_name, O_RDWR);
+     if (vcsa_fd < 0)
+         die ();

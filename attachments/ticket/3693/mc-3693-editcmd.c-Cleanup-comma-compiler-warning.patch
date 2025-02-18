@@ -1,0 +1,43 @@
+From 183ba9d6feb31e45b566ff940754ce7d94c4f0eb Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 11:05:53 +0000
+Subject: [PATCH] (editcmd.c) Cleanup comma compiler warning
+
+Found by Clang 3.9.0.
+
+editcmd.c:2556:24: error: possible misuse of comma operator here [-Werror,-Wcomma]
+        g_free (saved1), saved1 = g_strdup (input1);
+                       ^
+editcmd.c:2556:9: note: cast expression to void to silence warning
+        g_free (saved1), saved1 = g_strdup (input1);
+        ^~~~~~~~~~~~~~~
+
+editcmd.c:2557:24: error: possible misuse of comma operator here [-Werror,-Wcomma]
+        g_free (saved2), saved2 = g_strdup (input2);
+                       ^
+editcmd.c:2557:9: note: cast expression to void to silence warning
+        g_free (saved2), saved2 = g_strdup (input2);
+        ^~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 6cf3f82..a4586c7 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -2553,8 +2553,10 @@ edit_replace_cmd (WEdit * edit, gboolean again)
+         g_free (tmp_inp1);
+         g_free (tmp_inp2);
+ 
+-        g_free (saved1), saved1 = g_strdup (input1);
+-        g_free (saved2), saved2 = g_strdup (input2);
++        g_free (saved1);
++        saved1 = g_strdup (input1);
++        g_free (saved2);
++        saved2 = g_strdup (input2);
+ 
+         mc_search_free (edit->search);
+         edit->search = NULL;

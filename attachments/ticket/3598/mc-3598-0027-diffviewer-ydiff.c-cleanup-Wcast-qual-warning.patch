@@ -1,0 +1,102 @@
+From 52131d4bccc42cdea1ced0dddad20cbf17eeebbd Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 12:58:38 +0000
+Subject: [PATCH] diffviewer/ydiff.c: cleanup -Wcast-qual warning
+
+ydiff.c:1420:39: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+                 (void) dview_get_utf ((char *) src, &ch_len, &res);
+                                       ^
+ydiff.c:1523:39: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+                 (void) dview_get_utf ((char *) src, &ch_len, &res);
+                                       ^
+ydiff.c:2798:47: warning: to be safe all intermediate pointers in cast from 'GArray ** {aka struct _GArray **}' to 'const GArray ** {aka const struct _GArray **}' must be 'const' qualified [-Wcast-qual]
+         dview->display_numbers = calc_nwidth ((const GArray **) dview->a);
+                                               ^
+ydiff.c:3077:47: warning: to be safe all intermediate pointers in cast from 'GArray ** {aka struct _GArray **}' to 'const GArray ** {aka const struct _GArray **}' must be 'const' qualified [-Wcast-qual]
+         dview->display_numbers = calc_nwidth ((const GArray ** const) dview->a);
+                                               ^
+ydiff.c:3160:48: warning: to be safe all intermediate pointers in cast from 'GArray ** {aka struct _GArray **}' to 'const GArray ** {aka const struct _GArray **}' must be 'const' qualified [-Wcast-qual]
+         dview->display_numbers ^= calc_nwidth ((const GArray ** const) dview->a);
+                                                ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/diffviewer/ydiff.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index e3aaeb0..3e3a608 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -1363,7 +1363,7 @@ cvt_ncpy (char *dst, int dstsize, const char **_src, size_t srcsize, int base, i
+  */
+ 
+ static int
+-cvt_mget (const char *src, size_t srcsize, char *dst, int dstsize, int skip, int ts,
++cvt_mget (char *src, size_t srcsize, char *dst, int dstsize, int skip, int ts,
+           gboolean show_cr)
+ {
+     int sz = 0;
+@@ -1417,7 +1417,7 @@ cvt_mget (const char *src, size_t srcsize, char *dst, int dstsize, int skip, int
+                 gboolean res;
+                 int ch_len = 1;
+ 
+-                (void) dview_get_utf ((char *) src, &ch_len, &res);
++                (void) dview_get_utf (src, &ch_len, &res);
+ 
+                 if (ch_len > 1)
+                     skip += ch_len - 1;
+@@ -1462,7 +1462,7 @@ cvt_mget (const char *src, size_t srcsize, char *dst, int dstsize, int skip, int
+  */
+ 
+ static int
+-cvt_mgeta (const char *src, size_t srcsize, char *dst, int dstsize, int skip, int ts,
++cvt_mgeta (char *src, size_t srcsize, char *dst, int dstsize, int skip, int ts,
+            gboolean show_cr, GArray * hdiff, diff_place_t ord, char *att)
+ {
+     int sz = 0;
+@@ -1520,7 +1520,7 @@ cvt_mgeta (const char *src, size_t srcsize, char *dst, int dstsize, int skip, in
+                 gboolean res;
+                 int ch_len = 1;
+ 
+-                (void) dview_get_utf ((char *) src, &ch_len, &res);
++                (void) dview_get_utf (src, &ch_len, &res);
+                 if (ch_len > 1)
+                     skip += ch_len - 1;
+ #endif
+@@ -1915,7 +1915,7 @@ get_line_numbers (const GArray * a, size_t pos, int *linenum, int *lineofs)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static int
+-calc_nwidth (const GArray ** const a)
++calc_nwidth (const GArray *const * a)
+ {
+     int l1, o1;
+     int l2, o2;
+@@ -2795,7 +2795,7 @@ dview_redo (WDiff * dview)
+         int old;
+ 
+         old = dview->display_numbers;
+-        dview->display_numbers = calc_nwidth ((const GArray **) dview->a);
++        dview->display_numbers = calc_nwidth ((const GArray *const *) dview->a);
+         dview->new_frame = (old != dview->display_numbers);
+     }
+     dview_reread (dview);
+@@ -3074,7 +3074,7 @@ dview_load_options (WDiff * dview)
+         dview->display_symbols = 1;
+     show_numbers = mc_config_get_bool (mc_main_config, "DiffView", "show_numbers", FALSE);
+     if (show_numbers)
+-        dview->display_numbers = calc_nwidth ((const GArray ** const) dview->a);
++        dview->display_numbers = calc_nwidth ((const GArray *const *) dview->a);
+     tab_size = mc_config_get_int (mc_main_config, "DiffView", "tab_size", 8);
+     if (tab_size > 0 && tab_size < 9)
+         dview->tab_size = tab_size;
+@@ -3157,7 +3157,7 @@ dview_execute_cmd (WDiff * dview, long command)
+         dview->new_frame = TRUE;
+         break;
+     case CK_ShowNumbers:
+-        dview->display_numbers ^= calc_nwidth ((const GArray ** const) dview->a);
++        dview->display_numbers ^= calc_nwidth ((const GArray *const *) dview->a);
+         dview->new_frame = TRUE;
+         break;
+     case CK_SplitFull:

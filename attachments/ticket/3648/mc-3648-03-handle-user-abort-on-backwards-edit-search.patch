@@ -1,0 +1,38 @@
+From a36b410b4368745011f683421d24cc22d13fd624 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 May 2016 14:31:38 +0000
+Subject: [PATCH] Handle user abort on backwards edit search
+
+Currently backwards edit search loops mc_search_run() until match or search end,
+but not on user abort request.
+
+Respect newly introduced MC_SEARCH_E_ABORT error status
+and exit backwards search loop on user request.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index d1aa93d..401246e 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -879,12 +879,13 @@ editcmd_find (edit_search_status_msg_t * esm, gsize * len)
+             {
+                 search_end = search_start + edit->search->original_len;
+             }
+-            if (mc_search_run (edit->search, (void *) esm, search_start, search_end, len)
+-                && edit->search->normal_offset == search_start)
++            if (mc_search_run (edit->search, (void *) esm, search_start, search_end, len))
+             {
+-                return TRUE;
++                if (edit->search->normal_offset == search_start)
++                    return TRUE;
+             }
+-
++            else if (edit->search->error == MC_SEARCH_E_ABORT)
++                return FALSE;
+ 
+             if ((edit->search_line_type & AT_START_LINE) != 0)
+                 search_start =

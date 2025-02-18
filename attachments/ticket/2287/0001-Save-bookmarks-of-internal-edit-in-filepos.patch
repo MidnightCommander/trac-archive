@@ -1,0 +1,262 @@
+From 4e986337e752f6dda5ae42b5515ea44f120498dc Mon Sep 17 00:00:00 2001
+From: Filip Sefrna <fsefrna@gmail.com>
+Date: Sat, 17 Jul 2010 18:21:29 +0200
+Subject: [PATCH] Save bookmarks of internal edit in filepos
+
+---
+ lib/util.c             |   39 +++++++++++++++++++++++++++++++++------
+ lib/util.h             |    4 ++--
+ src/editor/bookmark.c  |   27 +++++++++++++++++++++++++++
+ src/editor/edit-impl.h |    2 ++
+ src/editor/edit.c      |   18 +++++++++++++++---
+ src/viewer/lib.c       |    2 +-
+ src/viewer/mcviewer.c  |    2 +-
+ 7 files changed, 81 insertions(+), 13 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index a33df46..7246205 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -1457,11 +1457,11 @@ mc_mkstemps (char **pname, const char *prefix, const char *suffix)
+  * If there is no stored data, return line 1 and col 0.
+  */
+ void
+-load_file_position (const char *filename, long *line, long *column, off_t * offset)
++load_file_position (const char *filename, long *line, long *column, off_t * offset, long *bookmarks, int num_bookmarks)
+ {
+     char *fn;
+     FILE *f;
+-    char buf[MC_MAXPATHLEN + 20];
++    char buf[MC_MAXPATHLEN + 100];
+     int len;
+ 
+     /* defaults */
+@@ -1476,6 +1476,9 @@ load_file_position (const char *filename, long *line, long *column, off_t * offs
+     if (!f)
+         return;
+ 
++    if (bookmarks != NULL)
++        bookmarks[0] = -1;
++
+     len = strlen (filename);
+ 
+     while (fgets (buf, sizeof (buf), f))
+@@ -1496,7 +1499,8 @@ load_file_position (const char *filename, long *line, long *column, off_t * offs
+         if (strchr (p, ' '))
+             continue;
+ 
+-        pos_tokens = g_strsplit_set (p, ";", 3);
++
++        pos_tokens = g_strsplit_set (p, ";", 3 + num_bookmarks);
+         if (pos_tokens[0] != NULL)
+         {
+             *line = strtol (pos_tokens[0], NULL, 10);
+@@ -1504,7 +1508,20 @@ load_file_position (const char *filename, long *line, long *column, off_t * offs
+             {
+                 *column = strtol (pos_tokens[1], NULL, 10);
+                 if (pos_tokens[2] != NULL)
++                {
++                    int i;
+                     *offset = strtoll (pos_tokens[2], NULL, 10);
++                    for (i = 0; i < num_bookmarks; i++)
++                    {
++                        if (pos_tokens[3+i] != NULL)
++                            bookmarks[i] = strtol (pos_tokens[3+i], NULL, 10);
++                        else
++                        {
++                            bookmarks[i] = -1;
++                            break;
++                        }
++                    }
++                }
+                 else
+                     *offset = 0;
+             }
+@@ -1528,12 +1545,12 @@ load_file_position (const char *filename, long *line, long *column, off_t * offs
+ /* Save position for the given file */
+ #define TMP_SUFFIX ".tmp"
+ void
+-save_file_position (const char *filename, long line, long column, off_t offset)
++save_file_position (const char *filename, long line, long column, off_t offset, long *bookmarks)
+ {
+     static int filepos_max_saved_entries = 0;
+     char *fn, *tmp_fn;
+     FILE *f, *tmp_f;
+-    char buf[MC_MAXPATHLEN + 20];
++    char buf[MC_MAXPATHLEN + 100];
+     int i = 1;
+     gsize len;
+ 
+@@ -1563,9 +1580,19 @@ save_file_position (const char *filename, long line, long column, off_t offset)
+     /* put the new record */
+     if (line != 1 || column != 0)
+     {
+-        if (fprintf (f, "%s %ld;%ld;%llu\n", filename, line, column, (unsigned long long) offset) <
++        if (fprintf (f, "%s %ld;%ld;%llu", filename, line, column, (unsigned long long) offset) <
+             0)
+             goto write_position_error;
++        if (bookmarks != NULL)
++        {
++            for ( ; *bookmarks != -1; bookmarks++)
++            {
++                if (fprintf (f, ";%ld", *bookmarks) < 0)
++                   goto write_position_error;
++            }
++        }
++        if (fprintf (f, "\n") < 0)
++            goto write_position_error;
+     }
+ 
+     while (fgets (buf, sizeof (buf), tmp_f))
+diff --git a/lib/util.h b/lib/util.h
+index f3680af..9530dc7 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -232,9 +232,9 @@ GList *list_append_unique (GList * list, char *text);
+ /* Position saving and restoring */
+ 
+ /* Load position for the given filename */
+-void load_file_position (const char *filename, long *line, long *column, off_t * offset);
++void load_file_position (const char *filename, long *line, long *column, off_t * offset, long *bookmarks, int num_bookmarks);
+ /* Save position for the given filename */
+-void save_file_position (const char *filename, long line, long column, off_t offset);
++void save_file_position (const char *filename, long line, long column, off_t offset, long *bookmarks);
+ 
+ 
+ /* OS specific defines */
+diff --git a/src/editor/bookmark.c b/src/editor/bookmark.c
+index 0d6f8b0..a7e236e 100644
+--- a/src/editor/bookmark.c
++++ b/src/editor/bookmark.c
+@@ -223,3 +223,30 @@ void book_mark_dec (WEdit * edit, int line)
+ 	}
+     }
+ }
++
++/* prepare line positions of bookmarks to be saved to file */
++long * book_mark_serialize(WEdit * edit, int max_bookmarks, int color)
++{
++    if (edit->book_mark) {
++	struct _book_mark *p;
++    int i;
++    long *serialized = (long*)g_malloc ((max_bookmarks + 1) * sizeof(long));
++    if (serialized != NULL) {
++	for (p = book_mark_find(edit, 0), i = 0; p != NULL && i < max_bookmarks; p = p->next)
++	    if (p->c == color && p->line != -1) {
++            serialized[i] = p->line;
++            i++;
++            }
++    serialized[i] = -1;
++    return serialized;
++    }
++    }
++    return NULL;
++}
++
++/* restore bookmarks from saved line positions */
++void book_mark_restore(WEdit * edit, long *bookmarks, int color)
++{
++    for ( ; *bookmarks != -1; bookmarks++)
++        book_mark_insert (edit, *bookmarks, color);
++}
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 6ec37ea..ab4857d 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -280,6 +280,8 @@ int book_mark_clear (WEdit * edit, int line, int c);
+ void book_mark_flush (WEdit * edit, int c);
+ void book_mark_inc (WEdit * edit, int line);
+ void book_mark_dec (WEdit * edit, int line);
++long *book_mark_serialize(WEdit * edit, int max_bookmarks, int color);
++void book_mark_restore(WEdit * edit, long *bookmarks, int color);
+ 
+ int line_is_blank (WEdit * edit, long line);
+ int edit_indent_width (WEdit * edit, long p);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 9e5831c..d1d51bc 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -757,19 +757,23 @@ edit_load_file (WEdit * edit)
+     return 0;
+ }
+ 
++#define MAX_SAVED_BOOKMARKS 10
++
+ /* Restore saved cursor position in the file */
+ static void
+ edit_load_position (WEdit * edit)
+ {
+     char *filename;
+-    long line, column;
++    long line, column, *bookmarks;
+     off_t offset;
+ 
+     if (!edit->filename || !*edit->filename)
+         return;
+ 
+     filename = vfs_canon (edit->filename);
+-    load_file_position (filename, &line, &column, &offset);
++    bookmarks = g_malloc( MAX_SAVED_BOOKMARKS * sizeof(long));
++
++    load_file_position (filename, &line, &column, &offset, bookmarks, MAX_SAVED_BOOKMARKS);
+     g_free (filename);
+ 
+     if (line > 0)
+@@ -782,6 +786,10 @@ edit_load_position (WEdit * edit)
+         edit_cursor_move (edit, offset);
+         line = edit->curs_line;
+     }
++
++    book_mark_restore(edit, bookmarks, BOOK_MARK_COLOR);
++    g_free(bookmarks);
++
+     edit_move_to_prev_col (edit, edit_bol (edit, edit->curs1));
+     edit_move_display (edit, line - (edit->num_widget_lines / 2));
+ }
+@@ -791,12 +799,16 @@ static void
+ edit_save_position (WEdit * edit)
+ {
+     char *filename;
++    long *bookmarks;
+ 
+     if (!edit->filename || !*edit->filename)
+         return;
+ 
+     filename = vfs_canon (edit->filename);
+-    save_file_position (filename, edit->curs_line + 1, edit->curs_col, edit->curs1);
++
++    bookmarks = book_mark_serialize(edit, MAX_SAVED_BOOKMARKS, BOOK_MARK_COLOR);
++
++    save_file_position (filename, edit->curs_line + 1, edit->curs_col, edit->curs1, bookmarks);
+     g_free (filename);
+ }
+ 
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index 271055f..a92cc5b 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -233,7 +233,7 @@ mcview_done (mcview_t * view)
+     {
+         char *canon_fname;
+         canon_fname = vfs_canon (view->filename);
+-        save_file_position (canon_fname, -1, 0, view->dpy_start);
++        save_file_position (canon_fname, -1, 0, view->dpy_start, NULL);
+         g_free (canon_fname);
+     }
+ 
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index 2801dfd..ab9bd8c 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -411,7 +411,7 @@ mcview_load (mcview_t * view, const char *command, const char *file, int start_l
+         off_t new_offset;
+ 
+         canon_fname = vfs_canon (view->filename);
+-        load_file_position (canon_fname, &line, &col, &new_offset);
++        load_file_position (canon_fname, &line, &col, &new_offset, NULL, 0);
+         new_offset = min (new_offset, mcview_get_filesize (view));
+         view->dpy_start = mcview_bol (view, new_offset);
+         g_free (canon_fname);
+-- 
+1.7.0.4
+

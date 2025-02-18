@@ -1,0 +1,17 @@
+lstat("/run/media/anton/FLASH/1/dir/bigfile.mp4", {st_mode=S_IFREG|0644, st_size=114150341, ...}) = 0
+unlink("/run/media/anton/FLASH/1/dir/bigfile.mp4") = 0
+select(5, [4], NULL, NULL, {0, 0})      = 0 (Timeout)
+rt_sigaction(SIGINT, {0x459bc0, [], SA_RESTORER, 0x7f28db736830}, NULL, 8) = 0
+select(6, [4 5], NULL, NULL, {0, 0})    = 0 (Timeout)
+rt_sigaction(SIGINT, {SIG_IGN, [], SA_RESTORER, 0x7f28db736830}, NULL, 8) = 0
+select(5, [4], NULL, NULL, {0, 0})      = 0 (Timeout)
+write(1, "\33[26;67H\33[1m\33[36m\33[44m          "..., 34) = 34
+rt_sigaction(SIGINT, {0x459bc0, [], SA_RESTORER, 0x7f28db736830}, NULL, 8) = 0
+select(6, [4 5], NULL, NULL, {0, 0})    = 0 (Timeout)
+rt_sigaction(SIGINT, {SIG_IGN, [], SA_RESTORER, 0x7f28db736830}, NULL, 8) = 0
+openat(AT_FDCWD, "/run/media/anton/FLASH/1/dir", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = 9
+getdents(9, /* 2 entries */, 32768)     = 48
+getdents(9, /* 0 entries */, 32768)     = 0
+close(9)                                = 0
+rmdir("/run/media/anton/FLASH/1/dir")   = 0
+--- SIGSEGV {si_signo=SIGSEGV, si_code=SEGV_MAPERR, si_addr=0x40} ---

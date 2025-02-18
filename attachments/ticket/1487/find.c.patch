@@ -1,0 +1,10 @@
+diff -ur mc.git/src/find.c mc.fix/src/find.c
+--- mc.git/src/find.c	2009-08-06 22:59:51.000000000 +0200
++++ mc.fix/src/find.c	2009-08-07 10:03:27.000000000 +0200
+@@ -302,6 +302,7 @@
+ 	content_all_charsets_label = _(content_all_charsets_label);
+ 	content_regexp_label = _(content_regexp_label);
+ 	file_pattern_label = _(file_pattern_label);
++	content_first_hit_label = _(content_first_hit_label);
+     }
+ #endif				/* ENABLE_NLS */

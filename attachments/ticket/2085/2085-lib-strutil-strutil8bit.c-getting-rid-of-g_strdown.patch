@@ -1,0 +1,72 @@
+From 249e9c8d6eafc12bd71819e94697e7e2872a23b5 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Mon, 8 Mar 2010 11:13:41 +0000
+Subject: [PATCH]  lib/strutil/strutil8bit.c getting rid of g_strdown
+
+---
+ lib/strutil/strutil8bit.c |   28 ++++++++++++++++++++++------
+ 1 files changed, 22 insertions(+), 6 deletions(-)
+
+diff --git a/lib/strutil/strutil8bit.c b/lib/strutil/strutil8bit.c
+index f8a934f..26d54c6 100644
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -574,6 +574,22 @@ str_8bit_release_search_needle (char *needle, int case_sen)
+     (void) needle;
+ }
+ 
++static char *
++str_8bit_strdown (const char *str)
++{
++    char *rets;
++
++    rets = g_strdup (str);
++    if (rets == NULL)
++	return NULL;
++
++    while (*rets) {
++        *rets = char_tolower (*rets);
++	rets++;
++    }    
++    return rets;
++}
++
+ static const char *
+ str_8bit_search_first (const char *text, const char *search, int case_sen)
+ {
+@@ -582,8 +598,8 @@ str_8bit_search_first (const char *text, const char *search, int case_sen)
+     const char *match;
+     size_t offsset;
+ 
+-    fold_text = (case_sen) ? (char *) text : g_strdown (g_strdup (text));
+-    fold_search = (case_sen) ? (char *) search : g_strdown (g_strdup (search));
++    fold_text = (case_sen) ? (char *) text : str_8bit_strdown (text);
++    fold_search = (case_sen) ? (char *) search : str_8bit_strdown (search);
+ 
+     match = g_strstr_len (fold_text, -1, fold_search);
+     if (match != NULL)
+@@ -609,8 +625,8 @@ str_8bit_search_last (const char *text, const char *search, int case_sen)
+     const char *match;
+     size_t offsset;
+ 
+-    fold_text = (case_sen) ? (char *) text : g_strdown (g_strdup (text));
+-    fold_search = (case_sen) ? (char *) search : g_strdown (g_strdup (search));
++    fold_text = (case_sen) ? (char *) text : str_8bit_strdown (text);
++    fold_search = (case_sen) ? (char *) search : str_8bit_strdown (search);
+ 
+     match = g_strrstr_len (fold_text, -1, fold_search);
+     if (match != NULL)
+@@ -680,8 +696,8 @@ str_8bit_fix_string (char *text)
+ 
+ static char *
+ str_8bit_create_key (const char *text, int case_sen)
+-{
+-    return (case_sen) ? (char *) text : g_strdown (g_strdup (text));
++{ 
++    return (case_sen) ? (char *) text : str_8bit_strdown (text);
+ }
+ 
+ static int
+-- 
+1.6.4
+

@@ -1,0 +1,296 @@
+diff -Naur mc-4.7.0-pre1~/src/Makefile.am mc-4.7.0-pre1/src/Makefile.am
+--- mc-4.7.0-pre1~/src/Makefile.am	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/Makefile.am	2009-08-07 01:58:58.000000000 +0300
+@@ -60,7 +60,7 @@
+ 	menu.c menu.h mountlist.c mountlist.h mouse.c mouse.h myslang.h	\
+ 	option.c option.h panel.h panelize.c panelize.h poptalloca.h	\
+ 	popt.c poptconfig.c popt.h popthelp.c poptint.h poptparse.c	\
+-	rxvt.c screen.c setup.c setup.h	\
++	rxvt.c screen.c selmnt.c selmnt.h setup.c setup.h	\
+ 	slint.c	subshell.c subshell.h textconf.c textconf.h		\
+ 	tree.c tree.h treestore.c treestore.h timefmt.h tty.c tty.h user.c	\
+ 	user.h util.c util.h utilunix.c view.c view.h vfsdummy.h widget.c	\
+diff -Naur mc-4.7.0-pre1~/src/Makefile.in mc-4.7.0-pre1/src/Makefile.in
+--- mc-4.7.0-pre1~/src/Makefile.in	2009-07-31 21:49:07.000000000 +0300
++++ mc-4.7.0-pre1/src/Makefile.in	2009-08-07 01:58:58.000000000 +0300
+@@ -115,7 +115,7 @@
+ 	mountlist.c mountlist.h mouse.c mouse.h myslang.h option.c \
+ 	option.h panel.h panelize.c panelize.h poptalloca.h popt.c \
+ 	poptconfig.c popt.h popthelp.c poptint.h poptparse.c rxvt.c \
+-	screen.c setup.c setup.h slint.c subshell.c subshell.h \
++	screen.c selmnt.c selmnt.h setup.c setup.h slint.c subshell.c subshell.h \
+ 	textconf.c textconf.h tree.c tree.h treestore.c treestore.h \
+ 	timefmt.h tty.c tty.h user.c user.h util.c util.h utilunix.c \
+ 	view.c view.h vfsdummy.h widget.c widget.h win.c win.h \
+@@ -136,7 +136,7 @@
+ 	mountlist.$(OBJEXT) mouse.$(OBJEXT) option.$(OBJEXT) \
+ 	panelize.$(OBJEXT) popt.$(OBJEXT) poptconfig.$(OBJEXT) \
+ 	popthelp.$(OBJEXT) poptparse.$(OBJEXT) rxvt.$(OBJEXT) \
+-	screen.$(OBJEXT) setup.$(OBJEXT) slint.$(OBJEXT) \
++	screen.$(OBJEXT) selmnt.$(OBJEXT) setup.$(OBJEXT) slint.$(OBJEXT) \
+ 	subshell.$(OBJEXT) textconf.$(OBJEXT) tree.$(OBJEXT) \
+ 	treestore.$(OBJEXT) tty.$(OBJEXT) user.$(OBJEXT) \
+ 	util.$(OBJEXT) utilunix.$(OBJEXT) view.$(OBJEXT) \
+@@ -415,7 +415,7 @@
+ 	menu.c menu.h mountlist.c mountlist.h mouse.c mouse.h myslang.h	\
+ 	option.c option.h panel.h panelize.c panelize.h poptalloca.h	\
+ 	popt.c poptconfig.c popt.h popthelp.c poptint.h poptparse.c	\
+-	rxvt.c screen.c setup.c setup.h	\
++	rxvt.c screen.c selmnt.c selmnt.h setup.c setup.h	\
+ 	slint.c	subshell.c subshell.h textconf.c textconf.h		\
+ 	tree.c tree.h treestore.c treestore.h timefmt.h tty.c tty.h user.c	\
+ 	user.h util.c util.h utilunix.c view.c view.h vfsdummy.h widget.c	\
+@@ -603,6 +603,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rxvt.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/screen.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/selcodepage.Po@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/selmnt.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/setup.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slint.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strescape.Po@am__quote@
+diff -Naur mc-4.7.0-pre1~/src/main.c mc-4.7.0-pre1/src/main.c
+--- mc-4.7.0-pre1~/src/main.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/src/main.c	2009-08-07 01:58:58.000000000 +0300
+@@ -78,6 +78,7 @@
+ #include "chmod.h"
+ #include "chown.h"
+ #include "achown.h"
++#include "selmnt.h"
+ 
+ #ifdef WITH_SMBFS
+ #include "../vfs/smbfs.h"	/* smbfs_set_debug() */
+@@ -1300,6 +1301,9 @@
+ }
+ 
+ static const key_map default_map[] = {
++    { KEY_F(11),  select_mnt_left  },
++    { KEY_F(12),  select_mnt_right },
++
+     {KEY_F (19), menu_last_selected_cmd},
+     {KEY_F (20), quiet_quit_cmd},
+ 
+diff -Naur mc-4.7.0-pre1~/src/mountlist.c mc-4.7.0-pre1/src/mountlist.c
+--- mc-4.7.0-pre1~/src/mountlist.c	2009-06-23 21:55:11.000000000 +0300
++++ mc-4.7.0-pre1/src/mountlist.c	2009-08-07 01:58:58.000000000 +0300
+@@ -127,16 +127,6 @@
+ #    define HAVE_INFOMOUNT
+ #endif
+ 
+-/* A mount table entry. */
+-struct mount_entry
+-{
+-  char *me_devname;		/* Device node pathname, including "/dev/". */
+-  char *me_mountdir;		/* Mount point directory pathname. */
+-  char *me_type;		/* "nfs", "4.2", etc. */
+-  dev_t me_dev;			/* Device number of me_mountdir. */
+-  struct mount_entry *me_next;
+-};
+-
+ struct fs_usage
+ {
+     fsblkcnt_t fsu_blocks;	/* Total blocks. */
+@@ -309,7 +299,7 @@
+    If ALL_FS is zero, do not return entries for filesystems that
+    are automounter (dummy) entries.  */
+ 
+-static struct mount_entry *
++struct mount_entry *
+ read_filesystem_list (int need_fs_type, int all_fs)
+ {
+     struct mount_entry *mlist;
+@@ -627,7 +617,7 @@
+ ** this hack.
+ */
+ 
+-static struct mount_entry *
++struct mount_entry *
+ read_filesystem_list(int need_fs_type, int all_fs)
+ {
+ 	struct _disk_entry	de;
+diff -Naur mc-4.7.0-pre1~/src/mountlist.h mc-4.7.0-pre1/src/mountlist.h
+--- mc-4.7.0-pre1~/src/mountlist.h	2009-06-23 21:55:11.000000000 +0300
++++ mc-4.7.0-pre1/src/mountlist.h	2009-08-07 01:58:58.000000000 +0300
+@@ -37,4 +37,16 @@
+ void init_my_statfs (void);
+ void my_statfs (struct my_statfs *myfs_stats, const char *path);
+ 
++/* A mount table entry. */
++struct mount_entry
++{
++  char *me_devname;		/* Device node pathname, including "/dev/". */
++  char *me_mountdir;		/* Mount point directory pathname. */
++  char *me_type;		/* "nfs", "4.2", etc. */
++  dev_t me_dev;			/* Device number of me_mountdir. */
++  struct mount_entry *me_next;
++};
++
++struct mount_entry *read_filesystem_list (int need_fs_type, int all_fs);
++
+ #endif
+diff -Naur mc-4.7.0-pre1~/src/selmnt.c mc-4.7.0-pre1/src/selmnt.c
+--- mc-4.7.0-pre1~/src/selmnt.c	1970-01-01 02:00:00.000000000 +0200
++++ mc-4.7.0-pre1/src/selmnt.c	2009-08-07 02:00:45.000000000 +0300
+@@ -0,0 +1,152 @@
++/*
++ * Mountpoint selector
++ *
++ * Written by Daniel Borca <dborca@yahoo.com>
++ * Original idea and code: Oleg "Olegarch" Konovalov <olegarch@linuxinside.com>
++ */
++
++
++#include <config.h>
++#include <stdlib.h>
++#include "global.h"
++#include "color.h"
++#include "layout.h"
++#include "main.h"
++#include "panel.h"
++#include "wtools.h"
++#include "mountlist.h"
++#include "selmnt.h"
++
++
++/* XXX HAVE_MOUNT* conditions? add usage for dir? */
++
++
++static unsigned char
++get_hotkey (int n)
++{
++    return (n <= 9) ? '0' + n : 'a' + n - 10;
++}
++
++
++static void
++destroy_mnt_list (struct mount_entry *list)
++{
++    struct mount_entry *e;
++    while (list != NULL) {
++	e = list;
++	list = list->me_next;
++	free(e->me_devname);
++	free(e->me_mountdir);
++	free(e->me_type);	/* XXX this may be really undefined!!! */
++	free(e);
++    }
++}
++
++
++static void
++select_mnt (WPanel *p)
++{
++    struct mount_entry *list, *e;
++    int rows, cols;
++    int i;
++
++    list = read_filesystem_list(0, 0);
++    if (list == NULL) {
++	return;
++    }
++
++    rows = 0;
++    cols = 0;
++    for (e = list; e != NULL; e = e->me_next) {
++	int len = strlen(e->me_mountdir);
++	if (cols < len) {
++	    cols = len;
++	}
++	rows++;
++    }
++
++#if 0
++{
++    int rv;
++    Listbox *listbox;
++
++    listbox = create_listbox_window(cols + 2, rows, _(" Mountpoints "), "[Mountpoint selector]");
++    if (listbox == NULL) {
++	destroy_mnt_list(list);
++	return;
++    }
++    for (i = 0, e = list; e != NULL; e = e->me_next, i++) {
++	LISTBOX_APPEND_TEXT(listbox, get_hotkey(i), e->me_mountdir, NULL);
++    }
++    rv = run_listbox(listbox);
++    if (rv != -1) {
++	for (i = 0, e = list; e != NULL; e = e->me_next, i++) {
++	    if (i == rv) {
++		do_panel_cd(p, e->me_mountdir, cd_exact);
++		break;
++	    }
++	}
++    }
++}
++#else
++{
++    char *q;
++    Dlg_head *query_dlg;
++    WListbox *query_list;
++    int y, x;
++    int h, w;
++
++    h = rows + 2;
++    w = cols + 4;
++    if (w > p->widget.cols) {
++	w = p->widget.cols;
++    }
++    if (h > p->widget.lines) {
++	h = p->widget.lines;
++    }
++    y = p->widget.y + (p->widget.lines - h) / 2;
++    x = p->widget.x + (p->widget.cols - w) / 2;
++    query_dlg = create_dlg(y, x, h, w, dialog_colors, NULL, "[Mountpoint selector]", _(" Mountpoints "), DLG_COMPACT);
++    if (query_dlg == NULL) {
++	destroy_mnt_list(list);
++	return;
++    }
++    query_list = listbox_new(1, 1, h - 2, w - 2, NULL);
++    if (query_list == NULL) {
++	destroy_dlg(query_dlg);
++	destroy_mnt_list(list);
++	return;
++    }
++    add_widget(query_dlg, query_list);
++    for (i = 0, e = list; e != NULL; e = e->me_next, i++) {
++	listbox_add_item(query_list, LISTBOX_APPEND_AT_END, get_hotkey(i), e->me_mountdir, NULL);
++    }
++    run_dlg(query_dlg);
++    if (query_dlg->ret_value != B_CANCEL) {
++	listbox_get_current(query_list, &q, NULL);
++	do_panel_cd(p, q, cd_exact);
++    }
++    destroy_dlg(query_dlg);
++}
++#endif
++
++    destroy_mnt_list(list);
++}
++
++
++void
++select_mnt_left (void)
++{
++    if (get_display_type(0) == view_listing) {	/* XXX why? */
++	select_mnt(left_panel);
++    }
++}
++
++
++void
++select_mnt_right (void)
++{
++    if (get_display_type(1) == view_listing) {	/* XXX why? */
++	select_mnt(right_panel);
++    }
++}
+diff -Naur mc-4.7.0-pre1~/src/selmnt.h mc-4.7.0-pre1/src/selmnt.h
+--- mc-4.7.0-pre1~/src/selmnt.h	1970-01-01 02:00:00.000000000 +0200
++++ mc-4.7.0-pre1/src/selmnt.h	2009-08-07 01:58:58.000000000 +0300
+@@ -0,0 +1,7 @@
++#ifndef SELMNT_H_included
++#define SELMNT_H_included
++
++void select_mnt_left (void);
++void select_mnt_right (void);
++
++#endif

@@ -1,0 +1,94 @@
+Index: mc/vfs/extfs/Makefile.am
+===================================================================
+--- mc/vfs/extfs/Makefile.am	(revision 33)
++++ mc/vfs/extfs/Makefile.am	(revision 34)
+@@ -1,7 +1,10 @@
+ extfsdir = $(pkgdatadir)/extfs
+ 
++
++EXTFSCONFFILES = extfs.ini sfs.ini
++
+ # Files to install and distribute other than extfs scripts
+-EXTFS_MISC  = README extfs.ini sfs.ini
++EXTFS_MISC  = README 
+ 
+ # Scripts hat don't need adaptation to the local system
+ EXTFS_CONST = bpp rpm trpm u7z
+@@ -57,6 +60,10 @@
+ if USE_VFS
+ extfs_DATA = $(EXTFS_MISC)
+ extfs_SCRIPTS = $(EXTFS_CONST) $(EXTFS_OUT)
++
++extfsconfdir = $(sysconfdir)/@PACKAGE@/extfs
++extfsconf_DATA = $(EXTFSCONFFILES)
++
+ endif
+ 
+ EXTRA_DIST = $(EXTFS_MISC) $(EXTFS_CONST)
+Index: mc/lib/Makefile.am
+===================================================================
+--- mc/lib/Makefile.am	(revision 33)
++++ mc/lib/Makefile.am	(revision 34)
+@@ -9,9 +9,9 @@
+ LIBFILES_OUT = mc.ext
+ LIBFILES_CONST = mc.hint mc.hint.cs mc.hint.es mc.hint.hu mc.hint.it	\
+ 	mc.hint.nl mc.hint.pl mc.hint.ru mc.hint.sr mc.hint.uk		\
+-	mc.hint.zh mc.lib mc.menu mc.menu.sr cedit.menu edit.indent.rc	\
+-	edit.spell.rc
++	mc.hint.zh mc.menu.sr
+ 
++
+ noinst_DATA = README.xterm mcserv.init mcserv.pamd xterm.ad
+ 
+ SCRIPTS_IN = mc.csh.in mc.sh.in mc-wrapper.csh.in mc-wrapper.sh.in
+@@ -19,10 +19,21 @@
+ 
+ suppbin_SCRIPTS = $(SCRIPTS_OUT)
+ 
+-pkgdata_DATA = $(LIBFILES_CONST) $(LIBFILES_ADD) $(LIBFILES_OUT)
++pkgdata_DATA = $(LIBFILES_CONST)
+ 
+ CLEANFILES = $(SCRIPTS_OUT)
+ 
++cfgdir = $(sysconfdir)/@PACKAGE@
++cfg_DATA =		\
++	cedit.menu	\
++	edit.indent.rc	\
++	edit.spell.rc	\
++	$(LIBFILES_OUT)	\
++	mc.lib		\
++	mc.menu		\
++	$(LIBFILES_ADD)
++
++
+ # Files processed by configure don't need to be here
+ EXTRA_DIST = \
+ 	$(LIBFILES_CONST) \
+Index: mc/syntax/Makefile.am
+===================================================================
+--- mc/syntax/Makefile.am	(revision 33)
++++ mc/syntax/Makefile.am	(revision 34)
+@@ -1,5 +1,4 @@
+ SYNTAXFILES =			\
+-	Syntax			\
+ 	ada95.syntax		\
+ 	aspx.syntax		\
+ 	assembler.syntax	\
+@@ -48,9 +47,15 @@
+ 	unknown.syntax		\
+ 	xml.syntax
+ 
++SYNTAXCONFFILES =			\
++	Syntax
++
+ if USE_EDIT
+ syntaxdir =		$(pkgdatadir)/syntax
+ syntax_DATA =		$(SYNTAXFILES)
++
++syntaxconfdir =		$(sysconfdir)/@PACKAGE@
++syntaxconf_DATA =		$(SYNTAXCONFFILES)
+ endif
+ 
+-EXTRA_DIST =		$(SYNTAXFILES)
++EXTRA_DIST =		$(SYNTAXFILES) $(SYNTAXCONFFILES)
+Index: mc/config.h.in

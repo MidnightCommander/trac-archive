@@ -1,0 +1,101 @@
+From 01d2bdf31001b0f6553af586ed334eedddf7bcc3 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 29 Aug 2024 09:35:11 +0200
+Subject: [PATCH] Ticket #4479: prioritize console players for audio/video and
+ images
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ misc/ext.d/image.sh | 13 +++++++++----
+ misc/ext.d/sound.sh |  2 +-
+ misc/ext.d/video.sh | 16 ++++------------
+ 3 files changed, 14 insertions(+), 17 deletions(-)
+
+diff --git a/misc/ext.d/image.sh b/misc/ext.d/image.sh
+index c191225c8..a99c137b1 100755
+--- a/misc/ext.d/image.sh
++++ b/misc/ext.d/image.sh
+@@ -6,7 +6,7 @@
+ action=$1
+ filetype=$2
+ 
+-[ -n "${MC_XDG_OPEN}" ] || MC_XDG_OPEN="xdg-open"
++[ [ -n "$DISPLAY" ] && [ -n "${MC_XDG_OPEN}" ] ] || MC_XDG_OPEN="xdg-open"
+ 
+ do_view_action() {
+     filetype=$1
+@@ -50,10 +50,15 @@ do_open_action() {
+             else
+                 (gqview "${MC_EXT_FILENAME}" &)
+             fi
+-        elif which see >/dev/null 2>&1; then
+-            (see "${MC_EXT_FILENAME}" &)
++        elif which fim >/dev/null 2>&1; then
++            (fim "${MC_EXT_FILENAME}")
++        elif which fbi >/dev/null 2>&1; then
++            (fbi "${MC_EXT_FILENAME}")
++        elif which zgv >/dev/null 2>&1; then
++            (zgv "${MC_EXT_FILENAME}")
+         else
+-            (zgv "${MC_EXT_FILENAME}" &)
++            echo "Please install either fim or fbi to view this file"
++            return
+         fi
+         ;;
+     esac
+diff --git a/misc/ext.d/sound.sh b/misc/ext.d/sound.sh
+index 60a3cdd52..125e9b045 100755
+--- a/misc/ext.d/sound.sh
++++ b/misc/ext.d/sound.sh
+@@ -6,7 +6,7 @@
+ action=$1
+ filetype=$2
+ 
+-[ -n "${MC_XDG_OPEN}" ] || MC_XDG_OPEN="xdg-open"
++[ [ -n "$DISPLAY" ] && [ -n "${MC_XDG_OPEN}" ] ] || MC_XDG_OPEN="xdg-open"
+ 
+ do_view_action() {
+     filetype=$1
+diff --git a/misc/ext.d/video.sh b/misc/ext.d/video.sh
+index 9cba21020..01b0ddda0 100755
+--- a/misc/ext.d/video.sh
++++ b/misc/ext.d/video.sh
+@@ -6,7 +6,7 @@
+ action=$1
+ filetype=$2
+ 
+-[ -n "${MC_XDG_OPEN}" ] || MC_XDG_OPEN="xdg-open"
++[ [ -n "$DISPLAY" ] && [ -n "${MC_XDG_OPEN}" ] ] || MC_XDG_OPEN="xdg-open"
+ 
+ do_view_action() {
+     filetype=$1
+@@ -29,23 +29,15 @@ do_open_action() {
+     filetype=$1
+ 
+     if which mpv >/dev/null 2>&1; then
+-        PLAYER=mpv
++        PLAYER="mpv --really-quiet"
+     elif which mplayer >/dev/null 2>&1; then
+-        PLAYER=mplayer
++        PLAYER="mplayer -really-quiet"
+     else
+         echo "Please install either mplayer or mpv to play this file"
+         return
+     fi
+ 
+-    case "${filetype}" in
+-    *)
+-        if [ -n "$DISPLAY" ]; then
+-            ($PLAYER "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+-        else
+-            $PLAYER -vo null "${MC_EXT_FILENAME}"
+-        fi
+-        ;;
+-    esac
++    (clear && $PLAYER "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+ }
+ 
+ case "${action}" in
+-- 
+2.39.3 (Apple Git-146)
+

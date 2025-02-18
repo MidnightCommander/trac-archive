@@ -1,0 +1,42 @@
+diff --git a/misc/mc.menu b/misc/mc.menu
+index 577f927..c10e442 100644
+--- a/misc/mc.menu
++++ b/misc/mc.menu
+@@ -121,7 +121,7 @@ D       Delete tagged files if a copy exists in the other directory.
+ 
+ m       View manual page
+ 	MAN=%{Enter manual name}
+-	%view man -P cat $MAN
++	%view{ascii,nroff} MANROFFOPT=-c MAN_KEEP_FORMATTING=1 man -P cat $MAN
+ 
+ = f \.gz$ & t r
+ + ! t t
+diff --git a/misc/mc.menu.sr b/misc/mc.menu.sr
+index 6a505f4..0c5a8af 100644
+--- a/misc/mc.menu.sr
++++ b/misc/mc.menu.sr
+@@ -102,7 +102,7 @@ D       Обриши означене датотеке ако постоји к
+ 
+ m       Погледај страницу упутства
+ 	MAN=%{Унесите назив упутства}
+-	%view man -P cat $MAN
++	%view{ascii,nroff} MANROFFOPT=-c MAN_KEEP_FORMATTING=1 man -P cat $MAN
+ 
+ = f \.gz$ & t r
+ + ! t t
+diff --git a/misc/mcedit.menu b/misc/mcedit.menu
+index 3d11d96..cc890c4 100644
+--- a/misc/mcedit.menu
++++ b/misc/mcedit.menu
+@@ -459,10 +459,7 @@ s       Invoke `shell'
+ 
+ m       view `man'
+         MAN=%{Enter name of man:}
+-        TMPFILE=`mktemp ${MC_TMPDIR:-/tmp}/mcview.$MAN.XXXXXX` || exit 1
+-        man -Pcat $MAN >$TMPFILE
+-        mcview $TMPFILE
+-        rm -f $TMPFILE
++        %view{ascii,nroff} MANROFFOPT=-c MAN_KEEP_FORMATTING=1 man -P cat $MAN
+ 
+ i       Insert a out of command to cursor.
+         CMD=%{ Enter command: }

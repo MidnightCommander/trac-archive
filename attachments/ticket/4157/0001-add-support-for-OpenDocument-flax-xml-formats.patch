@@ -1,0 +1,25 @@
+From 8d09b1e954d51a0838cb265fdacdce9b99cb6d9b Mon Sep 17 00:00:00 2001
+From: "RALOVICH, Kristof" <tade60@freemail.hu>
+Date: Mon, 14 Dec 2020 19:07:16 +0100
+Subject: [PATCH] add support for OpenDocument flax xml formats
+
+---
+ misc/mc.ext.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index bedfb7c70..e9b475cde 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -595,7 +595,7 @@ shell/.sdw
+ 	Open=@EXTHELPERSDIR@/doc.sh open ooffice
+ 
+ # StarOffice 6 and OpenOffice.org formats
+-regex/i/\.(odt|ott|sxw|stw|ods|ots|sxc|stc|odp|otp|sxi|sti|odg|otg|sxd|std|odb|odf|sxm|odm|sxg)$
++regex/i/\.(odt|fodt|ott|sxw|stw|ods|fods|ots|sxc|stc|odp|fodp|otp|sxi|sti|odg|fodg|otg|sxd|std|odb|odf|sxm|odm|sxg)$
+ 	Open=@EXTHELPERSDIR@/doc.sh open ooffice
+ 	View=%view{ascii} @EXTHELPERSDIR@/doc.sh view odt
+ 
+-- 
+2.25.1
+

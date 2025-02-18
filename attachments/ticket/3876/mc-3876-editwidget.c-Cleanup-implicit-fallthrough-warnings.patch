@@ -1,0 +1,32 @@
+From bd65f8473a86ffc2751d029211309f115024b6c4 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 4 Jan 2018 07:28:52 +0000
+Subject: [PATCH] (editwidget.c): Cleanup implicit-fallthrough warnings
+
+Found by GCC 7.2.0
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editwidget.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 553897e26..eb0c349b2 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -1435,6 +1435,7 @@ edit_handle_move_resize (WEdit * edit, long command)
+         case CK_WindowMove:
+             edit->drag_state = MCEDIT_DRAG_NONE;
+             edit_status (edit, TRUE);   /* redraw frame and status */
++            MC_FALLTHROUGH;
+         default:
+             ret = TRUE;
+             break;
+@@ -1459,6 +1460,7 @@ edit_handle_move_resize (WEdit * edit, long command)
+         case CK_WindowResize:
+             edit->drag_state = MCEDIT_DRAG_NONE;
+             edit_status (edit, TRUE);   /* redraw frame and status */
++            MC_FALLTHROUGH;
+         default:
+             ret = TRUE;
+             break;

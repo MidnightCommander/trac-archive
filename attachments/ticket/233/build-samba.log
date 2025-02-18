@@ -1,0 +1,972 @@
+poizon@sirius:~/build/mc-4.6.2$ ./configure --with-samba
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+checking for gawk... no
+checking for mawk... mawk
+checking whether make sets $(MAKE)... yes
+checking whether to enable maintainer-specific portions of Makefiles... no
+checking build system type... i686-pc-linux-gnu
+checking host system type... i686-pc-linux-gnu
+checking for style of include used by make... GNU
+checking for gcc... gcc
+checking for C compiler default output file name... a.out
+checking whether the C compiler works... yes
+checking whether we are cross compiling... no
+checking for suffix of executables...
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking dependency style of gcc... gcc3
+checking how to run the C preprocessor... gcc -E
+checking for grep that handles long lines and -e... /bin/grep
+checking for egrep... /bin/grep -E
+checking for AIX... no
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking minix/config.h usability... no
+checking minix/config.h presence... no
+checking for minix/config.h... no
+checking whether it is safe to define __EXTENSIONS__... yes
+checking for strerror in -lcposix... no
+checking for gcc option to accept ISO C99... -std=gnu99
+checking for gcc -std=gnu99 option to accept ISO Standard C... (cached) -std=gnu99
+checking for pkg-config... /usr/bin/pkg-config
+checking for glib-2.0... yes
+checking GLIB_CFLAGS... -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
+checking GLIB_LIBS... -lglib-2.0
+checking for gmodule-2.0... yes
+checking GMODULE_CFLAGS... -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
+checking GMODULE_LIBS... -Wl,--export-dynamic -lgmodule-2.0 -ldl -lglib-2.0
+checking if gmodule functionality is supported... yes
+checking whether sys/types.h defines makedev... yes
+checking for an ANSI C-conforming const... yes
+checking for special C compiler options needed for large files... no
+checking for _FILE_OFFSET_BITS value needed for large files... 64
+checking whether ln -s works... yes
+checking for ar... ar
+checking for gnome-moz-remote... no
+checking for mozilla... mozilla
+checking for stdlib.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for getpagesize... yes
+checking for working mmap... yes
+checking whether NLS is requested... yes
+checking for msgfmt... /usr/bin/msgfmt
+checking for gmsgfmt... /usr/bin/msgfmt
+checking for xgettext... /usr/bin/xgettext
+checking for msgmerge... /usr/bin/msgmerge
+checking whether we are using the GNU C Library 2 or newer... yes
+checking for ranlib... ranlib
+checking for signed... yes
+checking for inline... inline
+checking for off_t... yes
+checking for size_t... yes
+checking for long long... yes
+checking for long double... yes
+checking for wchar_t... yes
+checking for wint_t... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for intmax_t... yes
+checking whether printf() supports POSIX/XSI format strings... yes
+checking for working alloca.h... yes
+checking for alloca... yes
+checking whether we are using the GNU C Library 2.1 or newer... yes
+checking whether integer division by zero raises SIGFPE... yes
+checking for unsigned long long... yes
+checking for inttypes.h... yes
+checking whether the inttypes.h PRIxNN macros are broken... no
+checking for stdint.h... (cached) yes
+checking for SIZE_MAX... yes
+checking for stdint.h... (cached) yes
+checking for CFPreferencesCopyAppValue... no
+checking for CFLocaleCopyCurrent... no
+checking for ld used by GCC... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for shared library run path origin... done
+checking for ptrdiff_t... yes
+checking argz.h usability... yes
+checking argz.h presence... yes
+checking for argz.h... yes
+checking limits.h usability... yes
+checking limits.h presence... yes
+checking for limits.h... yes
+checking locale.h usability... yes
+checking locale.h presence... yes
+checking for locale.h... yes
+checking nl_types.h usability... yes
+checking nl_types.h presence... yes
+checking for nl_types.h... yes
+checking malloc.h usability... yes
+checking malloc.h presence... yes
+checking for malloc.h... yes
+checking stddef.h usability... yes
+checking stddef.h presence... yes
+checking for stddef.h... yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking sys/param.h usability... yes
+checking sys/param.h presence... yes
+checking for sys/param.h... yes
+checking for asprintf... yes
+checking for fwprintf... yes
+checking for getcwd... yes
+checking for getegid... yes
+checking for geteuid... yes
+checking for getgid... yes
+checking for getuid... yes
+checking for mempcpy... yes
+checking for munmap... yes
+checking for putenv... yes
+checking for setenv... yes
+checking for setlocale... yes
+checking for snprintf... yes
+checking for stpcpy... yes
+checking for strcasecmp... yes
+checking for strdup... yes
+checking for strtoul... yes
+checking for tsearch... yes
+checking for wcslen... yes
+checking for __argz_count... yes
+checking for __argz_stringify... yes
+checking for __argz_next... yes
+checking for __fsetlocking... yes
+checking whether _snprintf is declared... no
+checking whether _snwprintf is declared... no
+checking whether feof_unlocked is declared... yes
+checking whether fgets_unlocked is declared... yes
+checking whether getc_unlocked is declared... yes
+checking for iconv... yes
+checking for iconv declaration...
+         extern size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);
+checking for nl_langinfo and CODESET... yes
+checking for LC_MESSAGES... yes
+checking for bison... bison
+checking version of bison... 2.3, ok
+checking for CFPreferencesCopyAppValue... (cached) no
+checking for CFLocaleCopyCurrent... (cached) no
+checking whether NLS is requested... yes
+checking whether included gettext is requested... no
+checking for GNU gettext in libc... yes
+checking whether to use NLS... yes
+checking where the gettext function comes from... libc
+checking for a BSD-compatible install... /usr/bin/install -c
+checking for unistd.h... (cached) yes
+checking for string.h... (cached) yes
+checking for memory.h... (cached) yes
+checking grp.h usability... yes
+checking grp.h presence... yes
+checking for grp.h... yes
+checking for limits.h... (cached) yes
+checking for malloc.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking termios.h usability... yes
+checking termios.h presence... yes
+checking for termios.h... yes
+checking utime.h usability... yes
+checking utime.h presence... yes
+checking for utime.h... yes
+checking fcntl.h usability... yes
+checking fcntl.h presence... yes
+checking for fcntl.h... yes
+checking pwd.h usability... yes
+checking pwd.h presence... yes
+checking for pwd.h... yes
+checking sys/statfs.h usability... yes
+checking sys/statfs.h presence... yes
+checking for sys/statfs.h... yes
+checking sys/time.h usability... yes
+checking sys/time.h presence... yes
+checking for sys/time.h... yes
+checking sys/timeb.h usability... yes
+checking sys/timeb.h presence... yes
+checking for sys/timeb.h... yes
+checking sys/select.h usability... yes
+checking sys/select.h presence... yes
+checking for sys/select.h... yes
+checking sys/ioctl.h usability... yes
+checking sys/ioctl.h presence... yes
+checking for sys/ioctl.h... yes
+checking stropts.h usability... yes
+checking stropts.h presence... yes
+checking for stropts.h... yes
+checking arpa/inet.h usability... yes
+checking arpa/inet.h presence... yes
+checking for arpa/inet.h... yes
+checking security/pam_misc.h usability... no
+checking security/pam_misc.h presence... no
+checking for security/pam_misc.h... no
+checking sys/socket.h usability... yes
+checking sys/socket.h presence... yes
+checking for sys/socket.h... yes
+checking sys/sysmacros.h usability... yes
+checking sys/sysmacros.h presence... yes
+checking for sys/sysmacros.h... yes
+checking for sys/types.h... (cached) yes
+checking sys/mkdev.h usability... no
+checking sys/mkdev.h presence... no
+checking for sys/mkdev.h... no
+checking wchar.h usability... yes
+checking wchar.h presence... yes
+checking for wchar.h... yes
+checking wctype.h usability... yes
+checking wctype.h presence... yes
+checking for wctype.h... yes
+checking whether time.h and sys/time.h may both be included... yes
+checking for sys/wait.h that is POSIX.1 compatible... yes
+checking for dirent.h that defines DIR... yes
+checking for library containing opendir... none required
+checking for ANSI C header files... (cached) yes
+checking for struct stat.st_blksize... yes
+checking for struct stat.st_rdev... yes
+checking for struct stat.st_blocks... yes
+checking for atoll... yes
+checking for cfgetospeed... yes
+checking for getegid... (cached) yes
+checking for geteuid... (cached) yes
+checking for getgid... (cached) yes
+checking for getsid... yes
+checking for getuid... (cached) yes
+checking for initgroups... yes
+checking for isascii... yes
+checking for memcpy... yes
+checking for memmove... yes
+checking for memset... yes
+checking for putenv... (cached) yes
+checking for setreuid... yes
+checking for setuid... yes
+checking for statfs... yes
+checking for strerror... yes
+checking for strftime... yes
+checking for sysconf... yes
+checking for tcgetattr... yes
+checking for tcsetattr... yes
+checking for truncate... yes
+checking for sigaction... yes
+checking for sigemptyset... yes
+checking for sigprocmask... yes
+checking for sigaddset... yes
+checking for posix_openpt... yes
+checking for grantpt... yes
+checking for statlstat... no
+checking for AIX defines... no
+checking for sys/param.h... (cached) yes
+checking sys/statvfs.h usability... yes
+checking sys/statvfs.h presence... yes
+checking for sys/statvfs.h... yes
+checking sys/vfs.h usability... yes
+checking sys/vfs.h presence... yes
+checking for sys/vfs.h... yes
+checking sys/fs_types.h usability... no
+checking sys/fs_types.h presence... no
+checking for sys/fs_types.h... no
+checking for fcntl.h... (cached) yes
+checking for utime.h... (cached) yes
+checking for listmntent... no
+checking for getmntinfo... no
+checking for sys/ucred.h... no
+checking for sys/mount.h... yes
+checking mntent.h usability... yes
+checking mntent.h presence... yes
+checking for mntent.h... yes
+checking for sys/fs_types.h... (cached) no
+checking for struct fsstat.f_fstypename... no
+checking for library containing getmntent... none required
+checking for getmntent... yes
+checking for listmntent of Cray/Unicos-9... no
+checking for mntctl function and struct vmount... no
+checking for one-argument getmntent function... yes
+checking for sys/mount.h... (cached) yes
+configure: checking how to get file system space usage
+checking for statvfs function (SVR4)... no
+checking for 3-argument statfs function (DEC OSF/1)... no
+checking for two-argument statfs with statfs.bsize member (AIX, 4.3BSD)... yes
+checking dustat.h usability... no
+checking dustat.h presence... no
+checking for dustat.h... no
+checking sys/fs/s5param.h usability... no
+checking sys/fs/s5param.h presence... no
+checking for sys/fs/s5param.h... no
+checking sys/filsys.h usability... no
+checking sys/filsys.h presence... no
+checking for sys/filsys.h... no
+checking for sys/statfs.h... (cached) yes
+checking for statfs that truncates block counts... no
+checking for struct statfs.f_fstypename... no
+checking for long... yes
+checking size of long... 4
+checking for long long... (cached) yes
+checking size of long long... 8
+checking for mode_t... yes
+checking for off_t... (cached) yes
+checking for off_t... (cached) yes
+checking size of off_t... 8
+checking for pid_t... yes
+checking for uid_t in sys/types.h... yes
+checking for nlink_t... yes
+checking for socklen_t... yes
+checking for uintptr_t... yes
+checking for working alloca.h... (cached) yes
+checking for alloca... (cached) yes
+checking for working strcoll... yes
+checking for X... libraries , headers
+checking for gethostbyname... yes
+checking for connect... yes
+checking for remove... yes
+checking for shmat... yes
+checking for IceConnectionNumber in -lICE... yes
+checking for library containing socket... none required
+checking for library containing gethostbyname... none required
+checking for get_process_stats in -lseq... no
+checking for zip... /usr/bin/zip
+checking for unzip... /usr/bin/unzip
+checking for zipinfo code in unzip... yes
+checking for perl... /usr/bin/perl
+checking for library containing socket... (cached) none required
+checking for library containing gethostbyname... (cached) none required
+checking for struct linger.l_linger... yes
+checking for pmap_set... yes
+checking for pmap_getport... yes
+checking for pmap_getmaps... yes
+checking for rresvport... yes
+checking for rpc/pmap_clnt.h... yes
+checking for ext2fs_close in -lext2fs... no
+configure: enabling VFS code
+checking for Gpm_Repeat in -lgpm... yes
+checking for nroff... true
+checking for manual formatting macros... -mandoc
+checking for option to disable ANSI color in manuals... none
+checking if nroff accepts -Tlatin1 or -Tascii... -Tlatin1
+checking for file... true
+checking for -L option to file command... yes
+checking for subshell support... yes
+checking slang.h usability... yes
+checking slang.h presence... yes
+checking for slang.h... yes
+checking if S-Lang uses termcap... no
+checking for SLang_init_tty in -lslang... yes
+checking for SLsmg_write_nwchars in -lslang... no
+checking if S-Lang exports private functions... no
+configure: using internal editor
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating mc.spec
+config.status: creating mc.qpg
+config.status: creating pkginfo
+config.status: creating prototype
+config.status: creating doc/Makefile
+config.status: creating vfs/Makefile
+config.status: creating vfs/extfs/Makefile
+config.status: creating lib/Makefile
+config.status: creating src/Makefile
+config.status: creating slang/Makefile
+config.status: creating edit/Makefile
+config.status: creating syntax/Makefile
+config.status: creating m4/Makefile
+config.status: creating lib/mc.ext
+config.status: creating vfs/extfs/a
+config.status: creating vfs/extfs/apt
+config.status: creating vfs/extfs/audio
+config.status: creating vfs/extfs/deb
+config.status: creating vfs/extfs/deba
+config.status: creating vfs/extfs/debd
+config.status: creating vfs/extfs/dpkg
+config.status: creating vfs/extfs/iso9660
+config.status: creating vfs/extfs/hp48
+config.status: creating vfs/extfs/lslR
+config.status: creating vfs/extfs/mailfs
+config.status: creating vfs/extfs/patchfs
+config.status: creating vfs/extfs/rpms
+config.status: creating vfs/extfs/ualz
+config.status: creating vfs/extfs/uar
+config.status: creating vfs/extfs/uarj
+config.status: creating vfs/extfs/uha
+config.status: creating vfs/extfs/ulha
+config.status: creating vfs/extfs/urar
+config.status: creating vfs/extfs/uzip
+config.status: creating vfs/extfs/uzoo
+config.status: creating doc/mc.1
+config.status: creating doc/mcedit.1
+config.status: creating doc/mcview.1
+config.status: creating doc/mcserv.8
+config.status: creating doc/es/mc.1
+config.status: creating doc/es/Makefile
+config.status: creating doc/hu/mc.1
+config.status: creating doc/hu/Makefile
+config.status: creating doc/it/mc.1
+config.status: creating doc/it/Makefile
+config.status: creating doc/pl/mc.1
+config.status: creating doc/pl/Makefile
+config.status: creating doc/ru/mc.1
+config.status: creating doc/ru/Makefile
+config.status: creating doc/sr/mc.1
+config.status: creating doc/sr/mcserv.8
+config.status: creating doc/sr/Makefile
+config.status: creating intl/Makefile
+config.status: WARNING:  intl/Makefile.in seems to ignore the --datarootdir setting
+config.status: creating po/Makefile.in
+config.status: WARNING:  po/Makefile.in.in seems to ignore the --datarootdir setting
+config.status: creating config.h
+config.status: executing depfiles commands
+config.status: executing default-1 commands
+config.status: creating po/POTFILES
+config.status: creating po/Makefile
+=== configuring in vfs/samba (/home/poizon/build/mc-4.6.2/vfs/samba)
+configure: running /bin/sh ./configure '--prefix=/usr/local'  '--with-samba' --cache-file=/dev/null --srcdir=.
+checking for gcc... gcc
+checking for C compiler default output file name... a.out
+checking whether the C compiler works... yes
+checking whether we are cross compiling... no
+checking for suffix of executables...
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking for special C compiler options needed for large files... no
+checking for _FILE_OFFSET_BITS value needed for large files... 64
+checking for gcc... (cached) gcc
+checking whether we are using the GNU C compiler... (cached) yes
+checking whether gcc accepts -g... (cached) yes
+checking for gcc option to accept ISO C89... (cached) none needed
+checking for a BSD-compatible install... /usr/bin/install -c
+checking for gawk... no
+checking for mawk... mawk
+checking for ar... ar
+checking whether gcc and cc understand -c and -o together... yes
+checking build system type... i686-pc-linux-gnu
+checking host system type... i686-pc-linux-gnu
+checking target system type... i686-pc-linux-gnu
+checking config.cache system type... same
+checking for autoconf... /usr/bin/autoconf
+checking for autoheader... /usr/bin/autoheader
+checking for inline... inline
+checking how to run the C preprocessor... gcc -E
+checking for grep that handles long lines and -e... /bin/grep
+checking for egrep... /bin/grep -E
+checking for ANSI C header files... yes
+checking for dirent.h that defines DIR... yes
+checking for library containing opendir... none required
+checking whether time.h and sys/time.h may both be included... yes
+checking for sys/wait.h that is POSIX.1 compatible... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking arpa/inet.h usability... yes
+checking arpa/inet.h presence... yes
+checking for arpa/inet.h... yes
+checking sys/fcntl.h usability... yes
+checking sys/fcntl.h presence... yes
+checking for sys/fcntl.h... yes
+checking sys/select.h usability... yes
+checking sys/select.h presence... yes
+checking for sys/select.h... yes
+checking fcntl.h usability... yes
+checking fcntl.h presence... yes
+checking for fcntl.h... yes
+checking sys/time.h usability... yes
+checking sys/time.h presence... yes
+checking for sys/time.h... yes
+checking sys/unistd.h usability... yes
+checking sys/unistd.h presence... yes
+checking for sys/unistd.h... yes
+checking for unistd.h... (cached) yes
+checking utime.h usability... yes
+checking utime.h presence... yes
+checking for utime.h... yes
+checking grp.h usability... yes
+checking grp.h presence... yes
+checking for grp.h... yes
+checking sys/id.h usability... no
+checking sys/id.h presence... no
+checking for sys/id.h... no
+checking limits.h usability... yes
+checking limits.h presence... yes
+checking for limits.h... yes
+checking for memory.h... (cached) yes
+checking net/if.h usability... yes
+checking net/if.h presence... yes
+checking for net/if.h... yes
+checking compat.h usability... no
+checking compat.h presence... no
+checking for compat.h... no
+checking rpc/rpc.h usability... yes
+checking rpc/rpc.h presence... yes
+checking for rpc/rpc.h... yes
+checking rpcsvc/nis.h usability... yes
+checking rpcsvc/nis.h presence... yes
+checking for rpcsvc/nis.h... yes
+checking rpcsvc/yp_prot.h usability... yes
+checking rpcsvc/yp_prot.h presence... yes
+checking for rpcsvc/yp_prot.h... yes
+checking rpcsvc/ypclnt.h usability... yes
+checking rpcsvc/ypclnt.h presence... yes
+checking for rpcsvc/ypclnt.h... yes
+checking sys/param.h usability... yes
+checking sys/param.h presence... yes
+checking for sys/param.h... yes
+checking ctype.h usability... yes
+checking ctype.h presence... yes
+checking for ctype.h... yes
+checking for sys/wait.h... (cached) yes
+checking sys/resource.h usability... yes
+checking sys/resource.h presence... yes
+checking for sys/resource.h... yes
+checking sys/ioctl.h usability... yes
+checking sys/ioctl.h presence... yes
+checking for sys/ioctl.h... yes
+checking sys/mode.h usability... no
+checking sys/mode.h presence... no
+checking for sys/mode.h... no
+checking sys/mman.h usability... yes
+checking sys/mman.h presence... yes
+checking for sys/mman.h... yes
+checking sys/filio.h usability... no
+checking sys/filio.h presence... no
+checking for sys/filio.h... no
+checking sys/priv.h usability... no
+checking sys/priv.h presence... no
+checking for sys/priv.h... no
+checking for string.h... (cached) yes
+checking for strings.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking sys/socket.h usability... yes
+checking sys/socket.h presence... yes
+checking for sys/socket.h... yes
+checking sys/mount.h usability... yes
+checking sys/mount.h presence... yes
+checking for sys/mount.h... yes
+checking sys/vfs.h usability... yes
+checking sys/vfs.h presence... yes
+checking for sys/vfs.h... yes
+checking sys/fs/s5param.h usability... no
+checking sys/fs/s5param.h presence... no
+checking for sys/fs/s5param.h... no
+checking sys/filsys.h usability... no
+checking sys/filsys.h presence... no
+checking for sys/filsys.h... no
+checking termios.h usability... yes
+checking termios.h presence... yes
+checking for termios.h... yes
+checking termio.h usability... yes
+checking termio.h presence... yes
+checking for termio.h... yes
+checking sys/termio.h usability... no
+checking sys/termio.h presence... no
+checking for sys/termio.h... no
+checking sys/statfs.h usability... yes
+checking sys/statfs.h presence... yes
+checking for sys/statfs.h... yes
+checking sys/dustat.h usability... no
+checking sys/dustat.h presence... no
+checking for sys/dustat.h... no
+checking sys/statvfs.h usability... yes
+checking sys/statvfs.h presence... yes
+checking for sys/statvfs.h... yes
+checking stdarg.h usability... yes
+checking stdarg.h presence... yes
+checking for stdarg.h... yes
+checking sys/sockio.h usability... no
+checking sys/sockio.h presence... no
+checking for sys/sockio.h... no
+checking netinet/tcp.h usability... yes
+checking netinet/tcp.h presence... yes
+checking for netinet/tcp.h... yes
+checking netinet/in_systm.h usability... yes
+checking netinet/in_systm.h presence... yes
+checking for netinet/in_systm.h... yes
+checking netinet/in_ip.h usability... no
+checking netinet/in_ip.h presence... no
+checking for netinet/in_ip.h... no
+checking sys/security.h usability... no
+checking sys/security.h presence... no
+checking for sys/security.h... no
+checking security/pam_appl.h usability... no
+checking security/pam_appl.h presence... no
+checking for security/pam_appl.h... no
+checking stropts.h usability... yes
+checking stropts.h presence... yes
+checking for stropts.h... yes
+checking poll.h usability... yes
+checking poll.h presence... yes
+checking for poll.h... yes
+checking syscall.h usability... yes
+checking syscall.h presence... yes
+checking for syscall.h... yes
+checking sys/syscall.h usability... yes
+checking sys/syscall.h presence... yes
+checking for sys/syscall.h... yes
+checking sys/acl.h usability... no
+checking sys/acl.h presence... no
+checking for sys/acl.h... no
+checking sys/cdefs.h usability... yes
+checking sys/cdefs.h presence... yes
+checking for sys/cdefs.h... yes
+checking glob.h usability... yes
+checking glob.h presence... yes
+checking for glob.h... yes
+checking for int... yes
+checking size of int... 4
+checking for long... yes
+checking size of long... 4
+checking for short... yes
+checking size of short... 2
+checking for off_t... yes
+checking size of off_t... 8
+checking for ino_t... yes
+checking size of ino_t... 8
+checking for an ANSI C-conforming const... yes
+checking for inline... (cached) inline
+checking whether byte ordering is bigendian... no
+checking whether char is unsigned... no
+checking return type of signal handlers... void
+checking for uid_t in sys/types.h... yes
+checking for mode_t... yes
+checking for off_t... (cached) yes
+checking for size_t... yes
+checking for pid_t... yes
+checking for ino_t... (cached) yes
+checking for loff_t... yes
+checking for offset_t... no
+checking for ssize_t... yes
+checking for main in -ldl... yes
+checking for errno in errno.h... yes
+checking for crypt declaration... no
+checking for working memcmp... yes
+checking for crypt... no
+checking for crypt in -lcrypt... yes
+checking for connect... yes
+checking for waitpid... yes
+checking for getcwd... yes
+checking for strdup... yes
+checking for strtoul... yes
+checking for strerror... yes
+checking for chown... yes
+checking for chmod... yes
+checking for fstat... yes
+checking for strchr... yes
+checking for utime... yes
+checking for utimes... yes
+checking for getrlimit... yes
+checking for fsync... yes
+checking for bzero... yes
+checking for memset... yes
+checking for memmove... yes
+checking for vsnprintf... yes
+checking for snprintf... yes
+checking for setsid... yes
+checking for glob... yes
+checking for pipe... yes
+checking for crypt16... no
+checking for getauthuid... no
+checking for strftime... yes
+checking for sigprocmask... yes
+checking for sigblock... yes
+checking for sigaction... yes
+checking for innetgr... yes
+checking for setnetgrent... yes
+checking for getnetgrent... yes
+checking for endnetgrent... yes
+checking for initgroups... yes
+checking for select... yes
+checking for rdchk... no
+checking for getgrnam... yes
+checking for pathconf... yes
+checking for setpriv... no
+checking for setgidx... no
+checking for setuidx... no
+checking for setgroups... yes
+checking for mktime... yes
+checking for rename... yes
+checking for ftruncate... yes
+checking for grantpt... yes
+checking for dup2... yes
+checking for yp_get_default_domain... no
+checking for getpwanam... no
+checking for srandom... yes
+checking for random... yes
+checking for srand... yes
+checking for rand... yes
+checking for setenv... yes
+checking for usleep... yes
+checking for strcasecmp... yes
+checking for getdents... no
+checking for llseek... yes
+checking for putprpwnam in -lsecurity... no
+checking for putprpwnam... no
+checking for putprpwnam in -lsec... no
+checking for putprpwnam... (cached) no
+checking for set_auth_parameters in -lsecurity... no
+checking for set_auth_parameters... no
+checking for set_auth_parameters in -lsec... no
+checking for set_auth_parameters... (cached) no
+checking for getspnam in -lsecurity... no
+checking for getspnam... yes
+checking for getspnam in -lsec... no
+checking for getspnam... (cached) yes
+checking for bigcrypt in -lsecurity... no
+checking for bigcrypt... no
+checking for bigcrypt in -lsec... no
+checking for bigcrypt... (cached) no
+checking for getprpwnam in -lsecurity... no
+checking for getprpwnam... no
+checking for getprpwnam in -lsec... no
+checking for getprpwnam... (cached) no
+checking for long long... yes
+checking for sin_len in sock... no
+checking for __FILE__ macro... yes
+checking for __FUNCTION__ macro... yes
+checking if gettimeofday takes tz argument... yes
+checking for broken readdir... no
+checking for kernel oplock type definitions... no
+checking for int16 typedef included by rpc/rpc.h... no
+checking for uint16 typedef included by rpc/rpc.h... no
+checking for int32 typedef included by rpc/rpc.h... no
+checking for uint32 typedef included by rpc/rpc.h... no
+checking for conflicting AUTH_ERROR define in rpc/rpc.h... no
+checking for netmask ifconf... yes
+checking for broken nisplus include files... yes
+checking whether to use LDAP password database... no
+checking whether to use NISPLUS password database... no
+checking whether to use NISPLUS_HOME... no
+checking whether to use SSL... no
+checking configure summary... OK
+configure: creating ./config.status
+config.status: creating include/stamp-h
+config.status: creating Makefile
+config.status: WARNING:  Makefile.in seems to ignore the --datarootdir setting
+config.status: creating include/config.h
+
+Configuration:
+
+  Source code location:       .
+  Compiler:                   gcc -std=gnu99
+  Compiler flags:             -g -O2 -Wall
+  File system:                Midnight Commander Virtual File System
+                              cpiofs, extfs, tarfs, ftpfs, fish, smbfs
+  Screen library:             S-Lang library (installed on the system)
+  Mouse support:              gpm and xterm
+  X11 events support:         yes
+  With subshell support:      yes
+  Internal editor:            yes
+  Support for charset:        no
+
+poizon@sirius:~/build/mc-4.6.2$ make --quiet
+Making all in intl
+Making all in po
+msgmerge --update --no-location az.po mc.pot
+.................................................................................................... done.
+rm -f az.gmo && /usr/bin/msgfmt -c --statistics -o az.gmo az.po
+855 translated messages, 68 fuzzy translations, 62 untranslated messages.
+msgmerge --update --no-location be.po mc.pot
+................................................................................................... done.
+rm -f be.gmo && /usr/bin/msgfmt -c --statistics -o be.gmo be.po
+866 translated messages, 60 fuzzy translations, 59 untranslated messages.
+msgmerge --update --no-location bg.po mc.pot
+.................................................................................................... done.
+rm -f bg.gmo && /usr/bin/msgfmt -c --statistics -o bg.gmo bg.po
+865 translated messages, 63 fuzzy translations, 57 untranslated messages.
+msgmerge --update --no-location ca.po mc.pot
+................................................................................................... done.
+rm -f ca.gmo && /usr/bin/msgfmt -c --statistics -o ca.gmo ca.po
+856 translated messages, 68 fuzzy translations, 61 untranslated messages.
+msgmerge --update --no-location cs.po mc.pot
+................................................................................................... done.
+rm -f cs.gmo && /usr/bin/msgfmt -c --statistics -o cs.gmo cs.po
+976 translated messages, 5 fuzzy translations, 4 untranslated messages.
+msgmerge --update --no-location da.po mc.pot
+................................................................................................... done.
+rm -f da.gmo && /usr/bin/msgfmt -c --statistics -o da.gmo da.po
+856 translated messages, 67 fuzzy translations, 62 untranslated messages.
+msgmerge --update --no-location de.po mc.pot
+................................................................................................... done.
+rm -f de.gmo && /usr/bin/msgfmt -c --statistics -o de.gmo de.po
+978 translated messages, 6 fuzzy translations, 1 untranslated message.
+msgmerge --update --no-location el.po mc.pot
+................................................................................................... done.
+rm -f el.gmo && /usr/bin/msgfmt -c --statistics -o el.gmo el.po
+121 translated messages, 62 fuzzy translations, 802 untranslated messages.
+msgmerge --update --no-location es.po mc.pot
+................................................................................................... done.
+rm -f es.gmo && /usr/bin/msgfmt -c --statistics -o es.gmo es.po
+984 translated messages, 1 untranslated message.
+msgmerge --update --no-location eu.po mc.pot
+................................................................................................... done.
+rm -f eu.gmo && /usr/bin/msgfmt -c --statistics -o eu.gmo eu.po
+857 translated messages, 67 fuzzy translations, 61 untranslated messages.
+msgmerge --update --no-location fi.po mc.pot
+................................................................................................... done.
+rm -f fi.gmo && /usr/bin/msgfmt -c --statistics -o fi.gmo fi.po
+317 translated messages, 94 fuzzy translations, 574 untranslated messages.
+msgmerge --update --no-location fr.po mc.pot
+................................................................................................... done.
+rm -f fr.gmo && /usr/bin/msgfmt -c --statistics -o fr.gmo fr.po
+866 translated messages, 63 fuzzy translations, 56 untranslated messages.
+msgmerge --update --no-location hu.po mc.pot
+................................................................................................... done.
+rm -f hu.gmo && /usr/bin/msgfmt -c --statistics -o hu.gmo hu.po
+965 translated messages, 15 fuzzy translations, 5 untranslated messages.
+msgmerge --update --no-location it.po mc.pot
+................................................................................................... done.
+rm -f it.gmo && /usr/bin/msgfmt -c --statistics -o it.gmo it.po
+984 translated messages, 1 untranslated message.
+msgmerge --update --no-location ja.po mc.pot
+................................................................................................... done.
+rm -f ja.gmo && /usr/bin/msgfmt -c --statistics -o ja.gmo ja.po
+856 translated messages, 67 fuzzy translations, 62 untranslated messages.
+msgmerge --update --no-location ko.po mc.pot
+................................................................................................... done.
+rm -f ko.gmo && /usr/bin/msgfmt -c --statistics -o ko.gmo ko.po
+879 translated messages, 47 fuzzy translations, 59 untranslated messages.
+msgmerge --update --no-location lt.po mc.pot
+................................................................................................... done.
+rm -f lt.gmo && /usr/bin/msgfmt -c --statistics -o lt.gmo lt.po
+978 translated messages, 4 fuzzy translations, 3 untranslated messages.
+msgmerge --update --no-location lv.po mc.pot
+................................................................................................... done.
+rm -f lv.gmo && /usr/bin/msgfmt -c --statistics -o lv.gmo lv.po
+852 translated messages, 68 fuzzy translations, 65 untranslated messages.
+msgmerge --update --no-location mn.po mc.pot
+................................................................................................... done.
+rm -f mn.gmo && /usr/bin/msgfmt -c --statistics -o mn.gmo mn.po
+891 translated messages, 49 fuzzy translations, 45 untranslated messages.
+msgmerge --update --no-location nl.po mc.pot
+................................................................................................... done.
+rm -f nl.gmo && /usr/bin/msgfmt -c --statistics -o nl.gmo nl.po
+965 translated messages, 9 fuzzy translations, 11 untranslated messages.
+msgmerge --update --no-location no.po mc.pot
+................................................................................................... done.
+rm -f no.gmo && /usr/bin/msgfmt -c --statistics -o no.gmo no.po
+878 translated messages, 56 fuzzy translations, 51 untranslated messages.
+msgmerge --update --no-location pl.po mc.pot
+................................................................................................... done.
+rm -f pl.gmo && /usr/bin/msgfmt -c --statistics -o pl.gmo pl.po
+974 translated messages, 7 fuzzy translations, 4 untranslated messages.
+msgmerge --update --no-location pt.po mc.pot
+................................................................................................... done.
+rm -f pt.gmo && /usr/bin/msgfmt -c --statistics -o pt.gmo pt.po
+865 translated messages, 63 fuzzy translations, 57 untranslated messages.
+msgmerge --update --no-location pt_BR.po mc.pot
+................................................................................................... done.
+rm -f pt_BR.gmo && /usr/bin/msgfmt -c --statistics -o pt_BR.gmo pt_BR.po
+821 translated messages, 91 fuzzy translations, 73 untranslated messages.
+msgmerge --update --no-location ro.po mc.pot
+................................................................................................... done.
+rm -f ro.gmo && /usr/bin/msgfmt -c --statistics -o ro.gmo ro.po
+892 translated messages, 48 fuzzy translations, 45 untranslated messages.
+msgmerge --update --no-location ru.po mc.pot
+................................................................................................... done.
+rm -f ru.gmo && /usr/bin/msgfmt -c --statistics -o ru.gmo ru.po
+976 translated messages, 5 fuzzy translations, 4 untranslated messages.
+msgmerge --update --no-location sk.po mc.pot
+................................................................................................... done.
+rm -f sk.gmo && /usr/bin/msgfmt -c --statistics -o sk.gmo sk.po
+892 translated messages, 48 fuzzy translations, 45 untranslated messages.
+msgmerge --update --no-location sl.po mc.pot
+................................................................................................... done.
+rm -f sl.gmo && /usr/bin/msgfmt -c --statistics -o sl.gmo sl.po
+892 translated messages, 48 fuzzy translations, 45 untranslated messages.
+msgmerge --update --no-location sr.po mc.pot
+.................................................................................................... done.
+rm -f sr.gmo && /usr/bin/msgfmt -c --statistics -o sr.gmo sr.po
+906 translated messages, 41 fuzzy translations, 38 untranslated messages.
+msgmerge --update --no-location sv.po mc.pot
+................................................................................................... done.
+rm -f sv.gmo && /usr/bin/msgfmt -c --statistics -o sv.gmo sv.po
+892 translated messages, 48 fuzzy translations, 45 untranslated messages.
+msgmerge --update --no-location ta.po mc.pot
+ta.po: warning: Charset "TSCII" is not a portable encoding name.
+                Message conversion to user's charset might not work.
+.................................................................................................... done.
+rm -f ta.gmo && /usr/bin/msgfmt -c --statistics -o ta.gmo ta.po
+ta.po: warning: Charset "TSCII" is not a portable encoding name.
+                Message conversion to user's charset might not work.
+135 translated messages, 34 fuzzy translations, 816 untranslated messages.
+msgmerge --update --no-location tr.po mc.pot
+................................................................................................... done.
+rm -f tr.gmo && /usr/bin/msgfmt -c --statistics -o tr.gmo tr.po
+856 translated messages, 67 fuzzy translations, 62 untranslated messages.
+msgmerge --update --no-location uk.po mc.pot
+................................................................................................... done.
+rm -f uk.gmo && /usr/bin/msgfmt -c --statistics -o uk.gmo uk.po
+974 translated messages, 7 fuzzy translations, 4 untranslated messages.
+msgmerge --update --no-location vi.po mc.pot
+................................................................................................... done.
+rm -f vi.gmo && /usr/bin/msgfmt -c --statistics -o vi.gmo vi.po
+974 translated messages, 7 fuzzy translations, 4 untranslated messages.
+msgmerge --update --no-location wa.po mc.pot
+................................................................................................... done.
+rm -f wa.gmo && /usr/bin/msgfmt -c --statistics -o wa.gmo wa.po
+697 translated messages, 78 fuzzy translations, 210 untranslated messages.
+msgmerge --update --no-location zh_CN.po mc.pot
+................................................................................................... done.
+rm -f zh_CN.gmo && /usr/bin/msgfmt -c --statistics -o zh_CN.gmo zh_CN.po
+843 translated messages, 66 fuzzy translations, 76 untranslated messages.
+msgmerge --update --no-location zh_TW.po mc.pot
+................................................................................................... done.
+rm -f zh_TW.gmo && /usr/bin/msgfmt -c --statistics -o zh_TW.gmo zh_TW.po
+847 translated messages, 76 fuzzy translations, 62 untranslated messages.
+touch stamp-po
+Making all in m4
+Making all in vfs
+Making all in extfs
+Making all in samba
+Using FLAGS =  -g -O2 -Iinclude -I./include  -DCONFIGFILE="/usr/local/lib/smb.conf" -DLMHOSTSFILE="/usr/local/lib/lmhosts" -DCODEPAGEDIR="/usr/local/lib/codepages" -DDRIVERFILE="/usr/local/lib/printers.def" -DHAVE_INCLUDES_H
+Compiling param/loadparm.c
+Compiling param/params.c
+Compiling lib/time.c
+Compiling lib/slprintf.c
+Compiling lib/util.c
+Compiling lib/debug.c
+Compiling lib/system.c
+Compiling lib/util_str.c
+Compiling lib/kanji.c
+Compiling lib/charcnv.c
+Compiling lib/charset.c
+Compiling lib/username.c
+Compiling lib/util_file.c
+Compiling lib/util_sock.c
+Compiling lib/md4.c
+Compiling lib/interface.c
+Compiling lib/netmask.c
+Compiling libsmb/clientgen.c
+Compiling libsmb/pwd_cache.c
+Compiling libsmb/smbencrypt.c
+Compiling libsmb/smbdes.c
+Compiling libsmb/nmblib.c
+Compiling libsmb/namequery.c
+Compiling libsmb/nterr.c
+Compiling libsmb/smberr.c
+smbfs.c: In function ‘smbfs_get_path’:
+smbfs.c:1214: warning: implicit declaration of function ‘mhl_str_dir_plus_file’
+smbfs.c:1214: warning: assignment makes pointer from integer without a cast
+Making all in slang
+Making all in edit
+editdraw.c: In function ‘edit_draw_this_line’:
+editdraw.c:303: warning: ‘tws’ may be used uninitialized in this function
+Making all in src
+util.c: In function ‘list_append_unique’:
+util.c:1270: warning: ignoring return value of ‘g_list_remove_link’, declared with attribute warn_unused_result
+../vfs/libvfs-mc.a(smbfs.o): In function `smbfs_get_path':
+/home/poizon/build/mc-4.6.2/vfs/smbfs.c:1214: undefined reference to `mhl_str_dir_plus_file'
+collect2: ld returned 1 exit status
+make[2]: *** [mc] Error 1
+make[1]: *** [all-recursive] Error 1
+make: *** [all] Error 2
+poizon@sirius:~/build/mc-4.6.2$

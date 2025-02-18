@@ -1,0 +1,390 @@
+diff -ur mc-ORIGINAL/src/tree.c TEN-mc-iproved-tree/src/tree.c
+--- mc-ORIGINAL/src/tree.c	2010-01-10 15:19:51.000000000 +0100
++++ TEN-mc-iproved-tree/src/tree.c	2010-05-14 17:45:11.000000000 +0200
+@@ -155,7 +155,7 @@
+ tree_remove_entry (WTree *tree, char *name)
+ {
+     (void) tree;
+-    tree_store_remove_entry (name);
++    tree_store_remove_entry (name,TRUE,TRUE);
+ }
+ 
+ static void
+@@ -213,6 +213,47 @@
+     }
+ }
+ 
++static gboolean
++does_it_have_subdirectories (tree_entry *current)
++{
++    DIR *dirp;
++    struct dirent *dp;
++    struct stat buf;
++    const char *dir;
++    dir=current->name;
++
++    if(current->next && current->next->sublevel > current->sublevel)
++	return TRUE;
++
++    /* scanning current dir for subdirectories */
++    dirp = mc_opendir(dir);
++    if (dirp) {
++	for (dp = mc_readdir(dirp); dp; dp = mc_readdir(dirp)) {
++	    char *full_name;
++
++	    if (dp->d_name[0] == '.') {
++		if (dp->d_name[1] == 0
++		    || (dp->d_name[1] == '.' && dp->d_name[2] == 0))
++		    continue;
++	    }
++
++	    full_name = concat_dir_and_file(dir, dp->d_name);
++	    if (mc_lstat(full_name, &buf) != -1) {
++		if (S_ISDIR(buf.st_mode))
++		{
++	            g_free(full_name);
++		    mc_closedir(dirp);
++		    return TRUE; /* return on first found */
++		}
++	    }
++	    g_free(full_name);
++	}
++	mc_closedir(dirp);
++    }
++
++    return FALSE;
++}
++
+ static void
+ show_tree (WTree *tree)
+ {
+@@ -221,6 +262,8 @@
+     int i, j, topsublevel;
+     int x, y;
+     int tree_lines, tree_cols;
++    gboolean has_subdirectories;
++    has_subdirectories=FALSE;
+ 
+     /* Initialize */
+     x = y = 0;
+@@ -324,7 +367,24 @@
+ 		    tty_setcolor (SELECTED_COLOR);
+ 	    }
+ 
++
+ 	    /* Show sub-name */
++	    has_subdirectories = does_it_have_subdirectories(current);
++
++	    tty_set_alt_charset (TRUE);
++	    tty_print_char (ACS_HLINE);
++	    tty_set_alt_charset (FALSE);
++	    if(has_subdirectories)
++	    {
++		    tty_print_char ('+');
++	    }
++	    else
++	    {
++		tty_set_alt_charset (TRUE);
++		tty_print_char (ACS_HLINE);
++		tty_set_alt_charset (FALSE);
++	    }
++
+ 	    tty_print_char (' ');
+ 	    tty_print_string (str_fit_to_term (current->subname, 
+ 		    tree_cols - 2 - 4 - 3 * j, J_LEFT_FIT));
+@@ -494,28 +554,137 @@
+ }
+ 
+ static void
+-tree_chdir_sel (WTree *tree)
++tree_chdir_sel (WTree *tree, gboolean is_this_only_an_xtree_refresh__NOT_Pressing_Enter_key)
+ {
++    int how_many_folded;
++    how_many_folded = -1;
+     if (!tree->is_panel)
+-	return;
++        return;
++    /* Folding or unfolding */
++    if( xtree_mode &&  
++	/* this is xtree_mode and Enter was pressed */
++       ! is_this_only_an_xtree_refresh__NOT_Pressing_Enter_key) /* in xtree_mode pressing Enter means folding a tree */
++       /* so I want to either fold or unflod */
++    {
++	/* I don't know whether to fold or unfold, so let's fold first, to see many of them were there: */
++        if (tree->selected_ptr)
++            how_many_folded = tree_store_remove_entry (tree->selected_ptr->name,FALSE,TRUE);
++
++	if(how_many_folded == 0) /* aha - there was nothing to fold, so we want to unfold it */
++	{
++            change_panel ();
++
++            if (do_cd (tree->selected_ptr->name, cd_exact))
++                select_item (current_panel);
++            else
++                message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++                       tree->selected_ptr->name, unix_error_string (errno));
+ 
+-    change_panel ();
++            change_panel ();
++	}
++	else
++	/* aha, there was something and we have folded it, this is OK. We wanted to do this anyway*/
++	{
++	}
++        show_tree (tree);
++    }
++    else if ( xtree_mode && 
++	/* this is xtree_mode and Enter was NOT pressed */
++	    is_this_only_an_xtree_refresh__NOT_Pressing_Enter_key)
++	/* so I want to refresh without unfolding */
++    {
++
++
++	/* I don't want to fold or unfold. I want to keep it as it was. But, unfortunately refreshing means unfolding too. 
++	So
++	 First: I am checking whether it was folded or unfolded, by actually *NOT* FOLDING IT: really_remove=FALSE */
++        if (tree->selected_ptr)
++            how_many_folded = tree_store_remove_entry (tree->selected_ptr->name,FALSE,FALSE);
++
++	/* Second: I am refreshing the second panel */
++        change_panel ();
++
++        if (do_cd (tree->selected_ptr->name, cd_exact))
++            select_item (current_panel);
++        else
++            message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++                   tree->selected_ptr->name, unix_error_string (errno));
++
++        change_panel ();
++	/* But it is unfolded now! We want the previous state */
++
++	if(how_many_folded == 0) /* aha - there was nothing to fold, so we want to fold it back */
++	{
++            if (tree->selected_ptr)
++                how_many_folded = tree_store_remove_entry (tree->selected_ptr->name,FALSE,TRUE);
++	}
++	else
++	/* aha, there was something and it is unfolded now so it is OK */
++	{
++	}
+ 
+-    if (do_cd (tree->selected_ptr->name, cd_exact))
+-	select_item (current_panel);
+-    else
+-	message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
+-		 tree->selected_ptr->name, unix_error_string (errno));
++        show_tree (tree);
++    }
++    /* The rest is MCTree mode, so Unfolding & refresh */
++    else /* in MCTree mode pressing enter means showing current dir in another panel */
++    {
++	if(is_this_only_an_xtree_refresh__NOT_Pressing_Enter_key)
++	{
++            change_panel ();
++
++            if (do_cd (tree->selected_ptr->name, cd_exact))
++                select_item (current_panel);
++            else
++                message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++                       tree->selected_ptr->name, unix_error_string (errno));
+ 
+-    change_panel ();
+-    show_tree (tree);
++            change_panel ();
++            show_tree (tree);
++	}
++	else /* Enter was pressed, so we want to fold / unfold */
++	{
++	    /* I don't know whether to fold or unfold, so let's fold first, to see many of them were there: */
++            if (tree->selected_ptr)
++                how_many_folded = tree_store_remove_entry (tree->selected_ptr->name,FALSE,FALSE);
++
++	    if(how_many_folded == 0) /* aha - there was nothing to fold, so we want to unfold it */
++	    {
++                change_panel ();
++
++                if (do_cd (tree->selected_ptr->name, cd_exact))
++                    select_item (current_panel);
++                else
++                    message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++                           tree->selected_ptr->name, unix_error_string (errno));
++
++                change_panel ();
++	    }
++	    else
++	    /* aha, there IS something and we WANT TO fold it */
++	    {
++                change_panel ();
++
++                if (do_cd (tree->selected_ptr->name, cd_exact))
++                    select_item (current_panel);
++                else
++                    message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++                           tree->selected_ptr->name, unix_error_string (errno));
++
++                change_panel ();
++                show_tree (tree);
++                if (tree->selected_ptr)
++                    how_many_folded = tree_store_remove_entry (tree->selected_ptr->name,FALSE,TRUE);
++	    }
++            show_tree (tree);
++	}
++    }
+ }
+ 
+ static void
+ maybe_chdir (WTree *tree)
+ {
+     if (xtree_mode && tree->is_panel && is_idle ())
+-	tree_chdir_sel (tree);
++	tree_chdir_sel (tree,TRUE);
+ }
+ 
+ /* Mouse callback */
+@@ -551,7 +720,7 @@
+     } else {
+ 	tree_event (tree, event->y);
+ 	if ((event->type & (GPM_UP|GPM_DOUBLE)) == (GPM_UP|GPM_DOUBLE)){
+-	    tree_chdir_sel (tree);
++	    tree_chdir_sel (tree,FALSE);
+ 	}
+     }
+     return MOU_NORMAL;
+@@ -856,10 +1025,12 @@
+ static void
+ tree_toggle_navig (WTree *tree)
+ {
+-    tree_navigation_flag = !tree_navigation_flag;
+-    buttonbar_set_label (find_buttonbar (tree->widget.parent), 4,
+-			tree_navigation_flag ? Q_("ButtonBar|Static")
+-						: Q_("ButtonBar|Dynamc"),
++	xtree_mode = !xtree_mode;
++	buttonbar_set_label (find_buttonbar (tree->widget.parent), 4,
++			xtree_mode ?
++			(  Q_("ButtonBar|Active") ) 
++			:
++			(  Q_("ButtonBar|Lazy") ),
+ 			tree_map, (Widget *) tree);
+ }
+ 
+@@ -906,7 +1077,7 @@
+ 	tree_move_pgdn (tree);
+ 	break;
+     case CK_TreeOpen:
+-	tree_chdir_sel (tree);
++	tree_chdir_sel (tree,FALSE);
+ 	break;
+     case CK_TreeRescan:
+ 	tree_rescan (tree);
+@@ -1007,9 +1178,12 @@
+ 	buttonbar_set_label (b, 1, Q_("ButtonBar|Help"), tree_map, (Widget *) tree);
+ 	buttonbar_set_label (b, 2, Q_("ButtonBar|Rescan"), tree_map, (Widget *) tree);
+ 	buttonbar_set_label (b, 3, Q_("ButtonBar|Forget"), tree_map, (Widget *) tree);
+-	buttonbar_set_label (b, 4, tree_navigation_flag ? Q_("ButtonBar|Static")
+-								: Q_("ButtonBar|Dynamc"),
+-			    tree_map, (Widget *) tree);
++	buttonbar_set_label (find_buttonbar (tree->widget.parent), 4,
++			xtree_mode ?
++			(  Q_("ButtonBar|Active") ) 
++			:
++			(  Q_("ButtonBar|Lazy") ),
++			tree_map, (Widget *) tree);
+ 	buttonbar_set_label (b, 5, Q_("ButtonBar|Copy"), tree_map, (Widget *) tree);
+ 	buttonbar_set_label (b, 6, Q_("ButtonBar|RenMov"), tree_map, (Widget *) tree);
+ #if 0
+diff -ur mc-ORIGINAL/src/treestore.c TEN-mc-iproved-tree/src/treestore.c
+--- mc-ORIGINAL/src/treestore.c	2010-01-10 15:19:51.000000000 +0100
++++ TEN-mc-iproved-tree/src/treestore.c	2010-05-18 17:07:04.000000000 +0200
+@@ -233,6 +233,7 @@
+ 			if (vfs_file_is_local(oldname)) {
+ 			    e = tree_store_add_entry(oldname);
+ 			    e->scanned = scanned;
++                            /*e->has_subdirs = -1;*/
+ 			}
+ 		    }
+ 		}
+@@ -240,6 +241,7 @@
+ 		if (vfs_file_is_local(lc_name)) {
+ 		    e = tree_store_add_entry(lc_name);
+ 		    e->scanned = scanned;
++                    /*e->has_subdirs = -1;*/
+ 		}
+ 		strcpy(oldname, lc_name);
+ 	    }
+@@ -545,9 +547,12 @@
+     return ret;
+ }
+ 
+-void
+-tree_store_remove_entry(const char *name)
++int
++tree_store_remove_entry(const char *name, gboolean remove_base_also, gboolean really_remove)
+ {
++    int how_many_removed;
++    how_many_removed = 0;
++
+     tree_entry *current, *base, *old;
+     int len;
+ 
+@@ -555,12 +560,12 @@
+ 
+     /* Miguel Ugly hack */
+     if (name[0] == PATH_SEP && name[1] == 0)
+-	return;
++	return 0;
+     /* Miguel Ugly hack end */
+ 
+     base = tree_store_whereis(name);
+     if (!base)
+-	return;			/* Doesn't exist */
++	return 0;			/* Doesn't exist */
+ 
+     len = strlen(base->name);
+     current = base->next;
+@@ -570,12 +575,15 @@
+ 	       || current->name[len] == PATH_SEP)) {
+ 	old = current;
+ 	current = current->next;
+-	remove_entry(old);
++	if(really_remove)
++		remove_entry(old);
++	how_many_removed = how_many_removed + 1;
+     }
+-    remove_entry(base);
++    if(remove_base_also)
++	    remove_entry(base);
+     tree_store_dirty(TRUE);
+ 
+-    return;
++    return how_many_removed;
+ }
+ 
+ /* This subdirectory exists -> clear deletion mark */
+@@ -776,6 +784,7 @@
+     if (should_skip_directory(dir)) {
+ 	entry = tree_store_add_entry(dir);
+ 	entry->scanned = 1;
++        /*entry->has_subdirs = -1;*/
+ 
+ 	return entry;
+     }
+@@ -807,6 +816,7 @@
+     }
+     tree_store_end_check();
+     entry->scanned = 1;
++    /*entry->has_subdirs = -1;*/
+ 
+     return entry;
+ }
+diff -ur mc-ORIGINAL/src/treestore.h TEN-mc-iproved-tree/src/treestore.h
+--- mc-ORIGINAL/src/treestore.h	2010-01-10 15:19:51.000000000 +0100
++++ TEN-mc-iproved-tree/src/treestore.h	2010-05-14 17:44:44.000000000 +0200
+@@ -32,7 +32,7 @@
+ struct TreeStore *tree_store_get (void);
+ int tree_store_load (void);
+ int tree_store_save (void);
+-void tree_store_remove_entry (const char *name);
++int tree_store_remove_entry (const char *name, gboolean remove_base_also,gboolean really_remove); /* how many removed? */
+ tree_entry *tree_store_start_check (const char *path);
+ void tree_store_mark_checked (const char *subname);
+ void tree_store_end_check (void);

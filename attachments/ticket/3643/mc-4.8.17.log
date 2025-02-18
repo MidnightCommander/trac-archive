@@ -1,0 +1,2195 @@
+build started at Wed May 11 11:37:56 CEST 2016
+port directory: /usr/ports/misc/mc
+building for: FreeBSD woodsb02.no-ip.org 11.0-CURRENT FreeBSD 11.0-CURRENT amd64
+maintained by: woodsb02@FreeBSD.org
+Makefile ident:      $FreeBSD: head/misc/mc/Makefile 414892 2016-05-09 20:46:48Z woodsb02 $
+Poudriere version: 3.1.12
+Host OSVERSION: 1100107
+Jail OSVERSION: 1100105
+
+---Begin Environment---
+PKGREPOSITORY=/tmp/pkgs
+PACKAGES=/tmp/pkgs
+SHELL=/bin/csh
+UNAME_v=FreeBSD 11.0-CURRENT
+UNAME_r=11.0-CURRENT
+BLOCKSIZE=K
+MAIL=/var/mail/root
+STATUS=1
+ARCH=amd64
+SAVED_TERM=screen
+NO_WARNING_PKG_INSTALL_EOL=yes
+MASTERMNT=/zstore/poudriere/data/.m/11amd64-default/ref
+FORCE_PACKAGE=yes
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/root/bin
+_JAVA_VERSION_LIST_REGEXP=1.6\|1.7\|1.8\|1.6+\|1.7+\|1.8+
+POUDRIERE_BUILD_TYPE=bulk
+OSREL=11.0
+_OSRELEASE=11.0-CURRENT
+PYTHONBASE=/usr/local
+OLDPWD=/
+_SMP_CPUS=8
+PWD=/zstore/poudriere/data/.m/11amd64-default/ref/usr/ports/misc/mc
+HAVE_COMPAT_IA32_KERN=YES OPSYS=FreeBSD
+MASTERNAME=11amd64-default
+SCRIPTPREFIX=/usr/local/share/poudriere
+_JAVA_VENDOR_LIST_REGEXP=openjdk\|oracle\|sun
+USER=root
+HOME=/root
+POUDRIERE_VERSION=3.1.12
+SCRIPTPATH=/usr/local/share/poudriere/testport.sh
+TRYBROKEN=yes
+CONFIGURE_MAX_CMD_LEN=262144
+LIBEXECPREFIX=/usr/local/libexec/poudriere
+LOCALBASE=/usr/local
+PACKAGE_BUILDING=yes
+_JAVA_OS_LIST_REGEXP=native\|linux
+OSVERSION=1100105
+---End Environment---
+
+---Begin OPTIONS List---
+===> The following configuration options are available for mc-4.8.17:
+     DOCS=on: Build and/or install documentation
+     EDITOR=on: Build with internal editor
+     ICONV=on: Encoding conversion support via iconv
+     NLS=on: Native Language Support
+     SFTP=on: Support for SFTP (via libssh)
+     SMB=on: SMB network protocol support
+     SUBSHELL=on: Build with subshell support
+     X11=on: X11 (graphics) support
+====> Options available for the single SCREEN: you have to select exactly one of them
+     SLANG=on: S-Lang console graphics library support
+     NCURSES=off: Console (text) interface support
+===> Use 'make config' to modify these settings
+---End OPTIONS List---
+
+--CONFIGURE_ARGS--
+--with-internal-edit --enable-charset --enable-nls --enable-vfs-sftp --enable-vfs-smb --with-smb-configdir=/usr/local/etc --with-smb-codepagedir=/usr/local/etc/codepages --with-subshell --enable-x --with-screen=slang --with-slang-includes=/usr/local/include --x-libraries=/usr/local/lib --x-includes=/usr/local/include --prefix=/usr/local ${_LATE_CONFIGURE_ARGS}
+--End CONFIGURE_ARGS--
+
+--CONFIGURE_ENV--
+ZIP= UNZIP=/usr/local/bin/unzip MAKE=gmake ac_cv_path_PERL=/usr/local/bin/perl ac_cv_path_PERL_PATH=/usr/local/bin/perl PKG_CONFIG=pkgconf XDG_DATA_HOME=/wrkdirs/usr/ports/misc/mc/work  XDG_CONFIG_HOME=/wrkdirs/usr/ports/misc/mc/work  HOME=/wrkdirs/usr/ports/misc/mc/work TMPDIR="/tmp" SHELL=/bin/sh CONFIG_SHELL=/bin/sh CONFIG_SITE=/usr/ports/Templates/config.site lt_cv_sys_max_cmd_len=262144
+--End CONFIGURE_ENV--
+
+--MAKE_ENV--
+XDG_DATA_HOME=/wrkdirs/usr/ports/misc/mc/work  XDG_CONFIG_HOME=/wrkdirs/usr/ports/misc/mc/work  HOME=/wrkdirs/usr/ports/misc/mc/work TMPDIR="/tmp" NO_PIE=yes WITHOUT_DEBUG_FILES=yes WITHOUT_KERNEL_SYMBOLS=yes SHELL=/bin/sh NO_LINT=YES PREFIX=/usr/local  LOCALBASE=/usr/local  LIBDIR="/usr/lib"  CC="cc" CFLAGS="-O2 -pipe  -fstack-protector -fno-strict-aliasing"  CPP="cpp" CPPFLAGS="-I/usr/local/include"  LDFLAGS=" -L/usr/local/lib -fstack-protector" LIBS=""  CXX="c++" CXXFLAGS="-O2 -pipe -fstack-protector -fno-strict-aliasing "  MANPREFIX="/usr/local" BSD_INSTALL_PROGRAM="install  -s -m 555"  BSD_INSTALL_LIB="install  -s -m 444"  BSD_INSTALL_SCRIPT="install  -m 555"  BSD_INSTALL_DATA="install  -m 0644"  BSD_INSTALL_MAN="install  -m 444"
+--End MAKE_ENV--
+
+--PLIST_SUB--
+DOCS=""
+NO_DOCS="@comment
+"
+EDITOR=""
+NO_EDITOR="@comment
+"
+ICONV=""
+NO_ICONV="@comment
+"
+NLS=""
+NO_NLS="@comment
+"
+SFTP=""
+NO_SFTP="@comment
+"
+SMB=""
+NO_SMB="@comment
+"
+SUBSHELL=""
+NO_SUBSHELL="@comment
+"
+X11=""
+NO_X11="@comment
+"
+SLANG=""
+NO_SLANG="@comment
+"
+NCURSES="@comment
+"
+NO_NCURSES=""
+GTK2_VERSION="2.10.0"
+GTK3_VERSION="3.0.0"
+OSREL=11.0
+PREFIX=%D
+LOCALBASE=/usr/local
+RESETPREFIX=/usr/local
+PORTDOCS=""
+PORTEXAMPLES=""
+LIB32DIR=lib
+PERL_VERSION=5.20.3
+PERL_VER=5.20
+PERL5_MAN1=lib/perl5/site_perl/man/man1
+PERL5_MAN3=lib/perl5/site_perl/man/man3
+SITE_PERL=lib/perl5/site_perl
+SITE_ARCH=lib/perl5/site_perl/mach/5.20
+DOCSDIR="share/doc/mc"
+EXAMPLESDIR="share/examples/mc"
+DATADIR="share/mc"
+WWWDIR="www/mc"
+ETCDIR="etc/mc"
+--End PLIST_SUB--
+
+--SUB_LIST--
+DOCS=""
+NO_DOCS="@comment
+"
+EDITOR=""
+NO_EDITOR="@comment
+"
+ICONV=""
+NO_ICONV="@comment
+"
+NLS=""
+NO_NLS="@comment
+"
+SFTP=""
+NO_SFTP="@comment
+"
+SMB=""
+NO_SMB="@comment
+"
+SUBSHELL=""
+NO_SUBSHELL="@comment
+"
+X11=""
+NO_X11="@comment
+"
+SLANG=""
+NO_SLANG="@comment
+"
+NCURSES="@comment
+"
+NO_NCURSES=""
+PREFIX=/usr/local
+LOCALBASE=/usr/local
+DATADIR=/usr/local/share/mc
+DOCSDIR=/usr/local/share/doc/mc
+EXAMPLESDIR=/usr/local/share/examples/mc
+WWWDIR=/usr/local/www/mc
+ETCDIR=/usr/local/etc/mc
+--End SUB_LIST--
+
+---Begin make.conf---
+USE_PACKAGE_DEPENDS=yes
+BATCH=yes
+WRKDIRPREFIX=/wrkdirs
+PORTSDIR=/usr/ports
+PACKAGES=/packages
+DISTDIR=/distfiles
+#### /usr/local/etc/poudriere.d/11amd64-make.conf ####
+DISABLE_LICENSES=		yes
+TARGET_CPU_ARCH=		NEHALEM
+OPTIONS_UNSET=			LINUX AVAHI
+OPTIONS_SET=			VAAPI VDPAU X265 ASS FAAC LAME MDNSRESPONDER RRDTOOL STATGRAB DEJAVU DTRACE FFMPEG
+#PYTHON3_DEFAULT=		3.5
+archivers_xarchiver_SET+=	RAR
+editors_vim_SET+=		CONSOLE
+editors_vim_UNSET+=		GTK2
+graphics_ImageMagick_UNSET+=	16BIT_PIXEL
+graphics_ImageMagick-nox11_UNSET+=	16BIT_PIXEL
+graphics_opencv_SET=		FFMPEG
+#graphics_osg_SET=		CURL FFMPEG FREETYPE GDAL GIF GTA INVENTOR JASPER LIBLAS LUA NVTT OPENEXR PDF SDL SVG VNC XINE XRANDR QT4
+#graphics_osg_UNSET=		GSTREAMER QT5
+#graphics_osg-devel_SET=		CURL FFMPEG FREETYPE GDAL GIF GTA INVENTOR JASPER LIBLAS LUA NVTT OPENEXR PDF SDL SVG VNC XINE XRANDR QT5
+#graphics_osg-devel_UNSET=	GSTREAMER QT4
+graphics_tulip_UNSET=		QT4
+graphics_tulip_SET=		QT5
+irc_quassel_UNSET+=		KDE MONO CLIENT
+#math_ogdf_SET=			COIN
+multimedia_quodlibet_SET=	AAC DBUS FLAC MP3 OGG REMOTE SPEEX VORBIS WAVPACK
+science_gramps_SET+=		GEXIV GTKSPELL PIL RCS TTFFREEFONT
+security_openssh-portable_SET+=	NONECIPHER
+sysutils_testdisk_SET+=		NTFS NTFS3G
+sysutils_xfce4-settings_SET+=	UPOWER
+www_firefox_SET+=		GTK3
+www_firefox_UNSET+=		GTK2
+x11-wm_xfce4_SET+=		MIXER PRINT SQUEEZE XPM
+x11-wm_xfce4-wm_SET+=		DRM
+#math_plplot_SET+=		FORTRAN GD LUA PYTHON QT4 TCLTK THREADS WXGTK X11 DOCS
+#net-p2p_gtk-gnutella_UNSET+=	DBUS DEBUG GUI IPV6 NLS PORTABILITY TLS
+#misc_mc_SET+=			DOCS EDITOR ICONV NLS SMB SUBSHELL X11
+#misc_mc_SET+=			SLANG
+#misc_mc_UNSET+=			NCURSES
+#science_InsightToolkit_UNSET+=	EXAMPLES TESTING
+---End make.conf---
+=======================<phase: check-sanity   >============================
+===========================================================================
+=======================<phase: pkg-depends    >============================
+===>   mc-4.8.17 depends on file: /usr/local/sbin/pkg - not found
+===>   Installing existing package /packages/All/pkg-1.7.2.txz
+[woodsb02.no-ip.org] Installing pkg-1.7.2...
+[woodsb02.no-ip.org] Extracting pkg-1.7.2: .......... done
+===>   mc-4.8.17 depends on file: /usr/local/sbin/pkg - found
+===>   Returning to build of mc-4.8.17
+===========================================================================
+=======================<phase: fetch-depends  >============================
+===========================================================================
+=======================<phase: fetch          >============================
+===>   mc-4.8.17 depends on file: /usr/local/sbin/pkg - found
+===> Fetching all distfiles required by mc-4.8.17 for building
+===========================================================================
+=======================<phase: checksum       >============================
+===>   mc-4.8.17 depends on file: /usr/local/sbin/pkg - found
+===> Fetching all distfiles required by mc-4.8.17 for building
+=> SHA256 Checksum OK for mc-4.8.17.tar.xz.
+=> SHA256 Checksum OK for mc.png.
+===========================================================================
+=======================<phase: extract-depends>============================
+===========================================================================
+=======================<phase: extract        >============================
+===>   mc-4.8.17 depends on file: /usr/local/sbin/pkg - found
+===> Fetching all distfiles required by mc-4.8.17 for building
+===>  Extracting for mc-4.8.17
+=> SHA256 Checksum OK for mc-4.8.17.tar.xz.
+=> SHA256 Checksum OK for mc.png.
+===========================================================================
+=======================<phase: patch-depends  >============================
+===========================================================================
+=======================<phase: patch          >============================
+===>  Patching for mc-4.8.17
+===>  Applying FreeBSD patches for mc-4.8.17
+/usr/bin/sed -i.bak -e 's|missing-parameter-type|unused-variable|;  s|but-set-variable|variable|'  /wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/configure
+===========================================================================
+=======================<phase: build-depends  >============================
+===>   mc-4.8.17 depends on executable: gmake - not found
+===>   Installing existing package /packages/All/gmake-4.1_2.txz
+[woodsb02.no-ip.org] Installing gmake-4.1_2...
+[woodsb02.no-ip.org] `-- Installing indexinfo-0.2.4...
+[woodsb02.no-ip.org] `-- Extracting indexinfo-0.2.4: . done
+[woodsb02.no-ip.org] `-- Installing gettext-runtime-0.19.7...
+[woodsb02.no-ip.org] `-- Extracting gettext-runtime-0.19.7: .......... done
+[woodsb02.no-ip.org] Extracting gmake-4.1_2: .......... done
+===>   mc-4.8.17 depends on executable: gmake - found
+===>   Returning to build of mc-4.8.17
+===>   mc-4.8.17 depends on package: pkgconf>=0.9.10 - not found
+===>   Installing existing package /packages/All/pkgconf-0.9.12_1.txz
+[woodsb02.no-ip.org] Installing pkgconf-0.9.12_1...
+[woodsb02.no-ip.org] Extracting pkgconf-0.9.12_1: .... done
+===>   mc-4.8.17 depends on package: pkgconf>=0.9.10 - found
+===>   Returning to build of mc-4.8.17
+===>   mc-4.8.17 depends on executable: msgfmt - not found
+===>   Installing existing package /packages/All/gettext-tools-0.19.7.txz
+[woodsb02.no-ip.org] Installing gettext-tools-0.19.7...
+[woodsb02.no-ip.org] Extracting gettext-tools-0.19.7: .......... done
+===>   mc-4.8.17 depends on executable: msgfmt - found
+===>   Returning to build of mc-4.8.17
+===>   mc-4.8.17 depends on file: /usr/local/libdata/pkgconfig/x11.pc - not found
+===>   Installing existing package /packages/All/libX11-1.6.3,1.txz
+[woodsb02.no-ip.org] Installing libX11-1.6.3,1...
+[woodsb02.no-ip.org] `-- Installing xproto-7.0.28...
+[woodsb02.no-ip.org] `-- Extracting xproto-7.0.28: .......... done
+[woodsb02.no-ip.org] `-- Installing kbproto-1.0.7...
+[woodsb02.no-ip.org] `-- Extracting kbproto-1.0.7: .......... done
+[woodsb02.no-ip.org] `-- Installing libXdmcp-1.1.2...
+[woodsb02.no-ip.org] `-- Extracting libXdmcp-1.1.2: ...... done
+[woodsb02.no-ip.org] `-- Installing libxcb-1.11.1...
+[woodsb02.no-ip.org] |   `-- Installing libxml2-2.9.3...
+[woodsb02.no-ip.org] |   `-- Extracting libxml2-2.9.3: .......... done
+[woodsb02.no-ip.org] |   `-- Installing libpthread-stubs-0.3_6...
+[woodsb02.no-ip.org] |   `-- Extracting libpthread-stubs-0.3_6: ..... done
+[woodsb02.no-ip.org] |   `-- Installing libXau-1.0.8_3...
+[woodsb02.no-ip.org] |   `-- Extracting libXau-1.0.8_3: .......... done
+[woodsb02.no-ip.org] `-- Extracting libxcb-1.11.1: .......... done
+[woodsb02.no-ip.org] Extracting libX11-1.6.3,1: .......... done
+===>   mc-4.8.17 depends on file: /usr/local/libdata/pkgconfig/x11.pc - found
+===>   Returning to build of mc-4.8.17
+===>   mc-4.8.17 depends on file: /usr/local/libdata/pkgconfig/xext.pc - not found
+===>   Installing existing package /packages/All/libXext-1.3.3_1,1.txz
+[woodsb02.no-ip.org] Installing libXext-1.3.3_1,1...
+[woodsb02.no-ip.org] `-- Installing xextproto-7.3.0...
+[woodsb02.no-ip.org] `-- Extracting xextproto-7.3.0: .......... done
+[woodsb02.no-ip.org] Extracting libXext-1.3.3_1,1: .......... done
+===>   mc-4.8.17 depends on file: /usr/local/libdata/pkgconfig/xext.pc - found
+===>   Returning to build of mc-4.8.17
+===>   mc-4.8.17 depends on package: perl5>=5.20<5.21 - not found
+===>   Installing existing package /packages/All/perl5-5.20.3_13.txz
+[woodsb02.no-ip.org] Installing perl5-5.20.3_13...
+[woodsb02.no-ip.org] Extracting perl5-5.20.3_13: .......... done
+Message from perl5-5.20.3_13:
+The /usr/bin/perl symlink has been removed starting with Perl 5.20.
+For shebangs, you should either use:
+
+#!/usr/local/bin/perl
+
+or
+
+#!/usr/bin/env perl
+
+The first one will only work if you have a /usr/local/bin/perl,
+the second will work as long as perl is in PATH.
+===>   mc-4.8.17 depends on package: perl5>=5.20<5.21 - found
+===>   Returning to build of mc-4.8.17
+===========================================================================
+=======================<phase: lib-depends    >============================
+===>   mc-4.8.17 depends on shared library: libssh2.so - not found
+===>   Installing existing package /packages/All/libssh2-1.7.0,2.txz
+[woodsb02.no-ip.org] Installing libssh2-1.7.0,2...
+[woodsb02.no-ip.org] Extracting libssh2-1.7.0,2: .......... done
+===>   mc-4.8.17 depends on shared library: libssh2.so - found (/usr/local/lib/libssh2.so)
+===>   Returning to build of mc-4.8.17
+===>   mc-4.8.17 depends on shared library: libslang.so - not found
+===>   Installing existing package /packages/All/libslang2-2.3.0.txz
+[woodsb02.no-ip.org] Installing libslang2-2.3.0...
+[woodsb02.no-ip.org] `-- Installing png-1.6.21...
+[woodsb02.no-ip.org] `-- Extracting png-1.6.21: .......... done
+[woodsb02.no-ip.org] `-- Installing pcre-8.38_1...
+[woodsb02.no-ip.org] `-- Extracting pcre-8.38_1: .......... done
+[woodsb02.no-ip.org] Extracting libslang2-2.3.0: .......... done
+===>   mc-4.8.17 depends on shared library: libslang.so - found (/usr/local/lib/libslang.so)
+===>   Returning to build of mc-4.8.17
+===>   mc-4.8.17 depends on shared library: libintl.so - found (/usr/local/lib/libintl.so)
+===>   mc-4.8.17 depends on shared library: libglib-2.0.so - not found
+===>   Installing existing package /packages/All/glib-2.46.2.txz
+[woodsb02.no-ip.org] Installing glib-2.46.2...
+[woodsb02.no-ip.org] `-- Installing libiconv-1.14_9...
+[woodsb02.no-ip.org] `-- Extracting libiconv-1.14_9: .......... done
+[woodsb02.no-ip.org] `-- Installing python27-2.7.11_2...
+[woodsb02.no-ip.org] |   `-- Installing libffi-3.2.1...
+[woodsb02.no-ip.org] |   `-- Extracting libffi-3.2.1: .......... done
+[woodsb02.no-ip.org] |   `-- Installing readline-6.3.8...
+[woodsb02.no-ip.org] |   `-- Extracting readline-6.3.8: .......... done
+[woodsb02.no-ip.org] `-- Extracting python27-2.7.11_2: .......... done
+[woodsb02.no-ip.org] Extracting glib-2.46.2: .......... done
+No schema files found: doing nothing.
+Message from python27-2.7.11_2:
+===========================================================================
+
+Note that some standard Python modules are provided as separate ports
+as they require additional dependencies. They are available as:
+
+bsddb           databases/py-bsddb
+gdbm            databases/py-gdbm
+sqlite3         databases/py-sqlite3
+tkinter         x11-toolkits/py-tkinter
+
+===========================================================================
+===>   mc-4.8.17 depends on shared library: libglib-2.0.so - found (/usr/local/lib/libglib-2.0.so)
+===>   Returning to build of mc-4.8.17
+===========================================================================
+====>> Recording filesystem state for prebuild... done
+=======================<phase: configure      >============================
+===>   mc-4.8.17 depends on executable: gmake - found
+===>   mc-4.8.17 depends on package: pkgconf>=0.9.10 - found
+===>   mc-4.8.17 depends on package: libiconv>=1.14_9 - found
+===>   mc-4.8.17 depends on executable: msgfmt - found
+===>   mc-4.8.17 depends on file: /usr/local/libdata/pkgconfig/x11.pc - found
+===>   mc-4.8.17 depends on file: /usr/local/libdata/pkgconfig/xext.pc - found
+===>   mc-4.8.17 depends on package: perl5>=5.20<5.21 - found
+===>   mc-4.8.17 depends on shared library: libssh2.so - found (/usr/local/lib/libssh2.so)
+===>   mc-4.8.17 depends on shared library: libslang.so - found (/usr/local/lib/libslang.so)
+===>   mc-4.8.17 depends on shared library: libintl.so - found (/usr/local/lib/libintl.so)
+===>   mc-4.8.17 depends on shared library: libglib-2.0.so - found (/usr/local/lib/libglib-2.0.so)
+===>  Configuring for mc-4.8.17
+===>   FreeBSD 10 autotools fix applied to /wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/config/config.rpath
+configure: loading site script /usr/ports/Templates/config.site
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... (cached) /bin/mkdir -p
+checking for gawk... (cached) /usr/bin/awk
+checking whether gmake sets $(MAKE)... yes
+checking whether gmake supports nested variables... yes
+checking whether gmake supports nested variables... (cached) yes
+checking whether to enable maintainer-specific portions of Makefiles... no
+checking build system type... amd64-portbld-freebsd11.0
+checking host system type... amd64-portbld-freebsd11.0
+checking for style of include used by gmake... GNU
+checking for gcc... cc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether cc accepts -g... yes
+checking for cc option to accept ISO C89... none needed
+checking whether cc understands -c and -o together... yes
+checking dependency style of cc... gcc3
+checking how to run the C preprocessor... cpp
+checking for grep that handles long lines and -e... (cached) /usr/bin/grep
+checking for egrep... (cached) /usr/bin/egrep
+checking for ANSI C header files... (cached) yes
+checking for sys/types.h... (cached) yes
+checking for sys/stat.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking for memory.h... (cached) yes
+checking for strings.h... (cached) yes
+checking for inttypes.h... (cached) yes
+checking for stdint.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for minix/config.h... (cached) no
+checking whether it is safe to define __EXTENSIONS__... yes
+checking for cc option to accept ISO C99... none needed
+checking for cc option to accept ISO Standard C... (cached) none needed
+checking whether cc accepts -Wassign-enum... yes
+checking whether cc accepts -Wbad-function-cast... yes
+checking whether cc accepts -Wcomment... yes
+checking whether cc accepts -Wconditional-uninitialized... yes
+checking whether cc accepts -Wdeclaration-after-statement... yes
+checking whether cc accepts -Wfloat-conversion... yes
+checking whether cc accepts -Wfloat-equal... yes
+checking whether cc accepts -Wformat... yes
+checking whether cc accepts -Wformat-security... yes
+checking whether cc accepts -Wimplicit... yes
+checking whether cc accepts -Wignored-qualifiers... yes
+checking whether cc accepts -Wlogical-not-parentheses... yes
+checking whether cc accepts -Wmaybe-uninitialized... yes
+checking whether cc accepts -Wmissing-braces... yes
+checking whether cc accepts -Wmissing-declarations... yes
+checking whether cc accepts -Wmissing-field-initializers... yes
+checking whether cc accepts -Wmissing-format-attribute... yes
+checking whether cc accepts -Wunused-variable... yes
+checking whether cc accepts -Wmissing-prototypes... yes
+checking whether cc accepts -Wmissing-variable-declarations... yes
+checking whether cc accepts -Wnested-externs... yes
+checking whether cc accepts -Wno-long-long... yes
+checking whether cc accepts -Wno-unreachable-code... yes
+checking whether cc accepts -Wparentheses... yes
+checking whether cc accepts -Wpointer-arith... yes
+checking whether cc accepts -Wpointer-sign... yes
+checking whether cc accepts -Wredundant-decls... yes
+checking whether cc accepts -Wreturn-type... yes
+checking whether cc accepts -Wsequence-point... yes
+checking whether cc accepts -Wshadow... yes
+checking whether cc accepts -Wsign-compare... yes
+checking whether cc accepts -Wstrict-prototypes... yes
+checking whether cc accepts -Wswitch... yes
+checking whether cc accepts -Wswitch-default... yes
+checking whether cc accepts -Wtype-limits... yes
+checking whether cc accepts -Wundef... yes
+checking whether cc accepts -Wuninitialized... yes
+checking whether cc accepts -Wunreachable-code... yes
+checking whether cc accepts -Wunused-variable... yes
+checking whether cc accepts -Wunused-function... yes
+checking whether cc accepts -Wunused-label... yes
+checking whether cc accepts -Wunused-parameter... yes
+checking whether cc accepts -Wunused-result... yes
+checking whether cc accepts -Wunused-value... yes
+checking whether cc accepts -Wunused-variable... yes
+checking whether cc accepts -Wwrite-strings... yes
+checking how to print strings... printf
+checking for a sed that does not truncate output... (cached) /usr/bin/sed
+checking for fgrep... (cached) /usr/bin/fgrep
+checking for ld used by cc... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm
+checking the name lister (/usr/bin/nm) interface... BSD nm
+checking whether ln -s works... yes
+checking the maximum length of command line arguments... (cached) 262144
+checking how to convert amd64-portbld-freebsd11.0 file names to amd64-portbld-freebsd11.0 format... func_convert_file_noop
+checking how to convert amd64-portbld-freebsd11.0 file names to toolchain format... func_convert_file_noop
+checking for /usr/bin/ld option to reload object files... -r
+checking for objdump... objdump
+checking how to recognize dependent libraries... pass_all
+checking for dlltool... no
+checking how to associate runtime and link libraries... printf %s\n
+checking for ar... ar
+checking for archiver @FILE support... no
+checking for strip... strip
+checking for ranlib... ranlib
+checking command to parse /usr/bin/nm output from cc object... ok
+checking for sysroot... no
+checking for a working dd... /bin/dd
+checking how to truncate binary pipes... /bin/dd bs=4096 count=1
+checking for mt... mt
+checking if mt is a manifest tool... no
+checking for dlfcn.h... (cached) yes
+checking for objdir... .libs
+checking if cc supports -fno-rtti -fno-exceptions... yes
+checking for cc option to produce PIC... -fPIC -DPIC
+checking if cc PIC flag -fPIC -DPIC works... yes
+checking if cc static flag -static works... yes
+checking if cc supports -c -o file.o... yes
+checking if cc supports -c -o file.o... (cached) yes
+checking whether the cc linker (/usr/bin/ld) supports shared libraries... yes
+checking whether -lc should be explicitly linked in... no
+checking dynamic linker characteristics... freebsd11.0 ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+checking pkg-config is at least version 0.9.0... yes
+checking whether ln -s works... yes
+checking for perl... (cached) /usr/local/bin/perl
+checking for python... /usr/bin/python
+checking for ruby... /usr/bin/ruby
+checking for nroff... true
+checking for manual formatting macros... -mandoc
+checking for option to disable ANSI color in manuals... none
+checking if nroff accepts -Tlatin1 or -Tascii... -Tlatin1
+checking for file... true
+checking for -L option to file command... yes
+checking for gnome-moz-remote... no
+checking for mozilla... no
+checking for firefox... no
+checking for konqueror... no
+checking for opera... no
+checking for ar... (cached) ar
+checking for CHECK... no
+configure: WARNING: 'Check' utility not found. Check your environment
+checking for GLIB... yes
+checking for GMODULE... yes
+checking S-Lang headers in specified place ...
+checking for slang.h... yes
+checking for S-Lang version 2.0 or newer... yes
+checking if S-Lang uses termcap... yes
+configure: using S-Lang screen library with termcap
+checking for tgoto in -ltermcap... yes
+checking for SLang_init_tty in -lslang... no
+checking S-Lang headers in /usr ...
+checking for slang.h... yes
+checking for S-Lang version 2.0 or newer... yes
+checking if S-Lang uses termcap... (cached) yes
+configure: using S-Lang screen library with termcap
+checking for tgoto in -ltermcap... yes
+checking for SLang_init_tty in -lslang... yes
+checking for slang/slang.h... no
+checking for X... libraries /usr/local/lib, headers /usr/local/include
+checking whether -R must be followed by a space... neither works
+checking for gethostbyname... (cached) yes
+checking for connect... yes
+checking for remove... yes
+checking for shmat... yes
+checking for IceConnectionNumber in -lICE... no
+checking for string.h... (cached) yes
+checking for memory.h... (cached) yes
+checking for limits.h... (cached) yes
+checking for malloc.h... (cached) no
+checking for utime.h... (cached) yes
+checking sys/statfs.h usability... no
+checking sys/statfs.h presence... no
+checking for sys/statfs.h... no
+checking sys/vfs.h usability... no
+checking sys/vfs.h presence... no
+checking for sys/vfs.h... no
+checking for sys/select.h... (cached) yes
+checking for sys/ioctl.h... (cached) yes
+checking stropts.h usability... no
+checking stropts.h presence... no
+checking for stropts.h... no
+checking for arpa/inet.h... (cached) yes
+checking for sys/socket.h... (cached) yes
+checking whether sys/types.h defines makedev... yes
+checking whether to enable assertions... yes
+checking for special C compiler options needed for large files... no
+checking for _FILE_OFFSET_BITS value needed for large files... no
+checking size of long... 8
+checking for unsigned long long int... (cached) yes
+checking for uintmax_t... yes
+checking size of uintmax_t... 8
+checking for off_t... (cached) yes
+checking size of off_t... 8
+checking for mode_t... (cached) yes
+checking for promoted mode_t type... int
+checking for pid_t... (cached) yes
+checking for uid_t in sys/types.h... (cached) yes
+checking for struct stat.st_blocks... yes
+checking for struct stat.st_blksize... (cached) yes
+checking for struct stat.st_rdev... yes
+checking for sys/param.h... (cached) yes
+checking for sig_atomic_t in signal.h... yes, non volatile
+checking for strverscmp... no
+checking for strncasecmp... (cached) yes
+checking for realpath... (cached) yes
+checking for posix_openpt... yes
+checking for grantpt... yes
+checking for statlstat... no
+checking for stdlib.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for getpagesize... (cached) yes
+checking for working mmap... (cached) yes
+checking for get_process_stats in -lseq... no
+checking for sys/statvfs.h... (cached) yes
+checking for sys/vfs.h... (cached) no
+checking sys/fs_types.h usability... no
+checking sys/fs_types.h presence... no
+checking for sys/fs_types.h... no
+checking OS.h usability... no
+checking OS.h presence... no
+checking for OS.h... no
+checking for netinet/in.h... (cached) yes
+checking for listmntent... no
+checking for getmntinfo... yes
+checking for sys/ucred.h... yes
+checking for sys/mount.h... (cached) yes
+checking mntent.h usability... no
+checking mntent.h presence... no
+checking for mntent.h... no
+checking for sys/fs_types.h... (cached) no
+checking for struct fsstat.f_fstypename... no
+checking for library containing getmntent... no
+checking for getmntent... no
+checking for listmntent of Cray/Unicos-9... no
+checking for mntctl function and struct vmount... no
+checking for getfsstat function... no
+checking for FIXME existence of three headers... no
+checking for getmntinfo function... yes
+checking whether getmntinfo returns statvfs structures... no
+checking sys/mntent.h usability... no
+checking sys/mntent.h presence... no
+checking for sys/mntent.h... no
+checking for struct statfs.f_fstypename... yes
+checking for fcntl.h... (cached) yes
+checking for utime.h... (cached) yes
+checking for listmntent... (cached) no
+checking for getmntinfo... (cached) yes
+checking for sys/ucred.h... (cached) yes
+checking for sys/mount.h... (cached) yes
+checking for mntent.h... (cached) no
+checking for sys/fs_types.h... (cached) no
+checking for struct fsstat.f_fstypename... (cached) no
+checking for library containing getmntent... (cached) no
+checking for getmntent... (cached) no
+checking for listmntent of Cray/Unicos-9... (cached) no
+checking for mntctl function and struct vmount... (cached) no
+checking for getfsstat function... (cached) no
+checking for FIXME existence of three headers... (cached) no
+checking for getmntinfo function... (cached) yes
+checking whether getmntinfo returns statvfs structures... (cached) no
+checking for sys/mount.h... (cached) yes
+configure: checking how to get file system space usage
+checking for statvfs function (SVR4)... yes
+checking whether to use statvfs64... no
+checking for two-argument statfs with statfs.f_frsize member... no
+checking dustat.h usability... no
+checking dustat.h presence... no
+checking for dustat.h... no
+checking sys/fs/s5param.h usability... no
+checking sys/fs/s5param.h presence... no
+checking for sys/fs/s5param.h... no
+checking sys/filsys.h usability... no
+checking sys/filsys.h presence... no
+checking for sys/filsys.h... no
+checking for sys/statfs.h... (cached) no
+checking for statfs that truncates block counts... no
+checking for struct statfs.f_fstypename... (cached) yes
+checking nfs/vfs.h usability... no
+checking nfs/vfs.h presence... no
+checking for nfs/vfs.h... no
+checking for struct statvfs.f_basetype... no
+checking for struct statvfs.f_fstypename... no
+checking for struct statfs.f_namelen... no
+checking for struct statfs.f_type... yes
+checking for struct statfs.f_frsize... no
+checking whether NLS is requested... yes
+checking for msgfmt... /usr/local/bin/msgfmt
+checking for gmsgfmt... /usr/local/bin/msgfmt
+checking for xgettext... /usr/local/bin/xgettext
+checking for msgmerge... /usr/local/bin/msgmerge
+checking whether we are using the GNU C Library 2 or newer... no
+checking for ranlib... (cached) ranlib
+checking whether the -Werror option is usable... yes
+checking for simple visibility declarations... yes
+checking for inline... inline
+checking for size_t... (cached) yes
+checking for stdint.h... (cached) yes
+checking for working alloca.h... no
+checking for alloca... yes
+checking whether integer division by zero raises SIGFPE... (cached) yes
+checking for inttypes.h... (cached) yes
+checking for inttypes.h... (cached) yes
+checking whether the inttypes.h PRIxNN macros are broken... no
+checking for ld used by GCC... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for shared library run path origin... done
+checking whether imported symbols can be declared weak... yes
+checking pthread.h usability... yes
+checking pthread.h presence... yes
+checking for pthread.h... yes
+checking for pthread_kill in -lpthread... yes
+checking for multithread API to use... posix
+checking for pthread_rwlock_t... yes
+checking for iconv... yes
+checking for working iconv... yes
+checking for iconv declaration... 
+         extern size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);
+checking for argz.h... (cached) no
+checking for inttypes.h... (cached) yes
+checking for limits.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for sys/param.h... (cached) yes
+checking for getcwd... (cached) yes
+checking for getegid... (cached) yes
+checking for geteuid... (cached) yes
+checking for getgid... (cached) yes
+checking for getuid... (cached) yes
+checking for mempcpy... no
+checking for munmap... (cached) yes
+checking for stpcpy... (cached) yes
+checking for strcasecmp... (cached) yes
+checking for strdup... (cached) yes
+checking for strtoul... (cached) yes
+checking for tsearch... (cached) yes
+checking for uselocale... yes
+checking for argz_count... (cached) no
+checking for argz_stringify... (cached) no
+checking for argz_next... (cached) no
+checking for __fsetlocking... no
+checking whether feof_unlocked is declared... (cached) yes
+checking whether fgets_unlocked is declared... no
+checking for bison... no
+checking for long long int... (cached) yes
+checking for wchar_t... (cached) yes
+checking for wint_t... (cached) yes
+checking for intmax_t... (cached) yes
+checking whether printf() supports POSIX/XSI format strings... (cached) yes
+checking whether we are using the GNU C Library 2.1 or newer... no
+checking for stdint.h... (cached) yes
+checking for SIZE_MAX... (cached) yes
+checking for stdint.h... (cached) yes
+checking for working fcntl.h... no (bad O_NOATIME)
+checking for CFPreferencesCopyAppValue... no
+checking for CFLocaleCopyCurrent... no
+checking for ptrdiff_t... (cached) yes
+checking for stddef.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking for asprintf... (cached) yes
+checking for fwprintf... (cached) yes
+checking for newlocale... yes
+checking for putenv... (cached) yes
+checking for setenv... (cached) yes
+checking for setlocale... (cached) yes
+checking for snprintf... (cached) yes
+checking for strnlen... (cached) yes
+checking for wcslen... (cached) yes
+checking for wcsnlen... (cached) yes
+checking for mbrtowc... (cached) yes
+checking for wcrtomb... (cached) yes
+checking whether _snprintf is declared... no
+checking whether _snwprintf is declared... no
+checking whether getc_unlocked is declared... (cached) yes
+checking for nl_langinfo and CODESET... yes
+checking for LC_MESSAGES... yes
+checking for CFPreferencesCopyAppValue... (cached) no
+checking for CFLocaleCopyCurrent... (cached) no
+checking whether included gettext is requested... no
+checking for GNU gettext in libc... no
+checking for GNU gettext in libintl... yes
+checking whether to use NLS... yes
+checking where the gettext function comes from... external libintl
+checking how to link with libintl... /usr/local/lib/libintl.so -Wl,-rpath -Wl,/usr/local/lib
+checking for AIX defines... no
+configure: using internal editor
+configure: using diff viewer
+checking for subshell support... yes
+configure: Enabling VFS code
+checking for zip... /usr/bin/zip
+checking for unzip... /usr/local/bin/unzip
+checking for zipinfo code in unzip... no
+checking for LIBSSH... yes
+checking for library containing socket... none required
+checking for library containing gethostbyname... none required
+checking for struct linger.l_linger... yes
+checking for nlink_t... (cached) yes
+checking for socklen_t... (cached) yes
+checking for pmap_set... yes
+checking for pmap_getport... yes
+checking for pmap_getmaps... yes
+checking for rresvport... yes
+checking for rpc/pmap_clnt.h... yes
+checking for doxygen... no
+configure: WARNING: doxygen not found - will not generate any doxygen documentation
+checking for perl... /usr/local/bin/perl
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating src/man2hlp/man2hlp
+config.status: creating Makefile
+config.status: creating contrib/Makefile
+config.status: creating contrib/dist/Makefile
+config.status: creating contrib/dist/gentoo/Makefile
+config.status: creating contrib/dist/redhat/Makefile
+config.status: creating contrib/dist/redhat/mc.spec
+config.status: creating contrib/dist/pkginfo
+config.status: creating contrib/dist/prototype
+config.status: creating misc/Makefile
+config.status: creating misc/mc.menu
+config.status: creating misc/mcedit.menu
+config.status: creating misc/skins/Makefile
+config.status: creating misc/ext.d/Makefile
+config.status: creating misc/ext.d/doc.sh
+config.status: creating misc/ext.d/misc.sh
+config.status: creating misc/ext.d/text.sh
+config.status: creating misc/ext.d/web.sh
+config.status: creating misc/macros.d/Makefile
+config.status: creating misc/mc.ext
+config.status: creating src/Makefile
+config.status: creating src/consaver/Makefile
+config.status: creating src/editor/Makefile
+config.status: creating src/man2hlp/Makefile
+config.status: creating src/subshell/Makefile
+config.status: creating src/viewer/Makefile
+config.status: creating src/diffviewer/Makefile
+config.status: creating src/filemanager/Makefile
+config.status: creating src/vfs/Makefile
+config.status: creating src/vfs/cpio/Makefile
+config.status: creating src/vfs/extfs/Makefile
+config.status: creating src/vfs/extfs/helpers/Makefile
+config.status: creating src/vfs/extfs/helpers/a+
+config.status: creating src/vfs/extfs/helpers/apt+
+config.status: creating src/vfs/extfs/helpers/audio
+config.status: creating src/vfs/extfs/helpers/deb
+config.status: creating src/vfs/extfs/helpers/deba
+config.status: creating src/vfs/extfs/helpers/debd
+config.status: creating src/vfs/extfs/helpers/dpkg+
+config.status: creating src/vfs/extfs/helpers/iso9660
+config.status: creating src/vfs/extfs/helpers/hp48+
+config.status: creating src/vfs/extfs/helpers/lslR
+config.status: creating src/vfs/extfs/helpers/mailfs
+config.status: creating src/vfs/extfs/helpers/patchfs
+config.status: creating src/vfs/extfs/helpers/rpms+
+config.status: creating src/vfs/extfs/helpers/s3+
+config.status: creating src/vfs/extfs/helpers/uace
+config.status: creating src/vfs/extfs/helpers/ualz
+config.status: creating src/vfs/extfs/helpers/uar
+config.status: creating src/vfs/extfs/helpers/uarc
+config.status: creating src/vfs/extfs/helpers/uarj
+config.status: creating src/vfs/extfs/helpers/uc1541
+config.status: creating src/vfs/extfs/helpers/ucab
+config.status: creating src/vfs/extfs/helpers/uha
+config.status: creating src/vfs/extfs/helpers/ulha
+config.status: creating src/vfs/extfs/helpers/ulib
+config.status: creating src/vfs/extfs/helpers/urar
+config.status: creating src/vfs/extfs/helpers/uzip
+config.status: creating src/vfs/extfs/helpers/uzoo
+config.status: creating src/vfs/fish/Makefile
+config.status: creating src/vfs/fish/helpers/Makefile
+config.status: creating src/vfs/ftpfs/Makefile
+config.status: creating src/vfs/sftpfs/Makefile
+config.status: creating src/vfs/local/Makefile
+config.status: creating src/vfs/sfs/Makefile
+config.status: creating src/vfs/smbfs/Makefile
+config.status: creating src/vfs/tar/Makefile
+config.status: creating src/vfs/undelfs/Makefile
+config.status: creating lib/Makefile
+config.status: creating lib/event/Makefile
+config.status: creating lib/filehighlight/Makefile
+config.status: creating lib/mcconfig/Makefile
+config.status: creating lib/search/Makefile
+config.status: creating lib/skin/Makefile
+config.status: creating lib/strutil/Makefile
+config.status: creating lib/tty/Makefile
+config.status: creating lib/vfs/Makefile
+config.status: creating lib/widget/Makefile
+config.status: creating misc/syntax/Makefile
+config.status: creating misc/syntax/Syntax
+config.status: creating doc/Makefile
+config.status: creating doc/hints/Makefile
+config.status: creating doc/hints/l10n/Makefile
+config.status: creating doc/man/Makefile
+config.status: creating doc/man/es/Makefile
+config.status: creating doc/man/hu/Makefile
+config.status: creating doc/man/it/Makefile
+config.status: creating doc/man/pl/Makefile
+config.status: creating doc/man/ru/Makefile
+config.status: creating doc/man/sr/Makefile
+config.status: creating doc/hlp/Makefile
+config.status: creating doc/hlp/es/Makefile
+config.status: creating doc/hlp/hu/Makefile
+config.status: creating doc/hlp/it/Makefile
+config.status: creating doc/hlp/pl/Makefile
+config.status: creating doc/hlp/ru/Makefile
+config.status: creating doc/hlp/sr/Makefile
+config.status: creating intl/Makefile
+config.status: creating po/Makefile.in
+config.status: creating tests/Makefile
+config.status: creating tests/lib/Makefile
+config.status: creating tests/lib/mcconfig/Makefile
+config.status: creating tests/lib/search/Makefile
+config.status: creating tests/lib/strutil/Makefile
+config.status: creating tests/lib/vfs/Makefile
+config.status: creating tests/lib/widget/Makefile
+config.status: creating tests/src/Makefile
+config.status: creating tests/src/filemanager/Makefile
+config.status: creating tests/src/editor/Makefile
+config.status: creating tests/src/editor/test-data.txt
+config.status: creating config.h
+config.status: executing depfiles commands
+config.status: executing libtool commands
+config.status: executing po-directories commands
+config.status: creating po/POTFILES
+config.status: creating po/Makefile
+=== configuring in src/vfs/smbfs/helpers (/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/smbfs/helpers)
+configure: running /bin/sh ./configure --disable-option-checking '--prefix=/usr/local'  '--with-internal-edit' '--enable-charset' '--enable-nls' '--enable-vfs-sftp' '--enable-vfs-smb' '--with-smb-configdir=/usr/local/etc' '--with-smb-codepagedir=/usr/local/etc/codepages' '--with-subshell' '--enable-x' '--with-screen=slang' '--with-slang-includes=/usr/local/include' '--x-libraries=/usr/local/lib' '--x-includes=/usr/local/include' '--localstatedir=/var' '--mandir=/usr/local/man' '--infodir=/usr/local/info/' '--build=amd64-portbld-freebsd11.0' 'build_alias=amd64-portbld-freebsd11.0' 'CC=cc' 'CFLAGS=-O2 -pipe  -DLIBICONV_PLUG -fstack-protector -fno-strict-aliasing' 'LDFLAGS= -L/usr/local/lib -fstack-protector' 'LIBS=' 'CPPFLAGS=-I/usr/local/include -DLIBICONV_PLUG' 'CPP=cpp' 'PKG_CONFIG=pkgconf' --cache-file=/dev/null --srcdir=.
+configure: loading site script /usr/ports/Templates/config.site
+checking for gcc... cc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether cc accepts -g... yes
+checking for cc option to accept ISO C89... none needed
+checking for special C compiler options needed for large files... no
+checking for _FILE_OFFSET_BITS value needed for large files... no
+checking for gcc... (cached) cc
+checking whether we are using the GNU C compiler... (cached) yes
+checking whether cc accepts -g... (cached) yes
+checking for cc option to accept ISO C89... (cached) none needed
+checking for a BSD-compatible install... /usr/bin/install -c
+checking for gawk... (cached) /usr/bin/awk
+checking for ar... ar
+checking whether cc understands -c and -o together... yes
+checking build system type... amd64-portbld-freebsd11.0
+checking host system type... amd64-portbld-freebsd11.0
+checking target system type... amd64-portbld-freebsd11.0
+checking config.cache system type... same
+checking for autoconf... autoconf
+checking for autoheader... autoheader
+checking for inline... inline
+checking for dirent.h that defines DIR... yes
+checking for library containing opendir... none required
+checking whether time.h and sys/time.h may both be included... yes
+checking how to run the C preprocessor... cpp
+checking for grep that handles long lines and -e... (cached) /usr/bin/grep
+checking for egrep... (cached) /usr/bin/egrep
+checking for ANSI C header files... (cached) yes
+checking for sys/types.h... (cached) yes
+checking for sys/stat.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking for memory.h... (cached) yes
+checking for strings.h... (cached) yes
+checking for inttypes.h... (cached) yes
+checking for stdint.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for arpa/inet.h... (cached) yes
+checking for sys/fcntl.h... (cached) yes
+checking for sys/select.h... (cached) yes
+checking for fcntl.h... (cached) yes
+checking for sys/time.h... (cached) yes
+checking sys/unistd.h usability... yes
+checking sys/unistd.h presence... yes
+checking for sys/unistd.h... yes
+checking for unistd.h... (cached) yes
+checking for utime.h... (cached) yes
+checking sys/id.h usability... no
+checking sys/id.h presence... no
+checking for sys/id.h... no
+checking for limits.h... (cached) yes
+checking for memory.h... (cached) yes
+checking for net/if.h... (cached) yes
+checking compat.h usability... no
+checking compat.h presence... no
+checking for compat.h... no
+checking rpc/rpc.h usability... yes
+checking rpc/rpc.h presence... yes
+checking for rpc/rpc.h... yes
+checking rpcsvc/nis.h usability... yes
+checking rpcsvc/nis.h presence... yes
+checking for rpcsvc/nis.h... yes
+checking rpcsvc/yp_prot.h usability... no
+checking rpcsvc/yp_prot.h presence... yes
+configure: WARNING: rpcsvc/yp_prot.h: present but cannot be compiled
+configure: WARNING: rpcsvc/yp_prot.h:     check for missing prerequisite headers?
+configure: WARNING: rpcsvc/yp_prot.h: see the Autoconf documentation
+configure: WARNING: rpcsvc/yp_prot.h:     section "Present But Cannot Be Compiled"
+configure: WARNING: rpcsvc/yp_prot.h: proceeding with the compiler's result
+checking for rpcsvc/yp_prot.h... no
+checking rpcsvc/ypclnt.h usability... yes
+checking rpcsvc/ypclnt.h presence... yes
+checking for rpcsvc/ypclnt.h... yes
+checking for sys/param.h... (cached) yes
+checking for ctype.h... (cached) yes
+checking sys/resource.h usability... yes
+checking sys/resource.h presence... yes
+checking for sys/resource.h... yes
+checking for sys/ioctl.h... (cached) yes
+checking sys/mode.h usability... no
+checking sys/mode.h presence... no
+checking for sys/mode.h... no
+checking for sys/mman.h... (cached) yes
+checking sys/filio.h usability... yes
+checking sys/filio.h presence... yes
+checking for sys/filio.h... yes
+checking sys/priv.h usability... yes
+checking sys/priv.h presence... yes
+checking for sys/priv.h... yes
+checking for string.h... (cached) yes
+checking for strings.h... (cached) yes
+checking for sys/socket.h... (cached) yes
+checking for sys/mount.h... (cached) yes
+checking sys/vfs.h usability... no
+checking sys/vfs.h presence... no
+checking for sys/vfs.h... no
+checking sys/fs/s5param.h usability... no
+checking sys/fs/s5param.h presence... no
+checking for sys/fs/s5param.h... no
+checking sys/filsys.h usability... no
+checking sys/filsys.h presence... no
+checking for sys/filsys.h... no
+checking sys/statfs.h usability... no
+checking sys/statfs.h presence... no
+checking for sys/statfs.h... no
+checking sys/dustat.h usability... no
+checking sys/dustat.h presence... no
+checking for sys/dustat.h... no
+checking for sys/statvfs.h... (cached) yes
+checking for stdarg.h... (cached) yes
+checking sys/sockio.h usability... yes
+checking sys/sockio.h presence... yes
+checking for sys/sockio.h... yes
+checking netinet/tcp.h usability... yes
+checking netinet/tcp.h presence... yes
+checking for netinet/tcp.h... yes
+checking netinet/in_systm.h usability... yes
+checking netinet/in_systm.h presence... yes
+checking for netinet/in_systm.h... yes
+checking netinet/in_ip.h usability... no
+checking netinet/in_ip.h presence... no
+checking for netinet/in_ip.h... no
+checking sys/security.h usability... no
+checking sys/security.h presence... no
+checking for sys/security.h... no
+checking for security/pam_appl.h... (cached) yes
+checking stropts.h usability... no
+checking stropts.h presence... no
+checking for stropts.h... no
+checking for poll.h... (cached) yes
+checking syscall.h usability... no
+checking syscall.h presence... no
+checking for syscall.h... no
+checking sys/syscall.h usability... yes
+checking sys/syscall.h presence... yes
+checking for sys/syscall.h... yes
+checking for sys/acl.h... (cached) yes
+checking for sys/cdefs.h... (cached) yes
+checking size of int... 4
+checking size of long... 8
+checking size of short... 2
+checking size of off_t... 8
+checking size of ino_t... 4
+checking for an ANSI C-conforming const... yes
+checking for inline... (cached) inline
+checking whether byte ordering is bigendian... no
+checking whether char is unsigned... no
+checking return type of signal handlers... void
+checking for uid_t in sys/types.h... (cached) yes
+checking for mode_t... (cached) yes
+checking for off_t... (cached) yes
+checking for size_t... (cached) yes
+checking for pid_t... (cached) yes
+checking for ino_t... yes
+checking for loff_t... no
+checking for offset_t... no
+checking for ssize_t... (cached) yes
+checking for main in -ldl... no
+checking for crypt declaration... yes
+checking for working memcmp... yes
+checking for crypt... no
+checking for crypt in -lcrypt... (cached) yes
+checking for connect... yes
+checking for waitpid... (cached) yes
+checking for getcwd... (cached) yes
+checking for strtoul... (cached) yes
+checking for chown... (cached) yes
+checking for chmod... yes
+checking for fstat... yes
+checking for utime... (cached) yes
+checking for utimes... (cached) yes
+checking for getrlimit... (cached) yes
+checking for fsync... (cached) yes
+checking for memset... (cached) yes
+checking for memmove... (cached) yes
+checking for vsnprintf... (cached) yes
+checking for snprintf... (cached) yes
+checking for setsid... (cached) yes
+checking for pipe... (cached) yes
+checking for crypt16... no
+checking for getauthuid... no
+checking for sigprocmask... (cached) yes
+checking for sigblock... yes
+checking for sigaction... (cached) yes
+checking for innetgr... (cached) yes
+checking for setnetgrent... yes
+checking for getnetgrent... yes
+checking for endnetgrent... yes
+checking for initgroups... yes
+checking for select... (cached) yes
+checking for rdchk... no
+checking for getgrnam... yes
+checking for pathconf... (cached) yes
+checking for setpriv... no
+checking for setgidx... no
+checking for setuidx... no
+checking for setgroups... (cached) yes
+checking for mktime... yes
+checking for rename... (cached) yes
+checking for grantpt... yes
+checking for dup2... (cached) yes
+checking for yp_get_default_domain... yes
+checking for getpwanam... no
+checking for srandom... (cached) yes
+checking for random... (cached) yes
+checking for srand... (cached) yes
+checking for rand... (cached) yes
+checking for setenv... (cached) yes
+checking for usleep... (cached) yes
+checking for strcasecmp... (cached) yes
+checking for getdents... yes
+checking for llseek... no
+checking for putprpwnam in -lsecurity... no
+checking for putprpwnam... no
+checking for putprpwnam in -lsec... no
+checking for putprpwnam... (cached) no
+checking for set_auth_parameters in -lsecurity... no
+checking for set_auth_parameters... no
+checking for set_auth_parameters in -lsec... no
+checking for set_auth_parameters... (cached) no
+checking for getspnam in -lsecurity... no
+checking for getspnam... no
+checking for getspnam in -lsec... no
+checking for getspnam... (cached) no
+checking for bigcrypt in -lsecurity... no
+checking for bigcrypt... no
+checking for bigcrypt in -lsec... no
+checking for bigcrypt... (cached) no
+checking for getprpwnam in -lsecurity... no
+checking for getprpwnam... no
+checking for getprpwnam in -lsec... no
+checking for getprpwnam... (cached) no
+checking for long long... yes
+checking for sin_len in sock... yes
+checking for __FILE__ macro... yes
+checking for __FUNCTION__ macro... yes
+checking if gettimeofday takes tz argument... yes
+checking for broken readdir... no
+checking for kernel oplock type definitions... no
+checking for int16 typedef included by rpc/rpc.h... no
+checking for uint16 typedef included by rpc/rpc.h... no
+checking for int32 typedef included by rpc/rpc.h... no
+checking for uint32 typedef included by rpc/rpc.h... no
+checking for conflicting AUTH_ERROR define in rpc/rpc.h... no
+checking for netmask ifconf... no
+checking for netmask ifreq... no
+checking for netmask AIX... no
+checking for broken nisplus include files... no
+checking whether to use LDAP password database... no
+checking whether to use NISPLUS password database... no
+checking whether to use NISPLUS_HOME... no
+checking whether to use SSL... no
+checking configure summary... WARNING: No automated netmask determination - use an interfaces line
+OK
+configure: creating ./config.status
+config.status: creating include/stamp-h
+config.status: creating Makefile
+config.status: WARNING:  'Makefile.in' seems to ignore the --datarootdir setting
+config.status: creating include/config.h
+configure:
+
+Configuration:
+
+  Source code location:       .
+  Compiler:                   cc
+  Compiler flags:              -Wassign-enum -Wbad-function-cast -Wcomment -Wconditional-uninitialized -Wdeclaration-after-statement -Wfloat-conversion -Wfloat-equal -Wformat -Wformat-security -Wimplicit -Wignored-qualifiers -Wlogical-not-parentheses -Wmaybe-uninitialized -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wunused-variable -Wmissing-prototypes -Wmissing-variable-declarations -Wnested-externs -Wno-long-long -Wno-unreachable-code -Wparentheses -Wpointer-arith -Wpointer-sign -Wredundant-decls -Wreturn-type -Wsequence-point -Wshadow -Wsign-compare -Wstrict-prototypes -Wswitch -Wswitch-default -Wtype-limits -Wundef -Wuninitialized -Wunreachable-code -Wunused-variable -Wunused-function -Wunused-label -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wwrite-strings  -O2 -pipe  -DLIBICONV_PLUG -fstack-protector -fno-strict-aliasing
+  File system:                Midnight Commander Virtual Filesystem
+                              cpio, extfs, fish, ftp, sfs, sftp, smb, tar
+  Screen library:             S-Lang
+  Mouse support:              xterm only
+  X11 events support:         yes
+  With subshell support:      yes
+  With background operations: yes
+  Internal editor:            yes
+  Diff viewer:                yes
+  Support for charset:        yes
+  Search type:                glib-regexp
+
+configure: WARNING: unrecognized options: --enable-x
+===========================================================================
+=======================<phase: build          >============================
+===>  Building for mc-4.8.17
+gmake[1]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17'
+gmake  all-recursive
+gmake[2]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17'
+Making all in po
+gmake[3]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/po'
+gmake[3]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/po'
+Making all in lib
+gmake[3]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib'
+Making all in event
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/event'
+  CC       event.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       manage.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       raise.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmcevent.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/event'
+Making all in filehighlight
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/filehighlight'
+  CC       common.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       get-color.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       ini-file-read.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmcfilehighlight.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/filehighlight'
+Making all in mcconfig
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/mcconfig'
+  CC       common.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       get.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       set.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       paths.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+paths.c:142:59: warning: integer constant not in range of enumerated type 'GFileTest' [-Wassign-enum]
+    if ((!g_file_test (directory_name, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) &&
+                                                          ^
+paths.c:276:59: warning: integer constant not in range of enumerated type 'GFileTest' [-Wassign-enum]
+    is_present = g_file_test (old_dir, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR);
+                                                          ^
+3 warnings generated.
+  CCLD     libmcconfig.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/mcconfig'
+Making all in search
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/search'
+  CC       search.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       lib.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       normal.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       regex.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+regex.c:588:31: warning: integer constant not in range of enumerated type 'replace_transform_type_t' [-Wassign-enum]
+            *replace_flags &= ~REPLACE_T_LOW_TRANSFORM;
+                              ^
+regex.c:595:31: warning: integer constant not in range of enumerated type 'replace_transform_type_t' [-Wassign-enum]
+            *replace_flags &= ~REPLACE_T_UPP_TRANSFORM;
+                              ^
+regex.c:639:31: warning: integer constant not in range of enumerated type 'replace_transform_type_t' [-Wassign-enum]
+            *replace_flags &= ~REPLACE_T_UPP_TRANSFORM_CHAR;
+                              ^
+regex.c:646:31: warning: integer constant not in range of enumerated type 'replace_transform_type_t' [-Wassign-enum]
+            *replace_flags &= ~REPLACE_T_LOW_TRANSFORM_CHAR;
+                              ^
+regex.c:791:63: warning: integer constant not in range of enumerated type 'GRegexCompileFlags' [-Wassign-enum]
+        GRegexCompileFlags g_regex_options = G_REGEX_OPTIMIZE | G_REGEX_DOTALL;
+                                                              ^
+regex.c:814:69: warning: integer constant not in range of enumerated type 'GRegexMatchFlags' [-Wassign-enum]
+            g_regex_new (mc_search_cond->str->str, g_regex_options, 0, &mcerror);
+                                                                    ^
+7 warnings generated.
+  CC       glob.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       hex.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libsearch.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/search'
+Making all in skin
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/skin'
+  CC       colors.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       colors-old.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       common.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       hc-skins.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       ini-file.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       lines.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmcskin.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/skin'
+Making all in tty
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/tty'
+  CC       color-internal.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       color.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       key.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+key.c:749:20: warning: integer constant not in range of enumerated type 'enum Gpm_Etype' [-Wassign-enum]
+        ev->type = 0;           /* In case we return on an invalid sequence */
+                   ^
+key.c:788:28: warning: integer constant not in range of enumerated type 'enum Gpm_Etype' [-Wassign-enum]
+                ev->type = 0;
+                           ^
+key.c:804:24: warning: integer constant not in range of enumerated type 'enum Gpm_Etype' [-Wassign-enum]
+            ev->type = 0;
+                       ^
+key.c:847:24: warning: integer constant not in range of enumerated type 'enum Gpm_Etype' [-Wassign-enum]
+            ev->type = 0;
+                       ^
+5 warnings generated.
+  CC       keyxdef.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       mouse.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       tty.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       win.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       x11conn.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       color-slang.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       tty-slang.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmctty.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/tty'
+Making all in vfs
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/vfs'
+  CC       direntry.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+direntry.c:188:56: warning: integer constant not in range of enumerated type 'CANON_PATH_FLAGS' [-Wassign-enum]
+    custom_canonicalize_pathname (path, CANON_PATH_ALL & (~CANON_PATH_REMDOUBLEDOTS));
+                                                       ^
+direntry.c:252:56: warning: integer constant not in range of enumerated type 'CANON_PATH_FLAGS' [-Wassign-enum]
+    custom_canonicalize_pathname (path, CANON_PATH_ALL & (~CANON_PATH_REMDOUBLEDOTS));
+                                                       ^
+3 warnings generated.
+  CC       gc.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       interface.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       parse_ls_vga.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       path.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       vfs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       utilvfs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       netutil.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmcvfs.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/vfs'
+Making all in strutil
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/strutil'
+  CC       replace.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       strescape.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       strutil8bit.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       strutilascii.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       strutil.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       strutilutf8.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       strverscmp.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       xstrtol.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmcstrutil.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/strutil'
+Making all in widget
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/widget'
+  CC       button.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       buttonbar.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+buttonbar.c:253:20: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    w->pos_flags = WPOS_KEEP_HORZ | WPOS_KEEP_BOTTOM;
+                   ^
+2 warnings generated.
+  CC       check.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       dialog.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       dialog-switch.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       gauge.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       groupbox.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       hline.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       history.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       input.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       input_complete.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+input_complete.c:383:42: warning: variable 'p' may be uninitialized when used here [-Wconditional-uninitialized]
+        temp = g_string_new_len (*env_p, p - *env_p);
+                                         ^
+input_complete.c:356:18: note: initialize the variable 'p' to silence this warning
+    const char *p;
+                 ^
+                  = NULL
+input_complete.c:593:14: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+    flags &= ~INPUT_COMPLETE_SHELL_ESC;
+             ^
+input_complete.c:898:29: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+            state->flags &= ~INPUT_COMPLETE_VARIABLES;
+                            ^
+input_complete.c:929:29: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+            state->flags &= ~(INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_COMMANDS);
+                            ^
+5 warnings generated.
+  CC       listbox-window.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       listbox.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       label.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       menu.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       mouse.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       quick.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+quick.c:410:72: warning: integer constant not in range of enumerated type 'dlg_flags_t' [-Wassign-enum]
+                         quick_dlg->help, quick_dlg->title, DLG_CENTER | DLG_TRYUP);
+                                                                       ^
+2 warnings generated.
+  CC       radio.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       widget-common.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       wtools.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+wtools.c:314:78: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+        add_widget_autopos (query_dlg, label_new (2, 3, text), WPOS_KEEP_TOP | WPOS_CENTER_HORZ,
+                                                                             ^
+wtools.c:358:78: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+        add_widget_autopos (query_dlg, label_new (2, 3, text), WPOS_KEEP_TOP | WPOS_CENTER_HORZ,
+                                                                             ^
+wtools.c:704:60: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    add_widget_autopos (sm->dlg, ssm->label, WPOS_KEEP_TOP | WPOS_CENTER_HORZ, NULL);
+                                                           ^
+wtools.c:707:51: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    add_widget_autopos (sm->dlg, b, WPOS_KEEP_TOP | WPOS_CENTER_HORZ, NULL);
+                                                  ^
+5 warnings generated.
+  CCLD     libmcwidget.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib/widget'
+Making all in .
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib'
+  CC       utilunix.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+utilunix.c:531:54: warning: integer constant not in range of enumerated type 'GSpawnFlags' [-Wassign-enum]
+        (NULL, argv, NULL, G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_SEARCH_PATH, NULL, NULL,
+                                                     ^
+2 warnings generated.
+  CC       util.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       hook.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       glibcompat.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       global.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       keybind.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       lock.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       serialize.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       shell.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       timefmt.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       timer.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       charsets.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmc.la
+copying selected object files to avoid basename conflicts...
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib'
+gmake[3]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/lib'
+Making all in src
+gmake[3]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src'
+Making all in filemanager
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/filemanager'
+  CC       achown.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       boxes.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+boxes.c:1150:55: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                             INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD),
+                                                      ^
+2 warnings generated.
+  CC       chmod.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       chown.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       cmd.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+cmd.c:431:100: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                           INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD | INPUT_COMPLETE_HOSTNAMES |
+                                                                                                   ^
+cmd.c:684:48: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                      INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_COMMANDS);
+                                               ^
+3 warnings generated.
+  CC       command.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+command.c:479:95: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                     | INPUT_COMPLETE_HOSTNAMES | INPUT_COMPLETE_CD | INPUT_COMPLETE_COMMANDS |
+                                                                                              ^
+2 warnings generated.
+  CC       dir.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       ext.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       file.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       filegui.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+filegui.c:427:66: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+        { N_("Target file already exists!"), 3, 4, WPOS_KEEP_TOP | WPOS_CENTER_HORZ, 0 },
+                                                                 ^
+filegui.c:429:37: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+        { "%s", 4, 4, WPOS_KEEP_TOP | WPOS_CENTER_HORZ, 0 },
+                                    ^
+filegui.c:455:47: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+        { N_("&Abort"), 14, 25, WPOS_KEEP_TOP | WPOS_CENTER_HORZ, REPLACE_ABORT }
+                                              ^
+filegui.c:482:66: warning: integer constant not in range of enumerated type 'vfs_path_flag_t' [-Wassign-enum]
+        vfs_path_to_str_flags (stripped_vpath, 0, VPF_STRIP_HOME | VPF_STRIP_PASSWORD);
+                                                                 ^
+filegui.c:772:80: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+        add_widget_autopos (ui->op_dlg, ui->progress_file_gauge, WPOS_KEEP_TOP | WPOS_KEEP_HORZ,
+                                                                               ^
+filegui.c:790:51: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+                                    WPOS_KEEP_TOP | WPOS_KEEP_HORZ, NULL);
+                                                  ^
+filegui.c:1287:31: warning: implicit conversion from 'int' to 'mode_t' (aka 'unsigned short') changes value from 262143 to 65535 [-Wconstant-conversion]
+            ctx->umask_kill = 0777777;
+                            ~ ^~~~~~~
+8 warnings generated.
+  CC       filenot.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       fileopctx.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+fileopctx.c:82:23: warning: implicit conversion from 'int' to 'mode_t' (aka 'unsigned short') changes value from 262143 to 65535 [-Wconstant-conversion]
+    ctx->umask_kill = 0777777;
+                    ~ ^~~~~~~
+2 warnings generated.
+  CC       find.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+find.c:673:38: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                   INPUT_COMPLETE_CD | INPUT_COMPLETE_FILENAMES);
+                                     ^
+find.c:685:38: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                   INPUT_COMPLETE_CD | INPUT_COMPLETE_FILENAMES);
+                                     ^
+find.c:696:45: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                   INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
+                                            ^
+4 warnings generated.
+  CC       hotlist.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+hotlist.c:180:73: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST | LIST_VFSLIST | LIST_MOVELIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                                                        ^
+hotlist.c:183:42: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_VFSLIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                         ^
+hotlist.c:185:42: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_VFSLIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                         ^
+hotlist.c:188:42: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                         ^
+hotlist.c:190:58: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST | LIST_MOVELIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                                         ^
+hotlist.c:192:74: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST | LIST_VFSLIST | LIST_MOVELIST, WPOS_KEEP_RIGHT | WPOS_KEEP_BOTTOM },
+                                                                         ^
+hotlist.c:194:42: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                         ^
+hotlist.c:196:42: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                         ^
+hotlist.c:198:43: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_MOVELIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                          ^
+hotlist.c:200:43: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_MOVELIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                          ^
+hotlist.c:202:42: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+                                         ^
+hotlist.c:204:42: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+            LIST_HOTLIST, WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM }
+                                         ^
+hotlist.c:792:65: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    add_widget_autopos (hotlist_dlg, path_box, WPOS_KEEP_BOTTOM | WPOS_KEEP_HORZ, NULL);
+                                                                ^
+hotlist.c:795:62: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    add_widget_autopos (hotlist_dlg, pname, WPOS_KEEP_BOTTOM | WPOS_KEEP_LEFT, NULL);
+                                                             ^
+hotlist.c:988:69: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                             FALSE, FALSE, INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD),
+                                                                    ^
+16 warnings generated.
+  CC       info.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       layout.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+layout.c:1356:76: warning: integer constant not in range of enumerated type 'vfs_path_flag_t' [-Wassign-enum]
+        vfs_path_to_str_flags (current_panel->cwd_vpath, 0, VPF_STRIP_HOME | VPF_STRIP_PASSWORD);
+                                                                           ^
+2 warnings generated.
+  CC       midnight.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       mountlist.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+mountlist.c:302:8: warning: '__linux__' is not defined, evaluates to 0 [-Wundef]
+#if ! (__linux__ && (__GLIBC__ || __UCLIBC__))
+       ^
+mountlist.c:367:8: warning: '__linux__' is not defined, evaluates to 0 [-Wundef]
+#if ! (__linux__ && (__GLIBC__ || __UCLIBC__))
+       ^
+mountlist.c:1295:3: warning: unused label 'free_then_fail' [-Wunused-label]
+  free_then_fail:
+  ^~~~~~~~~~~~~~~
+4 warnings generated.
+  CC       panelize.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+panelize.c:189:92: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                   INPUT_COMPLETE_VARIABLES | INPUT_COMPLETE_USERNAMES | INPUT_COMPLETE_CD |
+                                                                                           ^
+2 warnings generated.
+  CC       panel.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+panel.c:1226:68: warning: integer constant not in range of enumerated type 'vfs_path_flag_t' [-Wassign-enum]
+                               VPF_STRIP_HOME | VPF_STRIP_PASSWORD | VPF_HIDE_CHARSET);
+                                                                   ^
+panel.c:2579:35: warning: integer constant not in range of enumerated type 'panel_select_flags_t' [-Wassign-enum]
+    panels_options.select_flags = 0;
+                                  ^
+panel.c:4052:22: warning: integer constant not in range of enumerated type 'panel_update_flags_t' [-Wassign-enum]
+            flags &= ~UP_RELOAD;
+                     ^
+4 warnings generated.
+  CC       tree.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+tree.c:719:58: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                                INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
+                                                         ^
+tree.c:757:55: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                             INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
+                                                      ^
+3 warnings generated.
+  CC       treestore.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       usermenu.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+usermenu.c:477:87: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                                  INPUT_COMPLETE_HOSTNAMES | INPUT_COMPLETE_VARIABLES |
+                                                                                      ^
+2 warnings generated.
+  CCLD     libmcfilemanager.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/filemanager'
+Making all in man2hlp
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/man2hlp'
+gmake[4]: Nothing to be done for 'all'.
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/man2hlp'
+Making all in vfs
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs'
+Making all in local
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/local'
+  CC       local.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libvfs-local.la
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/local'
+Making all in cpio
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/cpio'
+  CC       cpio.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libvfs-cpio.la
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/cpio'
+Making all in extfs
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/extfs'
+Making all in helpers
+gmake[6]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/extfs/helpers'
+gmake[6]: Nothing to be done for 'all'.
+gmake[6]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/extfs/helpers'
+gmake[6]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/extfs'
+  CC       extfs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libvfs-extfs.la
+gmake[6]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/extfs'
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/extfs'
+Making all in fish
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/fish'
+Making all in helpers
+gmake[6]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/fish/helpers'
+gmake[6]: Nothing to be done for 'all'.
+gmake[6]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/fish/helpers'
+gmake[6]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/fish'
+  CC       fish.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+fish.c:1609:27: warning: integer constant not in range of enumerated type 'vfs_subclass_flags_t' [-Wassign-enum]
+    fish_subclass.flags = VFS_S_REMOTE | VFS_S_USETMP;
+                          ^
+2 warnings generated.
+  CCLD     libvfs-fish.la
+gmake[6]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/fish'
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/fish'
+Making all in ftpfs
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/ftpfs'
+  CC       ftpfs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+ftpfs.c:2583:28: warning: integer constant not in range of enumerated type 'vfs_subclass_flags_t' [-Wassign-enum]
+    ftpfs_subclass.flags = VFS_S_REMOTE | VFS_S_USETMP;
+                           ^
+2 warnings generated.
+  CCLD     libvfs-ftpfs.la
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/ftpfs'
+Making all in sftpfs
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/sftpfs'
+  CC       config_parser.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       connection.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       dir.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       file.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       init.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       internal.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       vfs_class.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       vfs_subclass.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libvfs-sftpfs.la
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/sftpfs'
+Making all in sfs
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/sfs'
+  CC       sfs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libvfs-sfs.la
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/sfs'
+Making all in smbfs
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/smbfs'
+Making all in helpers
+gmake[6]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/smbfs/helpers'
+Using FLAGS =  -O2 -pipe  -DLIBICONV_PLUG -fstack-protector -fno-strict-aliasing -Iinclude -I./include -I/usr/local/include -DLIBICONV_PLUG -DCONFIGFILE="/usr/local/etc/smb.conf" -DLMHOSTSFILE="/usr/local/etc/lmhosts" -DCODEPAGEDIR="/usr/local/etc/codepages" -DDRIVERFILE="/usr/local/lib/printers.def" -DHAVE_INCLUDES_H
+Compiling param/loadparm.c
+Compiling param/params.c
+Compiling lib/time.c
+lib/time.c:178:23: warning: shifting a negative signed value is undefined [-Wshift-negative-value]
+                low = TIME_T_MIN;
+                      ^~~~~~~~~~
+lib/time.c:46:22: note: expanded from macro 'TIME_T_MIN'
+                    : ~ (time_t) 0 << (sizeof (time_t) * CHAR_BIT - 1))
+                      ~~~~~~~~~~~~ ^
+lib/time.c:182:24: warning: shifting a negative signed value is undefined [-Wshift-negative-value]
+                high = TIME_T_MAX;
+                       ^~~~~~~~~~
+lib/time.c:49:36: note: expanded from macro 'TIME_T_MAX'
+#define TIME_T_MAX (~ (time_t) 0 - TIME_T_MIN)
+                                   ^~~~~~~~~~
+lib/time.c:46:22: note: expanded from macro 'TIME_T_MIN'
+                    : ~ (time_t) 0 << (sizeof (time_t) * CHAR_BIT - 1))
+                      ~~~~~~~~~~~~ ^
+lib/time.c:281:25: warning: shifting a negative signed value is undefined [-Wshift-negative-value]
+    time_t l_time_min = TIME_T_MIN;
+                        ^~~~~~~~~~
+lib/time.c:46:22: note: expanded from macro 'TIME_T_MIN'
+                    : ~ (time_t) 0 << (sizeof (time_t) * CHAR_BIT - 1))
+                      ~~~~~~~~~~~~ ^
+lib/time.c:282:25: warning: shifting a negative signed value is undefined [-Wshift-negative-value]
+    time_t l_time_max = TIME_T_MAX;
+                        ^~~~~~~~~~
+lib/time.c:49:36: note: expanded from macro 'TIME_T_MAX'
+#define TIME_T_MAX (~ (time_t) 0 - TIME_T_MIN)
+                                   ^~~~~~~~~~
+lib/time.c:46:22: note: expanded from macro 'TIME_T_MIN'
+                    : ~ (time_t) 0 << (sizeof (time_t) * CHAR_BIT - 1))
+                      ~~~~~~~~~~~~ ^
+4 warnings generated.
+Compiling lib/slprintf.c
+Compiling lib/util.c
+lib/util.c:345:34: warning: comparison of array 'global_scope' not equal to a null pointer is always true [-Wtautological-pointer-compare]
+    for (i = 0, len = 0; NULL != global_scope; i++, len++)
+                         ~~~~    ^~~~~~~~~~~~
+1 warning generated.
+Compiling lib/debug.c
+Compiling lib/system.c
+Compiling lib/util_str.c
+Compiling lib/kanji.c
+Compiling lib/charcnv.c
+Compiling lib/charset.c
+lib/charset.c:269:81: warning: format specifies type 'unsigned short' but the argument has type 'unsigned int' [-Wformat]
+Needed %hu, got %hu.\n", codepage_file_name, (uint16) CODEPAGE_FILE_VERSION_ID, SVAL (buf, CODEPAGE_VERSION_OFFSET)));
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                %u
+include/byteorder.h:127:23: note: expanded from macro 'SVAL'
+#define SVAL(buf,pos) (PVAL(buf,pos)|PVAL(buf,(pos)+1)<<8)
+                      ^
+include/smb.h:120:20: note: expanded from macro 'DEBUG'
+       && (dbgtext body) )
+                   ^~~~
+lib/charset.c:277:72: warning: format specifies type 'unsigned short' but the argument has type 'unsigned int' [-Wformat]
+Needed %hu, got %hu.\n", codepage_file_name, (uint16) client_codepage, SVAL (buf, CODEPAGE_CLIENT_CODEPAGE_OFFSET)));
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                %u
+include/byteorder.h:127:23: note: expanded from macro 'SVAL'
+#define SVAL(buf,pos) (PVAL(buf,pos)|PVAL(buf,(pos)+1)<<8)
+                      ^
+include/smb.h:120:20: note: expanded from macro 'DEBUG'
+       && (dbgtext body) )
+                   ^~~~
+2 warnings generated.
+Compiling lib/username.c
+Compiling lib/util_file.c
+Compiling lib/util_sock.c
+Compiling lib/md4.c
+Compiling lib/interface.c
+Compiling lib/netmask.c
+Compiling libsmb/clientgen.c
+Compiling libsmb/pwd_cache.c
+Compiling libsmb/smbencrypt.c
+Compiling libsmb/smbdes.c
+Compiling libsmb/nmblib.c
+libsmb/nmblib.c:78:36: warning: comparison of array 'res->rdata' equal to a null pointer is always false [-Wtautological-pointer-compare]
+    if (res->rdlength == 0 || res->rdata == NULL)
+                              ~~~~~^~~~~    ~~~~
+1 warning generated.
+Compiling libsmb/namequery.c
+libsmb/namequery.c:548:9: warning: comparison of array 'name_resolve_list' equal to a null pointer is always false [-Wtautological-pointer-compare]
+    if (name_resolve_list == NULL || *name_resolve_list == '\0')
+        ^~~~~~~~~~~~~~~~~    ~~~~
+1 warning generated.
+Compiling libsmb/nterr.c
+Compiling libsmb/smberr.c
+ar cr libsamba.a param/loadparm.o param/params.o lib/time.o lib/slprintf.o lib/util.o lib/debug.o lib/system.o lib/util_str.o lib/kanji.o lib/charcnv.o lib/charset.o lib/username.o lib/util_file.o lib/util_sock.o lib/md4.o lib/interface.o lib/netmask.o libsmb/clientgen.o libsmb/pwd_cache.o libsmb/smbencrypt.o libsmb/smbdes.o libsmb/nmblib.o libsmb/namequery.o libsmb/nterr.o libsmb/smberr.o
+gmake[6]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/smbfs/helpers'
+gmake[6]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/smbfs'
+  CC       smbfs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+smbfs.c:1213:5: warning: code will never be executed [-Wunreachable-code]
+    vfs_die ("Internal error: smbfs_get_free_bucket");
+    ^~~~~~~
+2 warnings generated.
+  CCLD     libvfs-smbfs.la
+gmake[6]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/smbfs'
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/smbfs'
+Making all in tar
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/tar'
+  CC       tar.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libvfs-tar.la
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs/tar'
+gmake[5]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs'
+  CC       plugins_init.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmc-vfs.la
+gmake[5]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs'
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/vfs'
+Making all in viewer
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/viewer'
+  CC       actions_cmd.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       ascii.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       coord_cache.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       datasource.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       dialogs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       display.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       growbuf.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       hex.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       lib.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       mcviewer.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       move.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       nroff.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       search.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libmcviewer.la
+copying selected object files to avoid basename conflicts...
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/viewer'
+Making all in editor
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/editor'
+  CC       bookmark.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       choosesyntax.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       edit.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       editbuffer.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       editcmd.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+editcmd.c:680:43: warning: integer constant not in range of enumerated type 'edit_search_line_t' [-Wassign-enum]
+    edit_search_line_t search_line_type = 0;
+                                          ^
+editcmd.c:2101:57: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                               INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
+                                                        ^
+editcmd.c:3227:96: warning: integer constant not in range of enumerated type 'input_complete_t' [-Wassign-enum]
+                      | INPUT_COMPLETE_HOSTNAMES | INPUT_COMPLETE_CD | INPUT_COMPLETE_COMMANDS |
+                                                                                               ^
+4 warnings generated.
+  CC       editcmd_dialogs.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+editcmd_dialogs.c:324:65: warning: integer constant not in range of enumerated type 'dlg_flags_t' [-Wassign-enum]
+                    NULL, NULL, heading, DLG_CENTER | DLG_TRYUP | DLG_WANT_TAB);
+                                                                ^
+editcmd_dialogs.c:334:43: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+                            WPOS_KEEP_TOP | WPOS_CENTER_HORZ, NULL);
+                                          ^
+3 warnings generated.
+  CC       editdraw.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       editmenu.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       editoptions.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       editwidget.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+editwidget.c:161:34: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    quick_widgets[0].pos_flags = WPOS_KEEP_TOP | WPOS_CENTER_HORZ;
+                                 ^
+editwidget.c:162:34: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    quick_widgets[2].pos_flags = WPOS_KEEP_TOP | WPOS_CENTER_HORZ;
+                                 ^
+editwidget.c:163:34: warning: integer constant not in range of enumerated type 'widget_pos_flags_t' [-Wassign-enum]
+    quick_widgets[4].pos_flags = WPOS_KEEP_TOP | WPOS_CENTER_HORZ;
+                                 ^
+4 warnings generated.
+  CC       etags.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       format.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       syntax.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libedit.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/editor'
+Making all in diffviewer
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/diffviewer'
+  CC       search.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       ydiff.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+ydiff.c:2771:60: warning: integer constant not in range of enumerated type 'vfs_path_flag_t' [-Wassign-enum]
+    path = vfs_path_to_str_flags (vpath, 0, VPF_STRIP_HOME | VPF_STRIP_PASSWORD);
+                                                           ^
+2 warnings generated.
+  CCLD     libdiffviewer.la
+copying selected object files to avoid basename conflicts...
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/diffviewer'
+Making all in subshell
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/subshell'
+  CC       common.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       proxyfunc.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libsubshell.la
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src/subshell'
+gmake[4]: Entering directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src'
+  CC       cons.handler.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+cons.handler.c:411:29: warning: implicit declaration of function 'min' is invalid in C99 [-Wimplicit-function-declaration]
+        for (col = 0; col < min (COLS, screen_info.mv_csz); col++)
+                            ^
+2 warnings generated.
+  CC       args.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       clipboard.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       events_init.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       execute.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       help.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+help.c:1101:44: warning: integer constant not in range of enumerated type 'dlg_flags_t' [-Wassign-enum]
+                    DLG_TRYUP | DLG_CENTER | DLG_WANT_TAB);
+                                           ^
+2 warnings generated.
+  CC       keybind-defaults.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       learn.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       setup.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+setup.c:148:39: warning: integer constant not in range of enumerated type 'panel_select_flags_t' [-Wassign-enum]
+    .select_flags = SELECT_MATCH_CASE | SELECT_SHELL_PATTERNS
+                                      ^
+2 warnings generated.
+  CC       textconf.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       util.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       selcodepage.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CC       background.lo
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     libinternal.la
+copying selected object files to avoid basename conflicts...
+  CC       main.o
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+  CCLD     mc
+./.libs/libinternal.a(cons.handler.o): In function `show_console_contents':
+cons.handler.c:(.text+0x98): undefined reference to `min'
+cons.handler.c:(.text+0xde): undefined reference to `min'
+cc: error: linker command failed with exit code 1 (use -v to see invocation)
+Makefile:658: recipe for target 'mc' failed
+gmake[4]: *** [mc] Error 1
+gmake[4]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src'
+Makefile:716: recipe for target 'all-recursive' failed
+gmake[3]: *** [all-recursive] Error 1
+gmake[3]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17/src'
+Makefile:616: recipe for target 'all-recursive' failed
+gmake[2]: *** [all-recursive] Error 1
+gmake[2]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17'
+Makefile:546: recipe for target 'all' failed
+gmake[1]: *** [all] Error 2
+gmake[1]: Leaving directory '/wrkdirs/usr/ports/misc/mc/work/mc-4.8.17'
+*** Error code 1
+
+Stop.
+make: stopped in /usr/ports/misc/mc
+build of misc/mc ended at Wed May 11 11:42:47 CEST 2016
+build time: 00:04:51
+!!! build failure encountered !!!

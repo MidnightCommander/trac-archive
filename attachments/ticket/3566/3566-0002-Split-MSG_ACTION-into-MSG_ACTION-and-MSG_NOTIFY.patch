@@ -1,0 +1,227 @@
+From f6f6e09f79d90ecd5d1fc3d7ec4c6d06a006a3f3 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 21 Jan 2016 10:04:46 +0200
+Subject: [PATCH 2/2] Split MSG_ACTION into MSG_ACTION and MSG_NOTIFY.
+
+---
+ lib/widget/check.c         | 2 +-
+ lib/widget/listbox.c       | 2 +-
+ lib/widget/radio.c         | 4 ++--
+ lib/widget/widget-common.h | 6 +++---
+ src/editor/editcmd.c       | 2 +-
+ src/filemanager/boxes.c    | 6 +++---
+ src/filemanager/chmod.c    | 8 ++------
+ src/filemanager/find.c     | 2 +-
+ src/filemanager/hotlist.c  | 9 +--------
+ src/filemanager/layout.c   | 2 +-
+ src/filemanager/panelize.c | 9 +--------
+ 11 files changed, 17 insertions(+), 35 deletions(-)
+
+diff --git a/lib/widget/check.c b/lib/widget/check.c
+index 3ad7e05..65771dc 100644
+--- a/lib/widget/check.c
++++ b/lib/widget/check.c
+@@ -76,7 +76,7 @@ check_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+             return MSG_NOT_HANDLED;
+         c->state ^= C_BOOL;
+         c->state ^= C_CHANGE;
+-        send_message (WIDGET (w)->owner, w, MSG_ACTION, 0, NULL);
++        send_message (WIDGET (w)->owner, w, MSG_NOTIFY, 0, NULL);
+         send_message (w, sender, MSG_FOCUS, ' ', data);
+         return MSG_HANDLED;
+ 
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index 9d8e965..38e9ac6 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -391,7 +391,7 @@ static void
+ listbox_on_change (WListbox * l)
+ {
+     listbox_draw (l, TRUE);
+-    send_message (WIDGET (l)->owner, l, MSG_ACTION, l->pos, NULL);
++    send_message (WIDGET (l)->owner, l, MSG_NOTIFY, l->pos, NULL);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/radio.c b/lib/widget/radio.c
+index f40570e..b206f50 100644
+--- a/lib/widget/radio.c
++++ b/lib/widget/radio.c
+@@ -85,7 +85,7 @@ radio_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         {
+         case ' ':
+             r->sel = r->pos;
+-            send_message (w->owner, w, MSG_ACTION, 0, NULL);
++            send_message (w->owner, w, MSG_NOTIFY, 0, NULL);
+             send_message (w, sender, MSG_FOCUS, ' ', data);
+             return MSG_HANDLED;
+ 
+@@ -110,7 +110,7 @@ radio_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         }
+ 
+     case MSG_CURSOR:
+-        send_message (w->owner, w, MSG_ACTION, 0, NULL);
++        send_message (w->owner, w, MSG_NOTIFY, 0, NULL);
+         send_message (w, sender, MSG_FOCUS, ' ', data);
+         widget_move (r, r->pos, 1);
+         return MSG_HANDLED;
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index 0398a1e..57fb984 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -33,9 +33,9 @@ typedef enum
+     MSG_HOTKEY_HANDLED,         /* A widget has got the hotkey */
+     MSG_UNHANDLED_KEY,          /* Key that no widget handled */
+     MSG_POST_KEY,               /* The key has been handled */
+-    MSG_ACTION,                 /* Send to widget to handle command or
+-                                 * state of check- and radiobuttons has changed
+-                                 * and listbox current entry has changed */
++    MSG_ACTION,                 /* Send to widget to handle command */
++    MSG_NOTIFY,                 /* Typically sent to dialog to inform it of state-change
++                                 * of listboxes, check- and radiobuttons. */
+     MSG_CURSOR,                 /* Sent to widget to position the cursor */
+     MSG_IDLE,                   /* The idle state is active */
+     MSG_RESIZE,                 /* Screen size has changed */
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 0d2d6e1..0c8dfd6 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -160,7 +160,7 @@ edit_save_mode_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm
+ {
+     switch (msg)
+     {
+-    case MSG_ACTION:
++    case MSG_NOTIFY:
+         if (sender != NULL && sender->id == edit_save_mode_radio_id)
+         {
+             Widget *ww;
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 1860735..fef947a 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -129,7 +129,7 @@ configure_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, voi
+ {
+     switch (msg)
+     {
+-    case MSG_ACTION:
++    case MSG_NOTIFY:
+         /* message from "Single press" checkbutton */
+         if (sender != NULL && sender->id == configure_old_esc_mode_id)
+         {
+@@ -306,7 +306,7 @@ panel_listing_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
+         }
+         return MSG_NOT_HANDLED;
+ 
+-    case MSG_ACTION:
++    case MSG_NOTIFY:
+         if (sender != NULL && sender->id == panel_listing_types_id)
+         {
+             WCheck *ch;
+@@ -427,7 +427,7 @@ confvfs_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+ {
+     switch (msg)
+     {
+-    case MSG_ACTION:
++    case MSG_NOTIFY:
+         /* message from "Always use ftp proxy" checkbutton */
+         if (sender != NULL && sender->id == ftpfs_always_use_proxy_id)
+         {
+diff --git a/src/filemanager/chmod.c b/src/filemanager/chmod.c
+index b51ce40..715e457 100644
+--- a/src/filemanager/chmod.c
++++ b/src/filemanager/chmod.c
+@@ -220,16 +220,12 @@ chmod_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+ 
+     switch (msg)
+     {
+-    case MSG_ACTION:
++    case MSG_NOTIFY:
+         {
+             /* handle checkboxes */
+             int i;
+ 
+-            /* close dialog due to SIGINT (ctrl-g) */
+-            if (sender == NULL && parm == CK_Cancel)
+-                return MSG_NOT_HANDLED;
+-
+-            /* whether action was sent by checkbox? */
++            /* whether notification was sent by checkbox? */
+             for (i = 0; i < check_perm_num; i++)
+                 if (sender == WIDGET (check_perm[i].check))
+                     break;
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index e0956d0..009f49e 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -428,7 +428,7 @@ find_parm_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, voi
+ 
+     switch (msg)
+     {
+-    case MSG_ACTION:
++    case MSG_NOTIFY:
+         if (sender == WIDGET (content_use_cbox))
+         {
+             gboolean disable = !(content_use_cbox->state & C_BOOL);
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index db96ce8..0a7edad 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -577,6 +577,7 @@ hotlist_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+     switch (msg)
+     {
+     case MSG_INIT:
++    case MSG_NOTIFY:           /* MSG_NOTIFY is fired by the listbox to tell us the item has changed. */
+         update_path_name ();
+         return MSG_HANDLED;
+ 
+@@ -593,14 +594,6 @@ hotlist_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         dlg_set_size (h, LINES - (h == hotlist_dlg ? 2 : 6), COLS - 6);
+         return MSG_HANDLED;
+ 
+-    case MSG_ACTION:
+-        if (sender == NULL)
+-            return MSG_NOT_HANDLED;
+-
+-        /* The listbox tells us the item has changed. */
+-        update_path_name ();
+-        return MSG_HANDLED;
+-
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+     }
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index cb4e1be..37e6878 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -371,7 +371,7 @@ layout_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *
+         }
+         return MSG_HANDLED;
+ 
+-    case MSG_ACTION:
++    case MSG_NOTIFY:
+         if (sender == WIDGET (radio_widget))
+         {
+             if (panels_layout.horizontal_split != radio_widget->sel)
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 8050244..5742fea 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -113,14 +113,7 @@ panelize_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+     switch (msg)
+     {
+     case MSG_INIT:
+-        update_command ();
+-        return MSG_HANDLED;
+-
+-    case MSG_ACTION:
+-        if (sender == NULL)
+-            return MSG_NOT_HANDLED;
+-
+-        /* The listbox tells us the item has changed. */
++    case MSG_NOTIFY:           /* MSG_NOTIFY is fired by the listbox to tell us the item has changed. */
+         update_command ();
+         return MSG_HANDLED;
+ 
+-- 
+2.5.0
+

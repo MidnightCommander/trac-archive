@@ -1,0 +1,38 @@
+
+fix memleak at filemanager/find.c:find_file()
+
+find_parameter() allocate start_dir but object will never freed
+testcase: search file
+
+(found by LeakSanitizer)
+
+==8535==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 5 byte(s) in 1 object(s) allocated from:
+    #0 0x4d6082 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d6082)
+    #1 0x7fd602feb7d4 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x677d4)
+    #2 0x7fd603012111 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8e111)
+    #3 0x7d4355 in find_parameters /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:763:30
+    #4 0x7d2920 in find_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/find.c:1770:12
+    #5 0x5a692e in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1210:9
+    #6 0x5a27a4 in midnight_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1560:21
+    #7 0x52ffce in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:520:19
+    #8 0x530866 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:571:9
+    #9 0x530485 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1268:5
+    #10 0x5a1fea in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1763:9
+    #11 0x4fa708 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #12 0x7fd601e62133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #13 0x44f0b6 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x44f0b6)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -1780,6 +1780,7 @@
+         dirname = filename = NULL;
+         is_start = FALSE;
+         v = do_find (start_dir, start_dir_len, ignore_dirs, pattern, content, &dirname, &filename);
++        g_free (start_dir);
+         g_free (ignore_dirs);
+         g_free (pattern);
+ 

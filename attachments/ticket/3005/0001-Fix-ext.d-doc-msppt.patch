@@ -1,0 +1,29 @@
+From 7be75eba442f35508824472983e2657c6a3336fa Mon Sep 17 00:00:00 2001
+From: Gabriel VLASIU <gabriel@vlasiu.net>
+Date: Mon, 22 Apr 2013 14:00:09 +0300
+Subject: [PATCH 1/1] Fix msppt.
+
+---
+ misc/ext.d/doc.sh.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/misc/ext.d/doc.sh.in b/misc/ext.d/doc.sh.in
+index bfecfc0..1eca4b3 100644
+--- a/misc/ext.d/doc.sh.in
++++ b/misc/ext.d/doc.sh.in
+@@ -149,10 +149,10 @@ do_open_action() {
+     msppt)
+         if [ -n "$DISPLAY" ]; then
+             OOFFICE=`get_ooffice_executable`
+-            (${OOFFICE} %f >/dev/null 2>&1 &)
++            (${OOFFICE} "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+         else
+             tmp=`mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`
+-            ppthtml %f > "$tmp/page.html"
++            ppthtml "${MC_EXT_FILENAME}" > "$tmp/page.html"
+             elinks "$tmp/page.html"
+             rm -rf "$tmp"
+         fi
+-- 
+1.8.1.4
+

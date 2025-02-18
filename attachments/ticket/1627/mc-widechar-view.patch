@@ -1,0 +1,15 @@
+--- src/viewer/plain.c.old	2009-10-01 15:02:59.000000000 +0200
++++ src/viewer/plain.c	2009-10-20 13:05:36.000000000 +0200
+@@ -151,8 +151,11 @@
+ #endif
+             tty_print_anychar (c);
+         }
+-        col++;
+         tty_setcolor (NORMAL_COLOR);
++            if (g_unichar_isprint (c)) {
++            if (g_unichar_iswide(c)) { col += 2; }
++            else { if (!g_unichar_iszerowidth(c)) { col++; } }
++            } else { col++; }
+     }
+     view->dpy_end = from;
+ }

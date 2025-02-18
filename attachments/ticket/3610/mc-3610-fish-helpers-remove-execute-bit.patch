@@ -1,0 +1,120 @@
+From 2038ca98b3e023b3707a1ecbe72d5f67640b1fb5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 13 Mar 2016 19:59:01 +0000
+Subject: [PATCH] fish helpers: remove execute bit
+
+Prevent accidentally run by user
+and fix RPMlint warning found by OBS Framework (build.opensuse.org)
+
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/append
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/chmod
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/chown
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/fexists
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/get
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/hardlink
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/info
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/ln
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/ls
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/mkdir
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/mv
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/rmdir
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/send
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/unlink
+mc.x86_64: W: script-without-shebang /usr/lib/mc/fish/utime
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/fish/helpers/Makefile.am | 6 +++---
+ src/vfs/fish/helpers/append      | 0
+ src/vfs/fish/helpers/chmod       | 0
+ src/vfs/fish/helpers/chown       | 0
+ src/vfs/fish/helpers/fexists     | 0
+ src/vfs/fish/helpers/get         | 0
+ src/vfs/fish/helpers/hardlink    | 0
+ src/vfs/fish/helpers/info        | 0
+ src/vfs/fish/helpers/ln          | 0
+ src/vfs/fish/helpers/ls          | 0
+ src/vfs/fish/helpers/mkdir       | 0
+ src/vfs/fish/helpers/mv          | 0
+ src/vfs/fish/helpers/rmdir       | 0
+ src/vfs/fish/helpers/send        | 0
+ src/vfs/fish/helpers/unlink      | 0
+ src/vfs/fish/helpers/utime       | 0
+ 16 files changed, 3 insertions(+), 3 deletions(-)
+ mode change 100755 => 100644 src/vfs/fish/helpers/append
+ mode change 100755 => 100644 src/vfs/fish/helpers/chmod
+ mode change 100755 => 100644 src/vfs/fish/helpers/chown
+ mode change 100755 => 100644 src/vfs/fish/helpers/fexists
+ mode change 100755 => 100644 src/vfs/fish/helpers/get
+ mode change 100755 => 100644 src/vfs/fish/helpers/hardlink
+ mode change 100755 => 100644 src/vfs/fish/helpers/info
+ mode change 100755 => 100644 src/vfs/fish/helpers/ln
+ mode change 100755 => 100644 src/vfs/fish/helpers/ls
+ mode change 100755 => 100644 src/vfs/fish/helpers/mkdir
+ mode change 100755 => 100644 src/vfs/fish/helpers/mv
+ mode change 100755 => 100644 src/vfs/fish/helpers/rmdir
+ mode change 100755 => 100644 src/vfs/fish/helpers/send
+ mode change 100755 => 100644 src/vfs/fish/helpers/unlink
+ mode change 100755 => 100644 src/vfs/fish/helpers/utime
+
+diff --git a/src/vfs/fish/helpers/Makefile.am b/src/vfs/fish/helpers/Makefile.am
+index 3064b01..28a1688 100644
+--- a/src/vfs/fish/helpers/Makefile.am
++++ b/src/vfs/fish/helpers/Makefile.am
+@@ -3,8 +3,8 @@ fishdir = $(libexecdir)/@PACKAGE@/fish
+ # Files to install and distribute other than fish scripts
+ FISH_MISC  = README.fish
+ 
+-fish_DATA = $(FISH_MISC)
+-fish_SCRIPTS = ls mkdir fexists unlink chown chmod rmdir ln mv hardlink get send append info utime
++# count fish script-without-shebang as data and install without executable bit
++fish_DATA = $(FISH_MISC) ls mkdir fexists unlink chown chmod rmdir ln mv hardlink get send append info utime
+ fishconfdir = $(sysconfdir)/@PACKAGE@
+ 
+-EXTRA_DIST = $(FISH_MISC) $(fish_SCRIPTS)
++EXTRA_DIST = $(fish_DATA)
+diff --git a/src/vfs/fish/helpers/append b/src/vfs/fish/helpers/append
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/chmod b/src/vfs/fish/helpers/chmod
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/chown b/src/vfs/fish/helpers/chown
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/fexists b/src/vfs/fish/helpers/fexists
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/get b/src/vfs/fish/helpers/get
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/hardlink b/src/vfs/fish/helpers/hardlink
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/info b/src/vfs/fish/helpers/info
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/ln b/src/vfs/fish/helpers/ln
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/ls b/src/vfs/fish/helpers/ls
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/mkdir b/src/vfs/fish/helpers/mkdir
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/mv b/src/vfs/fish/helpers/mv
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/rmdir b/src/vfs/fish/helpers/rmdir
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/send b/src/vfs/fish/helpers/send
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/unlink b/src/vfs/fish/helpers/unlink
+old mode 100755
+new mode 100644
+diff --git a/src/vfs/fish/helpers/utime b/src/vfs/fish/helpers/utime
+old mode 100755
+new mode 100644

@@ -1,0 +1,128 @@
+#!/usr/bin/perl
+#
+# PTP filesystem for Midnight Commander using gphoto2
+#
+# (c) 2016 Vadim Druzhin <cdslow@mail.ru>
+#
+# Public Domain with NO WARRANTY
+
+use warnings;
+use strict;
+use English '-no_match_vars';
+
+my $GP = 'gphoto2';
+my $MAX_IMAGE_NUMBER = 16384;
+
+$ENV{LC_ALL} = 'C';
+
+my @MONTHS = qw/Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec/;
+my %MON_IDX;
+
+foreach(@MONTHS)
+    { $MON_IDX{$_} = keys(%MON_IDX) + 1; }
+
+sub list_file
+    {
+    my($dir, $name, $size, $y, $m, $d, $t) = @_;
+    my $tm = sprintf '%02d-%02d-%04d %s', $MON_IDX{$m}, $d, $y, $t;
+    print "-rw-r--r-- 1 root root ${size} ${tm} ${dir}/${name}\n";
+    return;
+    }
+
+sub count_files
+    {
+    defined $MAX_IMAGE_NUMBER and return $MAX_IMAGE_NUMBER;
+
+    local $_ = undef;
+
+    my $cmd = "${GP} -L";
+    open my $in, q{-|}, $cmd or die "${cmd}: ${ERRNO}\n";
+
+    my $count = 0;
+    while(<$in>)
+        {
+        /^#(\d+)/sx and $count = $1;
+        }
+
+    close $in;
+
+    return $count;
+    }
+
+sub list
+    {
+    local $_ = undef;
+
+    my $cmd = undef;
+
+    if(!defined $ENV{MC_TEST_EXTFS_LIST_CMD})
+        {
+        my $count = count_files;
+        $count == 0 and return;
+        $cmd = "${GP} --show-info 1-${count} 2> /dev/null";
+        }
+    else
+        {
+        $cmd = $ENV{MC_TEST_EXTFS_LIST_CMD};
+        }
+
+    open my $in, q{-|}, $cmd or die "${cmd}: ${ERRNO}\n";
+
+    my($name, $dir, $size);
+    my($y, $m, $d, $t);
+    my $file_flag = 0;
+
+    while(<$in>)
+        {
+        if(m{^Information on file '([^']+)' [(]folder '/?([^']+)'[)]:}s)
+            {
+            $name = $1;
+            $dir = $2;
+            }
+        elsif(/^File:/sx)
+            { $file_flag = 1; }
+        elsif($file_flag && /^\s+Size:\s+(\d+)\s+byte[(]s[)]/sx)
+            { $size = $1; }
+        elsif($file_flag && /^\s+Time:\s+\S+\s+(\S+)\s+(\d+)\s+(\d{2}:\d{2}:\d{2})\s+(\d+)/sx)
+            {
+            $m = $1;
+            $d = $2;
+            $t = $3;
+            $y = $4;
+            }
+        elsif($file_flag && /^\S/sx)
+            {
+            $file_flag = 0;
+            list_file($dir, $name, $size, $y, $m, $d, $t);
+            }
+        }
+
+    close $in;
+
+    return;
+    }
+
+sub copyout
+    {
+    my($from, $to) = @_;
+    my @cmd = ($GP, '--get-file', $from, '--filename', $to, '--quiet');
+    exec @cmd or die join(q{ }, @cmd).": ${ERRNO}\n";
+    }
+
+sub rm
+    {
+    my($file) = @_;
+    my @cmd = ($GP, '--delete-file', $file, '--quiet');
+    exec @cmd or die join(q{ }, @cmd).": ${ERRNO}\n";
+    }
+
+if($ARGV[0] eq 'list')
+    { list; }
+elsif($ARGV[0] eq 'copyout')
+    { copyout($ARGV[2], $ARGV[3]); }
+elsif($ARGV[0] eq 'rm')
+    { rm($ARGV[2]); }
+else
+    { exit 1; }
+
+1;

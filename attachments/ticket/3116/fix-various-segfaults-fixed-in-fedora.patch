@@ -1,0 +1,71 @@
+From 473484f759dce2e82dad43f948f4dd0d1b16968e Mon Sep 17 00:00:00 2001
+From: "Eugene San (eugenesan)" <eugenesan@gmail.com>
+Date: Tue, 3 Dec 2013 10:09:28 +0200
+Subject: [PATCH] fix various segfaults fixed in fedora
+
+* attempt to fix segfault while passing messages to widgets (#907045, #912033)
+* fix possible segfault when freeing a VFS (#923415)
+* fix segfault in cpio VFS while reading corrupted RPM (#921414)
+* fix segfault in mcedit when pressing alt-minus
+---
+ lib/vfs/direntry.c         | 2 ++
+ lib/widget/widget-common.h | 2 +-
+ src/editor/editcmd.c       | 2 +-
+ src/vfs/cpio/cpio.c        | 2 +-
+ 4 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/lib/vfs/direntry.c b/lib/vfs/direntry.c
+index 64a8230..3f2384c 100644
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -656,6 +656,8 @@ vfs_s_close (void *fh)
+     int res = 0;
+     struct vfs_class *me = FH_SUPER->me;
+ 
++    if (!me) return -1;
++
+     FH_SUPER->fd_usage--;
+     if (!FH_SUPER->fd_usage)
+         vfs_stamp_create (me, FH_SUPER);
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index 93a2d9a..db6e830 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -159,7 +159,7 @@ gboolean mouse_global_in_widget (const Gpm_Event * event, const Widget * w);
+ static inline cb_ret_t
+ send_message (void *w, void *sender, widget_msg_t msg, int parm, void *data)
+ {
+-    return WIDGET (w)->callback (WIDGET (w), WIDGET (sender), msg, parm, data);
++    return w ? WIDGET (w)->callback (WIDGET (w), WIDGET (sender), msg, parm, data) : 1;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index b726b85..e976def 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3415,7 +3415,7 @@ edit_load_back_cmd (WEdit * edit)
+         return FALSE;
+ 
+     edit_stack_iterator--;
+-    if (edit_history_moveto[edit_stack_iterator].filename_vpath != NULL)
++    if (edit_stack_iterator >= 0 && edit_history_moveto[edit_stack_iterator].filename_vpath != NULL)
+         return edit_reload_line (edit, edit_history_moveto[edit_stack_iterator].filename_vpath,
+                                  edit_history_moveto[edit_stack_iterator].line);
+ 
+diff --git a/src/vfs/cpio/cpio.c b/src/vfs/cpio/cpio.c
+index 437c887..a0ec51b 100644
+--- a/src/vfs/cpio/cpio.c
++++ b/src/vfs/cpio/cpio.c
+@@ -788,7 +788,7 @@ cpio_super_same (const vfs_path_element_t * vpath_element, struct vfs_s_super *p
+         return 0;
+ 
+     /* Has the cached archive been changed on the disk? */
+-    if (((cpio_super_data_t *) parc->data)->st.st_mtime < archive_stat->st_mtime)
++    if (parc->data && ((cpio_super_data_t *) parc->data)->st.st_mtime < archive_stat->st_mtime)
+     {
+         /* Yes, reload! */
+         (*vfs_cpiofs_ops.free) ((vfsid) parc);
+-- 
+1.8.3.2
+

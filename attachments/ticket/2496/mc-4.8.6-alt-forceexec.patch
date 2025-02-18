@@ -1,0 +1,72 @@
+diff -Nur mc-4.8.6.old/po/ru.po mc-4.8.6/po/ru.po
+--- mc-4.8.6.old/po/ru.po	2012-12-14 11:44:04.000000000 +0400
++++ mc-4.8.6/po/ru.po	2012-12-14 11:58:10.168325244 +0400
+@@ -576,6 +576,9 @@
+ msgid "Disables subshell support"
+ msgstr "Отключить поддержку встроенной командной оболочки"
+ 
++msgid "Force subshell execution"
++msgstr "Принудительное выполнение во встроенной командной оболочке"
++
+ msgid "Log ftp dialog to specified file"
+ msgstr "Записывать диалог с FTP в заданный файл"
+ 
+diff -Nur mc-4.8.6.old/src/args.c mc-4.8.6/src/args.c
+--- mc-4.8.6.old/src/args.c	2012-12-14 11:44:05.000000000 +0400
++++ mc-4.8.6/src/args.c	2012-12-14 11:53:35.008316796 +0400
+@@ -43,6 +43,7 @@
+ #include "src/args.h"
+ 
+ /*** external variables **************************************************************************/
++extern int force_subshell_execution;
+ 
+ /*** global variables ****************************************************************************/
+ 
+@@ -152,6 +153,13 @@
+      N_("Disables subshell support"),
+      NULL
+     },
++
++    {
++     "forceexec", 'r', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
++     &force_subshell_execution,
++     N_("Force subshell execution"),
++     NULL
++    },
+ #endif
+ 
+     /* debug options */
+diff -Nur mc-4.8.6.old/src/execute.c mc-4.8.6/src/execute.c
+--- mc-4.8.6.old/src/execute.c	2012-12-14 11:44:05.000000000 +0400
++++ mc-4.8.6/src/execute.c	2012-12-14 11:53:35.012316818 +0400
+@@ -63,6 +63,8 @@
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++int force_subshell_execution = 0;
++
+ static void
+ edition_post_exec (void)
+ {
+@@ -290,7 +292,7 @@
+ 
+ #ifdef ENABLE_SUBSHELL
+     if (mc_global.tty.use_subshell)
+-        if (subshell_state == INACTIVE)
++        if (subshell_state == INACTIVE || force_subshell_execution)
+             do_execute (shell, cmd ? cmd : command, flags | EXECUTE_AS_SHELL);
+         else
+             message (D_ERROR, MSG_ERROR, _("The shell is already running a command"));
+diff -Nur mc-4.8.6.old/src/execute.h mc-4.8.6/src/execute.h
+--- mc-4.8.6.old/src/execute.h	2012-09-22 01:33:25.000000000 +0400
++++ mc-4.8.6/src/execute.h	2012-12-14 11:53:35.012316818 +0400
+@@ -28,6 +28,9 @@
+ 
+ /*** declarations of public functions ************************************************************/
+ 
++/* If true message "The shell is already running a command" never */
++extern int force_subshell_execution;
++
+ /* Execute functions that use the shell to execute */
+ void shell_execute (const char *command, int flags);
+ 

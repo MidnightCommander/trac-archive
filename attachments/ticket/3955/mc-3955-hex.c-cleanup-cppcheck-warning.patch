@@ -1,0 +1,32 @@
+From 6e321b3c2e8ea9dcc016c7ceb54a2be5041dfe11 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 8 Jan 2019 07:06:37 +0000
+Subject: [PATCH] hex.c: Cleanup cppcheck style warning
+
+Found by cppcheck 1.81
+
+[src/viewer/hex.c:155]: (style) The scope of the variable 'i' can be reduced.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/hex.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/viewer/hex.c b/src/viewer/hex.c
+index c0cdf9764..b0e17b348 100644
+--- a/src/viewer/hex.c
++++ b/src/viewer/hex.c
+@@ -152,12 +152,12 @@ mcview_display_hex (WView * view)
+     for (; mcview_get_byte (view, from, NULL) && row < (int) height; row++)
+     {
+         screen_dimen col = 0;
+-        size_t i;
+         int bytes;              /* Number of bytes already printed on the line */
+ 
+         /* Print the hex offset */
+         if (row >= 0)
+         {
++            size_t i;
+             g_snprintf (hex_buff, sizeof (hex_buff), "%08" PRIXMAX " ", (uintmax_t) from);
+             widget_move (view, top + row, left);
+             tty_setcolor (VIEW_BOLD_COLOR);

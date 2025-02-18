@@ -1,0 +1,22 @@
+From 2a97524b42eeececd2ecd928a1154da1f5b7378a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Apr 2016 06:44:22 +0000
+Subject: [PATCH] Replace INTLLIBS with LIBINTL for libmc
+
+As pointed out by zaytsev at #3629 use LIBINTL for gettext.m4 versions >= 0.11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index 0c08e7d..c448e2d 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -74,4 +74,4 @@ else
+     libmc_la_LIBADD += $(GLIB_LIBS)
+ endif
+ 
+-libmc_la_LIBADD += $(PCRE_LIBS) $(LIBICONV) $(INTLLIBS)
++libmc_la_LIBADD += $(PCRE_LIBS) $(LIBICONV) $(LIBINTL)

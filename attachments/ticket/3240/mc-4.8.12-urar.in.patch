@@ -1,0 +1,11 @@
+--- src/vfs/extfs/helpers/urar.in.orig	2014-02-11 12:01:15.000000000 +0100
++++ src/vfs/extfs/helpers/urar.in	2014-08-15 19:47:11.690746795 +0200
+@@ -22,7 +22,7 @@
+ [ ! -x $UNRAR -a -x $RAR ] && UNRAR=$RAR
+ 
+ # Define $UNRAR version
+-UNRAR_VERSION=`$UNRAR -? | grep "Copyright" | sed -e 's/.*\([0-9]\)\..*/\1/'`
++UNRAR_VERSION=`$UNRAR -cfg- -? | grep "Copyright" | sed -e 's/.*\([0-9]\)\..*/\1/'`
+ 
+ mcrar4fs_list ()
+ {

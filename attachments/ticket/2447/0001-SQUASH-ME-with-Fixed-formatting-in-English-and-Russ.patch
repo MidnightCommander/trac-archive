@@ -1,0 +1,41 @@
+From c3074bce4a47e585a81f8a6a912293076f1f3494 Mon Sep 17 00:00:00 2001
+From: Ilia Maslakov <il.smind@gmail.com>
+Date: Mon, 27 Dec 2010 16:27:00 +0000
+Subject: [PATCH] SQUASH ME (with Fixed formatting in English and Russian man pages.)
+ fixed incorrect example
+
+Signed-off-by: Ilia Maslakov <il.smind@gmail.com>
+---
+ doc/man/mc.1.in    |    2 +-
+ doc/man/ru/mc.1.in |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index b2fefa2..0193f21 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -3981,7 +3981,7 @@ utility like 'xclip' to print the selection to standard out.
+ For example:
+ .PP
+ .nf
+-clipboard_store=xclip \-o
++clipboard_pastee=xclip \-o
+ .fi
+ .TP
+ .I autodetect_codeset
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index 7e8c019..d8ed3e1 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -4266,7 +4266,7 @@ clipboard_store=xclip \-i
+ Например:
+ .PP
+ .nf
+-clipboard_store=xclip \-o
++clipboard_paste=xclip \-o
+ .fi
+ .PP
+ .I autodetect_codeset
+-- 
+1.6.1.2
+

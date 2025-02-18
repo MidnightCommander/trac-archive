@@ -1,0 +1,61 @@
+
+fix memleak at src/editor/editcmd.c:3607
+
+spell suggest array object needs to free cur_sugg_word objects _itself_, currently we freed only the array element space of each cur_sugg_word pointer
+
+(smarter will be an usage of g_array_set_clear_func() but this will lead us to a higher glib version dependency maybe)
+
+(possible there are more g_strup() -> g_array_append_val() -> g_array_free(x,TRUE) -> missing g_strup freeing occurrences in MC source code)
+
+found by clang LeakSanitizer
+
+Direct leak of 169 byte(s) in 17 object(s) allocated from:
+    #0 0x4d2d50 in malloc (/usr/bin/mc+0x4d2d50)
+    #1 0x7fd849518a14 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x67a14)
+    #2 0x7fd84953ef71 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8df71)
+    #3 0x5d3ae1 in aspell_suggest /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/spell.c:526:33
+    #4 0x5b8960 in edit_suggest_current_word /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editcmd.c:3607:15
+    #5 0x59ce10 in edit_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3842:9
+    #6 0x59af2a in edit_execute_key_command /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3224:5
+    #7 0x5ca4f0 in edit_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1136:17
+    #8 0x7fd84a1da770 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:515:19
+    #9 0x7fd84a1dabe2 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #10 0x7fd84a1da8e5 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #11 0x5c91a1 in edit_files /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1255:9
+    #12 0x5c8cdf in edit_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1194:10
+    #13 0x5f807b in edit_file_at_line /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:704:9
+    #14 0x5f81eb in edit_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:742:9
+    #15 0x536977 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1177:9
+    #16 0x7fd84a1d52b9 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #17 0x7fd84a1db42c in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #18 0x7fd84a1da720 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #19 0x7fd84a1dabe2 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #20 0x7fd84a1da8e5 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #21 0x534e0d in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1759:9
+    #22 0x502ab7 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #23 0x7fd8485ececa in __libc_start_main (/lib64/libc.so.6+0x21eca)
+    #24 0x4280ed in _start (/usr/bin/mc+0x4280ed)
+
+patch against b8ffa1b9661987f41deeb5cb7bf2ab6c09a41c43
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3638,7 +3638,14 @@
+             else if (retval == B_ADD_WORD && match_word != NULL)
+                 aspell_add_to_dict (match_word->str, (int) word_len);
+         }
+-
++        guint i;
++        for (i = 0; i < suggest->len; i++)
++        {
++            const char *cur_sugg_word;
++            cur_sugg_word = g_array_index (suggest, const char *, i);
++            if (cur_sugg_word != NULL)
++                (void) g_free (cur_sugg_word);
++        }
+         g_array_free (suggest, TRUE);
+         edit->found_start = 0;
+         edit->found_len = 0;
+)

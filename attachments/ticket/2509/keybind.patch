@@ -1,0 +1,11 @@
+--- lib/keybind.c	2011-02-05 16:12:57.000000000 +0100
++++ lib/keybind.c	2011-03-01 21:47:56.000000000 +0100
+@@ -517,6 +517,8 @@ static name_keymap_t command_names[] = {
+     {"DiffBOF", CK_DiffBOF},
+     {"DiffDown", CK_DiffDown},
+     {"DiffUp", CK_DiffUp},
++    {"DiffQuickLeft", CK_DiffQuickLeft},
++    {"DiffQuickRight", CK_DiffQuickRight},
+     {"DiffLeft", CK_DiffLeft},
+     {"DiffRight", CK_DiffRight},
+     {"DiffPageDown", CK_DiffPageDown},

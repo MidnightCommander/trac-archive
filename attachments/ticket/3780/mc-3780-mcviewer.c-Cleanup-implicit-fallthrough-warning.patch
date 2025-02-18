@@ -1,0 +1,33 @@
+From d3ef5008707277183b87e13ebd0e91433b7061e3 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 11 May 2017 15:22:18 +0000
+Subject: [PATCH] (mcviewer.c) Cleanup -Werror=implicit-fallthrough=3 warning
+
+Found by GCC 7.1.0.
+https://developers.redhat.com/blog/2017/03/10/wimplicit-fallthrough-in-gcc-7/
+
+mcviewer.c:92:12: warning: this statement may fall through [-Wimplicit-fallthrough=]
+         if (mcview_is_in_panel (view))
+            ^
+mcviewer.c:111:5: note: here
+     case MSG_MOUSE_CLICK:
+     ^~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/mcviewer.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index ee1c1cc..111fafb 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -106,7 +106,7 @@ mcview_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+                 change_panel ();
+             }
+         }
+-        /* fall throught */
++        /* fall through */
+ 
+     case MSG_MOUSE_CLICK:
+         if (!view->text_wrap_mode)

@@ -1,0 +1,3 @@
+The last line should be bright/bold/whatever.
+Search for 'ababc', it doesn't match that line.
+aabbaabbaabbcc

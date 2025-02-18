@@ -1,0 +1,18 @@
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 3dfd22e..9939064 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -1672,11 +1672,12 @@
+     do
+     {
+         edit_cursor_move (edit, cur_bol - edit->curs1);
++        if (!line_is_blank (edit, edit->curs_line)) {
+         if (option_fill_tabs_with_spaces)
+             insert_spaces_tab (edit, option_fake_half_tabs);
+         else
+             edit_insert (edit, '\t');
+-        edit_cursor_move (edit, edit_bol (edit, cur_bol) - edit->curs1);
++        edit_cursor_move (edit, edit_bol (edit, cur_bol) - edit->curs1); }
+
+         if (cur_bol == 0)
+             break;

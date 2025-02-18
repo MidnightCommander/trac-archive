@@ -1,0 +1,534 @@
+fix -Wconversion warning at *_keymap_t and follow ups
+
+CK_InsertChar defined as a negative number so use int and not unsigned long
+command and action field convert to int also as follow up
+
+patch will resolve following warnings:
+buttonbar.c:153:68: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+dialog.c:351:44: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+input.c:1093:39: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+listbox.c:444:40: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+menu.c:341:55: warning: implicit conversion loses integer precision: 'const unsigned long' to 'int' [-Wshorten-64-to-32]
+keybind.c:49:20: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+lock.c:184:11: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+midnight.c:1322:70: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+midnight.c:1570:48: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+midnight.c:1573:50: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+midnight.c:1579:50: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+panel.c:3674:42: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+tree.c:1241:40: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+actions_cmd.c:681:39: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+actions_cmd.c:729:46: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+actions_cmd.c:737:46: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+edit.c:1673:30: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+edit.c:3912:47: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+editcmd.c:1870:15: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+editcmd.c:2032:57: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+editcmd.c:3404:37: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+editwidget.c:926:19: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+editwidget.c:1025:52: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+editwidget.c:1030:49: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+editwidget.c:1041:52: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+editwidget.c:1136:46: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+editwidget.c:1146:38: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+ydiff.c:3359:39: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+ydiff.c:3410:45: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+ydiff.c:3418:46: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+help.c:971:38: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+help.c:977:38: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+setup.c:701:61: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+setup.c:695:22: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -395,7 +395,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-keymap_add (GArray * keymap, long key, unsigned long cmd, const char *caption)
++keymap_add (GArray * keymap, long key, int cmd, const char *caption)
+ {
+     if (key != 0 && cmd != CK_IgnoreKey)
+     {
+@@ -413,7 +413,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-keybind_cmd_bind (GArray * keymap, const char *keybind, unsigned long action)
++keybind_cmd_bind (GArray * keymap, const char *keybind, int action)
+ {
+     char *caption = NULL;
+     long key;
+@@ -425,7 +425,7 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-unsigned long
++int
+ keybind_lookup_action (const char *name)
+ {
+     const name_keymap_t key = { name, 0 };
+@@ -442,7 +442,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ const char *
+-keybind_lookup_actionname (unsigned long action)
++keybind_lookup_actionname (int action)
+ {
+     size_t i;
+ 
+@@ -456,7 +456,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ const char *
+-keybind_lookup_keymap_shortcut (const global_keymap_t * keymap, unsigned long action)
++keybind_lookup_keymap_shortcut (const global_keymap_t * keymap, int action)
+ {
+     if (keymap != NULL)
+     {
+@@ -471,7 +471,7 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-unsigned long
++int
+ keybind_lookup_keymap_command (const global_keymap_t * keymap, long key)
+ {
+     if (keymap != NULL)
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -339,7 +339,7 @@
+ typedef struct name_keymap_t
+ {
+     const char *name;
+-    unsigned long val;
++    int val;
+ } name_keymap_t;
+ 
+ typedef struct key_config_t
+@@ -354,7 +354,7 @@
+ typedef struct global_keymap_t
+ {
+     long key;
+-    unsigned long command;
++    int command;
+     char caption[KEYMAP_SHORTCUT_LENGTH];
+ } global_keymap_t;
+ 
+@@ -362,11 +362,11 @@
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-void keybind_cmd_bind (GArray * keymap, const char *keybind, unsigned long action);
+-unsigned long keybind_lookup_action (const char *name);
+-const char *keybind_lookup_actionname (unsigned long action);
+-const char *keybind_lookup_keymap_shortcut (const global_keymap_t * keymap, unsigned long action);
+-unsigned long keybind_lookup_keymap_command (const global_keymap_t * keymap, long key);
++void keybind_cmd_bind (GArray * keymap, const char *keybind, int action);
++int keybind_lookup_action (const char *name);
++const char *keybind_lookup_actionname (int action);
++const char *keybind_lookup_keymap_shortcut (const global_keymap_t * keymap, int action);
++int keybind_lookup_keymap_command (const global_keymap_t * keymap, long key);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+--- a/lib/widget/buttonbar.c
++++ b/lib/widget/buttonbar.c
+@@ -266,7 +266,7 @@
+ {
+     if ((bb != NULL) && (idx >= 1) && (idx <= BUTTONBAR_LABELS_NUM))
+     {
+-        unsigned long command = CK_IgnoreKey;
++        int command = CK_IgnoreKey;
+ 
+         if (keymap != NULL)
+             command = keybind_lookup_keymap_command (keymap, KEY_F (idx));
+--- a/lib/widget/buttonbar.h
++++ b/lib/widget/buttonbar.h
+@@ -28,7 +28,7 @@
+     struct
+     {
+         char *text;
+-        unsigned long command;
++        int command;
+         Widget *receiver;
+         int end_coord;          /* cumulative width of buttons so far */
+     } labels[BUTTONBAR_LABELS_NUM];
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -272,7 +272,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-dlg_execute_cmd (WDialog * h, unsigned long command)
++dlg_execute_cmd (WDialog * h, int command)
+ {
+     cb_ret_t ret = MSG_HANDLED;
+     switch (command)
+@@ -341,7 +341,7 @@
+ static cb_ret_t
+ dlg_handle_key (WDialog * h, int d_key)
+ {
+-    unsigned long command;
++    int command;
+ 
+     command = keybind_lookup_keymap_command (dialog_map, d_key);
+ 
+--- a/lib/widget/dialog.h
++++ b/lib/widget/dialog.h
+@@ -64,7 +64,7 @@
+ 
+ /* get string representation of shortcut assigned  with command */
+ /* as menu is a widget of dialog, ask dialog about shortcut string */
+-typedef char *(*dlg_shortcut_str) (unsigned long command);
++typedef char *(*dlg_shortcut_str) (int command);
+ 
+ /* get dialog name to show in dialog list */
+ typedef char *(*dlg_title_str) (const WDialog * h, size_t len);
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -679,7 +679,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-input_execute_cmd (WInput * in, unsigned long command)
++input_execute_cmd (WInput * in, int command)
+ {
+     cb_ret_t res = MSG_HANDLED;
+ 
+@@ -1133,7 +1133,7 @@
+ input_handle_char (WInput * in, int key)
+ {
+     cb_ret_t v;
+-    unsigned long command;
++    int command;
+ 
+     if (quote != 0)
+     {
+@@ -1177,7 +1177,7 @@
+ int
+ input_key_is_in_map (WInput * in, int key)
+ {
+-    unsigned long command;
++    int command;
+ 
+     (void) in;
+ 
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -256,7 +256,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-listbox_execute_cmd (WListbox * l, unsigned long command)
++listbox_execute_cmd (WListbox * l, int command)
+ {
+     cb_ret_t ret = MSG_HANDLED;
+     int i;
+@@ -325,7 +325,7 @@
+ static cb_ret_t
+ listbox_key (WListbox * l, int key)
+ {
+-    unsigned long command;
++    int command;
+ 
+     if (l->list == NULL)
+         return MSG_NOT_HANDLED;
+--- a/lib/widget/menu.c
++++ b/lib/widget/menu.c
+@@ -57,7 +57,7 @@
+ {
+     unsigned char first_letter;
+     hotkey_t text;
+-    unsigned long command;
++    int command;
+     char *shortcut;
+ };
+ 
+@@ -774,7 +774,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ menu_entry_t *
+-menu_entry_create (const char *name, unsigned long command)
++menu_entry_create (const char *name, int command)
+ {
+     menu_entry_t *entry;
+ 
+--- a/lib/widget/menu.h
++++ b/lib/widget/menu.h
+@@ -42,7 +42,7 @@
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-menu_entry_t *menu_entry_create (const char *name, unsigned long command);
++menu_entry_t *menu_entry_create (const char *name, int command);
+ void menu_entry_free (menu_entry_t * me);
+ 
+ menu_t *create_menu (const char *name, GList * entries, const char *help_node);
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -3145,7 +3145,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-dview_execute_cmd (WDiff * dview, unsigned long command)
++dview_execute_cmd (WDiff * dview, int command)
+ {
+     cb_ret_t res = MSG_HANDLED;
+ 
+@@ -3311,7 +3311,7 @@
+ static cb_ret_t
+ dview_handle_key (WDiff * dview, int key)
+ {
+-    unsigned long command;
++    int command;
+ 
+ #ifdef HAVE_CHARSET
+     key = convert_from_input_c (key);
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3185,7 +3185,7 @@
+  */
+ 
+ void
+-edit_execute_key_command (WEdit * edit, unsigned long command, int char_for_insertion)
++edit_execute_key_command (WEdit * edit, int command, int char_for_insertion)
+ {
+     if (command == CK_MacroStartRecord || command == CK_RepeatStartRecord
+         || (macro_index < 0
+@@ -3234,7 +3234,7 @@
+    all of them. It also does not check for the Undo command.
+  */
+ void
+-edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
++edit_execute_cmd (WEdit * edit, int command, int char_for_insertion)
+ {
+     Widget *w = WIDGET (edit);
+ 
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3412,7 +3412,7 @@
+     /* edit is a pointer to the widget */
+     if (edit != NULL)
+     {
+-        unsigned long command = macro_index < 0 ? CK_MacroStartRecord : CK_MacroStopRecord;
++        int command = macro_index < 0 ? CK_MacroStartRecord : CK_MacroStopRecord;
+         edit_execute_key_command (edit, command, -1);
+     }
+ }
+@@ -3425,7 +3425,7 @@
+     /* edit is a pointer to the widget */
+     if (edit != NULL)
+     {
+-        unsigned long command = macro_index < 0 ? CK_RepeatStartRecord : CK_RepeatStopRecord;
++        int command = macro_index < 0 ? CK_RepeatStartRecord : CK_RepeatStopRecord;
+         edit_execute_key_command (edit, command, -1);
+     }
+ }
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -234,10 +234,10 @@
+ void edit_goto_cmd (WEdit * edit);
+ gboolean eval_marks (WEdit * edit, off_t * start_mark, off_t * end_mark);
+ void edit_status (WEdit * edit, gboolean active);
+-void edit_execute_key_command (WEdit * edit, unsigned long command, int char_for_insertion);
++void edit_execute_key_command (WEdit * edit, int command, int char_for_insertion);
+ void edit_update_screen (WEdit * edit);
+ void edit_save_size (WEdit * edit);
+-gboolean edit_handle_move_resize (WEdit * edit, unsigned long command);
++gboolean edit_handle_move_resize (WEdit * edit, int command);
+ void edit_toggle_fullscreen (WEdit * edit);
+ void edit_move_to_line (WEdit * e, long line);
+ void edit_move_display (WEdit * e, long line);
+@@ -286,7 +286,7 @@
+ void format_paragraph (WEdit * edit, gboolean force);
+ 
+ /* either command or char_for_insertion must be passed as -1 */
+-void edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion);
++void edit_execute_cmd (WEdit * edit, int command, int char_for_insertion);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -225,7 +225,7 @@
+  */
+ 
+ static void
+-edit_window_move (WEdit * edit, unsigned long command)
++edit_window_move (WEdit * edit, int command)
+ {
+     Widget *w = WIDGET (edit);
+     Widget *wh = WIDGET (w->owner);
+@@ -265,7 +265,7 @@
+  */
+ 
+ static void
+-edit_window_resize (WEdit * edit, unsigned long command)
++edit_window_resize (WEdit * edit, int command)
+ {
+     Widget *w = WIDGET (edit);
+     Widget *wh = WIDGET (w->owner);
+@@ -359,7 +359,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static char *
+-edit_get_shortcut (unsigned long command)
++edit_get_shortcut (int command)
+ {
+     const char *ext_map;
+     const char *shortcut = NULL;
+@@ -708,7 +708,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-edit_dialog_command_execute (WDialog * h, unsigned long command)
++edit_dialog_command_execute (WDialog * h, int command)
+ {
+     Widget *wh = WIDGET (h);
+     gboolean ret = MSG_HANDLED;
+@@ -817,7 +817,7 @@
+ static gboolean
+ edit_translate_key (WEdit * edit, long x_key, int *cmd, int *ch)
+ {
+-    unsigned long command = (unsigned long) CK_InsertChar;
++    int command = CK_InsertChar;
+     int char_for_insertion = -1;
+ 
+     /* an ordinary insertable character */
+@@ -929,7 +929,7 @@
+     *cmd = (int) command;       /* FIXME */
+     *ch = char_for_insertion;
+ 
+-    return !(command == (unsigned long) CK_InsertChar && char_for_insertion == -1);
++    return !(command == CK_InsertChar && char_for_insertion == -1);
+ }
+ 
+ 
+@@ -1050,7 +1050,7 @@
+             if (edit_widget_is_editor (we))
+             {
+                 WEdit *e = (WEdit *) we;
+-                unsigned long command;
++                int command;
+ 
+                 if (!e->extmod)
+                     command = keybind_lookup_keymap_command (editor_map, parm);
+@@ -1379,7 +1379,7 @@
+  */
+ 
+ gboolean
+-edit_handle_move_resize (WEdit * edit, unsigned long command)
++edit_handle_move_resize (WEdit * edit, int command)
+ {
+     gboolean ret = FALSE;
+ 
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -407,7 +407,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static char *
+-midnight_get_shortcut (unsigned long command)
++midnight_get_shortcut (int command)
+ {
+     const char *ext_map;
+     const char *shortcut = NULL;
+@@ -1095,7 +1095,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-midnight_execute_cmd (Widget * sender, unsigned long command)
++midnight_execute_cmd (Widget * sender, int command)
+ {
+     cb_ret_t res = MSG_HANDLED;
+ 
+@@ -1395,7 +1395,7 @@
+ static cb_ret_t
+ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
+ {
+-    unsigned long command;
++    int command;
+ 
+     switch (msg)
+     {
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3384,7 +3384,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-panel_execute_cmd (WPanel * panel, unsigned long command)
++panel_execute_cmd (WPanel * panel, int command)
+ {
+     int res = MSG_HANDLED;
+ 
+--- a/src/filemanager/tree.c
++++ b/src/filemanager/tree.c
+@@ -1029,7 +1029,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-tree_execute_cmd (WTree * tree, unsigned long command)
++tree_execute_cmd (WTree * tree, int command)
+ {
+     cb_ret_t res = MSG_HANDLED;
+ 
+diff -ruN a/src/help.c b/src/help.c
+--- a/src/help.c	2015-11-14 15:20:57.000000000 +0100
++++ b/src/help.c	2015-11-14 16:32:10.466636793 +0100
+@@ -858,7 +858,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-help_execute_cmd (unsigned long command)
++help_execute_cmd (int command)
+ {
+     cb_ret_t ret = MSG_HANDLED;
+ 
+@@ -927,7 +927,7 @@
+ static cb_ret_t
+ help_handle_key (WDialog * h, int c)
+ {
+-    unsigned long command;
++    int command;
+ 
+     command = keybind_lookup_keymap_command (help_map, c);
+     if ((command == CK_IgnoreKey) || (help_execute_cmd (command) == MSG_NOT_HANDLED))
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -58,7 +58,7 @@
+ 
+ typedef struct macro_action_t
+ {
+-    unsigned long action;
++    int action;
+     int ch;
+ } macro_action_t;
+ 
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -382,7 +382,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+-mcview_execute_cmd (WView * view, unsigned long command)
++mcview_execute_cmd (WView * view, int command)
+ {
+     int res = MSG_HANDLED;
+ 
+@@ -546,7 +546,7 @@
+ static cb_ret_t
+ mcview_handle_key (WView * view, int key)
+ {
+-    unsigned long command;
++    int command;
+ 
+ #ifdef HAVE_CHARSET
+     key = convert_from_input_c (key);

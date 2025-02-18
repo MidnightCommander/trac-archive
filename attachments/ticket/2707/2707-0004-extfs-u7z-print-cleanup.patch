@@ -1,0 +1,26 @@
+From a9b3d598420e9429a75e932d85f03f276db09f8c Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 19 Dec 2016 02:48:31 +0200
+Subject: [PATCH 4/6] Ticket #2707: extfs: u7z: print() cleanup.
+
+AWK's print() already writes OFS between expressions.
+---
+ src/vfs/extfs/helpers/u7z | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/u7z b/src/vfs/extfs/helpers/u7z
+index cc20174..4417e7e 100755
+--- a/src/vfs/extfs/helpers/u7z
++++ b/src/vfs/extfs/helpers/u7z
+@@ -35,7 +35,7 @@ mcu7zip_list ()
+ 
+         # archive entries can have no datetime info, 7z will use archive file datetime
+         date_archive=`stat -c %y "$1" 2>/dev/null | sed -n "s/${date_re}.*/${date_mc}/p" 2>/dev/null`
+-        [ "${date_archive}"x = x ] && date_archive=`ls -lan "$1" 2>/dev/null | awk '{print $6,"",$7,"",$8}' 2>/dev/null`
++        [ "${date_archive}"x = x ] && date_archive=`ls -lan "$1" 2>/dev/null | awk '{print $6, $7, $8}' 2>/dev/null`
+         [ "${date_archive}"x = x ] && date_archive="01-01-1970 00:00:00"
+ 
+         $P7ZIP l "$1" | sed -n "
+-- 
+2.9.3
+

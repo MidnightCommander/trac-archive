@@ -1,0 +1,1642 @@
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 01262f1..b1c3879 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -2051,7 +2051,7 @@ edit_replace_cmd (WEdit *edit, int again)
+ 	    edit->force |= REDRAW_PAGE;
+ 	    edit_render_keypress (edit);
+ 	    if (times_replaced) {
+-		message (0, msg, _(" %ld replacements made. "),
++		message (D_NORMAL, msg, _(" %ld replacements made. "),
+ 			 times_replaced);
+ 	    } else
+ 		query_dialog (msg, _(" Search string not found "),
+@@ -2130,7 +2130,7 @@ void edit_search_cmd (WEdit * edit, int again)
+ 		}
+ 		if (found) {
+ /* in response to number of bookmarks added because of string being found %d times */
+-		    message (0, _("Search"), _(" %d items found, %d bookmarks added "), found, books);
++		    message (D_NORMAL, _("Search"), _(" %d items found, %d bookmarks added "), found, books);
+ 		} else {
+ 		    edit_error_dialog (_ ("Search"), _ (" Search string not found "));
+ 		}
+@@ -2584,7 +2584,7 @@ edit_block_process_cmd (WEdit *edit, const char *shell_cmd, int block)
+ 			 quoted_name, (char *) NULL));
+     }
+     g_free (quoted_name);
+-    close_error_pipe (0, 0);
++    close_error_pipe (D_NORMAL, NULL);
+ 
+     edit_refresh_cmd (edit);
+     edit->force |= REDRAW_COMPLETELY;
+diff --git a/src/achown.c b/src/achown.c
+index 72ddcad..8f436fb 100644
+--- a/src/achown.c
++++ b/src/achown.c
+@@ -627,12 +627,12 @@ static void apply_advanced_chowns (struct stat *sf)
+     fname = current_panel->dir.list[current_file].fname;
+     need_update = end_chown = 1;
+     if (mc_chmod (fname, get_mode ()) == -1)
+-	message (1, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
+ 		 fname, unix_error_string (errno));
+     /* call mc_chown only, if mc_chmod didn't fail */
+     else if (mc_chown (fname, (ch_flags[9] == '+') ? sf->st_uid : (uid_t) -1,
+ 		       (ch_flags[10] == '+') ? sf->st_gid : (gid_t) -1) == -1)
+-	message (1, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
+ 		 fname, unix_error_string (errno));
+     do_file_mark (current_panel, current_file, 0);
+ 
+@@ -643,12 +643,12 @@ static void apply_advanced_chowns (struct stat *sf)
+ 	    break;
+ 	ch_cmode = sf->st_mode;
+ 	if (mc_chmod (fname, get_mode ()) == -1)
+-	    message (1, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
++	    message (D_ERROR, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
+ 		     fname, unix_error_string (errno));
+ 	/* call mc_chown only, if mc_chmod didn't fail */
+ 	else if (mc_chown (fname, (ch_flags[9] == '+') ? a_uid : (uid_t) -1,
+ 	                   (ch_flags[10] == '+') ? a_gid : (gid_t) -1) == -1)
+-	    message (1, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
++	    message (D_ERROR, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
+ 		     fname, unix_error_string (errno));
+ 
+ 	do_file_mark (current_panel, current_file, 0);
+@@ -690,12 +690,12 @@ chown_advanced_cmd (void)
+ 	case B_ENTER:
+ 	    need_update = 1;
+ 	    if (mc_chmod (fname, get_mode ()) == -1)
+-		message (1, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
++		message (D_ERROR, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
+ 			 fname, unix_error_string (errno));
+ 	    /* call mc_chown only, if mc_chmod didn't fail */
+ 	    else if (mc_chown (fname, (ch_flags[9] == '+') ? sf_stat->st_uid : (uid_t) -1,
+ 	                       (ch_flags[10] == '+') ? sf_stat->st_gid : (gid_t) -1) == -1)
+-		message (1, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
++		message (D_ERROR, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
+ 			 fname, unix_error_string (errno));
+ 	    break;
+ 	case B_SETALL:
+diff --git a/src/background.c b/src/background.c
+index 7d733dd..fa828dd 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -213,7 +213,7 @@ background_attention (int fd, void *closure)
+ 	if (!waitpid (ctx->pid, &status, WNOHANG)) {
+ 	    /* the process is still running, but it misbehaves - kill it */
+ 	    kill (ctx->pid, SIGTERM);
+-	    message (1, background_process_error, _(" Unknown error in child "));
++	    message (D_ERROR, background_process_error, _(" Unknown error in child "));
+ 	    return 0;
+ 	}
+ 
+@@ -221,14 +221,14 @@ background_attention (int fd, void *closure)
+ 	if (WIFEXITED (status) && (WEXITSTATUS (status) == 0))
+ 	    return 0;
+ 
+-	message (1, background_process_error, _(" Child died unexpectedly "));
++	message (D_ERROR, background_process_error, _(" Child died unexpectedly "));
+ 
+ 	return 0;
+     }
+ 
+     read (fd, &argc, sizeof (argc));
+     if (argc > MAXCALLARGS){
+-	message (1, _(" Background protocol error "),
++	message (D_ERROR, _(" Background protocol error "),
+ 		 _(" Background process sent us a request for more arguments \n"
+ 		 " than we can handle. \n"));
+     }
+diff --git a/src/boxes.c b/src/boxes.c
+index 0fd2a0b..e672df9 100644
+--- a/src/boxes.c
++++ b/src/boxes.c
+@@ -629,7 +629,7 @@ display_bits_box (void)
+ 	errmsg =
+ 	    init_translation_table (source_codepage, display_codepage);
+ 	if (errmsg)
+-	    message (1, MSG_ERROR, "%s", errmsg);
++	    message (D_ERROR, MSG_ERROR, "%s", errmsg);
+ #ifndef HAVE_SLANG
+ 	meta (stdscr, display_codepage != 0);
+ #else
+diff --git a/src/chmod.c b/src/chmod.c
+index 599c0c0..2671c65 100644
+--- a/src/chmod.c
++++ b/src/chmod.c
+@@ -243,7 +243,7 @@ static void do_chmod (struct stat *sf)
+     sf->st_mode &= and_mask;
+     sf->st_mode |= or_mask;
+     if (mc_chmod (current_panel->dir.list [c_file].fname, sf->st_mode) == -1)
+-	message (1, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
+ 	     current_panel->dir.list [c_file].fname, unix_error_string (errno));
+ 
+     do_file_mark (current_panel, c_file, 0);
+@@ -313,7 +313,7 @@ void chmod_cmd (void)
+ 	case B_ENTER:
+ 	    if (mode_change)
+ 		if (mc_chmod (fname, c_stat) == -1)
+-		    message (1, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
++		    message (D_ERROR, MSG_ERROR, _(" Cannot chmod \"%s\" \n %s "),
+ 	 		 fname, unix_error_string (errno));
+ 	    need_update = 1;
+ 	    break;
+diff --git a/src/chown.c b/src/chown.c
+index 31f8f25..6598b43 100644
+--- a/src/chown.c
++++ b/src/chown.c
+@@ -211,7 +211,7 @@ static inline void
+ do_chown (uid_t u, gid_t g)
+ {
+     if (mc_chown (current_panel->dir.list [current_file].fname, u, g) == -1)
+-	message (1, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
+ 	     current_panel->dir.list [current_file].fname, unix_error_string (errno));
+ 
+     do_file_mark (current_panel, current_file, 0);
+@@ -319,7 +319,7 @@ chown_cmd (void)
+ 	    if (ch_dlg->ret_value==B_ENTER) {
+ 		need_update = 1;
+ 		if (mc_chown (fname, new_user, new_group) == -1)
+-		    message (1, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
++		    message (D_ERROR, MSG_ERROR, _(" Cannot chown \"%s\" \n %s "),
+ 	 		 fname, unix_error_string (errno));
+ 	    } else
+ 		apply_chowns (new_user, new_group);
+diff --git a/src/cmd.c b/src/cmd.c
+index 01d110f..9fab944 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -189,13 +189,13 @@ do_view_cmd (int normal)
+ 	|| link_isdir (selection (current_panel))) {
+ 	if (confirm_view_dir && (current_panel->marked || current_panel->dirs_marked)) {
+ 	    if (query_dialog
+-		(_(" Confirmation "), _("Files tagged, want to cd?"), 0, 2,
++		(_(" Confirmation "), _("Files tagged, want to cd?"), D_NORMAL, 2,
+ 		 _("&Yes"), _("&No")) != 0) {
+ 		return;
+ 	    }
+ 	}
+ 	if (!do_cd (selection (current_panel)->fname, cd_exact))
+-	    message (1, MSG_ERROR, _("Cannot change directory"));
++	    message (D_ERROR, MSG_ERROR, _("Cannot change directory"));
+ 
+ 	return;
+ 
+@@ -365,7 +365,7 @@ mkdir_cmd (void)
+ 	repaint_screen ();
+ 	select_item (current_panel);
+     } else {
+-	message (1, MSG_ERROR, "  %s  ", unix_error_string (errno));
++	message (D_ERROR, MSG_ERROR, "  %s  ", unix_error_string (errno));
+     }
+ 
+     g_free (absdir);
+@@ -508,7 +508,7 @@ select_unselect_cmd (const char *title, int cmd)
+ 	c = regexp_match (reg_exp_t, current_panel->dir.list[i].fname,
+ 			  match_file);
+ 	if (c == -1) {
+-	    message (1, MSG_ERROR, _("  Malformed regular expression  "));
++	    message (D_ERROR, MSG_ERROR, _("  Malformed regular expression  "));
+ 	    g_free (reg_exp);
+ 	    return;
+ 	}
+@@ -560,7 +560,7 @@ void ext_cmd (void)
+     dir = 0;
+     if (geteuid () == 0){
+ 	dir = query_dialog (_("Extension file edit"),
+-			    _(" Which extension file you want to edit? "), 0, 2,
++			    _(" Which extension file you want to edit? "), D_NORMAL, 2,
+ 			    _("&User"), _("&System Wide"));
+     }
+     extdir = concat_dir_and_file (mc_home, MC_LIB_EXT);
+@@ -589,7 +589,7 @@ menu_edit_cmd (int where)
+     dir = query_dialog (
+ 	_(" Menu edit "),
+ 	_(" Which menu file do you want to edit? "), 
+-	0, geteuid() ? 2 : 3,
++	D_NORMAL, geteuid() ? 2 : 3,
+ 	_("&Local"), _("&User"), _("&System Wide")
+     );
+ 
+@@ -633,7 +633,7 @@ void quick_chdir_cmd (void)
+ 	tree_chdir (the_tree, target);
+     else
+         if (!do_cd (target, cd_exact))
+-	    message (1, MSG_ERROR, _("Cannot change directory") );
++	    message (D_ERROR, MSG_ERROR, _("Cannot change directory") );
+     g_free (target);
+ }
+ 
+@@ -663,7 +663,7 @@ edit_syntax_cmd (void)
+     if (geteuid () == 0) {
+ 	dir =
+ 	    query_dialog (_("Syntax file edit"),
+-			  _(" Which syntax file you want to edit? "), 0, 2,
++			  _(" Which syntax file you want to edit? "), D_NORMAL, 2,
+ 			  _("&User"), _("&System Wide"));
+     }
+     extdir = concat_dir_and_file (mc_home, "syntax" PATH_SEP_STR "Syntax");
+@@ -690,7 +690,7 @@ void reselect_vfs (void)
+ 	return;
+ 
+     if (!do_cd (target, cd_exact))
+-        message (1, MSG_ERROR, _("Cannot change directory") );
++        message (D_ERROR, MSG_ERROR, _("Cannot change directory") );
+     g_free (target);
+ }
+ #endif /* USE_VFS */
+@@ -818,8 +818,8 @@ compare_dirs_cmd (void)
+ 
+     choice =
+ 	query_dialog (_(" Compare directories "),
+-		      _(" Select compare method: "), 0, 3, _("&Quick"),
+-		      _("&Size only"), _("&Thorough"), _("&Cancel"));
++		      _(" Select compare method: "), 0, D_NORMAL, 
++		      _("&Quick"), _("&Size only"), _("&Thorough"), _("&Cancel"));
+ 
+     if (choice < 0 || choice > 2)
+ 	return;
+@@ -831,7 +831,7 @@ compare_dirs_cmd (void)
+ 	compare_dir (current_panel, other_panel, thorough_flag);
+ 	compare_dir (other_panel, current_panel, thorough_flag);
+     } else {
+-	message (1, MSG_ERROR,
++	message (D_ERROR, MSG_ERROR,
+ 		 _(" Both panels should be in the "
+ 		   "listing mode to use this command "));
+     }
+@@ -848,7 +848,7 @@ history_cmd (void)
+ 	    cmdline->need_push = 0;
+     }
+     if (!cmdline->history) {
+-	message (1, MSG_ERROR, _(" The command history is empty "));
++	message (D_ERROR, MSG_ERROR, _(" The command history is empty "));
+ 	return;
+     }
+     current = g_list_first (cmdline->history);
+@@ -887,7 +887,7 @@ view_other_cmd (void)
+ 
+     if (!xterm_flag && !console_flag && !use_subshell && !output_starts_shell) {
+ 	if (message_flag)
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _(" Not an xterm or Linux console; \n"
+ 		       " the panels cannot be toggled. "));
+ 	message_flag = FALSE;
+@@ -908,7 +908,7 @@ do_link (int symbolic_link, const char *fname)
+ 	    goto cleanup;
+ 	save_cwds_stat ();
+ 	if (-1 == mc_link (fname, dest))
+-	    message (1, MSG_ERROR, _(" link: %s "),
++	    message (D_ERROR, MSG_ERROR, _(" link: %s "),
+ 		     unix_error_string (errno));
+     } else {
+ 	char *s;
+@@ -931,7 +931,7 @@ do_link (int symbolic_link, const char *fname)
+ 	    goto cleanup;
+ 	save_cwds_stat ();
+ 	if (-1 == mc_symlink (dest, src))
+-	    message (1, MSG_ERROR, _(" symlink: %s "),
++	    message (D_ERROR, MSG_ERROR, _(" symlink: %s "),
+ 		     unix_error_string (errno));
+     }
+     update_panels (UP_OPTIMIZE, UP_KEEPSEL);
+@@ -977,11 +977,11 @@ void edit_symlink_cmd (void)
+ 		if (*dest && strcmp (buffer, dest)) {
+ 		    save_cwds_stat ();
+ 		    if (-1 == mc_unlink (p)){
+-		        message (1, MSG_ERROR, _(" edit symlink, unable to remove %s: %s "),
++		        message (D_ERROR, MSG_ERROR, _(" edit symlink, unable to remove %s: %s "),
+ 				 p, unix_error_string (errno));
+ 		    } else {
+ 			    if (-1 == mc_symlink (dest, p))
+-				    message (1, MSG_ERROR, _(" edit symlink: %s "),
++				    message (D_ERROR, MSG_ERROR, _(" edit symlink: %s "),
+ 					     unix_error_string (errno));
+ 		    }
+ 		    update_panels (UP_OPTIMIZE, UP_KEEPSEL);
+@@ -992,7 +992,7 @@ void edit_symlink_cmd (void)
+ 	}
+ 	g_free (q);
+     } else {
+-	message (1, MSG_ERROR, _("`%s' is not a symbolic link"),
++	message (D_ERROR, MSG_ERROR, _("`%s' is not a symbolic link"),
+ 		 selection (current_panel)->fname);
+     }
+ }
+@@ -1110,7 +1110,7 @@ nice_cd (const char *text, const char *xtext, const char *help, const char *pref
+     if (do_panel_cd (MENU_PANEL, cd_path, 0))
+ 	directory_history_add (MENU_PANEL, (MENU_PANEL)->cwd);
+     else
+-	message (1, MSG_ERROR, _(" Cannot chdir to %s "), cd_path);
++	message (D_ERROR, MSG_ERROR, _(" Cannot chdir to %s "), cd_path);
+     g_free (cd_path);
+     g_free (machine);
+ }
+@@ -1223,12 +1223,10 @@ dirsizes_cmd (void)
+ void
+ save_setup_cmd (void)
+ {
+-    char *str;
+-    
+     save_setup ();
+     sync_profiles ();
+     
+-    message (0, _(" Setup "), _(" Setup saved to ~/%s"), PROFILE_NAME);
++    message (D_NORMAL, _(" Setup "), _(" Setup saved to ~/%s"), PROFILE_NAME);
+ }
+ 
+ static void
+diff --git a/src/command.c b/src/command.c
+index b204b8d..d118c03 100644
+--- a/src/command.c
++++ b/src/command.c
+@@ -183,7 +183,7 @@ void do_cd_command (char *cmd)
+     } else
+ 	if (!examine_cd (&cmd [3])) {
+ 	    char *d = strip_password (g_strdup (&cmd [3]), 1);
+-	    message (1, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++	    message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
+ 		     d, unix_error_string (errno));
+ 	    g_free (d);
+ 	    return;
+@@ -215,7 +215,7 @@ enter (WInput *cmdline)
+ 	size_t i, j, cmd_len;
+ 
+ 	if (!vfs_current_is_local ()) {
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _
+ 		     (" Cannot execute commands on non-local filesystems"));
+ 
+@@ -225,7 +225,7 @@ enter (WInput *cmdline)
+ 	/* Check this early before we clean command line
+ 	 * (will be checked again by shell_execute) */
+ 	if (use_subshell && subshell_state != INACTIVE) {
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _(" The shell is already running a command "));
+ 	    return MSG_NOT_HANDLED;
+ 	}
+diff --git a/src/dir.c b/src/dir.c
+index 6992f40..471a044 100644
+--- a/src/dir.c
++++ b/src/dir.c
+@@ -397,7 +397,7 @@ do_load_dir (const char *path, dir_list *list, sortfn *sort, int reverse,
+ 
+     dirp = mc_opendir (path);
+     if (!dirp) {
+-	message (1, MSG_ERROR, _("Cannot read directory contents"));
++	message (D_ERROR, MSG_ERROR, _("Cannot read directory contents"));
+ 	return next_free;
+     }
+     tree_store_start_check (path);
+@@ -496,7 +496,7 @@ do_reload_dir (const char *path, dir_list *list, sortfn *sort, int count,
+ 
+     dirp = mc_opendir (path);
+     if (!dirp) {
+-	message (1, MSG_ERROR, _("Cannot read directory contents"));
++	message (D_ERROR, MSG_ERROR, _("Cannot read directory contents"));
+ 	clean_dir (list, count);
+ 	return set_zero_dir (list);
+     }
+diff --git a/src/execute.c b/src/execute.c
+index eb31cac..970a177 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -189,7 +189,7 @@ shell_execute (const char *command, int flags)
+ 	if (subshell_state == INACTIVE)
+ 	    do_execute (shell, cmd ? cmd : command, flags | EXECUTE_AS_SHELL);
+ 	else
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _(" The shell is already running a command "));
+     else
+ #endif				/* HAVE_SUBSHELL_SUPPORT */
+@@ -352,7 +352,7 @@ execute_with_vfs_arg (const char *command, const char *filename)
+ 
+     localcopy = mc_getlocalcopy (filename);
+     if (localcopy == NULL) {
+-	message (1, MSG_ERROR, _(" Cannot fetch a local copy of %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot fetch a local copy of %s "),
+ 		 filename);
+ 	return;
+     }
+diff --git a/src/ext.c b/src/ext.c
+index 8e64d2c..1ad3f19 100644
+--- a/src/ext.c
++++ b/src/ext.c
+@@ -100,7 +100,7 @@ exec_extension (const char *filename, const char *data, int *move_dir,
+     cmd_file_fd = mc_mkstemps (&file_name, "mcext", SCRIPT_SUFFIX);
+ 
+     if (cmd_file_fd == -1) {
+-	message (1, MSG_ERROR,
++	message (D_ERROR, MSG_ERROR,
+ 		 _(" Cannot create temporary command file \n %s "),
+ 		 unix_error_string (errno));
+ 	return;
+@@ -464,7 +464,7 @@ regex_command (const char *filename, const char *action, int *move_dir)
+ 		    char *title =
+ 			g_strdup_printf (_(" %s%s file error"),
+ 			    mc_home, MC_LIB_EXT);
+-		    message (1, title, _("The format of the %smc.ext "
++		    message (D_ERROR, title, _("The format of the %smc.ext "
+ 			"file has changed with version 3.0.  It seems that "
+ 			"the installation failed.  Please fetch a fresh "
+ 			"copy from the Midnight Commander package."),
+@@ -477,7 +477,7 @@ regex_command (const char *filename, const char *action, int *move_dir)
+ 	if (home_error) {
+ 	    char *title =
+ 		g_strdup_printf (_(" ~/%s file error "), MC_USER_EXT);
+-	    message (1, title, _("The format of the ~/%s file has "
++	    message (D_ERROR, title, _("The format of the ~/%s file has "
+ 		"changed with version 3.0.  You may either want to copy "
+ 		"it from %smc.ext or use that file as an example of how "
+ 		"to write it."), MC_USER_EXT, mc_home);
+diff --git a/src/file.c b/src/file.c
+index a19633a..100ab3e 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -212,7 +212,7 @@ do_transform_source (FileOpContext *ctx, const char *source)
+ 	case '*':
+ 	    if (next_reg < 0 || next_reg >= RE_NREGS
+ 		|| ctx->regs.start[next_reg] < 0) {
+-		message (1, MSG_ERROR, _(" Invalid target mask "));
++		message (D_ERROR, MSG_ERROR, _(" Invalid target mask "));
+ 		transform_error = FILE_ABORT;
+ 		return NULL;
+ 	    }
+@@ -312,7 +312,7 @@ check_hardlinks (const char *src_name, const char *dst_name, struct stat *pstat)
+ 		    }
+ 		}
+ 	    }
+-	    message (1, MSG_ERROR, _(" Cannot make the hardlink "));
++	    message (D_ERROR, MSG_ERROR, _(" Cannot make the hardlink "));
+ 	    return 0;
+ 	}
+     lp = (struct link *) g_malloc (sizeof (struct link) + strlen (src_name)
+@@ -366,7 +366,7 @@ make_symlink (FileOpContext *ctx, const char *src_path, const char *dst_path)
+ 
+     if (ctx->stable_symlinks)
+ 	if (!vfs_file_is_local (src_path) || !vfs_file_is_local (dst_path)) {
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 			_(" Cannot make stable symlinks across "
+ 			  "non-local filesystems: \n\n"
+ 			  " Option Stable Symlinks will be disabled "));
+@@ -510,7 +510,7 @@ copy_file_file (FileOpContext *ctx, const char *src_path, const char *dst_path,
+     if (dst_exists) {
+ 	/* Destination already exists */
+ 	if (sb.st_dev == sb2.st_dev && sb.st_ino == sb2.st_ino) {
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		    _(" `%s' and `%s' are the same file "), src_path, dst_path);
+ 	    do_refresh ();
+ 	    return FILE_SKIP;
+@@ -586,7 +586,7 @@ copy_file_file (FileOpContext *ctx, const char *src_path, const char *dst_path,
+ 
+     if (ctx->do_reget) {
+ 	if (mc_lseek (src_desc, ctx->do_reget, SEEK_SET) != ctx->do_reget) {
+-	    message (1, _("Warning"),
++	    message (D_ERROR, _("Warning"),
+ 			_(" Reget failed, about to overwrite file "));
+ 	    ctx->do_reget = ctx->do_append = 0;
+ 	}
+@@ -868,7 +868,7 @@ copy_dir_dir (FileOpContext *ctx, const char *s, const char *d, int toplevel,
+ 
+     if (is_in_linklist (parent_dirs, s, &cbuf)) {
+ 	/* we found a cyclic symbolic link */
+-	message (1, MSG_ERROR,
++	message (D_ERROR, MSG_ERROR,
+ 		    _(" Cannot copy cyclic symbolic link \n `%s' "), s);
+ 	return FILE_SKIP;
+     }
+@@ -1052,14 +1052,14 @@ move_file_file (FileOpContext *ctx, const char *s, const char *d,
+ 
+ 	    strcpy (st, path_trunc (s, msize));
+ 	    strcpy (dt, path_trunc (d, msize));
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 			_(" `%s' and `%s' are the same file "), st, dt);
+ 	    do_refresh ();
+ 	    return FILE_SKIP;
+ 	}
+ 
+ 	if (S_ISDIR (dst_stats.st_mode)) {
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 			_(" Cannot overwrite directory `%s' "), d);
+ 	    do_refresh ();
+ 	    return FILE_SKIP;
+@@ -1175,7 +1175,7 @@ move_dir_dir (FileOpContext *ctx, const char *s, const char *d,
+ 
+ 	strcpy (st, path_trunc (s, msize));
+ 	strcpy (dt, path_trunc (d, msize));
+-	message (1, MSG_ERROR,
++	message (D_ERROR, MSG_ERROR,
+ 		    _(" `%s' and `%s' are the same directory "), st, dt);
+ 	do_refresh ();
+ 	return FILE_SKIP;
+@@ -1753,7 +1753,7 @@ panel_operate (void *source_panel, FileOperation operation,
+ 	}
+ 
+ 	if (!strcmp (source, "..")) {
+-	    message (1, MSG_ERROR, _(" Cannot operate on \"..\"! "));
++	    message (D_ERROR, MSG_ERROR, _(" Cannot operate on \"..\"! "));
+ 	    return 0;
+ 	}
+     }
+@@ -1808,7 +1808,7 @@ panel_operate (void *source_panel, FileOperation operation,
+ 			   g_strconcat (op_names[operation], ": ",
+ 					panel->cwd, NULL));
+ 	if (v == -1) {
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _(" Sorry, I could not put the job in background "));
+ 	}
+ 
+diff --git a/src/filegui.c b/src/filegui.c
+index 441adb7..c1c8a7c 100644
+--- a/src/filegui.c
++++ b/src/filegui.c
+@@ -868,7 +868,7 @@ file_mask_dialog (FileOpContext *ctx, FileOperation operation, const char *text,
+ 
+     g_return_val_if_fail (ctx != NULL, NULL);
+ #if 0
+-    message (1, __FUNCTION__, "text = `%s' \n def_text = `%s'", text,
++    message (D_ERROR, __FUNCTION__, "text = `%s' \n def_text = `%s'", text,
+ 		def_text);
+ #endif
+     fmd_init_i18n (FALSE);
+@@ -946,7 +946,7 @@ file_mask_dialog (FileOpContext *ctx, FileOperation operation, const char *text,
+ 				&ctx->rx);
+ 
+     if (error) {
+-	message (1, MSG_ERROR, _("Invalid source pattern `%s' \n %s "),
++	message (D_ERROR, MSG_ERROR, _("Invalid source pattern `%s' \n %s "),
+ 		    orig_mask, error);
+ 	g_free (orig_mask);
+ 	goto ask_file_mask;
+diff --git a/src/find.c b/src/find.c
+index baf1504..9fce565 100644
+--- a/src/find.c
++++ b/src/find.c
+@@ -166,7 +166,7 @@ find_parm_callback (struct Dlg_head *h, dlg_msg_t msg, int parm)
+ 	    flags |= REG_ICASE;
+ 
+ 	if (regcomp (r, in_with->buffer, flags)) {
+-	    message (1, MSG_ERROR, _("  Malformed regular expression  "));
++	    message (D_ERROR, MSG_ERROR, _("  Malformed regular expression  "));
+ 	    dlg_select_widget (in_with);
+ 	    h->running = 1;	/* Don't stop the dialog */
+ 	}
+diff --git a/src/help.c b/src/help.c
+index 3261cbb..5ce6868 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -292,7 +292,7 @@ static void start_link_area (int x, int y, const char *link_name)
+     Link_Area *new;
+ 
+     if (inside_link_area)
+-	message (0, _("Warning"), _(" Internal bug: Double start of link area "));
++	message (D_NORMAL, _("Warning"), _(" Internal bug: Double start of link area "));
+ 
+     /* Allocate memory for a new link area */
+     new = g_new (Link_Area, 1);
+@@ -540,7 +540,7 @@ help_index_cmd (void *vp)
+     const char *new_item;
+ 
+     if (!(new_item = search_string (data, "[Contents]"))) {
+-	message (1, MSG_ERROR, _(" Cannot find node %s in help file "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot find node %s in help file "),
+ 		 "[Contents]");
+ 	return;
+     }
+@@ -769,7 +769,7 @@ interactive_display (const char *filename, const char *node)
+ 	data = load_mc_home_file ("mc.hlp", &hlpfile);
+ 
+     if (data == NULL) {
+-	message (1, MSG_ERROR, _(" Cannot open file %s \n %s "), filename ? filename : hlpfile,
++	message (D_ERROR, MSG_ERROR, _(" Cannot open file %s \n %s "), filename ? filename : hlpfile,
+ 		 unix_error_string (errno));
+     }
+ 
+@@ -783,7 +783,7 @@ interactive_display (const char *filename, const char *node)
+ 	node = "[main]";
+ 
+     if (!(main_node = search_string (data, node))) {
+-	message (1, MSG_ERROR, _(" Cannot find node %s in help file "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot find node %s in help file "),
+ 		 node);
+ 
+ 	/* Fallback to [main], return if it also cannot be found */
+diff --git a/src/learn.c b/src/learn.c
+index dff560c..fb98033 100644
+--- a/src/learn.c
++++ b/src/learn.c
+@@ -113,7 +113,7 @@ _("Please press the %s\n"
+ 	}
+ 
+ 	if (!seq_ok) {
+-	    message (0, _(" Cannot accept this key "),
++	    message (D_NORMAL, _(" Cannot accept this key "),
+ 		_(" You have entered \"%s\""), seq);
+ 	}
+ 	
+@@ -172,11 +172,11 @@ learn_check_key (int c)
+ 		if (query_dialog (learn_title,
+ 				  _
+ 				  ("It seems that all your keys already\n"
+-				   "work fine. That's great."), 1, 2,
++				   "work fine. That's great."), D_ERROR, 2,
+ 				  _("&Save"), _("&Discard")) == 0)
+ 		    learn_dlg->ret_value = B_ENTER;
+ 	    } else {
+-		message (1, learn_title,
++		message (D_ERROR, learn_title,
+ 			 _
+ 			 ("Great! You have a complete terminal database!\n"
+ 			  "All your keys work well."));
+diff --git a/src/main.c b/src/main.c
+index 949dcf9..150d785 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -425,7 +425,7 @@ void
+ do_possible_cd (const char *new_dir)
+ {
+     if (!do_cd (new_dir, cd_exact))
+-	message (1, _("Warning"),
++	message (D_ERROR, _("Warning"),
+ 		 _(" The Commander can't change to the directory that \n"
+ 		   " the subshell claims you are in.  Perhaps you have \n"
+ 		   " deleted your working directory, or given yourself \n"
+@@ -471,7 +471,7 @@ quit_cmd_internal (int quiet)
+     } else {
+ 	if (query_dialog
+ 	    (_(" The Midnight Commander "),
+-	     _(" Do you really want to quit the Midnight Commander? "), 0,
++	     _(" Do you really want to quit the Midnight Commander? "), D_NORMAL,
+ 	     2, _("&Yes"), _("&No")) == 0)
+ 	    q = 1;
+     }
+@@ -685,7 +685,7 @@ directory_history_list (WPanel *panel)
+     if (_do_panel_cd (panel, s, cd_exact))
+ 	directory_history_add (panel, panel->cwd);
+     else
+-	message (1, MSG_ERROR, _("Cannot change directory"));
++	message (D_ERROR, MSG_ERROR, _("Cannot change directory"));
+     g_free (s);
+ }
+ 
+@@ -990,7 +990,7 @@ toggle_fast_reload (void)
+ {
+     fast_reload = !fast_reload;
+     if (fast_reload_w == 0 && fast_reload) {
+-	message (0, _(" Information "),
++	message (D_NORMAL, _(" Information "),
+ 		 _
+ 		 (" Using the fast reload option may not reflect the exact \n"
+ 		  " directory contents. In this case you'll need to do a   \n"
+diff --git a/src/panelize.c b/src/panelize.c
+index c2d2121..9ac3c2f 100644
+--- a/src/panelize.c
++++ b/src/panelize.c
+@@ -264,7 +264,7 @@ external_panelize (void)
+     char *target = NULL;
+ 
+     if (!vfs_current_is_local ()){
+-	message (1, MSG_ERROR,
++	message (D_ERROR, MSG_ERROR,
+ 		 _(" Cannot run external panelize in a non-local directory "));
+ 	return;
+     }
+@@ -367,7 +367,7 @@ static void do_external_panelize (char *command)
+     open_error_pipe ();
+     external = popen (command, "r");
+     if (!external){
+-	close_error_pipe (1, _("Cannot invoke command."));
++	close_error_pipe (D_ERROR, _("Cannot invoke command."));
+ 	return;
+     }
+     /* Clear the counters and the directory list */
+@@ -418,8 +418,8 @@ static void do_external_panelize (char *command)
+ 	current_panel->count = set_zero_dir (list);
+     }
+     if (pclose (external) < 0)
+-	message (0, _("External panelize"), _("Pipe close failed"));
+-    close_error_pipe (0, 0);
++	message (D_NORMAL, _("External panelize"), _("Pipe close failed"));
++    close_error_pipe (D_NORMAL, NULL);
+     try_to_select (current_panel, NULL);
+     panel_re_sort (current_panel);
+ }
+diff --git a/src/screen.c b/src/screen.c
+index 74604f4..74b9aca 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -1964,7 +1964,7 @@ do_enter_on_file_entry (file_entry *fe)
+     if (S_ISDIR (fe->st.st_mode) || link_isdir (fe)
+ 	|| (fe->st.st_mode == 0)) {
+ 	if (!do_cd (fe->fname, cd_exact))
+-	    message (1, MSG_ERROR, _("Cannot change directory"));
++	    message (D_ERROR, MSG_ERROR, _("Cannot change directory"));
+ 	return 1;
+     }
+ 
+@@ -1983,7 +1983,7 @@ do_enter_on_file_entry (file_entry *fe)
+     if (confirm_execute) {
+ 	if (query_dialog
+ 	    (_(" The Midnight Commander "),
+-	     _(" Do you really want to execute? "), 0, 2, _("&Yes"),
++	     _(" Do you really want to execute? "), D_NORMAL, 2, _("&Yes"),
+ 	     _("&No")) != 0)
+ 	    return 1;
+     }
+@@ -2251,7 +2251,7 @@ panel_callback (Widget *w, widget_msg_t msg, int parm)
+ 	panel->active = 1;
+ 	if (mc_chdir (panel->cwd) != 0) {
+ 	    char *cwd = strip_password (g_strdup (panel->cwd), 1);
+-	    message (1, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++	    message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
+ 		     cwd, unix_error_string (errno));
+ 	    g_free(cwd);
+ 	} else
+diff --git a/src/selcodepage.c b/src/selcodepage.c
+index 3e9ec63..4f7fa3e 100644
+--- a/src/selcodepage.c
++++ b/src/selcodepage.c
+@@ -99,11 +99,11 @@ do_select_codepage (void)
+ 	errmsg =
+ 	    init_translation_table (source_codepage, display_codepage);
+ 	if (errmsg) {
+-	    message (1, MSG_ERROR, "%s", errmsg);
++	    message (D_ERROR, MSG_ERROR, "%s", errmsg);
+ 	    return -1;
+ 	}
+     } else {
+-	message (1, _("Warning"),
++	message (D_ERROR, _("Warning"),
+ 		 _("To use this feature select your codepage in\n"
+ 		   "Setup / Display Bits dialog!\n"
+ 		   "Do not forget to save options."));
+diff --git a/src/subshell.c b/src/subshell.c
+index 09c9930..32d91fe 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -655,15 +655,15 @@ void resize_subshell (void)
+ int
+ exit_subshell (void)
+ {
+-    int quit = TRUE;
++    int subshell_quit = TRUE;
+ 
+     if (subshell_state != INACTIVE && subshell_alive)
+-	quit =
++	subshell_quit =
+ 	    !query_dialog (_("Warning"),
+ 			   _(" The shell is still active. Quit anyway? "),
+-			   0, 2, _("&Yes"), _("&No"));
++			   D_NORMAL, 2, _("&Yes"), _("&No"));
+ 
+-    if (quit) {
++    if (subshell_quit) {
+ 	if (subshell_type == TCSH) {
+ 	    if (unlink (tcsh_fifo) == -1)
+ 		fprintf (stderr, "Cannot remove named pipe %s: %s\r\n",
+@@ -676,7 +676,7 @@ exit_subshell (void)
+ 	pty_buffer = NULL;
+     }
+ 
+-    return quit;
++    return subshell_quit;
+ }
+ 
+ 
+diff --git a/src/tree.c b/src/tree.c
+index 132d170..de93055 100644
+--- a/src/tree.c
++++ b/src/tree.c
+@@ -649,7 +649,7 @@ static void tree_move (WTree *tree, const char *default_dest)
+ 	return;
+     }
+     if (stat (dest, &buf)){
+-	message (1, MSG_ERROR, _(" Cannot stat the destination \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot stat the destination \n %s "),
+ 		 unix_error_string (errno));
+ 	g_free (dest);
+ 	return;
+@@ -714,7 +714,7 @@ tree_rmdir_cmd (WTree *tree)
+ 	    g_strdup_printf (_("  Delete %s?  "),
+ 			     tree->selected_ptr->name);
+ 	result =
+-	    query_dialog (_(" Delete "), buf, 3, 2, _("&Yes"), _("&No"));
++	    query_dialog (_(" Delete "), buf, D_ERROR, 2, _("&Yes"), _("&No"));
+ 	g_free (buf);
+ 	if (result != 0)
+ 	    return;
+@@ -831,7 +831,7 @@ chdir_sel (WTree *tree)
+     if (do_cd (tree->selected_ptr->name, cd_exact)) {
+ 	select_item (current_panel);
+     } else {
+-	message (1, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
+ 		 tree->selected_ptr->name, unix_error_string (errno));
+     }
+     change_panel ();
+diff --git a/src/user.c b/src/user.c
+index 01022aa..6a745d2 100644
+--- a/src/user.c
++++ b/src/user.c
+@@ -130,7 +130,7 @@ int check_format_var (const char *p, char **v)
+ 	    return 0;
+ 
+ 	if (!dots || dots == q+5){
+-	    message (1,
++	    message (D_ERROR,
+ 		     _(" Format error on file Extensions File "),
+ 		     !dots ? _(" The %%var macro has no default ")
+ 		     :       _(" The %%var macro has no variable "));
+@@ -463,7 +463,7 @@ debug_out (char *start, char *end, int cond)
+ 	    len = strlen (msg);
+ 	    if (len)
+ 		msg [len - 1] = 0;
+-	    message (0, _(" Debug "), "%s", msg);
++	    message (D_NORMAL, _(" Debug "), "%s", msg);
+ 
+ 	}
+ 	debug_flag = 0;
+@@ -580,7 +580,7 @@ execute_menu_command (WEdit *edit_widget, const char *commands)
+     cmd_file_fd = mc_mkstemps (&file_name, "mcusr", SCRIPT_SUFFIX);
+ 
+     if (cmd_file_fd == -1){
+-	message (1, MSG_ERROR, _(" Cannot create temporary command file \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot create temporary command file \n %s "),
+ 		 unix_error_string (errno));
+ 	return;
+     }
+@@ -688,7 +688,7 @@ menu_file_own(char* path)
+     }
+     if (verbose)
+     {
+-	message (0, _(" Warning -- ignoring file "),
++	message (D_NORMAL, _(" Warning -- ignoring file "),
+ 		    _("File %s is not owned by root or you or is world writable.\n"
+ 		    "Using it may compromise your security"),
+ 		path
+@@ -712,7 +712,7 @@ user_menu_cmd (struct WEdit *edit_widget)
+     Listbox *listbox;
+     
+     if (!vfs_current_is_local ()){
+-	message (1, MSG_ERROR,
++	message (D_ERROR, MSG_ERROR,
+ 		 _(" Cannot execute commands on non-local filesystems"));
+ 	return;
+     }
+@@ -730,7 +730,7 @@ user_menu_cmd (struct WEdit *edit_widget)
+     }
+ 
+     if ((data = load_file (menu)) == NULL){
+-	message (1, MSG_ERROR, _(" Cannot open file %s \n %s "),
++	message (D_ERROR, MSG_ERROR, _(" Cannot open file %s \n %s "),
+ 		 menu, unix_error_string (errno));
+ 	g_free (menu);
+ 	menu = NULL;
+@@ -811,7 +811,7 @@ user_menu_cmd (struct WEdit *edit_widget)
+     }
+ 
+     if (menu_lines == 0) {
+-	message (1, MSG_ERROR, _(" No suitable entries found in %s "), menu);
++	message (D_ERROR, MSG_ERROR, _(" No suitable entries found in %s "), menu);
+     } else {
+ 
+     max_cols = min (max (max_cols, col), MAX_ENTRY_LEN);
+diff --git a/src/utilunix.c b/src/utilunix.c
+index 7565eb1..cd3c7cc 100644
+--- a/src/utilunix.c
++++ b/src/utilunix.c
+@@ -339,11 +339,11 @@ static int old_error;		/* File descriptor of old standard error */
+ void open_error_pipe (void)
+ {
+     if (pipe (error_pipe) < 0){
+-	message (0, _("Warning"), _(" Pipe failed "));
++	message (D_NORMAL, _("Warning"), _(" Pipe failed "));
+     }
+     old_error = dup (2);
+     if(old_error < 0 || close(2) || dup (error_pipe[1]) != 2){
+-	message (0, _("Warning"), _(" Dup failed "));
++	message (D_NORMAL, _("Warning"), _(" Dup failed "));
+ 	close (error_pipe[0]);
+ 	close (error_pipe[1]);
+     }
+diff --git a/src/view.c b/src/view.c
+index ddb093d..2f2c33a 100644
+--- a/src/view.c
++++ b/src/view.c
+@@ -432,7 +432,7 @@ view_growbuf_read_until (WView *view, offset_type ofs)
+ 		view->growbuf_finished = TRUE;
+ 		(void) pclose (view->ds_stdio_pipe);
+ 		display (view);
+-		close_error_pipe (0, NULL);
++		close_error_pipe (D_NORMAL, NULL);
+ 		view->ds_stdio_pipe = NULL;
+ 		return;
+ 	    }
+@@ -690,7 +690,7 @@ view_close_datasource (WView *view)
+ 	    if (view->ds_stdio_pipe != NULL) {
+ 		(void) pclose (view->ds_stdio_pipe);
+ 		display (view);
+-		close_error_pipe (0, NULL);
++		close_error_pipe (D_NORMAL, NULL);
+ 		view->ds_stdio_pipe = NULL;
+ 	    }
+ 	    view_growbuf_free (view);
+@@ -1450,7 +1450,7 @@ view_show_error (WView *view, const char *msg)
+     if (view_is_in_panel (view)) {
+ 	view_set_datasource_string (view, msg);
+     } else {
+-	message (1, MSG_ERROR, "%s", msg);
++	message (D_ERROR, MSG_ERROR, "%s", msg);
+     }
+ }
+ 
+@@ -1465,7 +1465,7 @@ view_load_command_output (WView *view, const char *command)
+     if ((fp = popen (command, "r")) == NULL) {
+ 	/* Avoid two messages.  Message from stderr has priority.  */
+ 	display (view);
+-	if (!close_error_pipe (view_is_in_panel (view) ? -1 : 1, NULL))
++	if (!close_error_pipe (view_is_in_panel (view) ? -1 : D_ERROR, NULL))
+ 	    view_show_error (view, _(" Cannot spawn child process "));
+ 	return FALSE;
+     }
+@@ -1477,7 +1477,7 @@ view_load_command_output (WView *view, const char *command)
+ 
+ 	/* Avoid two messages.  Message from stderr has priority.  */
+ 	display (view);
+-	if (!close_error_pipe (view_is_in_panel (view) ? -1 : 1, NULL))
++	if (!close_error_pipe (view_is_in_panel (view) ? -1 : D_ERROR, NULL))
+ 	    view_show_error (view, _("Empty output from child filter"));
+ 	return FALSE;
+     }
+@@ -2445,7 +2445,7 @@ search (WView *view, char *text,
+ 	destroy_dlg (d);
+     }
+     if (!s) {
+-	message (0, _("Search"), _(" Search string not found "));
++	message (D_NORMAL, _("Search"), _(" Search string not found "));
+ 	view->search_length = 0;
+     }
+ }
+@@ -2596,7 +2596,7 @@ hex_search (WView *view, const char *text)
+ 
+     /* No valid bytes in the user input */
+     if (block_len <= 0 || parse_error) {
+-	message (0, _("Search"), _("Invalid hex search expression"));
++	message (D_NORMAL, _("Search"), _("Invalid hex search expression"));
+ 	g_free (buffer);
+ 	view->search_length = 0;
+ 	return;
+@@ -2608,7 +2608,7 @@ hex_search (WView *view, const char *text)
+     g_free (buffer);
+ 
+     if (pos == INVALID_OFFSET) {
+-	message (0, _("Search"), _(" Search string not found "));
++	message (D_NORMAL, _("Search"), _(" Search string not found "));
+ 	view->search_length = 0;
+ 	return;
+     }
+@@ -2648,7 +2648,7 @@ regexp_view_search (WView *view, char *pattern, char *string,
+ 	}
+ 	flags |= REG_EXTENDED;
+ 	if (regcomp (&r, pattern, flags)) {
+-	    message (1, MSG_ERROR, _(" Invalid regular expression "));
++	    message (D_ERROR, MSG_ERROR, _(" Invalid regular expression "));
+ 	    return -1;
+ 	}
+ 	old_pattern = g_strdup (pattern);
+diff --git a/vfs/cpio.c b/vfs/cpio.c
+index fb93d9a..3b1dd89 100644
+--- a/vfs/cpio.c
++++ b/vfs/cpio.c
+@@ -157,7 +157,7 @@ cpio_open_cpio_file (struct vfs_class *me, struct vfs_s_super *super,
+     struct vfs_s_inode *root;
+ 
+     if ((fd = mc_open (name, O_RDONLY)) == -1) {
+-	message (1, MSG_ERROR, _("Cannot open cpio archive\n%s"), name);
++	message (D_ERROR, MSG_ERROR, _("Cannot open cpio archive\n%s"), name);
+ 	return -1;
+     }
+ 
+@@ -173,7 +173,7 @@ cpio_open_cpio_file (struct vfs_class *me, struct vfs_s_super *super,
+ 	mc_close (fd);
+ 	s = g_strconcat (name, decompress_extension (type), (char *) NULL);
+ 	if ((fd = mc_open (s, O_RDONLY)) == -1) {
+-	    message (1, MSG_ERROR, _("Cannot open cpio archive\n%s"), s);
++	    message (D_ERROR, MSG_ERROR, _("Cannot open cpio archive\n%s"), s);
+ 	    g_free (s);
+ 	    return -1;
+ 	}
+@@ -239,7 +239,7 @@ static int cpio_find_head(struct vfs_class *me, struct vfs_s_super *super)
+ 		top = 128;
+ 	    }
+ 	    if((tmp = mc_read(super->u.arch.fd, buf, top)) == 0 || tmp == -1) {
+-		message (1, MSG_ERROR, _("Premature end of cpio archive\n%s"), super->name);
++		message (D_ERROR, MSG_ERROR, _("Premature end of cpio archive\n%s"), super->name);
+ 		cpio_free_archive(me, super);
+ 		return CPIO_UNKNOWN;
+ 	    }
+@@ -284,7 +284,7 @@ static int cpio_read_bin_head(struct vfs_class *me, struct vfs_s_super *super)
+     g_assert(u.buf.c_magic == 070707);
+ 
+     if (u.buf.c_namesize == 0 || u.buf.c_namesize > MC_MAXPATHLEN) {
+-	message (1, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"), 
++	message (D_ERROR, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"), 
+ 		super->name);
+ 	return STATUS_FAIL;
+     }
+@@ -336,13 +336,13 @@ static int cpio_read_oldc_head(struct vfs_class *me, struct vfs_s_super *super)
+ 	      &hd.c_dev, &hd.c_ino, &hd.c_mode, &hd.c_uid, &hd.c_gid,
+ 	      &hd.c_nlink, &hd.c_rdev, &hd.c_mtime,
+ 	      &hd.c_namesize, &hd.c_filesize) < 10) {
+-	message (1, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
++	message (D_ERROR, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
+ 		    super->name);
+ 	return STATUS_FAIL;
+     }
+ 
+     if (hd.c_namesize == 0 || hd.c_namesize > MC_MAXPATHLEN) {
+-	message (1, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
++	message (D_ERROR, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
+ 		    super->name);
+ 	return STATUS_FAIL;
+     }
+@@ -396,7 +396,7 @@ static int cpio_read_crc_head(struct vfs_class *me, struct vfs_s_super *super)
+ 	      &hd.c_nlink,  &hd.c_mtime, &hd.c_filesize,
+ 	      &hd.c_dev, &hd.c_devmin, &hd.c_rdev, &hd.c_rdevmin,
+ 	      &hd.c_namesize, &hd.c_chksum) < 14) {
+-	message (1, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
++	message (D_ERROR, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
+ 		   super->name);
+ 	return STATUS_FAIL;
+     }
+@@ -406,7 +406,7 @@ static int cpio_read_crc_head(struct vfs_class *me, struct vfs_s_super *super)
+ 	return STATUS_FAIL;
+ 
+     if (hd.c_namesize == 0 || hd.c_namesize > MC_MAXPATHLEN) {
+-	message (1, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
++	message (D_ERROR, MSG_ERROR, _("Corrupted cpio header encountered in\n%s"),
+ 		    super->name);
+ 	return STATUS_FAIL;
+     }
+@@ -480,7 +480,7 @@ cpio_create_entry (struct vfs_class *me, struct vfs_s_super *super,
+ 	    inode = l->inode;
+ 	    if (inode->st.st_size && st->st_size
+ 		&& (inode->st.st_size != st->st_size)) {
+-		message (1, MSG_ERROR,
++		message (D_ERROR, MSG_ERROR,
+ 			 _
+ 			 ("Inconsistent hardlinks of\n%s\nin cpio archive\n%s"),
+ 			 name, super->name);
+@@ -507,7 +507,7 @@ cpio_create_entry (struct vfs_class *me, struct vfs_s_super *super,
+ 				   'No such file or directory' is such case) */
+ 
+ 	if (!S_ISDIR (entry->ino->st.st_mode)) {	/* This can be considered archive inconsistency */
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _("%s contains duplicate entries! Skipping!"),
+ 		     super->name);
+ 	} else {
+@@ -579,7 +579,7 @@ cpio_open_archive (struct vfs_class *me, struct vfs_s_super *super,
+ 
+ 	switch (status) {
+ 	case STATUS_EOF:
+-	    message (1, MSG_ERROR, _("Unexpected end of file\n%s"), name);
++	    message (D_ERROR, MSG_ERROR, _("Unexpected end of file\n%s"), name);
+ 	    return 0;
+ 	case STATUS_OK:
+ 	    continue;
+diff --git a/vfs/direntry.c b/vfs/direntry.c
+index 3a52d22..b807414 100644
+--- a/vfs/direntry.c
++++ b/vfs/direntry.c
+@@ -431,12 +431,12 @@ vfs_s_free_super (struct vfs_class *me, struct vfs_s_super *super)
+ #if 0
+     /* FIXME: We currently leak small ammount of memory, sometimes. Fix it if you can. */
+     if (super->ino_usage)
+-	message (1, " Direntry warning ",
++	message (D_ERROR, " Direntry warning ",
+ 			 "Super ino_usage is %d, memory leak",
+ 			 super->ino_usage);
+ 
+     if (super->want_stale)
+-	message (1, " Direntry warning ", "Super has want_stale set");
++	message (D_ERROR, " Direntry warning ", "Super has want_stale set");
+ #endif
+ 
+     if (super->prevp){
+diff --git a/vfs/extfs.c b/vfs/extfs.c
+index d634e33..8024ab6 100644
+--- a/vfs/extfs.c
++++ b/vfs/extfs.c
+@@ -256,7 +256,7 @@ extfs_open_archive (int fstype, const char *name, struct archive **pparc)
+     result = popen (cmd, "r");
+     g_free (cmd);
+     if (result == NULL) {
+-	close_error_pipe (1, NULL);
++	close_error_pipe (D_ERROR, NULL);
+ 	if (local_name) {
+ 	    mc_ungetlocalcopy (name, local_name, 0);
+ 	    g_free(local_name);
+@@ -314,7 +314,7 @@ extfs_read_archive (int fstype, const char *name, struct archive **pparc)
+ 
+     if ((extfsd =
+ 	 extfs_open_archive (fstype, name, &current_archive)) == NULL) {
+-	message (1, MSG_ERROR, _("Cannot open %s archive\n%s"),
++	message (D_ERROR, MSG_ERROR, _("Cannot open %s archive\n%s"),
+ 		 extfs_prefixes[fstype], name);
+ 	return -1;
+     }
+@@ -354,7 +354,7 @@ extfs_read_archive (int fstype, const char *name, struct archive **pparc)
+ 		    /* FIXME: Should clean everything one day */
+ 		    g_free (buffer);
+ 		    pclose (extfsd);
+-		    close_error_pipe (1, _("Inconsistent extfs archive"));
++		    close_error_pipe (D_ERROR, _("Inconsistent extfs archive"));
+ 		    return -1;
+ 		}
+ 		entry = g_new (struct entry, 1);
+@@ -373,7 +373,7 @@ extfs_read_archive (int fstype, const char *name, struct archive **pparc)
+ 			/* FIXME: Should clean everything one day */
+ 			g_free (buffer);
+ 			pclose (extfsd);
+-			close_error_pipe (1,
++			close_error_pipe (D_ERROR,
+ 					  _("Inconsistent extfs archive"));
+ 			return -1;
+ 		    } else {
+@@ -425,11 +425,11 @@ extfs_read_archive (int fstype, const char *name, struct archive **pparc)
+     /* Check if extfs 'list' returned 0 */
+     if (pclose (extfsd) != 0) {
+ 	extfs_free (current_archive);
+-	close_error_pipe (1, _("Inconsistent extfs archive"));
++	close_error_pipe (D_ERROR, _("Inconsistent extfs archive"));
+ 	return -1;
+     }
+ 
+-    close_error_pipe (1, NULL);
++    close_error_pipe (D_ERROR, NULL);
+     *pparc = current_archive;
+     return 0;
+ }
+@@ -633,7 +633,7 @@ extfs_cmd (const char *extfs_cmd, struct archive *archive,
+     open_error_pipe ();
+     retval = my_system (EXECUTE_AS_SHELL, shell, cmd);
+     g_free (cmd);
+-    close_error_pipe (1, NULL);
++    close_error_pipe (D_ERROR, NULL);
+     return retval;
+ }
+ 
+diff --git a/vfs/fish.c b/vfs/fish.c
+index 2a2deb6..63e4d60 100644
+--- a/vfs/fish.c
++++ b/vfs/fish.c
+@@ -239,7 +239,7 @@ fish_open_archive_int (struct vfs_class *me, struct vfs_s_super *super)
+ 	    /* Currently, this does not work. ssh reads passwords from
+ 	       /dev/tty, not from stdin :-(. */
+ 
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _
+ 		     ("Sorry, we cannot do password authenticated connections for now."));
+ 	    ERRNOR (EPERM, -1);
+diff --git a/vfs/ftpfs.c b/vfs/ftpfs.c
+index 43d363c..4df1737 100644
+--- a/vfs/ftpfs.c
++++ b/vfs/ftpfs.c
+@@ -527,7 +527,7 @@ ftpfs_login_server (struct vfs_class *me, struct vfs_s_super *super,
+ 	    goto login_fail;
+ 	}
+     }
+-    message (1, MSG_ERROR, _("ftpfs: Login incorrect for user %s "),
++    message (D_ERROR, MSG_ERROR, _("ftpfs: Login incorrect for user %s "),
+ 	     SUP.user);
+   login_fail:
+     wipe_password (pass);
+@@ -1786,7 +1786,7 @@ static int ftpfs_netrc_bad_mode (const char *netrcname)
+ 
+     if (stat (netrcname, &mystat) >= 0 && (mystat.st_mode & 077)) {
+ 	if (be_angry) {
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 			_("~/.netrc file has incorrect mode.\n"
+ 			  "Remove password or correct mode."));
+ 	    be_angry = 0;
+diff --git a/vfs/mcfs.c b/vfs/mcfs.c
+index 07de5a3..4c03097 100644
+--- a/vfs/mcfs.c
++++ b/vfs/mcfs.c
+@@ -130,7 +130,7 @@ mcfs_login_server (int my_socket, char *user, int port,
+ 	return 0;
+ 
+     if (result != MC_VERSION_OK) {
+-	message (1, _(" MCFS "),
++	message (D_ERROR, _(" MCFS "),
+ 		    _(" The server does not support this version "));
+ 	close (my_socket);
+ 	return 0;
+@@ -151,7 +151,7 @@ mcfs_login_server (int my_socket, char *user, int port,
+ 			      (" The remote server is not running on a system port \n"
+ 			       " you need a password to log in, but the information may \n"
+ 			       " not be safe on the remote side.  Continue? \n"),
+-			      3, 2, _("&Yes"), _("&No"));
++			      D_ERROR, 2, _("&Yes"), _("&No"));
+ 
+ 	    if (v == 1) {
+ 		close (my_socket);
+@@ -175,7 +175,7 @@ mcfs_login_server (int my_socket, char *user, int port,
+ 	    return 0;
+ 
+ 	if (result != MC_LOGINOK) {
+-	    message (1, _(" MCFS "), _(" Invalid password "));
++	    message (D_ERROR, _(" MCFS "), _(" Invalid password "));
+ 	    rpc_send (my_socket, RPC_INT, MC_QUIT, RPC_END);
+ 	    close (my_socket);
+ 	    return 0;
+@@ -235,7 +235,7 @@ mcfs_create_tcp_link (const char *host, int *port, int *version, const char *cal
+ 		sizeof (inaddr));
+     else {
+ 	if ((hp = gethostbyname (host)) == NULL) {
+-	    message (1, caller, _(" Cannot locate hostname: %s "),
++	    message (D_ERROR, caller, _(" Cannot locate hostname: %s "),
+ 			host);
+ 	    return 0;
+ 	}
+@@ -254,13 +254,13 @@ mcfs_create_tcp_link (const char *host, int *port, int *version, const char *cal
+     server_address.sin_port = htons (*port);
+ 
+     if ((my_socket = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
+-	message (1, caller, _(" Cannot create socket: %s "),
++	message (D_ERROR, caller, _(" Cannot create socket: %s "),
+ 		    unix_error_string (errno));
+ 	return 0;
+     }
+     if (connect (my_socket, (struct sockaddr *) &server_address,
+ 		 sizeof (server_address)) < 0) {
+-	message (1, caller, _(" Cannot connect to server: %s "),
++	message (D_ERROR, caller, _(" Cannot connect to server: %s "),
+ 		    unix_error_string (errno));
+ 	close (my_socket);
+ 	return 0;
+@@ -330,7 +330,7 @@ mcfs_open_link (char *host, char *user, int *port, char *netrcpass)
+ 		return &mcfs_connections[i];
+ 	}
+     if (mcfs_open_connections == MCFS_MAX_CONNECTIONS) {
+-	message (1, MSG_ERROR, _(" Too many open connections "));
++	message (D_ERROR, MSG_ERROR, _(" Too many open connections "));
+ 	return 0;
+     }
+ 
+diff --git a/vfs/sfs.c b/vfs/sfs.c
+index f4989ca..0770482 100644
+--- a/vfs/sfs.c
++++ b/vfs/sfs.c
+@@ -147,11 +147,11 @@ sfs_vfmake (struct vfs_class *me, const char *name, char *cache)
+     g_free (pqname);
+     open_error_pipe ();
+     if (my_system (EXECUTE_AS_SHELL, "/bin/sh", pad)) {
+-	close_error_pipe (1, NULL);
++	close_error_pipe (D_ERROR, NULL);
+ 	return -1;
+     }
+ 
+-    close_error_pipe (0, NULL);
++    close_error_pipe (D_NORMAL, NULL);
+     return 0;			/* OK */
+ }
+ 
+diff --git a/vfs/smbfs.c b/vfs/smbfs.c
+index a133fa3..74b5c39 100644
+--- a/vfs/smbfs.c
++++ b/vfs/smbfs.c
+@@ -604,7 +604,7 @@ smbfs_reconnect(smbfs_connection *conn, int *retries)
+ 	cli_shutdown(conn->cli);
+ 
+    	if (!(conn->cli = smbfs_do_connect(host, conn->service))) {
+-		message (1, MSG_ERROR,
++		message (D_ERROR, MSG_ERROR,
+ 			_(" reconnect to %s failed\n "), conn->host);
+ 		g_free(host);
+ 		return False;
+@@ -1162,7 +1162,7 @@ smbfs_open_link (char *host, char *path, const char *user, int *port,
+ 
+ 	if (my_errno != EPERM)
+ 	    return 0;
+-	message (1, MSG_ERROR, _(" Authentication failed "));
++	message (D_ERROR, MSG_ERROR, _(" Authentication failed "));
+ 
+ 	/* authentication failed, try again */
+ 	smbfs_auth_remove (bucket->host, bucket->service);
+@@ -1685,7 +1685,7 @@ smbfs_mkdir (struct vfs_class * me, const char *path, mode_t mode)
+ 
+     if (!cli_mkdir (sc->cli, cpath)) {
+ 	my_errno = cli_error (sc->cli, NULL, &err, NULL);
+-	message (1, MSG_ERROR, _(" Error %s creating directory %s "),
++	message (D_ERROR, MSG_ERROR, _(" Error %s creating directory %s "),
+ 		    cli_errstr (sc->cli), CNV_LANG (cpath));
+ 	g_free (cpath);
+ 	return -1;
+@@ -1711,7 +1711,7 @@ smbfs_rmdir (struct vfs_class *me, const char *path)
+ 
+ 	if (!cli_rmdir(sc->cli, cpath)) {
+ 		my_errno = cli_error(sc->cli, NULL, &err, NULL);
+-		message (1, MSG_ERROR, _(" Error %s removing directory %s "), 
++		message (D_ERROR, MSG_ERROR, _(" Error %s removing directory %s "), 
+ 			cli_errstr(sc->cli), CNV_LANG(cpath));
+ 		g_free (cpath);
+ 		return -1;
+@@ -1813,7 +1813,7 @@ smbfs_open_readwrite (smbfs_handle *remote_handle, char *rname, int flags, int m
+ 		  flags : O_RDONLY, DENY_NONE);
+ #endif
+     if (remote_handle->fnum == -1) {
+-	message (1, MSG_ERROR, _(" %s opening remote file %s "),
++	message (D_ERROR, MSG_ERROR, _(" %s opening remote file %s "),
+ 		    cli_errstr (remote_handle->cli), CNV_LANG (rname));
+ 	DEBUG (1, ("smbfs_open(rname:%s) error:%s\n",
+ 		   rname, cli_errstr (remote_handle->cli)));
+@@ -1829,7 +1829,7 @@ smbfs_open_readwrite (smbfs_handle *remote_handle, char *rname, int flags, int m
+ 			NULL)
+ 	&& !cli_getattrE (remote_handle->cli, remote_handle->fnum,
+ 			  &remote_handle->attr, &size, NULL, NULL, NULL)) {
+-	message (1, MSG_ERROR, " getattrib: %s ",
++	message (D_ERROR, MSG_ERROR, " getattrib: %s ",
+ 		    cli_errstr (remote_handle->cli));
+ 	DEBUG (1,
+ 	       ("smbfs_open(rname:%s) getattrib:%s\n", rname,
+@@ -1892,7 +1892,7 @@ smbfs_unlink (struct vfs_class *me, const char *path)
+     remote_file = free_after(smbfs_convert_path (remote_file, FALSE), remote_file);
+ 
+     if (!cli_unlink(sc->cli, remote_file)) {
+-	message (1, MSG_ERROR, _(" %s removing remote file %s "), 
++	message (D_ERROR, MSG_ERROR, _(" %s removing remote file %s "), 
+ 			cli_errstr(sc->cli), CNV_LANG(remote_file));
+ 	g_free (remote_file);
+ 	return -1;
+@@ -1927,7 +1927,7 @@ smbfs_rename (struct vfs_class *me, const char *a, const char *b)
+     g_free (rb);
+ 
+     if (!retval) {
+-	message (1, MSG_ERROR, _(" %s renaming files\n"), 
++	message (D_ERROR, MSG_ERROR, _(" %s renaming files\n"), 
+ 			cli_errstr(sc->cli));
+ 	return -1;
+     }   
+diff --git a/vfs/tar.c b/vfs/tar.c
+index bcde169..6911baa 100644
+--- a/vfs/tar.c
++++ b/vfs/tar.c
+@@ -223,7 +223,7 @@ tar_open_archive_int (struct vfs_class *me, const char *name,
+ 
+     result = mc_open (name, O_RDONLY);
+     if (result == -1) {
+-	message (1, MSG_ERROR, _("Cannot open tar archive\n%s"), name);
++	message (D_ERROR, MSG_ERROR, _("Cannot open tar archive\n%s"), name);
+ 	ERRNOR (ENOENT, -1);
+     }
+ 
+@@ -241,7 +241,7 @@ tar_open_archive_int (struct vfs_class *me, const char *name,
+ 	s = g_strconcat (archive->name, decompress_extension (type), (char *) NULL);
+ 	result = mc_open (s, O_RDONLY);
+ 	if (result == -1)
+-	    message (1, MSG_ERROR, _("Cannot open tar archive\n%s"), s);
++	    message (D_ERROR, MSG_ERROR, _("Cannot open tar archive\n%s"), s);
+ 	g_free (s);
+ 	if (result == -1)
+ 	    ERRNOR (ENOENT, -1);
+@@ -483,7 +483,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive,
+ 	    archive->u.arch.type = TAR_GNU;
+ 
+ 	if (*h_size > MC_MAXPATHLEN) {
+-	    message (1, MSG_ERROR, _("Inconsistent tar archive"));
++	    message (D_ERROR, MSG_ERROR, _("Inconsistent tar archive"));
+ 	    return STATUS_BADCHECKSUM;
+ 	}
+ 
+@@ -498,7 +498,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive,
+ 	    if (data == NULL) {
+ 		g_free (*longp);
+ 		*longp = NULL;
+-		message (1, MSG_ERROR,
++		message (D_ERROR, MSG_ERROR,
+ 			 _("Unexpected EOF on archive file"));
+ 		return STATUS_BADCHECKSUM;
+ 	    }
+@@ -513,7 +513,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive,
+ 	if (bp - *longp == MC_MAXPATHLEN && bp[-1] != '\0') {
+ 	    g_free (*longp);
+ 	    *longp = NULL;
+-	    message (1, MSG_ERROR, _("Inconsistent tar archive"));
++	    message (D_ERROR, MSG_ERROR, _("Inconsistent tar archive"));
+ 	    return STATUS_BADCHECKSUM;
+ 	}
+ 	*bp = 0;
+@@ -588,7 +588,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive,
+ 	parent =
+ 	    vfs_s_find_inode (me, archive, q, LINK_NO_FOLLOW, FL_MKDIR);
+ 	if (parent == NULL) {
+-	    message (1, MSG_ERROR, _("Inconsistent tar archive"));
++	    message (D_ERROR, MSG_ERROR, _("Inconsistent tar archive"));
+ 	    return STATUS_BADCHECKSUM;
+ 	}
+ 
+@@ -597,7 +597,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive,
+ 		vfs_s_find_inode (me, archive, current_link_name,
+ 				  LINK_NO_FOLLOW, 0);
+ 	    if (inode == NULL) {
+-		message (1, MSG_ERROR, _("Inconsistent tar archive"));
++		message (D_ERROR, MSG_ERROR, _("Inconsistent tar archive"));
+ 	    } else {
+ 		entry = vfs_s_new_entry (me, p, inode);
+ 		vfs_s_insert_entry (me, parent, entry);
+@@ -678,7 +678,7 @@ tar_open_archive (struct vfs_class *me, struct vfs_s_super *archive,
+ 
+ 		/* Error on first record */
+ 	    case STATUS_EOFMARK:
+-		message (1, MSG_ERROR,
++		message (D_ERROR, MSG_ERROR,
+ 			 _
+ 			 ("Hmm,...\n%s\ndoesn't look like a tar archive."),
+ 			 name);
+diff --git a/vfs/undelfs.c b/vfs/undelfs.c
+index cea0e79..8502598 100644
+--- a/vfs/undelfs.c
++++ b/vfs/undelfs.c
+@@ -188,20 +188,20 @@ undelfs_loaddel (void)
+     num_delarray = 0;
+     delarray = g_try_malloc (sizeof (struct deleted_info) * max_delarray);
+     if (!delarray) {
+-	message (1, undelfserr, _(" not enough memory "));
++	message (D_ERROR, undelfserr, _(" not enough memory "));
+ 	return 0;
+     }
+     block_buf = g_try_malloc (fs->blocksize * 3);
+     if (!block_buf) {
+-	message (1, undelfserr, _(" while allocating block buffer "));
++	message (D_ERROR, undelfserr, _(" while allocating block buffer "));
+ 	goto free_delarray;
+     }
+     if ((retval = ext2fs_open_inode_scan (fs, 0, &scan))) {
+-	message (1, undelfserr, _(" open_inode_scan: %d "), retval);
++	message (D_ERROR, undelfserr, _(" open_inode_scan: %d "), retval);
+ 	goto free_block_buf;
+     }
+     if ((retval = ext2fs_get_next_inode (scan, &ino, &inode))) {
+-	message (1, undelfserr, _(" while starting inode scan %d "),
++	message (D_ERROR, undelfserr, _(" while starting inode scan %d "),
+ 		 retval);
+ 	goto error_out;
+     }
+@@ -227,7 +227,7 @@ undelfs_loaddel (void)
+ 	    ext2fs_block_iterate (fs, ino, 0, block_buf,
+ 				  undelfs_lsdel_proc, &lsd);
+ 	if (retval) {
+-	    message (1, undelfserr,
++	    message (D_ERROR, undelfserr,
+ 		     _(" while calling ext2_block_iterate %d "), retval);
+ 	    goto next;
+ 	}
+@@ -238,7 +238,7 @@ undelfs_loaddel (void)
+ 				   sizeof (struct deleted_info) *
+ 				   (max_delarray + 50));
+ 		if (!delarray_new) {
+-		    message (1, undelfserr,
++		    message (D_ERROR, undelfserr,
+ 			     _
+ 			     (" no more memory while reallocating array "));
+ 		    goto error_out;
+@@ -261,7 +261,7 @@ undelfs_loaddel (void)
+       next:
+ 	retval = ext2fs_get_next_inode (scan, &ino, &inode);
+ 	if (retval) {
+-	    message (1, undelfserr, _(" while doing inode scan %d "),
++	    message (D_ERROR, undelfserr, _(" while doing inode scan %d "),
+ 		     retval);
+ 	    goto error_out;
+ 	}
+@@ -296,7 +296,7 @@ com_err (const char *whoami, long err_code, const char *fmt, ...)
+     str = g_strdup_vprintf (fmt, ap);
+     va_end (ap);
+ 
+-    message (1, _(" Ext2lib error "), " %s (%s: %ld) ", str, whoami,
++    message (D_ERROR, _(" Ext2lib error "), " %s (%s: %ld) ", str, whoami,
+ 	     err_code);
+     g_free (str);
+ }
+@@ -324,18 +324,18 @@ undelfs_opendir (struct vfs_class *me, const char *dirname)
+     }
+ 
+     if (ext2fs_open (ext2_fname, 0, 0, 0, unix_io_manager, &fs)){
+-	message (1, undelfserr, _(" Cannot open file %s "), ext2_fname);
++	message (D_ERROR, undelfserr, _(" Cannot open file %s "), ext2_fname);
+ 	return 0;
+     }
+     print_vfs_message (_("undelfs: reading inode bitmap..."));
+     if (ext2fs_read_inode_bitmap (fs)){
+-	message (1, undelfserr,
++	message (D_ERROR, undelfserr,
+ 		 _(" Cannot load inode bitmap from: \n %s \n"), ext2_fname);
+ 	goto quit_opendir;
+     }
+     print_vfs_message (_("undelfs: reading block bitmap..."));
+     if (ext2fs_read_block_bitmap (fs)){
+-	message (1, undelfserr,
++	message (D_ERROR, undelfserr,
+ 		 _(" Cannot load block bitmap from: \n %s \n"), ext2_fname);
+ 	goto quit_opendir;
+     }
+@@ -359,7 +359,7 @@ undelfs_readdir(void *vfs_info)
+     static char *const dirent_dest = undelfs_readdir_data.dent.d_name;
+ 
+     if (vfs_info != fs) {
+-	message (1, undelfserr, _(" vfs_info is not fs! "));
++	message (D_ERROR, undelfserr, _(" vfs_info is not fs! "));
+ 	return NULL;
+     }
+     if (readdir_ptr == num_delarray)
+@@ -413,7 +413,7 @@ undelfs_open (struct vfs_class *me, const char *fname, int flags, int mode)
+ 	return 0;
+ 
+     if (!ext2_fname || strcmp (ext2_fname, file)) {
+-	message (1, undelfserr,
++	message (D_ERROR, undelfserr,
+ 		 _(" You have to chdir to extract files first "));
+ 	g_free (file);
+ 	g_free (f);
+@@ -537,7 +537,7 @@ undelfs_read (void *vfs_info, char *buffer, int count)
+     retval = ext2fs_block_iterate(fs, p->inode, 0, NULL,
+ 				  undelfs_dump_read, p);
+     if (retval){
+-	message (1, undelfserr, _(" while iterating over blocks "));
++	message (D_ERROR, undelfserr, _(" while iterating over blocks "));
+ 	return -1;
+     }
+     if (p->error_code && !p->finished)
+@@ -598,7 +598,7 @@ undelfs_lstat (struct vfs_class *me, const char *path, struct stat *buf)
+     }
+ 	
+     if (!ext2_fname || strcmp (ext2_fname, file)){
+-	message (1, undelfserr, _(" You have to chdir to extract files first "));
++	message (D_ERROR, undelfserr, _(" You have to chdir to extract files first "));
+ 	g_free (file);
+ 	g_free (f);
+ 	return 0;
+@@ -637,7 +637,7 @@ undelfs_chdir(struct vfs_class *me, const char *path)
+     /* this could be fixed by making an ext2fs io manager to use */
+     /* our vfs, but that is left as an excercise for the reader */
+     if ((fd = open (file, O_RDONLY)) == -1){
+-	message (1, undelfserr, _(" Cannot open file %s "), file);
++	message (D_ERROR, undelfserr, _(" Cannot open file %s "), file);
+ 	g_free (f);
+ 	g_free (file);
+ 	return -1;
+diff --git a/vfs/utilvfs.c b/vfs/utilvfs.c
+index 5f3b5a9..ce61f49 100644
+--- a/vfs/utilvfs.c
++++ b/vfs/utilvfs.c
+@@ -818,10 +818,10 @@ vfs_parse_ls_lga (const char *p, struct stat *s, char **filename,
+ 	static int errorcount = 0;
+ 
+ 	if (++errorcount < 5) {
+-	    message (1, _("Cannot parse:"), "%s",
++	    message (D_ERROR, _("Cannot parse:"), "%s",
+ 		     (p_copy && *p_copy) ? p_copy : line);
+ 	} else if (errorcount == 5)
+-	    message (1, MSG_ERROR,
++	    message (D_ERROR, MSG_ERROR,
+ 		     _("More parsing errors will be ignored."));
+     }
+ 
+@@ -832,7 +832,7 @@ vfs_parse_ls_lga (const char *p, struct stat *s, char **filename,
+ void
+ vfs_die (const char *m)
+ {
+-    message (1, _("Internal error:"), "%s", m);
++    message (D_ERROR, _("Internal error:"), "%s", m);
+     exit (1);
+ }
+ 
+diff --git a/vfs/vfs.c b/vfs/vfs.c
+index 21b5404..2d60a51 100644
+--- a/vfs/vfs.c
++++ b/vfs/vfs.c
+@@ -841,7 +841,7 @@ mc_def_ungetlocalcopy (struct vfs_class *vfs, const char *filename,
+     return 0;
+ 
+   failed:
+-    message (1, _("Changes to file lost"), "%s", filename);
++    message (D_ERROR, _("Changes to file lost"), "%s", filename);
+     if (fdout != -1)
+ 	mc_close (fdout);
+     if (fdin != -1)

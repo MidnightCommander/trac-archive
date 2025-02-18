@@ -1,0 +1,99 @@
+From e9ef8f32c2cf637f6f151a837753887f8a3fabfa Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 6 Jan 2017 01:23:42 +0200
+Subject: [PATCH 2/3] Ticket #3751: extfs: rpm: use @PERL@ instead of perl for
+ tests.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ configure.ac                                         | 1 +
+ src/vfs/extfs/helpers/Makefile.am                    | 4 +++-
+ src/vfs/extfs/helpers/{rpm => rpm.in}                | 1 +
+ tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh | 4 ++--
+ 4 files changed, 7 insertions(+), 3 deletions(-)
+ rename src/vfs/extfs/helpers/{rpm => rpm.in} (99%)
+ mode change 100755 => 100644
+
+diff --git a/configure.ac b/configure.ac
+index c128c09..893beca 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -554,6 +554,7 @@ src/vfs/extfs/helpers/hp48+
+ src/vfs/extfs/helpers/lslR
+ src/vfs/extfs/helpers/mailfs
+ src/vfs/extfs/helpers/patchfs
++src/vfs/extfs/helpers/rpm
+ src/vfs/extfs/helpers/rpms+
+ src/vfs/extfs/helpers/s3+
+ src/vfs/extfs/helpers/uace
+diff --git a/src/vfs/extfs/helpers/Makefile.am b/src/vfs/extfs/helpers/Makefile.am
+index 06ea789..47954d5 100644
+--- a/src/vfs/extfs/helpers/Makefile.am
++++ b/src/vfs/extfs/helpers/Makefile.am
+@@ -6,7 +6,7 @@ EXTFSCONFFILES = sfs.ini
+ EXTFS_MISC  = README README.extfs
+ 
+ # Scripts hat don't need adaptation to the local system
+-EXTFS_CONST = bpp changesetfs gitfs+ patchsetfs rpm trpm u7z
++EXTFS_CONST = bpp changesetfs gitfs+ patchsetfs trpm u7z
+ 
+ # Scripts that need adaptation to the local system - source files
+ EXTFS_IN    = 			\
+@@ -22,6 +22,7 @@ EXTFS_IN    = 			\
+ 	lslR.in			\
+ 	mailfs.in		\
+ 	patchfs.in		\
++	rpm.in			\
+ 	rpms+.in		\
+ 	s3+.in			\
+ 	uace.in			\
+@@ -52,6 +53,7 @@ EXTFS_OUT = 			\
+ 	lslR			\
+ 	mailfs			\
+ 	patchfs			\
++	rpm			\
+ 	rpms+			\
+ 	s3+			\
+ 	uace			\
+diff --git a/src/vfs/extfs/helpers/rpm b/src/vfs/extfs/helpers/rpm.in
+old mode 100755
+new mode 100644
+similarity index 99%
+rename from src/vfs/extfs/helpers/rpm
+rename to src/vfs/extfs/helpers/rpm.in
+index 30d6926..c131dfc
+--- a/src/vfs/extfs/helpers/rpm
++++ b/src/vfs/extfs/helpers/rpm.in
+@@ -329,6 +329,7 @@ mcrpmfs_run ()
+ }
+ 
+ # Let the test framework override functions and variables.
++PERL=@PERL@
+ [ -n "$MC_TEST_RPM_REWRITE" ] && . "$MC_TEST_RPM_REWRITE"
+ 
+ AllTAGS=`mcrpmfs_getAllNeededTags "$1"`
+diff --git a/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh b/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh
+index a6c4932..5552057 100644
+--- a/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh
++++ b/tests/src/vfs/extfs/helpers-list/data/rpm.rewrite.sh
+@@ -18,7 +18,7 @@ TAGSF="$MC_TEST_INPUT"
+ #
+ mcrpmfs_getSupportedTags()
+ {
+-  perl -e '
++  $PERL -e '
+     $tagsf = $ARGV[0];
+ 
+     do $tagsf or die("$tagsf: $!");
+@@ -39,7 +39,7 @@ mcrpmfs_getSupportedTags()
+ #
+ rpm_qf()
+ {
+-  perl -w -e '
++  $PERL -w -e '
+     $tagsf = $ARGV[0];
+     $tmplt = $ARGV[1];
+ 
+-- 
+2.9.3
+

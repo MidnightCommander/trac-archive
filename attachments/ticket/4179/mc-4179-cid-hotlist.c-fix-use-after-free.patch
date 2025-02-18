@@ -1,0 +1,35 @@
+From b7b5256849788ee3a8dc8e25e6eff6da377bf982 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 30 May 2021 14:17:27 +0000
+Subject: [PATCH] (ext.c) fix use after free
+
+Fix use after free
+
+Found by Coverity
+Coverity id #331812
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/hotlist.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index 0fac79465..9b66c4555 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -1210,7 +1210,6 @@ load_group (struct hotlist *grp)
+         add2hotlist (mc_config_get_string (mc_global.main_config, group_section, *profile_keys, ""),
+                      g_strdup (*profile_keys), HL_TYPE_GROUP, LISTBOX_APPEND_AT_END);
+ 
+-    g_free (group_section);
+     g_strfreev (keys);
+ 
+     keys = mc_config_get_keys (mc_global.main_config, grp->directory, NULL);
+@@ -1219,6 +1218,7 @@ load_group (struct hotlist *grp)
+         add2hotlist (mc_config_get_string (mc_global.main_config, group_section, *profile_keys, ""),
+                      g_strdup (*profile_keys), HL_TYPE_ENTRY, LISTBOX_APPEND_AT_END);
+ 
++    g_free (group_section);
+     g_strfreev (keys);
+ 
+     for (current = grp->head; current; current = current->next)

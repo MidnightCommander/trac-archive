@@ -1,0 +1,32 @@
+stop_id,stop_name,stop_lat,stop_lon,location_type,parent_station,wheelchair_boarding
+F01982,"Hengermalom út",47.461317,19.051665,,,2
+F01983,"Hengermalom út",47.461047,19.051784,,,2
+F01984,"Budafoki út / Dombóvári út",47.46872,19.052992,,,2
+F01985,"Budafoki út / Dombóvári út",47.468819,19.053283,,,2
+F01986,"Budafoki út / Szerémi sor",47.474371,19.052707,,,2
+F01987,"Budafoki út / Szerémi sor",47.474063,19.052753,,,2
+F01988,"Budafoki út / Szerémi sor",47.473676,19.053125,,,2
+F01989,"Budafoki út / Szerémi sor",47.473703,19.052793,,,2
+F01990,"Budafoki út / Szerémi sor",47.473901,19.052912,,,2
+F01991,"Budafoki út / Szerémi sor",47.472866,19.052567,,,2
+F01992,"Budafoki út / Szerémi sor",47.474125,19.053761,,,2
+F01995,"Újbuda-központ M",47.473829,19.047367,,,2
+F01997,"Újbuda-központ M",47.474467,19.046478,,,2
+F01998,"Újbuda-központ M",47.474045,19.046863,,,1
+F01999,"Újbuda-központ M",47.4748,19.046664,,,2
+F02000,"Újbuda-központ M",47.474027,19.048534,,,2
+F02254,"Ménesi út",47.481573,19.038132,,,2
+F02255,"Ménesi út",47.481933,19.038371,,,2
+F02259,"Hengermalom út / Szerémi út",47.461914,19.047135,,,2
+F02260,"Hengermalom út / Szerémi út",47.461752,19.046392,,,2
+F02261,"Hollókő utca",47.475365,19.029854,,,2
+F02262,"Hollókő utca",47.475689,19.030425,,,2
+066451,"Infopark",47.469205,19.059611,,,1
+066452,"Infopark",47.469115,19.060367,,,1
+066453,"Budafoki út / Dombóvári út",47.469808,19.053655,,,1
+066454,"Budafoki út / Dombóvári út",47.469646,19.054384,,,1
+066455,"Hauszmann Alajos utca / Szerémi út",47.466561,19.049569,,,1
+066456,"Hauszmann Alajos utca / Szerémi út",47.467074,19.049795,,,1
+066457,"Hengermalom út / Szerémi út",47.462081,19.048282,,,1
+066458,"Hengermalom út / Szerémi út",47.462585,19.048508,,,1
+066460,"Etele út / Fehérvári út",47.462369,19.042592,,,1

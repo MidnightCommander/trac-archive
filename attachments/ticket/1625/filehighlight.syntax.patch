@@ -1,0 +1,124 @@
+From 5a9b8d33c19c2f8bdbac9ddf0b3993eb27f53956 Mon Sep 17 00:00:00 2001
+From: Balwinder S Dheeman <bdheeman@gmail.com>
+Date: Thu, 17 Sep 2009 12:50:28 +0530
+Subject: [PATCH] added new syntax file 'filehighlight.syntax'; hah
+
+---
+ syntax/Syntax               |    3 +
+ syntax/filehighlight.syntax |   90 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 93 insertions(+), 0 deletions(-)
+ create mode 100644 syntax/filehighlight.syntax
+
+diff --git a/syntax/Syntax b/syntax/Syntax
+index f45d320..d44a1e5 100644
+--- a/syntax/Syntax
++++ b/syntax/Syntax
+@@ -25,6 +25,9 @@
+ file [Ss]yntax$ Syntax\sHighlighting\sdefinitions ^#\ssyntax\srules\sversion\s
+ include syntax.syntax
+ 
++file filehighlight.ini$ File\sHighlighting\sdefinitions ^#\sfile\shighlight\srules\sversion\s
++include filehighlight.syntax
++
+ file ..\*\\.(e)$ Eiffel\sSource\sFile
+ include eiffel.syntax
+ 
+diff --git a/syntax/filehighlight.syntax b/syntax/filehighlight.syntax
+new file mode 100644
+index 0000000..6cf8820
+--- /dev/null
++++ b/syntax/filehighlight.syntax
+@@ -0,0 +1,90 @@
++# Syntax highlighting rules for file highlighting rules
++
++# Use \[\] at the end of keywords to suppress their special meaning
++
++context default
++    keyword whole black black blue
++    keyword whole red red
++    keyword whole green green
++    keyword whole brown brown
++    keyword whole blue blue black
++    keyword whole magenta magenta
++    keyword whole cyan cyan
++    keyword whole lightgray lightgray
++    keyword whole gray gray black
++    keyword whole brightred brightred
++    keyword whole brightgreen brightgreen
++    keyword whole yellow yellow
++    keyword whole brightblue brightblue black
++    keyword whole brightmagenta brightmagenta
++    keyword whole brightcyan brightcyan
++    keyword whole white white
++
++    keyword = brightcyan
++    keyword ; brightmagenta
++    keyword whole extensions yellow
++    keyword whole type yellow
++    keyword DEVICE brightred
++    keyword DIR brightred
++    keyword FILE_EXE brightred
++    keyword SPECIAL brightred
++    keyword STALE_LINK brightred
++    keyword SYMLINK brightred
++
++context linestart # \n brown
++
++context linestart [ ] white
++
++context regexp= \n lightgray
++    keyword = brightcyan
++    keyword whole regexp yellow
++
++# regexp patterns
++    keyword \\\/  brightcyan
++    keyword \\\\  brightcyan
++    keyword \\B  brightcyan
++    keyword \\b  brightcyan
++    keyword \\D  brightcyan
++    keyword \\d  brightcyan
++    keyword \\S  brightcyan
++    keyword \\s  brightcyan
++    keyword \\W  brightcyan
++    keyword \\w  brightcyan
++    keyword \\A  brightcyan
++    keyword \\Z  brightcyan
++
++    keyword \\(  brightcyan
++    keyword \\)  brightcyan
++    keyword \\[  brightcyan
++    keyword \\]  brightcyan
++    keyword \\{  brightcyan
++    keyword \\}  brightcyan
++    keyword \\$ brightcyan
++    keyword \\\+ brightcyan
++    keyword \\. brightcyan
++    keyword \\? brightcyan
++    keyword \\\* brightcyan
++    keyword \\^ brightcyan
++    keyword \\| brightcyan
++
++    keyword ( brightmagenta
++    keyword ) brightmagenta
++    keyword [ brightmagenta
++    keyword ] brightmagenta
++    keyword { brightmagenta
++    keyword } brightmagenta
++
++    keyword ?! yellow
++    keyword ?# yellow
++    keyword ?: yellow
++    keyword ?= yellow
++    keyword ?\{-imx:\}+ yellow
++
++    keyword $ yellow
++    keyword \+ yellow
++    keyword . yellow
++    keyword ? yellow
++    keyword \* yellow
++    keyword ^ yellow
++    keyword | yellow
++
+-- 
+1.6.3.3
+

@@ -1,0 +1,25 @@
+--- mc.menu.default	2013-04-26 19:13:27.000000000 +0600
++++ mc.menu	2013-05-06 04:18:00.104340522 +0600
+@@ -42,7 +42,7 @@
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi
+ 	cd .. && \
+-	tar cf - "$Pwd" | bzip2 -f > "$tar.tar.bz2" && \
++	tar cf - "$Pwd" | bzip2 -9f > "$tar.tar.bz2" && \
+ 	echo "../$tar.tar.bz2 created."
+ 
+ 5       Compress the current subdirectory (tar.7z)
+@@ -60,9 +60,12 @@
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi
+ 	cd .. && \
+-	tar cf - "$Pwd" | xz -f > "$tar.tar.xz" && \
++	tar cf - "$Pwd" | xz -9f > "$tar.tar.xz" && \
+ 	echo "../$tar.tar.xz created."
+ 
++7       Unpack the current file
++	/usr/libexec/mc/uniunpack %f
++
+ = f \.c$ & t r
+ + f \.c$ & t r & ! t t
+ с       Compile and link current .c file

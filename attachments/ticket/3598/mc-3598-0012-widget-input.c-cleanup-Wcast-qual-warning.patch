@@ -1,0 +1,31 @@
+From a50d4297ab9ae0bdf103be07fdb4f312ac35b7a2 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 15:14:12 +0000
+Subject: [PATCH] widget/input.c: cleanup -Wcast-qual warning
+
+input.c: In function 'get_history_length':
+/usr/include/glib-2.0/glib/glist.h:147:51: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define g_list_previous(list)         ((list) ? (((GList *)(list))->prev) : NULL)
+                                                   ^
+input.c:95:39: note: in expansion of macro 'g_list_previous'
+     for (; history != NULL; history = g_list_previous (history))
+                                       ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/input.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index d0dc1cb..ebee3d4 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -88,7 +88,7 @@ static char *kill_buffer = NULL;
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static size_t
+-get_history_length (const GList * history)
++get_history_length (GList * history)
+ {
+     size_t len = 0;
+ 

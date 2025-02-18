@@ -1,0 +1,153 @@
+From 6b02ee48c72841221c88dbdb74dc5b52808c43aa Mon Sep 17 00:00:00 2001
+From: Vadim Ushakov <igeekless@gmail.com>
+Date: Fri, 16 Oct 2020 00:01:30 +0700
+Subject: [PATCH] Allow running clipboard commands if DISPLAY is not set
+
+Implement a new configuration variable clipboard_force_no_display that
+allows running commands specified in clipboard_store clipboard_paste even
+if the DISPLAY environment variable is not set.
+
+This can be used for running a clipboard script (from a virtual terminal)
+that autodetects (or requests from sytemctl) the proper values of DISPLAY
+and XAUTHORITY without the need of exporting these variables to the whole
+virtual terminal session.
+---
+ doc/man/mc.1.in    | 11 +++++++++++
+ doc/man/ru/mc.1.in | 14 +++++++++++++-
+ src/clipboard.c    | 11 +++++++----
+ src/clipboard.h    |  1 +
+ src/setup.c        |  4 ++++
+ 5 files changed, 36 insertions(+), 5 deletions(-)
+
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index cdd1f687b..fb2fdef4e 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -4192,6 +4192,17 @@ For example:
+ clipboard_paste=xclip \-o
+ .fi
+ .TP
++.I clipboard_force_no_display
++Normally, Midnight Commander doesn't run commands specified in
++.I clipboard_store
++and
++.I clipboard_paste
++if the
++.B DISPLAY
++environment variable is not set. Setting this variable to true forces
++Midnight Commander to run the commands unconditionally.
++.fi
++.TP
+ .I autodetect_codeset
+ This option allows use the `enca' command to autodetect codeset of text files
+ in internal viewer and editor. List of valid values can be obtain by the
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index f029b5f3e..6e2f1497b 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -4762,7 +4762,19 @@ clipboard_store=xclip \-i
+ .nf
+ clipboard_paste=xclip \-o
+ .fi
+-.PP
++.TP
++.I clipboard_force_no_display
++По умолчанию Midnight Commander не запускает команды, указанные в 
++.I clipboard_store
++и
++.I clipboard_paste\fR,
++если переменная окружения
++.B DISPLAY
++не установлена. Установка этой переменной в значение true обеспечивает
++принудительное исполнение команд без проверки переменной
++.B DISPLAY\fR.
++.fi
++.TP
+ .I autodetect_codeset
+ .IP
+ Эта опция позволяет использовать команду enca для автоматического
+diff --git a/src/clipboard.c b/src/clipboard.c
+index 4e0b60c0b..5cceb6047 100644
+--- a/src/clipboard.c
++++ b/src/clipboard.c
+@@ -48,6 +48,9 @@
+ char *clipboard_store_path = NULL;
+ char *clipboard_paste_path = NULL;
+ 
++/* whether to run commands when DISPLAY is not set */
++gboolean clipboard_force_no_display = 0;
++
+ /*** file scope macro definitions ****************************************************************/
+ 
+ /*** file scope type declarations ****************************************************************/
+@@ -71,14 +74,14 @@ clipboard_file_to_ext_clip (const gchar * event_group_name, const gchar * event_
+                             gpointer init_data, gpointer data)
+ {
+     char *tmp, *cmd;
+-    const char *d = getenv ("DISPLAY");
++    gboolean allowed = (clipboard_force_no_display) || (getenv ("DISPLAY") != NULL);
+ 
+     (void) event_group_name;
+     (void) event_name;
+     (void) init_data;
+     (void) data;
+ 
+-    if (d == NULL || clipboard_store_path == NULL || clipboard_store_path[0] == '\0')
++    if (!allowed || clipboard_store_path == NULL || clipboard_store_path[0] == '\0')
+         return TRUE;
+ 
+     tmp = mc_config_get_full_path (EDIT_HOME_CLIP_FILE);
+@@ -101,14 +104,14 @@ clipboard_file_from_ext_clip (const gchar * event_group_name, const gchar * even
+ {
+     mc_pipe_t *p;
+     int file = -1;
+-    const char *d = getenv ("DISPLAY");
++    gboolean allowed = (clipboard_force_no_display) || (getenv ("DISPLAY") != NULL);
+ 
+     (void) event_group_name;
+     (void) event_name;
+     (void) init_data;
+     (void) data;
+ 
+-    if (d == NULL || clipboard_paste_path == NULL || clipboard_paste_path[0] == '\0')
++    if (!allowed || clipboard_paste_path == NULL || clipboard_paste_path[0] == '\0')
+         return TRUE;
+ 
+     p = mc_popen (clipboard_paste_path, NULL);
+diff --git a/src/clipboard.h b/src/clipboard.h
+index 9b2fc2216..a701e3655 100644
+--- a/src/clipboard.h
++++ b/src/clipboard.h
+@@ -15,6 +15,7 @@
+ 
+ extern char *clipboard_store_path;
+ extern char *clipboard_paste_path;
++extern gboolean clipboard_force_no_display;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+diff --git a/src/setup.c b/src/setup.c
+index 97da20940..7158d3c53 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -1178,6 +1178,8 @@ load_setup (void)
+         mc_config_get_string (mc_global.main_config, CONFIG_MISC_SECTION, "clipboard_store", "");
+     clipboard_paste_path =
+         mc_config_get_string (mc_global.main_config, CONFIG_MISC_SECTION, "clipboard_paste", "");
++    clipboard_force_no_display =
++        mc_config_get_bool (mc_global.main_config, CONFIG_MISC_SECTION, "clipboard_force_no_display", FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1230,6 +1232,8 @@ save_setup (gboolean save_options, gboolean save_panel_options)
+                               clipboard_store_path);
+         mc_config_set_string (mc_global.main_config, CONFIG_MISC_SECTION, "clipboard_paste",
+                               clipboard_paste_path);
++        mc_config_set_bool (mc_global.main_config, CONFIG_MISC_SECTION, "clipboard_force_no_display",
++                            clipboard_force_no_display);
+ 
+         tmp_profile = mc_config_get_full_path (MC_CONFIG_FILE);
+         ret = mc_config_save_to_file (mc_global.main_config, tmp_profile, NULL);
+-- 
+2.28.0
+

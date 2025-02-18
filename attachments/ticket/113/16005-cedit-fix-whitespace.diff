@@ -1,0 +1,17 @@
+---
+ edit/editdraw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: mc-4.6.2-pre1/edit/editdraw.c
+===================================================================
+--- mc-4.6.2-pre1.orig/edit/editdraw.c
++++ mc-4.6.2-pre1/edit/editdraw.c
+@@ -396,7 +396,7 @@ edit_draw_this_line (WEdit *edit, long b
+ 			p++;
+ 			c = p->style & ~MOD_CURSOR;
+ 			while (--i) {
+-			    p->style = c;
++			    p->style = c | MOD_WHITESPACE;
+ 			    p->ch = ' ';
+ 			    p++;
+ 			}

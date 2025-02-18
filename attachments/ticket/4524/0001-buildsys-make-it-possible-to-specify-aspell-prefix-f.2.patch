@@ -1,0 +1,62 @@
+From a45b182e2ae1a173f8d710cfce1f94a586668360 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Tue, 4 Jun 2024 11:15:23 +0200
+Subject: [PATCH] buildsys: make it possible to specify aspell prefix (for
+ macOS)
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ doc/INSTALL                         | 7 ++++---
+ m4.include/mc-with-internal-edit.m4 | 7 +++++--
+ 2 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/doc/INSTALL b/doc/INSTALL
+index 1e5d1a268..15f0677eb 100644
+--- a/doc/INSTALL
++++ b/doc/INSTALL
+@@ -89,9 +89,10 @@ incomplete, use `configure --help' to get the full list):
+      built-in file editor.  The built-in editor is compiled in by
+      default.
+ 
+-`--enable-aspell'
+-     This option adds spell check support in the internal editor using
+-     libaspell. Disabled by default.
++`--enable-aspell[=DIR]'
++     This option adds spell check support to the internal editor using
++     libaspell and optionally sets path to libaspell includes
++     [default=/usr/include]. Disabled by default.
+ 
+ `--without-gpm-mouse'
+      Use this flag to disable gpm mouse support (e.g. if you want to
+diff --git a/m4.include/mc-with-internal-edit.m4 b/m4.include/mc-with-internal-edit.m4
+index a801e1d68..8611467a0 100644
+--- a/m4.include/mc-with-internal-edit.m4
++++ b/m4.include/mc-with-internal-edit.m4
+@@ -18,11 +18,14 @@ AC_DEFUN([mc_WITH_INTERNAL_EDIT], [
+ 
+     dnl ASpell support.
+     AC_ARG_ENABLE([aspell],
+-        AS_HELP_STRING([--enable-aspell], [Enable aspell support for internal editor @<:@no@:>@]),
++        AS_HELP_STRING(
++        [--enable-aspell@<:@=DIR@:>@],
++        [Enable aspell support for internal editor @<:@no@:>@] and optionally set path to aspell includes @<:@default=/usr/include@:>@),
+         [
+             if test "x$enableval" = xno; then
+                 enable_aspell=no
+             else
++                test -d "$enable_aspell" && CPPFLAGS="$CPPFLAGS -I$enable_aspell"
+                 enable_aspell=yes
+             fi
+         ],
+@@ -40,7 +43,7 @@ AC_DEFUN([mc_WITH_INTERNAL_EDIT], [
+                 AC_MSG_NOTICE([using aspell for internal editor])
+             else
+                 enable_aspell=no
+-                AC_MSG_NOTICE([aspell support is disabled because gmodule support is not available])
++                AC_MSG_ERROR([aspell support is disabled because gmodule support is not available])
+             fi
+     fi
+ ])
+-- 
+2.39.3 (Apple Git-146)
+

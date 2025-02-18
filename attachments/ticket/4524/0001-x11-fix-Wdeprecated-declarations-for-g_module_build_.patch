@@ -1,0 +1,51 @@
+From 125b89961a0d388b75169c99a5574dbfcac47baa Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Fri, 9 Aug 2024 07:31:04 +0200
+Subject: [PATCH] x11: fix `-Wdeprecated-declarations` for
+ `g_module_build_path`
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+```
+x11conn.c:140:5: warning: 'g_module_build_path' is deprecated [-Wdeprecated-declarations]
+  140 |     x11_module_fname = g_module_build_path (NULL, "X11");
+      |     ^~~~~~~~~~~~~~~~
+```
+
+Reported-by: David Martín <dhmartina@yahoo.es>
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ lib/tty/x11conn.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/lib/tty/x11conn.c b/lib/tty/x11conn.c
+index cdb60f13f..fb471b90c 100644
+--- a/lib/tty/x11conn.c
++++ b/lib/tty/x11conn.c
+@@ -129,21 +129,16 @@ static gboolean
+ x11_available (void)
+ {
+ #ifdef HAVE_GMODULE
+-    gchar *x11_module_fname;
+-
+     if (lost_connection)
+         return FALSE;
+ 
+     if (x11_module != NULL)
+         return TRUE;
+ 
+-    x11_module_fname = g_module_build_path (NULL, "X11");
+-    x11_module = g_module_open (x11_module_fname, G_MODULE_BIND_LAZY);
++    x11_module = g_module_open ("X11", G_MODULE_BIND_LAZY);
+     if (x11_module == NULL)
+         x11_module = g_module_open ("libX11.so.6", G_MODULE_BIND_LAZY);
+ 
+-    g_free (x11_module_fname);
+-
+     if (x11_module == NULL)
+         return FALSE;
+ 
+-- 
+2.39.3 (Apple Git-146)
+

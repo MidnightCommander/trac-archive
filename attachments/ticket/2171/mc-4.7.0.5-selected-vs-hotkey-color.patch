@@ -1,0 +1,17 @@
+diff -ur mc-4.7.0.5.orig/src/widget.c mc-4.7.0.5/src/widget.c
+--- mc-4.7.0.5.orig/src/widget.c	2010-05-05 19:51:26.000000000 +0200
++++ mc-4.7.0.5/src/widget.c	2010-05-06 19:51:28.000000000 +0200
+@@ -2088,11 +2088,11 @@
+ }
+ 
+ static void
+-listbox_draw (WListbox *l, gboolean focused)
++listbox_draw (WListbox *l, gboolean focused_unused)
+ {
+     const Dlg_head *h = l->widget.parent;
+     const int normalc = DLG_NORMALC (h);
+-    int selc = focused ? DLG_HOT_FOCUSC (h) : DLG_FOCUSC (h);
++    int selc = DLG_FOCUSC (h);
+ 
+     WLEntry *e;
+     int i;

@@ -1,0 +1,41 @@
+From 4ccbd8ac0f85cb856c6477f6a93025b3cf2a388a Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@gmx.de>
+Date: Fri, 9 Oct 2020 00:10:42 +0200
+Subject: [PATCH 4/5] relax mc.ext matching rules for makefiles
+
+match the special cases first, and match makefiles irrespective of
+extension. that is useful, as hand-written make-based build systems
+often use qualifying suffixes, like .unix.
+---
+ misc/mc.ext.in | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index b7f3d1d76..ea7886993 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -671,10 +671,6 @@ regex/i/\.(epub|mobi)$
+ shell/.class
+ 	View=%view{ascii} @EXTHELPERSDIR@/misc.sh view javaclass
+ 
+-# Makefile
+-regex/^[Mm]akefile$
+-	Open=make -f %f %{Enter parameters}
+-
+ # Imakefile
+ shell/Imakefile
+ 	Open=xmkmf -a
+@@ -683,6 +679,10 @@ shell/Imakefile
+ regex/^Makefile\.(PL|pl)$
+ 	Open=%var{PERL:perl} %f
+ 
++# Makefile
++regex/[Mm]akefile
++	Open=make -f %f %{Enter parameters}
++
+ # sqlite3.db
+ type/^SQLite 3.x database
+ 	Open=@EXTHELPERSDIR@/misc.sh open sqlite
+-- 
+2.28.0.1.g7ba5ae0684
+

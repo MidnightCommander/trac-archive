@@ -1,0 +1,182 @@
+From 0049f66358bc39925564e5b743326b0243933591 Mon Sep 17 00:00:00 2001
+From: Janek Kozicki <janek_listy@wp.pl>
+Date: Sat, 22 May 2010 01:50:33 +0200
+Subject: [PATCH 9542/9542] ticket 1517 DONE - Enter/mouse_click will fold unfold directories properly
+
+---
+ src/tree.c      |   85 +++++++++++++++++++++++++++++++++++++++++++++++-------
+ src/treestore.c |    5 ++-
+ src/treestore.h |    2 +-
+ 3 files changed, 78 insertions(+), 14 deletions(-)
+
+diff --git a/src/tree.c b/src/tree.c
+index 6055b41..bf69eec 100644
+--- a/src/tree.c
++++ b/src/tree.c
+@@ -159,7 +159,7 @@ static void
+ tree_remove_entry (WTree * tree, char *name)
+ {
+     (void) tree;
+-    tree_store_remove_entry (name);
++    tree_store_remove_entry (name, TRUE);
+ }
+ 
+ static void
+@@ -533,29 +533,92 @@ tree_event (WTree * tree, int y)
+     show_tree (tree);
+ }
+ 
++/* In fact I don't know how to refresh without unfolding / Janek Kozicki */
+ static void
+-tree_chdir_sel (WTree * tree, gboolean enter_key_was_pressed)
++unfold_and_refresh (WTree * tree, gboolean mouse_clicked)
+ {
+-    if (!tree->is_panel)
+-        return;
+-
+     change_panel ();
+-
+     if (do_cd (tree->selected_ptr->name, cd_exact))
+         select_item (current_panel);
+     else
+         message (D_ERROR, MSG_ERROR, _(" Cannot chdir to \"%s\" \n %s "),
+                  tree->selected_ptr->name, unix_error_string (errno));
+-
+     change_panel ();
+-    show_tree (tree);
++    
++    if(mouse_clicked) /* we need an extra refresh here */
++    {
++        change_panel ();
++        change_panel ();
++    }
++}
++
++static void
++tree_chdir_sel (WTree * tree, gboolean enter_key_was_pressed, gboolean mouse_clicked)
++{
++    if (!tree->is_panel)
++        return;
++
++/* Unfolding and collapsing */
++/* xtree_mode must be handled separately: because it is "Active"ly refreshing  */
++    if(xtree_mode)
++    {
++        if(enter_key_was_pressed) /* Unfold or collapse */
++        {
++            /* if the next entry is a higher sublevel, then we collapse */
++            if(tree->selected_ptr->next && tree->selected_ptr->next->sublevel > tree->selected_ptr->sublevel)
++            { /* collapse */
++                unfold_and_refresh(tree, mouse_clicked);
++                show_tree (tree);
++                tree_store_remove_entry(tree->selected_ptr->name,FALSE);
++            }
++            else /* unfold */
++            {
++                unfold_and_refresh(tree, mouse_clicked);
++            }
++        }
++        else /* Refresh only: Enter wasn't pressed */
++        {
++            /* if the next entry is a higher sublevel, then unfold_and_refresh will not unfold anything, since it's already unfolded */
++            if(tree->selected_ptr->next && tree->selected_ptr->next->sublevel > tree->selected_ptr->sublevel)
++            {
++                unfold_and_refresh(tree, mouse_clicked);
++            }
++            else /* else, the unfold_and_refresh will unfold, and we really wish to avoid this, so we must collapse aferwards */
++            { /* collapse */
++                unfold_and_refresh(tree, mouse_clicked);
++                show_tree (tree);
++                tree_store_remove_entry(tree->selected_ptr->name,FALSE);
++            }
++        }
++        show_tree (tree);
++    }
++    else
++/* non xtree_mode is a "Lazy" one, no need to refresh */
++    {
++        if(enter_key_was_pressed)
++        {
++            /* if the next entry is a higher sublevel, then we collapse */
++            if(tree->selected_ptr->next && tree->selected_ptr->next->sublevel > tree->selected_ptr->sublevel)
++            { /* collapse */
++                unfold_and_refresh(tree, mouse_clicked);
++                show_tree (tree);
++                tree_store_remove_entry(tree->selected_ptr->name,FALSE);
++            }
++            else /* unfold */
++            {
++                unfold_and_refresh(tree, mouse_clicked);
++            }
++            show_tree (tree);
++        }
++        /* we are "Lazy" and Enter wasn't pressed therefore do nothing else */
++    }
+ }
+ 
+ static void
+ maybe_chdir (WTree * tree)
+ {
+     if (xtree_mode && tree->is_panel && is_idle ())
+-        tree_chdir_sel (tree, FALSE);
++        tree_chdir_sel (tree, FALSE, FALSE);
+ }
+ 
+ /* Mouse callback */
+@@ -597,7 +660,7 @@ event_callback (Gpm_Event * event, void *data)
+         tree_event (tree, event->y);
+         if ((event->type & (GPM_UP | GPM_DOUBLE)) == (GPM_UP | GPM_DOUBLE))
+         {
+-            tree_chdir_sel (tree, TRUE);
++            tree_chdir_sel (tree, TRUE, TRUE);
+         }
+     }
+     return MOU_NORMAL;
+@@ -973,7 +1036,7 @@ tree_execute_cmd (WTree * tree, unsigned long command)
+         tree_move_pgdn (tree);
+         break;
+     case CK_TreeOpen:
+-        tree_chdir_sel (tree, TRUE);
++        tree_chdir_sel (tree, TRUE, FALSE);
+         break;
+     case CK_TreeRescan:
+         tree_rescan (tree);
+diff --git a/src/treestore.c b/src/treestore.c
+index 77a2b0e..072b228 100644
+--- a/src/treestore.c
++++ b/src/treestore.c
+@@ -594,7 +594,7 @@ remove_entry (tree_entry * entry)
+ }
+ 
+ void
+-tree_store_remove_entry (const char *name)
++tree_store_remove_entry (const char *name, gboolean remove_base_also)
+ {
+     tree_entry *current, *base, *old;
+     int len;
+@@ -620,7 +620,8 @@ tree_store_remove_entry (const char *name)
+         current = current->next;
+         remove_entry (old);
+     }
+-    remove_entry (base);
++    if (remove_base_also)
++        remove_entry (base);
+     tree_store_dirty (TRUE);
+ 
+     return;
+diff --git a/src/treestore.h b/src/treestore.h
+index bc9a677..33fc9b1 100644
+--- a/src/treestore.h
++++ b/src/treestore.h
+@@ -32,7 +32,7 @@ struct TreeStore {
+ struct TreeStore *tree_store_get (void);
+ int tree_store_load (void);
+ int tree_store_save (void);
+-void tree_store_remove_entry (const char *name);
++void tree_store_remove_entry (const char *name, gboolean remove_base_also);
+ tree_entry *tree_store_start_check (const char *path);
+ void tree_store_mark_checked (const char *subname);
+ void tree_store_end_check (void);
+-- 
+1.7.1
+

@@ -1,0 +1,47 @@
+From f10a609457091e7dc267c6e129c2bfcd96c190dc Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 18 Feb 2017 22:04:44 +0200
+Subject: [PATCH 2/4] Make result of "External panelize" restorable (like with
+ "Find file").
+
+If the user loses the panelization, he can now choose "Panelize" from the menu
+to restore it.
+
+"Find file" already has this feature. Here we simply extend it to "External
+panelize".
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ src/filemanager/panel.c    | 2 +-
+ src/filemanager/panelize.c | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index a1e3b73..93f2d6e 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -86,7 +86,7 @@ hook_t *select_file_hook = NULL;
+ /*
+  * 'panelized_panel' is a place where a list of files can be stored.
+  *
+- * Right after running "Find file" or "External panelize" (@todo), the contents of
++ * Right after running "Find file" or "External panelize", the contents of
+  * the panelized panel gets stored here. This makes it possible for the
+  * user to come back to this listing later if he exits panelization mode.
+  *
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index d7fdb60..374e3b5 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -371,6 +371,8 @@ do_external_panelize (char *command)
+         (void) ret;
+     }
+ 
++    panelize_save_panel (current_panel);
++
+     if (pclose (external) < 0)
+         message (D_NORMAL, _("External panelize"), _("Pipe close failed"));
+     close_error_pipe (D_NORMAL, NULL);
+-- 
+2.9.3
+

@@ -1,0 +1,43 @@
+From 297543c9e988cdd9820355ca9820f738e0d2465e Mon Sep 17 00:00:00 2001
+From: Slava Zanko <slavazanko@gmail.com>
+Date: Fri, 27 Nov 2009 12:59:30 +0200
+Subject: [PATCH] REBASE: CLEANUP: for merge with 5307c0bbda0a70b66ccbaaedb7f87796b3297b33
+
+run command:
+
+git rebase -i 5307c0bbda0a70b66ccbaaedb7f87796b3297b33
+
+and split this commit with 5307c0bbda
+
+Signed-off-by: Slava Zanko <slavazanko@gmail.com>
+---
+ src/setup.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/setup.c b/src/setup.c
+index fac3216..f61fc62 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -819,8 +819,8 @@ load_setup (void)
+ 	    cp_source = get_codepage_id (source_codepage);
+ 	}
+ 	g_free(buffer);
+-   }
+-  
++    }
++
+   autodetect_codeset = mc_config_get_string(mc_main_config, "Misc", "autodetect_codeset", "");
+ 	if ( autodetect_codeset[0] != '\0' )
+ 	{
+@@ -828,7 +828,7 @@ load_setup (void)
+ 	    cp_source = get_codepage_id (source_codepage);
+ 	}
+ 	//g_free(autodetect_codeset); // FIXME NEED FREE
+-  
++
+     init_translation_table( source_codepage, display_codepage );
+     if ( get_codepage_id( display_codepage ) )
+         utf8_display = str_isutf8 (get_codepage_id( display_codepage ));
+-- 
+1.6.0.3
+

@@ -1,0 +1,30 @@
+From 3018a8d8d6c0591c10b6bc8a55ad74bd80b9b701 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Fri, 3 Apr 2009 00:33:01 +0200
+Subject: [PATCH] search: skip working copy meta data of known version control systems
+
+---
+ src/find.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/src/find.c b/src/find.c
+index a38d888..ed9662a 100644
+--- a/src/find.c
++++ b/src/find.c
+@@ -973,7 +973,12 @@ do_search (struct Dlg_head *h)
+             ;
+     }                           /* while (!dp) */
+ 
+-    if (strcmp (dp->d_name, ".") == 0 || strcmp (dp->d_name, "..") == 0)
++    if (strcmp (dp->d_name, "CVS") == 0 ||
++        strcmp (dp->d_name, ".svn") == 0 ||
++        strcmp (dp->d_name, ".git") == 0 ||
++        strcmp (dp->d_name, ".hg") == 0 ||
++        strcmp (dp->d_name, ".") == 0 ||
++        strcmp (dp->d_name, "..") == 0)
+     {
+         dp = mc_readdir (dirp);
+         /* skip invalid filenames */
+-- 
+1.7.1.15.g43acf
+

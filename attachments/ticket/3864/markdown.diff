@@ -1,0 +1,66 @@
+diff --git a/misc/syntax/Makefile.am b/misc/syntax/Makefile.am
+index f25ce5af8..acdfac449 100644
+--- a/misc/syntax/Makefile.am
++++ b/misc/syntax/Makefile.am
+@@ -51,6 +51,7 @@ SYNTAXFILES =			\
+ 	m4.syntax		\
+ 	mail.syntax		\
+ 	makefile.syntax		\
++	markdown.syntax		\
+ 	ml.syntax		\
+ 	named.syntax		\
+ 	nemerle.syntax		\
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index f9fef4490..dd74cbea0 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -286,5 +286,8 @@ include osl.syntax
+ file .\*\\.([rR]|Rd|Rscript)$ R\sProgram
+ include r.syntax
+ 
++file ..\*\\.(?i:md)$ Markdown
++include markdown.syntax
++
+ file .\* unknown
+ include unknown.syntax
+diff --git a/misc/syntax/markdown.syntax b/misc/syntax/markdown.syntax
+new file mode 100644
+index 000000000..f91454f7b
+--- /dev/null
++++ b/misc/syntax/markdown.syntax
+@@ -0,0 +1,35 @@
++# Markdown syntax highlighting
++
++context default lightgray
++    spellcheck
++    # links
++    keyword whole [*](*) yellow
++
++context linestart #### \n red
++    spellcheck
++
++context linestart # \n brightred
++    spellcheck
++
++context linestart > \n green
++    spellcheck
++
++context linestart \s\s\s\s \n cyan
++
++context ``` ``` cyan
++
++context `` `` cyan
++
++context ` ` cyan
++
++context \*\* \*\* brightgreen
++    spellcheck
++
++context \* \* magenta
++    spellcheck
++
++context \_\_ \_\_ brightgreen
++    spellcheck
++
++context \_ \_ magenta
++    spellcheck

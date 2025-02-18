@@ -1,0 +1,14 @@
+--- complete.c	2010-05-05 22:30:03.000000000 +0400
++++ complete.c.new	2010-05-12 16:14:35.000000000 +0400
+@@ -1199,9 +1199,11 @@
+             WListbox *query_list;
+ 
+             for (p = in->completions + 1; *p != NULL; count++, p++)
++			{
+                 i = str_term_width1 (*p);
+                 if (i > maxlen)
+                     maxlen = i;
++			}
+             start_x = in->widget.x;
+             start_y = in->widget.y;
+             if (start_y - 2 >= count)

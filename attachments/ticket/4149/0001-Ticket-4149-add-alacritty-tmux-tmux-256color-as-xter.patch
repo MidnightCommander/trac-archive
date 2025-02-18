@@ -1,0 +1,45 @@
+From d9e9a9f199d673a9e9995c1162048f3a854d029e Mon Sep 17 00:00:00 2001
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Date: Thu, 26 Nov 2020 08:05:37 +0000
+Subject: [PATCH] Ticket #4149: add 'alacritty', 'tmux', 'tmux-256color' as
+ xterm aliases
+
+'alacritty', 'tmux' and 'tmux-256color' all implement Shift+F<N> keys
+in an xterm-compatible way. Without this change Shift+F<N> are handled
+as F<N-2> key presses.
+
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+---
+ misc/mc.lib | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/misc/mc.lib b/misc/mc.lib
+index d84a7b5a6..bf8be065c 100644
+--- a/misc/mc.lib
++++ b/misc/mc.lib
+@@ -116,6 +116,9 @@ alt-shift-left=\\e[1\;4D
+ alt-shift-up=\\e[1\;4A
+ alt-shift-down=\\e[1\;4B
+ 
++[terminal:alacritty]
++copy=xterm
++
+ [terminal:gnome]
+ copy=xterm
+ 
+@@ -137,6 +140,12 @@ copy=xterm
+ [terminal:screen-256color]
+ copy=xterm
+ 
++[terminal:tmux]
++copy=xterm
++
++[terminal:tmux-256color]
++copy=xterm
++
+ [terminal:ibmpc3]
+ f11=\\e[Y
+ f12=\\e[Z
+-- 
+2.29.2
+

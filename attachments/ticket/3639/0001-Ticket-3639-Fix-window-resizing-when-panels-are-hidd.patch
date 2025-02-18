@@ -1,0 +1,26 @@
+From 86404601a432e7bb570c7a6739e122e241a0502d Mon Sep 17 00:00:00 2001
+From: Yuri Khan <yurivkhan@gmail.com>
+Date: Tue, 3 May 2016 11:51:40 +0600
+Subject: [PATCH] Ticket #3639: Fix window resizing when panels are hidden.
+
+Calling `tty_change_screen_size` causes a switch to the alternate screen.
+---
+ src/subshell/common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 0be0127..e0ce236 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -531,7 +531,7 @@ feed_subshell (int how, int fail_on_error)
+             /* Despite using SA_RESTART, we still have to check for this */
+             if (errno == EINTR)
+             {
+-                if (mc_global.tty.winch_flag != 0)
++                if (how == QUIETLY && mc_global.tty.winch_flag != 0)
+                     tty_change_screen_size ();
+ 
+                 continue;       /* try all over again */
+-- 
+2.8.2
+

@@ -1,0 +1,62 @@
+From 76ad0a532b737b83727dfb08fa610ba7ced6c5bc Mon Sep 17 00:00:00 2001
+From: Andrew Borodin <aborodin@vmail.ru>
+Date: Thu, 26 Nov 2015 21:49:26 +0300
+Subject: [PATCH] (configure_panel_listing): fix memory leaks.
+
+Signed-off-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ src/filemanager/cmd.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 52c8c5e..0179aed 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -466,8 +466,8 @@ nice_cd (const char *text, const char *xtext, const char *help,
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-configure_panel_listing (WPanel * p, int list_type, int brief_cols, int use_msformat, char *user,
+-                         char *status)
++configure_panel_listing (WPanel * p, int list_type, int brief_cols, int use_msformat, char **user,
++                         char **status)
+ {
+     p->user_mini_status = use_msformat;
+     p->list_type = list_type;
+@@ -477,18 +477,15 @@ configure_panel_listing (WPanel * p, int list_type, int brief_cols, int use_msfo
+     else if (list_type == list_user || use_msformat)
+     {
+         g_free (p->user_format);
+-        p->user_format = user;
++        p->user_format = *user;
++        *user = NULL;
+ 
+         g_free (p->user_status_format[list_type]);
+-        p->user_status_format[list_type] = status;
++        p->user_status_format[list_type] = *status;
++        *status = NULL;
+ 
+         set_panel_formats (p);
+     }
+-    else
+-    {
+-        g_free (user);
+-        g_free (status);
+-    }
+ 
+     set_panel_formats (p);
+     do_refresh ();
+@@ -1658,7 +1655,9 @@ change_listing_cmd (void)
+     {
+         switch_to_listing (MENU_PANEL_IDX);
+         p = MENU_PANEL_IDX == 0 ? left_panel : right_panel;
+-        configure_panel_listing (p, list_type, brief_cols, use_msformat, user, status);
++        configure_panel_listing (p, list_type, brief_cols, use_msformat, &user, &status);
++        g_free (user);
++        g_free (status);
+     }
+ }
+ 
+-- 
+2.1.4
+

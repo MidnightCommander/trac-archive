@@ -1,0 +1,61 @@
+From d7182097cd3cf297afd55e0e8d1baf518f9f0fc7 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@gmx.de>
+Date: Fri, 9 Oct 2020 00:06:01 +0200
+Subject: [PATCH 3/5] replace xmms with audacious in ext.d/shound.sh
+
+xmms hasn't been maintained for ages. audacious is a maintained fork of
+it.
+---
+ misc/ext.d/sound.sh | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/misc/ext.d/sound.sh b/misc/ext.d/sound.sh
+index 760aaf1dd..c92b868ab 100755
+--- a/misc/ext.d/sound.sh
++++ b/misc/ext.d/sound.sh
+@@ -38,7 +38,7 @@ do_open_action() {
+     case "${filetype}" in
+     common)
+         if [ -n "$DISPLAY" ]; then
+-            (xmms  "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
++            (audacious  "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+         else
+             play "${MC_EXT_FILENAME}"
+         fi
+@@ -52,21 +52,21 @@ do_open_action() {
+         ;;
+     mp3)
+         if [ -n "$DISPLAY" ]; then
+-            (xmms "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
++            (audacious "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+         else
+             mpg123 "${MC_EXT_FILENAME}"
+         fi
+         ;;
+     ogg)
+         if [ -n "$DISPLAY" ]; then
+-            (xmms "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
++            (audacious "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+         else
+             ogg123 "${MC_EXT_FILENAME}"
+         fi
+         ;;
+     opus)
+         if [ -n "$DISPLAY" ]; then
+-            (xmms "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
++            (audacious "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+         else
+             play "${MC_EXT_FILENAME}"
+         fi
+@@ -79,7 +79,7 @@ do_open_action() {
+         ;;
+     playlist)
+         if [ -n "$DISPLAY" ]; then
+-            (xmms -p "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
++            (audacious -p "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+         else
+             mplayer -vo null -playlist "${MC_EXT_FILENAME}"
+         fi
+-- 
+2.28.0.1.g7ba5ae0684
+

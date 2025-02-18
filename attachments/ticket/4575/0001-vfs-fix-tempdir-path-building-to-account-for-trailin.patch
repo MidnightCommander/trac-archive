@@ -1,0 +1,38 @@
+From ca07448759501684b04cce678cee53aa8e2a0c68 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 29 Aug 2024 12:13:40 +0200
+Subject: [PATCH] vfs: fix tempdir path building to account for trailing slash
+ on macOS
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ lib/vfs/interface.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/vfs/interface.c b/lib/vfs/interface.c
+index 63bbddec6..384705120 100644
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -775,6 +775,7 @@ mc_tmpdir (void)
+     static const char *tmpdir = NULL;
+     const char *sys_tmp;
+     struct stat st;
++    gchar* template;
+ 
+     /* Check if already correctly initialized */
+     if (tmpdir != NULL && lstat (tmpdir, &st) == 0 && S_ISDIR (st.st_mode) &&
+@@ -789,7 +790,10 @@ mc_tmpdir (void)
+             sys_tmp = TMPDIR_DEFAULT;
+     }
+ 
+-    g_snprintf (buffer, sizeof (buffer), "%s/mc-XXXXXX", sys_tmp);
++    template = g_build_filename (sys_tmp, "mc-XXXXXX", (char *) NULL);
++    g_strlcpy(buffer, template, sizeof (buffer));
++    g_free(template);
++
+     tmpdir = g_mkdtemp (buffer);
+     if (tmpdir != NULL)
+         g_setenv ("MC_TMPDIR", tmpdir, TRUE);
+-- 
+2.39.3 (Apple Git-146)
+

@@ -1,0 +1,37 @@
+diff --git a/lib/mc.ext.in b/lib/mc.ext.in
+index af63f0e..ba975ed 100644
+--- a/lib/mc.ext.in
++++ b/lib/mc.ext.in
+@@ -207,7 +207,7 @@ regex/\.iso$
+ 	View=%view{ascii} isoinfo -l -i %f
+ 
+ # 7zip archives (they are not man pages)
+-shell/.7z
++regex/\.(7z|7Z)$
+ 	Open=%cd %p#u7z
+ 	View=%view{ascii} 7za l %f 2>/dev/null
+ 
+diff --git a/vfs/extfs/u7z b/vfs/extfs/u7z
+index da2272e..0803574 100644
+--- a/vfs/extfs/u7z
++++ b/vfs/extfs/u7z
+@@ -47,8 +47,8 @@ mcu7zip_rmdir ()
+ }
+ 
+ # override any locale for dates
+-LC_ALL=C
+-export LC_ALL
++LC_DATE=C
++export LC_DATE
+ 
+ umask 077
+ 
+@@ -56,7 +56,7 @@ cmd="$1"
+ shift
+ 
+ case "$cmd" in
+-  list)    mcu7zip_list    "$@" ;;
++  list)    mcu7zip_list    "$@" | sort -k 8 ;;
+   copyout) mcu7zip_copyout "$@" ;;
+   copyin)  mcu7zip_copyin  "$@" ;;
+   mkdir)   mcu7zip_mkdir   "$@" ;;

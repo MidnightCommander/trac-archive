@@ -1,0 +1,37 @@
+From 003d4c14152ea50ed4808f1972e5f9e9fd65fe04 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 7 Dec 2020 13:04:42 +0000
+Subject: [PATCH] (fish.c) fix uninitialized scalar variable
+
+Fix uninitialized scalar variable
+
+found by Coverity
+coverity id #32630
+coverity id #164548
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/fish/fish.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index 2a97fcb31..33f472f05 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -489,7 +489,7 @@ fish_info (struct vfs_class *me, struct vfs_s_super *super)
+         while (TRUE)
+         {
+             int res;
+-            char buffer[BUF_8K];
++            char buffer[BUF_8K] = "";
+ 
+             res = vfs_s_get_line_interruptible (me, buffer, sizeof (buffer), fish_super->sockr);
+             if ((res == 0) || (res == EINTR))
+@@ -917,6 +917,7 @@ fish_dir_load (struct vfs_class *me, struct vfs_s_inode *dir, char *remote_path)
+         case 'D':
+             {
+                 struct tm tim;
++                memset(&tim, 0, sizeof(struct tm));
+ 
+                 /* cppcheck-suppress invalidscanf */
+                 if (sscanf (buffer + 1, "%d %d %d %d %d %d", &tim.tm_year, &tim.tm_mon,

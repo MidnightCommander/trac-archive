@@ -1,0 +1,53 @@
+diff --git a/misc/syntax/Makefile.am b/misc/syntax/Makefile.am
+index 0a3bb120e..59944564d 100644
+--- a/misc/syntax/Makefile.am
++++ b/misc/syntax/Makefile.am
+@@ -90,6 +90,7 @@ SYNTAXFILES =			\
+ 	syntax.syntax		\
+ 	tcl.syntax		\
+ 	texinfo.syntax		\
++	toml.syntax		\
+ 	ts.syntax		\
+ 	tt.syntax		\
+ 	unknown.syntax		\
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 01dad61a3..0242b83eb 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -328,5 +328,8 @@ include swift.syntax
+ file ..\*\\.action$ Privoxy\sFile
+ include privoxy.syntax
+ 
++file .\*\\.toml TOML\sFile
++include toml.syntax
++
+ file .\* unknown
+ include unknown.syntax
+diff --git a/misc/syntax/toml.syntax b/misc/syntax/toml.syntax
+new file mode 100644
+index 000000000..0a1dff44f
+--- /dev/null
++++ b/misc/syntax/toml.syntax
+@@ -0,0 +1,22 @@
++# TOML: Tom's Obvious Minimal Language
++
++context default white
++
++# groups
++context [ \n brown
++    keyword [ yellow
++    keyword ] yellow
++
++# assignment
++context exclusive = \n write
++    keyword "*" brightgreen
++    keyword whole false brightcyan
++    keyword whole true brightcyan
++    keyword \{0123456789\} brightcyan
++
++# comments
++context # \n brown
++    spellcheck
++
++# other strings
++context " " brightgreen

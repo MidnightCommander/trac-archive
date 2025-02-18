@@ -1,0 +1,476 @@
+context default
+    keyword := brightred
+    keyword whole \%include brightred
+    keyword % brightred
+    keyword . white/Orange
+    keyword > yellow
+    keyword < yellow
+    keyword \+ yellow
+    keyword - yellow
+    keyword \* yellow
+    keyword / yellow
+    keyword != yellow
+    keyword == yellow
+    keyword = brightred
+    keyword whole \[=\]\{0123456789\}\[0123456789.\] cyan
+    keyword { white
+    keyword } white
+    keyword ( brightmagenta
+    keyword ) brightmagenta
+
+    keyword [ white
+    keyword ] white
+    keyword , yellow
+    keyword ; brightgreen
+    keyword !\{abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\}\[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\] brightgreen
+
+
+    keyword whole ref brightgreen
+    keyword whole self brightred
+    keyword whole and yellow
+    keyword whole as yellow
+    keyword whole assert yellow
+    keyword whole break yellow
+    keyword whole class yellow
+    keyword whole continue yellow
+    keyword whole def yellow
+    keyword whole del yellow
+    keyword whole elif yellow
+    keyword whole else yellow
+    keyword whole except yellow
+    keyword whole exec yellow
+    keyword whole finally yellow
+    keyword whole for yellow
+    keyword whole from yellow
+    keyword whole global yellow
+    keyword whole if yellow
+    keyword whole import yellow
+    keyword whole in yellow
+    keyword whole is yellow
+    keyword whole lambda yellow
+    keyword whole not yellow
+    keyword whole or yellow
+    keyword whole pass yellow
+    keyword whole print yellow
+    keyword whole raise yellow
+    keyword whole return yellow
+    keyword whole try yellow
+    keyword whole while yellow
+    keyword whole with yellow
+    keyword whole yield yellow
+    keyword whole end+ yellow
+    keyword whole then yellow
+    keyword whole ifdef yellow
+    keyword whole endif yellow
+    keyword whole begin yellow
+
+
+    keyword whole __+__ brightred
+
+    keyword whole audio_to_stereo brightcyan
+    keyword whole drop_audio brightcyan
+    keyword whole drop_midi brightcyan
+    keyword whole drop_video brightcyan
+    keyword whole id brightcyan
+    keyword whole mean brightcyan
+    keyword whole mux_audio brightcyan
+    keyword whole mux_mono brightcyan
+    keyword whole mux_stereo brightcyan
+    keyword whole mux_video brightcyan
+    keyword whole stereo.left brightcyan
+    keyword whole stereo.right brightcyan
+    keyword whole swap brightcyan
+    keyword whole blank brightcyan
+    keyword whole empty brightcyan
+    keyword whole fail brightcyan
+    keyword whole in brightcyan
+    keyword whole input.alsa brightcyan
+    keyword whole input.external brightcyan
+    keyword whole input.gstreamer.audio brightcyan
+    keyword whole input.gstreamer.audio_video brightcyan
+    keyword whole input.gstreamer.video brightcyan
+    keyword whole input.harbor brightcyan
+    keyword whole input.http brightcyan
+    keyword whole input.jack brightcyan
+    keyword whole input.lastfm brightcyan
+    keyword whole input.oss brightcyan
+    keyword whole input.portaudio brightcyan
+    keyword whole input.pulseaudio brightcyan
+    keyword whole input.udp brightcyan
+    keyword whole noise brightcyan
+    keyword whole playlist brightcyan
+    keyword whole playlist.once brightcyan
+    keyword whole playlist.reloadable brightcyan
+    keyword whole playlist.safe brightcyan
+    keyword whole request.dynamic brightcyan
+    keyword whole request.equeue brightcyan
+    keyword whole request.queue brightcyan
+    keyword whole saw brightcyan
+    keyword whole sine brightcyan
+    keyword whole single brightcyan
+    keyword whole square brightcyan
+    keyword whole buffer brightcyan
+    keyword whole buffer.adaptative brightcyan
+    keyword whole midi.chord brightcyan
+    keyword whole midi.merge_all brightcyan
+    keyword whole midi.remove brightcyan
+    keyword whole out brightcyan
+    keyword whole output.alsa brightcyan
+    keyword whole output.ao brightcyan
+    keyword whole output.dummy brightcyan
+    keyword whole output.external brightcyan
+    keyword whole output.file brightcyan
+    keyword whole output.graphics brightcyan
+    keyword whole output.gstreamer.audio brightcyan
+    keyword whole output.gstreamer.audio_video brightcyan
+    keyword whole output.gstreamer.video brightcyan
+    keyword whole output.harbor brightcyan
+    keyword whole output.icecast brightcyan
+    keyword whole output.jack brightcyan
+    keyword whole output.oss brightcyan
+    keyword whole output.portaudio brightcyan
+    keyword whole output.prefered brightcyan
+    keyword whole output.pulseaudio brightcyan
+    keyword whole output.udp brightcyan
+    keyword whole add brightcyan
+    keyword whole amplify brightcyan
+    keyword whole bpm brightcyan
+    keyword whole clip brightcyan
+    keyword whole comb brightcyan
+    keyword whole compand brightcyan
+    keyword whole compress brightcyan
+    keyword whole compress.exponential brightcyan
+    keyword whole cross brightcyan
+    keyword whole echo brightcyan
+    keyword whole fade.final brightcyan
+    keyword whole fade.in brightcyan
+    keyword whole fade.initial brightcyan
+    keyword whole fade.out brightcyan
+    keyword whole filter brightcyan
+    keyword whole filter.fir brightcyan
+    keyword whole filter.iir.butterworth.bandpass brightcyan
+    keyword whole filter.iir.butterworth.bandstop brightcyan
+    keyword whole filter.iir.butterworth.high brightcyan
+    keyword whole filter.iir.butterworth.low brightcyan
+    keyword whole filter.iir.eq.allpass brightcyan
+    keyword whole filter.iir.eq.bandpass brightcyan
+    keyword whole filter.iir.eq.high brightcyan
+    keyword whole filter.iir.eq.highshelf brightcyan
+    keyword whole filter.iir.eq.low brightcyan
+    keyword whole filter.iir.eq.lowshelf brightcyan
+    keyword whole filter.iir.eq.notch brightcyan
+    keyword whole filter.iir.eq.peak brightcyan
+    keyword whole filter.iir.resonator.allpass brightcyan
+    keyword whole filter.iir.resonator.bandpass brightcyan
+    keyword whole filter.iir.resonator.bandstop brightcyan
+    keyword whole flanger brightcyan
+    keyword whole helium brightcyan
+    keyword whole ladspa.amp_mono brightcyan
+    keyword whole ladspa.amp_stereo brightcyan
+    keyword whole ladspa.delay_5s brightcyan
+    keyword whole ladspa.hpf brightcyan
+    keyword whole ladspa.lpf brightcyan
+    keyword whole ladspa.noise_white brightcyan
+    keyword whole ladspa.sine_faac brightcyan
+    keyword whole ladspa.sine_fcaa brightcyan
+    keyword whole ladspa.sine_fcac brightcyan
+    keyword whole limit brightcyan
+    keyword whole mic_filter brightcyan
+    keyword whole mix brightcyan
+    keyword whole normalize brightcyan
+    keyword whole nrj brightcyan
+    keyword whole sky brightcyan
+    keyword whole smart_cross brightcyan
+    keyword whole soundtouch brightcyan
+    keyword whole stereo.ms.decode brightcyan
+    keyword whole stereo.ms.encode brightcyan
+    keyword whole stereo.pan brightcyan
+    keyword whole stretch brightcyan
+    keyword whole dssi.register brightcyan
+    keyword whole synth.all.saw brightcyan
+    keyword whole synth.all.sine brightcyan
+    keyword whole synth.all.square brightcyan
+    keyword whole synth.saw brightcyan
+    keyword whole synth.sine brightcyan
+    keyword whole synth.square brightcyan
+    keyword whole append brightcyan
+    keyword whole at brightcyan
+    keyword whole crossfade brightcyan
+    keyword whole cue_cut brightcyan
+    keyword whole delay brightcyan
+    keyword whole drop_metadata brightcyan
+    keyword whole eat_blank brightcyan
+    keyword whole fallback brightcyan
+    keyword whole fallback.skip brightcyan
+    keyword whole insert_metadata brightcyan
+    keyword whole map_metadata brightcyan
+    keyword whole merge_tracks brightcyan
+    keyword whole mksafe brightcyan
+    keyword whole on_blank brightcyan
+    keyword whole on_end brightcyan
+    keyword whole on_metadata brightcyan
+    keyword whole on_track brightcyan
+    keyword whole once brightcyan
+    keyword whole prepend brightcyan
+    keyword whole random brightcyan
+    keyword whole rewrite_metadata brightcyan
+    keyword whole rotate brightcyan
+    keyword whole say_metadata brightcyan
+    keyword whole sequence brightcyan
+    keyword whole server.insert_metadata brightcyan
+    keyword whole skip_blank brightcyan
+    keyword whole smart_crossfade brightcyan
+    keyword whole smooth_add brightcyan
+    keyword whole source.dynamic brightcyan
+    keyword whole store_metadata brightcyan
+    keyword whole strip_blank brightcyan
+    keyword whole switch brightcyan
+    keyword whole video.add_text.gstreamer brightcyan
+    keyword whole video.fade.final brightcyan
+    keyword whole video.fade.in brightcyan
+    keyword whole video.fade.initial brightcyan
+    keyword whole video.fade.out brightcyan
+    keyword whole video.fill brightcyan
+    keyword whole video.greyscale brightcyan
+    keyword whole video.invert brightcyan
+    keyword whole video.lomo brightcyan
+    keyword whole video.opacity brightcyan
+    keyword whole video.opacity.blur brightcyan
+    keyword whole video.rotate brightcyan
+    keyword whole video.scale brightcyan
+    keyword whole video.sepia brightcyan
+    keyword whole video.tile brightcyan
+    keyword whole video.transparent brightcyan
+    keyword whole rms brightcyan
+    keyword whole rms.stereo brightcyan
+    keyword whole server.rms brightcyan
+    keyword whole video.volume brightcyan
+    keyword whole visu.volume brightcyan
+    keyword whole vumeter brightcyan
+    keyword whole != brightcyan
+    keyword whole &lt; brightcyan
+    keyword whole &lt;= brightcyan
+    keyword whole == brightcyan
+    keyword whole &gt; brightcyan
+    keyword whole &gt;= brightcyan
+    keyword whole and brightcyan
+    keyword whole not brightcyan
+    keyword whole or brightcyan
+    keyword whole random.bool brightcyan
+    keyword whole add_timeout brightcyan
+    keyword whole ignore brightcyan
+    keyword whole add_skip_command brightcyan
+    keyword whole audioscrobbler.nowplaying brightcyan
+    keyword whole audioscrobbler.submit brightcyan
+    keyword whole http.get brightcyan
+    keyword whole http.post brightcyan
+    keyword whole icy.update_metadata brightcyan
+    keyword whole interactive.bool brightcyan
+    keyword whole interactive.float brightcyan
+    keyword whole interactive.string brightcyan
+    keyword whole osc.bool brightcyan
+    keyword whole osc.float brightcyan
+    keyword whole osc.float_pair brightcyan
+    keyword whole osc.on_bool brightcyan
+    keyword whole osc.on_float brightcyan
+    keyword whole osc.on_float_pair brightcyan
+    keyword whole osc.on_string brightcyan
+    keyword whole osc.on_string_pair brightcyan
+    keyword whole osc.send_bool brightcyan
+    keyword whole osc.send_float brightcyan
+    keyword whole osc.send_float_pair brightcyan
+    keyword whole osc.send_string brightcyan
+    keyword whole osc.send_string_pair brightcyan
+    keyword whole osc.string brightcyan
+    keyword whole osc.string_pair brightcyan
+    keyword whole print brightcyan
+    keyword whole server.register brightcyan
+    keyword whole add_decoder brightcyan
+    keyword whole add_metadata_resolver brightcyan
+    keyword whole add_oblivious_decoder brightcyan
+    keyword whole add_protocol brightcyan
+    keyword whole clock brightcyan
+    keyword whole clock.assign_new brightcyan
+    keyword whole clock.unify brightcyan
+    keyword whole configure.default_font brightcyan
+    keyword whole configure.libdir brightcyan
+    keyword whole configure.logdir brightcyan
+    keyword whole configure.rundir brightcyan
+    keyword whole enable_replaygain_metadata brightcyan
+    keyword whole file.duration brightcyan
+    keyword whole file.mime brightcyan
+    keyword whole garbage_collect brightcyan
+    keyword whole get brightcyan
+    keyword whole get_clock_status brightcyan
+    keyword whole harbor.http.register brightcyan
+    keyword whole harbor.http.remove brightcyan
+    keyword whole liquidsoap.version brightcyan
+    keyword whole log brightcyan
+    keyword whole log_clocks brightcyan
+    keyword whole metadata.export brightcyan
+    keyword whole playlist.parse brightcyan
+    keyword whole replaygain_protocol brightcyan
+    keyword whole request.create brightcyan
+    keyword whole request.create.raw brightcyan
+    keyword whole request.destroy brightcyan
+    keyword whole request.filename brightcyan
+    keyword whole request.metadata brightcyan
+    keyword whole request.ready brightcyan
+    keyword whole request.resolve brightcyan
+    keyword whole server.execute brightcyan
+    keyword whole set brightcyan
+    keyword whole source.fallible brightcyan
+    keyword whole source.id brightcyan
+    keyword whole source.init brightcyan
+    keyword whole source.is_ready brightcyan
+    keyword whole source.remaining brightcyan
+    keyword whole source.seek brightcyan
+    keyword whole source.shutdown brightcyan
+    keyword whole source.skip brightcyan
+    keyword whole _[_] brightcyan
+    keyword whole list.add brightcyan
+    keyword whole list.append brightcyan
+    keyword whole list.assoc brightcyan
+    keyword whole list.filter brightcyan
+    keyword whole list.fold brightcyan
+    keyword whole list.hd brightcyan
+    keyword whole list.iter brightcyan
+    keyword whole list.length brightcyan
+    keyword whole list.map brightcyan
+    keyword whole list.mem brightcyan
+    keyword whole list.mem_assoc brightcyan
+    keyword whole list.nth brightcyan
+    keyword whole list.randomize brightcyan
+    keyword whole list.remove brightcyan
+    keyword whole list.remove_assoc brightcyan
+    keyword whole list.rev brightcyan
+    keyword whole list.sort brightcyan
+    keyword whole list.tl brightcyan
+    keyword whole abs brightcyan
+    keyword whole bool_of_float brightcyan
+    keyword whole bool_of_int brightcyan
+    keyword whole float_of_int brightcyan
+    keyword whole int_of_float brightcyan
+    keyword whole mod brightcyan
+    keyword whole pow brightcyan
+    keyword whole random.float brightcyan
+    keyword whole random.int brightcyan
+    keyword whole fst brightcyan
+    keyword whole snd brightcyan
+    keyword whole base64.decode brightcyan
+    keyword whole base64.encode brightcyan
+    keyword whole bool_of_string brightcyan
+    keyword whole float_of_string brightcyan
+    keyword whole int_of_string brightcyan
+    keyword whole json_of brightcyan
+    keyword whole of_json brightcyan
+    keyword whole quote brightcyan
+    keyword whole string.capitalize brightcyan
+    keyword whole string.case brightcyan
+    keyword whole string.concat brightcyan
+    keyword whole string.escape brightcyan
+    keyword whole string.extract brightcyan
+    keyword whole string.length brightcyan
+    keyword whole string.match brightcyan
+    keyword whole string.recode brightcyan
+    keyword whole string.replace brightcyan
+    keyword whole string.split brightcyan
+    keyword whole string.utf8.escape brightcyan
+    keyword whole string_of brightcyan
+    keyword whole url.decode brightcyan
+    keyword whole url.encode brightcyan
+    keyword whole url.split brightcyan
+    keyword whole url.split_args brightcyan
+    keyword whole argv brightcyan
+    keyword whole basename brightcyan
+    keyword whole dirname brightcyan
+    keyword whole environment brightcyan
+    keyword whole exe_ext brightcyan
+    keyword whole exec_at brightcyan
+    keyword whole file.exists brightcyan
+    keyword whole file.mime_default brightcyan
+    keyword whole file.watch brightcyan
+    keyword whole get_mime brightcyan
+    keyword whole get_process_lines brightcyan
+    keyword whole get_process_output brightcyan
+    keyword whole getenv brightcyan
+    keyword whole getopt brightcyan
+    keyword whole getpid brightcyan
+    keyword whole gettimeofday brightcyan
+    keyword whole is_directory brightcyan
+    keyword whole on_shutdown brightcyan
+    keyword whole os.type brightcyan
+    keyword whole path.concat brightcyan
+    keyword whole read brightcyan
+    keyword whole reopen.stderr brightcyan
+    keyword whole reopen.stdin brightcyan
+    keyword whole reopen.stdout brightcyan
+    keyword whole restart brightcyan
+    keyword whole setenv brightcyan
+    keyword whole shutdown brightcyan
+    keyword whole source.is_up brightcyan
+    keyword whole source.on_shutdown brightcyan
+    keyword whole system brightcyan
+    keyword whole test_process brightcyan
+    keyword whole playlist.merge brightcyan
+
+context """ """ brightred
+    keyword \\" brightred
+    keyword \\\n brightred
+    keyword %% brightred
+    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightred
+    keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diu\} brightred
+    keyword %\[hl\]n brightred
+    keyword %\[.\]\[0123456789\]s brightred
+    keyword %[*] brightred
+    keyword %c brightred
+    keyword \\\{0123\}\{01234567\}\{01234567\} brightred
+    keyword \\\\{01234567\}\{01234567\} brightred
+    keyword \\\\{01234567\} brightred
+    keyword \\\\ brightred
+    keyword \\' brightred
+    keyword \\\{abtnvfr\} brightred
+
+context # \n gray
+    keyword coding\{=:\}\[\s\]\[-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\] brightmagenta
+    keyword vim:fileencoding=\[-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\] brightmagenta
+    keyword -\*-\[\s\]coding:\[\s\]\[-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\]\[\s\]-\*- brightmagenta
+    spellcheck
+
+context " " red
+    keyword #{!\{abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\}\[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\]}.\{abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\}\[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\] brightgreen
+    keyword #{\{abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\}\[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\]} brightgreen
+    keyword \\" brightgreen
+    keyword %% brightgreen
+    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
+    keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+    keyword %\[hl\]n brightgreen
+    keyword %\[.\]\[0123456789\]s brightgreen
+    keyword %[*] brightgreen
+    keyword %c brightgreen
+    keyword \\\{0123\}\{01234567\}\{01234567\} brightgreen
+    keyword \\\\ brightgreen
+    keyword \\' brightgreen
+    keyword \\\{abtnvfr\} brightgreen
+    keyword ( brightmagenta
+    keyword ) brightmagenta
+
+context ' ' red
+    keyword #{!\{abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\}\[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\]}.\{abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\}\[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\] brightgreen
+    keyword #{\{abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\}\[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\]} brightgreen
+    keyword \\" brightgreen
+    keyword \\\n brightgreen
+    keyword %% brightgreen
+    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
+    keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+    keyword %\[hl\]n brightgreen
+    keyword %\[.\]\[0123456789\]s brightgreen
+    keyword %[*] brightgreen
+    keyword %c brightgreen
+    keyword \\\{0123\}\{01234567\}\{01234567\} brightgreen
+    keyword \\\\ brightgreen
+    keyword \\' brightgreen
+    keyword \\\{abtnvfr\} brightgreen
+    keyword ( brightmagenta
+    keyword ) brightmagenta
+

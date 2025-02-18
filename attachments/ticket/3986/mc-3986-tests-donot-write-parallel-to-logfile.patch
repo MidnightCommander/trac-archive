@@ -1,0 +1,1429 @@
+From aba55ecfbd5841903baef08d45d170217e80533b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 30 Dec 2020 15:23:26 +0000
+Subject: [PATCH] (make tests) do not write parallel to logfile
+
+Since automake-1.12 (test-driver script) libcheck logfile is written parallel by automake.
+Print test logging to stdout and let write to logfile by automake only.
+
+(maybe update INSTALL to inform about optimal automake version for make tests)
+
+Fix #3986
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ tests/lib/library_independ.c                  | 11 +----------
+ tests/lib/mc_build_filename.c                 | 12 +-----------
+ tests/lib/mc_realpath.c                       | 12 +-----------
+ tests/lib/mcconfig/config_string.c            | 12 +-----------
+ tests/lib/mcconfig/user_configs_path.c        | 12 +-----------
+ tests/lib/name_quote.c                        | 12 +-----------
+ tests/lib/search/glob_prepare_replace_str.c   | 12 +-----------
+ tests/lib/search/glob_translate_to_regex.c    | 12 +-----------
+ tests/lib/search/hex_translate_to_regex.c     | 12 +-----------
+ .../search/regex_process_escape_sequence.c    | 12 +-----------
+ tests/lib/search/regex_replace_esc_seq.c      | 12 +-----------
+ .../search/translate_replace_glob_to_regex.c  | 12 +-----------
+ tests/lib/serialize.c                         | 12 +-----------
+ tests/lib/strutil/filevercmp.c                | 12 +-----------
+ tests/lib/strutil/parse_integer.c             | 12 +-----------
+ tests/lib/strutil/replace__str_replace_all.c  | 12 +-----------
+ tests/lib/strutil/str_verscmp.c               | 12 +-----------
+ tests/lib/utilunix__my_system-fork_child.c    | 12 +-----------
+ .../utilunix__my_system-fork_child_shell.c    | 12 +-----------
+ tests/lib/utilunix__my_system-fork_fail.c     | 12 +-----------
+ tests/lib/vfs/canonicalize_pathname.c         | 12 +-----------
+ tests/lib/vfs/current_dir.c                   | 12 +-----------
+ tests/lib/vfs/path_cmp.c                      | 12 +-----------
+ tests/lib/vfs/path_len.c                      | 12 +-----------
+ tests/lib/vfs/path_manipulations.c            | 12 +-----------
+ tests/lib/vfs/path_recode.c                   | 12 +-----------
+ tests/lib/vfs/path_serialize.c                | 12 +-----------
+ tests/lib/vfs/relative_cd.c                   | 12 +-----------
+ tests/lib/vfs/tempdir.c                       | 12 +-----------
+ tests/lib/vfs/vfs_adjust_stat.c               | 12 +-----------
+ tests/lib/vfs/vfs_get_encoding.c              | 12 +-----------
+ tests/lib/vfs/vfs_parse_ls_lga.c              | 12 +-----------
+ tests/lib/vfs/vfs_path_from_str_flags.c       | 12 +-----------
+ tests/lib/vfs/vfs_path_string_convert.c       | 12 +-----------
+ tests/lib/vfs/vfs_prefix_to_class.c           | 12 +-----------
+ tests/lib/vfs/vfs_s_get_path.c                | 12 +-----------
+ tests/lib/vfs/vfs_setup_cwd.c                 | 12 +-----------
+ tests/lib/vfs/vfs_split.c                     | 12 +-----------
+ tests/lib/widget/complete_engine.c            | 12 +-----------
+ tests/lib/widget/group_init_destroy.c         | 14 +++-----------
+ tests/lib/widget/hotkey_equal.c               | 12 +-----------
+ tests/lib/widget/widget_find_by_id.c          | 14 +++-----------
+ tests/lib/x_basename.c                        | 12 +-----------
+ tests/mctest.h                                | 19 +++++++++++++++++++
+ 44 files changed, 66 insertions(+), 472 deletions(-)
+
+diff --git a/tests/lib/library_independ.c b/tests/lib/library_independ.c
+index 616d6af35..6d1b7a766 100644
+--- a/tests/lib/library_independ.c
++++ b/tests/lib/library_independ.c
+@@ -43,22 +43,13 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     tcase_add_test (tc_core, test_library_independ);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/mc_build_filename.c b/tests/lib/mc_build_filename.c
+index 0b6b7a4cc..13488da3f 100644
+--- a/tests/lib/mc_build_filename.c
++++ b/tests/lib/mc_build_filename.c
+@@ -134,11 +134,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -146,13 +142,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_mc_build_filename, test_mc_build_filename_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "mc_build_filename.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/mc_realpath.c b/tests/lib/mc_realpath.c
+index 31415ac85..31707a9e0 100644
+--- a/tests/lib/mc_realpath.c
++++ b/tests/lib/mc_realpath.c
+@@ -109,12 +109,8 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+     char *cwd;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* writable directory where check creates temporary files */
+     cwd = g_get_current_dir ();
+@@ -127,13 +123,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, realpath_test, data_source);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "mc_realpath.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/mcconfig/config_string.c b/tests/lib/mcconfig/config_string.c
+index da479de59..a04c2e12f 100644
+--- a/tests/lib/mcconfig/config_string.c
++++ b/tests/lib/mcconfig/config_string.c
+@@ -238,11 +238,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -251,13 +247,7 @@ main (void)
+     tcase_add_test (tc_core, emulate__learn_save);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "config_string.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/mcconfig/user_configs_path.c b/tests/lib/mcconfig/user_configs_path.c
+index 75e483e7f..af8bb5c84 100644
+--- a/tests/lib/mcconfig/user_configs_path.c
++++ b/tests/lib/mcconfig/user_configs_path.c
+@@ -211,11 +211,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -223,13 +219,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_user_config_paths, test_user_config_paths_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "user_configs_path.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/name_quote.c b/tests/lib/name_quote.c
+index eb5056d7d..e3c7a3a82 100644
+--- a/tests/lib/name_quote.c
++++ b/tests/lib/name_quote.c
+@@ -128,11 +128,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -141,13 +137,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, name_quote_test, data_source2);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "name_quote.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/search/glob_prepare_replace_str.c b/tests/lib/search/glob_prepare_replace_str.c
+index ed6adaf13..fc884a784 100644
+--- a/tests/lib/search/glob_prepare_replace_str.c
++++ b/tests/lib/search/glob_prepare_replace_str.c
+@@ -94,24 +94,14 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     mctest_add_parameterized_test (tc_core, test_glob_prepare_replace_str,
+                                    test_glob_prepare_replace_str_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "glob_prepare_replace_str.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/search/glob_translate_to_regex.c b/tests/lib/search/glob_translate_to_regex.c
+index bee8d39fa..03999e9e9 100644
+--- a/tests/lib/search/glob_translate_to_regex.c
++++ b/tests/lib/search/glob_translate_to_regex.c
+@@ -106,24 +106,14 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     mctest_add_parameterized_test (tc_core, test_glob_translate_to_regex,
+                                    test_glob_translate_to_regex_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "glob_translate_to_regex.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/search/hex_translate_to_regex.c b/tests/lib/search/hex_translate_to_regex.c
+index c40ee3122..b6572c77c 100644
+--- a/tests/lib/search/hex_translate_to_regex.c
++++ b/tests/lib/search/hex_translate_to_regex.c
+@@ -181,24 +181,14 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     mctest_add_parameterized_test (tc_core, test_hex_translate_to_regex,
+                                    test_hex_translate_to_regex_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "hex_translate_to_regex.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/search/regex_process_escape_sequence.c b/tests/lib/search/regex_process_escape_sequence.c
+index 6511b397d..f04200123 100644
+--- a/tests/lib/search/regex_process_escape_sequence.c
++++ b/tests/lib/search/regex_process_escape_sequence.c
+@@ -140,24 +140,14 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     mctest_add_parameterized_test (tc_core, test_regex_process_escape_sequence,
+                                    test_regex_process_escape_sequence_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "regex_process_escape_sequence.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/search/regex_replace_esc_seq.c b/tests/lib/search/regex_replace_esc_seq.c
+index 2a6090dbc..7ab3ee901 100644
+--- a/tests/lib/search/regex_replace_esc_seq.c
++++ b/tests/lib/search/regex_replace_esc_seq.c
+@@ -210,24 +210,14 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     mctest_add_parameterized_test (tc_core, test_regex_replace_esc_seq_prepare,
+                                    test_regex_replace_esc_seq_prepare_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "regex_replace_esc_seq.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/search/translate_replace_glob_to_regex.c b/tests/lib/search/translate_replace_glob_to_regex.c
+index 71f841718..7f9594373 100644
+--- a/tests/lib/search/translate_replace_glob_to_regex.c
++++ b/tests/lib/search/translate_replace_glob_to_regex.c
+@@ -83,24 +83,14 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     mctest_add_parameterized_test (tc_core, test_translate_replace_glob_to_regex,
+                                    test_translate_replace_glob_to_regex_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "translate_replace_glob_to_regex.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/serialize.c b/tests/lib/serialize.c
+index 6c1ffe432..cfeb9057e 100644
+--- a/tests/lib/serialize.c
++++ b/tests/lib/serialize.c
+@@ -359,11 +359,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -383,13 +379,7 @@ main (void)
+     tcase_add_test (tc_core, test_deserialize_config);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "serialize.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/strutil/filevercmp.c b/tests/lib/strutil/filevercmp.c
+index 867858e62..9fbd4aab4 100644
+--- a/tests/lib/strutil/filevercmp.c
++++ b/tests/lib/strutil/filevercmp.c
+@@ -269,11 +269,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -284,13 +280,7 @@ main (void)
+     tcase_add_loop_test (tc_core, filevercmp_test4, 0, filevercmp_test_ds4_len);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "filevercmp.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/strutil/parse_integer.c b/tests/lib/strutil/parse_integer.c
+index f3e5ba357..6aef333b3 100644
+--- a/tests/lib/strutil/parse_integer.c
++++ b/tests/lib/strutil/parse_integer.c
+@@ -143,11 +143,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -155,13 +151,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, parse_integer_test, parse_integer_test_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "parse_integer.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/strutil/replace__str_replace_all.c b/tests/lib/strutil/replace__str_replace_all.c
+index 67c8b40dc..7821ab955 100644
+--- a/tests/lib/strutil/replace__str_replace_all.c
++++ b/tests/lib/strutil/replace__str_replace_all.c
+@@ -170,11 +170,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -182,13 +178,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, str_replace_all_test, str_replace_all_test_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "replace__str_replace_all.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/strutil/str_verscmp.c b/tests/lib/strutil/str_verscmp.c
+index 2a1e545aa..ad98748c3 100644
+--- a/tests/lib/strutil/str_verscmp.c
++++ b/tests/lib/strutil/str_verscmp.c
+@@ -119,11 +119,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -131,13 +127,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, str_verscmp_test, str_verscmp_test_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "str_verscmp.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/utilunix__my_system-fork_child.c b/tests/lib/utilunix__my_system-fork_child.c
+index 95081db11..15409fcdd 100644
+--- a/tests/lib/utilunix__my_system-fork_child.c
++++ b/tests/lib/utilunix__my_system-fork_child.c
+@@ -69,11 +69,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -81,13 +77,7 @@ main (void)
+     tcase_add_test (tc_core, fork_child);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "utilinux__my_system-fork_child.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/utilunix__my_system-fork_child_shell.c b/tests/lib/utilunix__my_system-fork_child_shell.c
+index 6de19581b..177f9b44b 100644
+--- a/tests/lib/utilunix__my_system-fork_child_shell.c
++++ b/tests/lib/utilunix__my_system-fork_child_shell.c
+@@ -70,11 +70,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -82,13 +78,7 @@ main (void)
+     tcase_add_test (tc_core, fork_child_as_shell);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "utilinux__my_system-fork_child_shell.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/utilunix__my_system-fork_fail.c b/tests/lib/utilunix__my_system-fork_fail.c
+index 452efb161..dc605d484 100644
+--- a/tests/lib/utilunix__my_system-fork_fail.c
++++ b/tests/lib/utilunix__my_system-fork_fail.c
+@@ -65,11 +65,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -77,13 +73,7 @@ main (void)
+     tcase_add_test (tc_core, fork_fail);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "utilinux__my_system-fork_fail.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/canonicalize_pathname.c b/tests/lib/vfs/canonicalize_pathname.c
+index 6364a404b..96af3a55a 100644
+--- a/tests/lib/vfs/canonicalize_pathname.c
++++ b/tests/lib/vfs/canonicalize_pathname.c
+@@ -187,11 +187,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -199,13 +195,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_canonicalize_path, test_canonicalize_path_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "canonicalize_pathname.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/current_dir.c b/tests/lib/vfs/current_dir.c
+index 398fc5440..3c211d9ea 100644
+--- a/tests/lib/vfs/current_dir.c
++++ b/tests/lib/vfs/current_dir.c
+@@ -185,12 +185,8 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+     char *cwd;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* writable directory where check creates temporary files */
+     cwd = g_get_current_dir ();
+@@ -203,13 +199,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_cd, test_cd_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "current_dir.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/path_cmp.c b/tests/lib/vfs/path_cmp.c
+index 0e19566c7..166c91c09 100644
+--- a/tests/lib/vfs/path_cmp.c
++++ b/tests/lib/vfs/path_cmp.c
+@@ -237,11 +237,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -250,13 +246,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_path_equal_len, test_path_equal_len_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "path_cmp.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/path_len.c b/tests/lib/vfs/path_len.c
+index e68176dbc..e6812d8c6 100644
+--- a/tests/lib/vfs/path_len.c
++++ b/tests/lib/vfs/path_len.c
+@@ -126,11 +126,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -138,13 +134,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_path_length, test_path_length_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "path_len.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/path_manipulations.c b/tests/lib/vfs/path_manipulations.c
+index 45f31e1f2..c5d87d6e5 100644
+--- a/tests/lib/vfs/path_manipulations.c
++++ b/tests/lib/vfs/path_manipulations.c
+@@ -435,11 +435,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -454,13 +450,7 @@ main (void)
+                                    test_vfs_path_relative_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "path_manipulations.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/path_recode.c b/tests/lib/vfs/path_recode.c
+index f53094a3b..b8220b065 100644
+--- a/tests/lib/vfs/path_recode.c
++++ b/tests/lib/vfs/path_recode.c
+@@ -268,11 +268,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -281,13 +277,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_path_to_str_flags, test_path_to_str_flags_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "path_recode.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/path_serialize.c b/tests/lib/vfs/path_serialize.c
+index 8ae2c830b..99da7cafa 100644
+--- a/tests/lib/vfs/path_serialize.c
++++ b/tests/lib/vfs/path_serialize.c
+@@ -186,11 +186,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -199,13 +195,7 @@ main (void)
+     tcase_add_test (tc_core, test_path_deserialize);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "path_serialize.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/relative_cd.c b/tests/lib/vfs/relative_cd.c
+index bf5d62319..de79f3301 100644
+--- a/tests/lib/vfs/relative_cd.c
++++ b/tests/lib/vfs/relative_cd.c
+@@ -198,12 +198,8 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+     char *cwd;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* writable directory where check creates temporary files */
+     cwd = g_get_current_dir ();
+@@ -217,13 +213,7 @@ main (void)
+     tcase_add_test (tc_core, test_vpath_to_str_filter);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "relative_cd.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/tempdir.c b/tests/lib/vfs/tempdir.c
+index 8c5f3b359..850d6b1c8 100644
+--- a/tests/lib/vfs/tempdir.c
++++ b/tests/lib/vfs/tempdir.c
+@@ -123,11 +123,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -136,13 +132,7 @@ main (void)
+     tcase_add_test (tc_core, test_mc_mkstemps);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "tempdir.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_adjust_stat.c b/tests/lib/vfs/vfs_adjust_stat.c
+index e216077f9..04c5bf0cb 100644
+--- a/tests/lib/vfs/vfs_adjust_stat.c
++++ b/tests/lib/vfs/vfs_adjust_stat.c
+@@ -191,23 +191,13 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     mctest_add_parameterized_test (tc_core, test_vfs_adjust_stat, test_vfs_adjust_stat_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_adjust_stat.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_get_encoding.c b/tests/lib/vfs/vfs_get_encoding.c
+index 783ec6e00..825f2bb1e 100644
+--- a/tests/lib/vfs/vfs_get_encoding.c
++++ b/tests/lib/vfs/vfs_get_encoding.c
+@@ -143,11 +143,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -155,13 +151,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_vfs_get_encoding, test_vfs_get_encoding_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_get_encoding.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_parse_ls_lga.c b/tests/lib/vfs/vfs_parse_ls_lga.c
+index b1b203af5..01b081c04 100644
+--- a/tests/lib/vfs/vfs_parse_ls_lga.c
++++ b/tests/lib/vfs/vfs_parse_ls_lga.c
+@@ -408,11 +408,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -422,13 +418,7 @@ main (void)
+     tcase_add_test (tc_core, test_vfs_parse_ls_lga_unaligned);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_parse_ls_lga.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_path_from_str_flags.c b/tests/lib/vfs/vfs_path_from_str_flags.c
+index 5700c7f03..1be693242 100644
+--- a/tests/lib/vfs/vfs_path_from_str_flags.c
++++ b/tests/lib/vfs/vfs_path_from_str_flags.c
+@@ -109,11 +109,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -121,13 +117,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_strip_home, test_strip_home_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_path_from_str_flags.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_path_string_convert.c b/tests/lib/vfs/vfs_path_string_convert.c
+index 3c32471a5..515800442 100644
+--- a/tests/lib/vfs/vfs_path_string_convert.c
++++ b/tests/lib/vfs/vfs_path_string_convert.c
+@@ -314,11 +314,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -331,13 +327,7 @@ main (void)
+ #endif
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_path_string_convert.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_prefix_to_class.c b/tests/lib/vfs/vfs_prefix_to_class.c
+index 5c7d79723..7695d7c0a 100644
+--- a/tests/lib/vfs/vfs_prefix_to_class.c
++++ b/tests/lib/vfs/vfs_prefix_to_class.c
+@@ -154,11 +154,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -166,13 +162,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_vfs_prefix_to_class, test_vfs_prefix_to_class_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_prefix_to_class.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_s_get_path.c b/tests/lib/vfs/vfs_s_get_path.c
+index 0aa0037b2..e349bf994 100644
+--- a/tests/lib/vfs/vfs_s_get_path.c
++++ b/tests/lib/vfs/vfs_s_get_path.c
+@@ -152,11 +152,7 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -164,13 +160,7 @@ main (void)
+     tcase_add_test (tc_core, test_vfs_s_get_path);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_s_get_path.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_setup_cwd.c b/tests/lib/vfs/vfs_setup_cwd.c
+index 3d408f028..3be3e77a4 100644
+--- a/tests/lib/vfs/vfs_setup_cwd.c
++++ b/tests/lib/vfs/vfs_setup_cwd.c
+@@ -140,11 +140,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -153,13 +149,7 @@ main (void)
+                                    test_vfs_setup_cwd_symlink_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_setup_cwd.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/vfs/vfs_split.c b/tests/lib/vfs/vfs_split.c
+index 289dbebf8..94889778b 100644
+--- a/tests/lib/vfs/vfs_split.c
++++ b/tests/lib/vfs/vfs_split.c
+@@ -191,11 +191,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -203,13 +199,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_vfs_split, test_vfs_split_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "vfs_split.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/widget/complete_engine.c b/tests/lib/widget/complete_engine.c
+index b9923ee76..1bdd64408 100644
+--- a/tests/lib/widget/complete_engine.c
++++ b/tests/lib/widget/complete_engine.c
+@@ -221,11 +221,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -234,13 +230,7 @@ main (void)
+                                    test_complete_engine_fill_completions_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "complete_engine.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/widget/group_init_destroy.c b/tests/lib/widget/group_init_destroy.c
+index 56fbec41e..fe622b69d 100644
+--- a/tests/lib/widget/group_init_destroy.c
++++ b/tests/lib/widget/group_init_destroy.c
+@@ -31,6 +31,8 @@
+ 
+ #include "lib/widget.h"
+ 
++#include "tests/mctest.h"
++
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static int ref = 0;
+@@ -134,23 +136,13 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     tcase_add_test (tc_core, test_group_init_deinit);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "group_init_deinit.log");
+-    srunner_run_all (sr, CK_NORMAL);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? 0 : 1;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/widget/hotkey_equal.c b/tests/lib/widget/hotkey_equal.c
+index d9a9e0cc3..725324a3c 100644
+--- a/tests/lib/widget/hotkey_equal.c
++++ b/tests/lib/widget/hotkey_equal.c
+@@ -151,11 +151,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -163,13 +159,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_hotkey_equal, test_hotkey_equal_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "hotkey_equal.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/widget/widget_find_by_id.c b/tests/lib/widget/widget_find_by_id.c
+index ddb528db9..c4390a219 100644
+--- a/tests/lib/widget/widget_find_by_id.c
++++ b/tests/lib/widget/widget_find_by_id.c
+@@ -31,6 +31,8 @@
+ 
+ #include "lib/widget.h"
+ 
++#include "tests/mctest.h"
++
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ /* *INDENT-OFF* */
+@@ -95,23 +97,13 @@ END_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     /* Add new tests here: *************** */
+     tcase_add_test (tc_core, test_widget_find_by_id);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "widget_find_by_id.log");
+-    srunner_run_all (sr, CK_NORMAL);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? 0 : 1;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/lib/x_basename.c b/tests/lib/x_basename.c
+index c3a85f463..c7a54d04f 100644
+--- a/tests/lib/x_basename.c
++++ b/tests/lib/x_basename.c
+@@ -112,11 +112,7 @@ END_PARAMETRIZED_TEST
+ int
+ main (void)
+ {
+-    int number_failed;
+-
+-    Suite *s = suite_create (TEST_SUITE_NAME);
+     TCase *tc_core = tcase_create ("Core");
+-    SRunner *sr;
+ 
+     tcase_add_checked_fixture (tc_core, setup, teardown);
+ 
+@@ -124,13 +120,7 @@ main (void)
+     mctest_add_parameterized_test (tc_core, test_x_basename, test_x_basename_ds);
+     /* *********************************** */
+ 
+-    suite_add_tcase (s, tc_core);
+-    sr = srunner_create (s);
+-    srunner_set_log (sr, "x_basename.log");
+-    srunner_run_all (sr, CK_ENV);
+-    number_failed = srunner_ntests_failed (sr);
+-    srunner_free (sr);
+-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++    return mctest_run_all(tc_core);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/tests/mctest.h b/tests/mctest.h
+index 2e038a2d8..270f8fc19 100644
+--- a/tests/mctest.h
++++ b/tests/mctest.h
+@@ -86,6 +86,25 @@
+ 
+ /*** declarations of public functions ************************************************************/
+ 
++int mctest_run_all(TCase *tc_core);
++
+ /*** inline functions ****************************************************************************/
+ 
++int
++mctest_run_all(TCase *tc_core)
++{
++    Suite *s = suite_create (TEST_SUITE_NAME);
++    SRunner *sr;
++    int number_failed;
++
++    suite_add_tcase (s, tc_core);
++    sr = srunner_create (s);
++    srunner_set_log (sr, "-");
++    srunner_run_all (sr, CK_ENV);
++    number_failed = srunner_ntests_failed (sr);
++    srunner_free (sr);
++
++    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
++}
++
+ #endif /* MC__TEST */

@@ -1,0 +1,49 @@
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 76f21acdb..4f2fa6493 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -69,6 +69,7 @@
+ #include "src/history.h"
+ #include "src/usermenu.h"       /* MC_GLOBAL_MENU */
+ #include "src/util.h"           /* check_for_default() */
++#include "src/args.h"           /* mcedit_arg_t */
+ 
+ #include "src/viewer/mcviewer.h"
+ 
+@@ -699,11 +700,31 @@ void
+ edit_cmd (const WPanel * panel)
+ {
+     vfs_path_t *fname;
+-
+-    fname = vfs_path_from_str (panel_current_entry (panel)->fname->str);
+-    if (regex_command (fname, "Edit") == 0)
+-        do_edit (fname);
+-    vfs_path_free (fname, TRUE);
++    if (panel->marked != 0)
++    {
++        int i;
++        GList *files = NULL;
++        mcedit_arg_t *arg;
++        for (i = 0; i < panel->dir.len; i++)
++        {
++            if (panel->dir.list[i].f.marked != 0)
++            {
++                arg = g_new (mcedit_arg_t, 1);
++                arg->file_vpath = vfs_path_from_str (panel->dir.list[i].fname->str);
++                arg->line_number = 0;
++                files = g_list_prepend (files, arg);
++            }
++        }
++        edit_files (files);
++        g_list_free_full (files, mcedit_arg_free);
++    }
++    else
++    {
++        fname = vfs_path_from_str (panel_current_entry (panel)->fname->str);
++        if (regex_command (fname, "Edit") == 0)
++            do_edit (fname);
++        vfs_path_free (fname, TRUE);
++    }
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

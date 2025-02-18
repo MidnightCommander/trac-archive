@@ -1,0 +1,152 @@
+From 334135fabcb8a9c13d10ad365b203b790db2fc3d Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Fri, 3 Apr 2009 00:30:50 +0200
+Subject: [PATCH] improve handling of compressed content in mc.ext
+
+call 'file' with -z switch to enable getting the type of compressed files,
+and use that capability extensively.
+
+the /logs?/ hacks in ext.d/text.sh need to remain for the time being, as
+file -z doesn't handle .lz4 files as encapsulated content.
+---
+ misc/mc.ext.in        | 53 +++++++++++++++++--------------------------
+ src/filemanager/ext.c |  4 ++--
+ 2 files changed, 23 insertions(+), 34 deletions(-)
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 0faf24be2..0311baae1 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -361,16 +361,6 @@ shell/.info
+ shell/i/.3gp
+ 	Include=video
+ 
+-# Manual page
+-regex/(([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])|\.man)$
+-	Open=@EXTHELPERSDIR@/text.sh open man %var{PAGER:more}
+-	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man %var{PAGER:more}
+-
+-# Perl pod page
+-shell/.pod
+-	Open=@EXTHELPERSDIR@/text.sh open pod %var{PAGER:more}
+-	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view pod %var{PAGER:more}
+-
+ # Troff with me macros.
+ # Exception - "read.me" is not a nroff file.
+ shell/read.me
+@@ -387,18 +377,28 @@ shell/.ms
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view nroff.ms %var{PAGER:more}
+ 
+ # Manual page - compressed
+-regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.g?[Zz]$
++type/^(ASCII )?troff.*gzip compressed
+ 	Open=@EXTHELPERSDIR@/text.sh open man.gz %var{PAGER:more}
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.gz %var{PAGER:more}
+ 
+-regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.bz$
++type/^(ASCII )?troff.*bzip compressed
+ 	Open=@EXTHELPERSDIR@/text.sh open man.bz %var{PAGER:more}
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.bz %var{PAGER:more}
+ 
+-regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.bz2$
++type/^(ASCII )?troff.*bzip2 compressed
+ 	Open=@EXTHELPERSDIR@/text.sh open man.bz2 %var{PAGER:more}
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.bz2 %var{PAGER:more}
+ 
++# Manual page
++type/^(ASCII )?troff
++	Open=@EXTHELPERSDIR@/text.sh open man %var{PAGER:more}
++	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man %var{PAGER:more}
++
++# Perl pod page
++shell/.pod
++	Open=@EXTHELPERSDIR@/text.sh open pod %var{PAGER:more}
++	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view pod %var{PAGER:more}
++
+ regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.lz$
+ 	Open=@EXTHELPERSDIR@/text.sh open man.lz %var{PAGER:more}
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.lz %var{PAGER:more}
+@@ -761,38 +761,27 @@ shell/i/.zoo
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view zoo
+ 
+ # gzip
+-type/^gzip
++type/\(gzip compressed
+ 	Open=@EXTHELPERSDIR@/archive.sh view gz %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view gz
+ 
+-regex/\.(gz|Z)$
+-	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view gz
+-
+ # bzip2
+-type/^bzip2
++type/\(bzip2 compressed
+ 	Open=@EXTHELPERSDIR@/archive.sh view bzip2 %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view bz2
+ 
+-regex/\.bz2?$
+-	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view bz2
+-
+ # bzip
+-type/^bzip
++type/\(bzip compressed
+ 	Open=@EXTHELPERSDIR@/archive.sh view bzip %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view bzip
+ 
+ # compress
+-type/^compress
++type/\(compress'd
+ 	Open=@EXTHELPERSDIR@/archive.sh view gz %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view gz
+ 
+ # lz
+-regex/\.lz$
+-	Open=@EXTHELPERSDIR@/archive.sh view lz %var{PAGER:more}
+-	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view lz
+-
+-# lz
+-type/^LZIP
++type/\(lzip compressed
+ 	Open=@EXTHELPERSDIR@/archive.sh view lz %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view lz
+ 
+@@ -802,17 +791,17 @@ regex/\.lz4$
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view lz4
+ 
+ # lzma
+-regex/\.lzma$
++type/\(LZMA compressed
+ 	Open=@EXTHELPERSDIR@/archive.sh view lzma %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view lzma
+ 
+ # xz
+-regex/\.xz$
++type/\(XZ compressed
+ 	Open=@EXTHELPERSDIR@/archive.sh view xz %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view xz
+ 
+ # zstd
+-regex/\.zst$
++type/\(Zstandard compressed
+ 	Open=@EXTHELPERSDIR@/archive.sh view zst %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view zst
+ 
+diff --git a/src/filemanager/ext.c b/src/filemanager/ext.c
+index 8b00c0d9e..4e1520050 100644
+--- a/src/filemanager/ext.c
++++ b/src/filemanager/ext.c
+@@ -71,9 +71,9 @@
+ /*** file scope macro definitions ****************************************************************/
+ 
+ #ifdef FILE_L
+-#define FILE_CMD "file -L "
++#define FILE_CMD "file -L -z "
+ #else
+-#define FILE_CMD "file "
++#define FILE_CMD "file -z "
+ #endif
+ 
+ /*** file scope type declarations ****************************************************************/
+-- 
+2.28.0.1.g7ba5ae0684
+

@@ -1,0 +1,11 @@
+diff -ur mc-4.6.2/edit/editcmd.c mc-4.6.2-patched/edit/editcmd.c
+--- mc-4.6.2/edit/editcmd.c	2009-02-01 14:30:21.000000000 -0500
++++ mc-4.6.2-patched/edit/editcmd.c	2009-05-16 20:49:20.033272000 -0400
+@@ -743,6 +744,7 @@
+ 	f = edit_open_macro_file ("a+");
+ 	if (f) {
+ 	    fprintf (f, ("key '%d 0': "), s);
++            if (macro[n-1].command == CK_Begin_End_Macro) n--;
+ 	    for (i = 0; i < n; i++)
+ 		fprintf (f, "%hd %hd, ", macro[i].command, macro[i].ch);
+ 	    fprintf (f, ";\n");

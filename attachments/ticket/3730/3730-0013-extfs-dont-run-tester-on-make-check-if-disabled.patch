@@ -1,0 +1,30 @@
+From ec8b435633031f88405e89c781e86f57a20d7024 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 19 Dec 2016 14:56:23 +0200
+Subject: [PATCH] Ticket #3730: extfs: don't run tester on "make check" if
+ disabled.
+
+If the extfs VFS is disabled, there's no point in building and running the
+tester.
+
+(The "SUBDIRS =" line isn't needed, but it looks tidier this way, especially if
+we later add subdirs for testing the other VFSs.)
+---
+ tests/src/vfs/Makefile.am | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/tests/src/vfs/Makefile.am b/tests/src/vfs/Makefile.am
+index 0e3340f..541160b 100644
+--- a/tests/src/vfs/Makefile.am
++++ b/tests/src/vfs/Makefile.am
+@@ -1,2 +1,6 @@
+ 
+-SUBDIRS = extfs
++SUBDIRS =
++
++if ENABLE_VFS_EXTFS
++SUBDIRS += extfs
++endif
+-- 
+2.9.3
+

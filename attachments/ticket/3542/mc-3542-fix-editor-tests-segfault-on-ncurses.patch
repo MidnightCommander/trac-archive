@@ -1,0 +1,48 @@
+
+fix /src/editor testsuite failure when ncurses is used
+
+ Running suite /src/editor
+ (null):-1:S:Core:test_autocomplete:0: (after this point) Received signal 11 (Segmentation fault)
+ (null):-1:S:Core:test_autocomplete:1: (after this point) Received signal 11 (Segmentation fault)
+ (null):-1:S:Core:test_autocomplete_single:0: (after this point) Received signal 11 (Segmentation fault)
+ Results for all suites run:
+ 0%: Checks: 3, Failures: 0, Errors: 3
+
+testsuite failed because ncurses:doupdate() called without proper init
+
+ edit_init()
+   -> edit_load_file()
+      -> edit_load_file_fast()
+         -> status_msg_init()
+            -> mc_refesh()
+               -> tty_refresh()
+                  -> doupdate()
+
+patch against 52fd328042a426e885da891c8ce8218cda3a1cf7
+compile test with GCC 5.2.0/ncurses 5.9
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/tests/src/editor/editcmd__edit_complete_word_cmd.c
++++ b/tests/src/editor/editcmd__edit_complete_word_cmd.c
+@@ -34,6 +34,9 @@
+ #include "lib/charsets.h"
+ #endif
+ #include "lib/strutil.h"
++#ifdef USE_NCURSES
++#include "lib/tty/tty.h"
++#endif
+ 
+ #include "src/vfs/local/local.c"
+ #ifdef HAVE_CHARSET
+@@ -151,7 +154,9 @@
+     vfs_init ();
+     init_localfs ();
+     vfs_setup_work_dir ();
+-
++#ifdef USE_NCURSES
++    initscr();
++#endif /* USE_NCURSES */
+ #ifdef HAVE_CHARSET
+     mc_global.sysconfig_dir = (char *) TEST_SHARE_DIR;
+     load_codepages_list ();

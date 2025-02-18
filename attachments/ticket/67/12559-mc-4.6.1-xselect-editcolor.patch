@@ -1,0 +1,9 @@
+--- mc-4.6.1-old/src/color.h	2004-09-02 00:33:43.000000000 +0200
++++ mc-4.6.1/src/color.h	2007-04-21 12:01:38.000000000 +0200
+@@ -93,5 +93,6 @@
+ void done_colors (void);
+ void mc_init_pair (int index, CTYPE foreground, CTYPE background);
+ int try_alloc_color_pair (const char *fg, const char *bg);
++void set_default_colors (void);
+ 
+ #endif /* __COLOR_H */

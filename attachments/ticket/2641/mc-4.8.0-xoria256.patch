@@ -1,0 +1,11 @@
+diff -Naur mc-4.8.0.orig/misc/skins/xoria256.ini mc-4.8.0/misc/skins/xoria256.ini
+--- mc-4.8.0.orig/misc/skins/xoria256.ini	2011-10-17 11:33:45.000000000 +0200
++++ mc-4.8.0/misc/skins/xoria256.ini	2011-10-22 21:24:13.000000000 +0200
+@@ -1,6 +1,6 @@
+ # This is a 256 colors MidnightCommander color scheme
+ # based on the Xoria256 color scheme for the Vim editor
+-# (http://http://www.vim.org/scripts/script.php?script_id=2140)
++# (http://www.vim.org/scripts/script.php?script_id=2140)
+ 
+ # Note you'll need mc > 4.7.5 for this scheme to work (256 colors support)
+ # Hint: compile from the git repository

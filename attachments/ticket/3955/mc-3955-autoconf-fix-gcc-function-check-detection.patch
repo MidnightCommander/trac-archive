@@ -1,0 +1,34 @@
+From fb43e6ae14a5080d9d3d44192d6341ebee60febc Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 11 Jan 2019 16:08:28 +0000
+Subject: [PATCH] configure.c: fix AX_GCC_FUNC_ATTRIBUTE detection on custom CFLAGS
+
+AX_GCC_FUNC_ATTRIBUTE detect attribute feature by compiler warnings.
+Custom or unrecognized CFLAGS can causes extra warnings so
+attribute check failed.
+
+Reset CFLAGS and restore after AX_GCC_FUNC_ATTRIBUTE call.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index 22bf30f2b..f1200e7b9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -45,7 +45,13 @@ if test "x$enable_werror" = xyes; then
+     mc_CHECK_ONE_CFLAG([-Werror])
+ fi
+ 
++dnl Compiler can generate warnings for unrecognized flags added to CFLAGS
++dnl which causes attribute checks to fail
++ax_gcc_func_attribute_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
++_AC_LANG_PREFIX[]FLAGS=
+ AX_GCC_FUNC_ATTRIBUTE([fallthrough])
++_AC_LANG_PREFIX[]FLAGS=$ax_gcc_func_attribute_save_flags
++unset ax_gcc_func_attribute_save_flags
+ 
+ LT_INIT
+ 

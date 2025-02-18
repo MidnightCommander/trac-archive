@@ -1,0 +1,299 @@
+From 4c3ef7d6f222112c5884672d3797be4b0e36d049 Mon Sep 17 00:00:00 2001
+From: Bezrodnev Sergey <bsvskip@rambler.ru>
+Date: Thu, 20 May 2010 16:16:28 +0400
+Subject: [PATCH] Add +lineno support for vim, emacs, nano after search for editing or
+ viewing.
+ Signed-off-by: Bezrodnev Sergey <bsvskip@rambler.ru>
+
+---
+ lib/util.h             |    2 +-
+ lib/utilunix.c         |    7 +++++--
+ lib/vfs/mc-vfs/extfs.c |    2 +-
+ lib/vfs/mc-vfs/sfs.c   |    4 ++--
+ src/cmd.c              |   46 ++++++++++++++++++++++++++++++++++++++++++++--
+ src/execute.c          |   25 +++++++++++++------------
+ src/execute.h          |    9 +++++----
+ 7 files changed, 71 insertions(+), 24 deletions(-)
+
+diff --git a/lib/util.h b/lib/util.h
+index 22c5d71..43d9962 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -138,7 +138,7 @@ void check_error_pipe (void);
+ int close_error_pipe (int error, const char *text);
+ 
+ /* Process spawning */
+-int my_system (int flags, const char *shell, const char *command);
++int my_system (int flags, const char *shell, const char *command, const char *arg);
+ void save_stop_handler (void);
+ extern struct sigaction startup_handler;
+ 
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index f7835fb..3cbebed 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -146,7 +146,7 @@ save_stop_handler (void)
+ }
+ 
+ int
+-my_system (int flags, const char *shell, const char *command)
++my_system (int flags, const char *shell, const char *command, const char *arg)
+ {
+     struct sigaction ignore, save_intr, save_quit, save_stop;
+     pid_t pid;
+@@ -189,7 +189,10 @@ my_system (int flags, const char *shell, const char *command)
+             else
+                 only_cmd = (*shell_tokens != NULL) ? *shell_tokens : shell;
+ 
+-            execlp (only_cmd, shell, command, (char *) NULL);
++            if (flags & EXECUTE_WITH_ARG)
++                execlp (only_cmd, shell, arg, command, (char *) NULL);
++            else
++                execlp (only_cmd, shell, command, (char *) NULL);
+ 
+             /*
+                execlp will replace current process,
+diff --git a/lib/vfs/mc-vfs/extfs.c b/lib/vfs/mc-vfs/extfs.c
+index 73a59ae..50f72b2 100644
+--- a/lib/vfs/mc-vfs/extfs.c
++++ b/lib/vfs/mc-vfs/extfs.c
+@@ -775,7 +775,7 @@ extfs_cmd (const char *str_extfs_cmd, struct archive *archive,
+     g_free (archive_name);
+ 
+     open_error_pipe ();
+-    retval = my_system (EXECUTE_AS_SHELL, shell, cmd);
++    retval = my_system (EXECUTE_AS_SHELL, shell, cmd, NULL);
+     g_free (cmd);
+     close_error_pipe (D_ERROR, NULL);
+     return retval;
+diff --git a/lib/vfs/mc-vfs/sfs.c b/lib/vfs/mc-vfs/sfs.c
+index 0c8d570..a6a1248 100644
+--- a/lib/vfs/mc-vfs/sfs.c
++++ b/lib/vfs/mc-vfs/sfs.c
+@@ -155,7 +155,7 @@ sfs_vfmake (struct vfs_class *me, const char *name, char *cache)
+ 
+     g_free (pqname);
+     open_error_pipe ();
+-    if (my_system (EXECUTE_AS_SHELL, "/bin/sh", pad)) {
++    if (my_system (EXECUTE_AS_SHELL, "/bin/sh", pad, NULL)) {
+ 	close_error_pipe (D_ERROR, NULL);
+ 	return -1;
+     }
+@@ -388,7 +388,7 @@ static int sfs_init (struct vfs_class *me)
+ 	    default:
+ 		fprintf (stderr, _("Warning: Invalid flag %c in %s:\n%s\n"),
+ 			 *c, "sfs.ini", key);
+-	    }	    
++	    }
+ 	    c++;
+ 	}
+ 	if (!*c)
+diff --git a/src/cmd.c b/src/cmd.c
+index 39b4cf1..78c4433 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -170,15 +170,36 @@ view_file_at_line (const char *filename, int plain_view, int internal, int start
+     }
+     else
+     {
++        static char run_arg[20];
++        static int use_arg = 0;
++
+         if (!viewer)
+         {
++            const char *viewers[] = { "vim", "emacs", "nano", NULL };
++            int i = 0;
++
+             viewer = getenv ("VIEWER");
+             if (!viewer)
+                 viewer = getenv ("PAGER");
+             if (!viewer)
+                 viewer = "view";
++
++            while (viewers[i] != NULL)
++            {
++                if (strlen(viewer) == strlen(viewers[i]) &&
++                    strncmp(viewer, viewers[i], strlen(viewers[i])) == 0)
++                {
++                    use_arg = 1;
++                    break;
++                }
++                i++;
++            }
+         }
+-        execute_with_vfs_arg (viewer, filename);
++
++        if (use_arg)
++            snprintf(run_arg, 20, "+%d", start_line);
++
++        execute_with_vfs_arg (viewer, filename, (use_arg ? run_arg : NULL));
+     }
+     return move_dir;
+ }
+@@ -324,13 +345,34 @@ do_edit_at_line (const char *what, int start_line)
+     (void) start_line;
+ #endif /* USE_INTERNAL_EDIT */
+     {
++        static char run_arg[20];
++        static int use_arg = 0;
++
+         if (editor == NULL)
+         {
++            const char *editors[] = { "vim", "emacs", "nano", NULL };
++            int i = 0;
++
+             editor = getenv ("EDITOR");
+             if (editor == NULL)
+                 editor = get_default_editor ();
++
++            while (editors[i] != NULL)
++            {
++                if (strlen(editor) == strlen(editors[i]) &&
++                    strncmp(editor, editors[i], strlen(editors[i])) == 0)
++                {
++                    use_arg = 1;
++                    break;
++                }
++                i++;
++            }
+         }
+-        execute_with_vfs_arg (editor, what);
++
++        if (use_arg)
++            snprintf(run_arg, 20, "+%d", start_line);
++
++        execute_with_vfs_arg (editor, what, (use_arg ? run_arg : NULL));
+     }
+     if (mc_run_mode == MC_RUN_FULL)
+     {
+diff --git a/src/execute.c b/src/execute.c
+index 234429c..0db7e5f 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -1,11 +1,11 @@
+ /* Execution routines for GNU Midnight Commander
+    Copyright (C) 2003, 2004, 2005, 2007 Free Software Foundation, Inc.
+-   
++
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+-   
++
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -112,7 +112,7 @@ do_possible_cd (const char *new_dir)
+ #endif				/* HAVE_SUBSHELL_SUPPORT */
+ 
+ static void
+-do_execute (const char *lc_shell, const char *command, int flags)
++do_execute (const char *lc_shell, const char *command, int flags, const char *arg)
+ {
+ #ifdef HAVE_SUBSHELL_SUPPORT
+     char *new_dir = NULL;
+@@ -146,7 +146,7 @@ do_execute (const char *lc_shell, const char *command, int flags)
+ #endif				/* !ENABLE_VFS */
+     } else
+ #endif				/* HAVE_SUBSHELL_SUPPORT */
+-	my_system (flags, lc_shell, command);
++	my_system (flags, lc_shell, command, arg);
+ 
+     if (!(flags & EXECUTE_INTERNAL)) {
+ 	if ((pause_after_run == pause_always
+@@ -210,13 +210,13 @@ shell_execute (const char *command, int flags)
+ #ifdef HAVE_SUBSHELL_SUPPORT
+     if (use_subshell)
+ 	if (subshell_state == INACTIVE)
+-	    do_execute (shell, cmd ? cmd : command, flags | EXECUTE_AS_SHELL);
++	    do_execute (shell, cmd ? cmd : command, flags | EXECUTE_AS_SHELL, NULL);
+ 	else
+ 	    message (D_ERROR, MSG_ERROR,
+ 		     _(" The shell is already running a command "));
+     else
+ #endif				/* HAVE_SUBSHELL_SUPPORT */
+-	do_execute (shell, cmd ? cmd : command, flags | EXECUTE_AS_SHELL);
++	do_execute (shell, cmd ? cmd : command, flags | EXECUTE_AS_SHELL, NULL);
+ 
+     g_free (cmd);
+ }
+@@ -225,7 +225,7 @@ shell_execute (const char *command, int flags)
+ void
+ exec_shell (void)
+ {
+-    do_execute (shell, 0, 0);
++    do_execute (shell, 0, 0, NULL);
+ }
+ 
+ 
+@@ -270,7 +270,7 @@ toggle_panels (void)
+ 		     _("Type `exit' to return to the Midnight Commander"));
+ 	    fprintf (stderr, "\n\r\n\r");
+ 
+-	    my_system (EXECUTE_INTERNAL, shell, NULL);
++	    my_system (EXECUTE_INTERNAL, shell, NULL, NULL);
+ 	} else
+ 	    get_key_code (0);
+     }
+@@ -358,7 +358,7 @@ suspend_cmd (void)
+  * Errors are reported to the user.
+  */
+ void
+-execute_with_vfs_arg (const char *command, const char *filename)
++execute_with_vfs_arg (const char *command, const char *filename, const char *arg)
+ {
+     char *localcopy;
+     char *fn;
+@@ -367,10 +367,11 @@ execute_with_vfs_arg (const char *command, const char *filename)
+ 
+     /* Simplest case, this file is local */
+     if (!filename || vfs_file_is_local (filename)) {
++        int flags = EXECUTE_INTERNAL | (arg == NULL ? 0 : EXECUTE_WITH_ARG);
+         fn = vfs_canon_and_translate (filename);
+-	do_execute (command, fn, EXECUTE_INTERNAL);
++        do_execute (command, fn, flags, arg);
+         g_free (fn);
+-	return;
++        return;
+     }
+ 
+     /* FIXME: Creation of new files on VFS is not supported */
+@@ -392,7 +393,7 @@ execute_with_vfs_arg (const char *command, const char *filename)
+     fn = g_strdup (filename);
+     mc_stat (localcopy, &st);
+     mtime = st.st_mtime;
+-    do_execute (command, localcopy, EXECUTE_INTERNAL);
++    do_execute (command, localcopy, EXECUTE_INTERNAL, NULL);
+     mc_stat (localcopy, &st);
+     mc_ungetlocalcopy (fn, localcopy, mtime != st.st_mtime);
+     g_free (localcopy);
+diff --git a/src/execute.h b/src/execute.h
+index 977961c..5caf7d4 100644
+--- a/src/execute.h
++++ b/src/execute.h
+@@ -7,9 +7,10 @@
+ #define MC_EXECUTE_H
+ 
+ /* flags for shell_execute */
+-#define EXECUTE_INTERNAL	(1 << 0)
+-#define EXECUTE_AS_SHELL	(1 << 2)
+-#define EXECUTE_HIDE		(1 << 3)
++#define EXECUTE_INTERNAL    (1 << 0)
++#define EXECUTE_AS_SHELL    (1 << 2)
++#define EXECUTE_HIDE        (1 << 3)
++#define EXECUTE_WITH_ARG    (1 << 4)
+ 
+ /* Execute functions that use the shell to execute */
+ void shell_execute (const char *command, int flags);
+@@ -24,6 +25,6 @@ void toggle_panels (void);
+ void suspend_cmd (void);
+ 
+ /* Execute command on a filename that can be on VFS */
+-void execute_with_vfs_arg (const char *command, const char *filename);
++void execute_with_vfs_arg (const char *command, const char *filename, const char *arg);
+ 
+ #endif /* !MC_EXECUTE_H */
+-- 
+1.5.6.5
+

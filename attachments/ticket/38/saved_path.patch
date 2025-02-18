@@ -1,0 +1,68 @@
+diff --git a/src/layout.c b/src/layout.c
+index aa3f37e..7610d43 100644
+--- a/src/layout.c
++++ b/src/layout.c
+@@ -913,6 +913,14 @@ set_display_type (int num, int type)
+ 	}
+     }
+ 
++    /* Restoring saved path from panels.ini for nonlist panel */
++    /* when it's first creation (for example view_info) */
++    if (!old_widget && type != view_listing) {
++	char panel_dir[MC_MAXPATHLEN];
++	mc_get_current_wd(panel_dir, sizeof(panel_dir));
++	panels[num].last_saved_dir = g_strdup(panel_dir);
++    }
++
+     switch (type){
+     case view_listing:
+ 	new_widget = restore_into_right_dir_panel(num, old_widget);
+@@ -1148,3 +1156,22 @@ Widget *restore_into_right_dir_panel(int index, Widget *from_widget)
+ 
+     return new_widget;
+ }
++
++/* Return working dir, if it's view_listing - cwd,
++   but for other types - last_saved_dir
++*/
++const char *get_panel_dir_for(WPanel *widget)
++{
++    int i;
++    for (i = 0; i < MAX_VIEWS; i++)
++	if ((WPanel *) get_panel_widget(i) == widget)
++	    break;
++
++    if (i < MAX_VIEWS) {
++	if (get_display_type(i) == view_listing)
++	    return ((WPanel *) get_panel_widget(i))->cwd;
++	else
++	    return panels[i].last_saved_dir;
++    } else
++	return ".";
++}
+diff --git a/src/layout.h b/src/layout.h
+index 6a68055..c07b714 100644
+--- a/src/layout.h
++++ b/src/layout.h
+@@ -29,6 +29,7 @@ struct WPanel *get_other_panel (void);
+ 
+ void save_panel_dir(int index);
+ Widget *restore_into_right_dir_panel(int index, Widget *from_widget);
++const char *get_panel_dir_for(WPanel *widget);
+ 
+ void set_hintbar (const char *str);
+ 
+diff --git a/src/setup.c b/src/setup.c
+index 2f1d8e0..ba331cb 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -353,8 +353,7 @@ save_panel_types (void)
+ 	panel_save_setup (right_panel, right_panel->panel_name);
+ 
+     mc_config_set_string(mc_panels_config, "Dirs" , "other_dir",
+-			       get_other_type () == view_listing
+-			       ? other_panel->cwd : ".");
++			       get_panel_dir_for(other_panel));
+     if (current_panel != NULL)
+ 	    mc_config_set_string(mc_panels_config, "Dirs" , "current_is_left",
+ 				       get_current_index () == 0 ? "1" : "0");

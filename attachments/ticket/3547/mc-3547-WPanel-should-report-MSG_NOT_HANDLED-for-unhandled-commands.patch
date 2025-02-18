@@ -1,0 +1,24 @@
+From c8dc11ac396174553bf0fadbcc6460159ff5f4c1 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 23 Feb 2016 17:43:30 +0200
+Subject: [PATCH] WPanel should report MSG_NOT_HANDLED for unhandled commands.
+
+---
+ src/filemanager/panel.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 2a381e2..415aa56 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3557,6 +3557,7 @@ panel_execute_cmd (WPanel * panel, long command)
+         panel_set_sort_type_by_id (panel, "mtime");
+         break;
+     default:
++        res = MSG_NOT_HANDLED;
+         break;
+     }
+ 
+-- 
+2.5.0
+

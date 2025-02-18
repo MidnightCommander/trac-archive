@@ -1,0 +1,247 @@
+diff --git a/lib/vfs/parse_ls_vga.c b/lib/vfs/parse_ls_vga.c
+index c102b7d..765047d 100644
+--- a/lib/vfs/parse_ls_vga.c
++++ b/lib/vfs/parse_ls_vga.c
+@@ -687,7 +687,29 @@ vfs_parse_ls_lga (const char *p, struct stat * s, char **filename, char **linkna
+         return FALSE;
+ 
+     if (!vfs_parse_filetype (p, &skipped, &s->st_mode))
+-        goto error;
++    {
++	/* Microsoft FTP Server format:
++	 * 11-29-14  11:30PM       <DIR>          3
++	 * 11-08-14  10:53PM            524148736 1 3.txt
++	 */
++	p_copy = g_strdup (p);
++	num_cols = vfs_split_text (p_copy);
++	if (num_cols < 4 || !vfs_parse_filedate (0, &s->st_mtime))
++	    goto error;
++	if (is_num(2))
++	{
++	    s->st_size = (off_t) g_ascii_strtoll (columns[2], NULL, 10);
++	    s->st_mode |= S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IFREG;
++	}
++	else if(!strcmp (columns[2], "<DIR>"))
++	    s->st_mode |= S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IXUSR | S_IXGRP | S_IXOTH | S_IFDIR;
++	else
++	    goto error;
++	idx = 3;
++	if (num_spaces)
++	  *num_spaces = 0;
++	goto OK;
++    }
+     p += skipped;
+ 
+     if (*p == ' ')              /* Notwell 4 */
+@@ -791,15 +813,6 @@ vfs_parse_ls_lga (const char *p, struct stat * s, char **filename, char **linkna
+     idx = vfs_parse_filedate (idx, &s->st_mtime);
+     if (!idx)
+         goto error;
+-    /* Use resulting time value */
+-    s->st_atime = s->st_ctime = s->st_mtime;
+-    /* s->st_dev and s->st_ino must be initialized by vfs_s_new_inode () */
+-#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
+-    s->st_blksize = 512;
+-#endif
+-#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+-    s->st_blocks = (s->st_size + 511) / 512;
+-#endif
+ 
+     if (num_spaces != NULL)
+     {
+@@ -831,6 +844,7 @@ vfs_parse_ls_lga (const char *p, struct stat * s, char **filename, char **linkna
+     }
+     else
+     {
++OK:
+         /* Extract the filename from the string copy, not from the columns
+          * this way we have a chance of entering hidden directories like ". ."
+          */
+@@ -847,6 +861,16 @@ vfs_parse_ls_lga (const char *p, struct stat * s, char **filename, char **linkna
+             *linkname = NULL;
+     }
+ 
++#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
++    s->st_blksize = 512;
++#endif
++#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
++    s->st_blocks = (s->st_size + 511) / 512;
++#endif
++    /* Use resulting time value */
++    s->st_atime = s->st_ctime = s->st_mtime;
++    /* s->st_dev and s->st_ino must be initialized by vfs_s_new_inode () */
++
+     if (t)
+     {
+         int p2 = strlen (t);
+diff --git a/tests/lib/vfs/vfs_parse_ls_lga.c b/tests/lib/vfs/vfs_parse_ls_lga.c
+index 1751e18..2d3f324 100644
+--- a/tests/lib/vfs/vfs_parse_ls_lga.c
++++ b/tests/lib/vfs/vfs_parse_ls_lga.c
+@@ -111,6 +111,8 @@ fill_stat_struct (struct stat *etalon_stat, int iterator)
+     switch (iterator)
+     {
+     case 0:
++    case 2:
++    case 3:
+         etalon_stat->st_dev = 0;
+         etalon_stat->st_ino = 0;
+         etalon_stat->st_mode = 0x41fd;
+@@ -140,35 +142,31 @@ fill_stat_struct (struct stat *etalon_stat, int iterator)
+         etalon_stat->st_mtime = 1268431200;
+         etalon_stat->st_ctime = 1268431200;
+         break;
+-    case 2:
+-        etalon_stat->st_dev = 0;
+-        etalon_stat->st_ino = 0;
+-        etalon_stat->st_mode = 0x41fd;
+-        etalon_stat->st_nlink = 10;
+-        etalon_stat->st_uid = 500;
+-        etalon_stat->st_gid = 500;
++    case 4:
++        etalon_stat->st_mode = 0040755;
++        etalon_stat->st_nlink = 1;
++        etalon_stat->st_uid = 0;
++        etalon_stat->st_gid = 0;
+         etalon_stat->st_rdev = 0;
+-        etalon_stat->st_size = 4096;
++        etalon_stat->st_size = 0;
+         etalon_stat->st_blksize = 512;
+-        etalon_stat->st_blocks = 8;
+-        etalon_stat->st_atime = 1308838140;
+-        etalon_stat->st_mtime = 1308838140;
+-        etalon_stat->st_ctime = 1308838140;
++        etalon_stat->st_blocks = 0;
++        etalon_stat->st_atime = 1268431200;
++        etalon_stat->st_mtime = 1268431200;
++        etalon_stat->st_ctime = 1268431200;
+         break;
+-    case 3:
+-        etalon_stat->st_dev = 0;
+-        etalon_stat->st_ino = 0;
+-        etalon_stat->st_mode = 0x41fd;
+-        etalon_stat->st_nlink = 10;
+-        etalon_stat->st_uid = 500;
+-        etalon_stat->st_gid = 500;
++    case 5:
++        etalon_stat->st_mode = 0100644;
++        etalon_stat->st_nlink = 1;
++        etalon_stat->st_uid = 0;
++        etalon_stat->st_gid = 0;
+         etalon_stat->st_rdev = 0;
+-        etalon_stat->st_size = 4096;
++        etalon_stat->st_size = 524148736;
+         etalon_stat->st_blksize = 512;
+-        etalon_stat->st_blocks = 8;
+-        etalon_stat->st_atime = 1308838140;
+-        etalon_stat->st_mtime = 1308838140;
+-        etalon_stat->st_ctime = 1308838140;
++        etalon_stat->st_blocks = 1023728;
++        etalon_stat->st_atime = 1268431200;
++        etalon_stat->st_mtime = 1268431200;
++        etalon_stat->st_ctime = 1268431200;
+         break;
+     }
+ }
+@@ -214,6 +212,20 @@ static const struct test_vfs_parse_ls_lga_ds
+         NULL,
+         0
+     },
++    { /* 4. */
++        "11-29-14  11:30PM       <DIR>           3",
++        1,
++        "3",
++        NULL,
++        0
++    },
++    { /* 5. */
++        "11-08-14  10:53PM          524148736     1 3.txt",
++        1,
++        "1 3.txt",
++        NULL,
++        0
++    }
+ };
+ /* *INDENT-ON* */
+ 
+@@ -270,6 +282,13 @@ END_PARAMETRIZED_TEST
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++#define init_ent(ent, ls_output) \
++    ent = vfs_s_generate_entry (&vfs_test_ops1, NULL, vfs_root_inode, 0); \
++    vfs_parse_ls_lga (ls_output \
++    , &ent->ino->st, &ent->name, &ent->ino->linkname, &filepos); \
++    vfs_s_store_filename_leading_spaces (ent, filepos); \
++    vfs_s_insert_entry (&vfs_test_ops1, vfs_root_inode, ent);
++
+ /* @Test */
+ /* *INDENT-OFF* */
+ START_TEST (test_vfs_parse_ls_lga_reorder)
+@@ -277,32 +296,15 @@ START_TEST (test_vfs_parse_ls_lga_reorder)
+ {
+     /* given */
+     size_t filepos = 0;
+-    struct vfs_s_entry *ent1, *ent2, *ent3;
++    struct vfs_s_entry *ent1, *ent2, *ent3, *ent4, *ent5;
+ 
+     vfs_parse_ls_lga_init ();
+ 
+-    /* init ent1 */
+-    ent1 = vfs_s_generate_entry (&vfs_test_ops1, NULL, vfs_root_inode, 0);
+-    vfs_parse_ls_lga
+-        ("drwxrwxr-x   10 500      500          4096 Jun 23 17:09      build_root1", &ent1->ino->st,
+-         &ent1->name, &ent1->ino->linkname, &filepos);
+-    vfs_s_store_filename_leading_spaces (ent1, filepos);
+-    vfs_s_insert_entry (&vfs_test_ops1, vfs_root_inode, ent1);
+-
+-
+-    /* init ent2 */
+-    ent2 = vfs_s_generate_entry (&vfs_test_ops1, NULL, vfs_root_inode, 0);
+-    vfs_parse_ls_lga ("drwxrwxr-x   10 500      500          4096 Jun 23 17:09    build_root2",
+-                      &ent2->ino->st, &ent2->name, &ent2->ino->linkname, &filepos);
+-    vfs_s_store_filename_leading_spaces (ent2, filepos);
+-    vfs_s_insert_entry (&vfs_test_ops1, vfs_root_inode, ent2);
+-
+-    /* init ent3 */
+-    ent3 = vfs_s_generate_entry (&vfs_test_ops1, NULL, vfs_root_inode, 0);
+-    vfs_parse_ls_lga ("drwxrwxr-x   10 500      500          4096 Jun 23 17:09 ..",
+-                      &ent3->ino->st, &ent3->name, &ent3->ino->linkname, &filepos);
+-    vfs_s_store_filename_leading_spaces (ent3, filepos);
+-    vfs_s_insert_entry (&vfs_test_ops1, vfs_root_inode, ent3);
++    init_ent (ent1, "drwxrwxr-x   10 500      500          4096 Jun 23 17:09      build_root1");
++    init_ent (ent2, "drwxrwxr-x   10 500      500          4096 Jun 23 17:09    build_root2");
++    init_ent (ent3, "drwxrwxr-x   10 500      500          4096 Jun 23 17:09 ..");
++    init_ent (ent4, test_vfs_parse_ls_lga_ds[4].input_string);
++    init_ent (ent5, test_vfs_parse_ls_lga_ds[5].input_string);
+ 
+     /* when */
+     vfs_s_normalize_filename_leading_spaces (vfs_root_inode, vfs_parse_ls_lga_get_final_spaces ());
+@@ -336,7 +338,7 @@ START_TEST (test_vfs_parse_ls_lga_unaligned)
+ {
+     /* given */
+     size_t filepos = 0;
+-    struct vfs_s_entry *ent[4];
++    struct vfs_s_entry *ent[6];
+ 
+     vfs_parse_ls_lga_init ();
+ 
+@@ -345,6 +347,9 @@ START_TEST (test_vfs_parse_ls_lga_unaligned)
+     parce_one_line (2, "drwxrwxr-x 10 500 500 4096 Jun 23 17:09  ..");
+     parce_one_line (3,
+                     "drwxrwxr-x      10   500        500             4096   Jun   23   17:09   build_root 0");
++    parce_one_line (4, "11-29-14  11:30PM       <DIR>          3");
++    parce_one_line (5, "11-08-14  10:53PM          524148736     1 3.txt");
++
+ 
+     /* when */
+     vfs_s_normalize_filename_leading_spaces (vfs_root_inode, vfs_parse_ls_lga_get_final_spaces ());
+@@ -354,6 +359,8 @@ START_TEST (test_vfs_parse_ls_lga_unaligned)
+     mctest_assert_str_eq (ent[0]->name, "build_root1");
+     mctest_assert_str_eq (ent[1]->name, "   build_root2");
+     mctest_assert_str_eq (ent[3]->name, " build_root 0");
++    mctest_assert_str_eq (ent[4]->name, "3");
++    mctest_assert_str_eq (ent[5]->name, "1 3.txt");
+ }
+ /* *INDENT-OFF* */
+ END_TEST

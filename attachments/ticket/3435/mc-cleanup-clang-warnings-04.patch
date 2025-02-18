@@ -1,0 +1,26 @@
+
+fix clang 3.6 compiler warnings
+
+patch 01: -Wundef
+patch 02: -Wunused-function
+patch 03: -Wnon-literal-null-conversion
+patch 04: -Wmissing-field-initializers
+patch 05: -Wabsolute-value
+patch 06: -Wtautological-pointer-compare
+patch 07: -Wformat
+
+file.c:602:42: error: missing field 'tv_usec' initializer [-Wmissing-field-initializers]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -599,7 +599,7 @@
+ progress_update_one (file_op_total_context_t * tctx, file_op_context_t * ctx, off_t add)
+ {
+     struct timeval tv_current;
+-    static struct timeval tv_start = { 0 };
++    static struct timeval tv_start = { 0, 0 };
+ 
+     tctx->progress_count++;
+     tctx->progress_bytes += (uintmax_t) add;

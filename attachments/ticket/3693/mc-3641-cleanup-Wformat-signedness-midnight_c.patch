@@ -1,0 +1,35 @@
+From d3d26acbe559a9dc43e57825e83aafff2485cb4c Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 12:05:58 +0000
+Subject: [PATCH] (midnight.c) Cleanup -Wformat-signedness warning
+
+Cleanup -Wformat-signedness warning.
+
+midnight.c: In function 'quit_cmd_internal':
+midnight.c:1027:31: error: format '%zd' expects argument of type 'signed size_t', but argument 4 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+                               "You have %zd opened screens. Quit anyway?", n), n);
+                               ^
+midnight.c:1026:31: error: format '%zd' expects argument of type 'signed size_t', but argument 4 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+                     ngettext ("You have %zd opened screen. Quit anyway?",
+                               ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/midnight.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index 3cf50a7..f4ad310 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -1023,8 +1023,8 @@ quit_cmd_internal (int quiet)
+         char msg[BUF_MEDIUM];
+ 
+         g_snprintf (msg, sizeof (msg),
+-                    ngettext ("You have %zd opened screen. Quit anyway?",
+-                              "You have %zd opened screens. Quit anyway?", n), n);
++                    ngettext ("You have %zu opened screen. Quit anyway?",
++                              "You have %zu opened screens. Quit anyway?", n), n);
+ 
+         if (query_dialog (_("The Midnight Commander"), msg, D_NORMAL, 2, _("&Yes"), _("&No")) != 0)
+             return FALSE;

@@ -1,0 +1,27 @@
+From 9528a609066b067647850c38a9be30b84b553088 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 16 Dec 2024 18:00:00 +0000
+Subject: [PATCH] fix Glib g_string_free assertion
+
+Fix confusing extra output like ticket #4611
+(mc:72268): GLib-CRITICAL : ... g_string_free: assertion 'string != NULL' failed
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/shell/shell.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/shell/shell.c b/src/vfs/shell/shell.c
+index b13fb9911..1da63a24b 100644
+--- a/src/vfs/shell/shell.c
++++ b/src/vfs/shell/shell.c
+@@ -412,7 +412,8 @@ shell_free_archive (struct vfs_class *me, struct vfs_s_super *super)
+     g_free (shell_super->scr_send);
+     g_free (shell_super->scr_append);
+     g_free (shell_super->scr_info);
+-    g_string_free (shell_super->scr_env, TRUE);
++    if (shell_super->scr_env != NULL)
++        g_string_free (shell_super->scr_env, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

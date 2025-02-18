@@ -1,0 +1,48 @@
+From 856a42c99f110af45bae13ad04952e9323464a87 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 28 Dec 2020 18:19:14 +0000
+Subject: [PATCH] fix lto-type-mismatch warning
+
+Found by gcc-9.3.0
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ tests/src/execute__execute_external_editor_or_viewer.c        | 4 ++--
+ .../src/execute__execute_get_external_cmd_opts_from_config.c  | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tests/src/execute__execute_external_editor_or_viewer.c b/tests/src/execute__execute_external_editor_or_viewer.c
+index a861d29f0..4e3e63e31 100644
+--- a/tests/src/execute__execute_external_editor_or_viewer.c
++++ b/tests/src/execute__execute_external_editor_or_viewer.c
+@@ -32,7 +32,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ char *execute_get_external_cmd_opts_from_config (const char *command,
+-                                                 const vfs_path_t * filename_vpath, int start_line);
++                                                 const vfs_path_t * filename_vpath, long start_line);
+ 
+ /* @CapturedValue */
+ static char *execute_external_cmd_opts__command__captured;
+@@ -47,7 +47,7 @@ static char *execute_external_cmd_opts__return_value;
+ /* @Mock */
+ char *
+ execute_get_external_cmd_opts_from_config (const char *command, const vfs_path_t * filename_vpath,
+-                                           int start_line)
++                                           long start_line)
+ {
+     execute_external_cmd_opts__command__captured = g_strdup (command);
+     execute_external_cmd_opts__filename_vpath__captured = vfs_path_clone (filename_vpath);
+diff --git a/tests/src/execute__execute_get_external_cmd_opts_from_config.c b/tests/src/execute__execute_get_external_cmd_opts_from_config.c
+index 379717d22..1606bfefd 100644
+--- a/tests/src/execute__execute_get_external_cmd_opts_from_config.c
++++ b/tests/src/execute__execute_get_external_cmd_opts_from_config.c
+@@ -33,7 +33,7 @@
+ #include "src/vfs/local/local.c"
+ 
+ char *execute_get_external_cmd_opts_from_config (const char *command,
+-                                                 const vfs_path_t * filename_vpath, int start_line);
++                                                 const vfs_path_t * filename_vpath, long start_line);
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 

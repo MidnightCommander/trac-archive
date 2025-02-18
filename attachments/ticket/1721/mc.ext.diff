@@ -1,0 +1,87 @@
+--- mc.ext.in.default	2011-10-17 15:33:45.000000000 +0600
++++ mc.ext.in	2011-11-03 16:05:55.867151662 +0600
+@@ -403,7 +403,7 @@
+ 	Include=image
+ 
+ include/image
+-	Open=if [ "$DISPLAY" = "" ]; then zgv %f; else (gqview %f &); fi
++	Open=if [ "$DISPLAY" = "" ]; then zgv %f; else (xdg-open %f >/dev/null 2>&1 &); fi
+ 	View=%view{ascii} identify %f
+ 	#View=%view{ascii} asciiview %f
+ 
+@@ -411,42 +411,41 @@
+ ### Sound files ###
+ 
+ regex/\.([wW][aA][vV]|[sS][nN][dD]|[vV][oO][cC]|[aA][uU]|[sS][mM][pP]|[aA][iI][fF][fF]|[sS][nN][dD])$
+-       Open=if [ "$DISPLAY" = "" ]; then play %f; else (xmms %f >/dev/null 2>&1 &); fi
++	Include=audio
+ 
+ regex/\.([mM][oO][dD]|[sS]3[mM]|[xX][mM]|[iI][tT]|[mM][tT][mM]|669|[sS][tT][mM]|[uU][lL][tT]|[fF][aA][rR])$
+-       Open=mikmod %f
+-       #Open=tracker %f
++	Open=mikmod %f
++	#Open=tracker %f
+ 
+ regex/\.([wW][aA][wW]22)$
+-       Open=vplay -s 22 %f
++	Open=vplay -s 22 %f
+ 
+-regex/\.([mM][pP]3)$
+-	Open=if [ "$DISPLAY" = "" ]; then mpg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
+-	View=%view{ascii} mpg123 -vtn1 %f 2>&1 | sed -n '/^Title/,/^Comment/p;/^MPEG/,/^Audio/p'
+-
+-regex/\.([oO][gG][gG|aA|vV|xX])$
+-	Open=if [ "$DISPLAY" = "" ]; then ogg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
+-	View=%view{ascii} ogginfo %s
+-
+-regex/\.([sS][pP][xX]|[fF][lL][aA][cC])$
++regex/\.([sS][pP][xX])$
+ 	Open=if [ "$DISPLAY" = "" ]; then play %f; else (xmms %f >/dev/null 2>&1 &); fi
+ 
+ regex/\.([mM][iI][dD][iI]?|[rR][mM][iI][dD]?)$
+ 	Open=timidity %f
+ 
+-regex/\.([wW][mM][aA])$
+-	Open=mplayer -vo null %f
+-	View=%view{ascii} mplayer -quiet -slave -frames 0 -vo null -ao null -identify %f 2>/dev/null | tail +13 || file %f
++regex/\.([wW][mM][aA]|[aA][pP][eE]|[aA][aA][cC]|[wW][vV]|[mM]4[aA]|[fF][lL][aA][cC]|[fF][lL][aA]|[mM][pP]3|[oO][gG][gG|aA|xX])$
++	Include=audio
++
++include/audio
++	Open=if [ -z "$DISPLAY" ]; then mplayer -vo null %f; else (xdg-open %f >/dev/null 2>&1 &); fi
++	View=%view{ascii} mplayer -quiet -slave -frames 0 -vo null -ao null -identify %f 2>/dev/null | grep ID_ | sed 's/ID_//' || file %f
++
+ 
+ 
+ ### Play lists ###
+ 
+ regex/\.([mM]3[uU]|[pP][lL][sS])$
+-	Open=if [ -z "$DISPLAY" ]; then mplayer -vo null -playlist %f; else (xmms -p %f >/dev/null 2>&1 &); fi
++	Open=if [ -z "$DISPLAY" ]; then mplayer -vo null -playlist %f; else (xdg-open %f >/dev/null 2>&1 &); fi
+ 
+ 
+ ### Video ###
+ 
++regex/\.(3[gG][pP])$
++	Include=video
++
+ regex/\.([aA][vV][iI])$
+ 	Include=video
+ 
+@@ -478,7 +477,7 @@
+ regex/\.([fF][lL][iIcCvV])$
+ 	Include=video
+ 
+-regex/\.([oO][gG][mM])$
++regex/\.([oO][gG][mM|vV])$
+ 	Include=video
+ 
+ regex/\.([rR][aA]?[mM])$
+@@ -486,6 +485,7 @@
+ 
+ include/video
+ 	Open=(mplayer %f >/dev/null 2>&1 &)
++	View=%view{ascii} mplayer -quiet -slave -frames 0 -vo null -ao null -identify %f 2>/dev/null | grep ID_ | sed 's/ID_//' || file %f
+ 	#Open=(gtv %f >/dev/null 2>&1 &)
+ 	#Open=(xanim %f >/dev/null 2>&1 &)
+ 

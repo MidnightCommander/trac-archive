@@ -1,0 +1,78 @@
+here is some text to ignore
+-- really
+--- a/CREDITS	2004-10-18 14:56:48 -07:00
++++ b/CREDITS	2004-10-18 14:56:48 -07:00
+@@ -625,6 +638,14 @@
+ D: Assorted sched/mm titbits
+ S: Oxfordshire, UK.
+ 
++N: Kees Cook
++E: kees@outflux.net
++W: http://outflux.net/
++P: 1024D/17063E6D 9FA3 C49C 23C9 D1BC 2E30  1975 1FFF 4BA9 1706 3E6D
++D: Minor updates to SCSI code for the Communications type
++S: (ask for current address)
++S: USA
++
+ N: Mark Corner
+ E: mcorner@umich.edu
+ W: http://www.eecs.umich.edu/~mcorner/
+@@ -639,14 +660,6 @@
+ S: Santa Cruz, California
+ S: USA
+ 
+-N: Kees Cook
+-E: kees@outflux.net
+-W: http://outflux.net/
+-P: 1024D/17063E6D 9FA3 C49C 23C9 D1BC 2E30  1975 1FFF 4BA9 1706 3E6D
+-D: Minor updates to SCSI code for the Communications type
+-S: (ask for current address)
+--- where exit, yes?
+-
+ N: Alan Cox
+ W: http://www.linux.org.uk/diary/
+ D: Linux Networking (0.99.10->2.0.29)
+@@ -3619,13 +3688,6 @@
+ D: EISA/sysfs subsystem
+ S: France
+ 
+-N: Luiz Fernando N. Capitulino
+-E: lcapitulino@terra.com.br
+-E: lcapitulino@prefeitura.sp.gov.br
+-W: http://www.telecentros.sp.gov.br
+-D: Little fixes and a lot of janitorial work
+-S: E-GOV Telecentros SP
+-S: Brazil
+ 
+ # Don't add your name here, unless you really _are_ after Marc
+ # alphabetically. Leonard used to be very proud of being the 
+diff -Nru a/Documentation/CodingStyle b/Documentation/CodingStyle
+--- a/Documentation/CodingStyle	2004-10-18 14:56:28 -07:00
++++ b/Documentation/CodingStyle	2004-10-18 14:56:28 -07:00
+@@ -356,10 +356,10 @@
+ 
+ Macros with multiple statements should be enclosed in a do - while block:
+ 
+-#define macrofun(a,b,c) 			\
++#define macrofun(a, b, c) 			\
+ 	do {					\
+ 		if (a == 5)			\
+-			do_this(b,c);		\
++			do_this(b, c);		\
+ 	} while (0)
+ 
+ Things to avoid when using macros:
+diff -Nru a/Documentation/DocBook/Makefile b/Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile	2004-10-18 14:56:29 -07:00
++++ b/Documentation/DocBook/Makefile	2004-10-18 14:56:29 -07:00
+@@ -185,9 +185,7 @@
+ 	$(patsubst %.sgml, %.9,    $(DOCBOOKS)) \
+ 	$(C-procfs-example)
+ 
+-ifneq ($(wildcard $(patsubst %.html,%,$(HTML))),)
+-clean-rule := rm -rf $(wildcard $(patsubst %.html,%,$(HTML)))
+-endif
++clean-dirs := $(patsubst %.sgml,%,$(DOCBOOKS))
+ 
+ #man put files in man subdir - traverse down
+ subdir- := man/

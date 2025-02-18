@@ -1,0 +1,80 @@
+diff -ur putty-0.61.orig/terminal.c putty-0.61/terminal.c
+--- putty-0.61.orig/terminal.c	2011-05-07 12:57:19.000000000 +0200
++++ putty-0.61/terminal.c	2011-11-07 19:35:56.691840795 +0100
+@@ -1224,6 +1224,8 @@
+     term->alt_which = 0;
+     term_print_finish(term);
+     term->xterm_mouse = 0;
++    term->xterm_extended_mouse = 0;
++    term->urxvt_extended_mouse = 0;
+     set_raw_mouse_mode(term->frontend, FALSE);
+     {
+ 	int i;
+@@ -2398,6 +2400,12 @@
+ 	    term->xterm_mouse = state ? 2 : 0;
+ 	    set_raw_mouse_mode(term->frontend, state);
+ 	    break;
++	  case 1005:		       /* xterm extended mouse */
++	    term->xterm_extended_mouse = state ? 1 : 0;
++	    break;
++	  case 1015:		       /* urxvt extended mouse */
++	    term->urxvt_extended_mouse = state ? 1 : 0;
++	    break;
+ 	  case 1047:                   /* alternate screen */
+ 	    compatibility(OTHER);
+ 	    deselect(term);
+@@ -5699,7 +5707,8 @@
+     if (raw_mouse &&
+ 	(term->selstate != ABOUT_TO) && (term->selstate != DRAGGING)) {
+ 	int encstate = 0, r, c;
+-	char abuf[16];
++	char abuf[32];
++	int len = 0;
+ 
+ 	if (term->ldisc) {
+ 
+@@ -5742,11 +5751,28 @@
+ 		encstate += 0x04;
+ 	    if (ctrl)
+ 		encstate += 0x10;
+-	    r = y + 33;
+-	    c = x + 33;
++	    r = y + 1;
++	    c = x + 1;
+ 
+-	    sprintf(abuf, "\033[M%c%c%c", encstate, c, r);
+-	    ldisc_send(term->ldisc, abuf, 6, 0);
++	    if (term->urxvt_extended_mouse) {
++		len = sprintf(abuf, "\033[%d;%d;%dM", encstate, c, r);
++	    } else if (term->xterm_extended_mouse) {
++		if (c <= 2015 && r <= 2015) {
++		    wchar_t input[2];
++		    wchar_t *inputp = input;
++		    int inputlen = 2;
++		    input[0] = c + 32;
++		    input[1] = r + 32;
++
++		    len = sprintf(abuf, "\033[M%c", encstate);
++		    len += charset_from_unicode(&inputp, &inputlen,
++						abuf + len, 4,
++						CS_UTF8, NULL, NULL, 0);
++		}
++	    } else if (c <= 223 && r <= 223) {
++		len = sprintf(abuf, "\033[M%c%c%c", encstate, c + 32, r + 32);
++	    }
++	    ldisc_send(term->ldisc, abuf, len, 0);
+ 	}
+ 	return;
+     }
+diff -ur putty-0.61.orig/terminal.h putty-0.61/terminal.h
+--- putty-0.61.orig/terminal.h	2008-12-20 19:52:09.000000000 +0100
++++ putty-0.61/terminal.h	2011-11-07 14:49:43.967797718 +0100
+@@ -152,6 +152,8 @@
+     int big_cursor;
+ 
+     int xterm_mouse;		       /* send mouse messages to host */
++    int xterm_extended_mouse;
++    int urxvt_extended_mouse;
+     int mouse_is_down;		       /* used while tracking mouse buttons */
+ 
+     int cset_attr[2];

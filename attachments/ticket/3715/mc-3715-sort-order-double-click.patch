@@ -1,0 +1,13 @@
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 4d57370..78ce877 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3912,7 +3912,7 @@ panel_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+             y = event->y - 1;
+             lines = panel_lines (panel);
+ 
+-            if (y <= lines)
++            if (y > 0 && y <= lines)
+                 do_enter (panel);
+         }
+         break;

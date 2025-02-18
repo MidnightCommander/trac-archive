@@ -1,0 +1,39 @@
+From 5fa2eacccae2d4cca6c5c01d5e4a99dedc4cac24 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 28 Feb 2016 21:47:22 +0000
+Subject: [PATCH] src/editor/editwidget.c: Cleanup some compiler warnings
+
+editwidget.c:808:12: warning: implicit conversion changes signedness: 'gboolean' (aka 'int') to 'cb_ret_t' [-Wsign-conversion]
+    return ret;
+    ~~~~~~ ^~~
+editwidget.c:857:71: warning: implicit conversion changes signedness: 'unsigned char' to 'char' [-Wsign-conversion]
+                    char_for_insertion = convert_from_8bit_to_utf_c2 ((unsigned char) x_key);
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~  ^~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editwidget.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index d6296e0..0fd3658 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -711,7 +711,7 @@ static cb_ret_t
+ edit_dialog_command_execute (WDialog * h, long command)
+ {
+     Widget *wh = WIDGET (h);
+-    gboolean ret = MSG_HANDLED;
++    cb_ret_t ret = MSG_HANDLED;
+ 
+     switch (command)
+     {
+@@ -854,7 +854,7 @@ edit_translate_key (WEdit * edit, long x_key, int *cmd, int *ch)
+                 if (!edit->utf8)
+                     char_for_insertion = c;
+                 else
+-                    char_for_insertion = convert_from_8bit_to_utf_c2 ((unsigned char) x_key);
++                    char_for_insertion = convert_from_8bit_to_utf_c2 ((char) x_key);
+                 goto fin;
+             }
+         }

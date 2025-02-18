@@ -1,0 +1,30 @@
+From 9f723d4b0671b376632cb096cf8cca5645a65772 Mon Sep 17 00:00:00 2001
+From: Ulya Trofimovich <skvadrik@gmail.com>
+Date: Fri, 29 Oct 2021 21:47:21 +0100
+Subject: [PATCH] Fix mcview for diff files on systems that have no /bin/cat
+ (like NixOS).
+
+When opening .diff or .patch files mcview invokes /bin/cat. NixOS has no
+/bin/cat (the path to cat looks like /run/current-system/sw/bin/cat).
+However cat is still in PATH, so replace /bin/cat with just cat. This
+should not affect other systems as /bin should normally be in PATH.
+---
+ misc/ext.d/misc.sh.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/ext.d/misc.sh.in b/misc/ext.d/misc.sh.in
+index 32a5f3f8d..c096240c8 100644
+--- a/misc/ext.d/misc.sh.in
++++ b/misc/ext.d/misc.sh.in
+@@ -20,7 +20,7 @@ do_view_action() {
+          fi
+         ;;
+     cat)
+-        /bin/cat "${MC_EXT_FILENAME}" 2>/dev/null
++        cat "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+     ar)
+         file "${MC_EXT_FILENAME}" && nm -C "${MC_EXT_FILENAME}"
+-- 
+2.33.0
+

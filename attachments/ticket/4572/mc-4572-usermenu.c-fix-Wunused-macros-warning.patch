@@ -1,0 +1,28 @@
+From bf11e8478e3f319f903ee22391d109317750f559 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 23 Nov 2024 12:00:00 +0000
+Subject: [PATCH] (usermenu.c): fix -Wunused-macros warning
+
+usermenu.c:68:9: warning: macro is not used [-Wunused-macros]
+   68 | #define MAX_ENTRIES 16
+      |         ^
+
+Found by clang-18
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/usermenu.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/usermenu.c b/src/usermenu.c
+index 1ec961153..d8587989e 100644
+--- a/src/usermenu.c
++++ b/src/usermenu.c
+@@ -65,7 +65,6 @@
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+-#define MAX_ENTRIES 16
+ #define MAX_ENTRY_LEN 60
+ 
+ /*** file scope type declarations ****************************************************************/

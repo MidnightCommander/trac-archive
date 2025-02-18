@@ -1,0 +1,26 @@
+1.6.1.1
+
+From 4a1a7b92db1dbdf0d9b93a8df7eaaba44de7492c Mon Sep 17 00:00:00 2001
+From: root <root@holmes.(none)>
+Date: Thu, 29 Jan 2009 12:41:44 +0000
+Subject: [PATCH 2/2] Executable first ru.po label update
+
+---
+ po/ru.po |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/po/ru.po b/po/ru.po
+index 5ee11d0..20a988e 100644
+--- a/po/ru.po
++++ b/po/ru.po
+@@ -794,6 +794,9 @@ msgstr "
+ msgid "Sort order"
+ msgstr "Порядок сортировки"
+ 
++msgid "Executable first"
++msgstr "Исполняемые вперед"
++
+ #, fuzzy
+ msgid " confirm di&Rectory hotlist delete "
+ msgstr "Быстрый доступ к ката&логам  C-\\"
+-- 

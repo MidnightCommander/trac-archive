@@ -1,0 +1,269 @@
+diff --git a/src/ext.c b/src/ext.c
+index 779e5a2..233ae08 100644
+--- a/src/ext.c
++++ b/src/ext.c
+@@ -301,19 +301,20 @@ exec_extension (const char *filename, const char *lc_data, int *move_dir,
+ #endif
+ 
+ /*
+- * Run the "file" command on the local file.
+- * Return 1 if the data is valid, 0 otherwise, -1 for fatal errors.
+- */
++ * Run cmd_file with args, put in buf[buflen] result.
++ * If error, put in buf[0] = '\0';
++ *
++ * NOTES: buf is string, always end '\0' char.
++ *  */
++
+ static int
+-get_file_type_local (const char *filename, char *buf, int buflen)
++get_popen_information(const char *cmd_file, const char *args,  char *buf, int buflen)
+ {
+     int read_bytes = 0;
+ 
+-    char *tmp = name_quote (filename, 0);
+-    char *command = g_strconcat (FILE_CMD, tmp, " 2>/dev/null", (char *) 0);
++    char *command = g_strconcat (cmd_file, args, " 2>/dev/null", (char *) 0);
+     FILE *f = popen (command, "r");
+ 
+-    g_free (tmp);
+     g_free (command);
+     if (f != NULL) {
+ #ifdef __QNXNTO__
+@@ -325,15 +326,54 @@ get_file_type_local (const char *filename, char *buf, int buflen)
+ 	read_bytes = (fgets (buf, buflen, f)
+ 		      != NULL);
+ 	if (read_bytes == 0)
++/* if(buflen > 0) // ;-) */
+ 	    buf[0] = 0;
+ 	pclose (f);
+     } else {
++/* if(buflen > 0) // ;-) */
++	buf[0] = 0; /* Paranoid termination */
+ 	return -1;
+     }
++    /* Paranoid termination */
++    buf[buflen - 1] = 0;
+ 
+     return (read_bytes > 0);
+ }
+ 
++/*
++ * Run the "file" command on the local file.
++ * Return 1 if the data is valid, 0 otherwise, -1 for fatal errors.
++ */
++static int
++get_file_type_local (const char *filename, char *buf, int buflen)
++{
++    int read_bytes = 0;
++    char *tmp = name_quote (filename, 0);
++
++    return get_popen_information(FILE_CMD, tmp, buf, buflen);
++}
++
++/*
++ * Run the "enca" command on the local file.
++ * Return 1 if the data is valid, 0 otherwise, -1 for fatal errors.
++ */
++static int
++get_file_encoding_local (const char *filename, char *buf, int buflen)
++{
++    if(is_autodetect_codeset_enabled == TRUE) {
++	int read_bytes = 0;
++	char *tmp = name_quote (filename, 0);
++	char *lang = name_quote (autodetect_codeset, 0);
++	char *args= g_strconcat (" -L", lang, " -i ", tmp, (char *) 0);
++	int ret = get_popen_information("enca", args, buf, buflen);
++	g_free (args);
++	g_free (lang);
++	g_free (tmp);
++	return ret;
++    }
++    return 0;
++}
++
+ 
+ /*
+  * Invoke the "file" command on the file and match its output against PTR.
+@@ -348,6 +388,8 @@ regex_check_type (const char *filename, const char *ptr, int *have_type)
+ 
+     /* Following variables are valid if *have_type is 1 */
+     static char content_string[2048];
++    static char encoding_id[21]; /* example: CSISO51INISCYRILLIC -- 20 */
++    static int got_encoding_data = 0;
+     static int content_shift = 0;
+     static int got_data = 0;
+ 
+@@ -366,35 +408,49 @@ regex_check_type (const char *filename, const char *ptr, int *have_type)
+ 	    return -1;
+ 
+ 	realname = localfile;
+-	got_data =
+-	    get_file_type_local (localfile, content_string,
+-				 sizeof (content_string));
++
++	got_encoding_data =
++	    get_file_encoding_local (localfile, encoding_id,
++		sizeof (encoding_id));
+ 	mc_ungetlocalcopy (filename, localfile, 0);
+ 
+-	if (got_data > 0) {
++	if( got_encoding_data > 0 )
++	{
+ 	    char *pp;
++	    if ((pp = strchr (encoding_id, '\n')) != 0)
++		*pp = 0;
+ 
+-	    /* Paranoid termination */
+-	    content_string[sizeof (content_string) - 1] = 0;
++	source_codepage = get_codepage_index( encoding_id );
++	if(source_codepage == -1)
++	    source_codepage = default_source_codepage;
++	}
+ 
+-	    if ((pp = strchr (content_string, '\n')) != 0)
+-		*pp = 0;
+ 
+-	    if (!strncmp (content_string, realname, strlen (realname))) {
+-		/* Skip "realname: " */
+-		content_shift = strlen (realname);
+-		if (content_string[content_shift] == ':') {
+-		    /* Solaris' file prints tab(s) after ':' */
+-		    for (content_shift++;
+-			 content_string[content_shift] == ' '
+-			 || content_string[content_shift] == '\t';
+-			 content_shift++);
+-		}
+-	    }
+-	} else {
+-	    /* No data */
+-	    content_string[0] = 0;
++  got_data =
++    get_file_type_local (localfile, content_string,
++				 sizeof (content_string));
++
++  if (got_data > 0) {
++    char *pp;
++
++    if ((pp = strchr (content_string, '\n')) != 0)
++	*pp = 0;
++
++    if (!strncmp (content_string, realname, strlen (realname))) {
++	/* Skip "realname: " */
++	content_shift = strlen (realname);
++	if (content_string[content_shift] == ':') {
++	    /* Solaris' file prints tab(s) after ':' */
++	    for (content_shift++;
++		 content_string[content_shift] == ' '
++		 || content_string[content_shift] == '\t';
++		 content_shift++);
+ 	}
++    }
++  } else {
++    /* No data */
++    content_string[0] = 0;
++  }
+ 	g_free (realname);
+     }
+ 
+diff --git a/src/main.c b/src/main.c
+index 3ce65db..1eda583 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -2257,6 +2257,7 @@ main (int argc, char *argv[])
+     done_key ();
+ #ifdef HAVE_CHARSET
+     free_codepages_list ();
++    g_free(autodetect_codeset);
+ #endif
+     str_uninit_strings ();
+ 
+diff --git a/src/main.h b/src/main.h
+index 9c843fa..b5aecd8 100644
+--- a/src/main.h
++++ b/src/main.h
+@@ -44,7 +44,10 @@ extern int option_tab_spacing;
+ 
+ #ifdef HAVE_CHARSET
+ extern int source_codepage;
++extern int default_source_codepage;
+ extern int display_codepage;
++extern char* autodetect_codeset;
++gboolean is_autodetect_codeset_enabled;
+ #else
+ extern int eight_bit_clean;
+ extern int full_eight_bits;
+diff --git a/src/selcodepage.c b/src/selcodepage.c
+index a3be1a1..9d7acb5 100644
+--- a/src/selcodepage.c
++++ b/src/selcodepage.c
+@@ -40,7 +40,10 @@
+ 
+ /* Numbers of (file I/O) and (input/display) codepages. -1 if not selected */
+ int source_codepage = -1;
++int default_source_codepage = -1;
+ int display_codepage = -1;
++char* autodetect_codeset = 0;
++gboolean is_autodetect_codeset_enabled=FALSE;
+ 
+ static unsigned char
+ get_hotkey (int n)
+@@ -119,6 +122,7 @@ do_select_codepage (void)
+ 	return FALSE;
+ 
+     source_codepage = r;
++    default_source_codepage = source_codepage;
+ 
+     errmsg = init_translation_table (r == SELECT_CHARSET_NO_TRANSLATE ?
+ 					display_codepage : source_codepage,
+diff --git a/src/setup.c b/src/setup.c
+index 3f7adca..413c8c0 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -387,7 +387,9 @@ save_setup (void)
+     mc_config_set_string(mc_main_config, "Misc" , "display_codepage",
+ 		 get_codepage_id( display_codepage ));
+     mc_config_set_string(mc_main_config, "Misc" , "source_codepage",
+-		 get_codepage_id( source_codepage ));
++		 get_codepage_id( default_source_codepage ));
++    mc_config_set_string(mc_main_config, "Misc" , "autodetect_codeset",
++		 autodetect_codeset );
+ #endif /* HAVE_CHARSET */
+     tmp_profile = g_build_filename (home_dir, MC_USERCONF_DIR, MC_CONFIG_FILE, NULL);
+     ret = mc_config_save_to_file (mc_main_config, tmp_profile, NULL);
+@@ -813,11 +815,17 @@ load_setup (void)
+ 	buffer = mc_config_get_string(mc_main_config, "Misc", "source_codepage", "");
+ 	if ( buffer[0] != '\0' )
+ 	{
+-	    source_codepage = get_codepage_index( buffer );
++	    default_source_codepage = get_codepage_index( buffer );
++	    source_codepage = default_source_codepage; /* Mabye source_codepage don't needed this */
+ 	    cp_source = get_codepage_id (source_codepage);
+ 	}
+ 	g_free(buffer);
+-    }
++   }
++
++  autodetect_codeset = mc_config_get_string(mc_main_config, "Misc", "autodetect_codeset", "");
++	if ( (autodetect_codeset[0] != '\0') && ( strcmp(autodetect_codeset, "off") ) )
++      is_autodetect_codeset_enabled=TRUE;
++
+     init_translation_table( source_codepage, display_codepage );
+     if ( get_codepage_id( display_codepage ) )
+         utf8_display = str_isutf8 (get_codepage_id( display_codepage ));
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index 8bf14ef..7c20e80 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -174,6 +174,11 @@ mcview_display_status (mcview_t * view)
+                 tty_printf (_(">= %s bytes"), size_trunc (filesize));
+             }
+         }
++	if (width > 62 + 11){
++	    char* cp = get_codepage_id (source_codepage);
++	    if(cp)
++		tty_printf ("    %s", cp);
++        }
+         if (width > 26) {
+             mcview_percent (view, view->hex_mode ? view->hex_cursor : view->dpy_end);
+         }

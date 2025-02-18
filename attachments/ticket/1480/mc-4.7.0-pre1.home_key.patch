@@ -1,0 +1,22 @@
+diff -Naur mc-4.7.0-pre1~/edit/edit.c mc-4.7.0-pre1/edit/edit.c
+--- mc-4.7.0-pre1~/edit/edit.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/edit.c	2009-08-07 00:34:36.000000000 +0300
+@@ -2705,6 +2705,18 @@
+ 	break;
+     case CK_Home:
+     case CK_Home_Highlight:
++	if (/*edit_get_col(edit) == 0*/edit_bol(edit, edit->curs1) == edit->curs1) {
++	    int c = edit_get_byte(edit, edit->curs1);
++	    int skip = 0;
++	    while (c == ' ' || c == '\t') {
++		skip++;
++		c = edit_get_byte(edit, edit->curs1 + skip);
++	    }
++	    if (c != '\n') {
++		edit_cursor_move(edit, skip);
++	    }
++	    break;
++	}
+ 	edit_cursor_to_bol (edit);
+ 	break;
+     case CK_End:

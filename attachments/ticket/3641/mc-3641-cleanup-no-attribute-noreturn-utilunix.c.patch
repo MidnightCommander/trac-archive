@@ -1,0 +1,27 @@
+From 4b46afebfb0d20b7e446466fa0212f35d2ab1642 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 19:48:06 +0000
+Subject: [PATCH] (utilunix.c) Cleanup no attribute noreturn warning
+
+Cleanup -Wsuggest-attribute=noreturn warning.
+
+utilunix.c:360:1: error: function might be candidate for attribute 'noreturn' [-Wsuggest-attribute=noreturn]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/utilunix.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index 4153bdd..de42179 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -356,7 +356,7 @@ save_stop_handler (void)
+  * @param status exit code
+  */
+ 
+-void
++void __attribute__ ((noreturn))
+ my_exit (int status)
+ {
+     _exit (status);

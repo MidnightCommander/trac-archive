@@ -1,0 +1,30 @@
+From 7534a115c701383c49e28ca0f37afaa4c42a15b9 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 13:32:33 +0000
+Subject: [PATCH] (edit.c) Cleanup -Wunsafe-loop-optimizations
+
+Cleanup -Wunsafe-loop-optimizations warning.
+
+edit.c: In function 'edit_move_block_to_left':
+edit.c:1652:13: warning: cannot optimize possibly infinite loops [-Wunsafe-loop-optimizations]
+             for (i = 1; i <= del_tab_width; i++)
+             ^~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/edit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e70945d..08700cb 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -1649,7 +1649,7 @@ edit_move_block_to_left (WEdit * edit)
+         if (next_char == '\t')
+             edit_delete (edit, TRUE);
+         else if (next_char == ' ')
+-            for (i = 1; i <= del_tab_width; i++)
++            for (i = 0; i < del_tab_width; i++)
+             {
+                 if (next_char == ' ')
+                     edit_delete (edit, TRUE);

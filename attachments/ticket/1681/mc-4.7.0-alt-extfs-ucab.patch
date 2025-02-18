@@ -1,0 +1,97 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 493e8c5..bb5b4b7 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -154,6 +154,11 @@ regex/\.a(rj|[0-9][0-9])$
+ 	Open=%cd %p#uarj
+ 	View=%view{ascii} unarj l %f
+ 
++# cab
++regex/\.([cC][aA][bB])$
++	Open=%cd %p#ucab
++	View=%view{ascii} cabextract -l %f
++
+ # ha
+ regex/\.([Hh][Aa])$
+ 	Open=%cd %p#uha
+diff --git a/vfs/extfs/Makefile.am b/vfs/extfs/Makefile.am
+index 48253f3..4d10507 100644
+--- a/vfs/extfs/Makefile.am
++++ b/vfs/extfs/Makefile.am
+@@ -6,7 +6,7 @@ EXTFSCONFFILES = extfs.ini sfs.ini
+ EXTFS_MISC  = README
+ 
+ # Scripts hat don't need adaptation to the local system
+-EXTFS_CONST = bpp rpm trpm srpm u7z
++EXTFS_CONST = bpp rpm trpm srpm u7z ucab
+ 
+ # Scripts that need adaptation to the local system - source files
+ EXTFS_IN    = 			\
+@@ -62,6 +62,7 @@ EXTFS_OUT = 			\
+ 	uzip			\
+ 	uzoo
+ 
++
+ if USE_VFS
+ extfs_DATA = $(EXTFS_MISC)
+ extfs_SCRIPTS = $(EXTFS_CONST) $(EXTFS_OUT)
+diff --git a/vfs/extfs/extfs.ini b/vfs/extfs/extfs.ini
+index bfc6e91..47dc69b 100644
+--- a/vfs/extfs/extfs.ini
++++ b/vfs/extfs/extfs.ini
+@@ -14,6 +14,9 @@ uarj
+ uarc
+ uace
+ 
++# For cab files
++ucab
++
+ # ar is used for static libraries
+ uar
+ 
+diff --git a/vfs/extfs/ucab b/vfs/extfs/ucab
+new file mode 100644
+index 0000000..e6bded3
+--- /dev/null
++++ b/vfs/extfs/ucab
+@@ -0,0 +1,40 @@
++#! /bin/sh
++
++CAB=cabextract
++
++mccabfs_list ()
++{
++    $CAB -l "$1" | gawk -v uid=`id -un` -v gid=`id -gn` '
++BEGIN { flag=0 }
++/^-------/ { flag++; if (flag > 1) exit 0; next }
++{
++if (flag == 0) next
++if (length($6) == 0) next
++pr="-rw-r--r--"
++split($3, a, ".")
++split($4, b, ":")
++printf "%s 1 %s %s %d %02d/%02d/%02d %02d:%02d  %s\n", pr, uid, gid, $1, a[2], a[1], a[3], b[1], b[2], $6
++}'
++
++}
++
++mccabfs_copyout ()
++{
++    $CAB -F "$2" -p "$1" > "$3"
++}
++
++LC_ALL=C
++export LC_ALL
++
++umask 077
++
++cmd="$1"
++
++case "$cmd" in
++  # Workaround for a bug in mc - directories must precede files to
++  # avoid duplicate entries, so we sort output by filenames
++  list)    mccabfs_list    "$2" ;;
++  copyout) mccabfs_copyout "$2" "$3" "$4" ;;
++  *) exit 1 ;;
++esac
++exit 0

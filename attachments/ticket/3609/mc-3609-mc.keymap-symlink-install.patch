@@ -1,0 +1,38 @@
+From 9d5cf9f1ef6ee10dfb90c3afd03907c8b4ad2b3b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 15 Mar 2016 07:40:12 +0000
+Subject: [PATCH] mc.keymap: Install as symlink
+
+Install mc.keymap as symlink to mc.default.keymap file.
+
+Save space and fix RPMlint warning found by OBS Framework (build.opensuse.org).
+
+mc.x86_64: W: files-duplicate /etc/mc/mc.keymap /etc/mc/mc.default.keymap
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ misc/Makefile.am | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/misc/Makefile.am b/misc/Makefile.am
+index db4ddc3..0533eb2 100644
+--- a/misc/Makefile.am
++++ b/misc/Makefile.am
+@@ -22,7 +22,6 @@ SCRIPTS_OUT = \
+ 
+ LIBFILES_CONST = \
+ 	filehighlight.ini \
+-	mc.keymap \
+ 	mc.default.keymap \
+ 	mc.emacs.keymap
+ 
+@@ -52,3 +51,9 @@ EXTRA_DIST = \
+ if !CHARSET
+ EXTRA_DIST += mc.charsets
+ endif
++
++install-data-hook:
++	cd $(DESTDIR)$(cfgdir) && rm -f mc.keymap && $(LN_S) mc.default.keymap mc.keymap
++
++uninstall-hook:
++	cd $(DESTDIR)$(cfgdir) && rm -f mc.keymap

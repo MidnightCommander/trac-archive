@@ -1,0 +1,26 @@
+diff --git a/lib/strutil/strutilutf8.c b/lib/strutil/strutilutf8.c
+index efec6be54..3d655019f 100644
+--- a/lib/strutil/strutilutf8.c
++++ b/lib/strutil/strutilutf8.c
+@@ -38,6 +38,12 @@
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
++#if GLIB_CHECK_VERSION (2, 30, 0)
++#define SPACING_MARK G_UNICODE_SPACING_MARK
++#else
++#define SPACING_MARK G_UNICODE_COMBINING_MARK
++#endif
++
+ /*** file scope type declarations ****************************************************************/
+ 
+ struct utf8_tool
+@@ -70,7 +76,7 @@ str_unichar_iscombiningmark (gunichar uni)
+     GUnicodeType type;
+ 
+     type = g_unichar_type (uni);
+-    return (type == G_UNICODE_COMBINING_MARK)
++    return (type == SPACING_MARK)
+         || (type == G_UNICODE_ENCLOSING_MARK) || (type == G_UNICODE_NON_SPACING_MARK);
+ }
+ 

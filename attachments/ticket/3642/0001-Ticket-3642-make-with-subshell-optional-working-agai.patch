@@ -1,0 +1,30 @@
+From e9ca401ee6dbd681519d55d96427d6c7c0344521 Mon Sep 17 00:00:00 2001
+From: Andrew Borodin <aborodin@vmail.ru>
+Date: Mon, 9 May 2016 16:50:04 +0300
+Subject: [PATCH] Ticket #3642: make --with-subshell=optional working again.
+
+The bug was introduced in 83b02196c823c56113091113e0381b5ab0489ac1.
+
+Signed-off-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ lib/shell.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/shell.c b/lib/shell.c
+index 485358f..6f07cb0 100644
+--- a/lib/shell.c
++++ b/lib/shell.c
+@@ -241,7 +241,9 @@ mc_shell_init (void)
+     if (mc_shell->type == SHELL_NONE)
+         mc_shell_recognize_path (mc_shell);
+ 
+-    mc_global.tty.use_subshell = mc_shell->type != SHELL_NONE;
++    if (mc_shell->type == SHELL_NONE)
++        mc_global.tty.use_subshell = FALSE;
++
+     mc_global.shell = mc_shell;
+ }
+ 
+-- 
+2.7.4
+

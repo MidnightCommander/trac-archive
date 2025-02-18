@@ -1,0 +1,25 @@
+From cee105c40952d4855ba47640825f157133865974 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 8 Jan 2016 13:44:25 +0200
+Subject: [PATCH] Makefile is missing subshell.h
+
+---
+ src/subshell/Makefile.am | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/subshell/Makefile.am b/src/subshell/Makefile.am
+index e74a0c2..2da9484 100644
+--- a/src/subshell/Makefile.am
++++ b/src/subshell/Makefile.am
+@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libsubshell.la
+ libsubshell_la_SOURCES = \
+ 	common.c \
+ 	internal.h \
+-	proxyfunc.c
++	proxyfunc.c \
++	subshell.h
+ 
+ AM_CPPFLAGS = -I$(top_srcdir) $(GLIB_CFLAGS) $(PCRE_CPPFLAGS)
+-- 
+2.5.0
+

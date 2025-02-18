@@ -1,0 +1,53 @@
+From 6ccd53fe780c40e4a92e84e6c7dd46595e710f7a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 12:05:30 +0000
+Subject: [PATCH] (find.c) Cleanup -Wformat-signedness warning
+
+Cleanup -Wformat-signedness warning.
+
+find.c: In function 'found_num_update':
+find.c:373:44: error: format '%ld' expects argument of type 'long int', but argument 4 has type 'long unsigned int' [-Werror=format=]
+     g_snprintf (buffer, sizeof (buffer), _("Found: %ld"), matches);
+                                            ^
+
+find.c: In function 'do_search':
+find.c:1306:51: error: format '%zd' expects argument of type 'signed size_t', but argument 4 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+                                                   "Finished (ignored %zd directories)",
+                                                   ^
+find.c:1305:51: error: format '%zd' expects argument of type 'signed size_t', but argument 4 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+                                         ngettext ("Finished (ignored %zd directory)",
+                                                   ^
+
+file.c:2526:41: error: format '%zd' expects argument of type 'signed size_t', but argument 3 has type 'size_t {aka long unsigned int}' [-Werror=format=]
+     label_set_textv (dsm->count_size, _("Directories: %zd, total size: %s"),
+                                         ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/find.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index 1db7ccc..78d8a07 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -370,7 +370,7 @@ static void
+ found_num_update (void)
+ {
+     char buffer[BUF_TINY];
+-    g_snprintf (buffer, sizeof (buffer), _("Found: %ld"), matches);
++    g_snprintf (buffer, sizeof (buffer), _("Found: %lu"), matches);
+     label_set_text (found_num_label, buffer);
+ }
+ 
+@@ -1302,8 +1302,8 @@ do_search (WDialog * h)
+                         {
+                             char msg[BUF_SMALL];
+                             g_snprintf (msg, sizeof (msg),
+-                                        ngettext ("Finished (ignored %zd directory)",
+-                                                  "Finished (ignored %zd directories)",
++                                        ngettext ("Finished (ignored %zu directory)",
++                                                  "Finished (ignored %zu directories)",
+                                                   ignore_count), ignore_count);
+                             status_update (msg);
+                         }

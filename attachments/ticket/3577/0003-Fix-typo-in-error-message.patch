@@ -1,0 +1,26 @@
+From 49d57a7b782e0f8a1fa8345a75261b017b2f92b9 Mon Sep 17 00:00:00 2001
+From: Andrey Gursky <andrey.gursky@e-mail.ua>
+Date: Sat, 19 Dec 2015 06:39:38 +0100
+Subject: [PATCH] Fix typo in error message
+
+Fixes typo in error message
+---
+ src/filemanager/file.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 10d1d00..2570cf2 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -1803,7 +1803,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+             else
+                 while ((n_read = mc_read (src_desc, buf, sizeof (buf))) < 0 && !ctx->skip_all)
+                 {
+-                    return_status = file_error (_("Cannot read source file\"%s\"\n%s"), src_path);
++                    return_status = file_error (_("Cannot read source file \"%s\"\n%s"), src_path);
+                     if (return_status == FILE_RETRY)
+                         continue;
+                     if (return_status == FILE_SKIPALL)
+-- 
+2.6.2
+

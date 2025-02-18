@@ -1,0 +1,90 @@
+
+Implement showing an EOL mark.
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+
+---
+ edit/edit.c        |    4 ++--
+ edit/edit.h        |    1 +
+ edit/editdraw.c    |    3 ++-
+ edit/editoptions.c |   12 ++++++++++++
+ 4 files changed, 17 insertions(+), 3 deletions(-)
+
+Index: mc-4.6.2-pre1/edit/edit.c
+===================================================================
+--- mc-4.6.2-pre1.orig/edit/edit.c
++++ mc-4.6.2-pre1/edit/edit.c
+@@ -2652,8 +2652,8 @@ edit_execute_cmd (WEdit *edit, int comma
+ 	break;
+ 
+     case CK_Toggle_Syntax2:
+-	++option_highlighting;
+-	option_highlighting %= 4;
++	option_highlighting = (((option_highlighting & 0x3) + 1) % 4) |
++	                      (option_highlighting & ~0x3);
+ 	edit->force |= REDRAW_PAGE;
+ 	break;
+ 
+Index: mc-4.6.2-pre1/edit/edit.h
+===================================================================
+--- mc-4.6.2-pre1.orig/edit/edit.h
++++ mc-4.6.2-pre1/edit/edit.h
+@@ -310,6 +310,7 @@ typedef enum {
+ enum {
+ 	HL_WHITESPACE = 1 << 0,
+ 	HL_TABS       = 1 << 1,
++	HL_EOL        = 1 << 2,
+ };
+ 
+ extern int option_save_mode;
+Index: mc-4.6.2-pre1/edit/editdraw.c
+===================================================================
+--- mc-4.6.2-pre1.orig/edit/editdraw.c
++++ mc-4.6.2-pre1/edit/editdraw.c
+@@ -347,7 +347,8 @@ edit_draw_this_line (WEdit *edit, long b
+ 		switch (c) {
+ 		case '\n':
+ 		    col = end_col - edit->start_col + 1;	/* quit */
+-		    p->ch = ' ';
++		    p->ch = (option_highlighting & HL_EOL) ? 0xB6 : ' ';
++		    p->style |= MOD_WHITESPACE;
+ 		    p++;
+ 		    break;
+ 		case '\t':
+Index: mc-4.6.2-pre1/edit/editoptions.c
+===================================================================
+--- mc-4.6.2-pre1.orig/edit/editoptions.c
++++ mc-4.6.2-pre1/edit/editoptions.c
+@@ -68,6 +68,7 @@ void edit_syntax_opt_dialog(void)
+ 	int f_syntax_hl = option_syntax_highlighting;
+ 	int f_tab_hl    = option_highlighting & HL_TABS;
+ 	int f_ws_hl     = option_highlighting & HL_WHITESPACE;
++	int f_ws_eol    = option_highlighting & HL_EOL;
+ 
+ 	int old_syntax_hl = f_syntax_hl;
+ 
+@@ -94,6 +95,15 @@ void edit_syntax_opt_dialog(void)
+ 			.widget_type = quick_checkbox,
+ 			.relative_x  = 6,
+ 			.x_divisions = OPT_DLG_W,
++			.relative_y  = 7,
++			.y_divisions = OPT_DLG_H,
++			.text        = N_("EOL highlighting"),
++			.result      = &f_ws_eol,
++		},
++		{
++			.widget_type = quick_checkbox,
++			.relative_x  = 6,
++			.x_divisions = OPT_DLG_W,
+ 			.relative_y  = 6,
+ 			.y_divisions = OPT_DLG_H,
+ 			.text        = N_("Whitespace highlighting"),
+@@ -142,6 +152,8 @@ void edit_syntax_opt_dialog(void)
+ 		option_highlighting |= HL_TABS;
+ 	if (f_ws_hl)
+ 		option_highlighting |= HL_WHITESPACE;
++	if (f_ws_eol)
++		option_highlighting |= HL_EOL;
+ }
+ #undef OPT_DLG_H
+ #undef OPT_DLG_W

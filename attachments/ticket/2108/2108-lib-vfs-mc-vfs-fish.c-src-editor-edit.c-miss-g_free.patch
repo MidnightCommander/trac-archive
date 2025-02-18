@@ -1,0 +1,72 @@
+From 6af62610eedd446a29f94508cde1e4409b593505 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 16 Mar 2010 21:59:29 +0000
+Subject: [PATCH]  lib/vfs/mc-vfs/fish.c src/editor/edit.c missing g_free
+
+---
+ lib/vfs/mc-vfs/fish.c |    3 ++-
+ src/editor/edit.c     |   13 +++++++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/lib/vfs/mc-vfs/fish.c b/lib/vfs/mc-vfs/fish.c
+index 317ece2..b9e32e7 100644
+--- a/lib/vfs/mc-vfs/fish.c
++++ b/lib/vfs/mc-vfs/fish.c
+@@ -821,7 +821,8 @@ fish_linear_start (struct vfs_class *me, struct vfs_s_fh *fh, off_t offset)
+     name = vfs_s_fullpath (me, fh->ino);
+     if (!name)
+ 	return 0;
+-    quoted_name = strutils_shell_escape(name);
++    quoted_name = strutils_shell_escape (name);
++    g_free (name);
+     fh->u.fish.append = 0;
+ 
+     /*
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index b88e294..1d0408c 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -208,6 +208,7 @@ int edit_get_utf (WEdit * edit, long byte_index, int *char_width)
+             width = 0;
+         }
+     }
++    g_free (str);
+     *char_width = width;
+     return ch;
+ }
+@@ -236,15 +237,22 @@ int edit_get_prev_utf (WEdit * edit, long byte_index, int *char_width)
+     }
+ 
+     str = edit_get_byte_ptr (edit, byte_index);
+-    buf = edit_get_buf_ptr (edit, byte_index);
+-    if (str == NULL || buf == NULL) {
++    if (str == NULL) {
+         *char_width = 0;
+         return 0;
+     }
++    buf = edit_get_buf_ptr (edit, byte_index);
++    if (buf == NULL) {
++        g_free (str);
++        *char_width = 0;    
++        return 0;
++    }
+     /* get prev utf8 char */
+     if (str != buf)
+         str = g_utf8_find_prev_char (buf, str);
+ 
++    g_free (buf);
++
+     res = g_utf8_get_char_validated (str, -1);
+ 
+     if (res < 0) {
+@@ -261,6 +269,7 @@ int edit_get_prev_utf (WEdit * edit, long byte_index, int *char_width)
+             width = 0;
+         }
+     }
++    g_free (str);
+     *char_width = width;
+     return ch;
+ }
+-- 
+1.6.4
+

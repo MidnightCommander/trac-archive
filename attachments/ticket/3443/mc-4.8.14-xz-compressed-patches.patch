@@ -1,0 +1,35 @@
+diff -Naur mc-4.8.14.orig/misc/mc.ext.in mc-4.8.14/misc/mc.ext.in
+--- mc-4.8.14.orig/misc/mc.ext.in	2015-04-10 13:18:52.380182943 +0200
++++ mc-4.8.14/misc/mc.ext.in	2015-04-10 13:21:10.404179397 +0200
+@@ -216,6 +216,10 @@
+ 	Open=%cd %p/patchfs://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view gz
+ 
++regex/\.(diff|patch)(\.xz)$
++    Open=%cd %p/patchfs://
++    View=%view{ascii} @EXTHELPERSDIR@/archive.sh view xz
++
+ # ls-lR
+ regex/(^|\.)ls-?lR(\.gz|Z|bz2)$
+ 	Open=%cd %p/lslR://
+diff -Naur mc-4.8.14.orig/src/vfs/extfs/helpers/patchfs.in mc-4.8.14/src/vfs/extfs/helpers/patchfs.in
+--- mc-4.8.14.orig/src/vfs/extfs/helpers/patchfs.in	2013-04-10 22:04:31.000000000 +0200
++++ mc-4.8.14/src/vfs/extfs/helpers/patchfs.in	2015-04-10 13:27:21.056169874 +0200
+@@ -80,7 +80,7 @@
+     $_=`$fileutil $qfname`;
+     if (/^'*lzma/) {
+ 	return "$lzma -dc $qfname";
+-    } elsif (/^'*xz/) {
++    } elsif (/^'*[xz|XZ]/) {
+ 	return "$xz -dc $qfname";
+     } elsif (/^'*bzip/) {
+ 	return "$bzip -dc $qfname";
+@@ -100,7 +100,7 @@
+     $_=`$fileutil $qfname`;
+     if (/^'*lzma/) {
+ 	return "$lzma -c $sep $qfname";
+-    } elsif (/^'*xz/) {
++    } elsif (/^'*[xz|XZ]/) {
+ 	return "$xz -c $sep $qfname";
+     } elsif (/^'*bzip/) {
+ 	return "$bzip -c $sep $qfname";

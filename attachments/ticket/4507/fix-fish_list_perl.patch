@@ -1,0 +1,14 @@
+--- ls.orig	2023-10-14 23:27:51.848430166 +0300
++++ ls	2023-10-14 23:33:03.534417570 +0300
+@@ -123,9 +123,8 @@
+ perl -e '
+ use strict;
+ use POSIX;
+-use Fcntl;
+-use POSIX ":fcntl_h"; #S_ISLNK was here until 5.6
+-import Fcntl ":mode" unless defined &S_ISLNK; #and is now here
++use Fcntl ":mode";	#S_ISLNK, S_IFMT, S_IMODE are here
++use POSIX ":fcntl_h";	#S_ISLNK might be here as well
+ my $dirname = $ARGV[0];
+ if (opendir (DIR, $dirname)) {
+ while((my $filename = readdir (DIR))){

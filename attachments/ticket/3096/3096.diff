@@ -1,0 +1,27 @@
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 29e66a0..00e7c25 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -1702,17 +1702,15 @@ void
+ save_setup_cmd (void)
+ {
+     vfs_path_t *vpath;
+-    char *path;
+ 
+-    vpath = mc_config_get_full_vpath (MC_CONFIG_FILE);
+-    path = vfs_path_to_str_flags (vpath, 0, VPF_STRIP_HOME);
+-    vfs_path_free (vpath);
++    vpath = vfs_path_from_str_flags (mc_config_get_path (), VPF_STRIP_HOME);
+ 
+     if (save_setup (TRUE, TRUE))
+-        message (D_NORMAL, _("Setup"), _("Setup saved to %s"), path);
++        message (D_NORMAL, _("Setup"), _("Setup saved to %s"), vpath->str);
+     else
+-        message (D_ERROR, _("Setup"), _("Unable to save setup to %s"), path);
+-    g_free (path);
++        message (D_ERROR, _("Setup"), _("Unable to save setup to %s"), vpath->str);
++
++    vfs_path_free (vpath);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

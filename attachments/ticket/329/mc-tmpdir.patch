@@ -1,0 +1,11 @@
+--- mc-4.6.1.old/src/util.h	Thu Jan 13 21:20:47 2005
++++ mc-4.6.1/src/util.h	Wed Apr 15 00:09:40 2009
+@@ -208,7 +208,7 @@
+ #define PATH_SEP '/'
+ #define PATH_SEP_STR "/"
+ #define PATH_ENV_SEP ':'
+-#define TMPDIR_DEFAULT "/tmp"
++#define TMPDIR_DEFAULT "/var/tmp"
+ #define SCRIPT_SUFFIX ""
+ #define get_default_editor() "vi"
+ #define OS_SORT_CASE_SENSITIVE_DEFAULT 1

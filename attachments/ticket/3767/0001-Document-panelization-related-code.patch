@@ -1,0 +1,78 @@
+From 9cc4d3ab1a03f44fe4852889c79376c0f48e8cbe Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 18 Feb 2017 20:30:36 +0200
+Subject: [PATCH 1/4] Document panelization-related code.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ src/filemanager/panel.c    | 11 +++++++++++
+ src/filemanager/panelize.c | 16 ++++++++++++++--
+ 2 files changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 1a41001..a1e3b73 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -83,6 +83,17 @@
+ /* The hook list for the select file function */
+ hook_t *select_file_hook = NULL;
+ 
++/*
++ * 'panelized_panel' is a place where a list of files can be stored.
++ *
++ * Right after running "Find file" or "External panelize" (@todo), the contents of
++ * the panelized panel gets stored here. This makes it possible for the
++ * user to come back to this listing later if he exits panelization mode.
++ *
++ * @todo: Make this a static variable of 'panelize.c' and don't use it in
++ * this file. Figure out if panelized_panel.root_vpath should really be used
++ * here.
++ */
+ /* *INDENT-OFF* */
+ panelized_panel_t panelized_panel = { {NULL, 0, -1}, NULL };
+ /* *INDENT-ON* */
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 15792ff..d7fdb60 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -381,8 +381,14 @@ do_external_panelize (char *command)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Restores the contents of the panel from a previously saved snapshot (the
++ * variable 'panelized_panel').
++ *
++ * This is the opposite of panelize_save_panel().
++ */
+ static void
+-do_panelize_cd (WPanel * panel)
++panelize_restore_panel (WPanel * panel)
+ {
+     int i;
+     dir_list *list;
+@@ -452,6 +458,12 @@ panelize_change_root (const vfs_path_t * new_root)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Stores the contents of the panel into a snapshot (the variable
++ * 'panelized_panel') so it may be restored later.
++ *
++ * This is the opposite of panelize_restore_panel().
++ */
+ void
+ panelize_save_panel (WPanel * panel)
+ {
+@@ -492,7 +504,7 @@ cd_panelize_cmd (void)
+     if (!SELECTED_IS_PANEL)
+         set_display_type (MENU_PANEL_IDX, view_listing);
+ 
+-    do_panelize_cd (PANEL (get_panel_widget (MENU_PANEL_IDX)));
++    panelize_restore_panel (PANEL (get_panel_widget (MENU_PANEL_IDX)));
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-- 
+2.9.3
+

@@ -1,0 +1,38 @@
+From af45ef3fdd812ca0f7681302c20c8497029685c9 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 27 Feb 2016 19:25:30 +0000
+Subject: [PATCH] fish: provide major/minor info for block/char devices
+
+currently mc fish helper provide no major/minor info for block/char devices
+
+fix #3599 reported by ahauras
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/fish/helpers/ls | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/fish/helpers/ls b/src/vfs/fish/helpers/ls
+index 4547272..1284e17 100755
+--- a/src/vfs/fish/helpers/ls
++++ b/src/vfs/fish/helpers/ls
+@@ -107,7 +107,7 @@ while read p l u g a i m d y n n2 n3; do
+             n=$n" "$n2" "$n3
+         fi
+         echo "P$p $u $g"
+-        echo "S$s"
++        echo "E$a$i"
+         echo "d$m $d $y"
+         echo ":"$n
+         echo
+@@ -138,6 +138,10 @@ while((my $filename = readdir (DIR))){
+         my $linkname = readlink ("$dirname/$filename");
+         $linkname =~ $strutils_shell_escape_regex;
+         printf("R%%o %%o $uid.$gid\nS$size\nd$mloctime\n:\"%%s\" -> \"%%s\"\n\n", S_IMODE($mode), S_IFMT($mode), $e_filename, $linkname);
++    } elseif (S_ISCHR ($mode) || S_ISBLK ($mode)) {
++        my $minor = $rdev % 256;
++        my $major = int( $rdev / 256 );
++        printf("R%%o %%o $uid.$gid\nE$major,$minor\nd$mloctime\n:\"%%s\"\n\n", S_IMODE($mode), S_IFMT($mode), $e_filename);
+     } else {
+         printf("R%%o %%o $uid.$gid\nS$size\nd$mloctime\n:\"%%s\"\n\n", S_IMODE($mode), S_IFMT($mode), $e_filename);
+     }

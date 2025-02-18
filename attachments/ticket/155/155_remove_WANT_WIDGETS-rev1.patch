@@ -1,0 +1,55 @@
+diff --git a/src/filegui.c b/src/filegui.c
+index 441adb7..4f0579f 100644
+--- a/src/filegui.c
++++ b/src/filegui.c
+@@ -58,7 +58,6 @@
+ #include "dialog.h"		/* do_refresh() */
+ #include "color.h"		/* dialog_colors */
+ #include "widget.h"		/* WLabel */
+-#define WANT_WIDGETS
+ #include "main.h"		/* the_hint */
+ #include "wtools.h"		/* QuickDialog */
+ #include "panel.h"		/* current_panel */
+diff --git a/src/layout.c b/src/layout.c
+index 9f3616f..eb4bdd9 100644
+--- a/src/layout.c
++++ b/src/layout.c
+@@ -51,7 +51,6 @@
+ #include "command.h"
+ #include "profile.h"		/* For sync_profiles() */
+ #include "mouse.h"
+-#define WANT_WIDGETS
+ #include "main.h"
+ #include "subshell.h"	/* For use_subshell and resize_subshell() */
+ #include "tree.h"
+diff --git a/src/main.h b/src/main.h
+index 3f3c695..d0ef24d 100644
+--- a/src/main.h
++++ b/src/main.h
+@@ -116,14 +116,12 @@ char *get_mc_lib_dir (void);
+ int maybe_cd (int move_up_dir);
+ void do_possible_cd (const char *dir);
+ 
+-#ifdef WANT_WIDGETS
+ extern WButtonBar *the_bar;
+ extern WLabel     *the_prompt;
+ extern WLabel     *the_hint;
+ extern Dlg_head   *midnight_dlg;
+ 
+ extern struct WMenu *the_menubar;
+-#endif /* WANT_WIDGETS */
+ 
+ void done_menu (void);
+ void init_menu (void);
+diff --git a/src/screen.c b/src/screen.c
+index 74604f4..036795f 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -47,7 +47,6 @@
+ #include "execute.h"
+ #include "widget.h"
+ #include "menu.h"		/* menubar_visible */
+-#define WANT_WIDGETS
+ #include "main.h"		/* the_menubar */
+ #include "unixcompat.h"
+ 

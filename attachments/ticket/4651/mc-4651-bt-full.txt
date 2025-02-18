@@ -1,0 +1,84 @@
+#0  mc_g_string_copy (dest=0x60156b225040, src=0x60136a4949ef)
+    at glibcompat.c:248
+        __func__ = "mc_g_string_copy"
+#1  0x00006015411bb277 in string_file_name (fe=<optimized out>, 
+    len=<optimized out>) at panel.c:356
+No locals.
+#2  0x00006015411bb3bb in format_file (panel=panel@entry=0x60156b1fdaa0, 
+    file_index=file_index@entry=-30, width=width@entry=38, 
+    attr=attr@entry=FATTR_NORMAL, isstatus=isstatus@entry=0, 
+    field_length=field_length@entry=0x7ffd47c47ef4) at panel.c:719
+        len = <optimized out>
+        perm = 0
+        prepared_text = <optimized out>
+        name_offset = 0
+        txt = 0x601541260724 " "
+        fi = 0x60156b2251e0
+        color = -21
+        length = 1
+        format = 0x60156b203870 = {0x60156b2251e0, 0x60156b2256c0, 
+          0x60156b225650, 0x60156b2255e0, 0x60156b225590}
+        home = <optimized out>
+        fe = 0x60156b20f8c0
+        res = <optimized out>
+#3  0x00006015411bba82 in repaint_file (panel=panel@entry=0x60156b1fdaa0, 
+    file_index=-30, attr=FATTR_NORMAL) at panel.c:839
+        w = 0x60156b1fdaa0
+        nth_column = 0
+        width = 38
+        offset = 0
+        ret_frm = <optimized out>
+        ypos = 2
+        panel_is_split = <optimized out>
+        fln = 0
+#4  0x00006015411bbb71 in paint_dir (panel=panel@entry=0x60156b1fdaa0)
+    at panel.c:983
+        attr = <optimized out>
+        n = <optimized out>
+        marked = <optimized out>
+        i = 0
+        items = 51
+#5  0x00006015411be989 in move_down (panel=0x60156b1fdaa0) at panel.c:2078
+        items = <optimized out>
+#6  0x00006015411c1537 in move_down (panel=0x60156b1fdaa0) at panel.c:2064
+        items = <optimized out>
+#7  panel_mouse_callback (w=0x60156b1fdaa0, msg=<optimized out>, 
+    event=0x7ffd47c47fa0) at panel.c:4019
+        my_index = -2
+        previous_current = 50
+        panel = 0x60156b1fdaa0
+        is_active = <optimized out>
+#8  0x00006015412555d0 in mouse_process_event (w=0x60156b1fdaa0, 
+    event=0x7ffd47c47fa0) at mouse.c:182
+        ret = 0
+        ret = <optimized out>
+#9  mouse_handle_event (w=0x60156b1fdaa0, event=0x7ffd47c48050) at mouse.c:223
+        me = {msg = MSG_MOUSE_DRAG, x = 12, y = 54, buttons = 4, count = 0, 
+          result = {abort = 0, repeat = 0}}
+#10 0x000060154124c818 in group_handle_mouse_event (w=0x60156b1f9e30, 
+    event=0x7ffd47c48050) at group.c:736
+        ret = <optimized out>
+        wp = <optimized out>
+        p = 0x60156b203ba0 = {0x60156b1fdaa0}
+        g = 0x60156b1f9e30
+#11 0x000060154124b9a9 in dlg_process_event (h=0x60156b1f9e30, 
+    key=<optimized out>, event=<optimized out>) at dialog.c:534
+        w = 0x60156b1f9e30
+#12 0x000060154124bd0e in frontend_dlg_run (h=0x60156b1f9e30) at dialog.c:321
+        d_key = <optimized out>
+        wh = 0x60156b1f9e30
+        event = {buttons = 4 '\004', modifiers = 128 '\200', vc = 18372, 
+          dx = 32765, dy = 0, x = 53, y = 56, type = GPM_DRAG, clicks = 0, 
+          margin = 0, wdx = 7, wdy = 0}
+        wh = <optimized out>
+        event = <optimized out>
+        d_key = <optimized out>
+#13 dlg_run (h=0x60156b1f9e30) at dialog.c:573
+No locals.
+#14 0x00006015411b1d4e in do_nc () at filemanager.c:1826
+        ret = <optimized out>
+#15 0x00006015411a26d7 in main (argc=<optimized out>, argv=<optimized out>)
+    at main.c:469
+        mcerror = 0x0
+        exit_code = 1
+        tmpdir = 0x6015412d4540 <buffer> "/tmp/mc-K5JM12"

@@ -1,0 +1,51 @@
+---
+ edit/editdraw.c |   35 +++++++----------------------------
+ 1 file changed, 7 insertions(+), 28 deletions(-)
+
+Index: mc-4.6.2-pre1/edit/editdraw.c
+===================================================================
+--- mc-4.6.2-pre1.orig/edit/editdraw.c
++++ mc-4.6.2-pre1/edit/editdraw.c
+@@ -355,35 +355,14 @@ edit_draw_this_line (WEdit *edit, long b
+ 		    i = TAB_SIZE - ((int) col % TAB_SIZE);
+ 		    col += i;
+ 		    if (use_colors && visible_tabs) {
++		    	int m = (i - 1) / 2;
+ 			c = (p->style & ~MOD_CURSOR) | MOD_WHITESPACE;
+-			if (i > 2) {
+-			    if (0 && (p->style & MOD_CURSOR)) {
+-				p->ch = ' ';
+-			    }
+-			    else {
+-				p->ch = 0x25C0;
+-				p->style |= MOD_WHITESPACE;
+-			    }
+-			    p++;
+-			    while (--i > 1) {
+-				p->style = c;
+-				p->ch = 0x2500;
+-				p++;
+-			    }
+-			    p->style = c;
+-			    p->ch = 0x25B6;
+-			    p++;
+-			} else if (i > 1) {
+-			    p->style |= MOD_WHITESPACE;
+-			    p->ch = 0x2190;
+-			    p++;
+-			    p->style = c;
+-			    p->ch = 0x2192;
+-			    p++;
+-			} else {
+-			    p->style |= MOD_WHITESPACE;
+-			    p->ch = 0x2194;
+-			    p++;
++			if (i > 0) {
++				while (i-- > 0) {
++					p->style = c;
++					p->ch = (i != m) ? ' ' : 0x2192;
++					++p;
++				}
+ 			}
+ 		    } else if (use_colors && visible_tws && q >= tws) {
+ 			if (0 && (p->style & MOD_CURSOR)) {

@@ -1,0 +1,20 @@
+--- urar.default	2010-02-10 18:00:13.000000000 +0500
++++ urar	2010-02-19 18:27:39.352656421 +0500
+@@ -28,7 +28,7 @@
+ 
+ mcrarfs_list ()
+ {
+-     $UNRAR v -c- "$1" | gawk -v uid=`id -u` -v gid=`id -g` '
++     $UNRAR v -c- -cfg- "$1" | gawk -v uid=`id -u` -v gid=`id -g` '
+ BEGIN { flag=0 }
+ /^-------/ { flag++; if (flag > 1) exit 0; next }
+ {
+@@ -69,7 +69,7 @@
+ 
+ mcrarfs_copyout ()
+ {
+-    $UNRAR p -p- -c- -inul "$1" "$2" > "$3"
++    $UNRAR p -p- -c- -cfg- -inul "$1" "$2" > "$3"
+ }
+ 
+ mcrarfs_mkdir ()

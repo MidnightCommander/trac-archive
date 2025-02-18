@@ -1,0 +1,13 @@
+diff -ur mc-4.7.0.9.orig/src/screen.c mc-4.7.0.9/src/screen.c
+--- mc-4.7.0.9.orig/src/screen.c	2010-10-17 22:39:11.000000000 +0200
++++ mc-4.7.0.9/src/screen.c	2010-10-17 22:39:35.000000000 +0200
+@@ -3230,9 +3230,6 @@
+         if (!is_active)
+             change_panel ();
+ 
+-        if (event->y > lines)
+-            return MOU_NORMAL;
+-
+         if (panel->top_file + event->y > panel->count)
+             my_index = panel->count - 1;
+         else

@@ -1,0 +1,34 @@
+From c7a25f0c0ea77ec865bc405a2df2f8b4953f7ea6 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 22:39:52 +0000
+Subject: [PATCH] avoid invalid free nodes display
+
+ticket #3214 illustrate that nfree & nodes can be (uintmax_t) -1
+don't print such numbers at info panel
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/info.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index 0824dbc..b6a5fef 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -149,8 +149,15 @@ info_show_info (WInfo * info)
+ 
+     case 16:
+         widget_move (w, 16, 3);
+-        if (myfs_stats.nfree == 0 && myfs_stats.nodes == 0)
++        if ((myfs_stats.nfree == 0 && myfs_stats.nodes == 0) ||
++            (myfs_stats.nfree == (uintmax_t) -1 && myfs_stats.nodes == (uintmax_t) -1))
+             tty_print_string (_("No node information"));
++        else if (myfs_stats.nfree == (uintmax_t) -1)
++            tty_printf ("%s -/%" PRIuMAX,
++                        _("Free nodes:"),myfs_stats.nodes);
++        else if (myfs_stats.nodes == (uintmax_t) -1)
++            tty_printf ("%s %" PRIuMAX "/-",
++                        _("Free nodes:"),myfs_stats.nfree);
+         else
+             tty_printf ("%s %" PRIuMAX "/%" PRIuMAX " (%d%%)",
+                         _("Free nodes:"),

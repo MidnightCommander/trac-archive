@@ -1,0 +1,94 @@
+diff -uNr mc-4.8.4.orig/src/editor/edit.c mc-4.8.4/src/editor/edit.c
+--- mc-4.8.4.orig/src/editor/edit.c	2012-09-02 10:16:44.000000000 +0400
++++ mc-4.8.4/src/editor/edit.c	2012-09-02 18:53:21.000000000 +0400
+@@ -90,6 +90,7 @@
+ int option_cursor_beyond_eol = 0;
+ int option_line_state = 0;
+ int option_line_state_width = 0;
++int option_supertab = 0;
+ 
+ int option_edit_right_extreme = 0;
+ int option_edit_left_extreme = 0;
+@@ -3924,6 +3925,11 @@
+                 edit_mark_cmd (edit, 0);
+             edit_move_block_to_right (edit);
+         }
++        //if we are neither at the bol nor after space characters
++        else if (option_supertab && !isspace (edit_get_byte (edit, edit->curs1 - 1)))
++        {
++            edit_complete_word_cmd (edit);
++        }
+         else
+         {
+             if (option_cursor_beyond_eol)
+@@ -4118,6 +4124,21 @@
+         {
+             edit_move_block_to_left (edit);
+         }
++        else if (option_supertab)
++        {
++            if (option_cursor_beyond_eol)
++                edit_insert_over (edit);
++            edit_tab_cmd (edit);
++            if (option_auto_para_formatting)
++            {
++                format_paragraph (edit, 0);
++                edit->force |= REDRAW_PAGE;
++            }
++            else
++            {
++                check_and_wrap_line (edit);
++            }
++        }
+         else
+         {
+             edit_complete_word_cmd (edit);
+diff -uNr mc-4.8.4.orig/src/editor/edit.h mc-4.8.4/src/editor/edit.h
+--- mc-4.8.4.orig/src/editor/edit.h	2012-09-02 10:16:44.000000000 +0400
++++ mc-4.8.4/src/editor/edit.h	2012-09-02 11:27:48.000000000 +0400
+@@ -45,6 +45,7 @@
+ extern int option_save_position;
+ extern int option_syntax_highlighting;
+ extern int option_group_undo;
++extern int option_supertab;
+ extern char *option_backup_ext;
+ 
+ extern int edit_confirm_save;
+diff -uNr mc-4.8.4.orig/src/editor/editoptions.c mc-4.8.4/src/editor/editoptions.c
+--- mc-4.8.4.orig/src/editor/editoptions.c	2012-09-02 10:16:44.000000000 +0400
++++ mc-4.8.4/src/editor/editoptions.c	2012-09-02 12:11:42.000000000 +0400
+@@ -46,7 +46,7 @@
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+-#define OPT_DLG_H 17
++#define OPT_DLG_H 18
+ #define OPT_DLG_W 74
+ 
+ /*** file scope type declarations ****************************************************************/
+@@ -127,10 +127,12 @@
+     QuickWidget quick_widgets[] = {
+         /*  0 */ QUICK_BUTTON (6, 10, OPT_DLG_H - 3, OPT_DLG_H, N_("&Cancel"), B_CANCEL, NULL),
+         /*  1 */ QUICK_BUTTON (2, 10, OPT_DLG_H - 3, OPT_DLG_H, N_("&OK"), B_ENTER, NULL),
+-        /*  2 */ QUICK_LABEL (OPT_DLG_W / 2 + 1, OPT_DLG_W, 12, OPT_DLG_H,
++        /*  2 */ QUICK_LABEL (OPT_DLG_W / 2 + 1, OPT_DLG_W, 13, OPT_DLG_H,
+                               N_("Word wrap line length:")),
+-        /*  3 */ QUICK_INPUT (OPT_DLG_W / 2 + 25, OPT_DLG_W, 12, OPT_DLG_H,
++        /*  3 */ QUICK_INPUT (OPT_DLG_W / 2 + 25, OPT_DLG_W, 13, OPT_DLG_H,
+                               wrap_length, OPT_DLG_W / 2 - 4 - 24, 0, "edit-word-wrap", &p),
++                 QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 12, OPT_DLG_H,
++                                 N_("&Tab completion"), &option_supertab),
+         /*  4 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 11, OPT_DLG_H,
+                                  N_("&Group undo"), &option_group_undo),
+         /*  5 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 10, OPT_DLG_H,
+diff -uNr mc-4.8.4.orig/src/setup.c mc-4.8.4/src/setup.c
+--- mc-4.8.4.orig/src/setup.c	2012-09-02 10:16:44.000000000 +0400
++++ mc-4.8.4/src/setup.c	2012-09-02 11:19:18.000000000 +0400
+@@ -307,6 +307,7 @@
+     { "editor_option_save_position", &option_save_position },
+     { "editor_option_auto_para_formatting", &option_auto_para_formatting },
+     { "editor_option_typewriter_wrap", &option_typewriter_wrap },
++    { "editor_option_supertab", &option_supertab },
+     { "editor_edit_confirm_save", &edit_confirm_save },
+     { "editor_syntax_highlighting", &option_syntax_highlighting },
+     { "editor_persistent_selections", &option_persistent_selections },

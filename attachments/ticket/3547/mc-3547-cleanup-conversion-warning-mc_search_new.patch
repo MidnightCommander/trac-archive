@@ -1,0 +1,330 @@
+fix -Wconversion warning for mc_search_new()
+
+mc_search_new() parameter orignial_len use once only
+factor out into own function mc_search_new_len()
+
+patch will fix following warnings:
+ini-file-read.c:116:58: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+search.c:418:38: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+ext.c:726:38: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+ext.c:915:44: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+filegui.c:1306:58: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+find.c:406:32: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+find.c:1626:61: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+find.c:1637:55: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+panel.c:2059:38: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+panel.c:2527:38: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+panel.c:2647:38: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+config_parser.c:216:56: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+config_parser.c:259:63: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+config_parser.c:407:57: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+actions_cmd.c:150:69: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+dialogs.c:145:61: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+editcmd.c:1229:39: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+editcmd.c:2570:47: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+editcmd.c:2792:69: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+editcmd_dialogs.c:166:61: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+search.c:254:70: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0 + previous patches
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/filehighlight/ini-file-read.c
++++ b/lib/filehighlight/ini-file-read.c
+@@ -113,7 +113,7 @@
+ 
+     mc_filter = g_new0 (mc_fhl_filter_t, 1);
+     mc_filter->type = MC_FLHGH_T_FREGEXP;
+-    mc_filter->search_condition = mc_search_new (regexp, -1, DEFAULT_CHARSET);
++    mc_filter->search_condition = mc_search_new (regexp, DEFAULT_CHARSET);
+     mc_filter->search_condition->is_case_sensitive = TRUE;
+     mc_filter->search_condition->search_type = MC_SEARCH_T_REGEX;
+ 
+@@ -158,7 +158,7 @@
+ 
+     mc_filter = g_new0 (mc_fhl_filter_t, 1);
+     mc_filter->type = MC_FLHGH_T_FREGEXP;
+-    mc_filter->search_condition = mc_search_new (buf->str, buf->len, DEFAULT_CHARSET);
++    mc_filter->search_condition = mc_search_new_len (buf->str, buf->len, DEFAULT_CHARSET);
+     mc_filter->search_condition->is_case_sensitive =
+         mc_config_get_bool (fhl->config, group_name, "extensions_case", TRUE);
+     mc_filter->search_condition->search_type = MC_SEARCH_T_REGEX;
+--- a/lib/search/search.c
++++ b/lib/search/search.c
+@@ -134,19 +134,22 @@
+  */
+ 
+ mc_search_t *
+-mc_search_new (const gchar * original, gsize original_len, const gchar * original_charset)
++mc_search_new (const gchar * original, const gchar * original_charset)
++{
++    if (original == NULL)
++        return NULL;
++    return mc_search_new_len (original, strlen (original), original_charset);
++}
++mc_search_t *
++mc_search_new_len (const gchar * original, gsize original_len, const gchar * original_charset)
+ {
+     mc_search_t *lc_mc_search;
+ 
+     if (original == NULL)
+         return NULL;
+ 
+-    if ((gssize) original_len == -1)
+-    {
+-        original_len = strlen (original);
+-        if (original_len == 0)
+-            return NULL;
+-    }
++    if (original_len == 0)
++        return NULL;
+ 
+     lc_mc_search = g_new0 (mc_search_t, 1);
+     lc_mc_search->original = g_strndup (original, original_len);
+@@ -415,7 +418,7 @@
+     if (str == NULL)
+         return FALSE;
+ 
+-    search = mc_search_new (pattern, -1, pattern_charset);
++    search = mc_search_new (pattern, pattern_charset);
+     if (search == NULL)
+         return FALSE;
+ 
+--- a/lib/search.h
++++ b/lib/search.h
+@@ -129,7 +129,9 @@
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-mc_search_t *mc_search_new (const gchar * original, gsize original_len,
++mc_search_t *mc_search_new (const gchar * original, const gchar * original_charset);
++
++mc_search_t *mc_search_new_len (const gchar * original, gsize original_len,
+                             const gchar * original_charset);
+ 
+ void mc_search_free (mc_search_t * lc_mc_search);
+--- a/src/diffviewer/search.c
++++ b/src/diffviewer/search.c
+@@ -251,9 +251,9 @@
+ 
+     mc_search_free (dview->search.handle);
+ #ifdef HAVE_CHARSET
+-    dview->search.handle = mc_search_new (dview->search.last_string, -1, cp_source);
++    dview->search.handle = mc_search_new (dview->search.last_string, cp_source);
+ #else
+-    dview->search.handle = mc_search_new (dview->search.last_string, -1, NULL);
++    dview->search.handle = mc_search_new (dview->search.last_string, NULL);
+ #endif
+ 
+     if (dview->search.handle == NULL)
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1226,9 +1226,9 @@
+     edit_search_status_msg_t esm;
+ 
+ #ifdef HAVE_CHARSET
+-    srch = mc_search_new (match_expr, -1, cp_source);
++    srch = mc_search_new (match_expr, cp_source);
+ #else
+-    srch = mc_search_new (match_expr, -1, NULL);
++    srch = mc_search_new (match_expr, NULL);
+ #endif
+     if (srch == NULL)
+         return 0;
+@@ -2567,9 +2567,9 @@
+     if (edit->search == NULL)
+     {
+ #ifdef HAVE_CHARSET
+-        edit->search = mc_search_new (input1, -1, cp_source);
++        edit->search = mc_search_new (input1, cp_source);
+ #else
+-        edit->search = mc_search_new (input1, -1, NULL);
++        edit->search = mc_search_new (input1, NULL);
+ #endif
+         if (edit->search == NULL)
+         {
+@@ -2789,9 +2789,9 @@
+             g_list_free_full (history, g_free);
+ 
+ #ifdef HAVE_CHARSET
+-            edit->search = mc_search_new (edit->last_search_string, -1, cp_source);
++            edit->search = mc_search_new (edit->last_search_string, cp_source);
+ #else
+-            edit->search = mc_search_new (edit->last_search_string, -1, NULL);
++            edit->search = mc_search_new (edit->last_search_string, NULL);
+ #endif
+             if (edit->search == NULL)
+             {
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -163,9 +163,9 @@
+     mc_search_free (edit->search);
+ 
+ #ifdef HAVE_CHARSET
+-    edit->search = mc_search_new (edit->last_search_string, -1, cp_source);
++    edit->search = mc_search_new (edit->last_search_string, cp_source);
+ #else
+-    edit->search = mc_search_new (edit->last_search_string, -1, NULL);
++    edit->search = mc_search_new (edit->last_search_string, NULL);
+ #endif
+     if (edit->search != NULL)
+     {
+--- a/src/filemanager/ext.c
++++ b/src/filemanager/ext.c
+@@ -723,7 +723,7 @@
+     {
+         mc_search_t *search;
+ 
+-        search = mc_search_new (ptr, -1, DEFAULT_CHARSET);
++        search = mc_search_new (ptr, DEFAULT_CHARSET);
+         if (search != NULL)
+         {
+             search->search_type = MC_SEARCH_T_REGEX;
+@@ -912,7 +912,7 @@
+                 if (case_insense)
+                     p += 2;
+ 
+-                search = mc_search_new (p, -1, DEFAULT_CHARSET);
++                search = mc_search_new (p, DEFAULT_CHARSET);
+                 if (search != NULL)
+                 {
+                     search->search_type = MC_SEARCH_T_REGEX;
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -1303,7 +1303,7 @@
+             return dest_dir;
+         }
+ 
+-        ctx->search_handle = mc_search_new (source_mask, -1, NULL);
++        ctx->search_handle = mc_search_new (source_mask, NULL);
+ 
+         if (ctx->search_handle == NULL)
+         {
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -403,7 +403,7 @@
+     mc_search_t *search;
+     gboolean regexp_ok = FALSE;
+ 
+-    search = mc_search_new (r, -1, NULL);
++    search = mc_search_new (r, NULL);
+ 
+     if (search != NULL)
+     {
+@@ -1623,7 +1623,7 @@
+ {
+     int ret;
+ 
+-    search_content_handle = mc_search_new (content_pattern, -1, NULL);
++    search_content_handle = mc_search_new (content_pattern, NULL);
+     if (search_content_handle)
+     {
+         search_content_handle->search_type =
+@@ -1634,7 +1634,7 @@
+         search_content_handle->is_all_charsets = options.content_all_charsets;
+ #endif
+     }
+-    search_file_handle = mc_search_new (find_pattern, -1, NULL);
++    search_file_handle = mc_search_new (find_pattern, NULL);
+     search_file_handle->search_type = options.file_pattern ? MC_SEARCH_T_GLOB : MC_SEARCH_T_REGEX;
+     search_file_handle->is_case_sensitive = options.file_case_sens;
+ #ifdef HAVE_CHARSET
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -2056,7 +2056,7 @@
+ 
+     g_free (cur_file_ext);
+ 
+-    search = mc_search_new (reg_exp, -1, NULL);
++    search = mc_search_new (reg_exp, NULL);
+     search->search_type = MC_SEARCH_T_REGEX;
+     search->is_case_sensitive = FALSE;
+ 
+@@ -2524,7 +2524,7 @@
+         return;
+     }
+ 
+-    search = mc_search_new (reg_exp, -1, NULL);
++    search = mc_search_new (reg_exp, NULL);
+     search->search_type = (shell_patterns != 0) ? MC_SEARCH_T_GLOB : MC_SEARCH_T_REGEX;
+     search->is_entire_line = TRUE;
+     search->is_case_sensitive = case_sens != 0;
+@@ -2644,7 +2644,7 @@
+ 
+     reg_exp = g_strdup_printf ("%s*", panel->search_buffer);
+     esc_str = strutils_escape (reg_exp, ",|\\{}[]", TRUE);
+-    search = mc_search_new (esc_str, -1, NULL);
++    search = mc_search_new (esc_str, NULL);
+     search->search_type = MC_SEARCH_T_GLOB;
+     search->is_entire_line = TRUE;
+ 
+--- a/src/vfs/sftpfs/config_parser.c
++++ b/src/vfs/sftpfs/config_parser.c
+@@ -213,7 +213,7 @@
+ 
+     mc_return_val_if_error (mcerror, FALSE);
+ 
+-    host_regexp = mc_search_new ("^\\s*host\\s+(.*)$", -1, DEFAULT_CHARSET);
++    host_regexp = mc_search_new ("^\\s*host\\s+(.*)$", DEFAULT_CHARSET);
+     host_regexp->search_type = MC_SEARCH_T_REGEX;
+     host_regexp->is_case_sensitive = FALSE;
+ 
+@@ -256,7 +256,7 @@
+             {
+                 mc_search_t *pattern_regexp;
+ 
+-                pattern_regexp = mc_search_new (host_pattern, -1, DEFAULT_CHARSET);
++                pattern_regexp = mc_search_new (host_pattern, DEFAULT_CHARSET);
+                 pattern_regexp->search_type = MC_SEARCH_T_GLOB;
+                 pattern_regexp->is_case_sensitive = FALSE;
+                 pattern_regexp->is_entire_line = TRUE;
+@@ -404,7 +404,7 @@
+     for (i = 0; config_variables[i].pattern != NULL; i++)
+     {
+         config_variables[i].pattern_regexp =
+-            mc_search_new (config_variables[i].pattern, -1, DEFAULT_CHARSET);
++            mc_search_new (config_variables[i].pattern, DEFAULT_CHARSET);
+         config_variables[i].pattern_regexp->search_type = MC_SEARCH_T_REGEX;
+         config_variables[i].pattern_regexp->is_case_sensitive = FALSE;
+         config_variables[i].offset = structure_offsets[i];
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -147,9 +147,9 @@
+             g_list_free_full (history, g_free);
+ 
+ #ifdef HAVE_CHARSET
+-            view->search = mc_search_new (view->last_search_string, -1, cp_source);
++            view->search = mc_search_new (view->last_search_string, cp_source);
+ #else
+-            view->search = mc_search_new (view->last_search_string, -1, NULL);
++            view->search = mc_search_new (view->last_search_string, NULL);
+ #endif
+             view->search_nroff_seq = mcview_nroff_seq_new (view);
+ 
+--- a/src/viewer/dialogs.c
++++ b/src/viewer/dialogs.c
+@@ -142,9 +142,9 @@
+     mc_search_free (view->search);
+ 
+ #ifdef HAVE_CHARSET
+-    view->search = mc_search_new (view->last_search_string, -1, cp_source);
++    view->search = mc_search_new (view->last_search_string, cp_source);
+ #else
+-    view->search = mc_search_new (view->last_search_string, -1, NULL);
++    view->search = mc_search_new (view->last_search_string, NULL);
+ #endif
+     view->search_nroff_seq = mcview_nroff_seq_new (view);
+     if (view->search != NULL)
+--- a/tests/lib/search/glob_prepare_replace_str.c
++++ b/tests/lib/search/glob_prepare_replace_str.c
+@@ -71,7 +71,7 @@
+     mc_search_t *s;
+     char *dest_str;
+ 
+-    s = mc_search_new (data->glob_str, -1, NULL);
++    s = mc_search_new (data->glob_str, NULL);
+     s->is_case_sensitive = TRUE;
+     s->search_type = MC_SEARCH_T_GLOB;
+ 

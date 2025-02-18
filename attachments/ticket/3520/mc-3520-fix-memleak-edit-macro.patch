@@ -1,0 +1,44 @@
+
+fix memleak at src/editor/editcmd.c:2032:21
+
+editor module loads macros (if defined) but will never freed when closing mc
+
+found by clang LeakSanitizer
+
+Direct leak of 16384 byte(s) in 1 object(s) allocated from:
+    #0 0x4cb5d8 in realloc (/usr/bin/mc+0x4cb5d8)
+    #1 0x7fa1c84b0b24 in g_realloc (/usr/lib64/libglib-2.0.so.0+0x67b24)
+    #2 0x7fa1c8469185 in g_array_append_vals (/usr/lib64/libglib-2.0.so.0+0x20185)
+    #3 0x61968b in edit_load_macro_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editcmd.c:2032:21
+    #4 0x603296 in edit_init /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:2159:5
+    #5 0x6371ce in edit_add_window /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1358:12
+    #6 0x636428 in edit_files /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1248:16
+    #7 0x635f9f in edit_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1194:10
+    #8 0x662c1b in edit_file_at_line /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:704:9
+    #9 0x662d8b in edit_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:742:9
+    #10 0x559af7 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1177:9
+    #11 0x511f99 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #12 0x51dc0c in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #13 0x51cf10 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #14 0x51d3d2 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #15 0x51d0d5 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #16 0x557f8d in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1759:9
+    #17 0x4faf5d in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #18 0x7fa1c7584eca in __libc_start_main (/lib64/libc.so.6+0x21eca)
+    #19 0x4205ed in _start (/usr/bin/mc+0x4205ed)
+
+patch against b8ffa1b9661987f41deeb5cb7bf2ab6c09a41c43
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/main.c
++++ b/src/main.c
+@@ -476,7 +476,7 @@
+ 
+             macros = &g_array_index (macros_list, struct macros_t, i);
+             if (macros != NULL && macros->macro != NULL)
+-                (void) g_array_free (macros->macro, FALSE);
++                (void) g_array_free (macros->macro, TRUE);
+         }
+         (void) g_array_free (macros_list, TRUE);
+     }

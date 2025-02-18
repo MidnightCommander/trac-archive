@@ -1,0 +1,220 @@
+diff --git a/src/background.c b/src/background.c
+index 9eadd29..812b114 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -62,6 +62,9 @@ int we_are_background = 0;
+ /* File descriptor for talking to our parent */
+ static int parent_fd;
+ 
++/* File descriptor for messages from our parent */
++static int from_parent_fd;
++
+ #define MAXCALLARGS 4		/* Number of arguments supported */
+ 
+ struct TaskList *task_list = NULL;
+@@ -69,7 +72,8 @@ struct TaskList *task_list = NULL;
+ static int background_attention (int fd, void *closure);
+     
+ static void
+-register_task_running (FileOpContext *ctx, pid_t pid, int fd, char *info)
++register_task_running (FileOpContext *ctx, pid_t pid, int fd, int to_child,
++					   char *info)
+ {
+     TaskList *new;
+ 
+@@ -79,6 +83,7 @@ register_task_running (FileOpContext *ctx, pid_t pid, int fd, char *info)
+     new->state = Task_Running;
+     new->next  = task_list;
+     new->fd    = fd;
++    new->to_child_fd = to_child;
+     task_list  = new;
+ 
+     add_select_channel (fd, background_attention, ctx);
+@@ -118,15 +123,21 @@ int
+ do_background (struct FileOpContext *ctx, char *info)
+ {
+     int comm[2];		/* control connection stream */
++    int back_comm[2];	/* back connection */
+     pid_t pid;
+ 
+     if (pipe (comm) == -1)
+ 	return -1;
+ 
++    if (pipe (back_comm) == -1)
++	return -1;
++
+     if ((pid = fork ()) == -1) {
+     	int saved_errno = errno;
+     	(void) close (comm[0]);
+     	(void) close (comm[1]);
++    	(void) close (back_comm[0]);
++    	(void) close (back_comm[1]);
+     	errno = saved_errno;
+ 	return -1;
+     }
+@@ -134,8 +145,9 @@ do_background (struct FileOpContext *ctx, char *info)
+     if (pid == 0) {
+ 	int nullfd;
+ 
+-	close (comm[0]);
+ 	parent_fd = comm[1];
++	from_parent_fd = back_comm[0];
++	
+ 	we_are_background = 1;
+ 	current_dlg = NULL;
+ 
+@@ -152,9 +164,8 @@ do_background (struct FileOpContext *ctx, char *info)
+ 
+ 	return 0;
+     } else {
+-	close (comm[1]);
+ 	ctx->pid = pid;
+-	register_task_running (ctx, pid, comm[0], info);
++	register_task_running (ctx, pid, comm[0], back_comm[1], info);
+ 	return 1;
+     }
+ }
+@@ -227,6 +238,8 @@ background_attention (int fd, void *closure)
+     int  argc, i, result, status;
+     char *data [MAXCALLARGS];
+     ssize_t bytes;
++	struct TaskList *p;
++	int to_child_fd;
+     enum ReturnType type;
+ 
+     ctx = closure;
+@@ -306,10 +319,18 @@ background_attention (int fd, void *closure)
+ 		break;
+ 	    }
+ 
++	/* Find child task info by descriptor */
++	for (p = task_list; p; p = p->next) {
++		if (p->fd == fd)
++			break;
++	}
++
++	to_child_fd = p->to_child_fd;
++
+ 	/* Send the result code and the value for shared variables */
+-	write (fd, &result, sizeof (int));
++	write (to_child_fd, &result, sizeof (int));
+ 	if (have_ctx)
+-	    write (fd, ctx, sizeof (FileOpContext));
++	    write (to_child_fd, ctx, sizeof (FileOpContext));
+     } else if (type == Return_String) {
+ 	int len;
+ 	char *resstr = NULL;
+@@ -334,14 +355,14 @@ background_attention (int fd, void *closure)
+ 	}
+ 	if (resstr){
+ 	    len = strlen (resstr);
+-	    write (fd, &len, sizeof (len));
++	    write (to_child_fd, &len, sizeof (len));
+ 	    if (len){
+-		write (fd, resstr, len);
++		write (to_child_fd, resstr, len);
+ 		g_free (resstr);
+ 	    }
+ 	} else {
+ 	    len = 0;
+-	    write (fd, &len, sizeof (len));
++	    write (to_child_fd, &len, sizeof (len));
+ 	}
+     }
+     for (i = 0; i < argc; i++)
+@@ -395,9 +416,10 @@ parent_call (void *routine, struct FileOpContext *ctx, int argc, ...)
+ 	write (parent_fd, &len, sizeof (int));
+ 	write (parent_fd, value, len);
+     }
+-    read (parent_fd, &i, sizeof (int));
++
++    read (from_parent_fd, &i, sizeof (int));
+     if (ctx)
+-	read (parent_fd, ctx, sizeof (FileOpContext));
++	read (from_parent_fd, ctx, sizeof (FileOpContext));
+ 
+     return i;
+ }
+@@ -420,11 +442,11 @@ parent_call_string (void *routine, int argc, ...)
+ 	write (parent_fd, &len, sizeof (int));
+ 	write (parent_fd, value, len);
+     }
+-    read (parent_fd, &i, sizeof (int));
++    read (from_parent_fd, &i, sizeof (int));
+     if (!i)
+ 	return NULL;
+     str = g_malloc (i + 1);
+-    read (parent_fd, str, i);
++    read (from_parent_fd, str, i);
+     str [i] = 0;
+     return str;
+ }
+diff --git a/src/background.h b/src/background.h
+index 266240d..8ad4d54 100644
+--- a/src/background.h
++++ b/src/background.h
+@@ -17,6 +17,7 @@ enum TaskState {
+ 
+ typedef struct TaskList {
+     int fd;
++    int to_child_fd;
+     pid_t pid;
+     int state;
+     char *info;
+diff --git a/src/file.c b/src/file.c
+index 15d5f70..73e4305 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -381,12 +381,18 @@ enum {
+ };
+ 
+ static FileProgressStatus
+-warn_same_file (const char *fmt, const char *a, const char *b)
++real_warn_same_file (enum OperationMode mode, const char *fmt,
++					 const char *a, const char *b)
+ {
+     char *msg;
+     int result = 0;
++    const char *head_msg;
++
++    head_msg = mode == Foreground ? MSG_ERROR :
++		_(" Background process error ");
++
+     msg = g_strdup_printf (fmt, a, b);
+-    result = query_dialog (MSG_ERROR, msg, D_ERROR, 2, _("&Skip"), _("&Abort"));
++    result = query_dialog (head_msg, msg, D_ERROR, 2, _("&Skip"), _("&Abort"));
+     g_free(msg);
+     do_refresh ();
+     if ( result ) { /* 1 == Abort */
+@@ -396,6 +402,31 @@ warn_same_file (const char *fmt, const char *a, const char *b)
+     }
+ }
+ 
++#ifdef WITH_BACKGROUND
++static FileProgressStatus
++warn_same_file (const char *fmt, const char *a, const char *b)
++{
++    union {
++	void *p;
++	FileProgressStatus (*f) (enum OperationMode, const char *fmt,
++    	    	    		 const char *a, const char *b);
++    } pntr;
++    pntr.f = real_warn_same_file;
++
++    if (we_are_background)
++	return parent_call (pntr.p, NULL, 3, strlen (fmt),
++			    fmt, strlen(a), a, strlen(b), b);
++    else
++	return real_warn_same_file (Foreground, fmt, a, b);
++}
++#else
++static FileProgressStatus
++warn_same_file (const char *fmt, const char *a, const char *b)
++{
++    return real_warn_same_file (Foreground, fmt, a, b);
++}
++#endif
++
+ FileProgressStatus
+ copy_file_file (FileOpContext *ctx, const char *src_path, const char *dst_path,
+ 		int ask_overwrite, off_t *progress_count,

@@ -1,0 +1,97 @@
+diff -NaurpBb mc-4.7.0-pre1/src/main.c mc-4.7.0-pre1-orig/src/main.c
+--- mc-4.7.0-pre1/src/main.c	2009-12-18 20:29:49.043914503 +0300
++++ mc-4.7.0-pre1-orig/src/main.c	2009-07-31 20:36:25.000000000 +0400
+@@ -239,10 +239,10 @@ int confirm_view_dir = 0;
+ /* This flag indicates if the pull down menus by default drop down */
+ int drop_menus = 0;
+ 
+-/* if auto_fix_codeset = 0 show warning about system and display codeset is different
+-   if auto_fix_codeset = 1 don't show warning, don't fix it automatically
+-   if auto_fix_codeset = 2 don't show warning, fix it automatically */
+-int auto_fix_codeset = 0;
++/* if skip_check_codeset = 1 do not show warning about
++ * system and display codeset is different
++ */
++int skip_check_codeset = 0;
+ 
+ /* The dialog handle for the main program */
+ Dlg_head *midnight_dlg = NULL;
+@@ -1462,13 +1462,11 @@ static void check_codeset()
+     const char *_source_codepage = NULL;
+     const char *_display_codepage = NULL;
+     int profile_changed = 0;
+-    int dont_ask_again = 0;
+-    int st = 0;
+ 
+ #define CONFY 16
+ #define CONFX 54
+ 
+-    if ( auto_fix_codeset != 1 ) {
++    if ( !skip_check_codeset ) {
+ 
+         QuickWidget ecs_widgets [] = {
+         { quick_button, 4, 6, 13, CONFY, N_("&Skip"),
+@@ -1476,7 +1474,7 @@ static void check_codeset()
+         { quick_button, 1, 11, 13, CONFY, N_("&Fix it"),
+           0, B_ENTER, 0, 0, NULL , NULL, NULL},
+         { quick_checkbox, 1, 13, 11, CONFY, N_("don't ask again"),
+-          11, 0, &dont_ask_again, NULL, NULL , NULL, NULL},
++          11, 0, &skip_check_codeset, NULL, NULL , NULL, NULL},
+         { quick_label, 2, 30, 3, CONFY, N_("Chosen display charset (Settings->Display bits)\n"
+                                            "or source codeset (in mcedit ctrl-t) \n"
+                                            "does not match one set via locale. \n"
+@@ -1500,17 +1498,7 @@ static void check_codeset()
+ 
+         if ( (strcmp (_system_codepage, _display_codepage)) ||
+              (strcmp (_system_codepage, _source_codepage)) ) {
+-            if (!auto_fix_codeset)
+-            {
+-                st = quick_dialog (&ecs);
+-                if (dont_ask_again)
+-                {
+-                    auto_fix_codeset = st == B_ENTER ? 2 : 1;
+-                    mc_config_set_int(mc_main_config, "Midnight-Commander", "auto_fix_codeset", auto_fix_codeset);
+-                    profile_changed = 1;
+-                }
+-            }
+-            if (auto_fix_codeset == 2 || st == B_ENTER) {
++            if (quick_dialog (&ecs) == B_ENTER){
+                 display_codepage = get_codepage_index (_system_codepage);
+                 cp_display = get_codepage_id (display_codepage);
+                 if ( !strcmp (cp_display, _system_codepage)) {
+@@ -1522,6 +1510,11 @@ static void check_codeset()
+                     cp_source = cp_display;
+                     profile_changed = 1;
+                 }
++            } else {
++                if ( skip_check_codeset ) {
++                    mc_config_set_int(mc_main_config, "Midnight-Commander", "skip_check_codeset", 1);
++                    profile_changed = 1;
++                }
+             }
+         }
+         if ( profile_changed )
+diff -NaurpBb mc-4.7.0-pre1/src/main.h mc-4.7.0-pre1-orig/src/main.h
+--- mc-4.7.0-pre1/src/main.h	2009-12-18 20:27:39.791910140 +0300
++++ mc-4.7.0-pre1-orig/src/main.h	2009-07-31 20:36:25.000000000 +0400
+@@ -79,7 +79,7 @@ extern int midnight_shutdown;
+ extern char cmd_buf [512];
+ extern const char *shell;
+ extern int auto_fill_mkdir_name;
+-extern int auto_fix_codeset;
++extern int skip_check_codeset;
+ /* Ugly hack in order to distinguish between left and right panel in menubar */
+ extern int is_right;		/* If the selected menu was the right */
+ #define MENU_PANEL (is_right ? right_panel : left_panel)
+diff -NaurpBb mc-4.7.0-pre1/src/setup.c mc-4.7.0-pre1-orig/src/setup.c
+--- mc-4.7.0-pre1/src/setup.c	2009-12-18 20:27:30.351901911 +0300
++++ mc-4.7.0-pre1-orig/src/setup.c	2009-07-31 20:36:26.000000000 +0400
+@@ -194,7 +194,7 @@ static const struct {
+     { "xtree_mode", &xtree_mode },
+     { "num_history_items_recorded", &num_history_items_recorded },
+     { "file_op_compute_totals", &file_op_compute_totals },
+-    { "auto_fix_codeset", &auto_fix_codeset },
++    { "skip_check_codeset", &skip_check_codeset },
+ #ifdef USE_VFS
+     { "vfs_timeout", &vfs_timeout },
+ #ifdef USE_NETCODE

@@ -1,0 +1,33 @@
+From dcfe72a7ad78ad2c484fdc50790adbfc527ee000 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 30 May 2024 21:28:00 +0200
+Subject: [PATCH] clang: fix `-Wpointer-sign` warning
+
+../../../../src/vfs/sftpfs/connection.c:787:22: warning: passing 'unsigned char *const' to parameter of type 'const char *' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+        if (strncmp (prompts[i].text, "Password: ", prompts[i].length) == 0)
+                     ^~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/string.h:84:26: note: passing argument to parameter '__s1' here
+int      strncmp(const char *__s1, const char *__s2, size_t __n);
+                             ^
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ src/vfs/sftpfs/connection.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index 613267529..bb29a0f29 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -784,7 +784,7 @@ LIBSSH2_USERAUTH_KBDINT_RESPONSE_FUNC (sftpfs_keyboard_interactive_helper)
+     len = strlen (kbi_passwd);
+ 
+     for (i = 0; i < num_prompts; ++i)
+-        if (strncmp (prompts[i].text, "Password: ", prompts[i].length) == 0)
++        if (memcmp (prompts[i].text, "Password: ", prompts[i].length) == 0)
+         {
+             responses[i].text = strdup (kbi_passwd);
+             responses[i].length = len;
+-- 
+2.39.3 (Apple Git-146)
+

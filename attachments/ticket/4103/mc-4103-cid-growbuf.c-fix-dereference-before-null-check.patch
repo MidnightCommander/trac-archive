@@ -1,0 +1,41 @@
+From 0585d4df64f5eceebb6ed5d3c60ba317b559b2ca Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 21 Dec 2020 09:52:45 +0000
+Subject: [PATCH] (growbuf.c) fix dereference before null check
+
+The NULL check is unnecessary because the pointer can't be NULL
+
+Found by Coverity
+Coverity id #110819
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/growbuf.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/src/viewer/growbuf.c b/src/viewer/growbuf.c
+index c1292f255..082e92d27 100644
+--- a/src/viewer/growbuf.c
++++ b/src/viewer/growbuf.c
+@@ -205,15 +205,12 @@ mcview_growbuf_read_until (WView * view, off_t ofs)
+                     g_free (err_msg);
+                 }
+ 
+-                if (view->ds_stdio_pipe != NULL)
+-                {
+-                    /* when switch from parse to raw mode and back,
+-                     * do not close the already closed pipe after following loop:
+-                     * mcview_growbuf_read_until() -> mcview_show_error() ->
+-                     * MSG_DRAW -> mcview_display() -> mcview_get_byte() -> mcview_growbuf_read_until()
+-                     */
+-                    mcview_growbuf_done (view);
+-                }
++                /* when switch from parse to raw mode and back,
++                 * do not close the already closed pipe after following loop:
++                 * mcview_growbuf_read_until() -> mcview_show_error() ->
++                 * MSG_DRAW -> mcview_display() -> mcview_get_byte() -> mcview_growbuf_read_until()
++                 */
++                mcview_growbuf_done (view);
+                 mcview_display (view);
+                 return;
+             }

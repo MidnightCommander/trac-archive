@@ -1,0 +1,333 @@
+From 29e6f2079ffc8479567be3a7296296ee7d3f8b82 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 9 Feb 2010 13:17:03 +0000
+Subject: [PATCH]  goto prev line version4
+
+---
+ src/editor/editcmd.c |  306 +++++++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 266 insertions(+), 40 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index eb11f91..b57bbe8 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1979,46 +1979,6 @@ void edit_paste_from_X_buf_cmd (WEdit * edit)
+ }
+ 
+ 
+-/*
+- * Ask user for the line and go to that line.
+- * Negative numbers mean line from the end (i.e. -1 is the last line).
+- */
+-void
+-edit_goto_cmd (WEdit *edit)
+-{
+-    char *f;
+-    static long line = 0;	/* line as typed, saved as default */
+-    long l;
+-    char *error;
+-    char s[32];
+-
+-    g_snprintf (s, sizeof (s), "%ld", line);
+-    f = input_dialog (_(" Goto line "), _(" Enter line: "), MC_HISTORY_EDIT_GOTO_LINE,
+-		      line ? s : "");
+-    if (!f)
+-	return;
+-
+-    if (!*f) {
+-	g_free (f);
+-	return;
+-    }
+-
+-    l = strtol (f, &error, 0);
+-    if (*error) {
+-	g_free (f);
+-	return;
+-    }
+-
+-    line = l;
+-    if (l < 0)
+-	l = edit->total_lines + l + 2;
+-    edit_move_display (edit, l - edit->num_widget_lines / 2 - 1);
+-    edit_move_to_line (edit, l - 1);
+-    edit->force |= REDRAW_COMPLETELY;
+-    g_free (f);
+-}
+-
+-
+ /* Return 1 on success */
+ int
+ edit_save_block_cmd (WEdit *edit)
+@@ -2835,3 +2795,269 @@ edit_move_block_to_left (WEdit * edit)
+     } while (cur_bol >= start_bol) ;
+     edit->force |= REDRAW_PAGE;
+ }
++
++
++#define MAXGOTOSHOW 4
++#define MAXGOTOTYPED 12
++
++
++void
++gtl_mem_fail (const char *msg)
++{
++    message (D_ERROR, _(" Internal error: "),
++             _("\n\n   \"%s\"\n\n"), msg);
++}
++
++
++char *
++gtl_lines_saved_as_str (WEdit * edit, const long *nbrs_stored, int n_last)
++{
++    static int once_showed = 0;
++    int n, m;
++    char *hist_clear_msg = NULL;
++    char *str_line_N = NULL;
++    char *str_stored_nbrs = NULL;
++
++    if (n_last > MAXGOTOSHOW)
++        n_last = MAXGOTOSHOW;
++
++    if (once_showed == 0) {
++        hist_clear_msg =
++            g_strdup (_("    To clear `file-history' type key-char\n    `c' or `C' then <Enter>\n\n "));
++        once_showed = 1;
++    } else {
++        hist_clear_msg = g_strdup (_(" "));
++    }
++
++    if (edit_get_byte (edit, edit->last_byte - 1) == '\n')
++        str_stored_nbrs =
++            g_strdup_printf ("'\n%s %10li <= 0  bottom ('\\n' is next)\n  %10li <= 1  upper line\n",
++                             hist_clear_msg, edit->total_lines, nbrs_stored[1]);
++    else
++        str_stored_nbrs =
++            g_strdup_printf
++            ("'\n%s %10li <= 0  bottom (next is not '\\n')\n  %10li <= 1  upper line\n",
++             hist_clear_msg, (edit->total_lines + 1), nbrs_stored[1]);
++
++    g_free (hist_clear_msg);
++    if (str_stored_nbrs == NULL) {
++        gtl_mem_fail (_(" if ( str_stored_nbrs == NULL ) "));
++        return NULL;
++    }
++
++    if (n_last > 1) {
++        m = 2;
++        for (n = 2; n <= n_last; n++) {
++            if (nbrs_stored[n] != 0) {
++                str_line_N = g_strdup_printf ("  %10li   %2i\n", nbrs_stored[n], m++);
++                if (str_line_N == NULL) {
++                    g_free (str_stored_nbrs);
++                    gtl_mem_fail (_(" if ( str_line_N == NULL ) "));
++                    return NULL;
++                } else {
++                    str_stored_nbrs = g_strconcat (str_stored_nbrs, str_line_N, (char *) NULL);
++                    g_free (str_line_N);
++                    if (str_stored_nbrs == NULL) {
++                        gtl_mem_fail (_(" if ( str_stored_nbrs == NULL ) "));
++                        return NULL;
++                    }
++                }
++            }
++        }
++
++        if (str_stored_nbrs == NULL)
++            gtl_mem_fail (_(" if ( str_stored_nbrs == NULL ) "));
++    }
++    return str_stored_nbrs;
++}
++
++
++void
++gtl_gothis_nbr (WEdit * edit, long realgo_nbr)
++{
++    /* when last line is new line (`\n') go to previous line */
++    if (realgo_nbr == 0) {
++        return;
++    } else if (realgo_nbr < 0) {
++        if (edit_get_byte (edit, edit->last_byte - 1) != '\n')
++            realgo_nbr++;
++
++        realgo_nbr = edit->total_lines + realgo_nbr + 1;
++    }
++    edit_move_display (edit, realgo_nbr - (edit->num_widget_lines / 3));
++    edit_move_to_line (edit, realgo_nbr - 1);
++    edit->force |= REDRAW_COMPLETELY;
++}
++
++
++long
++gtl_proceed_line_nbr (WEdit * edit, long *nbrs_stored, int *n_last, const long line_n)
++{
++    int n, n0, ln, k, lk, realgo_nbr;
++
++    if (line_n == 0 || line_n == -1)
++        return (-1);
++
++    if (line_n == 1)
++        return line_n;
++
++    if (line_n == nbrs_stored[*n_last])
++        return line_n;
++
++    realgo_nbr = line_n;
++    if (line_n > 0) {
++        if (line_n <= *n_last) {
++            realgo_nbr = nbrs_stored[line_n];
++        } else if (line_n >= edit->total_lines) {
++            return (-1);
++        }
++    } else if (line_n <= -edit->total_lines) {
++        return 1;
++    }
++
++    if (realgo_nbr == nbrs_stored[*n_last])
++        return realgo_nbr;
++
++    for (n = 2; n < MAXGOTOSHOW; n++) {
++        ln = nbrs_stored[n];
++        if (ln == edit->total_lines || ln == -edit->total_lines || ln == (edit->total_lines + 1)
++            || ln == -(edit->total_lines + 1)
++            || ln == 1 || ln == -1 || ln == realgo_nbr)
++            nbrs_stored[n] = 0;
++    }
++
++    /* get rid of duplicates then store */
++    n0 = 0;
++    for (n = MAXGOTOSHOW; n > 2; n--) {
++        ln = nbrs_stored[n];
++        if (ln == 0) {
++            n0 = 1;
++        } else {
++            for (k = 2; k < n; k++) {
++                lk = nbrs_stored[k];
++                if (lk == 0) {
++                    n0 = 1;
++                } else if (lk == ln) {
++                    nbrs_stored[k] = 0;
++                    n0 = 1;
++                }
++            }
++        }
++    }
++
++    if (n0 != 0) {
++        *n_last = 1;
++        for (n = 2; n <= MAXGOTOSHOW; n++) {
++            if (nbrs_stored[n] != 0) {
++                nbrs_stored[++(*n_last)] = nbrs_stored[n];
++                if (*n_last < n)
++                    nbrs_stored[n] = 0;
++
++                if (n == MAXGOTOSHOW)
++                    nbrs_stored[MAXGOTOSHOW] = 0;
++            }
++        }
++    }
++
++    if (*n_last >= MAXGOTOSHOW) {
++        for (n = 2; n < MAXGOTOSHOW; n++)
++            nbrs_stored[n] = nbrs_stored[n + 1];
++
++        *n_last = MAXGOTOSHOW - 1;
++    }
++
++    nbrs_stored[++(*n_last)] = realgo_nbr;
++    return realgo_nbr;
++}
++
++
++void
++edit_goto_cmd (WEdit * edit)
++{
++    const long long gtl_LONG_MAX = (long long) LONG_MAX;
++    char *gtprompt = NULL;
++    char str_displayed_nbr[MAXGOTOTYPED] = { '\0' };
++    char *str_input_type_error = NULL;
++    char *usertyped_str = NULL;
++    int errno_prev = 0;
++    static int n_last = 2;
++    static long realgo_nbr = 0;
++    static long nbrs_stored[MAXGOTOSHOW + 1] = { -1, 1, MAXGOTOSHOW };
++    static long long typed_nbr = 0;
++
++    if (edit->total_lines > gtl_LONG_MAX)
++        return;
++
++    if (edit->total_lines <= MAXGOTOSHOW)
++        return;
++
++    while (1) {
++        str_displayed_nbr[0] = '\0';
++        g_snprintf (str_displayed_nbr, sizeof (str_displayed_nbr), "%li", nbrs_stored[n_last - 1]);
++        gtl_proceed_line_nbr (edit, nbrs_stored, &n_last, edit->curs_line + 1);
++        gtprompt = gtl_lines_saved_as_str (edit, nbrs_stored, n_last);
++        usertyped_str = input_dialog (_(" Type right clmn or new line "),
++                                      gtprompt, MC_HISTORY_EDIT_GOTO_LINE, str_displayed_nbr);
++        g_free (gtprompt);
++        if (usertyped_str == NULL)
++            return;
++
++        if (*usertyped_str == '\0') {
++/*        
++            message (2, _(" Empty string "), _(
++                    "\n typed:\n\n `%s' \n\n"),
++                     usertyped_str);
++*/
++            g_free (usertyped_str);
++            return;
++        }
++        if (('c' == usertyped_str[0]
++            || 'C' == usertyped_str[0])
++            && '\0' == usertyped_str[1]) {
++            g_free (usertyped_str);
++            for (n_last = MAXGOTOSHOW; n_last > 1;)
++                nbrs_stored[n_last--] = 0;
++
++        } else if (strlen (usertyped_str) > MAXGOTOTYPED) {
++            message (2, _(" too long typed string "),
++                    _("\n\n MAX strlen can be: `%i' "
++                    "\n\n MAX abs line number: `%li' \n\n"),
++                    MAXGOTOTYPED, labs (LONG_MAX));
++            g_free (usertyped_str);
++            return;
++        } else {
++            errno_prev = errno;
++            errno = 0;          /* To distinguish success/failure after call */
++
++            typed_nbr = strtoll (usertyped_str, &str_input_type_error, 10);
++            /* Check for various possible errors */
++            if (usertyped_str == str_input_type_error) {
++                message (2, _(" No digits were found "), _("\n seems typed:\n\n `%s' "
++                    "\n\n has no digits\n\n"), usertyped_str);
++                g_free (usertyped_str);
++                return;
++            }
++
++            if (*str_input_type_error != '\0') {
++                gtl_mem_fail (_(" if ( *str_input_type_error != '\0' ) "));
++                g_free (usertyped_str);
++                return;
++            }
++
++            if (llabs (typed_nbr) > gtl_LONG_MAX) {
++                message (2, _(" too big number "), 
++                    _("\n\n MAX abs line number can be: `%lli'"
++                    "\n\n seems typed string is:      `%s'"
++                    "\n\n and abs number is:          `%lli'\n\n"),
++                    gtl_LONG_MAX, usertyped_str, llabs (typed_nbr));
++                g_free (usertyped_str);
++                return;
++            }
++            errno = errno_prev;
++            g_free (usertyped_str);
++            realgo_nbr = gtl_proceed_line_nbr (edit, nbrs_stored, &n_last, (long) typed_nbr);
++            break;
++        }
++    }
++    gtl_gothis_nbr (edit, realgo_nbr);
++}
+-- 
+1.6.4
+

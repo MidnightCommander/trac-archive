@@ -1,0 +1,31 @@
+From 3501476b60ebec14f34e316a8282a2cea64147b7 Mon Sep 17 00:00:00 2001
+From: Sergey Larin <cerg2010cerg2010@mail.ru>
+Date: Mon, 2 Aug 2021 12:58:01 +0300
+Subject: [PATCH] src/editor/editcmd.c: Fix use-after-free in edit_close_cmd
+
+The old 'w' pointer became invalid after widget_destroy call, so we need
+to get the new widget directly after find_editor.
+
+Found using PVS-Studio 7.14 with intermodular analysis mode.
+
+Signed-off-by: Sergey Larin <cerg2010cerg2010@mail.ru>
+---
+ src/editor/editcmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index fae7c7521..77acde2fa 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1244,7 +1244,7 @@ edit_close_cmd (WEdit * edit)
+         {
+             edit = find_editor (DIALOG (g));
+             if (edit != NULL)
+-                widget_select (w);
++                widget_select (WIDGET (edit));
+         }
+     }
+ 
+-- 
+2.31.1
+

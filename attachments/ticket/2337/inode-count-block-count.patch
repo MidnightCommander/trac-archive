@@ -1,0 +1,25 @@
+From f93b874fe25e14f972b5b81b29c2617e231c4f80 Mon Sep 17 00:00:00 2001
+From: Sven Wegener <sven.wegener@stealer.net>
+Date: Thu, 13 May 2010 00:12:14 +0200
+Subject: [PATCH] Check for inode count instead of block count
+
+This correctly prevents division by zero.
+
+Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
+---
+ src/info.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/info.c b/src/info.c
+index 4d82a59..bc1d317 100644
+--- a/src/info.c
++++ b/src/info.c
+@@ -127,7 +127,7 @@ info_show_info (struct WInfo *info)
+         if (myfs_stats.nfree > 0 || myfs_stats.nodes > 0)
+             tty_printf (_("Free nodes: %ld (%ld%%) of %ld"),
+                         (size_t) myfs_stats.nfree,
+-                        myfs_stats.total != 0
++                        myfs_stats.nodes != 0
+                         ? 100 * (size_t) myfs_stats.nfree / (size_t) myfs_stats.nodes : 0,
+                         (size_t) myfs_stats.nodes);
+         else

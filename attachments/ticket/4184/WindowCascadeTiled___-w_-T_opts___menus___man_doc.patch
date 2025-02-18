@@ -1,0 +1,309 @@
+From 9ec735f2a3ed7f091dda2c48331403b8898d58bc Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Sat, 23 Jan 2021 21:26:07 -0600
+Subject: WindowCascade
+
+WindowTile
+
+Add -w/-T options and menu entries.
+---
+ doc/man/mcedit.1.in     |   6 ++
+ lib/keybind.c           |   2 +
+ lib/keybind.h           |   2 +
+ misc/mc.default.keymap  |   2 +
+ src/args.c              |  20 +++++++
+ src/args.h              |   2 +
+ src/editor/editmenu.c   |   2 +
+ src/editor/editwidget.c | 128 ++++++++++++++++++++++++++++++++++++++++
+ src/keybind-defaults.c  |   2 +
+ 9 files changed, 166 insertions(+)
+
+diff --git a/doc/man/mcedit.1.in b/doc/man/mcedit.1.in
+index 33e5f34b7..df1680b63 100644
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -54,6 +54,12 @@ Display the version of the program.
+ .I "\-x"
+ Force xterm mode.  Used when running on xterm\-capable terminals (two
+ screen modes, and able to send mouse escape sequences).
++.TP
++.I "\-w/\-\-cascade"
++Start with file windows arranged in cascade (not fullscreen).
++.TP
++.I "\-T/\-\-tile"
++Start with file windows tiled (not fullscreen).
+ .SH FEATURES
+ The internal file editor is a full\-featured windowed editor.  It can
+ edit several files at the same time. Maximum size of each file is 64
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..4d735ed43 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -341,6 +341,8 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (WindowList),
+     ADD_KEYMAP_NAME (WindowNext),
+     ADD_KEYMAP_NAME (WindowPrev),
++    ADD_KEYMAP_NAME (WindowCascade),
++    ADD_KEYMAP_NAME (WindowTile),
+ #endif /* USE_INTERNAL_EDIT */
+ 
+     /* viewer */
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..a3828e68d 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -300,6 +300,8 @@ enum
+     CK_WindowList,
+     CK_WindowNext,
+     CK_WindowPrev,
++    CK_WindowCascade,
++    CK_WindowTile,
+     /* misc commands */
+     CK_SpellCheck,
+     CK_SpellCheckCurrentWord,
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 2931ddd0a..1cd6ab5b3 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -386,6 +386,8 @@ SpellCheckCurrentWord = ctrl-p
+ # WindowList =
+ # WindowNext =
+ # WindowPrev =
++WindowCascade = ctrl-alt-c
++WindowTile = ctrl-alt-t
+ # ExtendedKeyMap =
+ 
+ [viewer]
+diff --git a/src/args.c b/src/args.c
+index 3f6a8b2a4..c52afa8b2 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -46,6 +46,9 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
++gboolean mc_args__cascade = FALSE;
++gboolean mc_args__tile = FALSE;
++
+ /* If true, assume we are running on an xterm terminal */
+ gboolean mc_args__force_xterm = FALSE;
+ 
+@@ -178,6 +181,23 @@ static const GOptionEntry argument_main_table[] = {
+     },
+ #endif /* ENABLE_VFS_SMB */
+ 
++#ifdef USE_INTERNAL_EDIT
++    /* options for non-fullscreen mcedit startup */
++    {
++     "cascade", 'w', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
++     &mc_args__cascade,
++     N_("Start editor with windows arranged in cascade"),
++     NULL
++    },
++
++    {
++     "tile", 'T', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
++     &mc_args__tile,
++     N_("Start editor with windows tiled"),
++     NULL
++    },
++#endif
++
+     {
+      /* handle arguments manually */
+      "view", 'v', G_OPTION_FLAG_IN_MAIN | G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
+diff --git a/src/args.h b/src/args.h
+index 616864d00..69b25ec16 100644
+--- a/src/args.h
++++ b/src/args.h
+@@ -22,6 +22,8 @@ extern gboolean mc_args__force_xterm;
+ extern gboolean mc_args__nomouse;
+ extern gboolean mc_args__force_colors;
+ extern gboolean mc_args__nokeymap;
++extern gboolean mc_args__cascade;
++extern gboolean mc_args__tile;
+ extern char *mc_args__last_wd_file;
+ extern char *mc_args__netfs_logfile;
+ extern char *mc_args__keymap_file;
+diff --git a/src/editor/editmenu.c b/src/editor/editmenu.c
+index 489893849..c20e9fb7e 100644
+--- a/src/editor/editmenu.c
++++ b/src/editor/editmenu.c
+@@ -232,6 +232,8 @@ create_window_menu (void)
+     entries = g_list_prepend (entries, menu_entry_create (_("&Resize"), CK_WindowResize));
+     entries =
+         g_list_prepend (entries, menu_entry_create (_("&Toggle fullscreen"), CK_WindowFullscreen));
++    entries = g_list_prepend (entries, menu_entry_create (_("&Cascade"), CK_WindowCascade));
++    entries = g_list_prepend (entries, menu_entry_create (_("T&iled"), CK_WindowTile));
+     entries = g_list_prepend (entries, menu_separator_create ());
+     entries = g_list_prepend (entries, menu_entry_create (_("&Next"), CK_WindowNext));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Previous"), CK_WindowPrev));
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 3eafff2b8..d1a41de45 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -292,6 +292,119 @@ get_hotkey (int n)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static gboolean
++edit_window_leave_fullscreen_resize (Widget * w, int y, int x, int lines, int cols)
++{
++    WRect resize_rect;
++    gboolean ret = FALSE;
++
++    if (edit_widget_is_editor (w))
++    {
++        WEdit *e = (WEdit *) w;
++        if (e->fullscreen)
++            edit_toggle_fullscreen (e);
++        rect_init (&resize_rect, y, x, lines, cols);
++        e->force |= REDRAW_COMPLETELY;
++        send_message (WIDGET (e), NULL, MSG_RESIZE, 0, &resize_rect);
++        ret = TRUE;
++    }
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++edit_window_cascade (const WDialog * h)
++{
++    const WGroup *g = CONST_GROUP (h);
++    const Widget *wid = CONST_WIDGET (h);
++    int diff = 5;
++    int cur_y, cur_x, lines, cols;
++    GList *w;
++
++    cur_x = 0;
++    cur_y = 1;
++    lines = wid->lines - 2;
++    cols = wid->cols;
++
++    for (w = g->widgets; w != NULL; w = g_list_next (w))
++    {
++        if (w == g->current)
++            continue;
++        if (edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, cur_x, lines, cols))
++        {
++            cur_y += diff;
++            cur_x += diff;
++            lines -= diff;
++            cols -= diff;
++            /* Underflow – cycle back to the first size and position. */
++            if (lines < 7 || cols < 30)
++            {
++                /* Second and following series are more dense. */
++                diff -= diff > 1 ? 1 : 0;
++                /* Use a little degrading shift for the next series of windows. */
++                cur_x = 0 + diff - 1;
++                cur_y = 1 + diff - 1;
++                lines = wid->lines - diff - 1;
++                cols = wid->cols - diff + 1;
++            }
++        }
++    }
++    w = g->current;
++    edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, cur_x, lines, cols);
++    repaint_screen ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++edit_window_tile (const WDialog * h)
++{
++    const WGroup *g = CONST_GROUP (h);
++    const Widget *wid = CONST_WIDGET (h);
++    const size_t offset = 3;    /* skip menu and buttonbar */
++    int cur_y, orig_lines, lines, dlg_num;
++    GList *w;
++
++    dlg_num = g_list_length (g->widgets) - offset;
++
++    cur_y = 1;
++    lines = wid->lines / dlg_num;
++    if (lines < 5)
++        lines = 5;
++    orig_lines = lines;
++
++    for (w = g->widgets; w != NULL; w = g_list_next (w))
++    {
++        if (w == g->current)
++            continue;
++        /* Detect overflow and use space for final window (in series). */
++        if (cur_y + 2 * orig_lines - 1 > wid->lines)
++            lines = wid->lines - cur_y - 1;
++
++        /* Resize and unfullscreen window. */
++        if (edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, 0, lines, wid->cols))
++        {
++            cur_y += orig_lines;
++            /* Overflow - cycle back to the first size and position. */
++            if (cur_y + orig_lines - 1 > wid->lines)
++            {
++                cur_y = 1;
++                lines = orig_lines;
++            }
++        }
++    }
++
++    /* Ensure that the currently edited file is positioned last. */
++    w = g->current;
++    if (cur_y + orig_lines > wid->lines - 1)
++        lines = wid->lines - cur_y - 1;
++    edit_window_leave_fullscreen_resize (WIDGET (w->data), cur_y, 0, lines, wid->cols);
++    repaint_screen ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static void
+ edit_window_list (const WDialog * h)
+ {
+@@ -459,6 +572,12 @@ edit_dialog_command_execute (WDialog * h, long command)
+     case CK_WindowList:
+         edit_window_list (h);
+         break;
++    case CK_WindowCascade:
++        edit_window_cascade (h);
++        break;
++    case CK_WindowTile:
++        edit_window_tile (h);
++        break;
+     case CK_WindowNext:
+         group_select_next_widget (g);
+         break;
+@@ -1268,6 +1387,15 @@ edit_files (const GList * files)
+         ok = ok || f_ok;
+     }
+ 
++    if (mc_args__cascade)
++    {
++        edit_window_cascade (edit_dlg);
++    }
++    else if (mc_args__tile)
++    {
++        edit_window_tile (edit_dlg);
++    }
++
+     if (ok)
+         dlg_run (edit_dlg);
+ 
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7b87c2f5a..dbed20014 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -471,6 +471,8 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"Sort", "alt-t"},
+     {"Mail", "alt-m"},
+     {"ExternalCommand", "alt-u"},
++    {"WindowTile", "alt-shift-t"},
++    {"WindowCascade", "alt-shift-c"},
+ #ifdef HAVE_ASPELL
+     {"SpellCheckCurrentWord", "ctrl-p"},
+ #endif
+-- 
+2.28.0
+

@@ -1,0 +1,71 @@
+From bfb8efb9c4310334e376ee8550c70be2d7cb77b2 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 30 May 2024 21:20:48 +0200
+Subject: [PATCH] clang: fix `-Wconditional-uninitialized` warnings
+
+../../../src/filemanager/file.c:2402:61: warning: variable 'attrs' may be uninitialized when used here [-Wconditional-uninitialized]
+                while (attrs_ok && mc_fsetflags (dst_vpath, attrs) != 0 && !ctx->skip_all)
+                                                            ^~~~~
+../../../src/filemanager/file.c:2266:24: note: initialize the variable 'attrs' to silence this warning
+    unsigned long attrs;
+                       ^
+                        = 0
+
+../../../src/filemanager/file.c:3227:38: warning: variable 'attrs' may be uninitialized when used here [-Wconditional-uninitialized]
+            mc_fsetflags (dst_vpath, attrs);
+                                     ^~~~~
+../../../src/filemanager/file.c:2942:24: note: initialize the variable 'attrs' to silence this warning
+    unsigned long attrs;
+                       ^
+                        = 0
+
+../../../lib/strutil/tokenize.c:163:44: warning: variable 'delimopen' may be uninitialized when used here [-Wconditional-uninitialized]
+        if (nestdelim != 0 && string[i] == delimopen)
+                                           ^~~~~~~~~
+../../../lib/strutil/tokenize.c:72:19: note: initialize the variable 'delimopen' to silence this warning
+    char delimopen;
+                  ^
+                   = '\0'
+---
+ lib/strutil/tokenize.c | 2 +-
+ src/filemanager/file.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/strutil/tokenize.c b/lib/strutil/tokenize.c
+index 3c861dee0..7cc1fef0f 100644
+--- a/lib/strutil/tokenize.c
++++ b/lib/strutil/tokenize.c
+@@ -69,7 +69,7 @@ str_tokenize_word (const char *string, int start)
+ {
+     int i = start;
+     char delimiter = '\0';
+-    char delimopen;
++    char delimopen= '\0';
+     int nestdelim = 0;
+ 
+     if (member (string[i], "()\n"))     /* XXX - included \n, but why? been here forever */
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 41bd86cab..ffc2a6611 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -2263,7 +2263,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+     mode_t src_mode = 0;        /* The mode of the source file */
+     struct stat src_stat, dst_stat;
+     mc_timesbuf_t times;
+-    unsigned long attrs;
++    unsigned long attrs = 0;
+     gboolean attrs_ok = ctx->preserve;
+     gboolean dst_exists = FALSE, appending = FALSE;
+     off_t file_size = -1;
+@@ -2939,7 +2939,7 @@ copy_dir_dir (file_op_total_context_t * tctx, file_op_context_t * ctx, const cha
+ {
+     struct vfs_dirent *next;
+     struct stat dst_stat, src_stat;
+-    unsigned long attrs;
++    unsigned long attrs = 0;
+     gboolean attrs_ok = ctx->preserve;
+     DIR *reading;
+     FileProgressStatus return_status = FILE_CONT;
+-- 
+2.39.3 (Apple Git-146)
+

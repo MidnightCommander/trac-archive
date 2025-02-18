@@ -1,0 +1,50 @@
+From 46dfe207e64bf7dc2bcf58cf3757c20558625546 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 17:33:56 +0000
+Subject: [PATCH 03/05] sftp: fix connection memleaks (cosmetic)
+
+   sftpfs_super_data created at sftpfs_cb_open_connection() was freed at sftpfs_close_connection()
+   it should be sftpfs_cb_close_connection() for logical right location
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/connection.c   | 3 ---
+ src/vfs/sftpfs/vfs_subclass.c | 7 +++++++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index 3bed24e..b3fe4d0 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -442,9 +442,6 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+     if (super_data == NULL)
+         return;
+ 
+-    vfs_path_element_free (super_data->original_connection_info);
+-    super_data->original_connection_info = NULL;
+-
+     if (super_data->agent != NULL)
+     {
+         libssh2_agent_disconnect (super_data->agent);
+diff --git a/src/vfs/sftpfs/vfs_subclass.c b/src/vfs/sftpfs/vfs_subclass.c
+index 8ddff74..85e552d 100644
+--- a/src/vfs/sftpfs/vfs_subclass.c
++++ b/src/vfs/sftpfs/vfs_subclass.c
+@@ -137,10 +137,17 @@ static void
+ sftpfs_cb_close_connection (struct vfs_class *me, struct vfs_s_super *super)
+ {
+     GError *mcerror = NULL;
++    sftpfs_super_data_t *sftpfs_super_data;
+ 
+     (void) me;
+     sftpfs_close_connection (super, "Normal Shutdown", &mcerror);
++
++    sftpfs_super_data = (sftpfs_super_data_t *) super->data;
++    if (sftpfs_super_data != NULL)
++        vfs_path_element_free (sftpfs_super_data->original_connection_info);
++
+     mc_error_message (&mcerror, NULL);
++
+     g_free (super->data);
+ }
+ 

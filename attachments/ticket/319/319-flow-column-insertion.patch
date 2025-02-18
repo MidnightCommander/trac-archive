@@ -1,0 +1,236 @@
+From 59e5cdcb1c98089390853bcbe29dc32aefb03d9e Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 3 Nov 2009 20:50:38 +0000
+Subject: [PATCH] flow column insertion
+
+---
+ edit/edit.c    |   67 +++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ edit/edit.h    |    5 +--
+ edit/editcmd.c |   24 +++++++++++++------
+ 3 files changed, 84 insertions(+), 12 deletions(-)
+
+diff --git a/edit/edit.c b/edit/edit.c
+index e239c0c..1cc642e 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -87,6 +87,7 @@ const char *option_whole_chars_search = "0123456789abcdefghijklmnopqrstuvwxyz_";
+ char *option_backup_ext = NULL;
+ 
+ int edit_stack_iterator = 0;
++static unsigned long pasted_from_X_buf;
+ edit_stack_type edit_history_moveto [MAX_HISTORY_MOVETO];
+ /* magic sequense for say than block is vertical */
+ const char VERTICAL_MAGIC[] = {'\1', '\1', '\1', '\1', '\n'};
+@@ -478,6 +479,7 @@ int
+ edit_insert_file (WEdit *edit, const char *filename)
+ {
+     char *p;
++    pasted_from_X_buf = 0;
+     if ((p = edit_get_filter (filename))) {
+ 	FILE *f;
+ 	long current = edit->curs1;
+@@ -526,6 +528,7 @@ edit_insert_file (WEdit *edit, const char *filename)
+                 for (i = 0; i < blocklen; i++)
+                     edit_insert (edit, buf[i]);
+             }
++            pasted_from_X_buf = edit->curs1 - current;
+ 	}
+ 	edit_cursor_move (edit, current - edit->curs1);
+ 	g_free (buf);
+@@ -2529,6 +2532,9 @@ static void edit_goto_matching_bracket (WEdit *edit)
+  */
+ void edit_execute_key_command (WEdit *edit, int command, int char_for_insertion)
+ {
++    static unsigned int go_to_SIstart_col = 0;
++    static unsigned int go_to_CMstart_col = 0;
++
+     if (command == CK_Begin_Record_Macro) {
+ 	edit->macro_i = 0;
+ 	edit->force |= REDRAW_CHAR_ONLY | REDRAW_LINE;
+@@ -2549,6 +2555,65 @@ void edit_execute_key_command (WEdit *edit, int command, int char_for_insertion)
+ 	edit_push_key_press (edit);
+ 
+     edit_execute_cmd (edit, command, char_for_insertion);
++
++    switch (command) {
++    case CK_Copy:
++    case CK_Move:
++        go_to_CMstart_col = 0;
++        go_to_SIstart_col = 0;
++        if ( ! column_highlighting && buf_stored_size) {
++            edit_mark_cmd (edit, 1);
++            edit_mark_cmd (edit, 0);
++            edit_cursor_move (edit, buf_stored_size);
++            edit_mark_cmd (edit, 0);
++            edit->force |= REDRAW_PAGE;
++            edit_update_screen (edit);
++            if (edit->curs_line > (edit->start_line
++                    + edit->num_widget_lines - 3)) {
++                edit_move_display (edit, edit->start_line + 2);
++                edit->force |= REDRAW_PAGE;
++            }
++            go_to_CMstart_col = 1;
++        }
++        break;
++    case CK_XPaste:
++        go_to_CMstart_col = 0;
++        go_to_SIstart_col = 0;
++        if ( ! column_highlighting && pasted_from_X_buf) {
++            edit_mark_cmd (edit, 1);
++            edit_mark_cmd (edit, 0);
++            edit_cursor_move (edit, pasted_from_X_buf);
++            edit_mark_cmd (edit, 0);
++            edit->force |= REDRAW_PAGE;
++            edit_update_screen (edit);
++            if (edit->curs_line > (edit->start_line
++                    + edit->num_widget_lines - 3)) {
++                edit_move_display (edit, edit->start_line + 2);
++                edit->force |= REDRAW_PAGE;
++            }
++            go_to_SIstart_col = 1;
++        }
++        break;
++    case CK_Up:
++        if ( ! column_highlighting) {
++            if (go_to_CMstart_col || go_to_SIstart_col) {
++                long start_mark, end_mark;
++                eval_marks (edit, &start_mark, &end_mark);
++                if (end_mark - start_mark) {
++                    edit_cursor_move (edit, start_mark - edit->curs1);
++                    if (edit->curs_line)
++                        edit_move_to_line (edit, edit->curs_line - 1);
++                    if (edit->curs_line < (edit->start_line + 1))
++                        edit_move_display (edit, edit->curs_line - 1);
++                    edit->force |= REDRAW_PAGE;
++                }
++            }
++        }
++    default:
++        go_to_CMstart_col = 0;
++        go_to_SIstart_col = 0;
++    }
++
+     if (column_highlighting)
+ 	edit->force |= REDRAW_PAGE;
+ }
+@@ -2581,7 +2646,7 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+ 	edit->highlight = 1;
+     } else {			/* any other command */
+ 	if (edit->highlight)
+-	    edit_mark_cmd (edit, 0);	/* clear */
++	    edit_mark_cmd (edit, 0);	/* marking on */
+ 	edit->highlight = 0;
+     }
+ 
+diff --git a/edit/edit.h b/edit/edit.h
+index 0891801..f26bd5b 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -53,15 +53,14 @@ extern int option_save_mode;
+ extern int option_save_position;
+ extern int option_syntax_highlighting;
+ extern char *option_backup_ext;
+-
+ extern int edit_confirm_save;
+-
+ extern int visible_tabs;
+ extern int visible_tws;
+-
+ extern int simple_statusbar;
+ extern int option_check_nl_at_eof;
+ 
++unsigned long buf_stored_size;
++
+ /* used in main() */
+ void edit_stack_init (void);
+ void edit_stack_free (void);
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 48f1db6..c328def 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -1167,10 +1167,12 @@ edit_insert_column_of_text_from_file (WEdit * edit, int file)
+ void
+ edit_block_copy_cmd (WEdit *edit)
+ {
+-    long start_mark, end_mark, current = edit->curs1;
++    long start_mark, end_mark;
+     int size;
+     unsigned char *copy_buf;
+ 
++    buf_stored_size = 0;
++
+     edit_update_curs_col (edit);
+     if (eval_marks (edit, &start_mark, &end_mark))
+ 	return;
+@@ -1185,6 +1187,7 @@ edit_block_copy_cmd (WEdit *edit)
+ 	edit_insert_column_of_text (edit, copy_buf, size,
+ 				    abs (edit->column2 - edit->column1));
+     } else {
++        buf_stored_size = (long) size;
+ 	while (size--)
+ 	    edit_insert_ahead (edit, copy_buf[size]);
+     }
+@@ -1196,9 +1199,8 @@ edit_block_copy_cmd (WEdit *edit)
+ 	edit_set_markers (edit, 0, 0, 0, 0);
+ 	edit_push_action (edit, COLUMN_ON);
+ 	column_highlighting = 0;
+-    } else if (start_mark < current && end_mark > current)
+-	edit_set_markers (edit, start_mark,
+-			  end_mark + end_mark - start_mark, 0, 0);
++        buf_stored_size = 0;
++    }
+ 
+     edit->force |= REDRAW_PAGE;
+ }
+@@ -1214,8 +1216,11 @@ edit_block_move_cmd (WEdit *edit)
+     int deleted = 0;
+     int x = 0;
+ 
++    buf_stored_size = 0;
++
+     if (eval_marks (edit, &start_mark, &end_mark))
+ 	return;
++
+     if (column_highlighting) {
+ 	edit_update_curs_col (edit);
+ 	x = edit->curs_col;
+@@ -1226,7 +1231,9 @@ edit_block_move_cmd (WEdit *edit)
+     } else if (start_mark <= edit->curs1 && end_mark >= edit->curs1)
+ 	return;
+ 
+-    if ((end_mark - start_mark) > option_max_undo / 2)
++    buf_stored_size = end_mark - start_mark;
++
++    if (buf_stored_size > option_max_undo / 2)
+ 	if (edit_query_dialog2
+ 	    (_("Warning"),
+ 	     _
+@@ -1269,8 +1276,9 @@ edit_block_move_cmd (WEdit *edit)
+ 	edit_set_markers (edit, 0, 0, 0, 0);
+ 	edit_push_action (edit, COLUMN_ON);
+ 	column_highlighting = 0;
++        buf_stored_size = 0;
+     } else {
+-	copy_buf = g_malloc (end_mark - start_mark);
++	copy_buf = g_malloc (buf_stored_size);
+ 	edit_cursor_move (edit, start_mark - edit->curs1);
+ 	edit_scroll_screen_over_cursor (edit);
+ 	count = start_mark;
+@@ -1282,12 +1290,12 @@ edit_block_move_cmd (WEdit *edit)
+ 	edit_cursor_move (edit,
+ 			  current - edit->curs1 -
+ 			  (((current - edit->curs1) >
+-			    0) ? end_mark - start_mark : 0));
++			    0) ? buf_stored_size : 0));
+ 	edit_scroll_screen_over_cursor (edit);
+ 	while (count-- > start_mark)
+ 	    edit_insert_ahead (edit, copy_buf[end_mark - count - 1]);
+ 	edit_set_markers (edit, edit->curs1,
+-			  edit->curs1 + end_mark - start_mark, 0, 0);
++			  edit->curs1 + buf_stored_size, 0, 0);
+     }
+     edit_scroll_screen_over_cursor (edit);
+     g_free (copy_buf);
+-- 
+1.6.4
+

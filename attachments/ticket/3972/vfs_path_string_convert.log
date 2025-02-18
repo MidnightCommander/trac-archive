@@ -1,0 +1,27 @@
+Running suite /lib/vfs
+vfs_**
+ERROR:vfs_path_string_convert.c:186:test_from_to_string_fn: assertion failed (actual_result == data->expected_result): ("/test1://bla-bla1/some/path/test2://#enc:KOI8-R/test3://111/22/33" == "/test1://bla-bla1/some/path/test2://#enc:KOI8-R/bla-bla2/some/path/test3://111/22/33")
+Bail out! ERROR:vfs_path_string_convert.c:186:test_from_to_string_fn: assertion failed (actual_resultvfs_path_string_convert.c:185:E:Core:test_from_to_string:5: (after this point) Received signal 6 (Aborted)
+vfs_path_string_convert.c:185:E:Core:test_from_to_string:6: (after this point) Received signal 6 (Aborted)
+vfs_path_string_convert.c:185:E:Core:test_from_to_string:7: (after this point) Received signal 6 (Aborted)
+vfs_path_string_convert.c:168:E:Core:test_from_to_string:8: (after this point) Received signal 11 (Segmentation fault)
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:0: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:1: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:2: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:3: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:4: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:5: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:6: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:7: Passed
+vfs_path_string_convert.c:257:P:Core:test_partial_string_by_index:8: Passed
+vfs_path_string_convert.c:302:P:Core:test_vfs_path_encoding_at_end:0: Passed
+Results for all suites run:
+73%: Checks: 19, Failures: 0, Errors: 5
+h/test2://#enc:KOI8-R/bla-bla2/some/path/test3://111/22/33")
+73%: Checks: 19, Failures: 0, Errors: 5
+vfs_path_string_convert.c:168:E:Core:test_from_to_string:4: (after this point) Received signal 11 (Segmentation fault)
+vfs_path_string_convert.c:185:E:Core:test_from_to_string:5: (after this point) Received signal 6 (Aborted)
+vfs_path_string_convert.c:185:E:Core:test_from_to_string:6: (after this point) Received signal 6 (Aborted)
+vfs_path_string_convert.c:185:E:Core:test_from_to_string:7: (after this point) Received signal 6 (Aborted)
+vfs_path_string_convert.c:168:E:Core:test_from_to_string:8: (after this point) Received signal 11 (Segmentation fault)
+FAIL vfs_path_string_convert (exit status: 1)

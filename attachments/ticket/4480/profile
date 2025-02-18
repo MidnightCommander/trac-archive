@@ -1,0 +1,69 @@
+#Запрет на прерывание этого скрипта с помочью Ctrl-C
+#trap SIGINT SIGQUIT
+
+#Настройка терминала
+#stty quit undef; stty kill undef; stty eof undef; stty start undef; stty stop undef; stty susp undef; stty dsusp undef; stty werase undef
+
+#Основной файл с настройками
+#[ -f /etc/bash/bashrc ] && . /etc/bash/bashrc
+
+#Отображение информации о дисковых квотах пользователя и их использовании
+#/sbin/quota
+
+
+
+
+
+#Запрет на прерывание этого скрипта с помочью Ctrl-C
+#trap SIGINT SIGQUIT
+
+#Отмена экспорта ряда переменных окружения
+#unset LC_ALL; unset LC_COLLATE; unset LC_CTYPE; unset LC_MESSAGES; unset LC_MONETARY; unset LC_NUMERIC; unset LC_TIME
+
+#Установка и экспорт переменных
+#HISTSIZE=64
+#HISTCONTROL="ignorespace:erasedups"
+#HISTIGNORE="history:mc"
+#HISTTIMEFORMAT='%Y.%m.%d %H:%M:%S '
+#unset HISTFILE
+export PATH="/usr/bin:/usr/sbin:$HOME/.local/bin"
+export PAGER="/usr/bin/more -s"
+export EDITOR="/usr/bin/mcedit"
+export LANG=en_US.UTF8
+
+#If not running interactively, then return
+#if [ -z "$PS1" ]; then return; fi
+
+#Снятие ненужных биндов readline`а, которые неудаёться снять через inputrc
+#bind -r "\C-o"; bind -r "\C-u"; bind -r "\C-w"; bind -r "\C-x!";  bind -r "\C-x$"; bind -r "\C-x*"; bind -r "\C-x/"; bind -r "\C-x@"; bind -r "\C-x\C-e"; bind -r "\C-x\C-v"; bind -r "\C-xg"; bind -r "\C-x~"; bind -r "\e!"; bind -r "\e$"; bind -r "\e/"; bind -r "\e@"; bind -r "\e[1;3C"; bind -r "\e[1;3D"; bind -r "\e[1;5C"; bind -r "\e[1;5D"; bind -r "\e[200~"; bind -r "\e[3;5~"; bind -r "\e\C-e"; bind -r "\e\C-i"; bind -r "\e^"; bind -r "\eg"; bind -r "\e{"; bind -r "\e~"
+
+#Запрет на закрытие шелла с помощью Ctrl-D
+#set -o ignoreeof
+
+#Настройка приглашений для прямого входа в систему
+#Использование тут одинарных ковычек это НЕОБХОДИМОСТЬ для Solaris, без них приглашению глючит!!!
+#if [ "$TERM" == "sun-color" ]
+#then alias mc="mc -a"
+#	 B='\[\e[2;37m\]'; N='\[\e[1;37m\]'; D='\[\e[2;37m\]' #Белый
+	#B='\[\e[2;31m\]'; N='\[\e[1;31m\]'; D='\[\e[2;31m\]' #Красный
+	#B='\[\e[2;32m\]'; N='\[\e[1;32m\]'; D='\[\e[2;32m\]' #Зелёный
+	#B='\[\e[2;33m\]'; N='\[\e[1;33m\]'; D='\[\e[2;33m\]' #Желтый
+	#B='\[\e[1;34m\]'; N='\[\e[1;36m\]'; D='\[\e[2;36m\]' #Синий
+	#B='\[\e[2;35m\]'; N='\[\e[1;35m\]'; D='\[\e[2;35m\]' #Сиреневый
+#	if [ -z "$MC_SID" ]
+#		then PS1=$B'/-\[\e[1;30m\]['$N'\u@\H\[\e[1;30m\]]['$D'\D{%Y.%m.%d} \t\[\e[1;30m\]][Ret: $?]\n'$B'|-\[\e[1;30m\]['$B'\w\[\e[1;30m\]]\n'$B'\>\[\e[m\] '
+#		else PS1='>'#$B'/\[\e[1;30m\]['$N'\u@\H\[\e[1;30m\]]['$D'\D{%Y.%m.%d} \t\[\e[1;30m\]]\n'$B'\\\[\e[1;30m\]['$B'\w\[\e[1;30m\]][$?]'$B'>\[\e[m\] '
+#	fi; PS2=$B'\>\[\e[m\] '
+#else if [[ "$TERM" =~ xterm* ]]; then export TERM="xterm-256color"; fi
+#	 B='\[\e[38;5;252m\]'; N='\[\e[38;5;15m\e[48;5;240m\]'; D='\[\e[38;5;253m\]'; P='\[\e[38;5;254m\]' #Белый
+	#B='\[\e[38;5;172m\]'; N='\[\e[38;5;9m\e[48;5;52m\]';   D='\[\e[38;5;166m\]'; P='\[\e[38;5;160m\]' #Красный
+	#B='\[\e[38;5;70m\]';  N='\[\e[38;5;10m\e[48;5;22m\]';  D='\[\e[38;5;76m\]';  P='\[\e[38;5;82m\]'  #Зелёный
+	#B='\[\e[38;5;178m\]'; N='\[\e[38;5;11m\e[48;5;58m\]';  D='\[\e[38;5;184m\]'; P='\[\e[38;5;190m\]' #Желтый
+	#B='\[\e[38;5;69m\]';  N='\[\e[38;5;45m\e[48;5;17m\]';  D='\[\e[38;5;75m\]';  P='\[\e[38;5;81m\]'  #Синий
+	#B='\[\e[38;5;177m\]'; N='\[\e[38;5;13m\e[48;5;53m\]';  D='\[\e[38;5;171m\]'; P='\[\e[38;5;165m\]' #Сиреневый
+	#Т.к. Bash под Solaris`ом неверно рассчитывает ширину Unicode-символов, то применяется специальных хак с заменой символа '└' на '\002\[└\]'
+#	if [ -z "$MC_SID" ]
+#		then PS1=$B'┌─\[\e[1;30m\]['$N'\u@\H\[\e[0m\e[1;30m\]]['$D'\D{%Y.%m.%d} \t\[\e[1;30m\]][Ret: $?]\n'$B'├─\[\e[1;30m\]['$P'\w\[\e[1;30m\]]\n'$B'\002\[└\]>\[\e[m\] '
+#		else PS1='>'#$B'┌\[\e[1;30m\]['$N'\u@\H\[\e[0m\e[1;30m\]]['$D'\D{%Y.%m.%d} \t\[\e[1;30m\]]\n'$B'\002\[└\]\[\e[1;30m\]['$P'\w\[\e[1;30m\]][$?]'$B'>\[\e[m\] '
+#	fi; PS2=$B'\002\[└\]>\[\e[m\] '; unset P
+#fi; unset B; unset N; unset D

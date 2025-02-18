@@ -1,0 +1,77 @@
+From ea499a0f02cb91a8c7b8c77dfefd47d917b9a349 Mon Sep 17 00:00:00 2001
+From: Sergei Trofimovich <slyfox@inbox.ru>
+Date: Wed, 28 Jan 2009 23:08:31 +0200
+Subject: [PATCH] copy/move dialog: add trailing '/' to default destination path (fix #181)
+
+Problem:
+  When user tried to copy/move file (F5/F6) - he could run into trouble if
+  destination directory is removed (it can be removed by user from another mc session).
+  Operation is performed and(!) file is renamed.
+  So when when user issues 'cp /tmp/a.file /tmp/b' - he gets not expected /tmp/b/a.file,
+  but /tmp.b !
+
+Solution:
+  Add trailing space for destination directory for non-local copy/move(F5/F6) operations.
+  So operation, given above will take form: 'cp /tmp/a.file /tmp/b/' disambiguating b
+  meaning.
+
+Signed-off-by: Sergei Trofimovich <slyfox@inbox.ru>
+---
+ src/file.c |   25 ++++++++++++++++++++++++-
+ 1 files changed, 24 insertions(+), 1 deletions(-)
+
+diff --git a/src/file.c b/src/file.c
+index 73346ca..80b0ed7 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -50,6 +50,8 @@
+ #include <sys/stat.h>
+ #include <unistd.h>
+ 
++#include <mhl/string.h>
++
+ #include "global.h"
+ #include "tty.h"
+ #include "eregex.h"
+@@ -1783,6 +1785,7 @@ panel_operate (void *source_panel, FileOperation operation,
+ 	}
+     } else if (operation != OP_DELETE) {
+ 	char *dest_dir;
++	char *dest_dir_;
+ 
+ 	/* Forced single operations default to the original name */
+ 	if (force_single)
+@@ -1792,9 +1795,29 @@ panel_operate (void *source_panel, FileOperation operation,
+ 	else
+ 	    dest_dir = panel->cwd;
+ 
++	/*
++	 * Add trailing backslash only when do non-locally ops.
++	 * It saves user from occasional file renames (when destination
++	 * dir is deleted)
++	 */
++	if (force_single)
++	    // just copy
++	    dest_dir_ = mhl_str_dup (dest_dir);
++	else
++	{
++	    // add trailing separator
++	    dest_dir_ = mhl_str_concat (dest_dir, PATH_SEP_STR);
++	    if (!dest_dir_) {
++		file_op_context_destroy (ctx);
++		return 0;
++	    }
++	}
++
+ 	dest =
+-	    file_mask_dialog (ctx, operation, cmd_buf, dest_dir,
++	    file_mask_dialog (ctx, operation, cmd_buf, dest_dir_,
+ 			      single_entry, &do_bg);
++	mhl_mem_free(dest_dir_);
++
+ 	if (!dest) {
+ 	    file_op_context_destroy (ctx);
+ 	    return 0;
+-- 
+1.6.1.1
+

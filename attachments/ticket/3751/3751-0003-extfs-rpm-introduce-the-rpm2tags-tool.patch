@@ -1,0 +1,165 @@
+From 0b6ccc0b9009347afb7ea772c03e2aad14fa3017 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 2 Jan 2017 06:07:34 +0200
+Subject: [PATCH 3/4] Ticket #3751: extfs: rpm: introduce the rpm2tags tool.
+
+This is a preliminary step before being able to write tests for our rpm helper.
+
+We introduce 'rpm2tags', a tool for converting RPM packages to parsable text
+files. This will enable us to write tests that can run even where the 'rpm'
+program isn't installed.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ configure.ac                                      |   1 +
+ tests/src/vfs/extfs/helpers-list/Makefile.am      |   2 +
+ tests/src/vfs/extfs/helpers-list/misc/Makefile.am |   2 +
+ tests/src/vfs/extfs/helpers-list/misc/rpm2tags    | 103 ++++++++++++++++++++++
+ 4 files changed, 108 insertions(+)
+ create mode 100644 tests/src/vfs/extfs/helpers-list/misc/Makefile.am
+ create mode 100755 tests/src/vfs/extfs/helpers-list/misc/rpm2tags
+
+diff --git a/configure.ac b/configure.ac
+index 87576f0..c128c09 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -643,6 +643,7 @@ tests/src/editor/test-data.txt
+ tests/src/vfs/Makefile
+ tests/src/vfs/extfs/Makefile
+ tests/src/vfs/extfs/helpers-list/Makefile
++tests/src/vfs/extfs/helpers-list/misc/Makefile
+ ])
+ 
+ AC_OUTPUT
+diff --git a/tests/src/vfs/extfs/helpers-list/Makefile.am b/tests/src/vfs/extfs/helpers-list/Makefile.am
+index a0a28e9..79d3d2c 100644
+--- a/tests/src/vfs/extfs/helpers-list/Makefile.am
++++ b/tests/src/vfs/extfs/helpers-list/Makefile.am
+@@ -1,5 +1,7 @@
+ PACKAGE_STRING = "/src/vfs/extfs/helpers-list"
+ 
++SUBDIRS = misc
++
+ AM_CPPFLAGS = $(GLIB_CFLAGS) -I$(top_srcdir)
+ 
+ # This lets mc_parse_ls_l.c override MC's message() without the linker
+diff --git a/tests/src/vfs/extfs/helpers-list/misc/Makefile.am b/tests/src/vfs/extfs/helpers-list/misc/Makefile.am
+new file mode 100644
+index 0000000..b05f611
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/misc/Makefile.am
+@@ -0,0 +1,2 @@
++
++EXTRA_DIST = rpm2tags
+diff --git a/tests/src/vfs/extfs/helpers-list/misc/rpm2tags b/tests/src/vfs/extfs/helpers-list/misc/rpm2tags
+new file mode 100755
+index 0000000..b3c80cd
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/misc/rpm2tags
+@@ -0,0 +1,103 @@
++#!/usr/bin/perl
++use strict;
++use warnings;
++use Data::Dumper;
++
++my $help = <<EOF;
++WHAT
++----
++
++This script converts an RPM package into what we call a "tags file",
++which is simply an associative array listing all the tags and their
++values.
++
++WHY
++---
++
++For our rpm helper tests we need an RPM file. But we also want the tests
++to be able to run on systems where the rpm binary isn't installed. The
++solution: our tests work on "tags files" instead of real RPM files.
++
++HOW
++---
++
++Use it like this:
++
++    $0 /path/to/some/package.rpm > test.input
++
++You can run this script only on systems where 'rpm' is installed.
++
++WHEW
++----
++
++After all was done the author of this script discovered something not
++mentioned in rpm's manpage: one can do "rpm -qp --xml pkg.rpm" to
++serialize the metadata and get the same effect. But this would just move
++the complexity to the test (in handling XML).
++EOF
++
++# Tag variations we're interested in and wish to record as well.
++my @formatted_tags = qw(
++  BUILDTIME:date
++  CHANGELOGTIME:date
++
++  REQUIREFLAGS:depflags
++  PROVIDEFLAGS:depflags
++  OBSOLETEFLAGS:depflags
++  CONFLICTFLAGS:depflags
++);
++
++# Big tags we want to omit to save space.
++my %skip = map {$_ => 1} qw(
++  HEADERIMMUTABLE
++);
++
++# Make 'rpm' print dates in the format our helper expects.
++$ENV{'LC_TIME'} = 'C';
++
++sub rpm2tags
++{
++  my ($rpm_pkg) = @_;
++
++  my %tags = ();
++
++  chomp(my @all_tags = `rpm --querytags`);
++  @all_tags = grep {!$skip{$_}} @all_tags;
++
++  foreach my $tag (@all_tags, @formatted_tags) {
++    $tags{$tag} = `rpm -qp --qf "%{$tag}" "$rpm_pkg"`;
++  }
++
++  # Add pseudo tags:
++  $tags{'_INFO'} = `rpm -qip "$rpm_pkg"`;
++
++  return %tags;
++}
++
++sub prolog
++{
++  my $cmdline = join(' ', $0, @ARGV);
++  return <<EOF;
++# -*- Perl -*-
++#
++# This "tags file" was created by running the following command:
++#
++#    \$ $cmdline
++#
++# This file is used in our tests instead of the corresponding RPM file.
++# This lets us run the tests on systems where 'rpm' is not installed.
++EOF
++}
++
++sub main
++{
++  if (!$ARGV[0] || $ARGV[0] eq "--help" || $ARGV[0] eq "-h") {
++    print $help;
++    exit;
++  }
++  my %tags = rpm2tags($ARGV[0]);
++  $Data::Dumper::Terse = 1;
++  print(prolog(), "\n", '$tags = ', Dumper(\%tags), ";\n");
++}
++
++main();
+-- 
+2.9.3
+

@@ -1,0 +1,66 @@
+diff -uNr mc/misc/ext.d/sound.sh mc-fork/misc/ext.d/sound.sh
+--- mc/misc/ext.d/sound.sh	2020-02-11 12:33:28.691059942 +0100
++++ mc-fork/misc/ext.d/sound.sh	2020-02-11 12:02:16.055957568 +0100
+@@ -19,6 +19,9 @@
+     ogg)
+         ogginfo "${MC_EXT_FILENAME}"
+         ;;
++    opus)
++        opusinfo "${MC_EXT_FILENAME}"
++        ;;
+     wma)
+         mplayer -quiet -slave -frames 0 -vo null -ao null -identify "${MC_EXT_FILENAME}" 2>/dev/null | \
+             tail +13 || file "${MC_EXT_FILENAME}"
+@@ -61,6 +64,13 @@
+             ogg123 "${MC_EXT_FILENAME}"
+         fi
+         ;;
++    opus)
++        if [ -n "$DISPLAY" ]; then
++            (xmms "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
++        else
++            play "${MC_EXT_FILENAME}"
++        fi
++        ;;
+     midi)
+         timidity "${MC_EXT_FILENAME}"
+         ;;
+diff -uNr mc/misc/filehighlight.ini mc-fork/misc/filehighlight.ini
+--- mc/misc/filehighlight.ini	2020-02-11 12:33:28.691059942 +0100
++++ mc-fork/misc/filehighlight.ini	2020-02-11 12:06:12.382394840 +0100
+@@ -37,7 +37,7 @@
+     extensions=ada;asm;awk;bash;c;caml;cc;cgi;cpp;cxx;diff;erl;go;h;hh;hi;hpp;hs;inc;jasm;jav;java;js;m4;mak;mjs;ml;mli;mll;mlp;mly;pas;patch;php;phps;pl;pm;prg;py;rb;s;sas;sh;sl;st;tcl;tk;xq
+ 
+ [media]
+-    extensions=3gp;aac;ac3;ape;asf;avi;dts;flac;flv;it;m3u;m4a;m4v;med;mid;midi;mkv;mod;mol;mov;mp2;mp3;mp4;mpeg;mpg;mpl;ogg;ogv;s3m;ts;umx;vob;wav;webm;wma;wmv;xm
++    extensions=3gp;aac;ac3;ape;asf;avi;dts;flac;flv;it;m3u;m4a;m4v;med;mid;midi;mkv;mod;mol;mov;mp2;mp3;mp4;mpeg;mpg;mpl;ogg;ogv;opus;s3m;ts;umx;vob;wav;webm;wma;wmv;xm
+ 
+ [graph]
+     extensions=ai;bmp;cdr;eps;gif;ico;jpeg;jpg;omf;pcx;pic;png;rle;svg;tif;tiff;webp;wmf;xbm;xcf;xpm
+diff -uNr mc/misc/mc.ext.in mc-fork/misc/mc.ext.in
+--- mc/misc/mc.ext.in	2020-02-11 12:33:28.692059906 +0100
++++ mc-fork/misc/mc.ext.in	2020-02-11 12:03:55.115949198 +0100
+@@ -497,6 +497,10 @@
+ 	Open=@EXTHELPERSDIR@/sound.sh open ogg
+ 	View=%view{ascii} @EXTHELPERSDIR@/sound.sh view ogg
+ 
++shell/i/.opus
++	Open=@EXTHELPERSDIR@/sound.sh open opus
++	View=%view{ascii} @EXTHELPERSDIR@/sound.sh view opus
++
+ regex/i/\.(spx|flac)$
+ 	Open=@EXTHELPERSDIR@/sound.sh open common
+ 
+diff -uNr mc/misc/syntax/sh.syntax mc-fork/misc/syntax/sh.syntax
+--- mc/misc/syntax/sh.syntax	2020-02-11 12:33:28.704059475 +0100
++++ mc-fork/misc/syntax/sh.syntax	2020-02-11 12:05:51.657233464 +0100
+@@ -567,6 +567,9 @@
+     keyword whole ogginfo cyan
+     keyword whole open cyan
+     keyword whole openvt cyan
++    keyword whole opusdec cyan
++    keyword whole opusenc cyan
++    keyword whole opusinfo cyan
+     keyword whole pager cyan
+     keyword whole pam_getenv cyan
+     keyword whole paperconf cyan

@@ -1,0 +1,77 @@
+Delivered-To: slavazanko@gmail.com
+Received: by 10.103.170.9 with SMTP id x9cs102904muo;
+        Tue, 1 Sep 2009 11:00:39 -0700 (PDT)
+Received: by 10.223.2.205 with SMTP id 13mr3028313fak.83.1251828038597;
+        Tue, 01 Sep 2009 11:00:38 -0700 (PDT)
+Return-Path: <andy@dhcppc74>
+Received: from suomicom.fi (mail.suomicom.fi [217.119.36.25])
+        by mx.google.com with ESMTP id 10si9393094fxm.37.2009.09.01.11.00.38;
+        Tue, 01 Sep 2009 11:00:38 -0700 (PDT)
+Received-SPF: neutral (google.com: 217.119.36.25 is neither permitted nor denied by best guess record for domain of andy@dhcppc74) client-ip=217.119.36.25;
+Authentication-Results: mx.google.com; spf=neutral (google.com: 217.119.36.25 is neither permitted nor denied by best guess record for domain of andy@dhcppc74) smtp.mail=andy@dhcppc74
+Received: from exim by suomicom.fi with spam-scanned (Exim 4.69)
+	(envelope-from <andy@dhcppc74>)
+	id 1MiXe6-00068U-AL
+	for slavazanko@gmail.com; Tue, 01 Sep 2009 21:00:29 +0300
+X-Spam-Checker-Version: SpamAssassin 3.2.5 (2008-06-10) on mail.suomicom.fi
+X-Spam-Level: 
+X-Spam-Status: No, score=0.3 required=5.5 tests=ALL_TRUSTED,AWL,TVD_RCVD_IP
+	autolearn=disabled version=3.2.5
+Received: from 79-134-110-209.cust.suomicom.fi ([79.134.110.209] helo=dhcppc74)
+	by suomicom.fi with esmtps (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <andy@dhcppc74>)
+	id 1MiXe6-00068N-5P; Tue, 01 Sep 2009 20:59:54 +0300
+Received: from dhcppc74 (localhost.localdomain [127.0.0.1])
+	by dhcppc74 (8.14.3/8.14.3) with ESMTP id n81HwnR5015076;
+	Tue, 1 Sep 2009 20:59:31 +0300
+Received: (from andy@localhost)
+	by dhcppc74 (8.14.3/8.14.3/Submit) id n7UEFsGt021647;
+	Sun, 30 Aug 2009 17:15:54 +0300
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: slavazanko@gmail.com
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH] Add yum repo syntax highlight file
+Date: Sun, 30 Aug 2009 17:14:54 +0300
+Message-Id: <1251641694-21566-1-git-send-email-andy.shevchenko@gmail.com>
+X-Mailer: git-send-email 1.6.0.6
+
+Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+---
+ syntax/Syntax      |    3 +++
+ syntax/repo.syntax |    9 +++++++++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
+ create mode 100644 syntax/repo.syntax
+
+diff --git a/syntax/Syntax b/syntax/Syntax
+index 7452bbf..b784061 100644
+--- a/syntax/Syntax
++++ b/syntax/Syntax
+@@ -130,6 +130,9 @@ include sql.syntax
+ file ..\*\\.(spec|spec\.in)$ RPM\sSpecfile
+ include spec.syntax
+ 
++file ..\*\\.repo$ YUM\sRepo File
++include repo.syntax
++
+ file ..\*\\.(awk)$ AWK\sFile
+ include awk.syntax
+ 
+diff --git a/syntax/repo.syntax b/syntax/repo.syntax
+new file mode 100644
+index 0000000..004e7c7
+--- /dev/null
++++ b/syntax/repo.syntax
+@@ -0,0 +1,9 @@
++# Yum repo syntax highlighting
++#
++# Author: Andy Shevchenko <andy.shevchenko@gmail.com>
++
++context default
++
++context # \n brown
++	spellcheck
++
+-- 
+1.6.0.6
+

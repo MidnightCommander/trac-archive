@@ -1,0 +1,36 @@
+Patch for mc git version (4.8.0, 2011-04-03):
+Changes default copy/move destination to source entry name
+instead of target directory name when operating on single entry.
+It allows to rename files conveniently.
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index d74c79e..6ebbf3f 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -2349,12 +2349,15 @@ panel_operate (void *source_panel, FileOperation operation, gboolean force_singl
+     if (operation != OP_DELETE)
+     {
+         char *dest_dir;
+-        char *dest_dir_;
++        char *dest_dir_ = NULL;
+         char *format;
+ 
+         /* Forced single operations default to the original name */
+-        if (force_single)
++        if (force_single || single_entry && !strcmp(panel->cwd, other_panel->cwd))
++        {
+             dest_dir = source;
++            dest_dir_ = source; /* hack... */
++        }
+         else if (get_other_type () == view_listing)
+             dest_dir = other_panel->cwd;
+         else
+@@ -2364,7 +2367,7 @@ panel_operate (void *source_panel, FileOperation operation, gboolean force_singl
+          * It saves user from occasional file renames (when destination
+          * dir is deleted)
+          */
+-        if (!force_single && dest_dir[0] != '\0' && dest_dir[strlen (dest_dir) - 1] != PATH_SEP)
++        if (!dest_dir_ && !force_single && dest_dir[0] != '\0' && dest_dir[strlen (dest_dir) - 1] != PATH_SEP)
+         {
+             /* add trailing separator */
+             dest_dir_ = g_strconcat (dest_dir, PATH_SEP_STR, (char *) NULL);

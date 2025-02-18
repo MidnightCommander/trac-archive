@@ -1,0 +1,70 @@
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index d6bb43a..0ea7b34 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -74,7 +74,7 @@
+ 
+ /* Configurable: log2 of the buffer size in bytes */
+ #ifndef S_EDIT_BUF_SIZE
+-#define S_EDIT_BUF_SIZE 16
++#define S_EDIT_BUF_SIZE 3
+ #endif
+ 
+ /* Size of the buffer */
+@@ -88,7 +88,7 @@
+  * This number can be increased for systems with enough physical memory.
+  */
+ #ifndef MAXBUFF
+-#define MAXBUFF 1024
++#define MAXBUFF 91024
+ #endif
+ 
+ /* Maximal length of file that can be opened */
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 226151b..ddf96ab 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -1758,6 +1758,7 @@ edit_get_utf (WEdit * edit, long byte_index, int *char_width)
+     gunichar ch;
+     gchar *next_ch = NULL;
+     int width = 0;
++    char buf[6 + 1];
+ 
+     if (byte_index >= (edit->curs1 + edit->curs2) || byte_index < 0)
+     {
+@@ -1777,8 +1778,33 @@ edit_get_utf (WEdit * edit, long byte_index, int *char_width)
+ 
+     if (res < 0)
+     {
+-        ch = *str;
+-        width = 0;
++        int i;
++
++        for (i = 0; i < 6; i++)
++            buf[i] = edit_get_byte (edit, byte_index + i);
++
++        buf[6] = '\0';
++
++        res = g_utf8_get_char_validated ((char *) buf, -1);
++        if (res < 0)
++        {
++            ch = *str;
++            width = 0;
++        }
++        else
++        {
++            ch = res;
++            next_ch = g_utf8_next_char ((char *) buf);
++            if (next_ch)
++            {
++                width = next_ch - (char *) buf;
++            }
++            else
++            {
++                ch = 0;
++                width = 0;
++            }
++        }
+     }
+     else
+     {

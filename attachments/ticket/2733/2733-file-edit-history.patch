@@ -1,0 +1,246 @@
+diff --git a/lib/keybind.c b/lib/keybind.c
+index 89fa9a0..2c7510a 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -231,6 +231,7 @@ static name_keymap_t command_names[] = {
+     {"SortBySize", CK_SortBySize},
+     {"SortByMTime", CK_SortByMTime},
+     {"CdParentSmart", CK_CdParentSmart},
++    {"FileEditHistory", CK_FileEditHistory},
+ 
+     /* dialog */
+     {"Ok", CK_Ok},
+diff --git a/lib/keybind.h b/lib/keybind.h
+index a88efbc..19e539b 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -205,6 +205,7 @@ enum
+     CK_SortByMTime,
+     CK_ScrollLeft,
+     CK_ScrollRight,
++    CK_FileEditHistory,
+ 
+     /* dialog */
+     CK_Ok = 300L,
+diff --git a/lib/widget/history.c b/lib/widget/history.c
+index 67aff69..768c203 100644
+--- a/lib/widget/history.c
++++ b/lib/widget/history.c
+@@ -57,6 +57,9 @@ int num_history_items_recorded = 60;
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
++#define B_VIEW          (B_USER + 1)
++#define B_EDIT          (B_USER + 2)
++
+ /*** file scope type declarations ****************************************************************/
+ 
+ typedef struct
+@@ -114,6 +117,27 @@ history_dlg_reposition (WDialog * dlg_head)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static inline cb_ret_t
++history_handle_key (WDialog * h, int key)
++{
++    switch (key)
++    {
++    case KEY_F (3):
++        h->ret_value = B_VIEW;
++        dlg_stop (h);
++        return MSG_HANDLED;
++
++    case KEY_F (4):
++        h->ret_value = B_EDIT;
++        dlg_stop (h);
++        return MSG_HANDLED;
++    default:
++        return MSG_NOT_HANDLED;
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static cb_ret_t
+ history_dlg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
+ {
+@@ -122,6 +146,9 @@ history_dlg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, v
+     case MSG_RESIZE:
+         return history_dlg_reposition (DIALOG (w));
+ 
++    case MSG_UNHANDLED_KEY:
++         return history_handle_key (DIALOG (w), parm);
++
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+     }
+@@ -285,7 +312,7 @@ history_save (mc_config_t * cfg, const char *name, GList * h)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ char *
+-history_show (GList ** history, Widget * widget, int current)
++history_show (GList ** history, Widget * widget, int current, int *param)
+ {
+     GList *z, *hlist = NULL, *hi;
+     size_t maxlen, count = 0;
+@@ -293,6 +320,7 @@ history_show (GList ** history, Widget * widget, int current)
+     WDialog *query_dlg;
+     WListbox *query_list;
+     history_dlg_data hist_data;
++    int dlg_ret;
+ 
+     if (*history == NULL)
+         return NULL;
+@@ -356,10 +384,26 @@ history_show (GList ** history, Widget * widget, int current)
+             listbox_select_entry (query_list, current);
+     }
+ 
+-    if (dlg_run (query_dlg) != B_CANCEL)
++    dlg_ret = dlg_run (query_dlg);
++    if (dlg_ret != B_CANCEL)
+     {
+         char *q;
+ 
++        if (param != NULL)
++        {
++            switch (dlg_ret)
++            {
++            case B_EDIT:
++                *param = CK_Edit;
++                break;
++            case B_VIEW:
++                *param = CK_View;
++                break;
++            default:
++                *param = CK_CdChild;
++            }
++        }
++
+         listbox_get_current (query_list, &q, NULL);
+         r = g_strdup (q);
+     }
+diff --git a/lib/widget/history.h b/lib/widget/history.h
+index 101ffd4..48038de 100644
+--- a/lib/widget/history.h
++++ b/lib/widget/history.h
+@@ -28,7 +28,7 @@ GList *history_load (mc_config_t * cfg, const char *name);
+ void history_save (mc_config_t * cfg, const char *name, GList * h);
+ /* for repositioning of history dialog we should pass widget to this
+  * function, as position of history dialog depends on widget's position */
+-char *history_show (GList ** history, Widget * widget, int current);
++char *history_show (GList ** history, Widget * widget, int current, int *action);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index d0dc1cb..df11de5 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -178,7 +178,7 @@ do_show_hist (WInput * in)
+     len = get_history_length (in->history.list);
+ 
+     r = history_show (&in->history.list, WIDGET (in),
+-                      g_list_position (in->history.list, in->history.list));
++                      g_list_position (in->history.list, in->history.list), NULL);
+     if (r != NULL)
+     {
+         input_assign_text (in, r);
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 30d2706..54be0c0 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3344,7 +3344,7 @@ directory_history_list (WPanel * panel)
+ 
+     pos = g_list_position (panel->dir_history_current, panel->dir_history);
+ 
+-    s = history_show (&panel->dir_history, WIDGET (panel), pos);
++    s = history_show (&panel->dir_history, WIDGET (panel), pos, NULL);
+     if (s != NULL)
+     {
+         vfs_path_t *s_vpath;
+@@ -3381,6 +3381,75 @@ directory_history_list (WPanel * panel)
+     }
+ }
+ 
++static void
++file_edit_history_list (WPanel * panel)
++{
++
++    char *fn;
++    FILE *f;
++    char buf[MC_MAXPATHLEN + 100];
++    GList *file_list = NULL;
++    char *s;
++    int action;
++
++    /* open file with positions */
++    fn =  mc_config_get_full_path (MC_FILEPOS_FILE);
++    f = fopen (fn, "r");
++    g_free (fn);
++    if (f == NULL)
++        return;
++
++    while (fgets (buf, sizeof (buf), f) != NULL)
++    {
++        s = strrchr(buf, ' ');
++        if (s)
++        {
++            *s = 0;
++        }
++        s = g_strdup (buf);
++
++       file_list = g_list_prepend (file_list, s);
++       file_list = g_list_first(file_list);
++    }
++    fclose(f);
++
++    file_list = g_list_last(file_list);
++
++    s = history_show (&file_list, WIDGET(panel), 0, &action);
++
++    if (s != NULL)
++    {
++        vfs_path_t *vpath;
++
++        switch (action)
++        {
++        case CK_Edit:
++            vpath = vfs_path_from_str (s);
++            edit_file_at_line (vpath, use_internal_edit, 0);
++            break;
++        case CK_View:
++            vpath = vfs_path_from_str (s);
++            view_file (vpath, TRUE, use_internal_view);
++            break;
++        default:
++            {
++            char *dirname = g_path_get_dirname(s);
++            vpath = vfs_path_from_str (dirname);
++            g_free (dirname);
++
++            do_cd (vpath, cd_exact);
++            try_to_select (panel, basename(s));
++            }
++        }
++        vfs_path_free(vpath);
++        g_free (s);
++    }
++
++    file_list = g_list_first (file_list);
++    g_list_foreach (file_list, (GFunc) g_free, NULL);
++    g_list_free (file_list);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
+@@ -3458,6 +3527,9 @@ panel_execute_cmd (WPanel * panel, long command)
+     case CK_CdParent:
+         goto_parent_dir (panel);
+         break;
++    case CK_FileEditHistory:
++        file_edit_history_list (panel);
++        break;
+     case CK_History:
+         directory_history_list (panel);
+         break;

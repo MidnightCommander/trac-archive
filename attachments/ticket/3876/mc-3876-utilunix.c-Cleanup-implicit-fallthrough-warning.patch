@@ -1,0 +1,32 @@
+From 80790d482ce074a5e8a412afebc8fb4c2af92468 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 3 Jan 2018 22:39:07 +0000
+Subject: [PATCH] (utilunix.c): Cleanup implicit-fallthrough warning
+
+Found by GCC 7.2.0
+
+utilunix.c: In function 'my_systemv':
+utilunix.c:455:13: error: this statement may fall through [-Werror=implicit-fallthrough=]
+             my_exit (127);      /* Exec error */
+             ^~~~~~~~~~~~~
+utilunix.c:458:5: note: here
+     default:
+     ^~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/utilunix.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index f2050bcdb..92ddd4cf9 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -454,6 +454,7 @@ my_systemv (const char *command, char *const argv[])
+             execvp (command, argv);
+             my_exit (127);      /* Exec error */
+         }
++        MC_FALLTHROUGH;
+         /* no break here, or unreachable-code warning by no returning my_exit() */
+     default:
+         status = 0;

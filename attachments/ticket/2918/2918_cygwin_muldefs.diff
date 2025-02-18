@@ -1,0 +1,69 @@
+diff --git a/configure.ac b/configure.ac
+index 7cd7d18..cdeca77 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -472,6 +472,7 @@ fi
+ CFLAGS="$mc_configured_cflags $CFLAGS_OPTS $CFLAGS"
+ 
+ MC_UNIT_TESTS
++AC_SUBST(TESTS_LDFLAGS)
+ 
+ AC_SUBST(CFLAGS)
+ AC_SUBST(CPPFLAGS)
+diff --git a/m4.include/mc-tests.m4 b/m4.include/mc-tests.m4
+index 6aedd4b..5dceeef 100644
+--- a/m4.include/mc-tests.m4
++++ b/m4.include/mc-tests.m4
+@@ -22,4 +22,14 @@ AC_DEFUN([MC_UNIT_TESTS],[
+             [AC_MSG_WARN(['Check' utility not found. Check your environment])])
+     fi
+     AM_CONDITIONAL(HAVE_TESTS, test x"$have_check" = "xyes")
++
++    # on cygwin, the linker does not accept the "-z" option
++    case $host_os in
++        cygwin*)
++            TESTS_LDFLAGS="-Wl,--allow-multiple-definition"
++            ;;
++        *)
++            TESTS_LDFLAGS="-Wl,-z,muldefs"
++            ;;
++    esac
+ ])
+diff --git a/tests/lib/mcconfig/Makefile.am b/tests/lib/mcconfig/Makefile.am
+index c706003..ea86a53 100644
+--- a/tests/lib/mcconfig/Makefile.am
++++ b/tests/lib/mcconfig/Makefile.am
+@@ -1,7 +1,7 @@
+ AM_CFLAGS = $(GLIB_CFLAGS) -I$(top_srcdir) @CHECK_CFLAGS@ \
+ 	-DWORKDIR=\"$(abs_builddir)\"
+ 
+-AM_LDFLAGS = -Wl,-z,muldefs
++AM_LDFLAGS = @TESTS_LDFLAGS@
+ 
+ LIBS=@CHECK_LIBS@  $(top_builddir)/lib/libmc.la
+ 
+diff --git a/tests/lib/vfs/Makefile.am b/tests/lib/vfs/Makefile.am
+index 4114e70..cf9dc6a 100644
+--- a/tests/lib/vfs/Makefile.am
++++ b/tests/lib/vfs/Makefile.am
+@@ -1,7 +1,7 @@
+ AM_CFLAGS = -I$(top_srcdir)/lib/vfs $(GLIB_CFLAGS) -I$(top_srcdir) @CHECK_CFLAGS@ \
+ 	-DTEST_SHARE_DIR=\"$(abs_srcdir)\"
+ 
+-AM_LDFLAGS = -Wl,-z,muldefs
++AM_LDFLAGS = @TESTS_LDFLAGS@
+ 
+ EXTRA_DIST = mc.charsets
+ 
+diff --git a/tests/src/filemanager/Makefile.am b/tests/src/filemanager/Makefile.am
+index eda2934..4601933 100644
+--- a/tests/src/filemanager/Makefile.am
++++ b/tests/src/filemanager/Makefile.am
+@@ -1,6 +1,6 @@
+ AM_CFLAGS = -I$(top_srcdir)/lib/vfs $(GLIB_CFLAGS) -I$(top_srcdir) @CHECK_CFLAGS@
+ 
+-AM_LDFLAGS = -Wl,-z,muldefs
++AM_LDFLAGS = @TESTS_LDFLAGS@
+ 
+ LIBS=@CHECK_LIBS@  \
+     $(top_builddir)/lib/libmc.la

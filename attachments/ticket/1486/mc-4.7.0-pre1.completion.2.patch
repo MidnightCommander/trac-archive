@@ -1,0 +1,79 @@
+diff -Naur mc-4.7.0-pre1~/edit/editcmd.c mc-4.7.0-pre1/edit/editcmd.c
+--- mc-4.7.0-pre1~/edit/editcmd.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd.c	2009-08-09 16:16:16.000000000 +0300
+@@ -2271,6 +2271,8 @@
+     GString *temp;
+     mc_search_t *srch;
+ 
++    long last_byte = start;
++
+     srch = mc_search_new(match_expr, -1);
+     if (srch == NULL)
+         return 0;
+@@ -2280,10 +2282,10 @@
+     srch->search_fn = edit_search_cmd_callback;
+ 
+     /* collect max MAX_WORD_COMPLETIONS completions */
+-    start--;
+-    while (*num < MAX_WORD_COMPLETIONS) {
++    start = -1;
++    while (1) {
+ 	/* get next match */
+-	if (mc_search_run (srch, (void *) edit, start+1, edit->last_byte, &len) == FALSE)
++	if (mc_search_run (srch, (void *) edit, start+1, last_byte, &len) == FALSE)
+ 	    break;
+ 	start = srch->normal_offset;
+ 
+@@ -2305,6 +2307,11 @@
+ 			(char *) &temp->str[word_len],
+ 			max (len, compl[i].len) - word_len
+ 		    ) == 0) {
++		struct selection this = compl[i];
++		for (++i; i < *num; i++) {
++		    compl[i - 1] = compl[i];
++		}
++		compl[*num - 1] = this;
+ 		skip = 1;
+ 		break;		/* skip it, already added */
+ 	    }
+@@ -2313,6 +2320,13 @@
+ 	    g_string_free(temp, TRUE);
+ 	    continue;
+ 	}
++	if (*num == MAX_WORD_COMPLETIONS && MAX_WORD_COMPLETIONS) {
++	    g_free(compl[0].text);
++	    for (i = 1; i < *num; i++) {
++		compl[i - 1] = compl[i];
++	    }
++	    (*num)--;
++	}
+ 
+ 	compl[*num].text = temp->str;
+ 	compl[*num].len = temp->len;
+@@ -2348,12 +2362,12 @@
+     bufpos = &edit->buffers1[word_start >> S_EDIT_BUF_SIZE]
+ 	[word_start & M_EDIT_BUF_SIZE];
+ 
+-    match_expr = g_strdup_printf ("(^|\\s)%.*s[^\\s\\.=\\+\\{\\}\\[\\]\\(\\)\\\\\\!\\,<>\\?\\/@#\\$%%\\^&\\*\\~\\|\\\"'\\:\\;]+", word_len, bufpos);
++    match_expr = g_strdup_printf ("\\b%.*s[a-zA-Z_0-9]+", word_len, bufpos);
+ 
+     /* collect the possible completions              */
+     /* start search from begin to end of file */
+     max_len =
+-	edit_collect_completions (edit, 0, word_len, match_expr,
++	edit_collect_completions (edit, word_start, word_len, match_expr,
+ 				  (struct selection *) &compl, &num_compl);
+ 
+     if (num_compl > 0) {
+diff -Naur mc-4.7.0-pre1~/edit/editcmd_dialogs.c mc-4.7.0-pre1/edit/editcmd_dialogs.c
+--- mc-4.7.0-pre1~/edit/editcmd_dialogs.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd_dialogs.c	2009-08-09 16:07:08.000000000 +0300
+@@ -296,7 +296,7 @@
+     add_widget (compl_dlg, compl_list);
+ 
+     /* fill the listbox with the completions */
+-    for (i = 0; i < num_compl; i++)
++    for (i = num_compl - 1; i >= 0; i--) /* reverse order */
+         listbox_add_item (compl_list, LISTBOX_APPEND_AT_END, 0, (char *) compl[i].text, NULL);
+ 
+     /* pop up the dialog */

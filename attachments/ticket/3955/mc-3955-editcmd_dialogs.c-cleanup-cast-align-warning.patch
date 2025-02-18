@@ -1,0 +1,42 @@
+From 35f139d319388814bc570db6236e705cf19456c2 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 5 Jan 2019 18:53:53 +0000
+Subject: [PATCH] editcmd_dialogs.c: Cleanup -Wcast-align warning
+
+Found by Clang 6.0.1
+
+editcmd_dialogs.c:474:20: warning: cast from 'char *' to 'etags_hash_t *' (aka 'struct etags_hash_struct *') increases required alignment from 1 to 8 [-Wcast-align]
+        curr_def = (etags_hash_t *) tmp_curr_def;
+                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd_dialogs.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index ed17afeb1..cf60b00d3 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -414,7 +414,6 @@ editcmd_dialog_select_definition_show (WEdit * edit, char *match_expr, int max_l
+ 
+     int start_x, start_y, offset, i;
+     char *curr = NULL;
+-    etags_hash_t *curr_def = NULL;
+     WDialog *def_dlg;
+     WListbox *def_list;
+     int def_dlg_h;              /* dialog height */
+@@ -467,11 +466,10 @@ editcmd_dialog_select_definition_show (WEdit * edit, char *match_expr, int max_l
+     /* pop up the dialog and apply the chosen completion */
+     if (dlg_run (def_dlg) == B_ENTER)
+     {
+-        char *tmp_curr_def = (char *) curr_def;
++        etags_hash_t *curr_def = NULL;
+         int do_moveto = 0;
+ 
+-        listbox_get_current (def_list, &curr, (void **) &tmp_curr_def);
+-        curr_def = (etags_hash_t *) tmp_curr_def;
++        listbox_get_current (def_list, &curr, (void **) &curr_def);
+         if (edit->modified)
+         {
+             if (!edit_query_dialog2

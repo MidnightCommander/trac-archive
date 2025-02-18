@@ -1,0 +1,75 @@
+From 4cf5e5450db6b8c7b7971574d5c2578f78ed2640 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 27 Dec 2016 13:40:24 +0200
+Subject: [PATCH 1/2] Ticket #3747: extfs: hp48: fix float truncation.
+
+Some printf implementations can't process with %d anything other than integers.
+
+We solve this by re-using the awk snippet for this purpose. This makes
+hp48_retsize() unecessary. And hp48_retdir() too.
+
+(The "case" statement was left unindented to, hopefully, not affect diff's
+output much. This aesthetic issue will be fixed in a following patch.)
+---
+ src/vfs/extfs/helpers/hp48+.in | 30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/hp48+.in b/src/vfs/extfs/helpers/hp48+.in
+index 25da24a..838f565 100644
+--- a/src/vfs/extfs/helpers/hp48+.in
++++ b/src/vfs/extfs/helpers/hp48+.in
+@@ -40,16 +40,6 @@ done
+ echo QUIT)| $KERMIT -B >/dev/null
+ }
+ 
+-hp48_retdir()
+-{
+-echo "$1"
+-}
+-
+-hp48_retsize()
+-{
+-printf "%d" "$2" 2>/dev/null
+-}
+-
+ #
+ # Parses the reply to the DIRECTORY command.
+ #
+@@ -78,11 +68,22 @@ HP48_DIRS=
+ read -r INPUT
+ while [ "x$INPUT" != "xEOF" ]
+ do
+-    case `echo "$INPUT" | $AWK '{if (int($2)) if ($3 == "Directory") print "dir";else print "file"}'` in
+-    dir) HP48_DIRS="$HP48_DIRS `hp48_retdir $INPUT`"
+-    printf "drwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 0 0 `hp48_retsize $INPUT` "$NOW" "$HP48_CDIR/`hp48_retdir $INPUT`";;
+-    file) printf "%crw-r--r--   1 %-8d %-8d %8d %s %s\n" '-' 0 0 `hp48_retsize $INPUT` "$NOW" "$HP48_CDIR/`hp48_retdir $INPUT`";;
++    set -- $INPUT
++
++    obj_name=$1
++    obj_size=$2
++    obj_type=$3
++
++    obj_size=`echo $obj_size | $AWK '{ print int($0) }'`  # Truncates floats to ints; anything else to "0".
++
++    if [ "$obj_size" != "0" ]; then  # Skips the 1st reply line (purportedly there aren't zero-size files b/c, according to resource [4], the size is "including name").
++    case "$obj_type" in
++    Directory) HP48_DIRS="$HP48_DIRS $obj_name"
++    printf "drwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 0 0 $obj_size "$NOW" "$HP48_CDIR/$obj_name";;
++    *) printf "%crw-r--r--   1 %-8d %-8d %8d %s %s\n" '-' 0 0 $obj_size "$NOW" "$HP48_CDIR/$obj_name";;
+     esac
++    fi
++
+     read -r INPUT
+ done
+ for HP48_DIR in $HP48_DIRS;
+@@ -96,6 +97,7 @@ done
+ 
+ hp48_list()
+ {
++# It's hard to see why this "EOF" thing is needed. The loop above can be changed to "while read -r obj_name ...". @TODO.
+ { hp48_cmd "DIRECTORY"; echo; echo EOF; } | hp48_parser
+ }
+ 
+-- 
+2.9.3
+

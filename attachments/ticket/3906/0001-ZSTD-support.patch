@@ -1,0 +1,364 @@
+From bbb08d7e23a9a3561524502b74a4e274ca63926a Mon Sep 17 00:00:00 2001
+From: Adam Borowski <kilobyte@angband.pl>
+Date: Sun, 18 Mar 2018 18:23:33 +0100
+Subject: [PATCH] ZSTD support.
+
+Signed-off-by: Adam Borowski <kilobyte@angband.pl>
+---
+ lib/util.c                       |  5 +++++
+ lib/util.h                       |  3 ++-
+ misc/ext.d/archive.sh            | 14 ++++++++++++++
+ misc/ext.d/text.sh.in            |  7 +++++--
+ misc/filehighlight.ini           |  2 +-
+ misc/mc.ext.in                   | 22 ++++++++++++++++++++++
+ misc/mc.menu.in                  | 12 +++++++++++-
+ misc/syntax/sh.syntax            |  1 +
+ src/editor/edit.c                |  1 +
+ src/vfs/extfs/helpers/iso9660.in |  1 +
+ src/vfs/extfs/helpers/lslR.in    |  1 +
+ src/vfs/extfs/helpers/mailfs.in  |  3 +++
+ src/vfs/extfs/helpers/patchfs.in |  5 +++++
+ src/vfs/extfs/helpers/sfs.ini    |  2 ++
+ 14 files changed, 74 insertions(+), 5 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 2ecfd978d..aaa8c5f5e 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -893,6 +893,9 @@ get_compression_type (int fd, const char *name)
+         && magic[2] == 0x7A && magic[3] == 0x58 && magic[4] == 0x5A && magic[5] == 0x00)
+         return COMPRESSION_XZ;
+ 
++    if (magic[0] == 0x28 && magic[1] == 0xB5 && magic[2] == 0x2F && magic[3] == 0xFD)
++        return COMPRESSION_ZSTD;
++
+     str_len = strlen (name);
+     /* HACK: we must belive to extension of LZMA file :) ... */
+     if ((str_len > 5 && strcmp (&name[str_len - 5], ".lzma") == 0) ||
+@@ -923,6 +926,8 @@ decompress_extension (int type)
+         return "/ulzma" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_XZ:
+         return "/uxz" VFS_PATH_URL_DELIMITER;
++    case COMPRESSION_ZSTD:
++        return "/uzst" VFS_PATH_URL_DELIMITER;
+     default:
+         break;
+     }
+diff --git a/lib/util.h b/lib/util.h
+index 28b834d39..46ac1f0b4 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -60,7 +60,8 @@ enum compression_type
+     COMPRESSION_LZIP,
+     COMPRESSION_LZ4,
+     COMPRESSION_LZMA,
+-    COMPRESSION_XZ
++    COMPRESSION_XZ,
++    COMPRESSION_ZSTD,
+ };
+ 
+ /* stdout or stderr stream of child process */
+diff --git a/misc/ext.d/archive.sh b/misc/ext.d/archive.sh
+index e6105fdc1..a4a041eaa 100755
+--- a/misc/ext.d/archive.sh
++++ b/misc/ext.d/archive.sh
+@@ -35,6 +35,9 @@ do_view_action() {
+     xz)
+         xz -dc "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
++    zst)
++        zstd -dc "${MC_EXT_FILENAME}" 2>/dev/null
++        ;;
+     tar)
+         tar tvvf - < "${MC_EXT_FILENAME}"
+         ;;
+@@ -66,6 +69,10 @@ do_view_action() {
+         xz -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
+             tar tvvf -
+         ;;
++    tar.zst|tzst)
++        zstd -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
++            tar tvvf -
++        ;;
+     tar.F)
+         freeze -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
+             tar tvvf -
+@@ -107,6 +114,10 @@ do_view_action() {
+         xz -dc "${MC_EXT_FILENAME}" | \
+             cpio -itv 2>/dev/null
+         ;;
++    cpio.zst)
++        zstd -dc "${MC_EXT_FILENAME}" | \
++            cpio -itv 2>/dev/null
++        ;;
+     cpio)
+         cpio -itv < "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+@@ -158,6 +169,9 @@ do_open_action() {
+     xz)
+         xz -dc "${MC_EXT_FILENAME}" | ${pager}
+         ;;
++    zst)
++        zstd -dc "${MC_EXT_FILENAME}" | ${pager}
++        ;;
+     par2)
+         par2 r "${MC_EXT_FILENAME}"
+         ;;
+diff --git a/misc/ext.d/text.sh.in b/misc/ext.d/text.sh.in
+index b47425876..2bd6ca05c 100644
+--- a/misc/ext.d/text.sh.in
++++ b/misc/ext.d/text.sh.in
+@@ -34,6 +34,9 @@ get_unpacker() {
+     man.xz)
+         unpacker="xz -dc"
+         ;;
++    man.zst)
++        unpacker="zstd -dc"
++        ;;
+     esac
+     echo ${unpacker}
+ }
+@@ -64,7 +67,7 @@ do_view_action() {
+     nroff.ms)
+         nroff @MAN_FLAGS@ -ms "${MC_EXT_FILENAME}"
+         ;;
+-    man.gz|man.bz|man.bz2|man.lz|man.lz4|man.lzma|man.xz)
++    man.gz|man.bz|man.bz2|man.lz|man.lz4|man.lzma|man.xz|man.zst)
+         case "${MC_EXT_FILENAME}" in
+         */log/*|*/logs/*)
+             ${unpacker} "${MC_EXT_FILENAME}"
+@@ -111,7 +114,7 @@ do_open_action() {
+     nroff.ms)
+         nroff @MAN_FLAGS@ -ms "${MC_EXT_FILENAME}" | ${pager}
+         ;;
+-    man.gz|man.bz|man.bz2|man.lz|man.lz4|man.lzma|man.xz)
++    man.gz|man.bz|man.bz2|man.lz|man.lz4|man.lzma|man.xz|man.zst)
+         case "${MC_EXT_FILENAME}" in
+         */log/*|*/logs/*)
+             ${unpacker} "${MC_EXT_FILENAME}"
+diff --git a/misc/filehighlight.ini b/misc/filehighlight.ini
+index 4a7a41855..8d6f0194b 100644
+--- a/misc/filehighlight.ini
++++ b/misc/filehighlight.ini
+@@ -28,7 +28,7 @@
+     regexp=(^#.*|.*~$)
+ 
+ [archive]
+-    extensions=7z;Z;ace;arc;arj;ark;bz2;cab;gz;lha;lz;lz4;lzh;lzma;rar;rpm;tar;tbz;tbz2;tgz;tlz;txz;xz;zip;zoo
++    extensions=7z;Z;ace;arc;arj;ark;bz2;cab;gz;lha;lz;lz4;lzh;lzma;rar;rpm;tar;tbz;tbz2;tgz;tlz;txz;xz;tzst;zst;zip;zoo
+ 
+ [doc]
+     extensions=chm;css;ctl;diz;doc;docm;docx;dtd;htm;html;letter;lsm;mail;man;me;msg;nroff;odp;ods;odt;pdf;po;ppt;pptm;pptx;ps;rtf;sgml;shtml;tex;text;txt;xls;xlsm;xlsx;xml;xsd;xslt
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 92f908b6e..228c89311 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -150,6 +150,11 @@ regex/\.t(ar\.xz|xz)$
+ 	Open=%cd %p/utar://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view tar.xz
+ 
++# .tar.zst, .tzst
++regex/\.t(ar\.zst|zst)$
++	Open=%cd %p/utar://
++	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view tar.zst
++
+ # .tar.F - used in QNX
+ shell/.tar.F
+ 	# Open=%cd %p/utar://
+@@ -212,6 +217,10 @@ shell/.cpio.xz
+ 	Open=%cd %p/ucpio://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio.xz
+ 
++shell/.cpio.zst
++	Open=%cd %p/ucpio://
++	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio.zst
++
+ shell/.cpio.gz
+ 	Open=%cd %p/ucpio://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio.gz
+@@ -243,6 +252,10 @@ regex/\.(diff|patch)(\.xz)$
+     Open=%cd %p/patchfs://
+     View=%view{ascii} @EXTHELPERSDIR@/archive.sh view xz
+ 
++regex/\.(diff|patch)(\.zst)$
++    Open=%cd %p/patchfs://
++    View=%view{ascii} @EXTHELPERSDIR@/archive.sh view zst
++
+ # ls-lR
+ regex/(^|\.)ls-?lR(\.gz|Z|bz2)$
+ 	Open=%cd %p/lslR://
+@@ -403,6 +416,10 @@ regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.xz$
+ 	Open=@EXTHELPERSDIR@/text.sh open man.xz %var{PAGER:more}
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.xz %var{PAGER:more}
+ 
++regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.zst$
++	Open=@EXTHELPERSDIR@/text.sh open man.zst %var{PAGER:more}
++	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.zst %var{PAGER:more}
++
+ # CHM
+ shell/i/.chm
+ 	Open=@EXTHELPERSDIR@/text.sh open chm
+@@ -790,6 +807,11 @@ regex/\.xz$
+ 	Open=@EXTHELPERSDIR@/archive.sh view xz %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view xz
+ 
++# zstd
++regex/\.zst$
++	Open=@EXTHELPERSDIR@/archive.sh view zst %var{PAGER:more}
++	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view zst
++
+ # Parity Archive
+ type/^Parity\ Archive\ Volume\ Set
+ 	Open=@EXTHELPERSDIR@/archive.sh open par2
+diff --git a/misc/mc.menu.in b/misc/mc.menu.in
+index 8488a8750..2bf39c48e 100644
+--- a/misc/mc.menu.in
++++ b/misc/mc.menu.in
+@@ -84,6 +84,15 @@ shell_patterns=0
+         tar cf - "$Pwd" | xz -f > "$tar.tar.xz" && \
+         echo "../$tar.tar.xz created."
+ 
++7       Compress the current subdirectory (tar.zst)
++        Pwd=`basename %d /`
++        echo -n "Name of the compressed file (without extension) [$Pwd]: "
++        read tar
++        [ "$tar"x = x ] && tar="$Pwd"
++        cd .. && \
++        tar cf - "$Pwd" | zstd -f > "$tar.tar.zst" && \
++        echo "../$tar.tar.zst created."
++
+ = f \.c$ & t r
+ + f \.c$ & t r & ! t t
+ c       Compile and link current .c file
+@@ -219,7 +228,7 @@ U       Uudecode marked news articles (needs work)
+         fi
+         echo "Please test the output file before deleting anything."
+ 
+-=+ f \.tar\.gz$ | f \.tar\.z$ | f \.tgz$ | f \.tpz$ | f \.tar\.lz$ | f \.tar\.lz4$ | f \.tar\.lzma$ | f \.tar\.7z$ | f \.tar\.xz$ | f \.tar\.Z$ | f \.tar\.bz2$ & t r
++=+ f \.tar\.gz$ | f \.tar\.z$ | f \.tgz$ | f \.tpz$ | f \.tar\.lz$ | f \.tar\.lz4$ | f \.tar\.lzma$ | f \.tar\.7z$ | f \.tar\.xz$ | f \.tar\.zst | f \.tar\.Z$ | f \.tar\.bz2$ & t r
+ x       Extract the contents of a compressed tar file
+         unset PRG
+         case %f in
+@@ -230,6 +239,7 @@ x       Extract the contents of a compressed tar file
+             *.tar.lz4)  PRG="lz4 -dc";;
+             *.tar.lzma) PRG="lzma -dc";;
+             *.tar.xz)   PRG="xz -dc";;
++            *.tar.zst)  PRG="zstd -dc";;
+             *)          exit 1;;
+         esac
+         $PRG %f | tar xvf -
+diff --git a/misc/syntax/sh.syntax b/misc/syntax/sh.syntax
+index ff9ba2bc5..032433ee8 100644
+--- a/misc/syntax/sh.syntax
++++ b/misc/syntax/sh.syntax
+@@ -1995,6 +1995,7 @@ wholechars abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._
+     keyword whole zoo cyan
+     keyword whole zsh cyan
+     keyword whole zsoelim cyan
++    keyword whole zstd cyan
+     keyword whole zxpdf cyan
+ 
+     keyword whole pamcut cyan
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 174637253..016496fee 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -126,6 +126,7 @@ static const struct edit_filters
+ {
+     /* *INDENT-OFF* */
+     { "xz -cd %s 2>&1", "xz > %s", ".xz"},
++    { "zstd -cd %s 2>&1", "zstd > %s", ".zst"},
+     { "lz4 -cd %s 2>&1", "lz4 > %s", ".lz4" },
+     { "lzip -cd %s 2>&1", "lzip > %s", ".lz"},
+     { "lzma -cd %s 2>&1", "lzma > %s", ".lzma" },
+diff --git a/src/vfs/extfs/helpers/iso9660.in b/src/vfs/extfs/helpers/iso9660.in
+index 192667123..8c2240e8e 100644
+--- a/src/vfs/extfs/helpers/iso9660.in
++++ b/src/vfs/extfs/helpers/iso9660.in
+@@ -125,6 +125,7 @@ mcisofs_list () {
+       *.lz4) MYCAT="lz4 -dc";;
+       *.lzma) MYCAT="lzma -dc";;
+       *.xz)  MYCAT="xz -dc";;
++      *.zst) MYCAT="zstd -dc";;
+       *.bz2) MYCAT="bzip2 -dc";;
+       *.gz)  MYCAT="gzip -dc";;
+       *.z)   MYCAT="gzip -dc";;
+diff --git a/src/vfs/extfs/helpers/lslR.in b/src/vfs/extfs/helpers/lslR.in
+index aba5457c5..69b663b40 100644
+--- a/src/vfs/extfs/helpers/lslR.in
++++ b/src/vfs/extfs/helpers/lslR.in
+@@ -16,6 +16,7 @@ case "$1" in
+   *.lz4) MYCAT="lz4 -dc";;
+   *.lzma) MYCAT="lzma -dc";;
+   *.xz)  MYCAT="xz -dc";;
++  *.zst) MYCAT="zstd -dc";;
+   *.bz2) MYCAT="bzip2 -dc";;
+   *.gz)  MYCAT="gzip -dc";;
+   *.z)   MYCAT="gzip -dc";;
+diff --git a/src/vfs/extfs/helpers/mailfs.in b/src/vfs/extfs/helpers/mailfs.in
+index e9455bef0..4bdd68b61 100644
+--- a/src/vfs/extfs/helpers/mailfs.in
++++ b/src/vfs/extfs/helpers/mailfs.in
+@@ -11,6 +11,7 @@ $lzipcat="lzip -dc";          # unlzip to stdout
+ $lz4cat="lz4 -dc";            # unlz4 to stdout
+ $lzcat="lzma -dc";            # unlzma to stdout
+ $xzcat="xz -dc";              # unxz to stdout
++$zstdcat="zstd -dc";          # unzstd to stdout
+ $file="file";                 # "file" command
+ $TZ='GMT';                    # default timezone (for Date module)
+ 
+@@ -194,6 +195,8 @@ if (/gzip/) {
+     exit 1 unless (open IN, "$lzcat $mbox_qname|");
+ } elsif (/xz/) {
+     exit 1 unless (open IN, "$xzcat $mbox_qname|");
++} elsif (/zst/) {
++    exit 1 unless (open IN, "$zstdcat $mbox_qname|");
+ } else {
+     exit 1 unless (open IN, "<$mbox_name");
+ }
+diff --git a/src/vfs/extfs/helpers/patchfs.in b/src/vfs/extfs/helpers/patchfs.in
+index ef407de3a..c20cd54ef 100644
+--- a/src/vfs/extfs/helpers/patchfs.in
++++ b/src/vfs/extfs/helpers/patchfs.in
+@@ -17,6 +17,7 @@ my $lzip = 'lzip';
+ my $lz4  = 'lz4';
+ my $lzma = 'lzma';
+ my $xz   = 'xz';
++my $zstd = 'zstd';
+ my $bzip = 'bzip2';
+ my $gzip = 'gzip';
+ my $fileutil = 'file -b';
+@@ -88,6 +89,8 @@ sub myin
+ 	return "$lzma -dc $qfname";
+     } elsif (/^'*xz/) {
+ 	return "$xz -dc $qfname";
++    } elsif (/^'*zst/) {
++	return "$zstd -dc $qfname";
+     } elsif (/^'*bzip/) {
+ 	return "$bzip -dc $qfname";
+     } elsif (/^'*gzip/) {
+@@ -112,6 +115,8 @@ sub myout
+ 	return "$lzma -c $sep $qfname";
+     } elsif (/^'*xz/) {
+ 	return "$xz -c $sep $qfname";
++    } elsif (/^'*zst/) {
++	return "$zstd -c $sep $qfname";
+     } elsif (/^'*bzip/) {
+ 	return "$bzip -c $sep $qfname";
+     } elsif (/^'*gzip/) {
+diff --git a/src/vfs/extfs/helpers/sfs.ini b/src/vfs/extfs/helpers/sfs.ini
+index 699078aa6..d817dc9f4 100644
+--- a/src/vfs/extfs/helpers/sfs.ini
++++ b/src/vfs/extfs/helpers/sfs.ini
+@@ -18,6 +18,8 @@ lzma/1	lzma < %1 > %3
+ ulzma/1	lzma -d < %1 > %3
+ xz/1	xz < %1 > %3
+ uxz/1	xz -d < %1 > %3
++zst/1	zstd < %1 > %3
++uzst/1	zstd -d < %1 > %3
+ tar/1	tar cf %3 %1
+ tgz/1	tar czf %3 %1
+ uhtml/1	lynx -force_html -dump %1 > %3
+-- 
+2.16.2
+

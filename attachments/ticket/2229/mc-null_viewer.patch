@@ -1,0 +1,187 @@
+diff -urNp mc-4.7.4/src/viewer/dialogs.c mc-4.7.4.viewer/src/viewer/dialogs.c
+--- mc-4.7.4/src/viewer/dialogs.c	2010-09-07 09:16:44.000000000 +0200
++++ mc-4.7.4.viewer/src/viewer/dialogs.c	2010-11-04 11:53:56.000000000 +0100
+@@ -280,7 +280,7 @@ mcview_dialog_goto (mcview_t * view, off
+             default:
+                 break;
+             }
+-            *offset = mcview_bol (view, *offset);
++	    *offset = mcview_bol (view, *offset, 0);
+         }
+     }
+ 
+diff -urNp mc-4.7.4/src/viewer/internal.h mc-4.7.4.viewer/src/viewer/internal.h
+--- mc-4.7.4/src/viewer/internal.h	2010-09-07 09:16:44.000000000 +0200
++++ mc-4.7.4.viewer/src/viewer/internal.h	2010-11-04 11:53:56.000000000 +0100
+@@ -290,8 +290,8 @@ void mcview_done (mcview_t * view);
+ void mcview_select_encoding (mcview_t * view);
+ void mcview_set_codeset (mcview_t * view);
+ void mcview_show_error (mcview_t * view, const char *error);
+-off_t mcview_bol (mcview_t * view, off_t current);
+-off_t mcview_eol (mcview_t * view, off_t current);
++off_t mcview_bol (mcview_t * view, off_t current, off_t limit);
++off_t mcview_eol (mcview_t * view, off_t current, off_t limit);
+ char *mcview_get_title (const Dlg_head * h, size_t len);
+ gboolean mcview_lock_file (mcview_t * view);
+ gboolean mcview_unlock_file (mcview_t * view);
+diff -urNp mc-4.7.4/src/viewer/lib.c mc-4.7.4.viewer/src/viewer/lib.c
+--- mc-4.7.4/src/viewer/lib.c	2010-09-07 09:16:44.000000000 +0200
++++ mc-4.7.4.viewer/src/viewer/lib.c	2010-11-04 11:53:56.000000000 +0100
+@@ -96,7 +96,7 @@ void
+ mcview_toggle_wrap_mode (mcview_t * view)
+ {
+     if (view->text_wrap_mode)
+-        view->dpy_start = mcview_bol (view, view->dpy_start);
++	view->dpy_start = mcview_bol (view, view->dpy_start, 0);
+     view->text_wrap_mode = !view->text_wrap_mode;
+     view->dpy_bbar_dirty = TRUE;
+     view->dirty++;
+@@ -339,7 +339,7 @@ mcview_show_error (mcview_t * view, cons
+ /* returns index of the first char in the line */
+ /* it is constant for all line characters */
+ off_t
+-mcview_bol (mcview_t * view, off_t current)
++mcview_bol (mcview_t * view, off_t current, off_t limit)
+ {
+     int c;
+     off_t filesize;
+@@ -357,7 +357,7 @@ mcview_bol (mcview_t * view, off_t curre
+         if (c == '\r')
+             current--;
+     }
+-    while (current > 0)
++    while (current > 0 && current >= limit)
+     {
+         if (!mcview_get_byte (view, current - 1, &c))
+             break;
+@@ -373,7 +373,7 @@ mcview_bol (mcview_t * view, off_t curre
+ /* returns index of last char on line + width EOL */
+ /* mcview_eol of the current line == mcview_bol next line */
+ off_t
+-mcview_eol (mcview_t * view, off_t current)
++mcview_eol (mcview_t * view, off_t current, off_t limit)
+ {
+     int c, prev_ch = 0;
+     off_t filesize;
+@@ -382,7 +382,7 @@ mcview_eol (mcview_t * view, off_t curre
+         return 0;
+     if (current >= filesize)
+         return filesize;
+-    while (current < filesize)
++    while (current < filesize && current < limit)
+     {
+         if (!mcview_get_byte (view, current, &c))
+             break;
+diff -urNp mc-4.7.4/src/viewer/mcviewer.c mc-4.7.4.viewer/src/viewer/mcviewer.c
+--- mc-4.7.4/src/viewer/mcviewer.c	2010-09-07 09:16:44.000000000 +0200
++++ mc-4.7.4.viewer/src/viewer/mcviewer.c	2010-11-04 11:53:56.000000000 +0100
+@@ -414,7 +414,7 @@ mcview_load (mcview_t * view, const char
+         canon_fname = vfs_canon (view->filename);
+         load_file_position (canon_fname, &line, &col, &new_offset);
+         new_offset = min (new_offset, mcview_get_filesize (view));
+-        view->dpy_start = mcview_bol (view, new_offset);
++	view->dpy_start = mcview_bol (view, new_offset, 0);
+         g_free (canon_fname);
+     }
+     else if (start_line > 0)
+diff -urNp mc-4.7.4/src/viewer/move.c mc-4.7.4.viewer/src/viewer/move.c
+--- mc-4.7.4/src/viewer/move.c	2010-11-04 12:03:35.000000000 +0100
++++ mc-4.7.4.viewer/src/viewer/move.c	2010-11-04 12:02:29.000000000 +0100
+@@ -108,22 +108,23 @@ mcview_move_up (mcview_t * view, off_t l
+         off_t i;
+         for (i = 0; i < lines; i++)
+         {
+-            off_t cur_bol;
+-            cur_bol = new_offset = mcview_bol (view, view->dpy_start);
+-            if (new_offset > 0)
+-                new_offset--;
+-            new_offset = mcview_bol (view, new_offset);
+-            if (new_offset < 0)
+-                new_offset = 0;
++	    if (view->dpy_start==0) break;
+             if (view->text_wrap_mode)
+             {
+-                size_t last_row_length = (view->dpy_start - new_offset) % view->data_area.width;
+-                if (last_row_length != 0 && cur_bol == view->dpy_start)
+-                    new_offset = max (new_offset, (off_t) (view->dpy_start - last_row_length));
+-                else
+-                    new_offset = max (new_offset, view->dpy_start - view->data_area.width);
++		new_offset = mcview_bol (view, view->dpy_start, view->dpy_start - 1);	// check if dpy_start==BOL or not (then new_offset=dpy_start-1, no need to check more)
++	    if (new_offset == view->dpy_start) {
++		new_offset--;
++		new_offset = mcview_bol (view, new_offset, 0);
++		size_t last_row_length = (view->dpy_start - new_offset) % view->data_area.width;
++		if (last_row_length > 0)
++			new_offset = view->dpy_start - last_row_length;		// if dpy_start==BOL in wrapped mode, find BOL of previous line and move down all but the last rows
++	    } else	new_offset = view->dpy_start - view->data_area.width;	// if dpy_start!=BOL in wrapped mode, just move one row up; no need to check if > 0 as there is at least exactly one wrap between dpy_start and BOL
++		view->dpy_start = new_offset;
++	    } else {	// if unwrapped -> current BOL equals dpy_start, just find BOL of previous line
++		new_offset = view->dpy_start;
++		new_offset--;
++		view->dpy_start = mcview_bol (view, new_offset, 0);
+             }
+-            view->dpy_start = new_offset;
+         }
+     }
+     mcview_movement_fixups (view, TRUE);
+@@ -160,15 +161,14 @@ mcview_move_down (mcview_t * view, off_t
+         {
+             while (lines-- > 0)
+             {
+-                new_offset = mcview_eol (view, view->dpy_end);
+                 if (view->text_wrap_mode)
+-                    new_offset = min (new_offset, view->dpy_end + view->data_area.width);
+-                view->dpy_end = new_offset;
++			view->dpy_end = mcview_eol (view, view->dpy_end, view->dpy_end + view->data_area.width);
++		else	view->dpy_end = mcview_eol (view, view->dpy_end, last_byte);
+                 if(view->dpy_end>=last_byte) lines=0;
+ 
+-                new_offset = mcview_eol (view, view->dpy_start);
+                 if (view->text_wrap_mode)
+-                    new_offset = min (new_offset, view->dpy_start + view->data_area.width);
++			new_offset = mcview_eol (view, view->dpy_start, view->dpy_start + view->data_area.width);
++		else	new_offset = mcview_eol (view, view->dpy_start, last_byte);
+                 if(new_offset<last_byte) view->dpy_start = new_offset;
+             }
+         }
+@@ -177,9 +177,9 @@ mcview_move_down (mcview_t * view, off_t
+ 
+             for (i = 0; i < lines && new_offset < last_byte; i++)
+             {
+-                new_offset = mcview_eol (view, view->dpy_start);
+                 if (view->text_wrap_mode)
+-                    new_offset = min (new_offset, view->dpy_start + view->data_area.width);
++			new_offset = mcview_eol (view, view->dpy_start, view->dpy_start + view->data_area.width);
++		else	new_offset = mcview_eol (view, view->dpy_start, last_byte);
+                 if(new_offset<last_byte) view->dpy_start = new_offset;
+             }
+         }
+@@ -312,7 +312,7 @@ mcview_moveto_bol (mcview_t * view)
+     }
+     else if (!view->text_wrap_mode)
+     {
+-        view->dpy_start = mcview_bol (view, view->dpy_start);
++	view->dpy_start = mcview_bol (view, view->dpy_start, 0);
+     }
+     view->dpy_text_column = 0;
+     mcview_movement_fixups (view, TRUE);
+@@ -342,8 +342,8 @@ mcview_moveto_eol (mcview_t * view)
+     else
+     {
+         off_t eol;
+-        bol = mcview_bol (view, view->dpy_start);
+-        eol = mcview_eol (view, view->dpy_start);
++	bol = mcview_bol (view, view->dpy_start, 0);
++	eol = mcview_eol (view, view->dpy_start, mcview_get_filesize (view));
+         if (!view->utf8)
+         {
+             if (eol > bol)
+@@ -465,7 +465,7 @@ mcview_moveto_match (mcview_t * view)
+     }
+     else
+     {
+-        view->dpy_start = mcview_bol (view, offset);
++	view->dpy_start = mcview_bol (view, offset, 0);
+     }
+ 
+     mcview_scroll_to_cursor (view);

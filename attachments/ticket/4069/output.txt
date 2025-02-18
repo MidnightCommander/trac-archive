@@ -1,0 +1,44 @@
+LC_MESSAGES=C /usr/local/bin/mc -V
+GNU Midnight Commander 4.8.24-22-g109b6ed80
+Built with GLib 2.56.4
+Using the S-Lang library with terminfo database
+With builtin Editor
+With subshell support as default
+With support for background operations
+With mouse support on xterm
+With support for X11 events
+With internationalization support
+With multiple codepages support
+Virtual File Systems: cpiofs, tarfs, sfs, extfs, ftpfs, fish
+Data types: char: 8; int: 32; long: 64; void *: 64; size_t: 64; off_t: 64;
+
+
+LC_MESSAGES=C /usr/local/bin/mc -F
+Home directory: /home/testuser
+Profile root directory: /home/testuser
+
+[System data]
+    Config directory: /usr/local/etc/mc/
+    Data directory:   /usr/local/share/mc/
+    File extension handlers: /usr/local/libexec/mc/ext.d/
+    VFS plugins and scripts: /usr/local/libexec/mc/
+   extfs.d:        /usr/local/libexec/mc/extfs.d/
+   fish:           /usr/local/libexec/mc/fish/
+
+[User data]
+    Config directory: /home/testuser/.config/mc/
+    Data directory:   /home/testuser/.local/share/mc/
+   skins:          /home/testuser/.local/share/mc/skins/
+   extfs.d:        /home/testuser/.local/share/mc/extfs.d/
+   fish:           /home/testuser/.local/share/mc/fish/
+   mcedit macros:  /home/testuser/.local/share/mc/mc.macros
+   mcedit external macros: /home/testuser/.local/share/mc/mcedit/macros.d/macro.*
+    Cache directory:  /home/testuser/.cache/mc/
+
+
+
+/usr/local/bin/mc --configure-options
+ '--prefix=/usr/local'
+
+
+

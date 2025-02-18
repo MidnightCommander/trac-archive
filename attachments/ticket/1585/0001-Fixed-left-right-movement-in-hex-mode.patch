@@ -1,0 +1,70 @@
+From ddb60a820769a7514afff274fe58372b65472bc1 Mon Sep 17 00:00:00 2001
+From: Nikita Ofitserov <himikof@gmail.com>
+Date: Sun, 17 Jan 2010 07:15:25 +0300
+Subject: [PATCH] Fixed left/right movement in hex mode
+
+Also removed few unused variables
+---
+ src/viewer/move.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/src/viewer/move.c b/src/viewer/move.c
+index 5bf5bbb..598a065 100644
+--- a/src/viewer/move.c
++++ b/src/viewer/move.c
+@@ -98,7 +98,6 @@ mcview_move_up (mcview_t * view, off_t lines)
+             view->hex_cursor %= view->bytes_per_line;
+         }
+     } else {
+-        const screen_dimen width = view->data_area.width;
+         off_t i;
+         for (i = 0; i < lines; i++) {
+             new_offset = mcview_bol (view, view->dpy_start);
+@@ -134,7 +133,6 @@ mcview_move_down (mcview_t * view, off_t lines)
+         }
+     } else {
+         off_t i;
+-        int c;
+         for (i = 0; i < lines; i++) {
+             off_t new_offset;
+             new_offset = mcview_eol(view, view->dpy_start);
+@@ -150,13 +148,15 @@ void
+ mcview_move_left (mcview_t * view, off_t columns)
+ {
+     if (view->hex_mode) {
++        off_t old_cursor = view->hex_cursor;
+         assert (columns == 1);
+         if (view->hexview_in_text || !view->hexedit_lownibble) {
+             if (view->hex_cursor > 0)
+                 view->hex_cursor--;
+         }
+         if (!view->hexview_in_text)
+-            view->hexedit_lownibble = !view->hexedit_lownibble;
++            if (old_cursor > 0 || view->hexedit_lownibble)
++                view->hexedit_lownibble = !view->hexedit_lownibble;
+     } else if (view->text_wrap_mode) {
+         /* nothing to do */
+     } else {
+@@ -174,12 +174,17 @@ void
+ mcview_move_right (mcview_t * view, off_t columns)
+ {
+     if (view->hex_mode) {
++        off_t last_byte;
++        off_t old_cursor = view->hex_cursor;
++        last_byte = mcview_offset_doz(mcview_get_filesize (view), 1);
+         assert (columns == 1);
+         if (view->hexview_in_text || view->hexedit_lownibble) {
+-            view->hex_cursor++;
++            if (view->hex_cursor < last_byte)
++                view->hex_cursor++;
+         }
+         if (!view->hexview_in_text)
+-            view->hexedit_lownibble = !view->hexedit_lownibble;
++            if (old_cursor < last_byte || !view->hexedit_lownibble)
++                view->hexedit_lownibble = !view->hexedit_lownibble;
+     } else if (view->text_wrap_mode) {
+         /* nothing to do */
+     } else {
+-- 
+1.6.4.4
+

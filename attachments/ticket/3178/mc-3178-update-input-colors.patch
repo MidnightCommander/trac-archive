@@ -1,0 +1,224 @@
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index 14d87ea..3ae9679 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -60,6 +60,10 @@ int quote = 0;
+ 
+ const global_keymap_t *input_map = NULL;
+ 
++/* Color styles for normal and command line input widgets */
++input_colors_t input_colors;
++input_colors_t command_colors;
++
+ /*** file scope macro definitions ****************************************************************/
+ 
+ #define LARGE_HISTORY_BUTTON 1
+@@ -989,7 +993,7 @@ input_set_options_callback (Widget * w, widget_options_t options, gboolean enabl
+   * @return                     WInput object
+   */
+ WInput *
+-input_new (int y, int x, const int *input_colors, int width, const char *def_text,
++input_new (int y, int x, const int *colors, int width, const char *def_text,
+            const char *histname, input_complete_t completion_flags)
+ {
+     WInput *in;
+@@ -1001,8 +1005,7 @@ input_new (int y, int x, const int *input_colors, int width, const char *def_tex
+     w->options |= W_IS_INPUT;
+     w->set_options = input_set_options_callback;
+ 
+-    memmove (in->color, input_colors, sizeof (input_colors_t));
+-
++    in->color = colors;
+     in->first = TRUE;
+     in->highlight = FALSE;
+     in->term_first_shown = 0;
+@@ -1110,20 +1113,18 @@ input_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/** Get default colors for WInput widget.
+-  * @return default colors
+-  */
+-const int *
+-input_get_default_colors (void)
++void
++input_set_default_colors (void)
+ {
+-    static input_colors_t standart_colors;
+-
+-    standart_colors[WINPUTC_MAIN] = INPUT_COLOR;
+-    standart_colors[WINPUTC_MARK] = INPUT_MARK_COLOR;
+-    standart_colors[WINPUTC_UNCHANGED] = INPUT_UNCHANGED_COLOR;
+-    standart_colors[WINPUTC_HISTORY] = INPUT_HISTORY_COLOR;
+-
+-    return standart_colors;
++    input_colors[WINPUTC_MAIN] = INPUT_COLOR;
++    input_colors[WINPUTC_MARK] = INPUT_MARK_COLOR;
++    input_colors[WINPUTC_UNCHANGED] = INPUT_UNCHANGED_COLOR;
++    input_colors[WINPUTC_HISTORY] = INPUT_HISTORY_COLOR;
++
++    command_colors[WINPUTC_MAIN] = DEFAULT_COLOR;
++    command_colors[WINPUTC_MARK] = COMMAND_MARK_COLOR;
++    command_colors[WINPUTC_UNCHANGED] = DEFAULT_COLOR;
++    command_colors[WINPUTC_HISTORY] = COMMAND_HISTORY_COLOR;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/input.h b/lib/widget/input.h
+index 65982a5..d79bd45 100644
+--- a/lib/widget/input.h
++++ b/lib/widget/input.h
+@@ -46,7 +46,7 @@ typedef int input_colors_t[WINPUTC_COUNT_COLORS];
+ typedef struct
+ {
+     Widget widget;
+-    input_colors_t color;
++    const int *color;
+     int point;                  /* cursor position in the input line in characters */
+     int mark;                   /* the mark position in characters */
+     gboolean highlight;         /* there is a selected block */
+@@ -79,14 +79,18 @@ extern int quote;
+ 
+ extern const global_keymap_t *input_map;
+ 
++/* Color styles for normal and command line input widgets */
++extern input_colors_t input_colors;
++extern input_colors_t command_colors;
++
+ /*** declarations of public functions ************************************************************/
+ 
+-WInput *input_new (int y, int x, const int *input_colors,
++WInput *input_new (int y, int x, const int *colors,
+                    int len, const char *text, const char *histname,
+                    input_complete_t completion_flags);
+ /* callbac is public; needed for command line */
+ cb_ret_t input_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data);
+-const int *input_get_default_colors (void);
++void input_set_default_colors (void);
+ cb_ret_t input_handle_char (WInput * in, int key);
+ int input_key_is_in_map (WInput * in, int key);
+ void input_assign_text (WInput * in, const char *text);
+diff --git a/lib/widget/quick.c b/lib/widget/quick.c
+index c4aceed..a4b4ec4 100644
+--- a/lib/widget/quick.c
++++ b/lib/widget/quick.c
+@@ -70,7 +70,7 @@ quick_create_input (int y, int x, const quick_widget_t * qw)
+ {
+     WInput *in;
+ 
+-    in = input_new (y, x, input_get_default_colors (), 8, qw->u.input.text, qw->u.input.histname,
++    in = input_new (y, x, input_colors, 8, qw->u.input.text, qw->u.input.histname,
+                     qw->u.input.completion_flags);
+ 
+     in->is_password = qw->u.input.is_passwd;
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index c66787b..84039f2 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -323,7 +323,7 @@ editcmd_dialog_raw_key_query (const char *heading, const char *query, gboolean c
+                     NULL, NULL, heading, DLG_CENTER | DLG_TRYUP | DLG_WANT_TAB);
+ 
+     add_widget (raw_dlg, label_new (y, 3, query));
+-    add_widget (raw_dlg, input_new (y++, 3 + wq + 1, input_get_default_colors (),
++    add_widget (raw_dlg, input_new (y++, 3 + wq + 1, input_colors,
+                                     w - (6 + wq + 1), "", 0, INPUT_COMPLETE_NONE));
+     if (cancel)
+     {
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 026f5b3..042fe8b 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -528,6 +528,7 @@ skin_apply (const gchar * skin_override)
+     mc_fhl_free (&mc_filehighlight);
+     mc_filehighlight = mc_fhl_new (TRUE);
+     dlg_set_default_colors ();
++    input_set_default_colors ();
+     panel_deinit ();
+     panel_init ();
+     repaint_screen ();
+diff --git a/src/filemanager/command.c b/src/filemanager/command.c
+index 5b06921..7fde0a9 100644
+--- a/src/filemanager/command.c
++++ b/src/filemanager/command.c
+@@ -463,14 +463,8 @@ WInput *
+ command_new (int y, int x, int cols)
+ {
+     WInput *cmd;
+-    const input_colors_t command_colors = {
+-        DEFAULT_COLOR,
+-        COMMAND_MARK_COLOR,
+-        DEFAULT_COLOR,
+-        COMMAND_HISTORY_COLOR
+-    };
+-
+-    cmd = input_new (y, x, (int *) command_colors, cols, "", "cmdline",
++
++    cmd = input_new (y, x, command_colors, cols, "", "cmdline",
+                      INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_VARIABLES | INPUT_COMPLETE_USERNAMES
+                      | INPUT_COMPLETE_HOSTNAMES | INPUT_COMPLETE_CD | INPUT_COMPLETE_COMMANDS |
+                      INPUT_COMPLETE_SHELL_ESC);
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index 76134cf..e457ded 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -615,7 +615,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+ 
+     add_widget (find_dlg, label_new (y1++, x1, _("Start at:")));
+     in_start =
+-        input_new (y1, x1, input_get_default_colors (), cols - b0 - 7, in_start_dir, "start",
++        input_new (y1, x1, input_colors, cols - b0 - 7, in_start_dir, "start",
+                    INPUT_COMPLETE_CD | INPUT_COMPLETE_FILENAMES);
+     add_widget (find_dlg, in_start);
+ 
+@@ -626,7 +626,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+     add_widget (find_dlg, ignore_dirs_cbox);
+ 
+     in_ignore =
+-        input_new (y1++, x1, input_get_default_colors (), cols - 6,
++        input_new (y1++, x1, input_colors, cols - 6,
+                    options.ignore_dirs != NULL ? options.ignore_dirs : "", "ignoredirs",
+                    INPUT_COMPLETE_CD | INPUT_COMPLETE_FILENAMES);
+     widget_disable (WIDGET (in_ignore), !options.ignore_dirs_enable);
+@@ -639,7 +639,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+     /* Start 1st column */
+     add_widget (find_dlg, label_new (y1++, x1, file_name_label));
+     in_name =
+-        input_new (y1++, x1, input_get_default_colors (), cw, INPUT_LAST_TEXT, "name",
++        input_new (y1++, x1, input_colors, cw, INPUT_LAST_TEXT, "name",
+                    INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_CD);
+     add_widget (find_dlg, in_name);
+ 
+@@ -647,7 +647,7 @@ find_parameters (char **start_dir, ssize_t * start_dir_len,
+     content_label = label_new (y2++, x2, content_content_label);
+     add_widget (find_dlg, content_label);
+     in_with =
+-        input_new (y2++, x2, input_get_default_colors (), cw, INPUT_LAST_TEXT,
++        input_new (y2++, x2, input_colors, cw, INPUT_LAST_TEXT,
+                    MC_HISTORY_SHARED_SEARCH, INPUT_COMPLETE_NONE);
+     in_with->label = content_label;
+     widget_disable (WIDGET (in_with), disable);
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 7d0c360..45e2519 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -186,7 +186,7 @@ init_panelize (void)
+     y += WIDGET (l_panelize)->lines + 1;
+     add_widget (panelize_dlg, label_new (y++, UX, _("Command")));
+     pname =
+-        input_new (y++, UX, input_get_default_colors (), panelize_cols - UX * 2, "", "in",
++        input_new (y++, UX, input_colors, panelize_cols - UX * 2, "", "in",
+                    INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_HOSTNAMES | INPUT_COMPLETE_COMMANDS |
+                    INPUT_COMPLETE_VARIABLES | INPUT_COMPLETE_USERNAMES | INPUT_COMPLETE_CD |
+                    INPUT_COMPLETE_SHELL_ESC);
+diff --git a/src/main.c b/src/main.c
+index dc340bb..28bddd2 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -372,6 +372,7 @@ main (int argc, char *argv[])
+ 
+     mc_skin_init (NULL, &error);
+     dlg_set_default_colors ();
++    input_set_default_colors ();
+     if (error != NULL)
+     {
+         message (D_ERROR, _("Warning"), "%s", error->message);

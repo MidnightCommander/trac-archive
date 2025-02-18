@@ -1,0 +1,133 @@
+diff -Naur mc-4.8.13-orig/misc/mc.menu.in mc-4.8.13/misc/mc.menu.in
+--- mc-4.8.13-orig/misc/mc.menu.in	2015-03-15 10:28:49.755990962 +0100
++++ mc-4.8.13/misc/mc.menu.in	2015-03-15 10:35:16.183981034 +0100
+@@ -273,6 +273,25 @@
+           bzip2 $DECOMP -v "$i"
+         done
+ 
+++ ! t t
++j       Xz or unxz current file
++        unset DECOMP
++    case %f in
++        *.xz) DECOMP=-d;;
++    esac
++        xz $DECOMP -v %f
++
+++ t t
++J       Xz or unxz tagged files
++        for i in %t
++        do
++          unset DECOMP
++      case "$i" in
++        *.xz) DECOMP=-d;;
++      esac
++          xz $DECOMP -v "$i"
++        done
++
+ + f \.tar.gz$ | f \.tgz$ | f \.tpz$ | f \.tar.Z$ | f \.tar.z$ | f \.tar.bz2$ | f \.tar.F$ & t r & ! t t
+ z       Extract compressed tar file to subdirectory
+ 	unset D
+@@ -360,6 +379,103 @@
+ 	  shift
+         done
+ 
+++ f \.gz$ | f \.tgz$ | f \.tpz$ | f \.Z$ | f \.z$ | f \.xz$ & t r & ! t t
++k       Convert gz<->xz, tar.gz<->tar.xz & tgz->tar.xz
++    unset D
++    unset EXT
++    case %f in
++        *.tgz)  EXT=tgz;;
++        *.tpz)  EXT=tpz;;
++        *.Z)    EXT=Z;;
++        *.z)    EXT=z;;
++        *.gz)   EXT=gz;;
++        *.xz)   EXT=xz;;
++    esac
++        case $EXT in
++      tgz|tpz)  D="`basename %f .$EXT`.tar";;
++      gz|Z|z)   D="`basename %f .$EXT`";;
++      xz)       D="`basename %f .xz`";;
++        esac
++        if [ "$EXT" = "xz" ]; then
++        unxz -v %f ; gzip -f9 -v "$D"
++    else
++        gunzip -v %f ; xz -v "$D"
++    fi
++
+++ t t
++K       Convert gz<->xz, tar.gz<->tar.xz & tgz->tar.xz
++    set %t
++    while [ -n "$1" ]
++        do
++      unset D
++      unset EXT
++      case "$1" in
++        *.tgz)  EXT=tgz;;
++        *.tpz)  EXT=tpz;;
++        *.Z)    EXT=Z;;
++        *.z)    EXT=z;;
++        *.gz)   EXT=gz;;
++        *.xz)   EXT=xz;;
++      esac
++      case $EXT in
++          tgz)    D="`basename $1 .tgz`.tar";;
++              tpz)    D="`basename $1 .tpz`.tar";;
++          gz|Z|z) D="`basename $1 .$EXT`";;
++          xz)     D="`basename $1 .xz`";;
++      esac
++      if [ "$EXT" = "xz" ]; then
++        unxz -v "$1"
++        gzip -f9 -v "$D"
++      else
++        gunzip -v "$1"
++        xz -v "$D"
++      fi
++      shift
++        done
++
+++ f \.bz2$ | f \.xz$ & t r & ! t t
++l       Convert bz2<->xz & tar.bz2<->tar.xz
++    unset D
++    unset EXT
++    case %f in
++        *.bz2)  EXT=bz2;;
++        *.xz)   EXT=xz;;
++    esac
++        case $EXT in
++      bz2)   D="`basename %f .bz2`";;
++      xz)    D="`basename %f .xz`";;
++        esac
++        if [ "$EXT" = "xz" ]; then
++        unxz -v %f ; bzip2 -f9 -v "$D"
++    else
++        bunzip2 -v %f ; xz -v "$D"
++    fi
++
+++ t t
++L       Convert bz2<->xz& tar.bz2<->tar.xz
++    set %t
++    while [ -n "$1" ]
++        do
++      unset D
++      unset EXT
++      case "$1" in
++        *.bz2)  EXT=bz2;;
++        *.xz)   EXT=xz;;
++      esac
++      case $EXT in
++          bz2)    D="`basename $1 .bz2`";;
++          xz)     D="`basename $1 .xz`";;
++      esac
++      if [ "$EXT" = "xz" ]; then
++        unxz -v "$1"
++        bzip2 -f9 -v "$D"
++      else
++        bunzip -v "$1"
++        xz -v "$D"
++      fi
++      shift
++        done
++
+ + x /usr/bin/open | x /usr/local/bin/open & x /bin/sh
+ o       Open next a free console
+         open -s -- sh

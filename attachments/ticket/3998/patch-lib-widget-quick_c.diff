@@ -1,0 +1,12 @@
+diff --git a/lib/widget/quick.c b/lib/widget/quick.c
+index 34f7ac1bb..1108eac8c 100644
+--- a/lib/widget/quick.c
++++ b/lib/widget/quick.c
+@@ -145,6 +145,7 @@ quick_create_labeled_input (GArray * widgets, int *y, int x, quick_widget_t * qu
+         break;
+ 
+     default:
++        g_free (label.quick_widget);
+         return;
+     }
+ 

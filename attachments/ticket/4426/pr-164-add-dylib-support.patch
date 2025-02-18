@@ -1,0 +1,48 @@
+From 53b9b8c1bace05bad1d2ed83442a82e087c7b3b2 Mon Sep 17 00:00:00 2001
+From: Oleg Kharitonov <kh.oleg@gmail.com>
+Date: Mon, 7 Jun 2021 09:13:03 +0200
+Subject: [PATCH] add support for MacOS Mach-O and .dylib files
+
+---
+ misc/ext.d/misc.sh.in | 3 +++
+ misc/mc.ext.in        | 8 ++++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/misc/ext.d/misc.sh.in b/misc/ext.d/misc.sh.in
+index 32a5f3f8d6..9490fe51c2 100644
+--- a/misc/ext.d/misc.sh.in
++++ b/misc/ext.d/misc.sh.in
+@@ -35,6 +35,9 @@ do_view_action() {
+     elf)
+         file "${MC_EXT_FILENAME}" && nm -C "${MC_EXT_FILENAME}"
+         ;;
++    dylib)
++        file "${MC_EXT_FILENAME}" && nm -n "${MC_EXT_FILENAME}"
++        ;;
+     dbf)
+         dbview -b "${MC_EXT_FILENAME}"
+         ;;
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index f93d8bf229..1bee924644 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -431,11 +431,19 @@ regex/i/\.(s|asm)$
+ regex/\.(so|so\.[0-9\.]*)$
+ 	View=%view{ascii} @EXTHELPERSDIR@/misc.sh view so
+ 
++# .dylib libraries
++regex/\.(dylib|dylib\.[0-9\.]*)$
++	View=%view{ascii} @EXTHELPERSDIR@/misc.sh view dylib
++
+ # Object
+ type/^ELF
+ 	#Open=%var{PAGER:more} %f
+ 	View=%view{ascii} @EXTHELPERSDIR@/misc.sh view elf
+ 
++type/^Mach-O
++	#Open=%var{PAGER:more} %f
++	View=%view{ascii} @EXTHELPERSDIR@/misc.sh view dylib
++
+ 
+ ### Documentation ###
+ 

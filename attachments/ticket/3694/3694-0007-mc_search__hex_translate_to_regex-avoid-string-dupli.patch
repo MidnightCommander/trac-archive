@@ -1,0 +1,45 @@
+From c59b4880e4b14979d562ae10b6365546a9b98242 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 26 Sep 2016 00:51:22 +0300
+Subject: [PATCH 7/8] (mc_search__hex_translate_to_regex): avoid string
+ duplication.
+
+We can read from the source string directly, as we no longer modify it.
+---
+ lib/search/hex.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/lib/search/hex.c b/lib/search/hex.c
+index 14d0246..a0a3c19 100644
+--- a/lib/search/hex.c
++++ b/lib/search/hex.c
+@@ -58,14 +58,14 @@ mc_search__hex_translate_to_regex (const GString * astr, mc_search_hex_parse_err
+                                    int *error_pos_ptr)
+ {
+     GString *buff;
+-    gchar *tmp_str;
++    const char *tmp_str;
+     gsize tmp_str_len;
+     gsize loop = 0;
+     mc_search_hex_parse_error_t error = MC_SEARCH_HEX_E_OK;
+ 
+     buff = g_string_sized_new (64);
+-    tmp_str = g_strndup (astr->str, astr->len);
+-    tmp_str_len = strlen (tmp_str);
++    tmp_str = astr->str;
++    tmp_str_len = astr->len;
+ 
+     while (loop < tmp_str_len && error == MC_SEARCH_HEX_E_OK)
+     {
+@@ -119,8 +119,6 @@ mc_search__hex_translate_to_regex (const GString * astr, mc_search_hex_parse_err
+             error = MC_SEARCH_HEX_E_INVALID_CHARACTER;
+     }
+ 
+-    g_free (tmp_str);
+-
+     if (error != MC_SEARCH_HEX_E_OK)
+     {
+         g_string_free (buff, TRUE);
+-- 
+2.9.3
+

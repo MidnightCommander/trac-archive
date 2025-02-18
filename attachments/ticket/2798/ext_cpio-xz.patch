@@ -1,0 +1,21 @@
+Last-Update: 2012-02-24
+Author: Dmitry Smirnov <onlyjob@member.fsf.org>
+From: Osamu Aoki <osamu@debian.org>
+Bug-Debian: http://bugs.debian.org/641926
+Forwarded: yes
+Description: .xz archives support for mc.ext
+
+
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -185,6 +185,10 @@
+ 	Open=%cd %p/ucpio://
+ 	View=%view{ascii} gzip -dc %f | cpio -itv 2>/dev/null
+ 
++shell/.cpio.xz
++	Open=%cd %p/ucpio://
++	View=%view{ascii} xz -dc %f | cpio -itv 2>/dev/null
++
+ shell/.cpio.gz
+ 	Open=%cd %p/ucpio://
+ 	View=%view{ascii} gzip -dc %f | cpio -itv 2>/dev/null

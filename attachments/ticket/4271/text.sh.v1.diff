@@ -1,0 +1,12 @@
+--- text.sh.DIST	2021-01-24 21:41:04.251029622 +0100
++++ text.sh	2021-08-16 16:56:33.803180357 +0200
+@@ -10,6 +10,9 @@
+ 
+ [ -n "${MC_XDG_OPEN}" ] || MC_XDG_OPEN="xdg-open"
+ 
++# if awk is not called 'awk" on your system, then set $MC_AWK accordingly
++export MANWIDTH="$(stty size < /proc/$(ps jhp $PPID | ${MC_AWK:-awk} '{print $1}')/fd/0 | cut -f2 -d' ')"
++
+ get_unpacker() {
+     filetype=$1
+     case "${filetype}" in

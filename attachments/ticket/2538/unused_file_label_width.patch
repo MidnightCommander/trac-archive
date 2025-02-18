@@ -1,0 +1,45 @@
+ src/viewer/display.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index bf02049..24c9ef4 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -126,6 +126,7 @@ mcview_set_buttonbar (mcview_t * view)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++#define BUF_TRUNC_LEN 5 /* The length of the line displays the file size */
+ 
+ static void
+ mcview_display_status (mcview_t * view)
+@@ -134,8 +135,7 @@ mcview_display_status (mcview_t * view)
+     const screen_dimen left = view->status_area.left;
+     const screen_dimen width = view->status_area.width;
+     const screen_dimen height = view->status_area.height;
+-    const char *file_label;
+-    screen_dimen file_label_width;
++    const char *file_label;    
+ 
+     if (height < 1)
+         return;
+@@ -145,16 +145,16 @@ mcview_display_status (mcview_t * view)
+     tty_draw_hline (-1, -1, ' ', width);
+ 
+     file_label = view->filename ? view->filename : view->command ? view->command : "";
+-    file_label_width = str_term_width1 (file_label) - 2;
++    
+     if (width > 40)
+     {
+-        char buffer[BUF_TINY];
++        char buffer[BUF_TRUNC_LEN + 1];
+         widget_move (view, top, width - 32);
+         if (view->hex_mode)
+             tty_printf ("0x%08" PRIxMAX, (uintmax_t) view->hex_cursor);
+         else
+         {
+-            size_trunc_len (buffer, 5, mcview_get_filesize (view), 0, panels_options.kilobyte_si);
++            size_trunc_len (buffer, BUF_TRUNC_LEN, mcview_get_filesize (view), 0, panels_options.kilobyte_si);
+             tty_printf ("%9" PRIuMAX "/%s%s %s", (uintmax_t) view->dpy_end,
+                         buffer, mcview_may_still_grow (view) ? "+" : " ",
+ #ifdef HAVE_CHARSET

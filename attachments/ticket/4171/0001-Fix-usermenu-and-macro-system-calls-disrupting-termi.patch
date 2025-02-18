@@ -1,0 +1,47 @@
+From 14daca9ccfef2f4b1c8ff063d2cb540a18bc48b2 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Tue, 12 Jan 2021 13:34:52 -0600
+Subject: [PATCH] Fix usermenu and macro system() calls disrupting terminal.
+
+---
+ src/usermenu.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/src/usermenu.c b/src/usermenu.c
+index 698244220..f5cf03686 100644
+--- a/src/usermenu.c
++++ b/src/usermenu.c
+@@ -559,9 +559,28 @@ execute_menu_command (const WEdit * edit_widget, const char *commands, gboolean
+ 
+         if (show_prompt)
+             shell_execute (cmd, EXECUTE_HIDE);
+-        else if (system (cmd) == -1)
+-            message (D_ERROR, MSG_ERROR, "%s", _("Error calling program"));
++        else
++        {
++            gboolean ok;
+ 
++            /* Prepare the terminal by setting its flag to the initial ones. This will cause \r to 
++ork as
++             * expected, instead of being ignored. */
++            tty_reset_shell_mode ();
++
++            ok = (system (cmd) != -1);
++
++            /* Restore the SLang terminal configuration and redraw the editor. */
++            tty_raw_mode ();
++
++            /* Redraw the original screen's contents. */
++            clr_scr ();
++            repaint_screen ();
++
++            if (!ok)
++                message (D_ERROR, MSG_ERROR, "%s", _("Error calling program"));
++        }
++ 
+         g_free (cmd);
+     }
+     mc_unlink (file_name_vpath);
+-- 
+2.28.0
+

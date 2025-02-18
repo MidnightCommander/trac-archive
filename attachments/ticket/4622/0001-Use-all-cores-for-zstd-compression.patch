@@ -1,0 +1,176 @@
+From 589227e13abb99fbe23667203eace3c37b4d12a9 Mon Sep 17 00:00:00 2001
+From: Curtis Doty <Curtis@GreenKey.net>
+Date: Sun, 22 Dec 2024 21:33:22 +0000
+Subject: [PATCH] Use all cores for zstd compression
+
+ - only slight size penalty
+---
+ misc/ext.d/archive.sh            | 8 ++++----
+ misc/ext.d/text.sh.in            | 2 +-
+ misc/mc.menu.in                  | 4 ++--
+ src/editor/edit.c                | 2 +-
+ src/vfs/extfs/helpers/iso9660.in | 2 +-
+ src/vfs/extfs/helpers/lslR.in    | 2 +-
+ src/vfs/extfs/helpers/mailfs.in  | 2 +-
+ src/vfs/extfs/helpers/patchfs.in | 2 +-
+ src/vfs/sfs/sfs.ini              | 4 ++--
+ 9 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/misc/ext.d/archive.sh b/misc/ext.d/archive.sh
+index 12beb0158..8c84f8862 100755
+--- a/misc/ext.d/archive.sh
++++ b/misc/ext.d/archive.sh
+@@ -39,7 +39,7 @@ do_view_action() {
+         xz -dc "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+     zst)
+-        zstd -dc "${MC_EXT_FILENAME}" 2>/dev/null
++        pzstd -dc "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+     tar)
+         tar tvvf - < "${MC_EXT_FILENAME}"
+@@ -77,7 +77,7 @@ do_view_action() {
+             tar tvvf -
+         ;;
+     tar.zst|tzst)
+-        zstd -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
++        pzstd -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
+             tar tvvf -
+         ;;
+     tar.F)
+@@ -130,7 +130,7 @@ do_view_action() {
+             cpio -itv 2>/dev/null
+         ;;
+     cpio.zst)
+-        zstd -dc "${MC_EXT_FILENAME}" | \
++        pzstd -dc "${MC_EXT_FILENAME}" | \
+             cpio -itv 2>/dev/null
+         ;;
+     cpio)
+@@ -195,7 +195,7 @@ do_open_action() {
+         xz -dc "${MC_EXT_FILENAME}" | ${pager}
+         ;;
+     zst)
+-        zstd -dc "${MC_EXT_FILENAME}" | ${pager}
++        pzstd -dc "${MC_EXT_FILENAME}" | ${pager}
+         ;;
+     par2)
+         par2 r "${MC_EXT_FILENAME}"
+diff --git a/misc/ext.d/text.sh.in b/misc/ext.d/text.sh.in
+index 38d64c40e..fff0de8d8 100644
+--- a/misc/ext.d/text.sh.in
++++ b/misc/ext.d/text.sh.in
+@@ -38,7 +38,7 @@ get_unpacker() {
+         unpacker="xz -dc"
+         ;;
+     man.zst)
+-        unpacker="zstd -dc"
++        unpacker="pzstd -dc"
+         ;;
+     esac
+     echo ${unpacker}
+diff --git a/misc/mc.menu.in b/misc/mc.menu.in
+index 9d37e378a..0f0d16c10 100644
+--- a/misc/mc.menu.in
++++ b/misc/mc.menu.in
+@@ -90,7 +90,7 @@ shell_patterns=0
+         read tar
+         [ "$tar"x = x ] && tar="$Pwd"
+         cd .. && \
+-        tar cf - "$Pwd" | zstd -f > "$tar.tar.zst" && \
++        tar cf - "$Pwd" | pzstd -f > "$tar.tar.zst" && \
+         echo "../$tar.tar.zst created."
+ 
+ 8       Compress the current subdirectory (tar.lzo)
+@@ -249,7 +249,7 @@ x       Extract the contents of a compressed tar file
+             *.tar.lzma) PRG="lzma -dc";;
+             *.tar.lzo)  PRG="lzop -dc";;
+             *.tar.xz)   PRG="xz -dc";;
+-            *.tar.zst)  PRG="zstd -dc";;
++            *.tar.zst)  PRG="pzstd -dc";;
+             *)          exit 1;;
+         esac
+         $PRG %f | tar xvf -
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 9ff1a1054..7961cc263 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -137,7 +137,7 @@ static const struct edit_filters
+ } all_filters[] = {
+     /* *INDENT-OFF* */
+     { "xz -cd %s 2>&1", "xz > %s", ".xz"},
+-    { "zstd -cd %s 2>&1", "zstd > %s", ".zst"},
++    { "pzstd -cd %s 2>&1", "pzstd > %s", ".zst"},
+     { "lz4 -cd %s 2>&1", "lz4 > %s", ".lz4" },
+     { "lzip -cd %s 2>&1", "lzip > %s", ".lz"},
+     { "lzma -cd %s 2>&1", "lzma > %s", ".lzma" },
+diff --git a/src/vfs/extfs/helpers/iso9660.in b/src/vfs/extfs/helpers/iso9660.in
+index e5d41dafe..2d940b10a 100644
+--- a/src/vfs/extfs/helpers/iso9660.in
++++ b/src/vfs/extfs/helpers/iso9660.in
+@@ -182,7 +182,7 @@ mcisofs_list () (
+       *.lzma) MYCAT="lzma -dc";;
+       *.lzo) MYCAT="lzop -dc";;
+       *.xz)  MYCAT="xz -dc";;
+-      *.zst) MYCAT="zstd -dc";;
++      *.zst) MYCAT="pzstd -dc";;
+       *.bz2) MYCAT="bzip2 -dc";;
+       *.gz)  MYCAT="gzip -dc";;
+       *.z)   MYCAT="gzip -dc";;
+diff --git a/src/vfs/extfs/helpers/lslR.in b/src/vfs/extfs/helpers/lslR.in
+index 52b0b6a18..9e745e4c6 100644
+--- a/src/vfs/extfs/helpers/lslR.in
++++ b/src/vfs/extfs/helpers/lslR.in
+@@ -17,7 +17,7 @@ case "$1" in
+   *.lzma) MYCAT="lzma -dc";;
+   *.lzo) MYCAT="lzop -dc";;
+   *.xz)  MYCAT="xz -dc";;
+-  *.zst) MYCAT="zstd -dc";;
++  *.zst) MYCAT="pzstd -dc";;
+   *.bz2) MYCAT="bzip2 -dc";;
+   *.gz)  MYCAT="gzip -dc";;
+   *.z)   MYCAT="gzip -dc";;
+diff --git a/src/vfs/extfs/helpers/mailfs.in b/src/vfs/extfs/helpers/mailfs.in
+index 20cfae317..2d801894f 100644
+--- a/src/vfs/extfs/helpers/mailfs.in
++++ b/src/vfs/extfs/helpers/mailfs.in
+@@ -13,7 +13,7 @@ $lz4cat="lz4 -dc";            # unlz4 to stdout
+ $lzcat="lzma -dc";            # unlzma to stdout
+ $lzocat="lzop -dc";           # unlzo to stdout
+ $xzcat="xz -dc";              # unxz to stdout
+-$zstdcat="zstd -dc";          # unzstd to stdout
++$zstdcat="pzstd -dc";          # unzstd to stdout
+ $file="file";                 # "file" command
+ $TZ='GMT';                    # default timezone (for Date module)
+ 
+diff --git a/src/vfs/extfs/helpers/patchfs.in b/src/vfs/extfs/helpers/patchfs.in
+index 59fdde1fc..b2a1f169b 100644
+--- a/src/vfs/extfs/helpers/patchfs.in
++++ b/src/vfs/extfs/helpers/patchfs.in
+@@ -19,7 +19,7 @@ my $lz4  = 'lz4';
+ my $lzma = 'lzma';
+ my $lzo  = 'lzop';
+ my $xz   = 'xz';
+-my $zstd = 'zstd';
++my $zstd = 'pzstd';
+ my $bzip = 'bzip2';
+ my $gzip = 'gzip';
+ my $fileutil = 'file -b';
+diff --git a/src/vfs/sfs/sfs.ini b/src/vfs/sfs/sfs.ini
+index a7b059be0..021cd3a18 100644
+--- a/src/vfs/sfs/sfs.ini
++++ b/src/vfs/sfs/sfs.ini
+@@ -20,8 +20,8 @@ lzo/1	lzop < %1 > %3
+ ulzo/1	lzop -d < %1 > %3
+ xz/1	xz < %1 > %3
+ uxz/1	xz -d < %1 > %3
+-zst/1	zstd < %1 > %3
+-uzst/1	zstd -d < %1 > %3
++zst/1	pzstd < %1 > %3
++uzst/1	pzstd -d < %1 > %3
+ tar/1	tar cf %3 %1
+ tgz/1	tar czf %3 %1
+ uhtml/1	lynx -force_html -dump %1 > %3
+-- 
+2.47.0
+

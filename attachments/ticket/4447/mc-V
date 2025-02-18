@@ -1,0 +1,15 @@
+GNU Midnight Commander 4.8.28
+Built with GLib 2.72.4
+Built with S-Lang 2.3.3 with terminfo database
+Built with libssh2 1.10.0
+With builtin Editor
+With subshell support as default
+With support for background operations
+With mouse support on xterm
+With support for X11 events
+With internationalization support
+With multiple codepages support
+Virtual File Systems:
+ cpiofs, tarfs, sfs, extfs, ftpfs, sftpfs, fish
+Data types:
+ char: 8; int: 32; long: 64; void *: 64; size_t: 64; off_t: 64;

@@ -1,0 +1,22 @@
+diff --git a/lib/vfs/gc.c b/lib/vfs/gc.c
+index 5090aaacb..411ffe56f 100644
+--- a/lib/vfs/gc.c
++++ b/lib/vfs/gc.c
+@@ -249,7 +249,7 @@ vfs_expire (gboolean now)
+     locked = TRUE;
+ 
+     curr_time = mc_timer_elapsed (mc_global.timer);
+-    exp_time = curr_time - vfs_timeout * G_USEC_PER_SEC;
++    exp_time = curr_time;
+ 
+     if (now)
+     {
+@@ -269,7 +269,7 @@ vfs_expire (gboolean now)
+                 stamping->v->free (stamping->id);
+             MC_PTR_FREE (stamp->data);
+         }
+-        else if (stamping->time <= exp_time)
++        else if (stamping->time + vfs_timeout * G_USEC_PER_SEC <= exp_time)
+         {
+             /* update timestamp of VFS that is in use, or free unused VFS */
+             if (stamping->v->nothingisopen != NULL && !stamping->v->nothingisopen (stamping->id))

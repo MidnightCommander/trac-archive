@@ -1,0 +1,32 @@
+#!/bin/sh
+
+
+getAddedFiles(){
+git-status | \
+    awk '
+BEGIN {
+    start_block=0;
+}
+/Changes to be committed:/{start_block=1; next;}
+/\(use "git/{next;}
+/(Changed but not updated:|Untracked files:)/{start_block=0; next;}
+{
+    if (start_block == 1 && $3 != "" ){print $3;}
+    next;
+}
+'| grep '\.[ch]$'
+}
+
+indentAddedfiles(){
+    indent \
+	--gnu-style \
+	--format-first-column-comments \
+	--indent-level4 \
+	--brace-indent0 \
+	--use-tabs \
+	$@
+}
+
+indentAddedfiles $(getAddedFiles)
+
+git-commit $@

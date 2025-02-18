@@ -1,0 +1,39 @@
+From fba4721e7ef7c65c63540c161910aa5863a915ed Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 6 Mar 2010 17:47:53 +0000
+Subject: [PATCH] repl deprecated g_strncasecmp by g_ascii_strncasecmp
+
+---
+ lib/strutil/strutil8bit.c |    2 +-
+ lib/vfs/mc-vfs/ftpfs.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/strutil/strutil8bit.c b/lib/strutil/strutil8bit.c
+index f8a934f..4fa7233 100644
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -649,7 +649,7 @@ str_8bit_casecmp (const char *t1, const char *t2)
+ static int
+ str_8bit_ncasecmp (const char *t1, const char *t2)
+ {
+-    return g_strncasecmp (t1, t2, min (strlen (t1), strlen (t2)));
++    return g_ascii_strncasecmp (t1, t2, min (strlen (t1), strlen (t2)));
+ }
+ 
+ static int
+diff --git a/lib/vfs/mc-vfs/ftpfs.c b/lib/vfs/mc-vfs/ftpfs.c
+index 93bfab6..77bb910 100644
+--- a/lib/vfs/mc-vfs/ftpfs.c
++++ b/lib/vfs/mc-vfs/ftpfs.c
+@@ -1991,7 +1991,7 @@ static int ftpfs_find_machine (const char *host, const char *domain)
+ 		continue;
+ 
+ 	    /* Compare local part */
+-	    if (g_strncasecmp (host, buffer, host_domain - host))
++	    if (g_ascii_strncasecmp (host, buffer, host_domain - host))
+ 		continue;
+ 	}
+ 
+-- 
+1.6.4
+

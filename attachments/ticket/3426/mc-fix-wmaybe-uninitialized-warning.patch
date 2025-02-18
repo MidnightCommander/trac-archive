@@ -1,0 +1,38 @@
+
+fix -Wmaybe-uninitialized compiler warnings
+and use compiler option for future compiles
+
+since gcc 4.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -52,6 +52,7 @@
+     MC_CHECK_ONE_CFLAG([-Wformat-security])
+     MC_CHECK_ONE_CFLAG([-Wimplicit])
+     MC_CHECK_ONE_CFLAG([-Wignored-qualifiers])
++    MC_CHECK_ONE_CFLAG([-Wmaybe-uninitialized])
+     MC_CHECK_ONE_CFLAG([-Wmissing-braces])
+     MC_CHECK_ONE_CFLAG([-Wmissing-declarations])
+     MC_CHECK_ONE_CFLAG([-Wmissing-parameter-type])
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -2616,7 +2616,7 @@
+ #ifdef HAVE_CHARSET
+                         if (dview->utf8)
+                         {
+-                            int ch_len;
++                            int ch_len = 0;
+ 
+                             next_ch = dview_get_utf (buf + cnt, &ch_len, &ch_res);
+                             if (ch_len > 1)
+@@ -2693,7 +2693,7 @@
+ #ifdef HAVE_CHARSET
+             if (dview->utf8)
+             {
+-                int ch_len;
++                int ch_len = 0;
+ 
+                 next_ch = dview_get_utf (buf + cnt, &ch_len, &ch_res);
+                 if (ch_len > 1)

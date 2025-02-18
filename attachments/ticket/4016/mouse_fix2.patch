@@ -1,0 +1,13 @@
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index e0b5e048a..3b2a0fe29 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3898,7 +3898,7 @@ panel_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+         break;
+ 
+     case MSG_MOUSE_CLICK:
+-        if ((event->count & GPM_DOUBLE) != 0)
++        if ((event->count & GPM_DOUBLE) != 0 && (event->buttons & GPM_B_LEFT))
+         {
+             int y, lines;
+ 

@@ -1,0 +1,341 @@
+From ab92944576d829805cb171f9e59e6b138a70da3d Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Fri, 25 Dec 2009 11:30:10 +0000
+Subject: [PATCH]  replacing 'free()' or 'free ()' by 'g_free ()'
+
+---
+ src/man2hlp.c                |   12 ++++++------
+ src/pipethrough.c            |    4 ++--
+ vfs/mcfsutil.c               |    2 +-
+ vfs/samba/lib/charset.c      |    4 ++--
+ vfs/samba/lib/username.c     |    2 +-
+ vfs/samba/lib/util.c         |   20 ++++++++++----------
+ vfs/samba/lib/util_file.c    |    2 +-
+ vfs/samba/lib/util_str.c     |    2 +-
+ vfs/samba/libsmb/clientgen.c |   34 +++++++++++++++++-----------------
+ 9 files changed, 41 insertions(+), 41 deletions(-)
+
+diff --git a/src/man2hlp.c b/src/man2hlp.c
+index aa95df6..1dd858f 100644
+--- a/src/man2hlp.c
++++ b/src/man2hlp.c
+@@ -822,9 +822,9 @@ main (int argc, char **argv)
+ 	    in_row = current_link->line;
+ 	    print_error (buffer);
+ 	}
+-	free (current_link->linkname);
++	g_free (current_link->linkname);
+ 	if (current_link != &links)
+-	    free (current_link);
++	    g_free (current_link);
+ 	current_link = next;
+     }
+ 
+@@ -837,11 +837,11 @@ main (int argc, char **argv)
+ 		     "", cnode->lname ? cnode->lname : lc_node, lc_node);
+ 	fprintf (f_out, "\n");
+ 
+-	free (cnode->node);
++	g_free (cnode->node);
+ 	if (cnode->lname)
+-	    free (cnode->lname);
++	    g_free (cnode->lname);
+ 	if (cnode != &nodes)
+-	    free (cnode);
++	    g_free (cnode);
+ 	cnode = next;
+     }
+ 
+@@ -891,7 +891,7 @@ main (int argc, char **argv)
+ 	return 1;
+     }
+ 
+-    free (outfile_buffer);
++    g_free (outfile_buffer);
+     fclose_check (f_out);
+     /* Closing everything */
+ 
+diff --git a/src/pipethrough.c b/src/pipethrough.c
+index e31f816..bc6528c 100644
+--- a/src/pipethrough.c
++++ b/src/pipethrough.c
+@@ -156,7 +156,7 @@ static void reader_buffer_finalize(/*@special@*/ struct reader_buffer *buf)
+ 	/*@releases buf->data; @*/
+ {
+ 	if (buf->data != NULL) {
+-		free(buf->data);
++		g_free (buf->data);
+ 		buf->data = NULL;
+ 	}
+ 	buf->size = 0;
+@@ -450,7 +450,7 @@ extern void pipe_outbuffer_finalize(struct pipe_outbuffer *buf)
+ 	/*@ensures isnull buf->data; @*/
+ {
+ 	if (buf->data != NULL) {
+-		free(buf->data);
++		g_free (buf->data);
+ 		buf->data = NULL;
+ 	}
+ 	buf->size = 0;
+diff --git a/vfs/mcfsutil.c b/vfs/mcfsutil.c
+index d3c2e04..be7bf5a 100644
+--- a/vfs/mcfsutil.c
++++ b/vfs/mcfsutil.c
+@@ -186,7 +186,7 @@ rpc_get (int sock, ...)
+ 	    /* Don't use glib functions here - this code is used by mcserv */
+ 	    text = malloc (len + 1);
+ 	    if (socket_read_block (sock, text, len) == 0) {
+-		free (text);
++		g_free (text);
+ 		va_end (ap);
+ 		return 0;
+ 	    }
+diff --git a/vfs/samba/lib/charset.c b/vfs/samba/lib/charset.c
+index 35f9126..f65b950 100644
+--- a/vfs/samba/lib/charset.c
++++ b/vfs/samba/lib/charset.c
+@@ -315,7 +315,7 @@ clean_and_exit:
+   if(fp != NULL)
+     fclose(fp);
+   if(cp_p)
+-    free((char *)cp_p);
++    g_free ((char *)cp_p);
+   return NULL;
+ }
+ 
+@@ -392,5 +392,5 @@ void add_char_string(const char *s)
+     }
+   }
+ 
+-  free(extra_chars);
++  g_free (extra_chars);
+ }
+diff --git a/vfs/samba/lib/username.c b/vfs/samba/lib/username.c
+index aaec3c7..abeb2ce 100644
+--- a/vfs/samba/lib/username.c
++++ b/vfs/samba/lib/username.c
+@@ -160,7 +160,7 @@ static struct passwd *_Get_Pwnam(const char *s)
+       pwret = getpwanam(s);
+       if (pwret)
+ 	{
+-	  free(ret->pw_passwd);
++	  g_free (ret->pw_passwd);
+ 	  ret->pw_passwd = pwret->pwa_passwd;
+ 	}
+ #endif
+diff --git a/vfs/samba/lib/util.c b/vfs/samba/lib/util.c
+index da2fa83..adda79c 100644
+--- a/vfs/samba/lib/util.c
++++ b/vfs/samba/lib/util.c
+@@ -1642,7 +1642,7 @@ void *Realloc(void *p,size_t size)
+   void *ret=NULL;
+ 
+   if (size == 0) {
+-    if (p) free(p);
++    if (p) g_free (p);
+     DEBUG(5,("Realloc asked for 0 bytes\n"));
+     return NULL;
+   }
+@@ -2251,7 +2251,7 @@ struct hostent *Get_Hostbyname(const char *name)
+ #if 0
+   if (!isalnum(*name2))
+     {
+-      free(name2);
++      g_free (name2);
+       return(NULL);
+     }
+ #endif /* 0 */
+@@ -2259,7 +2259,7 @@ struct hostent *Get_Hostbyname(const char *name)
+   ret = sys_gethostbyname(name2);
+   if (ret != NULL)
+     {
+-      free(name2);
++      g_free (name2);
+       return(ret);
+     }
+ 
+@@ -2268,7 +2268,7 @@ struct hostent *Get_Hostbyname(const char *name)
+   ret = sys_gethostbyname(name2);
+   if (ret != NULL)
+     {
+-      free(name2);
++      g_free (name2);
+       return(ret);
+     }
+ 
+@@ -2277,12 +2277,12 @@ struct hostent *Get_Hostbyname(const char *name)
+   ret = sys_gethostbyname(name2);
+   if (ret != NULL)
+     {
+-      free(name2);
++      g_free (name2);
+       return(ret);
+     }
+   
+   /* nothing works :-( */
+-  free(name2);
++  g_free (name2);
+   return(NULL);
+ }
+ 
+@@ -2533,9 +2533,9 @@ void free_namearray(name_compare_entry *name_array)
+     return;
+ 
+   if(name_array->name != NULL)
+-    free(name_array->name);
++    g_free (name_array->name);
+ 
+-  free((char *)name_array);
++  g_free ((char *)name_array);
+ }
+ 
+ /****************************************************************************
+@@ -2841,10 +2841,10 @@ int str_checksum(const char *s)
+ /*****************************************************************
+ zero a memory area then free it. Used to catch bugs faster
+ *****************************************************************/  
+-void zero_free(void *p, size_t size)
++void zero_free (void *p, size_t size)
+ {
+ 	memset(p, 0, size);
+-	free(p);
++	g_free (p);
+ }
+ 
+ 
+diff --git a/vfs/samba/lib/util_file.c b/vfs/samba/lib/util_file.c
+index 502f8c7..9db0be2 100644
+--- a/vfs/samba/lib/util_file.c
++++ b/vfs/samba/lib/util_file.c
+@@ -308,7 +308,7 @@ char *fgets_slash(char *s2,int maxlen,FILE *f)
+ 	  return(s);
+ 	case EOF:
+ 	  if (len <= 0 && !s2) 
+-	    free(s);
++	    g_free (s);
+ 	  return(len>0?s:NULL);
+ 	case ' ':
+ 	  if (start_of_line)
+diff --git a/vfs/samba/lib/util_str.c b/vfs/samba/lib/util_str.c
+index 74b5303..fd83067 100644
+--- a/vfs/samba/lib/util_str.c
++++ b/vfs/samba/lib/util_str.c
+@@ -980,7 +980,7 @@ void string_free(char **s)
+   if (!s || !(*s)) return;
+   if (*s == null_string)
+     *s = NULL;
+-  if (*s) free(*s);
++  if (*s) g_free (*s);
+   *s = NULL;
+ }
+ 
+diff --git a/vfs/samba/libsmb/clientgen.c b/vfs/samba/libsmb/clientgen.c
+index 0dd0710..05b7be3 100644
+--- a/vfs/samba/libsmb/clientgen.c
++++ b/vfs/samba/libsmb/clientgen.c
+@@ -528,9 +528,9 @@ BOOL cli_NetWkstaUserLogon(struct cli_state *cli,char *user, char *workstation)
+ 	}
+ 	
+ 	if (rparam)
+-      free(rparam);
++      g_free (rparam);
+ 	if (rdata)
+-      free(rdata);
++      g_free (rdata);
+ 	return (cli->rap_error == 0);
+ }
+ #endif /*0 */
+@@ -592,9 +592,9 @@ int cli_RNetShareEnum(struct cli_state *cli, void (*fn)(const char *, uint32, co
+     }
+   
+   if (rparam)
+-    free(rparam);
++    g_free (rparam);
+   if (rdata)
+-    free(rdata);
++    g_free (rdata);
+ 
+   return count;
+ }
+@@ -665,9 +665,9 @@ BOOL cli_NetServerEnum(struct cli_state *cli, char *workgroup, uint32 stype,
+ 	}
+   
+ 	if (rparam)
+-      free(rparam);
++      g_free (rparam);
+ 	if (rdata)
+-      free(rdata);
++      g_free (rdata);
+ 	
+ 	return(count > 0);
+ }
+@@ -1745,8 +1745,8 @@ BOOL cli_qpathinfo(struct cli_state *cli, const char *fname,
+ 		*mode = SVAL(rdata,l1_attrFile);
+ 	}
+ 
+-	if (rdata) free(rdata);
+-	if (rparam) free(rparam);
++	if (rdata) g_free (rdata);
++	if (rparam) g_free (rparam);
+ 	return True;
+ }
+ 
+@@ -1812,8 +1812,8 @@ BOOL cli_qpathinfo2(struct cli_state *cli, const char *fname,
+ 		*ino = IVAL(rdata, 64);
+ 	}
+ 
+-	if (rdata) free(rdata);
+-	if (rparam) free(rparam);
++	if (rdata) g_free (rdata);
++	if (rparam) g_free (rparam);
+ 	return True;
+ }
+ #endif	/* 0 */
+@@ -1884,8 +1884,8 @@ BOOL cli_qfileinfo(struct cli_state *cli, int fnum,
+ 		*ino = IVAL(rdata, 64);
+ 	}
+ 
+-	if (rdata) free(rdata);
+-	if (rparam) free(rparam);
++	if (rdata) g_free (rdata);
++	if (rparam) g_free (rparam);
+ 	return True;
+ }
+ 
+@@ -2141,8 +2141,8 @@ int cli_list(struct cli_state *cli,const char *Mask,uint16 attribute,
+ 
+ 		total_received += ff_searchcount;
+ 
+-		if (rdata) free(rdata); rdata = NULL;
+-		if (rparam) free(rparam); rparam = NULL;
++		if (rdata) g_free (rdata); rdata = NULL;
++		if (rparam) g_free (rparam); rparam = NULL;
+ 		
+ 		DEBUG(3,("received %d entries (eos=%d resume=%d)\n",
+ 			 ff_searchcount,ff_eos,ff_resume_key));
+@@ -2156,7 +2156,7 @@ int cli_list(struct cli_state *cli,const char *Mask,uint16 attribute,
+ 	}
+ 
+ 	/* free up the dirlist buffer */
+-	if (dirlist) free(dirlist);
++	if (dirlist) g_free (dirlist);
+ 	return(total_received);
+ }
+ 
+@@ -2405,11 +2405,11 @@ void cli_shutdown(struct cli_state *cli)
+ {
+ 	if (cli->outbuf)
+ 	{
+-		free(cli->outbuf);
++		g_free (cli->outbuf);
+ 	}
+ 	if (cli->inbuf)
+ 	{
+-		free(cli->inbuf);
++		g_free (cli->inbuf);
+ 	}
+ #ifdef WITH_SSL
+     if (cli->fd != -1)
+-- 
+1.6.4
+

@@ -1,0 +1,95 @@
+From 747fccb8695804a030a2f6809486ff2be5662d07 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 31 Oct 2016 18:03:41 +0200
+Subject: [PATCH] Fix usability problems with --enable-tests.
+
+---
+ configure.ac           |  1 +
+ m4.include/mc-tests.m4 | 12 ++++++++++--
+ tests/Makefile.am      |  2 +-
+ tests/README           | 22 ++++++++++++++++++++++
+ 4 files changed, 34 insertions(+), 3 deletions(-)
+ create mode 100644 tests/README
+
+diff --git a/configure.ac b/configure.ac
+index 3554598..26d18d2 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -649,6 +649,7 @@ Configuration:
+   Source code location:       ${srcdir}
+   Compiler:                   ${CC}
+   Compiler flags:             ${CFLAGS}
++  Unit tests:                 ${tests_msg}
+   File system:                ${vfs_type}
+                               ${vfs_flags}
+   Screen library:             ${screen_msg}
+diff --git a/m4.include/mc-tests.m4 b/m4.include/mc-tests.m4
+index c991fbb..e56972f 100644
+--- a/m4.include/mc-tests.m4
++++ b/m4.include/mc-tests.m4
+@@ -11,15 +11,23 @@ AC_DEFUN([mc_UNIT_TESTS],[
+ 
+     AC_ARG_ENABLE(
+         [tests],
+-        AS_HELP_STRING([--enable-tests], [Enable unit tests (see http://check.sourceforge.net/)])
++        AS_HELP_STRING([--enable-tests], [Enable unit tests (see http://check.sourceforge.net/)]),
++        ,
++        [enable_tests=no]  dnl Coerce empty value to "no", for easier coding.
+     )
+ 
++    tests_msg=$enable_tests
++
+     if test x$enable_tests != xno; then
+         PKG_CHECK_MODULES(
+             CHECK,
+             [check >= 0.9.8],
+             [have_check=yes],
+-            [AC_MSG_WARN(['Check' utility not found. Check your environment])])
++            [
++                AC_MSG_WARN(['Check' utility not found. Check your environment])
++                tests_msg="no ('Check' utility not found)"
++                enable_tests=no  dnl Prevents makefiles under 'tests' folder from being generated later on (not mandatory, but nice to have)
++            ])
+         AC_SUBST(CHECK_CFLAGS)
+         AC_SUBST(CHECK_LIBS)
+     fi
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index fc16371..de3ff6c 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -1,3 +1,3 @@
+ SUBDIRS = lib src
+ 
+-EXTRA_DIST = mctest.h
++EXTRA_DIST = mctest.h README
+diff --git a/tests/README b/tests/README
+new file mode 100644
+index 0000000..d139fb0
+--- /dev/null
++++ b/tests/README
+@@ -0,0 +1,22 @@
++Overview
++--------
++
++This tree contains unit tests.
++
++To enable these tests, run 'configure' with '--enable-tests'. You need to
++have the "Check" unit testing framework[1] installed.[2] You should then
++see "Unit tests: yes" in configure's summary message.
++
++To compile the tests, run 'make check'.
++
++
++Tips and tricks
++---------------
++
++* To be able to step with the debugger into test code, see [3]. E.g., do:
++
++    $ export CK_FORK=no
++
++[1]: http://check.sourceforge.net/
++[2]: Your package manager likely has it.
++[3]: http://stackoverflow.com/questions/1649814/debugging-unit-test-in-c-using-check
+-- 
+2.9.3
+

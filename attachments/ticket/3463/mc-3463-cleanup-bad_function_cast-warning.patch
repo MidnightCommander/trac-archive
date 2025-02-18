@@ -1,0 +1,45 @@
+
+fix -Wbad-function-cast warnings and add to mc cflags
+
+file.c: In function 'do_compute_dir_size':
+file.c:584:23: error: cast from function call of type 'int' to non-matching type 'enum <anonymous>' [-Wbad-function-cast]
+file.c: In function 'real_query_recursive':
+file.c:717:13: error: cast from function call of type 'int' to non-matching type 'enum <anonymous>' [-Wbad-function-cast]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -52,7 +52,7 @@
+ esac
+ 
+ dnl Sorted -W options:
+-dnl    MC_CHECK_ONE_CFLAG([-Wbad-function-cast])
++    MC_CHECK_ONE_CFLAG([-Wbad-function-cast])
+     MC_CHECK_ONE_CFLAG([-Wcomment])
+     MC_CHECK_ONE_CFLAG([-Wdeclaration-after-statement])
+     MC_CHECK_ONE_CFLAG([-Wfloat-equal])
+
+
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -581,7 +581,7 @@
+                 dsm->dirname_vpath = tmp_vpath;
+                 dsm->dir_count = *dir_count;
+                 dsm->total_size = *ret_total;
+-                ret = (FileProgressStatus) sm->update (sm);
++                ret = sm->update (sm);
+             }
+         }
+ 
+@@ -714,8 +714,8 @@
+             query_set_sel (1);
+ 
+         ctx->recursive_result =
+-            (FileCopyMode) query_dialog (op_names[OP_DELETE], text, D_ERROR, 5,
+-                                         _("&Yes"), _("&No"), _("A&ll"), _("Non&e"), _("&Abort"));
++            query_dialog (op_names[OP_DELETE], text, D_ERROR, 5,
++                          _("&Yes"), _("&No"), _("A&ll"), _("Non&e"), _("&Abort"));
+         g_free (text);
+ 
+         if (ctx->recursive_result != RECURSIVE_ABORT)

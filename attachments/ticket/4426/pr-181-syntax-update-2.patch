@@ -1,0 +1,22 @@
+From e1d88b6a00bc50588d188824f4558424fc020051 Mon Sep 17 00:00:00 2001
+From: srem1 <122400377+srem1@users.noreply.github.com>
+Date: Fri, 3 Mar 2023 14:05:14 +0100
+Subject: [PATCH] add puts
+
+puts == print + "\n" very often use
+---
+ misc/syntax/ruby.syntax | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/misc/syntax/ruby.syntax b/misc/syntax/ruby.syntax
+index 61191f026e..5def296165 100644
+--- a/misc/syntax/ruby.syntax
++++ b/misc/syntax/ruby.syntax
+@@ -205,6 +205,7 @@ context default
+     keyword whole srand yellow
+     keyword whole open yellow
+     keyword whole print yellow
++    keyword whole puts yellow
+     keyword whole printf yellow
+     keyword whole sprintf yellow
+     keyword whole exec yellow

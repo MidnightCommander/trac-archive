@@ -1,0 +1,54 @@
+From 1916bc0c2d90a006c5beac64adbda0ee86f950fd Mon Sep 17 00:00:00 2001
+From: Mikhail S. Pobolovets <styx.mp@gmail.com>
+Date: Sun, 25 Jan 2009 23:11:09 +0200
+Subject: [PATCH] Originally by adamw
+ http://svn.mandriva.com/cgi-bin/viewvc.cgi/packages/cooker/mc/current/SOURCES/mc-concat.patch?view=markup
+ + some additional modifications
+
+Signed-off-by: Mikhail S. Pobolovets <styx.mp@gmail.com>
+---
+ src/util.c |   12 ++++++++++--
+ src/util.h |    2 +-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/src/util.c b/src/util.c
+index edc759a..e4cd308 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -1247,10 +1247,18 @@ diff_two_paths (const char *first, const char *second)
+ 
+ /* If filename is NULL, then we just append PATH_SEP to the dir */
+ char *
+-concat_dir_and_file (const char *dir, const char *file)
++concat_dir_and_file (const char *dir, const char *filename)
+ {
+     int i = strlen (dir);
+-    
++    const char *file = filename;
++
++    /* Return filename when dir is empty */
++    if (!i) return g_strdup (filename);
++
++    /* Is this one: *file == PATH_SEP seems to be not fully portable? */
++    if (file != NULL && *file == PATH_SEP)
++        file++;
++
+     if (dir [i-1] == PATH_SEP)
+ 	return  g_strconcat (dir, file, (char *) NULL);
+     else
+diff --git a/src/util.h b/src/util.h
+index 4e9a113..64e5843 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -66,7 +66,7 @@ char *strip_password (char *path, int has_prefix);
+ const char *strip_home_and_password (const char *dir);
+ 
+ const char *extension (const char *);
+-char *concat_dir_and_file (const char *dir, const char *file);
++char *concat_dir_and_file (const char *dir, const char *filename);
+ const char *unix_error_string (int error_num);
+ const char *skip_separators (const char *s);
+ const char *skip_numbers (const char *s);
+-- 
+1.5.6.3
+

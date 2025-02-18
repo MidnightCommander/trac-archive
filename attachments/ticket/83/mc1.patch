@@ -1,0 +1,367 @@
+diff -u -r -w mc-4.7.1-org/src/cmd.c mc-4.7.1-viewertoeditor/src/cmd.c
+--- mc-4.7.1-org/src/cmd.c	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/cmd.c	2010-04-27 01:22:54.000000000 +0400
+@@ -117,6 +117,7 @@
+ {
+     static const char *viewer = NULL;
+     int move_dir = 0;
++    int run_editor = 0;
+ 
+ 
+     if (plain_view) {
+@@ -136,7 +137,7 @@
+ 	mcview_default_hex_mode = 0;
+ 	mcview_default_nroff_flag = 0;
+ 	mcview_default_magic_flag = 0;
+-	mcview_viewer (NULL, filename, &move_dir, start_line);
++	mcview_viewer (NULL, filename, &move_dir, start_line, &run_editor);
+ 	if (changed_hex_mode && !mcview_altered_hex_mode)
+ 	    mcview_default_hex_mode = 1;
+ 	if (changed_nroff_flag && !mcview_altered_nroff_flag)
+@@ -144,6 +145,10 @@
+ 	if (changed_magic_flag && !mcview_altered_magic_flag)
+ 	    mcview_default_magic_flag = 1;
+ 	repaint_screen ();
++        if (run_editor) {
++		do_edit_at_line (filename, start_line, 1);
++		repaint_screen ();
++        }
+ 	return move_dir;
+     }
+     if (internal) {
+@@ -156,7 +161,7 @@
+ 	    strcpy (view_entry, "View");
+ 
+ 	if (regex_command (filename, view_entry, &move_dir) == 0) {
+-	    mcview_viewer (NULL, filename, &move_dir, start_line);
++	    mcview_viewer (NULL, filename, &move_dir, start_line, &run_editor);
+ 	    repaint_screen ();
+ 	}
+     } else {
+@@ -169,6 +174,10 @@
+ 	}
+ 	execute_with_vfs_arg (viewer, filename);
+     }
++    if (run_editor) {
++	do_edit_at_line (filename, start_line, 1);
++	repaint_screen ();
++    }
+     return move_dir;
+ }
+ 
+@@ -289,19 +298,19 @@
+     if (!command)
+ 	return;
+ 
+-    mcview_viewer (command, "", NULL, 0);
++    mcview_viewer (command, "", NULL, 0, NULL);
+ 
+     g_free (command);
+ }
+ 
+ void
+-do_edit_at_line (const char *what, int start_line)
++do_edit_at_line (const char *what, int start_line, int no_center)
+ {
+     static const char *editor = NULL;
+ 
+ #ifdef USE_INTERNAL_EDIT
+     if (use_internal_edit)
+-	edit_file (what, start_line);
++	edit_file (what, start_line, no_center);
+     else
+ #else
+     (void) start_line;
+@@ -321,7 +330,7 @@
+ static void
+ do_edit (const char *what)
+ {
+-    do_edit_at_line (what, 0);
++    do_edit_at_line (what, 0, 0);
+ }
+ 
+ void
+diff -u -r -w mc-4.7.1-org/src/cmddef.h mc-4.7.1-viewertoeditor/src/cmddef.h
+--- mc-4.7.1-org/src/cmddef.h	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/cmddef.h	2010-04-26 02:16:42.000000000 +0400
+@@ -274,6 +274,7 @@
+ #define CK_ViewPrevFile                 5025
+ #define CK_ViewToggleRuler              5026
+ #define CK_ViewToggleHexNavMode         5027
++#define CK_ViewRunEditor                5028
+ 
+ /* Tree */
+ #define CK_TreeHelp                     6001
+diff -u -r -w mc-4.7.1-org/src/cmd.h mc-4.7.1-viewertoeditor/src/cmd.h
+--- mc-4.7.1-org/src/cmd.h	2010-02-25 13:51:40.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/cmd.h	2010-04-27 01:21:35.000000000 +0400
+@@ -24,7 +24,7 @@
+ void view_file_cmd (void);
+ void view_simple_cmd (void);
+ void filtered_view_cmd (void);
+-void do_edit_at_line (const char *what, int start_line);
++void do_edit_at_line (const char *what, int start_line, int no_center);
+ void edit_cmd (void);
+ void edit_cmd_new (void);
+ void copy_cmd (void);
+diff -u -r -w mc-4.7.1-org/src/editor/edit.c mc-4.7.1-viewertoeditor/src/editor/edit.c
+--- mc-4.7.1-org/src/editor/edit.c	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/editor/edit.c	2010-04-27 01:37:33.000000000 +0400
+@@ -709,7 +709,10 @@
+         line = edit->curs_line;
+     }
+     edit_move_to_prev_col (edit, edit_bol (edit, edit->curs1));
++    if (!edit->no_center)
+     edit_move_display (edit, line - (edit->num_widget_lines / 2));
++    else
++         edit_move_display (edit, line);
+ }
+ 
+ /* Save cursor position in the file */
+@@ -760,7 +763,7 @@
+  */
+ WEdit *
+ edit_init (WEdit *edit, int lines, int columns, const char *filename,
+-	   long line)
++	   long line, int no_center)
+ {
+     int to_free = 0;
+     option_auto_syntax = 1; /* Resetting to auto on every invokation */
+@@ -821,6 +824,7 @@
+     }
+     edit->utf8 = 0;
+     edit->converter = str_cnv_from_term;
++    edit->no_center = no_center ? 1 : 0;
+ #ifdef HAVE_CHARSET
+     {
+     const char *cp_id = NULL;
+@@ -915,7 +919,7 @@
+     int columns = edit->num_widget_columns;
+ 
+     edit_clean (edit);
+-    return (edit_init (edit, lines, columns, "", 0) != NULL);
++    return (edit_init (edit, lines, columns, "", 0, 0) != NULL);
+ }
+ 
+ /*
+@@ -933,7 +937,7 @@
+ 
+     e = g_malloc0 (sizeof (WEdit));
+     e->widget = edit->widget;
+-    if (!edit_init (e, lines, columns, filename, 0)) {
++    if (!edit_init (e, lines, columns, filename, 0, 0)) {
+ 	g_free (e);
+ 	return 0;
+     }
+@@ -958,7 +962,7 @@
+ 
+     e = g_malloc0 (sizeof (WEdit));
+     e->widget = edit->widget;
+-    if (!edit_init (e, lines, columns, filename, line)) {
++    if (!edit_init (e, lines, columns, filename, line, 0)) {
+ 	g_free (e);
+ 	return 0;
+     }
+diff -u -r -w mc-4.7.1-org/src/editor/edit.h mc-4.7.1-viewertoeditor/src/editor/edit.h
+--- mc-4.7.1-org/src/editor/edit.h	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/editor/edit.h	2010-04-27 01:19:58.000000000 +0400
+@@ -67,7 +67,7 @@
+ void edit_stack_init (void);
+ void edit_stack_free (void);
+ 
+-int edit_file (const char *_file, int line);
++int edit_file (const char *_file, int line, int no_center);
+ 
+ const char *edit_get_file_name (const WEdit *edit);
+ int edit_get_curs_col (const WEdit *edit);
+diff -u -r -w mc-4.7.1-org/src/editor/edit-impl.h mc-4.7.1-viewertoeditor/src/editor/edit-impl.h
+--- mc-4.7.1-org/src/editor/edit-impl.h	2010-02-25 13:51:40.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/editor/edit-impl.h	2010-04-27 01:30:35.000000000 +0400
+@@ -211,7 +211,7 @@
+ int edit_save_confirm_cmd (WEdit * edit);
+ int edit_save_as_cmd (WEdit * edit);
+ WEdit *edit_init (WEdit *edit, int lines, int columns,
+-		  const char *filename, long line);
++		  const char *filename, long line, int no_center);
+ int edit_clean (WEdit * edit);
+ int edit_ok_to_exit (WEdit *edit);
+ int edit_renew (WEdit * edit);
+diff -u -r -w mc-4.7.1-org/src/editor/editwidget.c mc-4.7.1-viewertoeditor/src/editor/editwidget.c
+--- mc-4.7.1-org/src/editor/editwidget.c	2010-02-25 13:51:40.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/editor/editwidget.c	2010-04-27 01:30:11.000000000 +0400
+@@ -227,7 +227,7 @@
+ }
+ 
+ int
+-edit_file (const char *_file, int line)
++edit_file (const char *_file, int line, int no_center)
+ {
+     static gboolean made_directory = FALSE;
+     Dlg_head *edit_dlg;
+@@ -238,7 +238,7 @@
+ 	g_free (dir);
+     }
+ 
+-    wedit = edit_init (NULL, LINES - 2, COLS, _file, line);
++    wedit = edit_init (NULL, LINES - 2, COLS, _file, line, no_center);
+ 
+     if (wedit == NULL)
+ 	return 0;
+diff -u -r -w mc-4.7.1-org/src/editor/edit-widget.h mc-4.7.1-viewertoeditor/src/editor/edit-widget.h
+--- mc-4.7.1-org/src/editor/edit-widget.h	2010-02-25 13:51:40.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/editor/edit-widget.h	2010-04-27 01:18:12.000000000 +0400
+@@ -74,6 +74,8 @@
+     unsigned int delete_file:1;	/* New file, needs to be deleted unless modified */
+     unsigned int highlight:1;	/* There is a selected block */
+     unsigned int utf8:1;	/* It's multibyte file codeset */
++    unsigned int no_center:1;   /* Do not move edit line to center when create editor window */
++
+     long prev_col;		/* recent column position of the cursor - used when moving
+ 				   up or down past lines that are shorter than the current line */
+     long curs_line;		/* line number of the cursor. */
+@@ -126,7 +128,6 @@
+     int extmod;
+ 
+     char *labels[10];
+-
+ };
+ 
+ #endif				/* MC_EDIT_WIDGET_H */
+diff -u -r -w mc-4.7.1-org/src/ext.c mc-4.7.1-viewertoeditor/src/ext.c
+--- mc-4.7.1-org/src/ext.c	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/ext.c	2010-04-26 02:14:59.000000000 +0400
+@@ -252,10 +252,10 @@
+ 	 * into view
+ 	 */
+ 	if (written_nonspace) {
+-	    mcview_viewer (cmd, filename, move_dir, start_line);
++	    mcview_viewer (cmd, filename, move_dir, start_line, NULL);
+ 	    unlink (file_name);
+ 	} else {
+-	    mcview_viewer (NULL, filename, move_dir, start_line);
++	    mcview_viewer (NULL, filename, move_dir, start_line, NULL);
+ 	}
+ 	if (changed_hex_mode && !mcview_altered_hex_mode)
+ 	    mcview_default_hex_mode = def_hex_mode;
+diff -u -r -w mc-4.7.1-org/src/find.c mc-4.7.1-viewertoeditor/src/find.c
+--- mc-4.7.1-org/src/find.c	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/find.c	2010-04-27 01:22:18.000000000 +0400
+@@ -1029,7 +1029,7 @@
+ 
+     fullname = make_fullname (dir, filename);
+     if (edit)
+-	do_edit_at_line (fullname, line);
++	do_edit_at_line (fullname, line, 0);
+     else
+         view_file_at_line (fullname, unparsed_view, use_internal_view, line);
+     g_free (fullname);
+diff -u -r -w mc-4.7.1-org/src/keybind.c mc-4.7.1-viewertoeditor/src/keybind.c
+--- mc-4.7.1-org/src/keybind.c	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/keybind.c	2010-04-26 02:18:36.000000000 +0400
+@@ -249,6 +249,7 @@
+     { "ViewPrevFile",                    CK_ViewPrevFile },
+     { "ViewToggleRuler",                 CK_ViewToggleRuler },
+     { "ViewToggleHexNavMode",            CK_ViewToggleHexNavMode },
++    { "ViewRunEditor",                   CK_ViewRunEditor },
+ 
+     /* help */
+     { "HelpHelp",                        CK_HelpHelp },
+@@ -514,6 +515,8 @@
+     { ALT ('e'),   CK_SelectCodepage,        "M-e" },
+     { XCTRL ('o'), CK_ShowCommandLine,       "C-o" },
+ 
++    { KEY_F (14),  CK_ViewRunEditor,        "S-F4" },
++
+     { 0, CK_Ignore_Key, "" }
+ };
+ 
+diff -u -r -w mc-4.7.1-org/src/main.c mc-4.7.1-viewertoeditor/src/main.c
+--- mc-4.7.1-org/src/main.c	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/main.c	2010-04-27 01:20:51.000000000 +0400
+@@ -1827,7 +1828,7 @@
+     }
+ #ifdef USE_INTERNAL_EDIT
+     else
+-	edit_file (edit_one_file, edit_one_file_start_line);
++	edit_file (edit_one_file, edit_one_file_start_line, 0);
+ #endif				/* USE_INTERNAL_EDIT */
+     midnight_shutdown = 1;
+     done_mc ();
+diff -u -r -w mc-4.7.1-org/src/user.c mc-4.7.1-viewertoeditor/src/user.c
+--- mc-4.7.1-org/src/user.c	2010-02-26 14:34:03.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/user.c	2010-04-26 02:15:17.000000000 +0400
+@@ -702,7 +702,7 @@
+     chmod (file_name, S_IRWXU);
+     if (run_view) {
+ 	run_view = 0;
+-	mcview_viewer (file_name, NULL, &run_view, 0);
++	mcview_viewer (file_name, NULL, &run_view, 0, NULL);
+     } else {
+ 	/* execute the command indirectly to allow execution even
+ 	 * on no-exec filesystems. */
+diff -u -r -w mc-4.7.1-org/src/viewer/actions_cmd.c mc-4.7.1-viewertoeditor/src/viewer/actions_cmd.c
+--- mc-4.7.1-org/src/viewer/actions_cmd.c	2010-02-26 15:01:54.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/viewer/actions_cmd.c	2010-04-26 02:19:54.000000000 +0400
+@@ -439,6 +439,8 @@
+         if (!mcview_is_in_panel (view))
+             view->move_dir = (command == CK_ViewNextFile) ? 1 : -1;
+         /* fallthrough */
++    case CK_ViewRunEditor:
++        view->run_editor = 1;
+     case CK_ViewQuit:
+         if (mcview_ok_to_quit (view))
+             view->want_to_quit = TRUE;
+diff -u -r -w mc-4.7.1-org/src/viewer/internal.h mc-4.7.1-viewertoeditor/src/viewer/internal.h
+--- mc-4.7.1-org/src/viewer/internal.h	2010-02-26 15:01:54.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/viewer/internal.h	2010-04-26 02:02:33.000000000 +0400
+@@ -191,6 +191,8 @@
+     struct mcview_nroff_struct *search_nroff_seq;
+ 
+     int search_numNeedSkipChar;
++
++    int run_editor;
+ } mcview_t;
+ 
+ typedef struct mcview_nroff_struct
+diff -u -r -w mc-4.7.1-org/src/viewer/mcviewer.c mc-4.7.1-viewertoeditor/src/viewer/mcviewer.c
+--- mc-4.7.1-org/src/viewer/mcviewer.c	2010-02-26 15:01:54.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/viewer/mcviewer.c	2010-04-26 02:04:35.000000000 +0400
+@@ -257,6 +257,8 @@
+     view->update_steps = 0;
+     view->update_activate = 0;
+ 
++    view->run_editor = 0;
++
+     if (mcview_default_hex_mode)
+         mcview_toggle_hex_mode (view);
+     if (mcview_default_nroff_flag)
+@@ -275,7 +277,7 @@
+ 
+ /* Real view only */
+ int
+-mcview_viewer (const char *command, const char *file, int *move_dir_p, int start_line)
++mcview_viewer (const char *command, const char *file, int *move_dir_p, int start_line, int * run_editor)
+ {
+     gboolean succeeded;
+     mcview_t *lc_mcview;
+@@ -296,6 +298,8 @@
+         run_dlg (view_dlg);
+         if (move_dir_p)
+             *move_dir_p = lc_mcview->move_dir;
++        if (run_editor)
++            *run_editor = lc_mcview->run_editor;
+     }
+     else
+     {
+diff -u -r -w mc-4.7.1-org/src/viewer/mcviewer.h mc-4.7.1-viewertoeditor/src/viewer/mcviewer.h
+--- mc-4.7.1-org/src/viewer/mcviewer.h	2010-02-26 15:01:54.000000000 +0300
++++ mc-4.7.1-viewertoeditor/src/viewer/mcviewer.h	2010-04-26 02:03:50.000000000 +0400
+@@ -43,7 +43,7 @@
+  * point to a variable that will receive the direction in which the user
+  * wants to move (-1 = previous file, 1 = next file, 0 = do nothing).
+  */
+-extern int mcview_viewer (const char *command, const char *file, int *move_dir_p, int start_line);
++extern int mcview_viewer (const char *command, const char *file, int *move_dir_p, int start_line, int * run_editor);
+ 
+ extern gboolean mcview_load (struct mcview_struct *, const char *, const char *, int);
+ 

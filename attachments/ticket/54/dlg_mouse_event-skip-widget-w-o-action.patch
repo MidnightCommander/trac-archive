@@ -1,0 +1,17 @@
+diff --git a/src/dialog.c b/src/dialog.c
+index 50e1efa..3290d50 100644
+--- a/src/dialog.c
++++ b/src/dialog.c
+@@ -764,10 +764,8 @@ dlg_mouse_event (Dlg_head * h, Gpm_Event * event)
+ 	new_event.x -= widget->x;
+ 	new_event.y -= widget->y;
+ 
+-	if (!widget->mouse)
+-	    return MOU_NORMAL;
+-
+-	return (*widget->mouse) (&new_event, widget);
++	if (widget->mouse)
++	    return (*widget->mouse) (&new_event, widget);
+     } while (item != starting_widget);
+ 
+     return MOU_NORMAL;

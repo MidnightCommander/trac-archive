@@ -1,0 +1,101 @@
+From 7b56b4e7b60043d52d684e8799021d0303006691 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 27 Sep 2016 22:40:15 +0300
+Subject: [PATCH] Ticket #3696: extfs: fix documentation of allowed date
+ formats.
+
+We also improve the documentation of vfs_parse_filedate(), which does the
+actual work.
+
+Note that in the user-facing documentation (extfs/helpers/README) there are
+two things we prefer *not* to mention about vfs_parse_filedate's ability:
+
+* Accepting the format "MM-DD-YY hh:mm[:ss]", as this two-digit year is
+  more likely to confuse readers of such dates.
+
+* Accepting '/', instead of '-', as the separator in MM-DD-YYYY. (Considering
+  that some scripts do use '/', maybe we should mention it?)
+---
+ lib/vfs/parse_ls_vga.c       | 38 +++++++++++++++++++++++++++-----------
+ src/vfs/extfs/helpers/README |  7 ++++---
+ 2 files changed, 31 insertions(+), 14 deletions(-)
+
+diff --git a/lib/vfs/parse_ls_vga.c b/lib/vfs/parse_ls_vga.c
+index cba2475..33c6d41 100644
+--- a/lib/vfs/parse_ls_vga.c
++++ b/lib/vfs/parse_ls_vga.c
+@@ -543,6 +543,32 @@ vfs_parse_filedate (int idx, time_t * t)
+     if (is_week (p, &tim))
+         p = columns[idx++];
+ 
++    /*
++       ALLOWED DATE FORMATS
++
++       We expect 3 fields max or we'll see oddities with certain file names.
++
++       Formats that contain either year or time (the default 'ls' formats):
++
++       * Mon DD hh:mm[:ss]
++       * Mon DD YYYY
++
++       Formats that contain both year and time, to make it easier to write
++       extfs scripts:
++
++       * MM-DD-YYYY hh:mm[:ss]
++       * MM-DD-YY hh:mm[:ss]
++
++       ('/' and '\' can be used instead of '-'.)
++
++       where Mon is Jan-Dec, DD, MM, YY two digit day, month, year,
++       YYYY four digit year, hh, mm, ss two digit hour, minute or second.
++
++       (As for the "3 fields max" restriction: this prevents, for example, a
++       file name "13:48" from being considered part of a "Sep 19 2016" date
++       string preceding it.)
++     */
++
+     /* Month name */
+     if (is_month (p, &tim))
+     {
+@@ -555,17 +581,7 @@ vfs_parse_filedate (int idx, time_t * t)
+     }
+     else
+     {
+-        /* We expect:
+-           3 fields max or we'll see oddities with certain file names.
+-           So both year and time is not allowed.
+-           Mon DD hh:mm[:ss]
+-           Mon DD YYYY
+-           But in case of extfs we allow these date formats:
+-           MM-DD-YY hh:mm[:ss]
+-           where Mon is Jan-Dec, DD, MM, YY two digit day, month, year,
+-           YYYY four digit year, hh, mm, ss two digit hour, minute or second. */
+-
+-        /* Special case with MM-DD-YY or MM-DD-YYYY */
++        /* Case with MM-DD-YY or MM-DD-YYYY */
+         if (is_dos_date (p))
+         {
+             p[2] = p[5] = '-';
+diff --git a/src/vfs/extfs/helpers/README b/src/vfs/extfs/helpers/README
+index 121e064..8b4a309 100644
+--- a/src/vfs/extfs/helpers/README
++++ b/src/vfs/extfs/helpers/README
+@@ -62,11 +62,12 @@ SSSSSSSS is the file size
+ FILENAME is the filename
+ PATH     is the path from the archive's root without the leading slash (/)
+ DATETIME has one of the following formats:
+-	    Mon DD hh:mm, Mon DD YYYY, Mon DD YYYY hh:mm, MM-DD-YYYY hh:mm
++            Mon DD hh:mm[:ss], Mon DD YYYY, MM-DD-YYYY hh:mm[:ss]
+ 
+             where Mon is a three letter English month name, DD is day
+-            1-31, MM is month 01-12, YYYY is four digit year, hh hour is
+-            and mm is minute.
++            01-31 (can be 1-31, if following Mon), MM is month 01-12,
++            YYYY is four digit year, hh is hours, mm is minutes,
++            and ss is optional seconds.
+ 
+ If the -> [PATH/]FILENAME part is present, it means:
+ 
+-- 
+2.5.0
+

@@ -1,0 +1,20 @@
+fix -Wconversion warning at lock.c
+
+lock.c:184:11: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/lock.c
++++ b/lib/lock.c
+@@ -178,7 +178,7 @@
+ static char *
+ lock_get_info (const char *lockfname)
+ {
+-    int cnt;
++    ssize_t cnt;
+     static char buf[BUF_SIZE];
+ 
+     cnt = readlink (lockfname, buf, BUF_SIZE - 1);

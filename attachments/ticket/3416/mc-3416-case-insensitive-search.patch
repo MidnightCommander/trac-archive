@@ -1,0 +1,147 @@
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index 4ee3979..082fa2c 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -61,6 +61,7 @@ typedef enum
+ 
+ /*** file scope functions ************************************************************************/
+ 
++#ifndef SEARCH_TYPE_GLIB
+ static gboolean
+ mc_search__regex_str_append_if_special (GString * copy_to, const GString * regex_str,
+                                         gsize * offset)
+@@ -244,6 +245,7 @@ mc_search__cond_struct_new_regex_ci_str (const char *charset, const GString * as
+ 
+     return ret_str;
+ }
++#endif /* !SEARCH_TYPE_GLIB */
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -717,13 +719,16 @@ mc_search_regex__process_escape_sequence (GString * dest_str, const char *from,
+  */
+ 
+ static GRegexCompileFlags
+-mc_search__regex_get_compile_flags (const char *charset)
++mc_search__regex_get_compile_flags (const char *charset, gboolean is_case_sensitive)
+ {
+     GRegexCompileFlags g_regex_options = G_REGEX_OPTIMIZE | G_REGEX_DOTALL;
+ 
+     if (!(mc_global.utf8_display && str_isutf8 (charset)))
+         g_regex_options |= G_REGEX_RAW;
+ 
++    if (!is_case_sensitive)
++        g_regex_options |= G_REGEX_CASELESS;
++
+     return g_regex_options;
+ }
+ 
+@@ -738,17 +743,10 @@ mc_search__cond_struct_new_init_regex (const char *charset, mc_search_t * lc_mc_
+ #ifdef SEARCH_TYPE_GLIB
+     GError *mcerror = NULL;
+ 
+-    if (!lc_mc_search->is_case_sensitive)
+-    {
+-        GString *tmp;
+-
+-        tmp = mc_search_cond->str;
+-        mc_search_cond->str = mc_search__cond_struct_new_regex_ci_str (charset, tmp);
+-        g_string_free (tmp, TRUE);
+-    }
+     mc_search_cond->regex_handle =
+-        g_regex_new (mc_search_cond->str->str, mc_search__regex_get_compile_flags (charset), 0,
+-                     &mcerror);
++        g_regex_new (mc_search_cond->str->str,
++                     mc_search__regex_get_compile_flags (charset, lc_mc_search->is_case_sensitive),
++                     0, &mcerror);
+ 
+     if (mcerror != NULL)
+     {
+diff --git a/tests/lib/search/regex_get_compile_flags.c b/tests/lib/search/regex_get_compile_flags.c
+index 9d22e1e..94257d9 100644
+--- a/tests/lib/search/regex_get_compile_flags.c
++++ b/tests/lib/search/regex_get_compile_flags.c
+@@ -37,42 +37,74 @@ static const struct test_regex_get_compile_flags_ds
+ {
+     const char *charset;
+     const gboolean utf_flag;
++    const gboolean is_case_sensitive;
+     const GRegexCompileFlags expected_result;
+ } test_regex_get_compile_flags_ds[] =
+ {
+     {
+         "utf8",
+         TRUE,
++        TRUE,
+         G_REGEX_OPTIMIZE | G_REGEX_DOTALL
+     },
+     {
+         "utf8",
+         FALSE,
++        TRUE,
+         G_REGEX_OPTIMIZE | G_REGEX_DOTALL | G_REGEX_RAW
+     },
+     {
++        "utf8",
++        TRUE,
++        FALSE,
++        G_REGEX_OPTIMIZE | G_REGEX_DOTALL | G_REGEX_CASELESS
++    },
++    {
++        "utf8",
++        FALSE,
++        FALSE,
++        G_REGEX_OPTIMIZE | G_REGEX_DOTALL | G_REGEX_RAW | G_REGEX_CASELESS
++    },
++    {
+         "utf-8",
+         TRUE,
++        TRUE,
+         G_REGEX_OPTIMIZE | G_REGEX_DOTALL
+     },
+     {
+         "utf-8",
+         FALSE,
++        TRUE,
+         G_REGEX_OPTIMIZE | G_REGEX_DOTALL | G_REGEX_RAW
+     },
+     {
++        "utf-8",
++        TRUE,
++        FALSE,
++        G_REGEX_OPTIMIZE | G_REGEX_DOTALL | G_REGEX_CASELESS
++    },
++    {
++        "utf-8",
++        FALSE,
++        FALSE,
++        G_REGEX_OPTIMIZE | G_REGEX_DOTALL | G_REGEX_RAW | G_REGEX_CASELESS
++    },
++    {
+         "latin1",
+         TRUE,
++        TRUE,
+         G_REGEX_OPTIMIZE | G_REGEX_DOTALL  | G_REGEX_RAW
+     },
+     {
+         "latin1",
+         FALSE,
++        TRUE,
+         G_REGEX_OPTIMIZE | G_REGEX_DOTALL | G_REGEX_RAW
+     },
+     {
+         "blablabla",
+         TRUE,
++        TRUE,
+         G_REGEX_OPTIMIZE | G_REGEX_DOTALL  | G_REGEX_RAW
+     },
+ };
+@@ -89,7 +121,7 @@ START_PARAMETRIZED_TEST (test_regex_get_compile_flags, test_regex_get_compile_fl
+     mc_global.utf8_display = data->utf_flag;
+ 
+     /* when */
+-    actual_result = mc_search__regex_get_compile_flags (data->charset);
++    actual_result = mc_search__regex_get_compile_flags (data->charset, data->is_case_sensitive);
+ 
+     /* then */
+     mctest_assert_int_eq (actual_result, data->expected_result);

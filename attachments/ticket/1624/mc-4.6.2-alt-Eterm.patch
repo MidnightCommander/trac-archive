@@ -1,0 +1,50 @@
+--- mc/src/mouse.c.orig	2006-03-06 14:28:14 +0500
++++ mc/src/mouse.c	2008-02-24 15:26:43 +0500
+@@ -47,7 +47,25 @@ void init_mouse (void)
+     switch (use_mouse_p) {
+ #ifdef HAVE_LIBGPM
+     case MOUSE_NONE:
+-	use_mouse_p = MOUSE_GPM;
++	{
++	    int mouse_d;
++	    Gpm_Connect conn;
++
++	    mouse_d = Gpm_Open (&conn, 0);
++	    switch (mouse_d) {
++	    case -1:
++		use_mouse_p = MOUSE_NONE;
++		break;
++	    case -2:
++		use_mouse_p = MOUSE_XTERM;
++		define_sequence (MCKEY_MOUSE, xmouse_seq, MCKEY_NOACTION);
++		break;
++	    default:
++		use_mouse_p = MOUSE_GPM;
++		break;
++	    }
++	    Gpm_Close();
++	}
+ 	break;
+ #endif /* HAVE_LIBGPM */
+     case MOUSE_XTERM_NORMAL_TRACKING:
+@@ -70,7 +88,6 @@ void enable_mouse (void)
+ #ifdef HAVE_LIBGPM
+     case MOUSE_GPM:
+ 	{
+-	    int mouse_d;
+ 	    Gpm_Connect conn;
+ 
+ 	    conn.eventMask   = ~GPM_MOVE;
+@@ -78,11 +95,7 @@ void enable_mouse (void)
+ 	    conn.minMod      = 0;
+ 	    conn.maxMod      = 0;
+ 
+-	    mouse_d = Gpm_Open (&conn, 0);
+-	    if (mouse_d == -1) {
+-		use_mouse_p = MOUSE_NONE;
+-	        return;
+-	    }
++	    Gpm_Open (&conn, 0);
+ 	    mouse_enabled = 1;
+ 	}
+ 	break;

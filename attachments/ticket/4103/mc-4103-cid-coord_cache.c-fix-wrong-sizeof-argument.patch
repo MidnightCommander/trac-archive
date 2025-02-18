@@ -1,0 +1,26 @@
+From 9496875eb2f91a3d11cd6427bcd1efc2d9d5895f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 21 Dec 2020 18:23:11 +0000
+Subject: [PATCH] (coord_cache.c) fix wrong sizeof argument
+
+found by Coverity
+coverity id #32613
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/coord_cache.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/viewer/coord_cache.c b/src/viewer/coord_cache.c
+index 1ffc35551..18805dfa4 100644
+--- a/src/viewer/coord_cache.c
++++ b/src/viewer/coord_cache.c
+@@ -93,7 +93,7 @@ mcview_ccache_add_entry (coord_cache_t * cache, size_t pos, const coord_cache_en
+     /* insert new entry */
+     if (pos != cache->size)
+         memmove (cache->cache[pos + 1], cache->cache[pos],
+-                 (cache->size - pos) * sizeof (*cache->cache));
++                 (cache->size - pos) * sizeof (**cache->cache));
+     cache->cache[pos] = g_memdup (entry, sizeof (*entry));
+     cache->size++;
+ }

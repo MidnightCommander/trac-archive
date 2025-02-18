@@ -1,0 +1,28 @@
+From 928219cd4164b20176b1ee9619c5efc09edeaaac Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 10:39:46 +0000
+Subject: [PATCH] fix #3269 only print meaningful error code
+
+some error messages have no meaningful error code, don't display them
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/wtools.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/widget/wtools.c b/lib/widget/wtools.c
+index 68f5a81..92af1dc 100644
+--- a/lib/widget/wtools.c
++++ b/lib/widget/wtools.c
+@@ -440,7 +440,10 @@ mc_error_message (GError ** mcerror, int *code)
+     if (mcerror == NULL || *mcerror == NULL)
+         return FALSE;
+ 
+-    message (D_ERROR, MSG_ERROR, _("%d: %s"), (*mcerror)->code, (*mcerror)->message);
++    if ((*mcerror)->code == 0)
++        message (D_ERROR, MSG_ERROR, _("%s"), (*mcerror)->message);
++    else
++        message (D_ERROR, MSG_ERROR, _("%d: %s"), (*mcerror)->code, (*mcerror)->message);
+ 
+     if (code != NULL)
+         *code = (*mcerror)->code;

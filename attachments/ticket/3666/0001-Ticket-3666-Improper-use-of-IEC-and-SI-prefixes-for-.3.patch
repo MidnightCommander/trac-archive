@@ -1,0 +1,186 @@
+From a831bdf5b3571284ffa4efb69e506f09403ab240 Mon Sep 17 00:00:00 2001
+From: Michael Osipov <1983-01-06@gmx.net>
+Date: Thu, 25 Aug 2016 15:09:03 +0200
+Subject: [PATCH] Ticket #3666: Improper use of IEC and SI prefixes for size in
+ size_trunc_len()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+size_trunc_len() has been aligned to properly use either IEC or SI prefixes with
+the unit B (byte). Additionally always put a space between number and unit which
+is required by the norms.
+
+It is important to note that really small buffers have to be bigger than it
+appears because they store bytes and non-Latin scripts need more than one byte
+with UTF-8 to encode them, e.g., the string "1023 МиБ" in Russian requires
+11 bytes + null terminator.
+---
+ lib/util.c                | 33 ++++++++++++++++++++-------------
+ src/filemanager/filegui.c |  4 ++--
+ src/filemanager/info.c    | 12 +++++++-----
+ src/filemanager/panel.c   |  9 +++++----
+ 4 files changed, 34 insertions(+), 24 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 304351d..3d497cf 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -449,22 +449,24 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+ #endif
+     };
+     /* *INDENT-ON* */
+-    static const char *const suffix[] = { "", "K", "M", "G", "T", "P", "E", "Z", "Y", NULL };
+-    static const char *const suffix_lc[] = { "", "k", "m", "g", "t", "p", "e", "z", "y", NULL };
++    static const char *const units_iec[] = { N_("B"), N_("KiB"), N_("MiB"), N_("GiB"), N_("TiB"),
++                                             N_("PiB"), NULL };
++    static const char *const units_si[] = { N_("B"), N_("kB"), N_("MB"), N_("GB"), N_("TB"),
++                                            N_("PB"), NULL };
+ 
+-    const char *const *sfx = use_si ? suffix_lc : suffix;
++    const char *const *sfx = use_si ? units_si : units_iec;
+     int j = 0;
+ 
+     if (len == 0)
+         len = 9;
+ #if SIZEOF_UINTMAX_T == 8
+     /* 20 decimal digits are required to represent 8 bytes */
+-    else if (len > 19)
+-        len = 19;
++    else if (len > 21)
++        len = 21;
+ #else
+     /* 10 decimal digits are required to represent 4 bytes */
+-    else if (len > 9)
+-        len = 9;
++    else if (len > 11)
++        len = 11;
+ #endif
+ 
+     /*
+@@ -489,20 +491,25 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+         {
+             if (j == units)
+             {
+-                /* Empty files will print "0" even with minimal width.  */
+-                g_snprintf (buffer, len + 1, "%s", "0");
++                /* Empty files will print "0 B" even with minimal width.  */
++                g_snprintf (buffer, len + 1, "0 %s", _("B"));
+             }
+             else
+             {
+-                /* Use "~K" or just "K" if len is 1.  Use "B" for bytes.  */
+-                g_snprintf (buffer, len + 1, (len > 1) ? "~%s" : "%s", (j > 1) ? sfx[j - 1] : "B");
++                /* Use "~KiB/kB" or just "KiB/kB" if len is 1.  Use "B" for bytes.  */
++                g_snprintf (buffer, len + 1, (len > 1) ? "~%s" : "%s",
++                            (j > 1) ? _(sfx[j - 1]) : _("B"));
+             }
+             break;
+         }
+ 
+-        if (size < power10[len - (j > 0 ? 1 : 0)])
++        /*
++         * Offset calculation: 1 for space + 2*3 bytes for scaled units as multibyte
++         * encoding with UTF-8 for non-Latin scripts.
++         */
++        if (size < power10[len - (1 + 6)])
+         {
+-            g_snprintf (buffer, len + 1, "%" PRIuMAX "%s", size, sfx[j]);
++            g_snprintf (buffer, len + 1, "%" PRIuMAX " %s", size, _(sfx[j]));
+             break;
+         }
+ 
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index 2b6871a..edf2502 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -1013,12 +1013,12 @@ file_progress_show_total (file_op_total_context_t * tctx, file_op_context_t * ct
+ 
+     if (ui->total_bytes_label != NULL)
+     {
+-        size_trunc_len (buffer2, 5, tctx->copied_bytes, 0, panels_options.kilobyte_si);
++        size_trunc_len (buffer2, 11, tctx->copied_bytes, 0, panels_options.kilobyte_si);
+         if (!ctx->progress_totals_computed)
+             g_snprintf (buffer, sizeof (buffer), _(" Total: %s "), buffer2);
+         else
+         {
+-            size_trunc_len (buffer3, 5, ctx->progress_bytes, 0, panels_options.kilobyte_si);
++            size_trunc_len (buffer3, 11, ctx->progress_bytes, 0, panels_options.kilobyte_si);
+             g_snprintf (buffer, sizeof (buffer), _(" Total: %s/%s "), buffer2, buffer3);
+         }
+ 
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index cb5cf6a..888d6fc 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -176,10 +176,12 @@ info_show_info (WInfo * info)
+             tty_print_string (_("No space information"));
+         else
+         {
+-            char buffer1[6], buffer2[6];
++            char buffer1[12], buffer2[12];
+ 
+-            size_trunc_len (buffer1, 5, myfs_stats.avail, 1, panels_options.kilobyte_si);
+-            size_trunc_len (buffer2, 5, myfs_stats.total, 1, panels_options.kilobyte_si);
++            size_trunc_len (buffer1, sizeof(buffer1) - 1, myfs_stats.avail, 1,
++                            panels_options.kilobyte_si);
++            size_trunc_len (buffer2, sizeof(buffer2) - 1, myfs_stats.total, 1,
++                            panels_options.kilobyte_si);
+             tty_printf (_("Free space: %s/%s (%d%%)"), buffer1, buffer2,
+                         myfs_stats.total == 0 ? 0 :
+                         (int) (100 * (long double) myfs_stats.avail / myfs_stats.total));
+@@ -232,8 +234,8 @@ info_show_info (WInfo * info)
+         else
+ #endif
+         {
+-            char buffer[10];
+-            size_trunc_len (buffer, 9, st.st_size, 0, panels_options.kilobyte_si);
++            char buffer[12];
++            size_trunc_len (buffer, sizeof(buffer) - 1, st.st_size, 0, panels_options.kilobyte_si);
+             tty_printf (_("Size:       %s"), buffer);
+ #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+             tty_printf (ngettext (" (%ld block)", " (%ld blocks)",
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index b18cbac..cbaac3e 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -195,7 +195,7 @@ static panel_field_t panel_fields[] = {
+     }
+     ,
+     {
+-     "size", 7, FALSE, J_RIGHT,
++     "size", 8, FALSE, J_RIGHT,
+      /* TRANSLATORS: one single character to represent 'size' sort mode  */
+      /* TRANSLATORS: no need to translate 'sort', it's just a context prefix  */
+      N_("sort|s"),
+@@ -205,7 +205,7 @@ static panel_field_t panel_fields[] = {
+     }
+     ,
+     {
+-     "bsize", 7, FALSE, J_RIGHT,
++     "bsize", 8, FALSE, J_RIGHT,
+      "",
+      N_("Block Size"), FALSE, FALSE,
+      string_file_size_brief,
+@@ -515,7 +515,8 @@ string_file_size (file_entry_t * fe, int len)
+         format_device_number (buffer, len + 1, fe->st.st_rdev);
+     else
+ #endif
+-        size_trunc_len (buffer, (unsigned int) len, fe->st.st_size, 0, panels_options.kilobyte_si);
++        size_trunc_len (buffer, (unsigned int) (len + 3), fe->st.st_size, 0,
++                        panels_options.kilobyte_si);
+ 
+     return buffer;
+ }
+@@ -1154,7 +1155,7 @@ show_free_space (const WPanel * panel)
+     if (myfs_stats.avail != 0 || myfs_stats.total != 0)
+     {
+         const Widget *w = CONST_WIDGET (panel);
+-        char buffer1[6], buffer2[6], tmp[BUF_SMALL];
++        char buffer1[12], buffer2[12], tmp[BUF_SMALL];
+ 
+         size_trunc_len (buffer1, sizeof (buffer1) - 1, myfs_stats.avail, 1,
+                         panels_options.kilobyte_si);
+-- 
+2.9.2
+

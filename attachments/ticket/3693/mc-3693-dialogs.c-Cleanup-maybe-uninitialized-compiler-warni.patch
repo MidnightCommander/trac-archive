@@ -1,0 +1,29 @@
+From 3ba19d19a8aa417231f667d61326dcbbaeab196c Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 10:17:57 +0000
+Subject: [PATCH] (dialogs.c) Cleanup maybe-uninitialized compiler warning
+
+Found by GCC 6.2.0.
+
+dialogs.c: In function 'mcview_dialog_search':
+dialogs.c:87:24: error: 'num_of_types' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+dialogs.c:81:12: note: 'num_of_types' was declared here
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/dialogs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/viewer/dialogs.c b/src/viewer/dialogs.c
+index 844b9ae..7560977 100644
+--- a/src/viewer/dialogs.c
++++ b/src/viewer/dialogs.c
+@@ -78,7 +78,7 @@ mcview_dialog_search (WView * view)
+ {
+     char *exp = NULL;
+     int qd_result;
+-    size_t num_of_types;
++    size_t num_of_types = 0;
+     gchar **list_of_types;
+ 
+     list_of_types = mc_search_get_types_strings_array (&num_of_types);

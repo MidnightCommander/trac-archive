@@ -1,0 +1,29 @@
+diff -urN mc-4.7.5.5.orig/src/editor/edit.c mc-4.7.5.5/src/editor/edit.c
+--- mc-4.7.5.5.orig/src/editor/edit.c	2011-09-28 12:49:09.000000000 -0400
++++ mc-4.7.5.5/src/editor/edit.c	2011-10-14 06:08:11.000000000 -0400
+@@ -1684,6 +1684,7 @@
+     gunichar ch;
+     gchar *next_ch = NULL;
+     int width = 0;
++    gchar utf8buf[6 + 1];
+ 
+     if (byte_index >= (edit->curs1 + edit->curs2) || byte_index < 0)
+     {
+@@ -1701,6 +1702,17 @@
+ 
+     res = g_utf8_get_char_validated (str, -1);
+ 
++    if (res < 0)
++    {
++        /* Retry with explicit bytes to make sure it's not a buffer boundary */
++        int i;
++        for (i = 0; i < 6; i++)
++            utf8buf[i] = edit_get_byte (edit, byte_index + i);
++        utf8buf[6] = '\0';
++        str = utf8buf;
++        res = g_utf8_get_char_validated (str, -1);
++    }
++
+     if (res < 0)
+     {
+         ch = *str;

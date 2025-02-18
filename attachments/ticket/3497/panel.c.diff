@@ -1,0 +1,20 @@
+3238a3239,3240
+>     static gboolean unsort = FALSE;/*new*/
+>     static panel_field_t *pfield0;/*new*/
+3249a3252,3267
+> /*This is to turn sorting off automatically when enter some particular extfs.*/
+>     if(unsort == TRUE)
+> 	{
+> 	panel_set_sort_order (panel, pfield0);
+> 	unsort = FALSE;
+> 	}
+>     if (strlen(new_dir_vpath->str) > 4 && !strcmp(new_dir_vpath->str+
+> 	strlen(new_dir_vpath->str)-4, "://u"))
+> 	{
+>         *(new_dir_vpath->str+strlen(new_dir_vpath->str)-1) = (char)0;
+>         pfield0 = (panel_field_t *)panel->sort_field;
+> 	panel_set_sort_order (panel, &panel_fields[0]);
+> 	unsort = TRUE;
+>         }
+> /* end */
+> 

@@ -1,0 +1,33 @@
+From 88252efed542966630b25df67dbef4ec26f56f91 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 10:56:44 +0000
+Subject: [PATCH] (panel.c) Cleanup comma compiler warning
+
+Found by Clang 3.9.0.
+
+panel.c:476:17: error: possible misuse of comma operator here [-Wcomma]
+        digits++, n /= 10;
+                ^
+panel.c:476:9: note: cast expression to void to silence warning
+        digits++, n /= 10;
+        ^~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/panel.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index d2c6cc6..a1b474b 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -473,7 +473,8 @@ ilog10 (dev_t n)
+ 
+     do
+     {
+-        digits++, n /= 10;
++        digits++;
++        n /= 10;
+     }
+     while (n != 0);
+ 

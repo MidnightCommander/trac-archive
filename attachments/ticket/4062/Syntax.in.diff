@@ -1,0 +1,13 @@
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index 8f84b4a33..8a1c2c8c6 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -82,7 +82,7 @@ include pascal.syntax
+ file ..\*\\.(?i:ad[abs])$ Ada\sProgram
+ include ada95.syntax
+ 
+-file ..\*\\.(?i:i?tcl)$ Tcl\sProgram
++file ..\*\\.(?i:i?tcl)$ Tcl\sProgram ^#!.\*([\s/]tclsh|[\s/]wish|/usr/bin/tclsh|/usr/bin/wish)
+ include tcl.syntax
+ 
+ file ..\*\\.(?i:sl)$ S-Lang\sProgram

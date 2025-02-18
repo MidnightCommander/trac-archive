@@ -1,0 +1,750 @@
+From 34daa0d7deff6ce1f7ac0fd45682d5d0c4c52fdb Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 20 Dec 2015 01:42:50 +0100
+Subject: [PATCH] robust sizeof() usage at function parameter and use memcpy
+ destination sizeof for more resilient to errors
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/tty/key.c                            |  2 +-
+ lib/utilunix.c                           |  4 ++--
+ lib/widget/input_complete.c              |  4 ++--
+ src/background.c                         | 20 ++++++++++----------
+ src/diffviewer/ydiff.c                   |  2 +-
+ src/editor/edit.c                        |  2 +-
+ src/editor/editdraw.c                    |  2 +-
+ src/filemanager/cmd.c                    |  4 ++--
+ src/filemanager/dir.c                    |  2 +-
+ src/filemanager/filegui.c                | 22 +++++++++++-----------
+ src/filemanager/mountlist.c              |  2 +-
+ src/filemanager/panelize.c               |  2 +-
+ src/setup.c                              |  4 ++--
+ src/subshell/common.c                    |  2 +-
+ src/vfs/ftpfs/ftpfs.c                    |  4 ++--
+ src/vfs/sftpfs/config_parser.c           |  2 +-
+ src/vfs/sftpfs/connection.c              |  2 +-
+ src/vfs/sftpfs/vfs_class.c               |  2 +-
+ src/vfs/sftpfs/vfs_subclass.c            |  2 +-
+ src/vfs/smbfs/helpers/lib/system.c       |  2 +-
+ src/vfs/smbfs/helpers/lib/util.c         |  4 ++--
+ src/vfs/smbfs/helpers/lib/util_sock.c    |  6 +++---
+ src/vfs/smbfs/helpers/libsmb/clientgen.c |  8 ++++----
+ src/vfs/smbfs/helpers/libsmb/namequery.c |  2 +-
+ src/vfs/smbfs/helpers/libsmb/nmblib.c    |  2 +-
+ src/vfs/smbfs/helpers/param/loadparm.c   |  2 +-
+ src/vfs/smbfs/smbfs.c                    | 24 ++++++++++++------------
+ src/vfs/tar/tar.c                        |  2 +-
+ src/viewer/coord_cache.c                 |  2 +-
+ tests/lib/utilunix__my_system-common.c   | 10 +++++-----
+ 30 files changed, 75 insertions(+), 75 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index e3e38f3..8e862ff 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -923,7 +923,7 @@ get_modifier (void)
+     {
+         int shift_ext_status;
+ 
+-        if (devctl (fileno (stdin), DCMD_CHR_LINESTATUS, &mod_status, sizeof (int), NULL) == -1)
++        if (devctl (fileno (stdin), DCMD_CHR_LINESTATUS, &mod_status, sizeof (mod_status), NULL) == -1)
+             return 0;
+         shift_ext_status = mod_status & 0xffffff00UL;
+         mod_status &= 0x7f;
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index 3498845..0f4219e 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -798,7 +798,7 @@ close_error_pipe (int error, const char *text)
+             return 1;
+         }
+         close (old_error);
+-        len = read (error_pipe[0], msg, MAX_PIPE_SIZE - 1);
++        len = read (error_pipe[0], msg, sizeof (msg));
+ 
+         if (len >= 0)
+             msg[len] = 0;
+@@ -1132,7 +1132,7 @@ mc_realpath (const char *path, char *resolved_path)
+         }
+         else
+         {
+-            g_snprintf (got_path, PATH_MAX, "%s", new_path);
++            g_snprintf (got_path, sizeof (got_path), "%s", new_path);
+             g_free (new_path);
+             new_path = got_path;
+         }
+diff --git a/lib/widget/input_complete.c b/lib/widget/input_complete.c
+index 200d414..bc43302 100644
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -399,7 +399,7 @@ fetch_hosts (const char *filename)
+     if (!file)
+         return;
+ 
+-    while (fgets (buffer, 255, file) != NULL)
++    while (fgets (buffer, sizeof (buffer) - 1, file) != NULL)
+     {
+         /* Skip to first character. */
+         for (bi = buffer; bi[0] != '\0' && str_isspace (bi); str_next_char (&bi));
+@@ -1284,7 +1284,7 @@ try_complete (char *text, int *lc_start, int *lc_end, input_complete_t flags)
+     try_complete_automation_state_t state;
+     char **matches = NULL;
+ 
+-    memset (&state, 0, sizeof (try_complete_automation_state_t));
++    memset (&state, 0, sizeof (state));
+     state.flags = flags;
+ 
+     SHOW_C_CTX ("try_complete");
+diff --git a/src/background.c b/src/background.c
+index a2ab343..05ffc9f 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -256,7 +256,7 @@ background_attention (int fd, void *closure)
+ 
+     if (have_ctx)
+     {
+-        if (read (fd, ctx, sizeof (file_op_context_t)) != sizeof (file_op_context_t))
++        if (read (fd, ctx, sizeof (*ctx)) != sizeof (*ctx))
+         {
+             return reading_failed (-1, data);
+         }
+@@ -342,9 +342,9 @@ background_attention (int fd, void *closure)
+             }
+ 
+         /* Send the result code and the value for shared variables */
+-        ret = write (to_child_fd, &result, sizeof (int));
++        ret = write (to_child_fd, &result, sizeof (result));
+         if (have_ctx && to_child_fd != -1)
+-            ret = write (to_child_fd, ctx, sizeof (file_op_context_t));
++            ret = write (to_child_fd, ctx, sizeof (*ctx));
+     }
+     else if (type == Return_String)
+     {
+@@ -416,12 +416,12 @@ parent_call_header (void *routine, int argc, enum ReturnType type, file_op_conte
+     have_ctx = (ctx != NULL);
+ 
+     ret = write (parent_fd, &routine, sizeof (routine));
+-    ret = write (parent_fd, &argc, sizeof (int));
++    ret = write (parent_fd, &argc, sizeof (argc));
+     ret = write (parent_fd, &type, sizeof (type));
+     ret = write (parent_fd, &have_ctx, sizeof (have_ctx));
+ 
+     if (have_ctx)
+-        ret = write (parent_fd, ctx, sizeof (file_op_context_t));
++        ret = write (parent_fd, ctx, sizeof (*ctx));
+     (void) ret;
+ }
+ 
+@@ -442,13 +442,13 @@ parent_va_call (void *routine, gpointer data, int argc, va_list ap)
+ 
+         len = va_arg (ap, int);
+         value = va_arg (ap, void *);
+-        ret = write (parent_fd, &len, sizeof (int));
++        ret = write (parent_fd, &len, sizeof (len));
+         ret = write (parent_fd, value, len);
+     }
+ 
+-    ret = read (from_parent_fd, &i, sizeof (int));
++    ret = read (from_parent_fd, &i, sizeof (i));
+     if (ctx)
+-        ret = read (from_parent_fd, ctx, sizeof (file_op_context_t));
++        ret = read (from_parent_fd, ctx, sizeof (*ctx));
+ 
+     (void) ret;
+     return i;
+@@ -470,14 +470,14 @@ parent_va_call_string (void *routine, int argc, va_list ap)
+ 
+         len = va_arg (ap, int);
+         value = va_arg (ap, void *);
+-        if ((write (parent_fd, &len, sizeof (int)) != sizeof (int)) ||
++        if ((write (parent_fd, &len, sizeof (len)) != sizeof (len)) ||
+             (write (parent_fd, value, len) != len))
+         {
+             return NULL;
+         }
+     }
+ 
+-    if (read (from_parent_fd, &i, sizeof (int)) != sizeof (int))
++    if (read (from_parent_fd, &i, sizeof (i)) != sizeof (i))
+         return NULL;
+     if (!i)
+         return NULL;
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index d1597cc..9575a5a 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -1065,7 +1065,7 @@ lcsubstr (const char *s, int m, const char *t, int n, GArray * ret, int min)
+         Lprev = Lcurr;
+         Lcurr = L;
+ #ifdef USE_MEMSET_IN_LCS
+-        memset (Lcurr, 0, (n + 1) * sizeof (int));
++        memset (Lcurr, 0, (n + 1) * sizeof (*Lcurr));
+ #endif
+         for (j = 0; j < n; j++)
+         {
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 808239b..da93edc 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -2238,7 +2238,7 @@ edit_reload_line (WEdit * edit, const vfs_path_t * filename_vpath, long line)
+     }
+ 
+     edit_clean (edit);
+-    memcpy (edit, e, sizeof (WEdit));
++    memcpy (edit, e, sizeof (*edit));
+     g_free (e);
+ 
+     return TRUE;
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 0fd09c2..bb92ac7 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -554,7 +554,7 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+         cur_line = edit->start_line + row;
+         if (cur_line <= (unsigned int) edit->buffer.lines)
+         {
+-            g_snprintf (line_stat, LINE_STATE_WIDTH + 1, "%7i ", cur_line + 1);
++            g_snprintf (line_stat, sizeof (line_stat), "%7i ", cur_line + 1);
+         }
+         else
+         {
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 0179aed..8bcf299 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -247,8 +247,8 @@ compare_files (const vfs_path_t * vpath1, const vfs_path_t * vpath2, off_t size)
+             rotate_dash (TRUE);
+             do
+             {
+-                while ((n1 = read (file1, buf1, BUFSIZ)) == -1 && errno == EINTR);
+-                while ((n2 = read (file2, buf2, BUFSIZ)) == -1 && errno == EINTR);
++                while ((n1 = read (file1, buf1, sizeof (buf1))) == -1 && errno == EINTR);
++                while ((n2 = read (file2, buf2, sizeof (buf2))) == -1 && errno == EINTR);
+             }
+             while (n1 == n2 && n1 == BUFSIZ && !memcmp (buf1, buf2, BUFSIZ));
+             result = (n1 != n2) || memcmp (buf1, buf2, n1);
+diff --git a/src/filemanager/dir.c b/src/filemanager/dir.c
+index 92ea653..347ff64 100644
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -561,7 +561,7 @@ dir_list_init (dir_list * list)
+     }
+ 
+     fentry = &list->list[0];
+-    memset (fentry, 0, sizeof (file_entry_t));
++    memset (fentry, 0, sizeof (*fentry));
+     fentry->fnamelen = 2;
+     fentry->fname = g_strndup ("..", fentry->fnamelen);
+     fentry->f.link_to_dir = 0;
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index 243264b..cc070e7 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -909,18 +909,18 @@ file_progress_show (file_op_context_t * ctx, off_t done, off_t total,
+ 
+         file_eta_prepare_for_show (buffer2, ctx->eta_secs, FALSE);
+         if (ctx->bps == 0)
+-            g_snprintf (buffer, BUF_TINY, "%s %s", buffer2, stalled_msg);
++            g_snprintf (buffer, sizeof (buffer), "%s %s", buffer2, stalled_msg);
+         else
+         {
+             char buffer3[BUF_TINY];
+ 
+             file_bps_prepare_for_show (buffer3, ctx->bps);
+-            g_snprintf (buffer, BUF_TINY, "%s (%s) %s", buffer2, buffer3, stalled_msg);
++            g_snprintf (buffer, sizeof (buffer), "%s (%s) %s", buffer2, buffer3, stalled_msg);
+         }
+     }
+     else
+     {
+-        g_snprintf (buffer, BUF_TINY, "%s", stalled_msg);
++        g_snprintf (buffer, sizeof (buffer), "%s", stalled_msg);
+     }
+ 
+     label_set_text (ui->progress_file_label, buffer);
+@@ -942,9 +942,9 @@ file_progress_show_count (file_op_context_t * ctx, size_t done, size_t total)
+         return;
+ 
+     if (ctx->progress_totals_computed)
+-        g_snprintf (buffer, BUF_TINY, _("Files processed: %zu/%zu"), done, total);
++        g_snprintf (buffer, sizeof (buffer), _("Files processed: %zu/%zu"), done, total);
+     else
+-        g_snprintf (buffer, BUF_TINY, _("Files processed: %zu"), done);
++        g_snprintf (buffer, sizeof (buffer), _("Files processed: %zu"), done);
+     label_set_text (ui->total_files_processed_label, buffer);
+ }
+ 
+@@ -991,22 +991,22 @@ file_progress_show_total (file_op_total_context_t * tctx, file_op_context_t * ct
+         {
+             file_eta_prepare_for_show (buffer3, tctx->eta_secs, TRUE);
+             if (tctx->bps == 0)
+-                g_snprintf (buffer, BUF_TINY, _("Time: %s %s"), buffer2, buffer3);
++                g_snprintf (buffer, sizeof (buffer), _("Time: %s %s"), buffer2, buffer3);
+             else
+             {
+ 
+                 file_bps_prepare_for_show (buffer4, (long) tctx->bps);
+-                g_snprintf (buffer, BUF_TINY, _("Time: %s %s (%s)"), buffer2, buffer3, buffer4);
++                g_snprintf (buffer, sizeof (buffer), _("Time: %s %s (%s)"), buffer2, buffer3, buffer4);
+             }
+         }
+         else
+         {
+             if (tctx->bps == 0)
+-                g_snprintf (buffer, BUF_TINY, _("Time: %s"), buffer2);
++                g_snprintf (buffer, sizeof (buffer), _("Time: %s"), buffer2);
+             else
+             {
+                 file_bps_prepare_for_show (buffer4, (long) tctx->bps);
+-                g_snprintf (buffer, BUF_TINY, _("Time: %s (%s)"), buffer2, buffer4);
++                g_snprintf (buffer, sizeof (buffer), _("Time: %s (%s)"), buffer2, buffer4);
+             }
+         }
+ 
+@@ -1017,11 +1017,11 @@ file_progress_show_total (file_op_total_context_t * tctx, file_op_context_t * ct
+     {
+         size_trunc_len (buffer2, 5, tctx->copied_bytes, 0, panels_options.kilobyte_si);
+         if (!ctx->progress_totals_computed)
+-            g_snprintf (buffer, BUF_TINY, _(" Total: %s "), buffer2);
++            g_snprintf (buffer, sizeof (buffer), _(" Total: %s "), buffer2);
+         else
+         {
+             size_trunc_len (buffer3, 5, ctx->progress_bytes, 0, panels_options.kilobyte_si);
+-            g_snprintf (buffer, BUF_TINY, _(" Total: %s/%s "), buffer2, buffer3);
++            g_snprintf (buffer, sizeof (buffer), _(" Total: %s/%s "), buffer2, buffer3);
+         }
+ 
+         hline_set_text (ui->total_bytes_label, buffer);
+diff --git a/src/filemanager/mountlist.c b/src/filemanager/mountlist.c
+index 0fb9e60..aec6115 100644
+--- a/src/filemanager/mountlist.c
++++ b/src/filemanager/mountlist.c
+@@ -1726,7 +1726,7 @@ my_statfs (struct my_statfs *myfs_stats, const char *path)
+ 
+     if (entry != NULL)
+     {
+-        memset (&fs_use, 0, sizeof (struct fs_usage));
++        memset (&fs_use, 0, sizeof (fs_use));
+         get_fs_usage (entry->me_mountdir, NULL, &fs_use);
+ 
+         myfs_stats->type = entry->me_dev;
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 328e7c7..14d363d 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -329,7 +329,7 @@ do_external_panelize (char *command)
+     while (TRUE)
+     {
+         clearerr (external);
+-        if (fgets (line, MC_MAXPATHLEN, external) == NULL)
++        if (fgets (line, sizeof (line), external) == NULL)
+         {
+             if (ferror (external) && errno == EINTR)
+                 continue;
+diff --git a/src/setup.c b/src/setup.c
+index fc57edf..9990223 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -1388,7 +1388,7 @@ panel_load_setup (WPanel * panel, const char *section)
+     for (i = 0; i < LIST_TYPES; i++)
+     {
+         g_free (panel->user_status_format[i]);
+-        g_snprintf (buffer2, BUF_TINY, "user_status%lld", (long long) i);
++        g_snprintf (buffer2, sizeof (buffer2), "user_status%lld", (long long) i);
+         panel->user_status_format[i] =
+             mc_config_get_string (mc_panels_config, section, buffer2, DEFAULT_USER_FORMAT);
+     }
+@@ -1424,7 +1424,7 @@ panel_save_setup (WPanel * panel, const char *section)
+ 
+     for (i = 0; i < LIST_TYPES; i++)
+     {
+-        g_snprintf (buffer, BUF_TINY, "user_status%lld", (long long) i);
++        g_snprintf (buffer, sizeof (buffer), "user_status%lld", (long long) i);
+         mc_config_set_string (mc_panels_config, section, buffer, panel->user_status_format[i]);
+     }
+ 
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index e0163f0..d36aa12 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -570,7 +570,7 @@ feed_subshell (int how, int fail_on_error)
+         else if (FD_ISSET (subshell_pipe[READ], &read_set))
+             /* Read the subshell's CWD and capture its prompt */
+         {
+-            bytes = read (subshell_pipe[READ], subshell_cwd, MC_MAXPATHLEN + 1);
++            bytes = read (subshell_pipe[READ], subshell_cwd, sizeof (subshell_cwd));
+             if (bytes <= 0)
+             {
+                 tcsetattr (STDOUT_FILENO, TCSANOW, &shell_mode);
+diff --git a/src/vfs/ftpfs/ftpfs.c b/src/vfs/ftpfs/ftpfs.c
+index d7c6485..84c730c 100644
+--- a/src/vfs/ftpfs/ftpfs.c
++++ b/src/vfs/ftpfs/ftpfs.c
+@@ -832,7 +832,7 @@ ftpfs_open_socket (struct vfs_class *me, struct vfs_s_super *super)
+ 
+     tty_enable_interrupt_key ();        /* clear the interrupt flag */
+ 
+-    memset (&hints, 0, sizeof (struct addrinfo));
++    memset (&hints, 0, sizeof (hints));
+     hints.ai_family = AF_UNSPEC;
+     hints.ai_socktype = SOCK_STREAM;
+ 
+@@ -1258,7 +1258,7 @@ ftpfs_init_data_socket (struct vfs_class *me, struct vfs_s_super *super,
+ {
+     int result;
+ 
+-    memset (data_addr, 0, sizeof (struct sockaddr_storage));
++    memset (data_addr, 0, sizeof (*data_addr));
+     *data_addrlen = sizeof (struct sockaddr_storage);
+ 
+     if (SUP->use_passive_connection)
+diff --git a/src/vfs/sftpfs/config_parser.c b/src/vfs/sftpfs/config_parser.c
+index c1cdc4b..7c51e72 100644
+--- a/src/vfs/sftpfs/config_parser.c
++++ b/src/vfs/sftpfs/config_parser.c
+@@ -220,7 +220,7 @@ sftpfs_fill_config_entity_from_config (FILE * ssh_config_handler,
+     while (!feof (ssh_config_handler))
+     {
+         char *cr;
+-        if (fgets (buffer, BUF_MEDIUM, ssh_config_handler) == NULL)
++        if (fgets (buffer, sizeof (buffer), ssh_config_handler) == NULL)
+         {
+             if (errno != 0)
+             {
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index 9b97fd0..55323af 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -83,7 +83,7 @@ sftpfs_open_socket (struct vfs_s_super *super, GError ** mcerror)
+ 
+     tty_enable_interrupt_key ();        /* clear the interrupt flag */
+ 
+-    memset (&hints, 0, sizeof (struct addrinfo));
++    memset (&hints, 0, sizeof (hints));
+     hints.ai_family = AF_UNSPEC;
+     hints.ai_socktype = SOCK_STREAM;
+ 
+diff --git a/src/vfs/sftpfs/vfs_class.c b/src/vfs/sftpfs/vfs_class.c
+index 3504c26..a0f709c 100644
+--- a/src/vfs/sftpfs/vfs_class.c
++++ b/src/vfs/sftpfs/vfs_class.c
+@@ -675,7 +675,7 @@ sftpfs_cb_fill_names (struct vfs_class *me, fill_names_f func)
+ void
+ sftpfs_init_class (void)
+ {
+-    memset (&sftpfs_class, 0, sizeof (struct vfs_class));
++    memset (&sftpfs_class, 0, sizeof (sftpfs_class));
+     sftpfs_class.name = "sftpfs";
+     sftpfs_class.prefix = "sftp";
+     sftpfs_class.flags = VFSF_NOLINKS;
+diff --git a/src/vfs/sftpfs/vfs_subclass.c b/src/vfs/sftpfs/vfs_subclass.c
+index ce6ae3b..4c63438 100644
+--- a/src/vfs/sftpfs/vfs_subclass.c
++++ b/src/vfs/sftpfs/vfs_subclass.c
+@@ -176,7 +176,7 @@ sftpfs_cb_dir_load (struct vfs_class *me, struct vfs_s_inode *dir, char *remote_
+ void
+ sftpfs_init_subclass (void)
+ {
+-    memset (&sftpfs_subclass, 0, sizeof (struct vfs_s_subclass));
++    memset (&sftpfs_subclass, 0, sizeof (sftpfs_subclass));
+     sftpfs_subclass.flags = VFS_S_REMOTE;
+ }
+ 
+diff --git a/src/vfs/smbfs/helpers/lib/system.c b/src/vfs/smbfs/helpers/lib/system.c
+index a57fb79..f23d2c5 100644
+--- a/src/vfs/smbfs/helpers/lib/system.c
++++ b/src/vfs/smbfs/helpers/lib/system.c
+@@ -89,7 +89,7 @@ sys_select (int maxfd, fd_set * fds, struct timeval *tval)
+ 
+         if (found)
+         {
+-            memcpy ((void *) fds, (void *) &fds2, sizeof (fds2));
++            memcpy ((void *) fds, (void *) &fds2, sizeof (*fds));
+             return (found);
+         }
+ 
+diff --git a/src/vfs/smbfs/helpers/lib/util.c b/src/vfs/smbfs/helpers/lib/util.c
+index 1974a84..76a24d0 100644
+--- a/src/vfs/smbfs/helpers/lib/util.c
++++ b/src/vfs/smbfs/helpers/lib/util.c
+@@ -1304,8 +1304,8 @@ unix_mask_match (char *str, char *regexp, int case_sig, BOOL trans2)
+     BOOL matched;
+ 
+     /* Make local copies of str and regexp */
+-    StrnCpy (p1, regexp, sizeof (pstring) - 1);
+-    StrnCpy (p2, str, sizeof (pstring) - 1);
++    StrnCpy (p1, regexp, sizeof (p1) - 1);
++    StrnCpy (p2, str, sizeof (p2) - 1);
+ 
+     if (!strchr (p2, '.'))
+     {
+diff --git a/src/vfs/smbfs/helpers/lib/util_sock.c b/src/vfs/smbfs/helpers/lib/util_sock.c
+index 877fac1..2e12895 100644
+--- a/src/vfs/smbfs/helpers/lib/util_sock.c
++++ b/src/vfs/smbfs/helpers/lib/util_sock.c
+@@ -60,7 +60,7 @@ is_a_socket (int fd)
+ {
+     int v;
+     unsigned int l;
+-    l = sizeof (int);
++    l = sizeof (l);
+     return (getsockopt (fd, SOL_SOCKET, SO_TYPE, (char *) &v, &l) == 0);
+ }
+ 
+@@ -161,7 +161,7 @@ set_socket_options (int fd, char *options)
+         case OPT_BOOL:
+         case OPT_INT:
+             ret = setsockopt (fd, socket_options[i].level,
+-                              socket_options[i].option, (char *) &value, sizeof (int));
++                              socket_options[i].option, (char *) &value, sizeof (value));
+             break;
+ 
+         case OPT_ON:
+@@ -171,7 +171,7 @@ set_socket_options (int fd, char *options)
+             {
+                 int on = socket_options[i].value;
+                 ret = setsockopt (fd, socket_options[i].level,
+-                                  socket_options[i].option, (char *) &on, sizeof (int));
++                                  socket_options[i].option, (char *) &on, sizeof (on));
+             }
+             break;
+         }
+diff --git a/src/vfs/smbfs/helpers/libsmb/clientgen.c b/src/vfs/smbfs/helpers/libsmb/clientgen.c
+index 6426357..3a6eb9a 100644
+--- a/src/vfs/smbfs/helpers/libsmb/clientgen.c
++++ b/src/vfs/smbfs/helpers/libsmb/clientgen.c
+@@ -158,7 +158,7 @@ cli_errstr (struct cli_state *cli)
+ 
+         if (nt_msg == NULL)
+         {
+-            slprintf (error_message, sizeof (fstring) - 1, "NT code %d", nt_rpc_error);
++            slprintf (error_message, sizeof (error_message) - 1, "NT code %d", nt_rpc_error);
+         }
+         else
+         {
+@@ -2430,8 +2430,8 @@ cli_session_request (struct cli_state * cli, struct nmb_name * calling, struct n
+     int len = 4;
+     /* send a session request (RFC 1002) */
+ 
+-    memcpy (&(cli->calling), calling, sizeof (*calling));
+-    memcpy (&(cli->called), called, sizeof (*called));
++    memcpy (&(cli->calling), calling, sizeof (cli->calling));
++    memcpy (&(cli->called), called, sizeof (cli->called));
+ 
+     /* put in the destination name */
+     p = cli->outbuf + len;
+@@ -2932,7 +2932,7 @@ cli_chkpath (struct cli_state * cli, char *path)
+     pstring path2;
+     char *p;
+ 
+-    safe_strcpy (path2, path, sizeof (pstring) - 1);
++    safe_strcpy (path2, path, sizeof (path2) - 1);
+     trim_string (path2, NULL, "\\");
+     if (!*path2)
+         *path2 = '\\';
+diff --git a/src/vfs/smbfs/helpers/libsmb/namequery.c b/src/vfs/smbfs/helpers/libsmb/namequery.c
+index 69064d8..cee5bee 100644
+--- a/src/vfs/smbfs/helpers/libsmb/namequery.c
++++ b/src/vfs/smbfs/helpers/libsmb/namequery.c
+@@ -270,7 +270,7 @@ getlmhostsent (FILE * fp, pstring name, int *name_type, struct in_addr * ipaddr)
+ 
+         *name_type = -1;
+ 
+-        if (!fgets_slash (line, sizeof (pstring), fp))
++        if (!fgets_slash (line, sizeof (line), fp))
+             continue;
+ 
+         if (*line == '#')
+diff --git a/src/vfs/smbfs/helpers/libsmb/nmblib.c b/src/vfs/smbfs/helpers/libsmb/nmblib.c
+index 4e80058..ab5d036 100644
+--- a/src/vfs/smbfs/helpers/libsmb/nmblib.c
++++ b/src/vfs/smbfs/helpers/libsmb/nmblib.c
+@@ -830,7 +830,7 @@ void
+ make_nmb_name (struct nmb_name *n, const char *name, int type)
+ {
+     extern pstring global_scope;
+-    memset ((char *) n, '\0', sizeof (struct nmb_name));
++    memset ((char *) n, '\0', sizeof (*n));
+     StrnCpy (n->name, name, 15);
+     strupper (n->name);
+     n->name_type = (unsigned int) type & 0xFF;
+diff --git a/src/vfs/smbfs/helpers/param/loadparm.c b/src/vfs/smbfs/helpers/param/loadparm.c
+index da1a608..075ce38 100644
+--- a/src/vfs/smbfs/helpers/param/loadparm.c
++++ b/src/vfs/smbfs/helpers/param/loadparm.c
+@@ -1398,7 +1398,7 @@ initialise a service to the defaults
+ ***************************************************************************/
+      static void init_service (service * pservice)
+ {
+-    memset ((char *) pservice, '\0', sizeof (service));
++    memset ((char *) pservice, '\0', sizeof (*pservice));
+     copy_service (pservice, &sDefault, NULL);
+ }
+ 
+diff --git a/src/vfs/smbfs/smbfs.c b/src/vfs/smbfs/smbfs.c
+index cf507e6..670a5e5 100644
+--- a/src/vfs/smbfs/smbfs.c
++++ b/src/vfs/smbfs/smbfs.c
+@@ -1179,7 +1179,7 @@ smbfs_free_bucket (smbfs_connection * bucket)
+     g_free (bucket->user);
+     wipe_password (bucket->password);
+     g_free (bucket->home);
+-    memset (bucket, 0, sizeof (smbfs_connection));
++    memset (bucket, 0, sizeof (*bucket));
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1451,7 +1451,7 @@ smbfs_fake_server_stat (const char *server_url, const char *path, struct stat *b
+             {
+                 DEBUG (4, ("smbfs_fake_server_stat: %s:%4o\n",
+                            dentry->text, (int) dentry->my_stat.st_mode));
+-                memcpy (buf, &dentry->my_stat, sizeof (struct stat));
++                memcpy (buf, &dentry->my_stat, sizeof (*buf));
+                 return 0;
+             }
+             dentry = dentry->next;
+@@ -1513,7 +1513,7 @@ smbfs_fake_share_stat (const char *server_url, const char *path, struct stat *bu
+         {
+             DEBUG (6, ("smbfs_fake_share_stat: %s:%4o\n",
+                        dentry->text, (int) dentry->my_stat.st_mode));
+-            memcpy (buf, &dentry->my_stat, sizeof (struct stat));
++            memcpy (buf, &dentry->my_stat, sizeof (*buf));
+             return 0;
+         }
+         dentry = dentry->next;
+@@ -1552,7 +1552,7 @@ smbfs_get_remote_stat (smbfs_connection * sc, const char *path, struct stat *buf
+         return -1;              /* cli_list returns number of files */
+     }
+ 
+-    memcpy (buf, &single_entry->my_stat, sizeof (struct stat));
++    memcpy (buf, &single_entry->my_stat, sizeof (*buf));
+ 
+     /* don't free here, use for smbfs_fstat() */
+     /*      g_free(single_entry->text);
+@@ -1570,8 +1570,8 @@ smbfs_search_dir_entry (dir_entry * dentry, const char *text, struct stat *buf)
+     {
+         if (strcmp (text, dentry->text) == 0)
+         {
+-            memcpy (buf, &dentry->my_stat, sizeof (struct stat));
+-            memcpy (&single_entry->my_stat, &dentry->my_stat, sizeof (struct stat));
++            memcpy (buf, &dentry->my_stat, sizeof (*buf));
++            memcpy (&single_entry->my_stat, &dentry->my_stat, sizeof (single_entry->my_stat));
+             return 0;
+         }
+         dentry = dentry->next;
+@@ -1620,9 +1620,9 @@ smbfs_get_stat_info (smbfs_connection * sc, const char *path, struct stat *buf)
+             mydir = p + 1;      /* advance util last '/' */
+         if (strcmp (mydir, mypath) == 0)
+         {                       /* fake a stat for ".." */
+-            memset (buf, 0, sizeof (struct stat));
++            memset (buf, 0, sizeof (*buf));
+             buf->st_mode = (S_IFDIR | S_IRUSR | S_IRGRP | S_IROTH) & myumask;
+-            memcpy (&single_entry->my_stat, buf, sizeof (struct stat));
++            memcpy (&single_entry->my_stat, buf, sizeof (single_entry->my_stat));
+             g_free (mdp);
+             DEBUG (1, ("	PARENT:found in %s\n", current_info->dirname));
+             return 0;
+@@ -1642,9 +1642,9 @@ smbfs_get_stat_info (smbfs_connection * sc, const char *path, struct stat *buf)
+         }
+         if (strcmp (mypath, dnp) == 0)
+         {
+-            memset (buf, 0, sizeof (struct stat));
++            memset (buf, 0, sizeof (*buf));
+             buf->st_mode = (S_IFDIR | S_IRUSR | S_IRGRP | S_IROTH) & myumask;
+-            memcpy (&single_entry->my_stat, buf, sizeof (struct stat));
++            memcpy (&single_entry->my_stat, buf, sizeof (single_entry->my_stat));
+             DEBUG (1, ("	CURRENT:found in %s\n", current_info->dirname));
+             return 0;
+         }
+@@ -1793,7 +1793,7 @@ smbfs_stat (const vfs_path_t * vpath, struct stat *buf)
+         {
+             /* make server name appear as directory */
+             DEBUG (1, ("smbfs_stat: showing server as directory\n"));
+-            memset (buf, 0, sizeof (struct stat));
++            memset (buf, 0, sizeof (*buf));
+             buf->st_mode = (S_IFDIR | S_IRUSR | S_IRGRP | S_IROTH) & myumask;
+             g_free (service);
+             return 0;
+@@ -2195,7 +2195,7 @@ smbfs_fstat (void *data, struct stat *buf)
+ 
+     /* use left over from previous smbfs_get_remote_stat, if available */
+     if (single_entry)
+-        memcpy (buf, &single_entry->my_stat, sizeof (struct stat));
++        memcpy (buf, &single_entry->my_stat, sizeof (*buf));
+     else
+     {                           /* single_entry not set up: bug */
+         my_errno = EFAULT;
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index db7c691..3b9ef67 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -354,7 +354,7 @@ tar_get_next_record (struct vfs_s_super *archive, int tard)
+ 
+     (void) archive;
+ 
+-    n = mc_read (tard, rec_buf.charptr, RECORDSIZE);
++    n = mc_read (tard, rec_buf.charptr, sizeof (rec_buf.charptr));
+     if (n != RECORDSIZE)
+         return NULL;            /* An error has occurred */
+     current_tar_position += RECORDSIZE;
+diff --git a/src/viewer/coord_cache.c b/src/viewer/coord_cache.c
+index 152ed92..fb8a792 100644
+--- a/src/viewer/coord_cache.c
++++ b/src/viewer/coord_cache.c
+@@ -94,7 +94,7 @@ mcview_ccache_add_entry (coord_cache_t * cache, size_t pos, const coord_cache_en
+     if (pos != cache->size)
+         memmove (cache->cache[pos + 1], cache->cache[pos],
+                  (cache->size - pos) * sizeof (coord_cache_entry_t *));
+-    cache->cache[pos] = g_memdup (entry, sizeof (coord_cache_entry_t));
++    cache->cache[pos] = g_memdup (entry, sizeof (*entry));
+     cache->size++;
+ }
+ 
+diff --git a/tests/lib/utilunix__my_system-common.c b/tests/lib/utilunix__my_system-common.c
+index 70124ff..508e1d1 100644
+--- a/tests/lib/utilunix__my_system-common.c
++++ b/tests/lib/utilunix__my_system-common.c
+@@ -63,7 +63,7 @@ sigaction (int signum, const struct sigaction *act, struct sigaction *oldact)
+ 
+     /* store signum */
+     tmp_signum = g_new (int, 1);
+-    memcpy (tmp_signum, &signum, sizeof (int));
++    memcpy (tmp_signum, &signum, sizeof (*tmp_signum));
+     if (sigaction_signum__captured != NULL)
+         g_ptr_array_add (sigaction_signum__captured, tmp_signum);
+ 
+@@ -71,7 +71,7 @@ sigaction (int signum, const struct sigaction *act, struct sigaction *oldact)
+     if (act != NULL)
+     {
+         tmp_act = g_new (struct sigaction, 1);
+-        memcpy (tmp_act, act, sizeof (struct sigaction));
++        memcpy (tmp_act, act, sizeof (*tmp_act));
+     }
+     else
+         tmp_act = NULL;
+@@ -82,7 +82,7 @@ sigaction (int signum, const struct sigaction *act, struct sigaction *oldact)
+     if (oldact != NULL)
+     {
+         tmp_act = g_new (struct sigaction, 1);
+-        memcpy (tmp_act, oldact, sizeof (struct sigaction));
++        memcpy (tmp_act, oldact, sizeof (*tmp_act));
+     }
+     else
+         tmp_act = NULL;
+@@ -131,14 +131,14 @@ signal (int signum, sighandler_t handler)
+ 
+     /* store signum */
+     tmp_signum = g_new (int, 1);
+-    memcpy (tmp_signum, &signum, sizeof (int));
++    memcpy (tmp_signum, &signum, sizeof (*tmp_signum));
+     g_ptr_array_add (signal_signum__captured, tmp_signum);
+ 
+     /* store handler */
+     if (handler != SIG_DFL)
+     {
+         tmp_handler = g_new (sighandler_t, 1);
+-        memcpy (tmp_handler, handler, sizeof (sighandler_t));
++        memcpy (tmp_handler, handler, sizeof (*tmp_handler));
+     }
+     else
+         tmp_handler = (void *) SIG_DFL;

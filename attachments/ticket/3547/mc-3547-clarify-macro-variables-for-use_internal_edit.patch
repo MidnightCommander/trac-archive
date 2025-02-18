@@ -1,0 +1,82 @@
+From bb6c2628ce4320f95168d37ebdd2ca3a93ba3b99 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 20:19:47 +0000
+Subject: [PATCH] clarify macro variables for use_internal_edit
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/main.c  | 4 ++++
+ src/setup.c | 2 ++
+ src/setup.h | 2 ++
+ 3 files changed, 8 insertions(+)
+
+diff --git a/src/main.c b/src/main.c
+index 060f31b..492980b 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -351,7 +351,9 @@ main (int argc, char *argv[])
+ 
+     load_keymap_defs (!mc_args__nokeymap);
+ 
++#ifdef USE_INTERNAL_EDIT
+     macros_list = g_array_new (TRUE, FALSE, sizeof (macros_t));
++#endif /* USE_INTERNAL_EDIT */
+ 
+     tty_init_colors (mc_global.tty.disable_colors, mc_args__force_colors);
+ 
+@@ -450,6 +452,7 @@ main (int argc, char *argv[])
+ 
+     done_key ();
+ 
++#ifdef USE_INTERNAL_EDIT
+     if (macros_list != NULL)
+     {
+         guint i;
+@@ -464,6 +467,7 @@ main (int argc, char *argv[])
+         }
+         (void) g_array_free (macros_list, TRUE);
+     }
++#endif /* USE_INTERNAL_EDIT */
+ 
+     str_uninit_strings ();
+ 
+diff --git a/src/setup.c b/src/setup.c
+index 542d16c..3f6a38e 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -203,6 +203,7 @@ int quit = 0;
+ /* Set to TRUE to suppress printing the last directory */
+ int print_last_revert = FALSE;
+ 
++#ifdef USE_INTERNAL_EDIT
+ /* index to record_macro_buf[], -1 if not recording a macro */
+ int macro_index = -1;
+ 
+@@ -210,6 +211,7 @@ int macro_index = -1;
+ struct macro_action_t record_macro_buf[MAX_MACRO_LENGTH];
+ 
+ GArray *macros_list;
++#endif /* USE_INTERNAL_EDIT */
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+diff --git a/src/setup.h b/src/setup.h
+index 20ef2eb..169c635 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -126,6 +126,7 @@ extern int quit;
+ /* Set to TRUE to suppress printing the last directory */
+ extern gboolean print_last_revert;
+ 
++#ifdef USE_INTERNAL_EDIT
+ /* index to record_macro_buf[], -1 if not recording a macro */
+ extern int macro_index;
+ 
+@@ -133,6 +134,7 @@ extern int macro_index;
+ extern struct macro_action_t record_macro_buf[MAX_MACRO_LENGTH];
+ 
+ extern GArray *macros_list;
++#endif /* USE_INTERNAL_EDIT */
+ 
+ extern int saving_setup;
+ 

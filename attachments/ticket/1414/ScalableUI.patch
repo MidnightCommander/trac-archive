@@ -1,0 +1,648 @@
+diff --git a/src/dialog.c b/src/dialog.c
+index 4fd409c..06336ce 100644
+--- a/src/dialog.c
++++ b/src/dialog.c
+@@ -183,6 +183,95 @@ common_dialog_repaint (struct Dlg_head *h)
+     }
+ }
+ 
++/* this function allows to set dialog position */
++void
++dialog_set_position(Dlg_head *h, int y1, int x1, int y2, int x2)
++{
++    /* save old positions, will be used to reposition childs */
++    int ox = h->x;
++    int oy = h->y;
++    int oc = h->cols;
++    int ol = h->lines;
++
++    h->x = x1;
++    h->y = y1;
++    h->lines = y2 - y1;
++    h->cols = x2 - x1;
++
++    /* values by which controls should be moved */
++    int shift_x = h->x - ox;
++    int shift_y = h->y - oy;
++    int scale_x = h->cols - oc;
++    int scale_y = h->lines - ol;
++    
++    if ((shift_x != 0)
++        || (shift_y != 0)
++        || (scale_x != 0)
++        || (scale_y != 0)){
++        
++        Widget *c = h->current;
++       
++        do {
++            
++            /* there are, mainly, 2 generally possible
++               situations:
++
++               1. control sticks to one side - it
++               should be moved
++
++               2. control sticks to two sides of
++               one direction - it should be sized */
++
++            int x = c->x;
++            int y = c->y;
++            int cols = c->cols;
++            int lines = c->lines;
++            
++            if ((c->pos_flags & WPOS_KEEP_LEFT) && (c->pos_flags & WPOS_KEEP_RIGHT)) {
++                x += shift_x;
++                cols += scale_x;
++            } else if (c->pos_flags & WPOS_KEEP_LEFT){
++                x += shift_x;
++            } else if (c->pos_flags & WPOS_KEEP_RIGHT){
++                x += shift_x + scale_x;
++            }
++            
++            if ((c->pos_flags & WPOS_KEEP_TOP) && (c->pos_flags & WPOS_KEEP_BOTTOM)) {
++                y += shift_y;
++                lines += scale_y;
++            } else if (c->pos_flags & WPOS_KEEP_TOP){
++                y += shift_y;
++            } else if (c->pos_flags & WPOS_KEEP_BOTTOM){
++                y += shift_y + scale_y;
++            }
++
++            widget_set_size(c, y, x, lines, cols);
++            /* widget_set_size(c, c->y + wpos_top, c->x + wpos_left, c->lines, c->cols);            widget_set_size(c, c->y + wpos_top, c->x + wpos_left, c->lines, c->cols); */
++           
++            c = c->next;
++        } while (h->current != c);
++    }    
++}
++
++/* this function sets only size, leaving positioning to automatic methods */
++void
++dialog_set_size(Dlg_head *h, int lines, int cols){
++    
++    int x = h->x;
++    int y = h->y;
++   
++    if (h->flags & DLG_CENTER) { 
++        y = (LINES - lines) / 2;
++        x = (COLS - cols) / 2;
++    }
++   
++    if ((h->flags & DLG_TRYUP) && (y > 3))
++        y -= 2;
++
++    dialog_set_position(h, y, x, y + lines, x + cols);
++    
++}
++
+ /* Default dialog callback */
+ cb_ret_t default_dlg_callback (Dlg_head *h, dlg_msg_t msg, int parm)
+ {
+@@ -192,10 +281,24 @@ cb_ret_t default_dlg_callback (Dlg_head *h, dlg_msg_t msg, int parm)
+ 	common_dialog_repaint (h);
+ 	return MSG_HANDLED;
+     }
++
+     if (msg == DLG_IDLE){
+ 	dlg_broadcast_msg_to (h, WIDGET_IDLE, 0, W_WANT_IDLE);
+ 	return MSG_HANDLED;
+     }
++
++    /* this is default resizing mechanism */
++    if (msg == DLG_RESIZE){
++        /* the main idea of this code is to resize dialog
++           according to flags (if any of flags require automatic
++           resizing, like DLG_CENTER, end after that reposition
++           controls in dialog according to flags of widget) */
++
++        dialog_set_size(h, h->lines, h->cols);
++      
++        return MSG_HANDLED;
++    }
++    
+     return MSG_NOT_HANDLED;
+ }
+ 
+@@ -223,6 +326,7 @@ create_dlg (int y1, int x1, int lines, int cols, const int *color_set,
+     new_d->cols = cols;
+     new_d->lines = lines;
+     new_d->flags = flags;
++    new_d->dlg_data = NULL;
+ 
+     /* Strip existing spaces, add one space before and after the title */
+     if (title) {
+@@ -244,12 +348,18 @@ set_idle_proc (Dlg_head *d, int enable)
+ 	d->flags &= ~DLG_WANT_IDLE;
+ }
+ 
++/* wrapper to simply add lefttop positioned controls */
++int
++add_widget (Dlg_head *h, void *w){
++    add_widget_autopos(h, w, WPOS_KEEP_LEFT | WPOS_KEEP_TOP);
++}
++
+ /*
+  * Insert widget to dialog before current widget.  For dialogs populated
+  * from the bottom, make the widget current.  Return widget number.
+  */
+ int
+-add_widget (Dlg_head *h, void *w)
++add_widget_autopos (Dlg_head *h, void *w, int pos_flags)
+ {
+     Widget *widget = (Widget *) w;
+ 
+@@ -257,6 +367,7 @@ add_widget (Dlg_head *h, void *w)
+     if (!widget || h->running)
+ 	abort ();
+ 
++    widget->pos_flags = pos_flags;
+     widget->x += h->x;
+     widget->y += h->y;
+     widget->parent = h;
+diff --git a/src/dialog.h b/src/dialog.h
+index 919e866..cab7e19 100644
+--- a/src/dialog.h
++++ b/src/dialog.h
+@@ -115,6 +115,8 @@ typedef struct Dlg_head {
+     dlg_cb_fn callback;
+     struct Dlg_head *parent;	/* Parent dialog */
+ 
++    void *dlg_data;		/* data can be passed to dialog */
++
+ } Dlg_head;
+ 
+ 
+@@ -139,6 +141,7 @@ struct Widget {
+     callback_fn callback;
+     mouse_h mouse;
+     struct Dlg_head *parent;
++    int pos_flags;              /* repositioning flags */
+ };
+ 
+ /* draw box in window */
+@@ -156,11 +159,31 @@ void draw_double_box (Dlg_head *h, int y, int x, int ys, int xs);
+ #define DLG_CENTER	(1 << 0) /* Center the dialog */
+ #define DLG_NONE	(000000) /* No options */
+ 
++
++/* Flags for widget repositioning on dialog resize */
++#define WPOS_KEEP_LEFT          (1 << 0) /* keep widget distance to left border of dialog */
++#define WPOS_KEEP_RIGHT         (1 << 1) /* keep widget distance to right border of dialog */
++#define WPOS_KEEP_TOP           (1 << 2) /* keep widget distance to top border of dialog */
++#define WPOS_KEEP_BOTTOM        (1 << 3) /* keep widget distance to bottom border of dialog */
++#define WPOS_KEEP_ALL           WPOS_KEEP_LEFT | WPOS_KEEP_RIGHT | WPOS_KEEP_TOP | WPOS_KEEP_BOTTOM
++#define WPOS_KEEP_HORZ          WPOS_KEEP_LEFT | WPOS_KEEP_RIGHT
++#define WPOS_KEEP_VERT          WPOS_KEEP_TOP | WPOS_KEEP_BOTTOM
++
++
++/* sets size of dialog, leaving positioning to automatic mehtods
++   according to dialog flags */
++void dialog_set_size(Dlg_head *h, int lines, int cols);
++
++/* this function allows to set dialog position */
++void dialog_set_position(Dlg_head *h, int y1, int x1, int y2, int x2);
++
+ /* Creates a dialog head  */
+ Dlg_head *create_dlg (int y1, int x1, int lines, int cols,
+ 		      const int *color_set, dlg_cb_fn callback,
+ 		      const char *help_ctx, const char *title, int flags);
+-int  add_widget           (Dlg_head *dest, void *Widget);
++
++int  add_widget_autopos           (Dlg_head *dest, void *Widget, int pos_flags);
++int  add_widget           (Dlg_head *dest, void *Widget); /* temp wrapper w/o last arg */
+ 
+ /* Runs dialog d */
+ int run_dlg               (Dlg_head *d);
+diff --git a/src/hotlist.c b/src/hotlist.c
+index dd8dd04..b4133dd 100644
+--- a/src/hotlist.c
++++ b/src/hotlist.c
+@@ -121,21 +121,22 @@ static struct _hotlist_but {
+     int ret_cmd, flags, y, x;
+     const char *text;
+     int   type;
++    int pos_flags;
+ } hotlist_but[] = {
+-    { B_MOVE, NORMAL_BUTTON,         1,   42, N_("&Move"),       LIST_HOTLIST},
+-    { B_REMOVE, NORMAL_BUTTON,       1,   30, N_("&Remove"),     LIST_HOTLIST},
+-    { B_APPEND, NORMAL_BUTTON,       1,   15, N_("&Append"),     LIST_MOVELIST},
+-    { B_INSERT, NORMAL_BUTTON,       1,    0, N_("&Insert"),     LIST_MOVELIST},
+-    { B_NEW_ENTRY, NORMAL_BUTTON,    1,   15, N_("New &Entry"),  LIST_HOTLIST},
+-    { B_NEW_GROUP, NORMAL_BUTTON,    1,    0, N_("New &Group"),  LIST_HOTLIST},
+-    { B_CANCEL, NORMAL_BUTTON,       0,   53, N_("&Cancel"),     LIST_HOTLIST|LIST_VFSLIST|LIST_MOVELIST},
+-    { B_UP_GROUP, NORMAL_BUTTON,     0,   42, N_("&Up"),         LIST_HOTLIST|LIST_MOVELIST},
+-    { B_ADD_CURRENT, NORMAL_BUTTON,  0,   20, N_("&Add current"), LIST_HOTLIST},
++    { B_MOVE, NORMAL_BUTTON,         1,   42, N_("&Move"),       LIST_HOTLIST,  WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_REMOVE, NORMAL_BUTTON,       1,   30, N_("&Remove"),     LIST_HOTLIST,  WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_APPEND, NORMAL_BUTTON,       1,   15, N_("&Append"),     LIST_MOVELIST,         WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_INSERT, NORMAL_BUTTON,       1,    0, N_("&Insert"),     LIST_MOVELIST,         WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_NEW_ENTRY, NORMAL_BUTTON,    1,   15, N_("New &Entry"),  LIST_HOTLIST,  WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_NEW_GROUP, NORMAL_BUTTON,    1,    0, N_("New &Group"),  LIST_HOTLIST,  WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_CANCEL, NORMAL_BUTTON,       0,   53, N_("&Cancel"),     LIST_HOTLIST|LIST_VFSLIST|LIST_MOVELIST,       WPOS_KEEP_RIGHT | WPOS_KEEP_BOTTOM },
++    { B_UP_GROUP, NORMAL_BUTTON,     0,   42, N_("&Up"),         LIST_HOTLIST|LIST_MOVELIST,    WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_ADD_CURRENT, NORMAL_BUTTON,  0,   20, N_("&Add current"), LIST_HOTLIST,         WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+ #ifdef	USE_VFS
+-    { B_REFRESH_VFS, NORMAL_BUTTON,  0,   43, N_("&Refresh"),    LIST_VFSLIST},
+-    { B_FREE_ALL_VFS, NORMAL_BUTTON, 0,   20, N_("Fr&ee VFSs now"), LIST_VFSLIST},
++    { B_REFRESH_VFS, NORMAL_BUTTON,  0,   43, N_("&Refresh"),    LIST_VFSLIST,  WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
++    { B_FREE_ALL_VFS, NORMAL_BUTTON, 0,   20, N_("Fr&ee VFSs now"), LIST_VFSLIST,       WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+ #endif
+-    { B_ENTER, DEFPUSH_BUTTON,       0,    0, N_("Change &To"),  LIST_HOTLIST|LIST_VFSLIST|LIST_MOVELIST},
++    { B_ENTER, DEFPUSH_BUTTON,       0,    0, N_("Change &To"),  LIST_HOTLIST|LIST_VFSLIST|LIST_MOVELIST,       WPOS_KEEP_LEFT | WPOS_KEEP_BOTTOM },
+ };
+ 
+ /* Directory hotlist */
+@@ -473,6 +474,11 @@ hotlist_callback (Dlg_head *h, dlg_msg_t msg, int parm)
+ 	}
+ 	return MSG_NOT_HANDLED;
+ 
++    case DLG_RESIZE:
++        /* simply call dialog_set_size with new size */
++        dialog_set_size(h, LINES - 2, COLS - 6);
++        return MSG_HANDLED;
++        
+     case DLG_POST_KEY:
+ 	if (hotlist_state.moving)
+ 	    dlg_select_widget (l_movelist);
+@@ -481,6 +487,7 @@ hotlist_callback (Dlg_head *h, dlg_msg_t msg, int parm)
+ 	/* always stay on hotlist */
+ 	/* fall through */
+ 
++
+     case DLG_INIT:
+ 	attrset (MENU_ENTRY_COLOR);
+ 	update_path_name ();
+@@ -629,13 +636,14 @@ init_hotlist (int list_type)
+ 
+     for (i = 0; i < BUTTONS; i++) {
+ 	if (hotlist_but[i].type & list_type)
+-	    add_widget (hotlist_dlg,
+-			button_new (BY + hotlist_but[i].y,
+-				    BX + hotlist_but[i].x,
+-				    hotlist_but[i].ret_cmd,
+-				    hotlist_but[i].flags,
+-				    hotlist_but[i].text,
+-				    hotlist_button_callback));
++	    add_widget_autopos (hotlist_dlg,
++                                button_new (BY + hotlist_but[i].y,
++                                            BX + hotlist_but[i].x,
++                                            hotlist_but[i].ret_cmd,
++                                            hotlist_but[i].flags,
++                                            hotlist_but[i].text,
++                                            hotlist_button_callback),
++                                hotlist_but[i].pos_flags);
+     }
+ 
+     /* We add the labels. 
+@@ -643,15 +651,17 @@ init_hotlist (int list_type)
+      *    pname_group will hold name of current group
+      */
+     pname = label_new (UY - 11 + LINES, UX + 2, "");
+-    add_widget (hotlist_dlg, pname);
++    add_widget_autopos (hotlist_dlg, pname, WPOS_KEEP_BOTTOM | WPOS_KEEP_LEFT);
+     if (!hotlist_state.moving) {
+-	add_widget (hotlist_dlg,
+-		    label_new (UY - 12 + LINES, UX + 1,
+-			       _(" Directory path ")));
++	add_widget_autopos (hotlist_dlg,
++                            label_new (UY - 12 + LINES, UX + 1,
++                                       _(" Directory path ")),
++                            WPOS_KEEP_BOTTOM | WPOS_KEEP_LEFT);
+ 
+ 	/* This one holds the displayed pathname */
+ 	pname_group = label_new (UY, UX + 1, _(" Directory label "));
+-	add_widget (hotlist_dlg, pname_group);
++	add_widget_autopos (hotlist_dlg, pname_group,
++                            WPOS_KEEP_TOP | WPOS_KEEP_LEFT);
+     }
+     /* get new listbox */
+     l_hotlist =
+@@ -667,7 +677,7 @@ init_hotlist (int list_type)
+ #endif				/* !USE_VFS */
+ 	fill_listbox ();
+ 
+-    add_widget (hotlist_dlg, l_hotlist);
++    add_widget_autopos (hotlist_dlg, l_hotlist, WPOS_KEEP_ALL);
+     /* add listbox to the dialogs */
+ }
+ 
+diff --git a/src/layout.c b/src/layout.c
+index e801a99..6c3a4b7 100644
+--- a/src/layout.c
++++ b/src/layout.c
+@@ -796,8 +796,14 @@ change_screen_size (void)
+ #endif
+     setup_panels ();
+ 
+-    /* Inform currently running dialog */
+-    (*current_dlg->callback) (current_dlg, DLG_RESIZE, 0);
++    
++    /* Inform all running dialogs */
++    Dlg_head *d = current_dlg;
++    while (d != 0) {
++        (*d->callback) (d, DLG_RESIZE, 0);
++        d = d->parent;
++    }
++    
+ 
+ #ifdef RESIZABLE_MENUBAR
+     menubar_arrange (the_menubar);
+diff --git a/src/main.c b/src/main.c
+index e9c0830..b0c5cb2 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -701,7 +701,7 @@ directory_history_list (WPanel *panel)
+     if (!panel->dir_history)
+ 	return;
+ 
+-    s = show_hist (panel->dir_history, panel->widget.x, panel->widget.y);
++    s = show_hist (panel->dir_history, &panel->widget);
+ 
+     if (!s)
+ 	return;
+diff --git a/src/slint.c b/src/slint.c
+index 1ab4631..9e4624c 100644
+--- a/src/slint.c
++++ b/src/slint.c
+@@ -48,6 +48,8 @@
+ #include "setup.h"
+ #include "background.h"		/* we_are_background */
+ 
++#include "layout.h"             /* for winch_flag */
++
+ #ifdef HAVE_SLANG
+ 
+ /* Taken from S-Lang's slutty.c */
+@@ -480,11 +482,24 @@ getch (void)
+ }
+ #endif /* HAVE_SLANG */
+ 
++
++static void
++perform_refresh()
++{
++    if (winch_flag != 0) {
++        /* if winch was caugth, we should do not only redraw screen, but
++           reposition/resize all */
++        change_screen_size();
++    } else {
++        refresh();
++    } 
++} 
++
+ void
+ mc_refresh (void)
+ {
+ #ifdef WITH_BACKGROUND
+-    if (!we_are_background)
++    if (!we_are_background) 
+ #endif				/* WITH_BACKGROUND */
+-	refresh ();
++	perform_refresh ();
+ }
+diff --git a/src/widget.c b/src/widget.c
+index bc2fda6..af89410 100644
+--- a/src/widget.c
++++ b/src/widget.c
+@@ -1011,8 +1011,66 @@ listbox_fwd (WListbox *l)
+     return MSG_NOT_HANDLED;
+ }
+ 
++struct dlg_hist_data{
++    Widget *panel_widget;
++    int count;
++    size_t maxlen;     
++};
++
++static cb_ret_t
++dlg_hist_reposition(Dlg_head *dlg_head)
++{
++    /* guard checks */
++    if (!dlg_head)
++        return MSG_NOT_HANDLED;
++
++    if (!dlg_head->dlg_data) 
++        return MSG_NOT_HANDLED;
++            
++    struct dlg_hist_data *data = (struct dlg_hist_data *)dlg_head->dlg_data;
++    
++    int x, y, he, wi;
++    y = data->panel_widget->y;
++    he = data->count + 2;
++        
++    if (he <= y || y > (LINES - 6)) {
++        he = min (he, y - 1);
++        y -= he;
++    } else {
++        y++;
++        he = min (he, LINES - y);
++    }
++
++    if (data->panel_widget->x > 2)
++        x = data->panel_widget->x - 2;
++    else
++        x = 0;
++
++    wi = data->maxlen + 4;
++    if ((wi + x) > COLS) {
++        wi = min (wi, COLS);
++        x = COLS - wi;
++    }
++
++    dialog_set_position(dlg_head, y, x, y + he, x + wi);
++}
++
++static cb_ret_t
++dlg_hist_callback (Dlg_head *h, dlg_msg_t msg, int parm)
++{
++    switch (msg) {
++
++    case DLG_RESIZE:
++        return dlg_hist_reposition(h);
++ 
++    default:
++        return default_dlg_callback (h, msg, parm);
++    }
++}
++
++
+ char *
+-show_hist (GList *history, int widget_x, int widget_y)
++show_hist (GList *history, Widget *panel_widget)
+ {
+     GList *hi, *z;
+     size_t maxlen = str_term_width1 (i18n_htitle ()), i, count = 0;
+@@ -1034,32 +1092,35 @@ show_hist (GList *history, int widget_x, int widget_y)
+ 	hi = g_list_next (hi);
+     }
+ 
+-    y = widget_y;
+-    h = count + 2;
+-    if (h <= y || y > LINES - 6) {
+-	h = min (h, y - 1);
+-	y -= h;
+-    } else {
+-	y++;
+-	h = min (h, LINES - y);
+-    }
+-
+-    if (widget_x > 2)
+-	x = widget_x - 2;
+-    else
+-	x = 0;
+-    if ((w = maxlen + 4) + x > COLS) {
+-	w = min (w, COLS);
+-	x = COLS - w;
+-    }
++    struct dlg_hist_data hist_data;
++    hist_data.maxlen = maxlen;
++    hist_data.panel_widget = panel_widget;
++    hist_data.count = count;
+ 
+     query_dlg =
+-	create_dlg (y, x, h, w, dialog_colors, NULL, "[History-query]",
+-		    i18n_htitle (), DLG_COMPACT);
+-    query_list = listbox_new (1, 1, h - 2, w - 2, NULL);
+-    add_widget (query_dlg, query_list);
++	create_dlg (0, 0, 4, 4, dialog_colors, dlg_hist_callback,
++                    "[History-query]", i18n_htitle (), DLG_COMPACT);
++
++    query_dlg->dlg_data = &hist_data;
++
++    query_list = listbox_new (1, 1, 2, 2, 0);
++
++    /* this call makes list stick to all sides of dialog, effectively make
++       it be resized with dialog */
++    add_widget_autopos (query_dlg, query_list, WPOS_KEEP_ALL);
++
++    /* to avoid diplicating of (calculating sizes in two places)
++       code, call dlg_hist_callback function here, to set dialog and
++       controls positions.
++
++       The main idea - create 4x4 dialog and add 2x2 list in
++       center of it, and let dialog function resize it to needed
++       size. */
++
++    dlg_hist_callback(query_dlg, DLG_RESIZE, 0);
++    
+     hi = z;
+-    if (y < widget_y) {
++    if (query_dlg->y < panel_widget->y) {
+ 	/* traverse */
+ 	while (hi) {
+ 	    listbox_add_item (query_list, 0, 0, (char *) hi->data, NULL);
+@@ -1088,7 +1149,7 @@ show_hist (GList *history, int widget_x, int widget_y)
+ static void do_show_hist (WInput * in)
+ {
+     char *r;
+-    r = show_hist (in->history, in->widget.x, in->widget.y);
++    r = show_hist (in->history, &in->widget);
+     if (r) {
+ 	assign_text (in, r);
+ 	g_free (r);
+@@ -2196,6 +2257,11 @@ listbox_callback (Widget *w, widget_msg_t msg, int parm)
+ 	(*h->callback) (h, DLG_ACTION, l->pos);
+ 	return MSG_HANDLED;
+ 
++    case WIDGET_RESIZED:
++        l->width = w->cols;
++        l->height = w->lines;
++        return MSG_HANDLED;
++
+     case WIDGET_FOCUS:
+     case WIDGET_UNFOCUS:
+     case WIDGET_DRAW:
+diff --git a/src/widget.h b/src/widget.h
+index d986f9f..e016469 100644
+--- a/src/widget.h
++++ b/src/widget.h
+@@ -92,7 +92,11 @@ typedef struct WGauge {
+ 
+ GList *history_get (const char *input_name);
+ void history_put (const char *input_name, GList *h);
+-char *show_hist (GList *history, int widget_y, int widget_x);
++
++// for repositioning of history dialog we should pass panel widget to this
++// function, as position of history dialog depends on panel widget's
++// position
++char *show_hist (GList *history, Widget *panel_widget);
+ 
+ typedef struct {
+     Widget widget;
+diff --git a/src/wtools.c b/src/wtools.c
+index 4a2c95d..d59384d 100644
+--- a/src/wtools.c
++++ b/src/wtools.c
+@@ -100,6 +100,20 @@ int run_listbox (Listbox *l)
+     return val;
+ }
+ 
++/* default query callback, used to reposition query */
++cb_ret_t default_query_callback (Dlg_head *h, dlg_msg_t msg, int parm)
++{
++    if (msg == DLG_RESIZE) {
++        
++        int xpos = COLS / 2 - h->cols / 2;
++        int ypos = LINES / 3 - (h->lines - 3) / 2;
++        
++        /* set position */
++        dialog_set_position(h, ypos, xpos, ypos + h->lines, xpos + h->cols);
++        return MSG_HANDLED;
++    }
++    return default_dlg_callback(h, msg, parm);
++}
+ 
+ static Dlg_head *last_query_dlg;
+ 
+@@ -116,7 +130,6 @@ query_dialog (const char *header, const char *text, int flags, int count, ...)
+     int win_len = 0;
+     int i;
+     int result = -1;
+-    int xpos, ypos;
+     int cols, lines;
+     char *cur_name;
+     static const int *query_colors;
+@@ -145,12 +158,10 @@ query_dialog (const char *header, const char *text, int flags, int count, ...)
+     str_msg_term_size (text, &lines, &cols);
+     cols = 6 + max (win_len, max (str_term_width1 (header), cols));
+     lines += 4 + (count > 0 ? 2 : 0);
+-    xpos = COLS / 2 - cols / 2;
+-    ypos = LINES / 3 - (lines - 3) / 2;
+ 
+     /* prepare dialog */
+     query_dlg =
+-	create_dlg (ypos, xpos, lines, cols, query_colors, NULL,
++	create_dlg (0, 0, lines, cols, query_colors, default_query_callback,
+ 		    "[QueryBox]", header, DLG_NONE);
+ 
+     if (count > 0) {
+@@ -158,7 +169,7 @@ query_dialog (const char *header, const char *text, int flags, int count, ...)
+ 	va_start (ap, count);
+ 	for (i = 0; i < count; i++) {
+ 	    cur_name = va_arg (ap, char *);
+-	    xpos = str_term_width1 (cur_name) + 6;
++	    int xpos = str_term_width1 (cur_name) + 6;
+ 	    if (strchr (cur_name, '&') != NULL)
+ 		xpos--;
+ 
+@@ -174,6 +185,9 @@ query_dialog (const char *header, const char *text, int flags, int count, ...)
+ 
+ 	add_widget (query_dlg, label_new (2, 3, text));
+ 
++        /* do resize before running and selecting any widget*/
++        default_query_callback(query_dlg, DLG_RESIZE, 0);
++
+ 	if (defbutton)
+ 	    dlg_select_widget (defbutton);
+ 
+@@ -215,6 +229,10 @@ do_create_message (int flags, const char *title, const char *text)
+     p = g_strconcat ("\n", text, "\n", (char *) NULL);
+     query_dialog (title, p, flags, 0);
+     d = last_query_dlg;
++
++    /* do resize before initing and running*/
++    default_query_callback(d, DLG_RESIZE, 0);
++
+     init_dlg (d);
+     g_free (p);
+ 

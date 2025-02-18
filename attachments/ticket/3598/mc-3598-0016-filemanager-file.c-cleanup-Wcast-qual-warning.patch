@@ -1,0 +1,69 @@
+From eb505b5706b642fdd65ce61bb449ae07bdb26e8b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 17:27:20 +0000
+Subject: [PATCH] filemanager/file.c: cleanup -Wcast-qual warning
+
+file.c:241:16: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     fnsource = (char *) x_basename (s);
+                ^
+file.c: In function 'is_in_linklist':
+/usr/include/glib-2.0/glib/gslist.h:139:52: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define  g_slist_next(slist)          ((slist) ? (((GSList *)(slist))->next) : NULL)
+                                                    ^
+file.c:296:29: note: in expansion of macro 'g_slist_next'
+     for (; lp != NULL; lp = g_slist_next (lp))
+                             ^
+file.c: In function 'panel_operate_generate_prompt':
+file.c:1426:10: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     sp = (char *) (src_stat != NULL ? one_format : many_format);
+          ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/file.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index d124ef4..fb9103c 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -228,7 +228,7 @@ static char *
+ transform_source (file_op_context_t * ctx, const vfs_path_t * source_vpath)
+ {
+     char *s, *q;
+-    char *fnsource;
++    const char *fnsource;
+ 
+     s = g_strdup (vfs_path_as_str (source_vpath));
+ 
+@@ -238,7 +238,7 @@ transform_source (file_op_context_t * ctx, const vfs_path_t * source_vpath)
+         if (*q == '\n')
+             *q = ' ';
+ 
+-    fnsource = (char *) x_basename (s);
++    fnsource = x_basename (s);
+ 
+     if (mc_search_run (ctx->search_handle, fnsource, 0, strlen (fnsource), NULL))
+     {
+@@ -285,7 +285,7 @@ free_linklist (GSList * lp)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static gboolean
+-is_in_linklist (const GSList * lp, const vfs_path_t * vpath, const struct stat *sb)
++is_in_linklist (GSList * lp, const vfs_path_t * vpath, const struct stat *sb)
+ {
+     const struct vfs_class *class;
+     ino_t ino = sb->st_ino;
+@@ -1423,10 +1423,10 @@ panel_operate_generate_prompt (const WPanel * panel, FileOperation operation,
+      *       "Delete %d files/directories?"
+      */
+ 
+-    sp = (char *) (src_stat != NULL ? one_format : many_format);
++    cp = (src_stat != NULL ? one_format : many_format);
+ 
+     /* 1. Substitute %o */
+-    format_string = str_replace_all (sp, "%o", op_names1[(int) operation]);
++    format_string = str_replace_all (cp, "%o", op_names1[(int) operation]);
+ 
+     /* 2. Substitute %n */
+     cp = operation == OP_DELETE ? "\n" : " ";

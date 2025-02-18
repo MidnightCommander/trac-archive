@@ -1,0 +1,74 @@
+From 60122f466c4acd1f2a571cd8fbc163a1ff25e863 Mon Sep 17 00:00:00 2001
+From: Sergei Trofimovich <slyich@gmail.com>
+Date: Thu, 18 Aug 2022 10:40:20 +0100
+Subject: [PATCH] configure.ac: introduce PERL_FOR_BUILD
+
+Most of mc uses of PERL is to embed path to the interpreter in VFS
+helpers. There we can use path to perl for --host. But
+`date-of-man-include.am` is the place where perl is used for --build.
+
+On most systems both paths are expected to be /usr/bin/perl.
+But on some systems paths might differ a bit. Most prominent
+example is NixOS, where packages get installed into unique prefixes:
+
+$ file /nix/store/...-perl-5.36.0/bin/perl \
+       /nix/store/...-perl-powerpc64-unknown-linux-gnu-5.36.0/bin/perl
+/nix/store/...-perl-5.36.0/bin/perl:
+  ELF 64-bit LSB executable, x86-64, version 1 (SYSV), ...
+/nix/store/...-perl-powerpc64-unknown-linux-gnu-5.36.0/bin/perl:
+  ELF 64-bit MSB executable, 64-bit PowerPC or cisco 7500, ...
+
+This allows running both binaries via qemu-user if needed for tests.
+
+The change introduces PERL_FOR_BUILD (similar to autoconf's CC_FOR_BUILD
+and friends) to allow passing both PERLs when needed.
+---
+ configure.ac                   | 2 ++
+ doc/man/date-of-man-include.am | 2 +-
+ src/man2hlp/man2hlp.in         | 2 +-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index e0292b436..a987d27e4 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -347,11 +347,13 @@ dnl ############################################################################
+ case $host_os in
+ *os400)
+     AC_PATH_PROG([PERL], [perl], [/QOpenSys/pkgs/bin/perl])
++    AC_PATH_PROG([PERL_FOR_BUILD], [perl], [/QOpenSys/pkgs/bin/perl])
+     AC_PATH_PROG([PYTHON], [python], [/QOpenSys/pkgs/bin/python2])
+     AC_PATH_PROG([RUBY], [ruby], [/QOpenSys/pkgs/bin/ruby])
+     ;;
+ *)
+     AC_PATH_PROG([PERL], [perl], [/usr/bin/perl])
++    AC_PATH_PROG([PERL_FOR_BUILD], [perl], [/usr/bin/perl])
+     AC_PATH_PROG([PYTHON], [python], [/usr/bin/python])
+     AC_PATH_PROG([RUBY], [ruby], [/usr/bin/ruby])
+ esac
+diff --git a/doc/man/date-of-man-include.am b/doc/man/date-of-man-include.am
+index 3a4e5996b..6bc16207c 100644
+--- a/doc/man/date-of-man-include.am
++++ b/doc/man/date-of-man-include.am
+@@ -6,7 +6,7 @@ SED_PARAMETERS = \
+ 	-e "s{%libexecdir%{@libexecdir@{g"
+ 
+ MAN_DATE_CMD = \
+-	LC_ALL=$(DATE_LANG) @PERL@ -CS -MPOSIX -e '\
++	LC_ALL=$(DATE_LANG) @PERL_FOR_BUILD@ -CS -MPOSIX -e '\
+ 	    @fi=lstat("'$${MAN_FILE}'"); \
+ 	    print POSIX::strftime("$(DATE_FORMAT)", localtime($$fi[9]));' 2>/dev/null
+ 
+diff --git a/src/man2hlp/man2hlp.in b/src/man2hlp/man2hlp.in
+index 4e1bc2bcf..08765d88f 100644
+--- a/src/man2hlp/man2hlp.in
++++ b/src/man2hlp/man2hlp.in
+@@ -1,4 +1,4 @@
+-#! @PERL@ -w
++#! @PERL_FOR_BUILD@ -w
+ #
+ #  Man page to help file converter
+ #  Copyright (C) 1994, 1995, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
+-- 
+2.37.1
+

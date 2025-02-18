@@ -1,0 +1,115 @@
+From f753fb306e19f00b83e0aa2007cd1903311e3b1e Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sun, 28 Feb 2010 20:48:12 +0000
+Subject: [PATCH]  missing mc_config_deinit vfs_s_close g_free
+
+---
+ lib/mcconfig/common.c     |    8 ++++----
+ lib/skin/colors.c         |    8 +++++---
+ lib/vfs/mc-vfs/direntry.c |    6 +++++-
+ src/editor/editcmd.c      |    9 ++++++++-
+ 4 files changed, 22 insertions(+), 9 deletions(-)
+
+diff --git a/lib/mcconfig/common.c b/lib/mcconfig/common.c
+index dd0cb4e..f8fd5f7 100644
+--- a/lib/mcconfig/common.c
++++ b/lib/mcconfig/common.c
+@@ -195,9 +195,8 @@ mc_config_read_file (mc_config_t * mc_config, const gchar * ini_path)
+     gchar **keys, **curr_key;
+     gchar *value;
+ 
+-    if (mc_config == NULL) {
++    if (mc_config == NULL)
+         return FALSE;
+-    }
+ 
+     tmp_config = mc_config_init (ini_path);
+     if (tmp_config == NULL)
+@@ -205,9 +204,10 @@ mc_config_read_file (mc_config_t * mc_config, const gchar * ini_path)
+ 
+     groups = mc_config_get_groups (tmp_config, NULL);
+ 
+-    if (groups == NULL)
++    if (groups == NULL) {
++        mc_config_deinit (tmp_config);
+         return FALSE;
+-
++    }
+     for (curr_grp = groups; *curr_grp != NULL; curr_grp++) {
+         keys = mc_config_get_keys (tmp_config, *curr_grp, NULL);
+         for (curr_key = keys; *curr_key != NULL; curr_key++) {
+diff --git a/lib/skin/colors.c b/lib/skin/colors.c
+index 22f6c1a..c8c73df 100644
+--- a/lib/skin/colors.c
++++ b/lib/skin/colors.c
+@@ -127,9 +127,11 @@ mc_skin_color_get_from_ini_file (mc_skin_t * mc_skin, const gchar * group, const
+ 
+     values = mc_config_get_string_list (mc_skin->config, group, key, &items_count);
+ 
+-    if (values == NULL || *values == NULL) {
+-        if (values != NULL)
+-            g_strfreev (values);
++    if (values == NULL)
++        return NULL;
++
++    if (*values == NULL) {
++        g_strfreev (values);
+         return NULL;
+     }
+     mc_skin_color = g_try_new0 (mc_skin_color_t, 1);
+diff --git a/lib/vfs/mc-vfs/direntry.c b/lib/vfs/mc-vfs/direntry.c
+index 83cd050..ef87218 100644
+--- a/lib/vfs/mc-vfs/direntry.c
++++ b/lib/vfs/mc-vfs/direntry.c
+@@ -1045,9 +1045,13 @@ vfs_s_getlocalcopy (struct vfs_class *me, const char *path)
+     char *local;
+ 
+     fh = vfs_s_open (me, path, O_RDONLY, 0);
+-    if (!fh || !fh->ino || !fh->ino->localname)
++    if (fh == NULL)
+ 	return NULL;
+ 
++    if (fh->ino == NULL || fh->ino->localname == NULL) {
++	vfs_s_close (fh);
++	return NULL;    
++    }
+     local = g_strdup (fh->ino->localname);
+     vfs_s_close (fh);
+     return local;
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 81331e9..dc13f6a 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1927,6 +1927,10 @@ edit_search_cmd (WEdit * edit, int again)
+         if (search_string && *search_string)
+         {
+             tmp = str_convert_to_input (search_string);
++
++            g_free (search_string);
++            search_string = NULL;
++
+             if (tmp && tmp->len)
+                 search_string = tmp->str;
+ 
+@@ -1959,6 +1963,7 @@ edit_search_cmd (WEdit * edit, int again)
+         if (edit->search == NULL)
+         {
+             edit->search_start = edit->curs1;
++            g_free (search_string);
+             return;
+         }
+         edit->search->search_type = edit_search_options.type;
+@@ -1967,7 +1972,9 @@ edit_search_cmd (WEdit * edit, int again)
+         edit->search->whole_words = edit_search_options.whole_words;
+         edit->search->search_fn = edit_search_cmd_callback;
+     }
+-
++    if (search_string)
++	g_free (search_string);
++	
+     if (search_create_bookmark)
+     {
+         edit_search_cmd_search_create_bookmark (edit);
+-- 
+1.6.4
+

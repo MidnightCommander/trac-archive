@@ -1,0 +1,52 @@
+diff --git a/Makefile.am b/Makefile.am
+index 6f67f14..f7adf26 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -2,7 +2,7 @@
+ 
+ AUTOMAKE_OPTIONS = 1.5
+ 
+-SUBDIRS = po m4 vfs slang edit src lib doc syntax
++SUBDIRS = intl po m4 vfs slang edit src lib doc syntax
+ 
+ EXTRA_DIST = FAQ HACKING INSTALL.FAST MAINTAINERS README.QNX TODO pkginfo.in prototype.in mc.qpg mc.spec
+ 
+diff --git a/autogen.sh b/autogen.sh
+index 1223ae9..a2b4f92 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -9,8 +9,8 @@ set -e
+ : ${AUTOHEADER=autoheader}
+ : ${AUTOMAKE=automake}
+ : ${ACLOCAL=aclocal}
++: ${AUTOPOINT=autopoint}
+ : ${XGETTEXT=xgettext}
+-: ${GETTEXT_DATADIR=/usr/share/gettext}
+ 
+ srcdir=`dirname $0`
+ test -z "$srcdir" && srcdir=.
+@@ -28,9 +28,9 @@ if test ! -d config; then
+   mkdir config
+ fi
+ 
+-# get in gettext stuff
+-( cd config && ln -sf $GETTEXT_DATADIR/config.rpath )
+-# ( cd po && ln -sf $GETTEXT_DATADIR/po/Makefile.in.in )   ## had to tweak it a bit ;-o
++# Recreate intl directory.
++rm -rf intl
++$AUTOPOINT --force || exit 1
+ 
+ # Generate po/POTFILES.in
+ $XGETTEXT --keyword=_ --keyword=N_ --keyword=Q_ --output=- \
+diff --git a/configure.ac b/configure.ac
+index 9fb0540..cfaaa7d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -624,6 +624,7 @@ doc/pl/mc.1 doc/pl/Makefile
+ doc/ru/mc.1 doc/ru/Makefile
+ doc/sr/mc.1 doc/sr/mcserv.8 doc/sr/Makefile
+ 
++intl/Makefile
+ po/Makefile.in
+ ])
+ 

@@ -1,0 +1,100 @@
+diff --git a/misc/syntax/css.syntax b/misc/syntax/css.syntax
+index b6d9da8eb..718c88b27 100644
+--- a/misc/syntax/css.syntax
++++ b/misc/syntax/css.syntax
+@@ -418,7 +418,7 @@ context default
+     keyword whole lightcoral brightgreen
+     keyword whole lightcyan brightgreen
+     keyword whole lightgoldenrodyellow brightgreen
+-    keyword whole lightgrey brightgreen
++    keyword whole lightgray brightgreen
+     keyword whole lightgreen brightgreen
+     keyword whole lightpink brightgreen
+     keyword whole lightsalmon brightgreen
+@@ -504,8 +504,8 @@ context default
+     keyword whole arial brightgreen
+     keyword whole Narrow brightgreen
+     keyword whole narrow brightgreen
+-    keyword whole Trebuchet MS brightgreen
+-    keyword whole trebuchet ms brightgreen
++    keyword whole Trebuchet\sMS brightgreen
++    keyword whole trebuchet\sms brightgreen
+     keyword whole verdana brightgreen
+     keyword whole Verdana brightgreen
+     keyword whole sans-serif brightgreen
+@@ -547,4 +547,4 @@ context exclusive /\* \*/ brown
+ context exclusive counter( ) magenta
+ context exclusive counters( ) magenta
+ context exclusive rgb( ) magenta
+-context exclusive url( ) magenta
+\ No newline at end of file
++context exclusive url( ) magenta
+diff --git a/misc/syntax/glsl.syntax b/misc/syntax/glsl.syntax
+index e1a317fa9..48cca1b04 100644
+--- a/misc/syntax/glsl.syntax
++++ b/misc/syntax/glsl.syntax
+@@ -215,7 +215,7 @@ context default
+     keyword whole cast yellow
+     keyword whole namespace yellow
+     keyword whole using yellow
+-    keyword whole row major yellow
++    keyword whole row_major yellow
+     keyword whole early_fragment_tests yellow
+ 
+ # Deprecated
+diff --git a/misc/syntax/procmail.syntax b/misc/syntax/procmail.syntax
+index 072d43de0..78aa08a75 100644
+--- a/misc/syntax/procmail.syntax
++++ b/misc/syntax/procmail.syntax
+@@ -191,7 +191,7 @@ wholechars abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._
+ context  " "            green
+     keyword ${*} brightgreen
+ 
+-context exclusive ` `        lightgrey black
++context exclusive ` `        lightgray black
+     keyword '*' green
+     keyword " green
+     keyword \\` brightred
+diff --git a/misc/syntax/r.syntax b/misc/syntax/r.syntax
+index cbd754245..81f9d3b97 100644
+--- a/misc/syntax/r.syntax
++++ b/misc/syntax/r.syntax
+@@ -5,9 +5,9 @@
+ 
+ context default
+ 
+-    keyword ->> brightred grey
+-    keyword <<- brightred grey
+-    keyword -> brightred grey
++    keyword ->> brightred gray
++    keyword <<- brightred gray
++    keyword -> brightred gray
+ 
+     keyword <- brightred
+ 
+diff --git a/misc/syntax/swift.syntax b/misc/syntax/swift.syntax
+index cd9c72136..7f804bdff 100644
+--- a/misc/syntax/swift.syntax
++++ b/misc/syntax/swift.syntax
+@@ -134,7 +134,7 @@ context default
+     keyword ^ operators
+     keyword ~ operators
+     keyword ! operators
+-    keyword whole _ operatots
++    keyword whole _ operators
+     keyword { brackets
+     keyword } brackets
+     keyword ( brackets
+diff --git a/misc/syntax/yabasic.syntax b/misc/syntax/yabasic.syntax
+index 580b4c372..83bd60d77 100644
+--- a/misc/syntax/yabasic.syntax
++++ b/misc/syntax/yabasic.syntax
+@@ -79,7 +79,7 @@ context default yellow
+     keyword whole let white
+     keyword whole line white
+     keyword whole local white
+-    keyword whole lo gwhite
++    keyword whole lo white
+     keyword whole loop white
+     keyword whole lower white
+     keyword whole ltrim white

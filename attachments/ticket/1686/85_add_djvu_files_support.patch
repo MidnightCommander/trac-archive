@@ -1,0 +1,20 @@
+Description: Add djvu support
+Bug-Debian: http://bugs.debian.org/543651
+Author: Jakub Wilk <ubanus@users.sf.net>
+Author: Denis Briand <denis@narcan.fr>
+Index: mc-4.7.0-pre2~git20090919/misc/mc.ext.in
+===================================================================
+--- mc-4.7.0-pre2~git20090919.orig/misc/mc.ext.in	2009-09-21 18:34:47.000000000 +0200
++++ mc-4.7.0-pre2~git20090919/misc/mc.ext.in	2009-09-21 18:42:56.000000000 +0200
+@@ -476,6 +476,11 @@
+ 	#Open=(ghostview %f &)
+ 	View=%view{ascii} pdftotext %f -
+ 
++#DjVu
++type/^DjVu
++    Open=run-mailcap %f 2>&1 &
++    View=%view{ascii} djvused -e print-pure-txt %f
++
+ # The following code very ugly and should not be taken as example.
+ # It should be cleaned up when the new format of mc.ext is developed.
+ 

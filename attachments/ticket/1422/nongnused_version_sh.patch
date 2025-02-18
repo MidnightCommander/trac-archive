@@ -1,0 +1,13 @@
+diff --git a/maint/version.sh b/maint/version.sh
+index 82c2075..e49e343 100755
+--- a/maint/version.sh
++++ b/maint/version.sh
+@@ -14,7 +14,7 @@ CURR_MC_VERSION="${PREV_MC_VERSION}"
+ 
+ if [ -r ${VERSION_FILE} ]
+   then
+-    PREV_MC_VERSION=`sed -rn 's/^#define MC_CURRENT_VERSION "(.*)"$/\1/p' "${VERSION_FILE}"`
++    PREV_MC_VERSION=`perl -ne 'print if (s/^#define MC_CURRENT_VERSION "(.*)"$/$1/)' "${VERSION_FILE}"`
+     CURR_MC_VERSION="${PREV_MC_VERSION}"
+ fi
+ 

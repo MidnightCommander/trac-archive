@@ -1,0 +1,190 @@
+#! /bin/sh
+#
+# by dw 2013-11-12
+#
+# relies on tar to autodetect the used compression method (gz, bz2, xz, ...)
+# supported formats (posix, ...) depend on the found version of tar
+# due to proprietory options works only with GNU tar (1.26-1.29)
+# list and copyout working
+# rm, mkdir, rmdir partly working (only uncompressed tar archives)
+# copyin works partly (only uncompressed tar archives, archive rootdir)
+# besides modifying the tar file can cause problems (duplicate files, ...)
+# and should be avoided
+#
+# by dw 2017-04-09
+# experimental support for bsdtar added, problems
+#         - timestamps require LANG=C for english month names
+#         - with LANG=C can't handle filenames containing utf-8
+# experimental support for star added
+#
+# by dw 2018-06-03
+# star 1.5.3 from openSUSE Leap 15.0 supports auto detection of xz
+# date format conversion added, list and copyout working with star
+# error messages with GNU tar created archives containing 
+# special character filenames
+# => GNU tar is the default, star is first fallback
+
+TAR=$( which tar 2>/dev/null ) #  || exit 1
+if [ -z "$TAR" ]; then
+  TAR=$( which star 2>/dev/null ) # || exit 1
+fi
+if [ -z "$TAR" ]; then
+  TAR=$( which bsdtar 2>/dev/null ) || exit 1
+fi
+
+mctarfs_list ()
+{
+  # link count is hardcoded to 1
+  # can't use $6 for the filename in case of blanks or other separators
+  # mc expects: AAAAAAA NNN OOOOOOOO GGGGGGGG SSSSSSSS DATETIME [PATH/]FILENAME [-> [PATH/]FILENAME[/]]]
+  # gawk strips blanks => trailing blanks of filenames are lost
+  # filenames may contain blanks - field splitting does not work for them
+
+  case "$TAR" in
+    */tar)
+      # GNU tar
+      # output of GNU tar 1.26 for tar tvf:
+      # drwxr-xr-x user/group      0 2013-08-22 20:27 directory/
+      # GNU tar timestamps always contain ":" and can be used as anchor
+
+      $TAR tvf "$1" | gawk '
+      BEGIN { FS="" }
+      {
+        split($0,b," ")
+        sub(/\//, " ", b[2])
+        split(b[4], DATE, "-")
+        name_offs = index($0, b[5])+6
+        printf "%s 1 %s %s %s-%s-%s %s ./%s\n", b[1], b[2], b[3], DATE[2], DATE[3], DATE[1], b[5], substr($0, name_offs)
+      }'
+      ;;
+    */bsdtar)
+      # BSD tar
+      # bsdtar uses LANG for the date format
+      # setting LANG to en_US.UTF-8 to get a specific date format breaks handling of non-utf8 archives
+      # output of bsdtar-3.1.2 tar tvf:
+      # drwxr-xr-x  0 user   group       0 Oct  5  2016 directory/
+      # -rw-r--r--  0 user   group   68981 Oct  1  2016 directory/file
+      # drwxr-xr-x  0 user   group       0 Dec 13 20:59 directory/
+      # -rw-r--r--  0 user   group    2013 Sep 28  2013 dateformat.tst
+      # the date/timestamp format is supported by mc BUT do not always contain ":", "YYYY" or "hh:mm"
+      # if b[8] =~ ":" this should always be the first match on the line, use as anchor
+      # if b[8] =~ "YYYY" this could match the filesize => name_offs has to be bigger than parts
+      LANG_BAK="$LANG"
+      export LANG=en_US.UTF-8
+
+      $TAR tvf "$1" | gawk '
+      BEGIN { FS="" }
+      {
+        split($0,b," ")
+        parts = length(b[1] b[2] b[3] b[4] b[5] b[6] b[7]) + 7
+        name_offs = index($0, " "b[8]" ") + 6
+        if (index(b[8], ":") != 0)
+          name_offs += 1
+        else if (name_offs < parts)
+        {
+          new_part = substr($0, parts)
+          name_offs = index(new_part, " "b[8]" ") + 5 + parts
+        }
+        printf "%s 1 %s %s %s %s %s %s ./%s\n", b[1], b[3], b[4], b[5], b[6], b[7], b[8], substr($0, name_offs)
+      }'
+      LANG="$LANG_BAK"
+      ;;
+    */star)
+      # output of star 1.5.3 tar tvf:
+      #      5 -rw-r--r--  user/group Sep 28 13:16 2013 dateformat.tst
+      #      0 drwxr-xr-x  user/group Aug 22 20:36 2013 tartest_dir_level_1/
+      # date conversion to MM-DD-YYYY hh:mm[:ss]
+      # b[1] size
+      # b[2] permissions
+      # b[3] user group
+      # b[4] MMM
+      # b[5] DD
+      # b[6] hh:mm
+      # b[7] YYYY
+
+      $TAR tvf "$1" 2> /dev/null | gawk '
+      BEGIN {
+         FS=""
+         # Copied from uarc/uzoo
+         split("Jan:Feb:Mar:Apr:May:Jun:Jul:Aug:Sep:Oct:Nov:Dec", month_list, ":")
+         for (i=1; i<=12; i++) {
+            month[month_list[i]] = i
+         }
+      }
+      {
+        split($0,b," ")
+        sub(/\//, " ", b[3])
+        split(b[4], DATE, "-")
+        name_offs = index($0, b[6]) + 11
+        printf "%s 1 %s %s %02d-%02d-%04d %s ./%s\n", b[2], b[3], b[1], month[b[4]], b[5], b[7], b[6], substr($0, name_offs)
+      }'
+      ;;
+    *)
+      echo "unsupported tar implementation"
+      exit 1
+    ;;
+  esac
+}
+
+mctarfs_copyin ()
+{
+  $TAR rf "$1" "$2" >/dev/null
+}
+
+mctarfs_copyout ()
+{
+  case "$TAR" in
+    */star)
+      $TAR x -to-stdout -f "$1" "$2" > "$3" 2> /dev/null || $TAR x -to-stdout -f "$1" "./$2" > "$3"
+      ;;
+    *)
+      # GNU tar, bsdtar
+      $TAR xOf "$1" "$2" > "$3" 2> /dev/null || $TAR xOf "$1" "./$2" > "$3"
+      # file in archive begins with ./ , e.g. from find generated file list
+      # $TAR xOf "$1" "./$2" > "$3"
+    ;;
+  esac
+}
+
+mctarfs_mkdir ()
+{
+  pwd="$( pwd )"
+  dir=$( mktemp -d "${MC_TMPDIR:-/tmp}/mctmpdir-utar.XXXXXX" ) || exit 1
+  cd "$dir" || exit 1
+  mkdir -p "$2"
+  $TAR rf "$1" "$2" >/dev/null
+  cd "$pwd" || exit 1
+  rm -rf "$dir"
+}
+
+mctarfs_rm ()
+{
+  $TAR --delete -f "$1" "$2" >/dev/null
+}
+
+# override any locale for dates
+LC_DATE=C
+export LC_DATE
+
+umask 077
+
+if [ -z "$TAR" ]; then
+  echo "Error: could not find tar." >&2
+  exit 1
+fi
+
+cmd="$1"
+shift
+
+case "$cmd" in
+  # Workaround for a bug in mc - directories must precede files to
+  # avoid duplicate entries, so we sort output by "permission string" drwxr-xr-x
+  list)    mctarfs_list    "$@" | sort -k 8 ;;
+  rm)      mctarfs_rm      "$@" ;;
+  rmdir)   mctarfs_rm      "$@" ;;
+  mkdir)   mctarfs_mkdir   "$@" ;;
+  copyin)  mctarfs_copyin  "$@" ;;
+  copyout) mctarfs_copyout "$@" ;;
+  *) exit 1 ;;
+esac
+exit 0

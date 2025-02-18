@@ -1,0 +1,639 @@
+From 21ab5fa4f821bf6c201fd4666f93fa0b05c0f3a6 Mon Sep 17 00:00:00 2001
+From: Michael Osipov <1983-01-06@gmx.net>
+Date: Wed, 27 Jul 2016 17:25:10 +0200
+Subject: [PATCH] Ticket #3666: Improper use of IEC and SI prefixes for size in
+ size_trunc()
+
+size_trunc() has been aligned to properly use either IEC or SI prefixes with
+the unit B (byte). Additionally always put a space between number and unit
+which is required by the norms.
+
+Obsolete gettext message ids have been removed and some cleaned up for
+duplicate words or leading spaces.
+---
+ lib/util.c              |  10 +++++-----
+ po/ar.po                | Bin 56548 -> 56417 bytes
+ po/az.po                | Bin 64216 -> 64137 bytes
+ po/be.po                | Bin 104417 -> 104258 bytes
+ po/bg.po                | Bin 107554 -> 107451 bytes
+ po/ca.po                | Bin 72746 -> 72667 bytes
+ po/cs.po                | Bin 82255 -> 82140 bytes
+ po/da.po                | Bin 78769 -> 78676 bytes
+ po/de.po                | Bin 88403 -> 88297 bytes
+ po/de_CH.po             | Bin 56269 -> 56190 bytes
+ po/el.po                | Bin 87674 -> 87580 bytes
+ po/en_GB.po             | Bin 56438 -> 56359 bytes
+ po/eo.po                | Bin 85934 -> 85838 bytes
+ po/es.po                | Bin 86768 -> 86674 bytes
+ po/et.po                | Bin 85008 -> 84914 bytes
+ po/eu.po                | Bin 87275 -> 87182 bytes
+ po/fa.po                | Bin 63586 -> 63509 bytes
+ po/fi.po                | Bin 61483 -> 61404 bytes
+ po/fr.po                | Bin 83108 -> 83004 bytes
+ po/fr_CA.po             | Bin 56263 -> 56184 bytes
+ po/gl.po                | Bin 89727 -> 89633 bytes
+ po/hr.po                | Bin 56344 -> 56252 bytes
+ po/hu.po                | Bin 87503 -> 87408 bytes
+ po/ia.po                | Bin 66438 -> 66359 bytes
+ po/id.po                | Bin 62243 -> 62177 bytes
+ po/it.po                | Bin 87668 -> 87537 bytes
+ po/ja.po                | Bin 72053 -> 71987 bytes
+ po/ka.po                | Bin 66434 -> 66368 bytes
+ po/kk.po                | Bin 56133 -> 56067 bytes
+ po/ko.po                | Bin 69819 -> 69753 bytes
+ po/lt.po                | Bin 66224 -> 66105 bytes
+ po/lv.po                | Bin 63646 -> 63554 bytes
+ po/mn.po                | Bin 69184 -> 69105 bytes
+ po/nb.po                | Bin 63084 -> 63005 bytes
+ po/nl.po                | Bin 85745 -> 85639 bytes
+ po/pl.po                | Bin 89269 -> 89152 bytes
+ po/pt.po                | Bin 88482 -> 88388 bytes
+ po/pt_BR.po             | Bin 74075 -> 73996 bytes
+ po/ro.po                | Bin 87051 -> 86931 bytes
+ po/ru.po                | Bin 111594 -> 111443 bytes
+ po/sk.po                | Bin 88996 -> 88862 bytes
+ po/sl.po                | Bin 64985 -> 64880 bytes
+ po/sr.po                | Bin 109596 -> 109463 bytes
+ po/szl.po               | Bin 56332 -> 56240 bytes
+ po/ta.po                | Bin 57145 -> 57066 bytes
+ po/te.po                | Bin 56205 -> 56126 bytes
+ po/tr.po                | Bin 87430 -> 87337 bytes
+ po/uk.po                | Bin 105518 -> 105378 bytes
+ po/vi.po                | Bin 66721 -> 66648 bytes
+ po/wa.po                | Bin 60865 -> 60786 bytes
+ po/zh_CN.po             | Bin 80339 -> 80264 bytes
+ po/zh_TW.po             | Bin 62316 -> 62250 bytes
+ src/filemanager/panel.c |  10 +++-------
+ 53 files changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index f22c885..9bef1d0 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -351,21 +351,21 @@ size_trunc (uintmax_t size, gboolean use_si)
+     if (size > 999999999UL)
+     {
+         divisor = use_si ? 1000 : 1024;
+-        xtra = use_si ? "k" : "K";
++        xtra = use_si ? "k" : "Ki";
+ 
+         if (size / divisor > 999999999UL)
+         {
+             divisor = use_si ? (1000 * 1000) : (1024 * 1024);
+-            xtra = use_si ? "m" : "M";
++            xtra = use_si ? "M" : "Mi";
+ 
+             if (size / divisor > 999999999UL)
+             {
+                 divisor = use_si ? (1000 * 1000 * 1000) : (1024 * 1024 * 1024);
+-                xtra = use_si ? "g" : "G";
++                xtra = use_si ? "G" : "Gi";
+             }
+         }
+     }
+-    g_snprintf (x, sizeof (x), "%.0f%s", 1.0 * size / divisor, xtra);
++    g_snprintf (x, sizeof (x), "%.0f %sB", 1.0 * size / divisor, xtra);
+     return x;
+ }
+ 
+@@ -383,7 +383,7 @@ size_trunc_sep (uintmax_t size, gboolean use_si)
+     p += strlen (p) - 1;
+     d = x + sizeof (x) - 1;
+     *d-- = '\0';
+-    while (p >= y && isalpha ((unsigned char) *p))
++    while (p >= y && (isalpha ((unsigned char) *p) || (unsigned char) *p == ' '))
+         *d-- = *p--;
+     for (count = 0; p >= y; count++)
+     {
+diff --git a/po/ar.po b/po/ar.po
+index 8ebdedb12807a46df2d51812c89b54c173e5ae3c..19b2ec5848abdc1de7dcb43551bacc49c2bbf4f4 100644
+GIT binary patch
+delta 14
+WcmaE|llkEe<_%NVY?fGiMjrq?O$VU>
+
+delta 47
+zcmaF3gZar$<_%NV$Rt&kq$+Xc7N=*X#24h07A58=D5(}JfP{-DubZB-dD5Em`T*)w
+B6nOvu
+
+diff --git a/po/az.po b/po/az.po
+index 3e3637788300509bc496bb0726f4f53205ffc55b..fb8d8421871bef296195345eb704b5276e570954 100644
+GIT binary patch
+delta 14
+WcmccdmAUgP^9GxJo4fb<+5iANRtJFq
+
+delta 51
+zcmeDD%6#K1^9GxJGD(#ssY+bA#p#(T@dY`hMTt2IN~*;QAmQT4?ek<Of0Gs6Y`xFV
+F1^_Q76yg8?
+
+diff --git a/po/be.po b/po/be.po
+index e11b150c2f32319df7a4660b0eafd29e63ef2ac1..951b7b730a45fe2eabbf5c1c1e94c7a5d65f665c 100644
+GIT binary patch
+delta 17
+ZcmaF3p6$>&wuUW?URK**S~32J0RT#i2lW5|
+
+delta 153
+zcmX@Kj_u)kwuUW?URL!<l_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xELiZu
+s#tR!R?7Y|n7dJ!|zt|0zF+!EOu;Jo7xSTPP96QiBkmPnlD@MUs00JCBO#lD@
+
+diff --git a/po/bg.po b/po/bg.po
+index 35b9413281bb0a3ccc48ae76a3c28a0aeb3017b3..e8c136bdd708325a647a7ad6714df9593b5431ce 100644
+GIT binary patch
+delta 17
+ZcmZ2<f^GM4wuUW?%r4urTo`x60{}z~2J!#^
+
+delta 89
+zcmdmeoNdtwwuUW?%r4GJl_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xELiZu
+b#tR!R?7Y|n7dHfpPuA8^-p=I0xHBFA;=&;L
+
+diff --git a/po/ca.po b/po/ca.po
+index 3e6c696f6e31dd6b3ff6a19fcab52e1cc76dad04..cd1a968b41cd21c57c920f2843c2fa7c45409782 100644
+GIT binary patch
+delta 14
+WcmZ3rgXQ*imJO1(HfP*A<Ol#bQU{m-
+
+delta 50
+zcmcb;on_SymJO1(q>?I2QkA%Ji_<ex;tO(0ixP7blvIlqfWnjQZ^=(r<75=wEOG0w
+FBLM%-6E*+<
+
+diff --git a/po/cs.po b/po/cs.po
+index 3b7c460ca4755e816cc5fd5a6c0b2e228d0b51cf..a087cb4aa78e5be7540f49b4a0e22872ccef6f8d 100644
+GIT binary patch
+delta 14
+WcmX@##CoTZbwkRJ&DVcacmM!7=m-Y@
+
+delta 109
+zcmcc9$a=nsbwkRJsHDo0R3)z5;`Gdv_=23$qQo2pCDmdDkZ>_rytt$&+8`D#2p2Pi
+ZiX~>1z{QLZVn^3c7F3nkocyEG0|21nCrSVS
+
+diff --git a/po/da.po b/po/da.po
+index c30c67a285dca1e3643e423e6d49c5e9d317d9ff..018d75aef1b0769d10d560e471250c2c19a66e02 100644
+GIT binary patch
+delta 14
+Wcmdn^oaM?hmJOfZZVq^t=n4QrCJ2H6
+
+delta 88
+zcmccejAi3<mJOfZx+GPWq$+Xc7N=*X#24h07A58=D5(}JfP{;|;>9IJ(FU<_LAaP9
+QLTtLA9HYeMPj8c40UysH5C8xG
+
+diff --git a/po/de.po b/po/de.po
+index 1bc923d8ad922de536c7ab233cbb554c2d84bd59..ec7d73c5574a92dbf7b4a1b1e4bba54f46eb8405 100644
+GIT binary patch
+delta 48
+zcmcb-iS^}1)`l&N72MOWaWh&-X67lVrYN{1mZWAXape}L7nc-88^$UqsctvsVN~!1
+E0I@6&vj6}9
+
+delta 97
+zcmaF4k@fN>)`l&N72M28l_k>~xfw-tfsE8*C9d4!^x~4DXoFY<CDmdDC!io)%n%_q
+e{h&Le)bt8&Mhg~@lIiQX8D+t&?I*bz6?_3@(I4pm
+
+diff --git a/po/de_CH.po b/po/de_CH.po
+index 9b8347794751f97a7df0822258a86a35326c1daa..90ef9b5f2f93faccbe33c81a7143d3046a7b302a 100644
+GIT binary patch
+delta 14
+WcmX@Ro%!E3<_*tQZ#G>sLmvP>RtMVv
+
+delta 51
+zcmeyjjrr_$<_*tQ%Oq8nq$+Xc7N=*X#24h07A58=D5(}JfP{-D|6eFOS&U71^W)XC
+F^#Mo46}<oe
+
+diff --git a/po/el.po b/po/el.po
+index 94b10825954d6e5699eca0dc35cc77edeb78f720..0e5b5152e189aae1da40dc24179e52819205a7dc 100644
+GIT binary patch
+delta 17
+ZcmeyhhIP&w)`l&Nk2$tGaxz-_0su#h2B81|
+
+delta 90
+zcmbQUhV|DP)`l&Nk2zeDDoaw8xN?irGgIOVa!QL5a}<<Rixoh^#bEK`lA>sXShyfu
+S%n%_qS@5dF_J<sd*1iDf6CdCJ
+
+diff --git a/po/en_GB.po b/po/en_GB.po
+index 550bd56bda9a759fed3513d77ffb3d3f36ed18e3..bbdb8cca0bd471bb27103081486158385db4d020 100644
+GIT binary patch
+delta 14
+WcmeyigL(N5<_-O8Hs4z_LmvP=K?nl?
+
+delta 47
+zcmZ3!gZbMI<_-O8WRfaNQkA%Ji_<ex;tO(0ixP7blvIlqK*Gh71!fp*?pZTi9{}45
+B6F&d|
+
+diff --git a/po/eo.po b/po/eo.po
+index 1ede056c92b7c2d77b44499d7f14860c334c0e7a..24294c601fdfdc17c7ca1e9b7ab2ec97763acef0 100644
+GIT binary patch
+delta 17
+ZcmZ2CpY_~4)`l&Ng)G}IvM}ED0suq{2O<Cf
+
+delta 92
+zcmX>%k9FOA)`l&Ng)DAKl_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xEJQFd
+Wt0W&TXow^@xlmPddjSjMJud+6IUmaa
+
+diff --git a/po/es.po b/po/es.po
+index 7d4eacd0d5df53579d035be07f298d3a2fcab9fb..36e0dce20484aa1dcddb073b10e213e08bc17408 100644
+GIT binary patch
+delta 17
+Zcmeycly%Zl)`l&Nr&+gavN0a_0RTl!2G#%o
+
+delta 90
+zcmbQVl=Z_>)`l&Nr&(Q+Doaw8xN?irGgIOVa!QL5a}<<Rixoh^#bEK`lA>sXShyfu
+S%n%_q*)U9e`w3RYQ$7IEjUTlD
+
+diff --git a/po/et.po b/po/et.po
+index a9a95013c14e809e4249d136cead1efa8339e5e1..b56d00222b6f2d238bf9192cd4e9b9777ab34b30 100644
+GIT binary patch
+delta 15
+XcmbO*gLTt%)`lsJeOuo!s(1qcG+_oX
+
+delta 87
+zcmdlqopr(t)`lsJea=ahC8<hWxy9+3De(n4rA3K33QDTQ3LxQPuy}DvQM5rUL@+V4
+T1TJO>7n^)hMP_S1qp~*uP%Rzi
+
+diff --git a/po/eu.po b/po/eu.po
+index a0c89518c34ba194f8ced6f9a4406eb267202e92..2bf909486b65c886334c3fb0c5f440c8d40e8076 100644
+GIT binary patch
+delta 17
+YcmaF8lC^IoYr_`CY>w?GI2e_E07N7PbpQYW
+
+delta 91
+zcmeBM$@+RFYr_`CYz~*C%92ziuH54E%#`?ooYJDi90euSVg-<JF<88~q$t`TRzV3Q
+ZqM(WpGX#o36;2P-XO!5U#lfiJ0|3uW9#sGU
+
+diff --git a/po/fa.po b/po/fa.po
+index 9457fafc707731e32b3f98b20616ac2f369105ec..539e7930e9508c03286d4ee0767607ad872fcfc6 100644
+GIT binary patch
+delta 14
+WcmaF#fqCi&<_#i8HzyutGzI`V(FXJY
+
+delta 68
+zcmbRGf%(w~<_#i8jgl%$QkA%Ji_<ex;tO(0ixP7blvIlqK*Ggf@#2!AXoFa=;EfeG
+Qmf!A~{7^w=vFK4_0JIJpkpKVy
+
+diff --git a/po/fi.po b/po/fi.po
+index c7e376e3b2fa1b59fab52018994b4c3ecd857c15..08a2dcef324c2819c51c220252c6e6ae37002322 100644
+GIT binary patch
+delta 14
+WcmZ4efcegS<_)DgHy_!VZUz87_y_m^
+
+delta 51
+zcmca}pLz8I<_)DgWs)jOQkA%Ji_<ex;tO(0ixP7blvIlqK*Gh74c5y}Ub#egbJ5N$
+FGXOU66-xjB
+
+diff --git a/po/fr.po b/po/fr.po
+index 6300a5e1ed281b10483c3014d87801524f9c073a..1c2d2dd82858a4cdfdca5592d809bb94f4ee3d74 100644
+GIT binary patch
+delta 20
+ccmZ3|$-1Y5b;HA-lO2DVGOBK_|E1~$0BV>C$^ZZW
+
+delta 103
+zcmdnf!MdcAb;HA-Zb_9TsY+bA#p#(T@dY`hMTt2IN~*;QAmL)LcyUQlv_ULbFh98@
+fwFE9`h$J{U&|iG=y`L7G3P8PJWt+u+sd@nb>VqZ<
+
+diff --git a/po/fr_CA.po b/po/fr_CA.po
+index e98158e75eb6865357a32025951573652c18846a..8526362312a833545e75e06dbdf2dcc24e1033b1 100644
+GIT binary patch
+delta 14
+WcmX@Uo%zQ$<_!;4Z`NNkLmvP=eh0$<
+
+delta 47
+zcmeydjrsU?<_!;4%Oq8nq$+Xc7N=*X#24h07A58=D5(}JfP{-DCr&rme0TM1eE{*1
+B6ixsD
+
+diff --git a/po/gl.po b/po/gl.po
+index dc2565213ce1d27b68ac32d7b72391051daa7ce1..d19c19d94bf52049c1f073cfa35bb3007242b8d5 100644
+GIT binary patch
+delta 17
+Zcmeyrhjrl|)`l&Nr}?&P@-v3{0{}@q2F3sY
+
+delta 90
+zcmZ3uhxPv+)`l&Nr}<oxDoaw8xN?irGgIOVa!QL5a}<<Rixoh^#bEK`lA>sXShyfu
+S%n%_qIq{76_7i-Jk^TVl8X!vm
+
+diff --git a/po/hr.po b/po/hr.po
+index a5784b4a27125142b8e44a9006eefde77ddc6403..5fb706646aba9ad1cde022e83cf158ce1318da5d 100644
+GIT binary patch
+delta 14
+WcmbQSgL%((<_+R&HW#m1st*7(AO_<A
+
+delta 36
+rcmdn9oq5I%<_+R&n3F0?CM&EFVFl8u#go_fYfWA;U3jy|nicv08Y&N1
+
+diff --git a/po/hu.po b/po/hu.po
+index 273b763357d6b6d325b0afd3d0e1ac71446003bb..9be17132fa7cad30a68cfb49d9a975eed0dd6c4c 100644
+GIT binary patch
+delta 17
+ZcmX@Vn)Smf)`l&NCG6WTvorqj1prC-2dV%7
+
+delta 92
+zcmeyciuL?z)`l&NCG2iVl_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xEJX0|
+W!mJXwpdpgr<VJO|?S<@&|9t^19U+SV
+
+diff --git a/po/ia.po b/po/ia.po
+index b98b6c6e747e0813aedc3b1c3af56bb243ac82ce..b99c0a750d1341b0b855207a1c2b788a6e42b1e7 100644
+GIT binary patch
+delta 14
+WcmZo`XW8DyvSG!s&EJpp+W-JHZ3nCX
+
+delta 34
+ncmdnq#?sc#vSGzB=A_D!$s3P}fa!C`<R^!*3vXU}Y?2KC4FnHp
+
+diff --git a/po/id.po b/po/id.po
+index daf936217ca47e64ace245e01934ebe594b68be4..efc129f19e8f9a70714a451b530b415e0e649ee9 100644
+GIT binary patch
+delta 14
+WcmZ4djQQbH<_(gEH%A{np$`B%HV3Kz
+
+delta 58
+zcmaF(lzH(p<_(gE)sreqQkA%Ji_<ex;tO(0ixP7blvIlqK*Ggf@#2!AXoJ|vAFoSq
+JmOOky9{{|Y7rg)g
+
+diff --git a/po/it.po b/po/it.po
+index f3bf606fc88620b8bb5bea54f2b89c72353750bb..75ef823e3c1d07a0504803377a8df4107e4204d6 100644
+GIT binary patch
+delta 36
+scmeyehV|oW)`l&NQJmAab26IpDskl&rx%wLMH|K{C~cSLVhr^G0R90B@&Et;
+
+delta 145
+zcmeykn)S;X)`l&NQJhXml_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xEL;#S
+uW(X6T{NSa;^l(l_3u6VSMup5g1=SRVw9Fic(I6v0%CX3ApTo%*>H`3K7BIB{
+
+diff --git a/po/ja.po b/po/ja.po
+index 16c7df3dc9ae85f9b4a9e7b2df561dbec1a50078..761d9dbc66f39b639cbc6f3f44058adcdafc5c8e 100644
+GIT binary patch
+delta 14
+WcmeymiDmO9mJKd9Hn-h)?*ITiAP6A<
+
+delta 59
+zcmdnIiRJ4imJKd9)RQVpQkA%Ji_<ex;tO(0ixP7blvIlqK*Ggf@#2!AXoJ}43wao&
+KH@n<;?*IVD{udqq
+
+diff --git a/po/ka.po b/po/ka.po
+index 939155abbb8f3455cae29e0cdf55788ddd85435f..4e67f97bd892f41fcf8b1c819e267ebd759429b9 100644
+GIT binary patch
+delta 14
+WcmZo_XF1TuvSH<^&96^Qw*UY&p9iu4
+
+delta 47
+zcmX@m#?sWzvSH;ZnWV~+R3)z5;`Gdv_=23$qQo2pCDmdDkZ|#2o6X9bmz|nr0RYAe
+B6Ey$;
+
+diff --git a/po/kk.po b/po/kk.po
+index 29df55a6b9013f3b2d210d37a03f3aef19bd6217..552b9bc1eac996946f6d78d21e2a776695f557de 100644
+GIT binary patch
+delta 14
+WcmX@Qjk$Rn^M;Dmn|H15)&~GLg$G~&
+
+delta 43
+ycmZqP#(Z=e^M;Dm%t@6clN(oy2mtBSVkNHJ;`HK@qG*HI$%<kUn@d;s=>q_X84(Zw
+
+diff --git a/po/ko.po b/po/ko.po
+index 8e3ecc4039156d79df3c04f8da0cd295d305a4a2..0e4f95cf3e288cfdb8361d34bb9579d78d39198a 100644
+GIT binary patch
+delta 14
+WcmdnJkmctBmJL@fY!<t?)E)pky9dw!
+
+delta 47
+zcmeylfMxeWmJL@f$Rt&kq$+Xc7N=*X#24h07A58=D5(}JfP{-D-`%FX`Qn8Y_5kqs
+B6!riB
+
+diff --git a/po/lt.po b/po/lt.po
+index 01083252d905acc4935a9e607354d34ca817d76b..c446ea3af5dfc77c20164bc3dc3158d8d3b44b25 100644
+GIT binary patch
+delta 14
+Wcmdnc%CfVCWrOU|%~Oub*a84CS_X0e
+
+delta 113
+zcmdnl!m^>2WrOU|xTMOGR3)z5;`Gdv_=23$qQo2pCDmdDkZ>_rytt$&+8`Dpn3!3T
+bh!8bI63v9GHA09U-8|V)R${ZvQCV96_(LaI
+
+diff --git a/po/lv.po b/po/lv.po
+index 2d1b35a4dad4094945cd78e378cf5eefa40659b8..145a4cfa0332357fb15faeedf293aad46e108150 100644
+GIT binary patch
+delta 14
+WcmbRDk@?UE<_$;oY*yG?XAJ;7l?TB9
+
+delta 51
+zcmX@~fqC9X<_$;o$Rt&kq$+Xc7N=*X#24h07A58=D5(}JfP{-DpP!>O*=L#X=7W10
+FtpQ1#7DNC5
+
+diff --git a/po/mn.po b/po/mn.po
+index bf6e35f673f114a2e6c5650d65f4b81679e7d9d0..2e4f46a0cb4af6b22955523a5d1306e562ba19ce 100644
+GIT binary patch
+delta 14
+WcmX>whvnmJmJPE{ZGLqs%ozYYBnSoo
+
+delta 49
+zcmex3o8`b9mJPE{NhMX5q$+Xc7N=*X#24h07A58=D5(}J0EH(XJS9KbV6*V%8K)wh
+E0SiqO!vFvP
+
+diff --git a/po/nb.po b/po/nb.po
+index 9b3fa3ab6450b3ccae6df8a14554b9a156a9c3dd..329c251513ff2adf30f1ba837f7040903014c99e 100644
+GIT binary patch
+delta 14
+WcmaF!hI#HA<_)KIZ<gE>Yy|*6hX=9%
+
+delta 49
+zcmbRHhWX7K<_)KIOC?p7q$+Xc7N=*X#24h07A58=D5(}J0EH)i*eyTVZL-Mb6T3sL
+E04F>Zg#Z8m
+
+diff --git a/po/nl.po b/po/nl.po
+index 06d16db4cd66fb9895373032ac0a03ff19d99b82..268b042df15c93fa723a48f136830725d5752d49 100644
+GIT binary patch
+delta 27
+jcmex3m$iK^Yr_`C_e|4$nHepncQZ4}ZePdD=<E#ul<WyT
+
+delta 110
+zcmZpl%ldIHYr_`C_e?HHl_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xEL;#S
+hW{41*ET}9#{S6bNH48}FbX8_Xc`$3c6EmZ$Hvn{3Bx?Ww
+
+diff --git a/po/pl.po b/po/pl.po
+index 07dd9d303f365d0f25dd21e8f5017fa17d86e861..ddc1d77f4d526974923d220311fdf5a1d959b51b 100644
+GIT binary patch
+delta 17
+ZcmdnGll8z3)`l&ND|xre@i9*K0{}$O2BiQ1
+
+delta 115
+zcmX@GgLUgp)`l&ND|sW6Doaw8xN?irGgIOVa!QL5a}<<Rixoh^#bEK`lA>sXScqU^
+fRta3p5Fu6x7c@c$PJZ}Wa<YO3%l1{gjMMx8Q=KSG
+
+diff --git a/po/pt.po b/po/pt.po
+index 9363c3f2712d9f644ac58233cad5769495ecae51..2f572b7ffb94169909238824a33bf9709fba457c 100644
+GIT binary patch
+delta 17
+YcmZ3qnf1sf)`l&NB0SrRco+?Q0Y5bb-T(jq
+
+delta 90
+zcmX@IiFMIt)`l&NB0Mfhl_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xEL;#S
+SW{41*%%~x~U6hAW-xmOqg&kx7
+
+diff --git a/po/pt_BR.po b/po/pt_BR.po
+index 633749bdbf2f38b25ff8233a0da26e58eedb85fe..910e2a96f77478137df735a36d4b53f232ee4091 100644
+GIT binary patch
+delta 14
+Wcmcb8h^6Nc%Z9lRHotk0?*ITj#t2UU
+
+delta 47
+zcmeA<#B%!(%Z9lRWRfaNQkA%Ji_<ex;tO(0ixP7blvIlqK*Gh7@0~E%JnKP`0|4i-
+B6o~);
+
+diff --git a/po/ro.po b/po/ro.po
+index 66c4358a93fec5619df826245062bf93d75738b2..fab878cc45d670faacd500c7b6102c98f8d836da 100644
+GIT binary patch
+delta 17
+ZcmeBP!8&<4Yr_`C%dFeI*%%M_0sueF2Aco?
+
+delta 117
+zcmbQdoV9xeYr_`C%dBxpl_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xELbo<
+gxg@m&E@+4lJTW^HE^LG>Jbj}eqxkj<tc-_!0iRVVrT_o{
+
+diff --git a/po/ru.po b/po/ru.po
+index 4010b3b5d08c76fd41eb8a658afd5f761e9cf48d..26a6ac356059a6ee284bad81d1d8b09188cfd2d1 100644
+GIT binary patch
+delta 17
+ZcmaF$obB>6wuUW?vjVpp1~KkT1OQRm2n+xK
+
+delta 145
+zcmccojP2EPwuUW?vjXdrDoaw8xN?irGgIOVa!QL5a}<<Rixoh^#bEK`lA>sXSg_!Q
+jjTbgt*m<!DE^de_eqjS##t2mgE^dq_zP%}s@nRwXUz<M5
+
+diff --git a/po/sk.po b/po/sk.po
+index c2d0360a605c342e4887c43fd8379abe8f7a402e..f064b25952062755b2b13f043884af53d9b77247 100644
+GIT binary patch
+delta 32
+ncmZ3oops(e)`l&NX}r^K@iJOW7w2P?n{EvxwkPm0y7&SByE6%@
+
+delta 153
+zcmbQYjdjU()`l&NX}r-%l_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xEJQFd
+zs{}4)h!CrU3mPE=^UEeHa*9n)=4G^INdjt|K9`qKo)yHZ1TiIeQPgg~$;;^K3jmjk
+BG4KEY
+
+diff --git a/po/sl.po b/po/sl.po
+index d0cfcb691e0c8c0d0a663c246b7959d85fb3e849..3f1dfa3957990c9bc1c83513c101daa5693e2a45 100644
+GIT binary patch
+delta 14
+WcmccloB6{p<_#`~Hm^OTV+{a7@(2U~
+
+delta 49
+zcmezHi}~hn<_#`~q>?I2QkA%Ji_<ex;tO(0ixP7blvIlqfWnir4p~lalM~+Tcu3zG
+E02`SUBLDyZ
+
+diff --git a/po/sr.po b/po/sr.po
+index 45ebf57cb49e48fbe3db2ff19a4289066c2298fe..fa63b8d53a9354ac2c85a81505d00bc449a89d85 100644
+GIT binary patch
+delta 17
+ZcmbPpgKheCwuUW?uRXUHcrmU?1OQ6{2iE`q
+
+delta 128
+zcmbP!oo&tywuUW?uRXJpDoaw8xN?irGgIOVa!QL5a}<<Rixoh^#bEK`lA>sXSg_!Q
+mjTbgtoN=)UE^de_eqjS##t2Pj--S(+1^Femzwl&Sp9la)>^EKj
+
+diff --git a/po/szl.po b/po/szl.po
+index e633779d384b9529be2ede0da79de4cf33891ccb..425390c8f67082432ab7861670acbe8213941577 100644
+GIT binary patch
+delta 14
+WcmeC#!MtHR^9JrUo72}U)dv7Fa0asg
+
+delta 49
+zcmdn6ow;WR^9JrUQc0C1sY+bA#p#(T@dY`hMTt2IN~*;QK;g-TYjh^hnJ&DUW6cVE
+E0NdOX5&!@I
+
+diff --git a/po/ta.po b/po/ta.po
+index 44601f74e93355324acc28e9ac1b4db2b2e40f7e..e511c3a1a6f709e5a61e8db48ef28996389491d4 100644
+GIT binary patch
+delta 14
+WcmdnFkNMSJ<_){oZRT39ZvX%~bO#9l
+
+delta 49
+zcmaF0mwD$t<_){oNhMX5q$+Xc7N=*X#24h07A58=D5(}J0EH(%Tqi&I<V@ksJJuN)
+F000@F6-WR8
+
+diff --git a/po/te.po b/po/te.po
+index 326ea2c412b156408f73f9dee08b40bb12eec210..96663872eec1ded22da3b40f0d530bd7a8d7e244 100644
+GIT binary patch
+delta 14
+WcmeC(&b)6M^M+-sH-B9{LmvP+QwQ1r
+
+delta 51
+zcmdnDjk$L_^M+-sWs)jOQkA%Ji_<ex;tO(0ixP7blvIlqK*Gh7_b-&4yi8Jj^YYcx
+F^#LU+6(j%v
+
+diff --git a/po/tr.po b/po/tr.po
+index 18717eaa8c54c9c73eeb497855b94e0496769f80..29d66355101e224d4c04ad224a5222214a28ea1a 100644
+GIT binary patch
+delta 17
+ZcmZo$&AM_GYr_`CnH<}{aWGEs0RTcq2KN8}
+
+delta 90
+zcmZ3vinVPuYr_`CnH(-jl_jZ4T)D;RnJMuFIi*F3ISNXu#R?$dVz78|Nl~;xEJQG|
+VvIH(>h!C5+P)%(6G!DkeJ^-qV9}fTk
+
+diff --git a/po/uk.po b/po/uk.po
+index fb21c06017356dcd51a2a2772afaf6df5e4e1f36..f389705016dd66a262d459a100ad2969697cd31a 100644
+GIT binary patch
+delta 17
+ZcmZ3tgKg1vwuUW?H!ZfOS~8wY0su$n2a^B*
+
+delta 133
+zcmZ3qoo(F?wuUW?H!bp$Doaw8xN?irGgIOVa!QL5a}<<Rixoh^#bEK`lA>sXSOujE
+m8!v3Qu=8Tm#c3BdSt+O@Bn|ON8lg!}o_JDf`!x&3Gf4p0$~>C@
+
+diff --git a/po/vi.po b/po/vi.po
+index 788c3f9ca073b629cc5ecec63e282e7dcd761b2e..69c1e04ea0579ead98b9aea82d465024dae36476 100644
+GIT binary patch
+delta 14
+WcmZ43$#SEEWy9tpoBteHY7YQ7{s<8O
+
+delta 67
+zcmcc7!LqQEWy9tp21%7AsY+bA#p#(T@dY`hMTt2IN~*;QAmL)LcyUQlv_ULfaPmhR
+LvCSKftgr_FdrlfO
+
+diff --git a/po/wa.po b/po/wa.po
+index d8d13ab09a39b2bac4e3d752991e5e3550b42586..b9f764865885b4bfeb0a1bc5a5842c186cb6cfd6 100644
+GIT binary patch
+delta 14
+WcmX?joB7i%<_#U&H(%fW$`k-WZwS5s
+
+delta 34
+ncmex#i}~Pf<_#U&nUg9@CQsZh0;bn(m!BNgFS5C9`x{dLDTolI
+
+diff --git a/po/zh_CN.po b/po/zh_CN.po
+index ba87259f0e79f7f891ce6cf4bf36bb65b5c5da9d..b64fce6c9c065a1ab80253c350c7733c1932962e 100644
+GIT binary patch
+delta 14
+WcmcconWf`1%ZB=on@@e@^Z)=r3<xOz
+
+delta 69
+zcmeD9%yRiN%ZB=ohDntrsY+bA#p#(T@dY`hMTt2IN~*;QAmL)LcyUQlv_ULb@afv=
+RFS@1+vNDQquKCF00RZAS8zBGy
+
+diff --git a/po/zh_TW.po b/po/zh_TW.po
+index b7ca3c128324feaa0928739baf9fbea28fc0d064..8a53216b1e1eed51d45a859878367d456ddc25e0 100644
+GIT binary patch
+delta 14
+WcmaF!jCs{F<_&o}H*eUv#}WWQAP7+a
+
+delta 47
+zcmZ4WjQPzo<_&o}Ws)jOQkA%Ji_<ex;tO(0ixP7blvIlqK*Gh7D;Fzo&fdA-5&-G!
+B6afGL
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index f3fbd7f..1eb307d 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -1079,13 +1079,9 @@ display_total_marked_size (const WPanel * panel, int y, int x, gboolean size_onl
+     buf = size_only ? b_bytes : buffer;
+     cols = w->cols - 2;
+ 
+-    /*
+-     * This is a trick to use two ngettext() calls in one sentence.
+-     * First make "N bytes", then insert it into "X in M files".
+-     */
+-    g_snprintf (b_bytes, sizeof (b_bytes),
+-                ngettext ("%s byte", "%s bytes", panel->total),
+-                size_trunc_sep (panel->total, panels_options.kilobyte_si));
++    g_strlcpy (b_bytes,
++               size_trunc_sep (panel->total, panels_options.kilobyte_si),
++               sizeof (b_bytes));
+     if (!size_only)
+         g_snprintf (buffer, sizeof (buffer),
+                     ngettext ("%s in %d file", "%s in %d files", panel->marked),
+-- 
+2.9.2
+

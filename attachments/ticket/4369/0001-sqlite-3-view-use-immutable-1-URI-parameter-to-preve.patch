@@ -1,0 +1,45 @@
+From 0f777d98dc196beb053fe4a0206ba49b7e738bb2 Mon Sep 17 00:00:00 2001
+From: Dima Gerasimov <karlicoss@gmail.com>
+Date: Wed, 27 Apr 2022 20:33:31 +0100
+Subject: [PATCH] sqlite 3 view: use 'immutable=1' URI parameter to prevent
+ leaving wal/shm files after viewing sqlite database
+
+The problem I often had with viewing .sqlite files with mc is that exiting the view mode mid-way may leave .wal/.shm files in the database directory.
+
+This never caused any actual issues, but a bit annoying, since leftover .wal files are often a sign that the program working with the database exited ungracefully.
+
+This effectively reproduces mc's behaviour:
+
+    /tmp/testsqlite $ rm -f *-wal *-shm && sqlite3 "/tmp/testsqlite/db file.sqlite" .dump | head >/dev/null && ls -1 /tmp/testsqlite/
+    'db file.sqlite'
+    'db file.sqlite-shm'
+    'db file.sqlite-wal'
+
+After the change -- no shm/wal files
+
+    /tmp/testsqlite $ rm -f *-wal *-shm && sqlite3 "file:/tmp/testsqlite/db file.sqlite?immutable=1" .dump | head >/dev/null && ls -1 /tmp/testsqlite/
+    'db file.sqlite'
+
+You can find the docs on immutable mode here https://www.sqlite.org/uri.html#uriimmutable
+Immutable mode has been supported in sqlite since 2014: https://www.sqlite.org/changes.html#version_3_8_5
+In case user's sqlite installation is older, the mode is just quietly ignored, so the change is backwards compatible.
+---
+ misc/ext.d/misc.sh.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/ext.d/misc.sh.in b/misc/ext.d/misc.sh.in
+index c096240c8..c2644ddf8 100644
+--- a/misc/ext.d/misc.sh.in
++++ b/misc/ext.d/misc.sh.in
+@@ -39,7 +39,7 @@ do_view_action() {
+         dbview -b "${MC_EXT_FILENAME}"
+         ;;
+     sqlite)
+-        sqlite3 "${MC_EXT_FILENAME}" .dump
++        sqlite3 "file:${MC_EXT_FILENAME}?immutable=1" .dump
+         ;;
+     mo)
+         msgunfmt "${MC_EXT_FILENAME}" || \
+-- 
+2.34.1
+

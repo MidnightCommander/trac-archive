@@ -1,0 +1,115 @@
+==================================================================================
+   /src/vfs/extfs/helpers-list: tests/src/vfs/extfs/helpers-list/test-suite.log
+==================================================================================
+
+# TOTAL: 1
+# PASS:  0
+# SKIP:  0
+# XFAIL: 0
+# FAIL:  1
+# XPASS: 0
+# ERROR: 0
+
+.. contents:: :depth: 2
+
+FAIL: run
+=========
+
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/hp48+.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/iso9660.xorriso.input
+/mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/iso9660.xorriso.output /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/temp/iso9660.actual-parsed-output.Kx4hzPQ9 differ: char 48, line 1
+
+ERROR: iso9660 has produced output that's different than the expected output.
+
+  Expected output (after parsing): /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/iso9660.xorriso.output
+  Actual output (after parsing): /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/temp/iso9660.actual-parsed-output.Kx4hzPQ9
+
+This might mean that a bug was introduced into iso9660. Or that a bug was fixed.
+Please compare the files.
+
+If the actual output is the correct one, just copy the latter file
+onto the former (and commit to the git repository).
+
+------------ diff of the expected output vs the actual output: -------------
+--- /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/iso9660.xorriso.output	2024-08-08 11:20:10.000000000 +0300
++++ /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/temp/iso9660.actual-parsed-output.Kx4hzPQ9	2024-08-09 10:06:44.616835352 +0300
+@@ -1,14 +1,14 @@
+--r--r--r--   1        0        0         30 2023-12-07 11:48:00 /.alpine-release
+-dr-xr-xr-x   1        0        0          0 2023-12-07 11:48:00 /boot
+--r--r--r--   1        0        0    5751847 2023-12-07 11:48:00 /boot/System.map-lts
+--r--r--r--   1        0        0     261013 2023-12-07 11:48:00 /boot/config-lts
+-dr-xr-xr-x   1        0        0          0 2023-12-07 11:48:00 /boot/dtbs-lts
+-dr-xr-xr-x   1        0        0          0 2023-12-07 11:48:00 /boot/grub
+--r--r--r--   1        0        0    1474560 2023-12-04 23:01:00 /boot/grub/efi.img
+--r--r--r--   1        0        0        140 2023-12-07 11:48:00 /boot/grub/grub.cfg
+--r--r--r--   1        0        0   20486095 2023-12-07 11:48:00 /boot/initramfs-lts
+--r--r--r--   1        0        0  160346112 2023-12-07 11:48:00 /boot/modloop-lts
+-dr-xr-xr-x   1        0        0          0 2023-12-07 11:48:00 /boot/syslinux
+--r--r--r--   1        0        0       2048 2023-12-04 23:01:00 /boot/syslinux/boot.cat
++-r--r--r--   1        0        0         30 2024-12-07 11:48:00 /.alpine-release
++dr-xr-xr-x   1        0        0          0 2024-12-07 11:48:00 /boot
++-r--r--r--   1        0        0    5751847 2024-12-07 11:48:00 /boot/System.map-lts
++-r--r--r--   1        0        0     261013 2024-12-07 11:48:00 /boot/config-lts
++dr-xr-xr-x   1        0        0          0 2024-12-07 11:48:00 /boot/dtbs-lts
++dr-xr-xr-x   1        0        0          0 2024-12-07 11:48:00 /boot/grub
++-r--r--r--   1        0        0    1474560 2024-12-04 23:01:00 /boot/grub/efi.img
++-r--r--r--   1        0        0        140 2024-12-07 11:48:00 /boot/grub/grub.cfg
++-r--r--r--   1        0        0   20486095 2024-12-07 11:48:00 /boot/initramfs-lts
++-r--r--r--   1        0        0  160346112 2024-12-07 11:48:00 /boot/modloop-lts
++dr-xr-xr-x   1        0        0          0 2024-12-07 11:48:00 /boot/syslinux
++-r--r--r--   1        0        0       2048 2024-12-04 23:01:00 /boot/syslinux/boot.cat
+ -r--r--r--   1        0        0        432 2023-05-16 00:00:00 /boot/syslinux/isohdpfx.bin
+ -r--r--r--   1        0        0      43008 2023-05-16 00:00:00 /boot/syslinux/isolinux.bin
+@@ -17,9 +17,9 @@
+ -r--r--r--   1        0        0      23636 2023-05-16 00:00:00 /boot/syslinux/libutil.c32
+ -r--r--r--   1        0        0      11712 2023-05-16 00:00:00 /boot/syslinux/mboot.c32
+--r--r--r--   1        0        0        193 2023-12-07 11:48:00 /boot/syslinux/syslinux.cfg
+--r--r--r--   1        0        0   11879168 2023-12-07 11:48:00 /boot/vmlinuz-lts
+-dr-xr-xr-x   1        0        0          0 2023-12-07 11:48:00 /efi
+-dr-xr-xr-x   1        0        0          0 2023-12-07 11:48:00 /efi/boot
+--r--r--r--   1        0        0     688128 2023-12-07 11:48:00 /efi/boot/bootx64.efi
++-r--r--r--   1        0        0        193 2024-12-07 11:48:00 /boot/syslinux/syslinux.cfg
++-r--r--r--   1        0        0   11879168 2024-12-07 11:48:00 /boot/vmlinuz-lts
++dr-xr-xr-x   1        0        0          0 2024-12-07 11:48:00 /efi
++dr-xr-xr-x   1        0        0          0 2024-12-07 11:48:00 /efi/boot
++-r--r--r--   1        0        0     688128 2024-12-07 11:48:00 /efi/boot/bootx64.efi
+ drwxr-xr-x   1        0        0          0 2024-05-07 01:28:00 /links
+ -rw-r--r--   1        0        0          0 2024-05-07 01:28:00 /links/'side-quotes'
+------------------------------- end of diff --------------------------------
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/lslR.1.spaces.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/lslR.2.spaces-iso.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/lslR.3.spaces-iso-noslash.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/rpm.custom.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/rpm.glib.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/u7z.complex.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/u7z.missing-date.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/u7z.missing-size-and-date.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/u7z.simple.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/uace.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/uarc.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/urar.v4,v3.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/urar.v6,v5.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/uzip.with-zipinfo.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/uzip.without-zipinfo--mdy.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/uzip.without-zipinfo--ymd.input
+PASSED.
+Testing /mnt/tmp/portage/app-misc/mc-4.8.32_rc1/work/mc-4.8.32-pre1/tests/src/vfs/extfs/helpers-list/data/uzoo.input
+PASSED.
+FAIL run (exit status: 1)
+

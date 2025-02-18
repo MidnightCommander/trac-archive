@@ -1,0 +1,104 @@
+From f589bbc67ca5de28fc2b85179c26ba50ee3e4442 Mon Sep 17 00:00:00 2001
+From: Ilia Maslakov <il.smind@gmail.com>
+Date: Fri, 18 Mar 2011 13:12:11 +0000
+Subject: [PATCH 1/2] Ticket #2465 (dynamically resize panels)
+
+    added two actions to dynamically resize panels (PanelEnlangeRight, PanelEnlangeLeft)
+
+Signed-off-by: Ilia Maslakov <il.smind@gmail.com>
+---
+ lib/keybind.c              |    2 ++
+ lib/keybind.h              |    2 ++
+ src/filemanager/layout.c   |   18 ++++++++++++++++++
+ src/filemanager/layout.h   |    2 ++
+ src/filemanager/midnight.c |    6 ++++++
+ 5 files changed, 30 insertions(+), 0 deletions(-)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index a4f4093..c2b412a 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -437,6 +437,8 @@ static name_keymap_t command_names[] = {
+     {"PanelSortOrderBySize", CK_PanelSortOrderBySize},
+     {"PanelSortOrderByMTime", CK_PanelSortOrderByMTime},
+     {"PanelSmartGotoParentDir", CK_PanelSmartGotoParentDir},
++    {"PanelEnlangeLeft", CK_EnlargeLeftPanel},
++    {"PanelEnlangeRight", CK_EnlargeRightPanel},
+ 
+     /* input line */
+     {"InputBol", CK_InputBol},
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 7a7f1b8..7d725d2 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -415,6 +415,8 @@
+ #define CK_DialogNextCmd                7080
+ #define CK_DialogPrevCmd                7081
+ #define CK_EditForceInternalCmd         7082
++#define CK_EnlargeLeftPanel             7083
++#define CK_EnlargeRightPanel            7084
+ 
+ /* panels */
+ #define CK_PanelChdirOtherPanel         8001
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index c84f139..4ec55ab 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -736,6 +736,24 @@ mc_refresh (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
++layout_enlarge_left_panel (void)
++{
++    first_panel_size++;
++    layout_change ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++layout_enlarge_right_panel (void)
++{
++    first_panel_size--;
++    layout_change ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
+ setup_panels (void)
+ {
+     int start_y;
+diff --git a/src/filemanager/layout.h b/src/filemanager/layout.h
+index ad250e5..6e71d8a 100644
+--- a/src/filemanager/layout.h
++++ b/src/filemanager/layout.h
+@@ -35,6 +35,8 @@ extern int nice_rotating_dash;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
++void layout_enlarge_left_panel (void);
++void layout_enlarge_right_panel (void);
+ void layout_change (void);
+ void layout_box (void);
+ void setup_panels (void);
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index f99774c..c1a4541 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -1151,6 +1151,12 @@ midnight_execute_cmd (Widget * sender, unsigned long command)
+         jobs_cmd ();
+         break;
+ #endif
++    case CK_EnlargeLeftPanel:
++        layout_enlarge_left_panel ();
++        break;
++    case CK_EnlargeRightPanel:
++        layout_enlarge_right_panel ();
++        break;
+     case CK_LayoutBox:
+         layout_box ();
+         break;
+-- 
+1.7.3.5
+

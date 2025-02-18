@@ -1,0 +1,70 @@
+---
+ edit/editdraw.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+Index: mc-4.6.2-pre1/edit/editdraw.c
+===================================================================
+--- mc-4.6.2-pre1.orig/edit/editdraw.c
++++ mc-4.6.2-pre1/edit/editdraw.c
+@@ -361,43 +361,43 @@ edit_draw_this_line (WEdit *edit, long b
+ 				p->ch = ' ';
+ 			    }
+ 			    else {
+-				p->ch = '<';
++				p->ch = 0x25C0;
+ 				p->style |= MOD_WHITESPACE;
+ 			    }
+ 			    p++;
+ 			    while (--i > 1) {
+ 				p->style = c;
+-				p->ch = '-';
++				p->ch = 0x2500;
+ 				p++;
+ 			    }
+ 			    p->style = c;
+-			    p->ch = '>';
++			    p->ch = 0x25B6;
+ 			    p++;
+ 			} else if (i > 1) {
+ 			    p->style |= MOD_WHITESPACE;
+-			    p->ch = '<';
++			    p->ch = 0x2190;
+ 			    p++;
+ 			    p->style = c;
+-			    p->ch = '>';
++			    p->ch = 0x2192;
+ 			    p++;
+ 			} else {
+ 			    p->style |= MOD_WHITESPACE;
+-			    p->ch = '>';
++			    p->ch = 0x2194;
+ 			    p++;
+ 			}
+ 		    } else if (use_colors && visible_tws && q >= tws) {
+-			if (p->style & MOD_CURSOR) {
++			if (0 && (p->style & MOD_CURSOR)) {
+ 			    p->ch = ' ';
+ 			}
+ 			else {
+ 			    p->style |= MOD_WHITESPACE;
+-			    p->ch = '.';
++			    p->ch = 0xB7;
+ 			}
+ 			p++;
+ 			c = p->style & ~MOD_CURSOR;
+ 			while (--i) {
+ 			    p->style = c | MOD_WHITESPACE;
+-			    p->ch = ' ';
++			    p->ch = 0xB7;
+ 			    p++;
+ 			}
+ 		    } else {
+@@ -413,7 +413,7 @@ edit_draw_this_line (WEdit *edit, long b
+ 		    break;
+ 		case ' ':
+ 		    if (use_colors && visible_tws && q >= tws && !(p->style & MOD_CURSOR)) {
+-			p->ch = '.';
++			p->ch = 0xB7;
+ 			p->style |= MOD_WHITESPACE;
+ 			p++;
+ 			col++;

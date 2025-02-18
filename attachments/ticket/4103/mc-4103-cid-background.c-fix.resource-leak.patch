@@ -1,0 +1,27 @@
+From 9f1e42121e3e7c58840dae47cbd36097e88e1a28 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 7 Dec 2020 18:29:23 +0000
+Subject: [PATCH] (background.c) fix resource leak
+
+Fix resource leak
+
+Found by Coverity
+Coverity id #32606
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/background.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/background.c b/src/background.c
+index 8774c0cd7..1a97a9b78 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -565,6 +565,7 @@ do_background (file_op_context_t * ctx, char *info)
+                 ;
+             while (dup2 (nullfd, STDERR_FILENO) == -1 && errno == EINTR)
+                 ;
++            close (nullfd);
+         }
+ 
+         return 0;

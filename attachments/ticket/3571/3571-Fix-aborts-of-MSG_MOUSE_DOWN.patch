@@ -1,0 +1,31 @@
+From b1bad4ae20dbae321d43e8ba5c16491e3679b802 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 9 Mar 2016 03:54:23 +0200
+Subject: [PATCH] Fix aborts of MSG_MOUSE_DOWN.
+
+---
+ lib/widget/mouse.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/lib/widget/mouse.c b/lib/widget/mouse.c
+index 43b753b..29b0878 100644
+--- a/lib/widget/mouse.c
++++ b/lib/widget/mouse.c
+@@ -182,6 +182,14 @@ mouse_process_event (Widget * w, mouse_event_t * event, gboolean click)
+     if (event->msg != 0)
+     {
+         ret = w->mouse_callback (w, event->msg, event);
++
++        if (event->msg == MSG_MOUSE_DOWN && ret == MSG_NOT_HANDLED)
++        {
++            /* If a widget aborts a MSG_MOUSE_DOWN, we uncapture it so it
++             * doesn't steal events from other widgets. */
++            w->mouse.capture = FALSE;
++        }
++
+         if (click)
+             ret = w->mouse_callback (w, MSG_MOUSE_CLICK, event);
+     }
+-- 
+2.5.0
+

@@ -1,0 +1,26 @@
+From 487b1b58d8ca6ea4dac220e203d712ed1e1e616b Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Sat, 13 Jun 2009 10:14:06 +0200
+Subject: [PATCH 3/4] more elegant extraction of old version
+
+sed is rather powerful ;)
+---
+ maint/version.sh |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/maint/version.sh b/maint/version.sh
+index a3d6114..8a1fb18 100755
+--- a/maint/version.sh
++++ b/maint/version.sh
+@@ -30,7 +30,7 @@ new_version="$(git describe 2>/dev/null)"
+ 
+ saved_version=
+ [ -r  ${VERSION_FILE} ] && {
+-    saved_version=$(grep '^#define MC_CURRENT_VERSION' ${VERSION_FILE}| sed -r 's/.*"(.*)"$/\1/')
++    saved_version=$(sed -rn 's/^#define MC_CURRENT_VERSION "(.*)"$/\1/p' ${VERSION_FILE})
+ }
+ 
+ [ -z "${saved_version}" -o "${saved_version}" != "${new_version}" ] && {
+-- 
+1.6.3.1
+

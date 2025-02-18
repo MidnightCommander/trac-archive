@@ -1,0 +1,23 @@
+fix -Wconversion warning at gauge.c
+
+gauge.c:101:51: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+gauge.c:102:58: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/widget/gauge.c
++++ d/lib/widget/gauge.c
+@@ -80,8 +80,8 @@
+         {
+             int gauge_len;
+             int percentage, columns;
+-            long total = g->max;
+-            long done = g->current;
++            int total = g->max;
++            int done = g->current;
+ 
+             if (total <= 0 || done < 0)
+             {

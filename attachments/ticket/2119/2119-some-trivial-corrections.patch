@@ -1,0 +1,164 @@
+From acc5b501679d20c456cd275ed3f9c5ee2010aff2 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Mon, 22 Mar 2010 22:08:37 +0000
+Subject: [PATCH]  some trivial corrections
+
+---
+ lib/util.h         |    2 +-
+ src/charsets.h     |    3 ++-
+ src/complete.c     |   12 ++++++++----
+ src/cons.handler.c |    6 ++++--
+ src/dialog.h       |    6 +++---
+ src/editor/etags.c |    1 -
+ src/main.c         |    8 +++++---
+ src/viewer/nroff.c |    2 ++
+ 8 files changed, 25 insertions(+), 15 deletions(-)
+
+diff --git a/lib/util.h b/lib/util.h
+index 606449c..c588434 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -288,7 +288,7 @@ static inline char * str_move(char * dest, const char * src)
+ 
+     n = strlen (src) + 1; /* + '\0' */
+ 
+-    return memmove (dest, src, n);
++    return ((char *) memmove (dest, src, n));
+ }
+ 
+ gboolean mc_util_make_backup_if_possible (const char *, const char *);
+diff --git a/src/charsets.h b/src/charsets.h
+index 98186b8..cb9c7ef 100644
+--- a/src/charsets.h
++++ b/src/charsets.h
+@@ -69,7 +69,8 @@ convert_to_display_c (int c)
+ {
+     if (c < 0 || c >= 256)
+ 	return c;
+-    return conv_displ[c];
++
++    return ((int) conv_displ[c]);
+ }
+ 
+ static inline int
+diff --git a/src/complete.c b/src/complete.c
+index abe0668..2cd098f 100644
+--- a/src/complete.c
++++ b/src/complete.c
+@@ -520,16 +520,20 @@ command_completion_function (const char *_text, int state, INPUT_COMPLETE_FLAGS
+     switch (phase) {
+     case 0:			/* Reserved words */
+ 	while (*words) {
+-	    if (!strncmp (*words, text, text_len))
+-		return g_strdup (*(words++));
++	    if (!strncmp (*words, text, text_len)) {
++		g_free (text);
++ 		return g_strdup (*(words++));
++	    }
+ 	    words++;
+ 	}
+ 	phase++;
+ 	words = bash_builtins;
+     case 1:			/* Builtin commands */
+ 	while (*words) {
+-	    if (!strncmp (*words, text, text_len))
+-		return g_strdup (*(words++));
++	    if (!strncmp (*words, text, text_len)) {
++		g_free (text);
++ 		return g_strdup (*(words++));
++	    }
+ 	    words++;
+ 	}
+ 	phase++;
+diff --git a/src/cons.handler.c b/src/cons.handler.c
+index bb4674b..a65b1a5 100644
+--- a/src/cons.handler.c
++++ b/src/cons.handler.c
+@@ -107,8 +107,10 @@ handle_console_linux (unsigned char action)
+     switch (action) {
+     case CONSOLE_INIT:
+ 	/* Close old pipe ends in case it is the 2nd time we run cons.saver */
+-	close (pipefd1[1]);
+-	close (pipefd2[0]);
++        if (pipefd1[1] > 2) {
++            close (pipefd1[1]);
++            close (pipefd2[0]);
++        }
+ 	/* Create two pipes for communication */
+ 	pipe (pipefd1);
+ 	pipe (pipefd2);
+diff --git a/src/dialog.h b/src/dialog.h
+index c40dd5f..514b6a7 100644
+--- a/src/dialog.h
++++ b/src/dialog.h
+@@ -235,12 +235,12 @@ send_message (Widget *w, widget_msg_t msg, int parm)
+     return (*(w->callback)) (w, msg, parm);
+ }
+ 
+-/* Return 1 if the widget is active, 0 otherwise */
+-static inline int
++/* Return TRUE if the widget is active, FALSE otherwise */
++static inline gboolean
+ dlg_widget_active (void *w)
+ {
+     Widget *w1 = (Widget *) w;
+-    return (w1->parent->current == w1);
++    return ((gboolean) (w1->parent->current == w1));
+ }
+ 
+ void dlg_replace_widget   (Widget *old, Widget *new);
+diff --git a/src/editor/etags.c b/src/editor/etags.c
+index e5d0a81..945f597 100644
+--- a/src/editor/etags.c
++++ b/src/editor/etags.c
+@@ -110,7 +110,6 @@ static gboolean parse_define(char *buf, char **long_name, char **short_name, lon
+             *short_name = g_strdup (shortdef);
+             *line = atol (linedef);
+             return TRUE;
+-            break;
+         }
+         buf++;
+         c = *buf;
+diff --git a/src/main.c b/src/main.c
+index 27e34b7..c01d453 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -1388,9 +1388,9 @@ init_xterm_support (void)
+     const char *termvalue;
+ 
+     termvalue = getenv ("TERM");
+-    if (!termvalue || !(*termvalue)) {
++    if (termvalue == NULL || *termvalue == '\0') {
+ 	fputs (_("The TERM environment variable is unset!\n"), stderr);
+-	exit (1);
++	exit (EXIT_FAILURE);
+     }
+ 
+     /* Check mouse capabilities */
+@@ -2040,7 +2040,9 @@ mc_main__setup_by_args (int argc, char *argv[])
+ 	     * in error messages and warnings. It is supported so that
+ 	     * users can quickly copy and paste file locations.
+ 	     */
+-	    char *end = tmp + strlen (tmp), *p = end;
++	    char *end = tmp + strlen (tmp);
++	    char *p = end;
++
+ 	    if (p > tmp && p[-1] == ':')
+ 		p--;
+ 	    while (p > tmp && g_ascii_isdigit ((gchar) p[-1]))
+diff --git a/src/viewer/nroff.c b/src/viewer/nroff.c
+index 95d743f..4411a1d 100644
+--- a/src/viewer/nroff.c
++++ b/src/viewer/nroff.c
+@@ -277,6 +277,8 @@ mcview_nroff_seq_free (mcview_nroff_t ** nroff)
+ {
+     if (nroff == NULL || *nroff == NULL)
+         return;
++
++    g_free ((*nroff)->view);
+     g_free (*nroff);
+     nroff = NULL;
+ }
+-- 
+1.6.4
+

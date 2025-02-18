@@ -1,0 +1,29 @@
+From fe142c4d06bc52d10f18f4b563a724b584e89388 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 3 Dec 2016 23:00:30 +0200
+Subject: [PATCH] Ticket #3735: make editor show backwards-search error
+ messages.
+
+---
+ src/editor/editcmd.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index c7e91d7..26aad03 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -868,8 +868,9 @@ editcmd_find (edit_search_status_msg_t * esm, gsize * len)
+             if (ok && edit->search->normal_offset == search_start)
+                 return TRUE;
+ 
+-            /* Abort search. */
+-            if (!ok && edit->search->error == MC_SEARCH_E_ABORT)
++            /* We abort the search in case of a pattern error, or if the user aborts
++               the search. In other words: in all cases except "string not found". */
++            if (!ok && edit->search->error != MC_SEARCH_E_NOTFOUND)
+                 return FALSE;
+ 
+             if ((edit->search_line_type & AT_START_LINE) != 0)
+-- 
+2.9.3
+

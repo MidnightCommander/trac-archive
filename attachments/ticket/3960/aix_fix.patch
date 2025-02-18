@@ -1,0 +1,16 @@
+diff --git a/configure.ac b/configure.ac
+index 62f025a..2593464 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -312,8 +312,10 @@ AC_EGREP_CPP([yes],
+     ])
+ 
+ dnl utimensat is supported since glibc 2.6 and specified in POSIX.1-2008
+-dnl utimensat() causes different timespec structures to cause failures on IBM i
++dnl utimensat() causes different timespec structures to cause failures on IBM i and AIX
+ case $host_os in
++aix*)
++    ;;
+ *os400)
+     ;;
+ *)

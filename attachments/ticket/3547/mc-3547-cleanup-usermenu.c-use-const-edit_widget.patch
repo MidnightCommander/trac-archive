@@ -1,0 +1,91 @@
+From e406967e122728211058cc7e81779cddc31c21ac Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 17 Jan 2016 15:32:22 +0000
+Subject: [PATCH] cleanup: usermenu.c use const edit_widget
+
+use const because edit_widget not altered in these functions
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/usermenu.c         | 10 +++++-----
+ src/filemanager/usermenu.h         |  4 ++--
+ tests/src/filemanager/examine_cd.c |  2 +-
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/filemanager/usermenu.c b/src/filemanager/usermenu.c
+index 16e0c5d..5ba3917 100644
+--- a/src/filemanager/usermenu.c
++++ b/src/filemanager/usermenu.c
+@@ -214,7 +214,7 @@ test_type (WPanel * panel, char *arg)
+    p. Returns the point after condition. */
+ 
+ static char *
+-test_condition (WEdit * edit_widget, char *p, gboolean * condition)
++test_condition (const WEdit * edit_widget, char *p, gboolean * condition)
+ {
+     char arg[256];
+     const mc_search_type_t search_type = easy_patterns ? MC_SEARCH_T_GLOB : MC_SEARCH_T_REGEX;
+@@ -356,7 +356,7 @@ debug_out (char *start, char *end, gboolean condition)
+    the point just before the end of line. */
+ 
+ static char *
+-test_line (WEdit * edit_widget, char *p, gboolean * result)
++test_line (const WEdit * edit_widget, char *p, gboolean * result)
+ {
+     char operator;
+ 
+@@ -422,7 +422,7 @@ test_line (WEdit * edit_widget, char *p, gboolean * result)
+ /** FIXME: recode this routine on version 3.0, it could be cleaner */
+ 
+ static void
+-execute_menu_command (WEdit * edit_widget, const char *commands, gboolean show_prompt)
++execute_menu_command (const WEdit * edit_widget, const char *commands, gboolean show_prompt)
+ {
+     FILE *cmd_file;
+     int cmd_file_fd;
+@@ -729,7 +729,7 @@ check_format_var (const char *p, char **v)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ char *
+-expand_format (struct WEdit *edit_widget, char c, gboolean do_quote)
++expand_format (const struct WEdit *edit_widget, char c, gboolean do_quote)
+ {
+     WPanel *panel = NULL;
+     char *(*quote_func) (const char *, gboolean);
+@@ -916,7 +916,7 @@ expand_format (struct WEdit *edit_widget, char c, gboolean do_quote)
+  */
+ 
+ gboolean
+-user_menu_cmd (struct WEdit * edit_widget, const char *menu_file, int selected_entry)
++user_menu_cmd (const struct WEdit * edit_widget, const char *menu_file, int selected_entry)
+ {
+     char *p;
+     char *data, **entries;
+diff --git a/src/filemanager/usermenu.h b/src/filemanager/usermenu.h
+index c3676e0..cd3afdf 100644
+--- a/src/filemanager/usermenu.h
++++ b/src/filemanager/usermenu.h
+@@ -19,8 +19,8 @@ struct WEdit;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-gboolean user_menu_cmd (struct WEdit *edit_widget, const char *menu_file, int selected_entry);
+-char *expand_format (struct WEdit *edit_widget, char c, gboolean do_quote);
++gboolean user_menu_cmd (const struct WEdit *edit_widget, const char *menu_file, int selected_entry);
++char *expand_format (const struct WEdit *edit_widget, char c, gboolean do_quote);
+ int check_format_view (const char *);
+ int check_format_var (const char *, char **);
+ int check_format_cd (const char *);
+diff --git a/tests/src/filemanager/examine_cd.c b/tests/src/filemanager/examine_cd.c
+index b087a91..549e54b 100644
+--- a/tests/src/filemanager/examine_cd.c
++++ b/tests/src/filemanager/examine_cd.c
+@@ -71,7 +71,7 @@ quiet_quit_cmd (void)
+ }
+ 
+ char *
+-expand_format (struct WEdit *edit_widget, char c, gboolean do_quote)
++expand_format (const struct WEdit *edit_widget, char c, gboolean do_quote)
+ {
+     (void) edit_widget;
+     (void) c;

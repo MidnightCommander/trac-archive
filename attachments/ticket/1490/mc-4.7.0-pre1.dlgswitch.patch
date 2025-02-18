@@ -1,0 +1,1190 @@
+diff -Naur mc-4.7.0-pre1~/config.h.in mc-4.7.0-pre1/config.h.in
+--- mc-4.7.0-pre1~/config.h.in	2009-07-31 19:39:34.000000000 +0300
++++ mc-4.7.0-pre1/config.h.in	2009-08-06 16:01:45.000000000 +0300
+@@ -130,6 +130,9 @@
+ /* Define to 1 if you have the <dlfcn.h> header file. */
+ #undef HAVE_DLFCN_H
+ 
++/* Define to enable dialog switcher */
++#undef HAVE_DLGSWITCH
++
+ /* Define to 1 if you have the <dustat.h> header file. */
+ #undef HAVE_DUSTAT_H
+ 
+diff -Naur mc-4.7.0-pre1~/configure mc-4.7.0-pre1/configure
+--- mc-4.7.0-pre1~/configure	2009-07-31 21:49:03.000000000 +0300
++++ mc-4.7.0-pre1/configure	2009-08-06 16:01:45.000000000 +0300
+@@ -789,6 +789,8 @@
+ ac_subst_vars='LTLIBOBJS
+ CONS_SAVER_FALSE
+ CONS_SAVER_TRUE
++DLGSWITCH_FALSE
++DLGSWITCH_TRUE
+ CHARSET_FALSE
+ CHARSET_TRUE
+ ENABLE_MCSERVER_FALSE
+@@ -1097,6 +1099,7 @@
+ with_edit
+ enable_background
+ enable_charset
++enable_dlgswitch
+ '
+       ac_precious_vars='build_alias
+ host_alias
+@@ -1788,6 +1791,7 @@
+   --enable-mcserver       Support mc-specific networking file system server [no]
+   --enable-background     Support for background file operations [yes]
+   --enable-charset        Support for charset selection and conversion [no]
++  --enable-dlgswitch      Enable dialog switcher [yes]
+ 
+ Optional Packages:
+   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+@@ -40789,6 +40793,25 @@
+ 
+ fi
+ 
++
++# Check whether --enable-dlgswitch was given.
++if test "${enable_dlgswitch+set}" = set; then
++  enableval=$enable_dlgswitch;
++fi
++
++dlgswitch_msg="no"
++if test x$enable_dlgswitch != xno; then
++
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_DLGSWITCH 1
++_ACEOF
++
++	have_dlgswitch=yes
++	dlgswitch_msg="yes"
++	{ $as_echo "$as_me:$LINENO: enabling dialog switcher" >&5
++$as_echo "$as_me: enabling dialog switcher" >&6;}
++fi
++
+ if test -z "$ac_env_CFLAGS_set"; then
+     if test -n "$GCC"; then
+ 	CFLAGS="$CFLAGS -Wall"
+@@ -40868,6 +40891,14 @@
+   CHARSET_FALSE=
+ fi
+ 
++ if test -n "$have_dlgswitch"; then
++  DLGSWITCH_TRUE=
++  DLGSWITCH_FALSE='#'
++else
++  DLGSWITCH_TRUE='#'
++  DLGSWITCH_FALSE=
++fi
++
+  if test -n "$cons_saver"; then
+   CONS_SAVER_TRUE=
+   CONS_SAVER_FALSE='#'
+@@ -41327,6 +41358,13 @@
+ Usually this means the macro was only invoked conditionally." >&2;}
+    { (exit 1); exit 1; }; }
+ fi
++if test -z "${DLGSWITCH_TRUE}" && test -z "${DLGSWITCH_FALSE}"; then
++  { { $as_echo "$as_me:$LINENO: error: conditional \"DLGSWITCH\" was never defined.
++Usually this means the macro was only invoked conditionally." >&5
++$as_echo "$as_me: error: conditional \"DLGSWITCH\" was never defined.
++Usually this means the macro was only invoked conditionally." >&2;}
++   { (exit 1); exit 1; }; }
++fi
+ if test -z "${CONS_SAVER_TRUE}" && test -z "${CONS_SAVER_FALSE}"; then
+   { { $as_echo "$as_me:$LINENO: error: conditional \"CONS_SAVER\" was never defined.
+ Usually this means the macro was only invoked conditionally." >&5
+@@ -43959,5 +43997,6 @@
+   With subshell support:      ${subshell}
+   Internal editor:            ${edit_msg}
+   Support for charset:        ${charset_msg}
++  Dialog switcher:            ${dlgswitch_msg}
+   Search type:                ${SEARCH_TYPE}
+ "
+diff -Naur mc-4.7.0-pre1~/configure.ac mc-4.7.0-pre1/configure.ac
+--- mc-4.7.0-pre1~/configure.ac	2009-07-31 19:36:24.000000000 +0300
++++ mc-4.7.0-pre1/configure.ac	2009-08-06 16:01:45.000000000 +0300
+@@ -509,6 +509,20 @@
+     AC_DEFINE(USE_INCLUDED_REGEX, 1, [Use the regex included here])
+ fi
+ 
++
++dnl
++dnl Dialog switcher support.
++dnl
++AC_ARG_ENABLE([dlgswitch],
++        [  --enable-dlgswitch      Enable dialog switcher [[yes]]])
++dlgswitch_msg="no"
++if test x$enable_dlgswitch != xno; then
++	AC_DEFINE(HAVE_DLGSWITCH, 1, [Define to enable dialog switcher])
++	have_dlgswitch=yes
++	dlgswitch_msg="yes"
++	AC_MSG_NOTICE([enabling dialog switcher])
++fi
++
+ dnl If default CFLAGS is used with gcc, add -Wall
+ if test -z "$ac_env_CFLAGS_set"; then
+     if test -n "$GCC"; then
+@@ -539,6 +553,7 @@
+ AM_CONDITIONAL(USE_SAMBA_FS, [test -n "$use_smbfs"])
+ AM_CONDITIONAL(ENABLE_MCSERVER, [test x"$enable_mcserver" = "xyes"])
+ AM_CONDITIONAL(CHARSET, [test -n "$have_charset"])
++AM_CONDITIONAL(DLGSWITCH, [test -n "$have_dlgswitch"])
+ AM_CONDITIONAL(CONS_SAVER, [test -n "$cons_saver"])
+ 
+ AC_CONFIG_FILES([
+@@ -629,5 +644,6 @@
+   With subshell support:      ${subshell}
+   Internal editor:            ${edit_msg}
+   Support for charset:        ${charset_msg}
++  Dialog switcher:            ${dlgswitch_msg}
+   Search type:                ${SEARCH_TYPE}
+ "
+diff -Naur mc-4.7.0-pre1~/edit/edit.h mc-4.7.0-pre1/edit/edit.h
+--- mc-4.7.0-pre1~/edit/edit.h	2009-06-23 21:55:11.000000000 +0300
++++ mc-4.7.0-pre1/edit/edit.h	2009-08-06 16:01:45.000000000 +0300
+@@ -73,6 +73,12 @@
+ 
+ int edit_file (const char *_file, int line);
+ 
++#ifdef HAVE_DLGSWITCH
++void edit_finish_editor(void *edit_dlg, WEdit *wedit, void *edit_menubar);
++void edit_run_editor(void *edit_dlg, WEdit *wedit, void *edit_menubar);
++int edit_file_modified (WEdit *wedit);
++#endif
++
+ const char *edit_get_file_name (const WEdit *edit);
+ int edit_get_curs_col (const WEdit *edit);
+ const char *edit_get_syntax_type (const WEdit *edit);
+diff -Naur mc-4.7.0-pre1~/edit/editcmd.c mc-4.7.0-pre1/edit/editcmd.c
+--- mc-4.7.0-pre1~/edit/editcmd.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd.c	2009-08-06 16:01:45.000000000 +0300
+@@ -67,6 +67,10 @@
+ #include "../edit/editcmd_dialogs.h"
+ #include "../edit/etags.h"
+ 
++#ifdef HAVE_DLGSWITCH
++#include "../src/dlgswitch.h"
++#endif
++
+ /* globals: */
+ 
+ /* search and replace: */
+@@ -512,6 +516,9 @@
+ 		}
+ 
+ 		edit_set_filename (edit, exp);
++#ifdef HAVE_DLGSWITCH
++		dlgswitch_update_path(edit->dir, edit->filename);
++#endif
+ 		g_free (exp);
+ 		edit->modified = 0;
+ 		edit->delete_file = 0;
+@@ -1654,6 +1661,11 @@
+ {
+     if (!edit->modified)
+ 	return 1;
++#ifdef HAVE_DLGSWITCH
++    if (edit->widget.parent->soft_exit) {
++	return 1;
++    }
++#endif
+ 
+     switch (edit_query_dialog3
+ 	    (_("Quit"), _(" File was modified, Save with exit? "),
+diff -Naur mc-4.7.0-pre1~/edit/editmenu.c mc-4.7.0-pre1/edit/editmenu.c
+--- mc-4.7.0-pre1~/edit/editmenu.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/edit/editmenu.c	2009-08-06 16:01:45.000000000 +0300
+@@ -547,9 +547,18 @@
+ 
+ static Menu *EditMenuBar [N_menus];
+ 
++#ifdef HAVE_DLGSWITCH
++/* Hacks */
++static int menu_ref_count = 0;
++#endif
++
+ static void
+ edit_init_menu_normal (void)
+ {
++#ifdef HAVE_DLGSWITCH
++    ++menu_ref_count;
++    if (menu_ref_count > 1) return;
++#endif
+     EditMenuBar[0] = create_menu (_(" File "), FileMenu, menu_entries (FileMenu),
+ 				    "[Internal File Editor]");
+     EditMenuBar[1] = create_menu (_(" Edit "), EditMenu, menu_entries (EditMenu),
+@@ -565,6 +574,10 @@
+ static void
+ edit_init_menu_emacs (void)
+ {
++#ifdef HAVE_DLGSWITCH
++    ++menu_ref_count;
++    if (menu_ref_count > 1) return;
++#endif
+     EditMenuBar[0] = create_menu (_(" File "), FileMenuEmacs, menu_entries (FileMenuEmacs),
+ 				    "[Internal File Editor]");
+     EditMenuBar[1] = create_menu (_(" Edit "), EditMenuEmacs, menu_entries (EditMenuEmacs),
+@@ -602,6 +615,10 @@
+ edit_done_menu (struct WMenu *wmenu)
+ {
+     int i;
++#ifdef HAVE_DLGSWITCH
++    --menu_ref_count;
++    if (menu_ref_count > 0) return;
++#endif
+     for (i = 0; i < N_menus; i++)
+ 	destroy_menu (wmenu->menu[i]);
+ }
+diff -Naur mc-4.7.0-pre1~/edit/editwidget.c mc-4.7.0-pre1/edit/editwidget.c
+--- mc-4.7.0-pre1~/edit/editwidget.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/edit/editwidget.c	2009-08-06 16:01:45.000000000 +0300
+@@ -49,6 +49,10 @@
+ #include "../src/menu.h"	/* menubar_new() */
+ #include "../src/key.h"		/* is_idle() */
+ 
++#ifdef HAVE_DLGSWITCH
++#include "../src/dlgswitch.h"
++#endif
++
+ WEdit *wedit;
+ struct WMenu *edit_menubar;
+ 
+@@ -169,6 +173,35 @@
+     }
+ }
+ 
++#ifdef HAVE_DLGSWITCH
++int
++edit_file_modified (WEdit *wedit)
++{
++    return wedit->modified;
++}
++
++void
++edit_finish_editor(void *edit_dlg, WEdit *wedit, void *edit_menubar)
++{
++    edit_done_menu (edit_menubar);		/* editmenu.c */
++    destroy_dlg (edit_dlg);
++    dlgswitch_remove_current();
++}
++
++void
++edit_run_editor(void *_edit_dlg, WEdit *_wedit, void *_edit_menubar)
++{
++    Dlg_head *edit_dlg = _edit_dlg;
++    wedit = _wedit;
++    edit_menubar = _edit_menubar;
++
++    run_dlg (edit_dlg);
++    if (!edit_dlg->soft_exit) {
++	edit_finish_editor(_edit_dlg, _wedit, _edit_menubar);
++    }
++}
++#endif
++
+ int
+ edit_file (const char *_file, int line)
+ {
+@@ -205,11 +238,16 @@
+     add_widget (edit_dlg, wedit);
+     add_widget (edit_dlg, edit_menubar);
+ 
++#ifdef HAVE_DLGSWITCH
++    dlgswitch_add(edit_dlg, DLG_TYPE_EDIT, _file, wedit, edit_menubar);
++    edit_run_editor(edit_dlg, wedit, edit_menubar);
++#else
+     run_dlg (edit_dlg);
+ 
+     edit_done_menu (edit_menubar);		/* editmenu.c */
+ 
+     destroy_dlg (edit_dlg);
++#endif
+ 
+     return 1;
+ }
+diff -Naur mc-4.7.0-pre1~/src/Makefile.am mc-4.7.0-pre1/src/Makefile.am
+--- mc-4.7.0-pre1~/src/Makefile.am	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/Makefile.am	2009-08-06 16:01:45.000000000 +0300
+@@ -49,6 +49,7 @@
+ 	chmod.c chmod.h chown.c chown.h cmd.c cmd.h color.c color.h	\
+ 	command.c command.h complete.c cons.handler.c	\
+ 	cons.saver.h dialog.c dialog.h dir.c dir.h			\
++	dlgswitch.c dlgswitch.h						\
+ 	execute.c execute.h ext.c ext.h file.c filegui.c	\
+ 	filegui.h file.h filenot.c fileopctx.c fileopctx.h find.c	\
+ 	find.h findme.c	findme.h fs.h					\
+diff -Naur mc-4.7.0-pre1~/src/Makefile.in mc-4.7.0-pre1/src/Makefile.in
+--- mc-4.7.0-pre1~/src/Makefile.in	2009-07-31 21:49:07.000000000 +0300
++++ mc-4.7.0-pre1/src/Makefile.in	2009-08-06 16:01:45.000000000 +0300
+@@ -105,7 +105,7 @@
+ am__mc_SOURCES_DIST = achown.c achown.h background.c background.h \
+ 	boxes.c boxes.h chmod.c chmod.h chown.c chown.h cmd.c cmd.h \
+ 	color.c color.h command.c command.h complete.c cons.handler.c \
+-	cons.saver.h dialog.c dialog.h dir.c dir.h execute.c execute.h \
++	cons.saver.h dialog.c dialog.h dir.c dir.h dlgswitch.c dlgswitch.h execute.c execute.h \
+ 	ext.c ext.h file.c filegui.c filegui.h file.h filenot.c \
+ 	fileopctx.c fileopctx.h find.c find.h findme.c findme.h fs.h \
+ 	glibcompat.c glibcompat.h global.h help.c help.h hotlist.c \
+@@ -126,7 +126,7 @@
+ am__objects_1 = achown.$(OBJEXT) background.$(OBJEXT) boxes.$(OBJEXT) \
+ 	chmod.$(OBJEXT) chown.$(OBJEXT) cmd.$(OBJEXT) color.$(OBJEXT) \
+ 	command.$(OBJEXT) complete.$(OBJEXT) cons.handler.$(OBJEXT) \
+-	dialog.$(OBJEXT) dir.$(OBJEXT) execute.$(OBJEXT) ext.$(OBJEXT) \
++	dialog.$(OBJEXT) dir.$(OBJEXT) dlgswitch.$(OBJEXT) execute.$(OBJEXT) ext.$(OBJEXT) \
+ 	file.$(OBJEXT) filegui.$(OBJEXT) filenot.$(OBJEXT) \
+ 	fileopctx.$(OBJEXT) find.$(OBJEXT) findme.$(OBJEXT) \
+ 	glibcompat.$(OBJEXT) help.$(OBJEXT) hotlist.$(OBJEXT) \
+@@ -404,6 +404,7 @@
+ 	chmod.c chmod.h chown.c chown.h cmd.c cmd.h color.c color.h	\
+ 	command.c command.h complete.c cons.handler.c	\
+ 	cons.saver.h dialog.c dialog.h dir.c dir.h			\
++	dlgswitch.c dlgswitch.h						\
+ 	execute.c execute.h ext.c ext.h file.c filegui.c	\
+ 	filegui.h file.h filenot.c fileopctx.c fileopctx.h find.c	\
+ 	find.h findme.c	findme.h fs.h					\
+@@ -568,6 +569,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cons.saver.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dialog.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dir.Po@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dlgswitch.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ecs-test.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ecs.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/execute.Po@am__quote@
+diff -Naur mc-4.7.0-pre1~/src/cmd.c mc-4.7.0-pre1/src/cmd.c
+--- mc-4.7.0-pre1~/src/cmd.c	2009-07-31 19:36:36.000000000 +0300
++++ mc-4.7.0-pre1/src/cmd.c	2009-08-06 16:01:45.000000000 +0300
+@@ -85,6 +85,10 @@
+ #   include "../edit/edit.h"
+ #endif
+ 
++#ifdef HAVE_DLGSWITCH
++#include "dlgswitch.h"
++#endif
++
+ /* If set and you don't have subshell support,then C-o will give you a shell */
+ int output_starts_shell = 0;
+ 
+@@ -110,6 +114,13 @@
+     static const char *viewer = NULL;
+     int move_dir = 0;
+ 
++#ifdef HAVE_DLGSWITCH
++    if (plain_view || internal) {
++	if (dlgswitch_reuse(DLG_TYPE_VIEW, NULL, filename) == 0) {
++	    return 0;
++	}
++    }
++#endif
+ 
+     if (plain_view) {
+ 	int changed_hex_mode = 0;
+@@ -135,6 +146,9 @@
+ 	    default_nroff_flag = 1;
+ 	if (changed_magic_flag && !altered_magic_flag)
+ 	    default_magic_flag = 1;
++#ifdef HAVE_DLGSWITCH
++	dlgswitch_process_pending();
++#endif
+ 	repaint_screen ();
+ 	return move_dir;
+     }
+@@ -149,6 +163,9 @@
+ 
+ 	if (regex_command (filename, view_entry, &move_dir) == 0) {
+ 	    mc_internal_viewer (NULL, filename, &move_dir, start_line);
++#ifdef HAVE_DLGSWITCH
++	    dlgswitch_process_pending();
++#endif
+ 	    repaint_screen ();
+ 	}
+     } else {
+@@ -288,6 +305,9 @@
+     mc_internal_viewer (command, "", NULL, 0);
+ 
+     g_free (command);
++#ifdef HAVE_DLGSWITCH
++    dlgswitch_process_pending();
++#endif
+ }
+ 
+ void do_edit_at_line (const char *what, int start_line)
+@@ -296,8 +316,16 @@
+ 
+ #ifdef USE_INTERNAL_EDIT
+     if (use_internal_edit){
++#ifdef HAVE_DLGSWITCH
++	if (dlgswitch_reuse(DLG_TYPE_EDIT, NULL, what) == 0) {
++	    return;
++	}
++#endif
+ 	edit_file (what, start_line);
+ 	update_panels (UP_OPTIMIZE, UP_KEEPSEL);
++#ifdef HAVE_DLGSWITCH
++	dlgswitch_process_pending();
++#endif
+ 	repaint_screen ();
+ 	return;
+     }
+diff -Naur mc-4.7.0-pre1~/src/dialog.c mc-4.7.0-pre1/src/dialog.c
+--- mc-4.7.0-pre1~/src/dialog.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/dialog.c	2009-08-06 16:21:30.000000000 +0300
+@@ -41,6 +41,10 @@
+ #include "strutil.h"
+ #include "setup.h"	/* mouse_close_dialog */
+ 
++#ifdef HAVE_DLGSWITCH
++#include "dlgswitch.h"
++#endif
++
+ #define waddc(w,y1,x1,c) move (w->y+y1, w->x+x1); addch (c)
+ 
+ /* Primitive way to check if the the current dialog is our dialog */
+@@ -661,6 +665,22 @@
+     /* first can dlg_callback handle the key */
+     handled = (*h->callback) (h, DLG_KEY, d_key);
+ 
++#ifdef HAVE_DLGSWITCH
++    if (!handled) {
++	switch (d_key) {
++	    case ALT ('`'):
++		dlgswitch_select();
++		return;
++	    case ALT ('.'):
++		dlgswitch_goto_next();
++		return;
++	    case ALT (','):
++		dlgswitch_goto_prev();
++		return;
++	}
++    }
++#endif
++
+     /* next try the hotkey */
+     if (!handled)
+ 	handled = dlg_try_hotkey (h, d_key);
+@@ -728,6 +748,13 @@
+ /* Init the process */
+ void init_dlg (Dlg_head *h)
+ {
++#ifdef HAVE_DLGSWITCH
++    if (h->winch_pending) {
++	h->winch_pending = 0;
++	(*h->callback) (h, DLG_RESIZE, 0);
++    }
++#endif
++
+     /* Initialize dialog manager and widgets */
+     (*h->callback) (h, DLG_INIT, 0);
+     dlg_broadcast_msg (h, WIDGET_INIT, 0);
+diff -Naur mc-4.7.0-pre1~/src/dialog.h mc-4.7.0-pre1/src/dialog.h
+--- mc-4.7.0-pre1~/src/dialog.h	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/dialog.h	2009-08-06 16:01:45.000000000 +0300
+@@ -115,6 +115,11 @@
+     dlg_cb_fn callback;
+     struct Dlg_head *parent;	/* Parent dialog */
+ 
++#ifdef HAVE_DLGSWITCH
++    /* Hacks */
++    int soft_exit;
++    int winch_pending;
++#endif
+ } Dlg_head;
+ 
+ 
+diff -Naur mc-4.7.0-pre1~/src/dlgswitch.c mc-4.7.0-pre1/src/dlgswitch.c
+--- mc-4.7.0-pre1~/src/dlgswitch.c	1970-01-01 02:00:00.000000000 +0200
++++ mc-4.7.0-pre1/src/dlgswitch.c	2009-08-06 16:01:45.000000000 +0300
+@@ -0,0 +1,471 @@
++/*
++ * Copyright (c) 2009 Daniel Borca  All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * Original idea and code: Oleg "Olegarch" Konovalov <olegarch@linuxinside.com>
++ */
++
++
++#include <config.h>
++#include <stdlib.h>
++#include "global.h"
++#include "dialog.h"
++#include "panel.h"
++#include "wtools.h"
++#include "main.h"
++#include "view.h"
++#include "../edit/edit.h"
++#include "dlgswitch.h"
++
++
++#ifdef HAVE_DLGSWITCH
++
++#define LOG(format, ...) /*fprintf (stderr, format, ## __VA_ARGS__)*/
++
++
++struct DLG_NODE {
++    struct DLG_NODE *next;
++    char *name;
++    DLG_TYPE type;
++    Dlg_head *dlg;
++    union {
++	struct {
++	    WView *wview;
++	    int *move_dir_p;
++	} view_data;
++	struct {
++	    WEdit *wedit;
++	    void *edit_menubar;
++	} edit_data;
++    } u;
++};
++
++
++static struct DLG_NODE *mc_dialogs = NULL;	/* List of (background) dialogs: filemanagers, editors, viewers */
++static struct DLG_NODE *mc_cur_dlg = NULL;	/* Currently active dialog */
++static struct DLG_NODE *mc_manager = NULL;	/* File manager dialog - there can be only one */
++static int dlgswitch_pending = 0;		/* Is there any dialogs that we have to run after returning to the manager from another dialog */
++
++
++static unsigned char
++get_hotkey (int n)
++{
++    return (n <= 9) ? '0' + n : 'a' + n - 10;
++}
++
++
++int
++dlgswitch_remove_current (void)
++{
++    struct DLG_NODE *e, *p;
++
++    if (mc_cur_dlg == NULL) {
++	mc_cur_dlg = mc_manager;
++	return 1;
++    }
++
++    for (p = NULL, e = mc_dialogs; e != NULL; p = e, e = e->next) {
++	if (e == mc_cur_dlg) {
++	    if (p != NULL) {
++		p->next = e->next;
++	    } else {
++		mc_dialogs = e->next;
++	    }
++	    free(e->name);
++	    free(e);
++	    if (e == mc_manager) {
++		mc_manager = NULL;
++	    }
++	    mc_cur_dlg = mc_manager;
++	    return 0;
++	}
++    }
++
++    return -1;
++}
++
++
++int
++dlgswitch_add (Dlg_head *h, DLG_TYPE type, const char *name, ...)
++{
++    struct DLG_NODE *e;
++
++    if (mc_manager != NULL && type == DLG_TYPE_MC) {
++	LOG("BUG: %s: mc_manager=%p\n", __FUNCTION__, mc_manager);
++	return -1; /* XXX bug: cannot have two managers */
++    }
++    if (mc_manager == NULL && type != DLG_TYPE_MC) {
++	goto err;
++    }
++
++    e = malloc(sizeof(struct DLG_NODE));
++    if (e) {
++	switch (type) {
++	    case DLG_TYPE_VIEW:
++		e->name = concat_dir_and_file(current_panel->cwd, name);
++		if (e->name != NULL) {
++		    va_list ap;
++		    va_start(ap, name);
++		    e->u.view_data.wview = va_arg(ap, WView *);
++		    e->u.view_data.move_dir_p = va_arg(ap, int *);
++		    va_end(ap);
++		}
++		break;
++	    case DLG_TYPE_EDIT:
++		e->name = name ? concat_dir_and_file(current_panel->cwd, name) : strdup("<new>");
++		if (e->name != NULL) {
++		    va_list ap;
++		    va_start(ap, name);
++		    e->u.edit_data.wedit = va_arg(ap, WEdit *);
++		    e->u.edit_data.edit_menubar = va_arg(ap, void *);
++		    va_end(ap);
++		}
++		break;
++	    case DLG_TYPE_MC:
++		e->name = strdup(name);
++		if (e->name != NULL) {
++		    mc_manager = e;
++		}
++		break;
++	    default:
++		e->name = NULL;
++	}
++	if (e->name == NULL) {
++	    free(e);
++	    goto err;
++	}
++	e->dlg = h;
++	e->type = type;
++	e->next = mc_dialogs;
++	mc_dialogs = e;
++	mc_cur_dlg = e;
++	return 0;
++    }
++
++  err:
++    mc_cur_dlg = NULL;
++    return -1;
++}
++
++
++int
++dlgswitch_update_path (const char *dir, const char *file)
++{
++    char *p;
++
++    if (mc_cur_dlg == NULL) {
++	return -1;
++    }
++
++    if (file == NULL) {
++	return -1;
++    }
++
++    if (dir == NULL) {
++	dir = current_panel->cwd;
++    }
++
++    p = concat_dir_and_file(dir, file);
++    if (p == NULL) {
++	return -1;
++    }
++
++    free(mc_cur_dlg->name);
++    mc_cur_dlg->name = p;
++
++    return 0;
++}
++
++
++static int
++dlgswitch_get_title_len(struct DLG_NODE *e)
++{
++    int len;
++    switch (e->type) {
++	case DLG_TYPE_VIEW:
++	    len = strlen(" View: ") + strlen(e->name);
++	    break;
++	case DLG_TYPE_EDIT:
++	    len = strlen(" Edit: ") + strlen(e->name);
++	    if (edit_file_modified(e->u.edit_data.wedit)) {
++		len += strlen(" (*)");
++	    }
++	    break;
++	case DLG_TYPE_MC:
++	    len = strlen(" ") + strlen(e->name);
++	    break;
++	default:
++	    len = 0;
++    }
++    return len;
++}
++
++
++static char *
++dlgswitch_get_title(struct DLG_NODE *e)
++{
++    char *name;
++    switch (e->type) {
++	case DLG_TYPE_VIEW:
++	    name = malloc(strlen(" View: ") + strlen(e->name) + 1);
++	    if (name != NULL) {
++		strcpy(name, " View: ");
++		strcat(name, e->name);
++	    }
++	    break;
++	case DLG_TYPE_EDIT:
++	    name = malloc(strlen(" Edit: ") + strlen(e->name) + 1 + strlen(" (*)"));
++	    if (name != NULL) {
++		strcpy(name, " Edit: ");
++		strcat(name, e->name);
++		if (edit_file_modified(e->u.edit_data.wedit)) {
++		    strcat(name, " (*)");
++		}
++	    }
++	    break;
++	case DLG_TYPE_MC:
++	    name = malloc(strlen(" ") + strlen(e->name) + 1);
++	    if (name != NULL) {
++		strcpy(name, " ");
++		strcat(name, e->name);
++	    }
++	    break;
++	default:
++	    name = NULL;
++    }
++    if (name != NULL && e == mc_cur_dlg) {
++	name[0] = '>';
++    }
++    return name;
++}
++
++
++void
++dlgswitch_process_pending(void)
++{
++    while (dlgswitch_pending) {
++	dlgswitch_pending = 0;
++
++	mc_cur_dlg->dlg->soft_exit = 0;
++
++	switch (mc_cur_dlg->type) {
++	    case DLG_TYPE_VIEW:
++		view_run_viewer(mc_cur_dlg->dlg, mc_cur_dlg->u.view_data.wview, NULL); /* XXX move_dir_p may not be valid anymore */
++		break;
++	    case DLG_TYPE_EDIT:
++		edit_run_editor(mc_cur_dlg->dlg, mc_cur_dlg->u.edit_data.wedit, mc_cur_dlg->u.edit_data.edit_menubar);
++		update_panels (UP_OPTIMIZE, UP_KEEPSEL); /* XXX a bit heavy-handed */
++		break;
++	    case DLG_TYPE_MC:
++		/* XXX DLG_TYPE_MC can't be pending */
++	    default:
++		break;
++	}
++    }
++
++    do_refresh();
++}
++
++
++static void
++dlgswitch_goto(struct DLG_NODE *e)
++{
++    if (mc_cur_dlg != e) {
++	struct DLG_NODE *old_dlg = mc_cur_dlg;
++	mc_cur_dlg = e;
++	if (old_dlg->type != DLG_TYPE_MC) {
++	    old_dlg->dlg->running = 0;
++	    old_dlg->dlg->soft_exit = 1;
++	    if (e->type != DLG_TYPE_MC) {
++		dlgswitch_pending = 1;
++	    } else {
++		do_refresh();
++	    }
++	} else {
++	    dlgswitch_pending = 1;
++	    dlgswitch_process_pending();
++	}
++    }
++}
++
++
++void
++dlgswitch_select (void)
++{
++    struct DLG_NODE *e;
++    int rows, cols;
++    int i;
++
++    int rv;
++    Listbox *listbox;
++
++    if (midnight_shutdown || mc_cur_dlg == NULL) {
++	return;
++    }
++
++    if (mc_dialogs == NULL) {
++	return;
++    }
++
++    rows = 0;
++    cols = 0;
++    for (e = mc_dialogs; e != NULL; e = e->next) {
++	int len = dlgswitch_get_title_len(e);
++	if (cols < len) {
++	    cols = len;
++	}
++	rows++;
++    }
++
++    listbox = create_listbox_window(cols + 2, rows, _(" Dialogs "), "[Dialog selector]");
++    if (listbox == NULL) {
++	return;
++    }
++    for (i = 0, e = mc_dialogs; e != NULL; e = e->next, i++) {
++	char *text = dlgswitch_get_title(e);
++	LISTBOX_APPEND_TEXT(listbox, get_hotkey(i), text, NULL);
++	free(text);
++    }
++    rv = run_listbox(listbox);
++    if (rv != -1) {
++	for (i = 0, e = mc_dialogs; e != NULL; e = e->next, i++) {
++	    if (i == rv) {
++		dlgswitch_goto(e);
++		break;
++	    }
++	}
++    }
++}
++
++
++void
++dlgswitch_goto_next (void)
++{
++    struct DLG_NODE *e;
++
++    if (midnight_shutdown || mc_cur_dlg == NULL) {
++	return;
++    }
++
++    for (e = mc_dialogs; e != NULL; e = e->next) {
++	if (e == mc_cur_dlg) {
++	    e = e->next;
++	    if (!e) {
++		e = mc_dialogs;
++	    }
++	    dlgswitch_goto(e);
++	    break;
++	}
++    }
++}
++
++
++void
++dlgswitch_goto_prev (void)
++{
++    struct DLG_NODE *e, *p;
++
++    if (midnight_shutdown || mc_cur_dlg == NULL) {
++	return;
++    }
++
++    for (p = NULL, e = mc_dialogs; e != NULL; p = e, e = e->next) {
++	if (e == mc_cur_dlg) {
++	    if (!p) {
++		for (p = mc_dialogs; p->next != NULL; p = p->next) {
++		}
++	    }
++	    dlgswitch_goto(p);
++	    break;
++	}
++    }
++}
++
++
++int
++dlgswitch_reuse (DLG_TYPE type, const char *dir, const char *file)
++{
++    struct DLG_NODE *e;
++
++    if (midnight_shutdown || mc_cur_dlg != mc_manager) {
++	LOG("BUG: %s: midnight_shutdown=%d, mc_cur_dlg=%p, mc_manager=%p\n", __FUNCTION__, midnight_shutdown, mc_cur_dlg, mc_manager);
++	return -1; /* XXX bug? */
++    }
++
++    if ((type == DLG_TYPE_VIEW || type == DLG_TYPE_EDIT) && file != NULL) {
++	char *filename;
++	if (dir == NULL) {
++	    dir = current_panel->cwd;
++	}
++	filename = concat_dir_and_file(dir, file);
++	if (filename == NULL) {
++	    return -1;
++	}
++	for (e = mc_dialogs; e != NULL; e = e->next) {
++	    if (type == e->type && !strcmp(filename, e->name)) {
++		free(filename);
++		dlgswitch_goto(e);
++		return 0;
++	    }
++	}
++	free(filename);
++    }
++
++    return -1;
++}
++
++
++void
++dlgswitch_before_exit (void)
++{
++    struct DLG_NODE *e = mc_dialogs;
++
++    while (e != NULL) {
++	mc_cur_dlg = e;
++	e = mc_cur_dlg->next;
++	switch (mc_cur_dlg->type) {
++	    case DLG_TYPE_VIEW:
++		view_finish_viewer(mc_cur_dlg->dlg, mc_cur_dlg->u.view_data.wview, NULL); /* XXX move_dir_p may not be valid anymore */
++		break;
++	    case DLG_TYPE_EDIT:
++		if (edit_file_modified(mc_cur_dlg->u.edit_data.wedit)) {
++		    dlgswitch_pending = 1;
++		    dlgswitch_process_pending();
++		    break;
++		}
++		edit_finish_editor(mc_cur_dlg->dlg, mc_cur_dlg->u.edit_data.wedit, mc_cur_dlg->u.edit_data.edit_menubar);
++		break;
++	    case DLG_TYPE_MC:
++	    default:
++		break;
++	}
++    }
++
++    dlgswitch_remove_current();
++}
++
++
++void
++dlgswitch_got_winch (void)
++{
++    struct DLG_NODE *e;
++    for (e = mc_dialogs; e != NULL; e = e->next) {
++	if (e != mc_cur_dlg && e != mc_manager) {
++	    e->dlg->winch_pending = 1;
++	}
++    }
++}
++#endif
+diff -Naur mc-4.7.0-pre1~/src/dlgswitch.h mc-4.7.0-pre1/src/dlgswitch.h
+--- mc-4.7.0-pre1~/src/dlgswitch.h	1970-01-01 02:00:00.000000000 +0200
++++ mc-4.7.0-pre1/src/dlgswitch.h	2009-08-06 16:01:45.000000000 +0300
+@@ -0,0 +1,21 @@
++#ifndef DLGSWITCH_H_included
++#define DLGSWITCH_H_included
++
++typedef enum {
++    DLG_TYPE_VIEW,
++    DLG_TYPE_EDIT,
++    DLG_TYPE_MC
++} DLG_TYPE;
++
++int dlgswitch_remove_current (void);
++int dlgswitch_add (Dlg_head *h, DLG_TYPE type, const char *name, ...);
++int dlgswitch_update_path (const char *dir, const char *file);
++void dlgswitch_process_pending(void);
++void dlgswitch_select (void);
++void dlgswitch_goto_next (void);
++void dlgswitch_goto_prev (void);
++int dlgswitch_reuse (DLG_TYPE type, const char *dir, const char *file);
++void dlgswitch_before_exit (void);
++void dlgswitch_got_winch (void);
++
++#endif
+diff -Naur mc-4.7.0-pre1~/src/ext.c mc-4.7.0-pre1/src/ext.c
+--- mc-4.7.0-pre1~/src/ext.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/ext.c	2009-08-06 16:01:45.000000000 +0300
+@@ -45,6 +45,10 @@
+ #include "layout.h"
+ #include "../src/search/search.h"
+ 
++#ifdef HAVE_DLGSWITCH
++#include "dlgswitch.h"
++#endif
++
+ /* If set, we execute the file command to check the file type */
+ int use_file_to_check_type = 1;
+ 
+@@ -254,6 +258,9 @@
+ 	    default_hex_mode = def_hex_mode;
+ 	if (changed_nroff_flag && !altered_nroff_flag)
+ 	    default_nroff_flag = def_nroff_flag;
++#ifdef HAVE_DLGSWITCH
++	dlgswitch_process_pending();
++#endif
+ 	repaint_screen ();
+     } else if (is_cd) {
+ 	char *q;
+diff -Naur mc-4.7.0-pre1~/src/layout.c mc-4.7.0-pre1/src/layout.c
+--- mc-4.7.0-pre1~/src/layout.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/layout.c	2009-08-06 16:01:45.000000000 +0300
+@@ -73,6 +73,10 @@
+ 
+ #include "setup.h"		/* For save_setup() */
+ 
++#ifdef HAVE_DLGSWITCH
++#include "dlgswitch.h"
++#endif
++
+ /* Controls the display of the rotating dash on the verbose mode */
+ int nice_rotating_dash = 1;
+ 
+@@ -798,6 +802,9 @@
+ 
+     /* Inform currently running dialog */
+     (*current_dlg->callback) (current_dlg, DLG_RESIZE, 0);
++#ifdef HAVE_DLGSWITCH
++    dlgswitch_got_winch();
++#endif
+ 
+ #ifdef RESIZABLE_MENUBAR
+     menubar_arrange (the_menubar);
+diff -Naur mc-4.7.0-pre1~/src/main.c mc-4.7.0-pre1/src/main.c
+--- mc-4.7.0-pre1~/src/main.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/src/main.c	2009-08-06 16:01:45.000000000 +0300
+@@ -97,6 +97,10 @@
+ 
+ #include "popt.h"
+ 
++#ifdef HAVE_DLGSWITCH
++#include "dlgswitch.h"
++#endif
++
+ /* When the modes are active, left_panel, right_panel and tree_panel */
+ /* Point to a proper data structure.  You should check with the functions */
+ /* get_current_type and get_other_type the types of the panels before using */
+@@ -928,6 +932,11 @@
+ #ifdef WITH_BACKGROUND
+     {' ', N_("&Background jobs      C-x j"), NULL_HOTKEY, jobs_cmd},
+ #endif
++#ifdef HAVE_DLGSWITCH
++    {' ', N_("Dialog &list          M-`"), NULL_HOTKEY, dlgswitch_select},
++    {' ', N_("Dialog &next          M-."), NULL_HOTKEY, dlgswitch_goto_next},
++    {' ', N_("Dialog pre&v          M-,"), NULL_HOTKEY, dlgswitch_goto_prev},
++#endif
+     {' ', "", NULL_HOTKEY, 0},
+ #ifdef USE_EXT2FSLIB
+     {' ', N_("&Undelete files (ext2fs only)"), NULL_HOTKEY, undelete_cmd},
+@@ -1866,10 +1875,16 @@
+     /* Check if we were invoked as an editor or file viewer */
+     if (!mc_maybe_editor_or_viewer ()) {
+ 	setup_mc ();
++#ifdef HAVE_DLGSWITCH
++	dlgswitch_add(midnight_dlg, DLG_TYPE_MC, _("Midnight Commander"));
++#endif
+ 	setup_panels_and_run_mc ();
+ 
+ 	/* Program end */
+ 	midnight_shutdown = 1;
++#ifdef HAVE_DLGSWITCH
++	dlgswitch_before_exit();
++#endif
+ 
+ 	/* destroy_dlg destroys even current_panel->cwd, so we have to save a copy :) */
+ 	if (last_wd_file && vfs_current_is_local ()) {
+diff -Naur mc-4.7.0-pre1~/src/user.c mc-4.7.0-pre1/src/user.c
+--- mc-4.7.0-pre1~/src/user.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/user.c	2009-08-06 16:01:45.000000000 +0300
+@@ -50,6 +50,10 @@
+ #include "wtools.h"
+ #include "view.h" /* for default_* externs */
+ 
++#ifdef HAVE_DLGSWITCH
++#include "dlgswitch.h"
++#endif
++
+ #define MAX_ENTRIES 16
+ #define MAX_ENTRY_LEN 60
+ 
+@@ -695,6 +699,9 @@
+     if (run_view) {
+ 	run_view = 0;
+ 	mc_internal_viewer (file_name, NULL, &run_view, 0);
++#ifdef HAVE_DLGSWITCH
++	dlgswitch_process_pending();
++#endif
+     } else {
+ 	/* execute the command indirectly to allow execution even
+ 	 * on no-exec filesystems. */
+diff -Naur mc-4.7.0-pre1~/src/view.c mc-4.7.0-pre1/src/view.c
+--- mc-4.7.0-pre1~/src/view.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/view.c	2009-08-06 16:01:45.000000000 +0300
+@@ -71,6 +71,10 @@
+ #include "strutil.h"
+ #include "../src/search/search.h"
+ 
++#ifdef HAVE_DLGSWITCH
++#include "dlgswitch.h"
++#endif
++
+ /* Block size for reading files in parts */
+ #define VIEW_PAGE_SIZE		((size_t) 8192)
+ 
+@@ -3808,6 +3812,27 @@
+ /* {{{ External interface }}} */
+ 
+ /* Real view only */
++
++#ifdef HAVE_DLGSWITCH
++void
++view_finish_viewer (Dlg_head *view_dlg, WView *wview, int *move_dir_p)
++{
++    if (move_dir_p)
++	*move_dir_p = wview->move_dir;
++    destroy_dlg (view_dlg);
++    dlgswitch_remove_current();
++}
++
++void
++view_run_viewer (Dlg_head *view_dlg, WView *wview, int *move_dir_p)
++{
++    run_dlg (view_dlg);
++    if (!view_dlg->soft_exit) {
++	view_finish_viewer(view_dlg, wview, move_dir_p);
++    }
++}
++#endif
++
+ int
+ mc_internal_viewer (const char *command, const char *file,
+ 	int *move_dir_p, int start_line)
+@@ -3829,6 +3854,17 @@
+     add_widget (view_dlg, bar);
+     add_widget (view_dlg, wview);
+ 
++#ifdef HAVE_DLGSWITCH
++    if (move_dir_p)
++	*move_dir_p = 0;
++    succeeded = view_load (wview, command, file, start_line);
++    if (succeeded) {
++	dlgswitch_add(view_dlg, DLG_TYPE_VIEW, file, wview, move_dir_p);
++	view_run_viewer(view_dlg, wview, move_dir_p);
++    } else {
++	destroy_dlg (view_dlg);
++    }
++#else
+     succeeded = view_load (wview, command, file, start_line);
+     if (succeeded) {
+ 	run_dlg (view_dlg);
+@@ -3839,6 +3875,7 @@
+ 	    *move_dir_p = 0;
+     }
+     destroy_dlg (view_dlg);
++#endif
+ 
+     return succeeded;
+ }
+diff -Naur mc-4.7.0-pre1~/src/view.h mc-4.7.0-pre1/src/view.h
+--- mc-4.7.0-pre1~/src/view.h	2009-06-23 21:55:12.000000000 +0300
++++ mc-4.7.0-pre1/src/view.h	2009-08-06 16:01:45.000000000 +0300
+@@ -38,4 +38,9 @@
+ extern int altered_nroff_flag;
+ extern int mcview_remember_file_position;
+ 
++#ifdef HAVE_DLGSWITCH
++void view_run_viewer (Dlg_head *view_dlg, WView *wview, int *move_dir_p);
++void view_finish_viewer (Dlg_head *view_dlg, WView *wview, int *move_dir_p);
++#endif
++
+ #endif

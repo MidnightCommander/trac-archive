@@ -1,0 +1,13 @@
+diff --git a/lib/util.c b/lib/util.c
+index 504c8ea..9789481 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -747,7 +747,7 @@ strip_ctrl_codes (char *s)
+             if (*(++r) == '[' || *r == '(')
+             {
+                 /* strchr() matches trailing binary 0 */
+-                while (*(++r) != '\0' && strchr ("0123456789;?", *r) != NULL)
++                while (*(++r) != '\0' && strchr ("0123456789;:?", *r) != NULL)
+                     ;
+             }
+             else if (*r == ']')

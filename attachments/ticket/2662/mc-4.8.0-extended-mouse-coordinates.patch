@@ -1,0 +1,250 @@
+http://www.midnight-commander.org/ticket/2662
+
+diff -ur mc-4.8.0.orig/lib/tty/key.c mc-4.8.0/lib/tty/key.c
+--- mc-4.8.0.orig/lib/tty/key.c	2011-10-18 13:39:19.000000000 +0200
++++ mc-4.8.0/lib/tty/key.c	2011-11-07 12:46:55.575905760 +0100
+@@ -518,6 +518,8 @@
+ 
+ static int *pending_keys = NULL;
+ 
++static int mouse_btn, mouse_x, mouse_y;
++
+ #ifdef __QNXNTO__
+ ph_dv_f ph_attach;
+ ph_ov_f ph_input_group;
+@@ -708,7 +710,6 @@
+ static void
+ xmouse_get_event (Gpm_Event * ev)
+ {
+-    int btn;
+     static struct timeval tv1 = { 0, 0 };       /* Force first click as single */
+     static struct timeval tv2;
+     static int clicks = 0;
+@@ -716,13 +717,10 @@
+ 
+     /* Decode Xterm mouse information to a GPM style event */
+ 
+-    /* Variable btn has following meaning: */
+-    /* 0 = btn1 dn, 1 = btn2 dn, 2 = btn3 dn, 3 = btn up */
+-    btn = tty_lowlevel_getch () - 32;
+-
+     /* There seems to be no way of knowing which button was released */
+     /* So we assume all the buttons were released */
+ 
++    int btn = mouse_btn;
+     if (btn == 3)
+     {
+         if (last_btn != 0)
+@@ -797,10 +795,8 @@
+         }
+         last_btn = ev->buttons;
+     }
+-    /* Coordinates are 33-based */
+-    /* Transform them to 1-based */
+-    ev->x = tty_lowlevel_getch () - 32;
+-    ev->y = tty_lowlevel_getch () - 32;
++    ev->x = mouse_x;
++    ev->y = mouse_y;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -935,6 +931,75 @@
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++/* Parse extended mouse coordinates.
++   Returns -1 if pending_keys cannot be a prefix of extended mouse coordinates.
++   Returns 0 if pending_keys is a valid (but still incomplete) prefix for extended mouse coordinates, e.g. "^[[32;4".
++   Returns 1 and fills the mouse_btn, mouse_x, mouse_y values if pending_keys is a complete extended mouse sequence, e.g. "^[[32;42;5M" */
++static int
++parse_extended_mouse_coordinates (void)
++{
++    int c, btn = 0, x = 0, y = 0;
++    const int *p = pending_keys;
++
++    c = *p++;
++    if (c == 0)
++        return 0;
++    else if (c != ESC_CHAR)
++        return -1;
++
++    c = *p++;
++    if (c == 0)
++        return 0;
++    else if (c != '[')
++        return -1;
++
++    while (1) {
++        c = *p++;
++        if (c == 0)
++            return 0;
++        if (c == ';')
++            break;
++        if (c < '0' || c > '9')
++            return -1;
++        btn = 10 * btn + c - '0';
++    }
++    if (btn < 32)
++        return -1;
++    btn -= 32;
++
++    while (1) {
++        c = *p++;
++        if (c == 0)
++            return 0;
++        if (c == ';')
++            break;
++        if (c < '0' || c > '9')
++            return -1;
++        x = 10 * x + c - '0';
++    }
++    if (x < 1)
++        return -1;
++
++    while (1) {
++        c = *p++;
++        if (c == 0)
++            return 0;
++        if (c == 'M')
++            break;
++        if (c < '0' || c > '9')
++            return -1;
++        y = 10 * y + c - '0';
++    }
++    if (y < 1)
++        return -1;
++
++    mouse_btn = btn;
++    mouse_x = x;
++    mouse_y = y;
++    return 1;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ /* Apply corrections for the keycode generated in get_key_code() */
+ 
+ static int
+@@ -1693,22 +1758,31 @@
+   pend_send:
+     if (pending_keys != NULL)
+     {
+-        int d = *pending_keys++;
+-      check_pend:
+-        if (*pending_keys == 0)
+-        {
+-            pending_keys = NULL;
+-            seq_append = NULL;
+-        }
+-        if ((d == ESC_CHAR) && (pending_keys != NULL))
+-        {
+-            d = ALT (*pending_keys++);
+-            goto check_pend;
++        int m = parse_extended_mouse_coordinates();
++        if (m == 1) {
++            pending_keys = seq_append = NULL;
++            this = NULL;
++            return MCKEY_EXTENDED_MOUSE;
++        }
++        else if (m == -1) {
++            int d = *pending_keys++;
++          check_pend:
++            if (*pending_keys == 0)
++            {
++                pending_keys = NULL;
++                seq_append = NULL;
++            }
++            if ((d == ESC_CHAR) && (pending_keys != NULL))
++            {
++                d = ALT (*pending_keys++);
++                goto check_pend;
++            }
++            if ((d > 127 && d < 256) && use_8th_bit_as_meta)
++                d = ALT (d & 0x7f);
++            this = NULL;
++            return correct_key_code (d);
+         }
+-        if ((d > 127 && d < 256) && use_8th_bit_as_meta)
+-            d = ALT (d & 0x7f);
+-        this = NULL;
+-        return correct_key_code (d);
++        /* else if (m == 0), just let it continue */
+     }
+ 
+   nodelay_try_again:
+@@ -2015,9 +2089,20 @@
+ #ifdef KEY_MOUSE
+                           || c == KEY_MOUSE
+ #endif /* KEY_MOUSE */
++                          || c == MCKEY_EXTENDED_MOUSE
+         ))
+     {
+         /* Mouse event */
++        /* In case of extended coordinates, mouse_btn, mouse_x and mouse_y are already filled in. */
++        if (c != MCKEY_EXTENDED_MOUSE) {
++            /* Variable btn has following meaning: */
++            /* 0 = btn1 dn, 1 = btn2 dn, 2 = btn3 dn, 3 = btn up */
++            mouse_btn = tty_lowlevel_getch () - 32;
++            /* Coordinates are 33-based */
++            /* Transform them to 1-based */
++            mouse_x = tty_lowlevel_getch () - 32;
++            mouse_y = tty_lowlevel_getch () - 32;
++        }
+         xmouse_get_event (event);
+         return (event->type != 0) ? EV_MOUSE : EV_NONE;
+     }
+diff -ur mc-4.8.0.orig/lib/tty/key.h mc-4.8.0/lib/tty/key.h
+--- mc-4.8.0.orig/lib/tty/key.h	2011-10-18 13:39:00.000000000 +0200
++++ mc-4.8.0/lib/tty/key.h	2011-11-07 12:39:39.694759637 +0100
+@@ -33,6 +33,9 @@
+ /* Return code for the mouse sequence */
+ #define MCKEY_MOUSE     -2
+ 
++/* Return code for the extended mouse sequence */
++#define MCKEY_EXTENDED_MOUSE     -3
++
+ /*** enums ***************************************************************************************/
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+diff -ur mc-4.8.0.orig/lib/tty/mouse.c mc-4.8.0/lib/tty/mouse.c
+--- mc-4.8.0.orig/lib/tty/mouse.c	2011-10-18 13:39:19.000000000 +0200
++++ mc-4.8.0/lib/tty/mouse.c	2011-11-07 12:39:39.694759637 +0100
+@@ -138,6 +138,9 @@
+         /* enable mouse tracking */
+         printf (ESC_STR "[?1000h");
+ 
++        /* enable urxvt extended mouse coordinate reporting */
++        printf (ESC_STR "[?1015h");
++
+         fflush (stdout);
+         mouse_enabled = TRUE;
+         break;
+@@ -149,6 +152,9 @@
+         /* enable mouse tracking */
+         printf (ESC_STR "[?1002h");
+ 
++        /* enable urxvt extended mouse coordinate reporting */
++        printf (ESC_STR "[?1015h");
++
+         fflush (stdout);
+         mouse_enabled = TRUE;
+         break;
+@@ -176,6 +182,9 @@
+         break;
+ #endif
+     case MOUSE_XTERM_NORMAL_TRACKING:
++        /* disable urxvt extended mouse coordinate reporting */
++        printf (ESC_STR "[?1015l");
++
+         /* disable mouse tracking */
+         printf (ESC_STR "[?1000l");
+ 
+@@ -185,6 +194,9 @@
+         fflush (stdout);
+         break;
+     case MOUSE_XTERM_BUTTON_EVENT_TRACKING:
++        /* disable urxvt extended mouse coordinate reporting */
++        printf (ESC_STR "[?1015l");
++
+         /* disable mouse tracking */
+         printf (ESC_STR "[?1002l");
+ 

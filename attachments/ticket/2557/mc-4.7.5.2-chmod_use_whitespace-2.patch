@@ -1,0 +1,45 @@
+--- mc-4.7.5.2/src/filemanager/chmod.c
++++ mc-4.7.5.2-new/src/filemanager/chmod.c
+@@ -49,11 +49,14 @@
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+-#define PX 5
++#define PX 2
+ #define PY 2
++#define PWIDTH 38
+ 
+ #define FX 40
+ #define FY 2
++#define FWIDTH 28
++#define FHEIGHT 10
+ 
+ #define BX 6
+ #define BY 17
+@@ -230,7 +233,7 @@
+     single_set = (current_panel->marked < 2) ? 2 : 0;
+ 
+     ch_dlg =
+-        create_dlg (TRUE, 0, 0, 22 - single_set, 70, dialog_colors,
++        create_dlg (TRUE, 0, 0, 22 - single_set, FWIDTH + PWIDTH + 4, dialog_colors,
+                     chmod_callback, "[Chmod]", _("Chmod command"), DLG_CENTER | DLG_REVERSE);
+ 
+     for (i = 0; i < BUTTONS; i++)
+@@ -245,7 +248,7 @@
+                                     chmod_but[i].flags, _(chmod_but[i].text), 0));
+     }
+ 
+-    add_widget (ch_dlg, groupbox_new (FY, FX, 10, 25, _("File")));
++    add_widget (ch_dlg, groupbox_new (FY, FX, FHEIGHT, FWIDTH, _("File")));
+ 
+     for (i = 0; i < PERMISSIONS; i++)
+     {
+@@ -253,7 +256,7 @@
+         add_widget (ch_dlg, check_perm[i].check);
+     }
+ 
+-    add_widget (ch_dlg, groupbox_new (PY, PX, PERMISSIONS + 2, 33, _("Permission")));
++    add_widget (ch_dlg, groupbox_new (PY, PX, PERMISSIONS + 2, PWIDTH, _("Permission")));
+ 
+     return ch_dlg;
+ }

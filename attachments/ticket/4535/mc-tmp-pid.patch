@@ -1,0 +1,25 @@
+diff --git a/lib/vfs/interface.c b/lib/vfs/interface.c
+index 545dd1d46..82bc2d55e 100644
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -762,7 +762,7 @@ mc_mkstemps (vfs_path_t ** pname_vpath, const char *prefix, const char *suffix)
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Return the directory where mc should keep its temporary files.
+- * This directory is (in Bourne shell terms) "${TMPDIR=/tmp}/mc-$USER"
++ * This directory is (in Bourne shell terms) "${TMPDIR=/tmp}/mc-$USER-$PID"
+  * When called the first time, the directory is created if needed.
+  * The first call should be done early, since we are using fprintf()
+  * and not message() to report possible problems.
+@@ -793,9 +793,9 @@ mc_tmpdir (void)
+ 
+     pwd = getpwuid (getuid ());
+     if (pwd != NULL)
+-        g_snprintf (buffer, sizeof (buffer), "%s/mc-%s", sys_tmp, pwd->pw_name);
++        g_snprintf (buffer, sizeof (buffer), "%s/mc-%s-%lu", sys_tmp, pwd->pw_name, (unsigned long) getpid ());
+     else
+-        g_snprintf (buffer, sizeof (buffer), "%s/mc-%lu", sys_tmp, (unsigned long) getuid ());
++        g_snprintf (buffer, sizeof (buffer), "%s/mc-%lu-%lu", sys_tmp, (unsigned long) getuid (), (unsigned long) getpid ());
+ 
+     canonicalize_pathname (buffer);
+ 

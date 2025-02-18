@@ -1,0 +1,1166 @@
+execve("/usr/local/bin/mc", ["mc"], [/* 101 vars */]) = 0
+brk(0)                                  = 0x6c4000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1966000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1965000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/tls/x86_64/libgmodule-2.0.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/staden-linux-1-7-0/lib/linux-binaries/tls/x86_64", 0x7fffd9966b10) = -1 ENOENT (No such file or directory)
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/tls/libgmodule-2.0.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/staden-linux-1-7-0/lib/linux-binaries/tls", 0x7fffd9966b10) = -1 ENOENT (No such file or directory)
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/x86_64/libgmodule-2.0.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/staden-linux-1-7-0/lib/linux-binaries/x86_64", 0x7fffd9966b10) = -1 ENOENT (No such file or directory)
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libgmodule-2.0.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/staden-linux-1-7-0/lib/linux-binaries", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=151871, ...}) = 0
+mmap(NULL, 151871, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d193f000
+close(3)                                = 0
+open("/usr/lib64/libgmodule-2.0.so.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340\21\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=15048, ...}) = 0
+mmap(NULL, 2109912, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d1546000
+fadvise64(3, 0, 2109912, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d1549000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d1748000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f09d1748000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libdl.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libdl.so.2", O_RDONLY)     = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320\r\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=16040, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d193e000
+mmap(NULL, 2109696, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d1342000
+fadvise64(3, 0, 2109696, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d1344000, 2097152, PROT_NONE) = 0
+mmap(0x7f09d1544000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f09d1544000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libglib-2.0.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib64/libglib-2.0.so.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320O\1\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=799864, ...}) = 0
+mmap(NULL, 2891912, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d107f000
+fadvise64(3, 0, 2891912, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d1140000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d133f000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xc0000) = 0x7f09d133f000
+mmap(0x7f09d1341000, 136, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f09d1341000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libext2fs.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libext2fs.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300\215\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=173384, ...}) = 0
+mmap(NULL, 2263344, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d0e56000
+fadvise64(3, 0, 2263344, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d0e7e000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d107d000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x27000) = 0x7f09d107d000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libcom_err.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libcom_err.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320\21\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=15304, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d193d000
+mmap(NULL, 2109808, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d0c52000
+fadvise64(3, 0, 2109808, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d0c54000, 2097152, PROT_NONE) = 0
+mmap(0x7f09d0e54000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f09d0e54000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libgpm.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib64/libgpm.so.1", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260 \0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=23888, ...}) = 0
+mmap(NULL, 2119304, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d0a4c000
+fadvise64(3, 0, 2119304, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d0a51000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d0c50000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4000) = 0x7f09d0c50000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libnsl.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libnsl.so.1", O_RDONLY)    = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0`@\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=92640, ...}) = 0
+mmap(NULL, 2194096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d0834000
+fadvise64(3, 0, 2194096, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d0849000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d0a48000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x14000) = 0x7f09d0a48000
+mmap(0x7f09d0a4a000, 6832, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f09d0a4a000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libc.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libc.so.6", O_RDONLY)      = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\345\1\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1495120, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d193c000
+mmap(NULL, 3506872, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d04db000
+fadvise64(3, 0, 3506872, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d062a000, 2097152, PROT_NONE) = 0
+mmap(0x7f09d082a000, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x14f000) = 0x7f09d082a000
+mmap(0x7f09d082f000, 17080, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f09d082f000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libpcre.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib64/libpcre.so.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\20\26\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=167976, ...}) = 0
+mmap(NULL, 2261264, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d02b2000
+fadvise64(3, 0, 2261264, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d02da000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d04d9000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x27000) = 0x7f09d04d9000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libncurses.so.5", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libncurses.so.5", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260Q\1\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=299848, ...}) = 0
+mmap(NULL, 2386320, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09d006b000
+fadvise64(3, 0, 2386320, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09d00a9000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d02a8000, 36864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3d000) = 0x7f09d02a8000
+mmap(0x7f09d02b1000, 2448, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f09d02b1000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libm.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libm.so.6", O_RDONLY)      = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0000>\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=380776, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d193b000
+mmap(NULL, 2445496, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cfe15000
+fadvise64(3, 0, 2445496, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cfe6a000, 2093056, PROT_NONE) = 0
+mmap(0x7f09d0069000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x54000) = 0x7f09d0069000
+close(3)                                = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d193a000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1939000
+arch_prctl(ARCH_SET_FS, 0x7f09d1939710) = 0
+open("/dev/urandom", O_RDONLY)          = 3
+read(3, "PA\243\305\10\272;\2", 8)      = 8
+close(3)                                = 0
+mprotect(0x7f09d0069000, 4096, PROT_READ) = 0
+mprotect(0x7f09d02a8000, 16384, PROT_READ) = 0
+mprotect(0x7f09d04d9000, 4096, PROT_READ) = 0
+mprotect(0x7f09d082a000, 16384, PROT_READ) = 0
+mprotect(0x7f09d0a48000, 4096, PROT_READ) = 0
+mprotect(0x7f09d0c50000, 4096, PROT_READ) = 0
+mprotect(0x7f09d0e54000, 4096, PROT_READ) = 0
+mprotect(0x7f09d107d000, 4096, PROT_READ) = 0
+mprotect(0x7f09d133f000, 4096, PROT_READ) = 0
+mprotect(0x7f09d1544000, 4096, PROT_READ) = 0
+mprotect(0x7f09d1748000, 4096, PROT_READ) = 0
+mprotect(0x6a0000, 4096, PROT_READ)     = 0
+mprotect(0x7f09d1967000, 4096, PROT_READ) = 0
+munmap(0x7f09d193f000, 151871)          = 0
+brk(0)                                  = 0x6c4000
+brk(0x6e5000)                           = 0x6e5000
+open("/usr/lib/locale/locale-archive", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale/locale.alias", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=2512, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1964000
+read(3, "# Locale name alias data base.\n#"..., 4096) = 2512
+read(3, "", 4096)                       = 0
+close(3)                                = 0
+munmap(0x7f09d1964000, 4096)            = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_IDENTIFICATION", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_IDENTIFICATION", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=373, ...}) = 0
+mmap(NULL, 373, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1964000
+close(3)                                = 0
+open("/usr/lib64/gconv/gconv-modules.cache", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=26042, ...}) = 0
+mmap(NULL, 26042, PROT_READ, MAP_SHARED, 3, 0) = 0x7f09d195d000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_MEASUREMENT", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_MEASUREMENT", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=23, ...}) = 0
+mmap(NULL, 23, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d195c000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_TELEPHONE", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_TELEPHONE", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=59, ...}) = 0
+mmap(NULL, 59, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d195b000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_ADDRESS", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_ADDRESS", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=155, ...}) = 0
+mmap(NULL, 155, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d195a000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_NAME", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_NAME", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=77, ...}) = 0
+mmap(NULL, 77, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1959000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_PAPER", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_PAPER", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=34, ...}) = 0
+mmap(NULL, 34, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1958000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_MESSAGES", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_MESSAGES", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+close(3)                                = 0
+open("/usr/lib/locale/en_US.utf8/LC_MESSAGES/SYS_LC_MESSAGES", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=52, ...}) = 0
+mmap(NULL, 52, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1957000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_MONETARY", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_MONETARY", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=286, ...}) = 0
+mmap(NULL, 286, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1956000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_COLLATE", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_COLLATE", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=932038, ...}) = 0
+mmap(NULL, 932038, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1855000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_TIME", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_TIME", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=2454, ...}) = 0
+mmap(NULL, 2454, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1955000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_NUMERIC", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_NUMERIC", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=54, ...}) = 0
+mmap(NULL, 54, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1954000
+close(3)                                = 0
+open("/usr/lib/locale/en_US.UTF-8/LC_CTYPE", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/locale/en_US.utf8/LC_CTYPE", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=254076, ...}) = 0
+mmap(NULL, 254076, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d1816000
+close(3)                                = 0
+getuid()                                = 1000
+socket(PF_FILE, SOCK_STREAM, 0)         = 3
+fcntl(3, F_SETFL, O_RDWR|O_NONBLOCK)    = 0
+connect(3, {sa_family=AF_FILE, path="/var/run/nscd/socket"}, 110) = -1 ECONNREFUSED (Connection refused)
+close(3)                                = 0
+socket(PF_FILE, SOCK_STREAM, 0)         = 3
+fcntl(3, F_SETFL, O_RDWR|O_NONBLOCK)    = 0
+connect(3, {sa_family=AF_FILE, path="/var/run/nscd/socket"}, 110) = -1 ECONNREFUSED (Connection refused)
+close(3)                                = 0
+open("/etc/nsswitch.conf", O_RDONLY)    = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=1224, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1815000
+read(3, "#\n# /etc/nsswitch.conf\n#\n# An ex"..., 4096) = 1224
+read(3, "", 4096)                       = 0
+close(3)                                = 0
+munmap(0x7f09d1815000, 4096)            = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libnss_compat.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=151871, ...}) = 0
+mmap(NULL, 151871, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d17f0000
+close(3)                                = 0
+open("/lib64/libnss_compat.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\23\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=32408, ...}) = 0
+mmap(NULL, 2127088, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cfc0d000
+fadvise64(3, 0, 2127088, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cfc14000, 2093056, PROT_NONE) = 0
+mmap(0x7f09cfe13000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0x7f09cfe13000
+close(3)                                = 0
+mprotect(0x7f09cfe13000, 4096, PROT_READ) = 0
+munmap(0x7f09d17f0000, 151871)          = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libnss_nis.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=151871, ...}) = 0
+mmap(NULL, 151871, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d17f0000
+close(3)                                = 0
+open("/lib64/libnss_nis.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0p \0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=45152, ...}) = 0
+mmap(NULL, 2139352, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cfa02000
+fadvise64(3, 0, 2139352, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cfa0c000, 2093056, PROT_NONE) = 0
+mmap(0x7f09cfc0b000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9000) = 0x7f09cfc0b000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libnss_files.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/libnss_files.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\360\37\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=49120, ...}) = 0
+mmap(NULL, 2143528, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cf7f6000
+fadvise64(3, 0, 2143528, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cf800000, 2097152, PROT_NONE) = 0
+mmap(0x7f09cfa00000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xa000) = 0x7f09cfa00000
+close(3)                                = 0
+mprotect(0x7f09cfa00000, 4096, PROT_READ) = 0
+mprotect(0x7f09cfc0b000, 4096, PROT_READ) = 0
+munmap(0x7f09d17f0000, 151871)          = 0
+open("/etc/passwd", O_RDONLY|0x80000 /* O_??? */) = 3
+fcntl(3, F_GETFD)                       = 0x1 (flags FD_CLOEXEC)
+lseek(3, 0, SEEK_CUR)                   = 0
+fstat(3, {st_mode=S_IFREG|0644, st_size=1425, ...}) = 0
+mmap(NULL, 1425, PROT_READ, MAP_SHARED, 3, 0) = 0x7f09d1953000
+lseek(3, 1425, SEEK_SET)                = 1425
+munmap(0x7f09d1953000, 1425)            = 0
+close(3)                                = 0
+lstat("/tmp/mc-nijman", {st_mode=S_IFDIR|0700, st_size=1785856, ...}) = 0
+getuid()                                = 1000
+open("/usr/local/share/mc/extfs/extfs.ini", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale-langpack/en_US/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/share/locale/en_US/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale-bundle/en_US/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale-langpack/en/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/share/locale/en/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale-bundle/en/LC_MESSAGES/mc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+write(2, "Warning: file /usr/local/share/m"..., 60) = 60
+open("/usr/local/share/mc/extfs/sfs.ini", O_RDONLY) = -1 ENOENT (No such file or directory)
+write(2, "Warning: file /usr/local/share/m"..., 58) = 58
+rt_sigaction(SIGPIPE, {0x478260, [], SA_RESTORER, 0x7f09d050d660}, NULL, 8) = 0
+getcwd("/home/nijman", 4096)            = 13
+stat("/home/nijman", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+stat("/", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+stat("libX11.so", 0x7fffd99670d0)       = -1 ENOENT (No such file or directory)
+stat("libX11.so.so", 0x7fffd99670d0)    = -1 ENOENT (No such file or directory)
+stat("libX11.so.la", 0x7fffd99670d0)    = -1 ENOENT (No such file or directory)
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libX11.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=151871, ...}) = 0
+mmap(NULL, 151871, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f09d17f0000
+close(3)                                = 0
+open("/usr/lib64/libX11.so", O_RDONLY)  = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0000\2\2\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1331232, ...}) = 0
+mmap(NULL, 3395064, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cf4b9000
+fadvise64(3, 0, 3395064, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cf5f0000, 2097152, PROT_NONE) = 0
+mmap(0x7f09cf7f0000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x137000) = 0x7f09cf7f0000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libxcb-xlib.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib64/libxcb-xlib.so.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320\6\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=6528, ...}) = 0
+mmap(NULL, 2101320, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cf2b7000
+fadvise64(3, 0, 2101320, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cf2b8000, 2093056, PROT_NONE) = 0
+mmap(0x7f09cf4b7000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0) = 0x7f09cf4b7000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libxcb.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib64/libxcb.so.1", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220\226\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=114608, ...}) = 0
+mmap(NULL, 2208616, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cf09b000
+fadvise64(3, 0, 2208616, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cf0b6000, 2093056, PROT_NONE) = 0
+mmap(0x7f09cf2b5000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1a000) = 0x7f09cf2b5000
+close(3)                                = 0
+open("/usr/local/staden-linux-1-7-0/lib/linux-binaries/libXau.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib64/libXau.so.6", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0`\16\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=11352, ...}) = 0
+mmap(NULL, 2105608, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f09cee98000
+fadvise64(3, 0, 2105608, POSIX_FADV_WILLNEED) = 0
+mprotect(0x7f09cee9a000, 2093056, PROT_NONE) = 0
+mmap(0x7f09cf099000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7f09cf099000
+close(3)                                = 0
+mprotect(0x7f09cf099000, 4096, PROT_READ) = 0
+mprotect(0x7f09cf2b5000, 4096, PROT_READ) = 0
+mprotect(0x7f09cf4b7000, 4096, PROT_READ) = 0
+mprotect(0x7f09cf7f0000, 4096, PROT_READ) = 0
+munmap(0x7f09d17f0000, 151871)          = 0
+open("/usr/share/locale-langpack/en_US/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale/en_US/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale-bundle/en_US/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale-langpack/en/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale/en/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/locale-bundle/en/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+socket(PF_FILE, SOCK_STREAM, 0)         = 3
+connect(3, {sa_family=AF_FILE, path="/tmp/.X11-unix/X0"}, 110) = 0
+getpeername(3, {sa_family=AF_FILE, path="/tmp/.X11-unix/X0"}, [8371910236600008724]) = 0
+uname({sys="Linux", node="h090.cbs-niob.local", ...}) = 0
+access("/home/nijman/.Xauthority", R_OK) = 0
+open("/home/nijman/.Xauthority", O_RDONLY) = 4
+fstat(4, {st_mode=S_IFREG|0600, st_size=562, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+read(4, "\0\0\0\4\177\0\0\2\0\0010\0\22MIT-MAGIC-COOKIE-1\0"..., 4096) = 562
+close(4)                                = 0
+munmap(0x7f09d1953000, 4096)            = 0
+fcntl(3, F_GETFL)                       = 0x2 (flags O_RDWR)
+fcntl(3, F_SETFL, O_RDWR|O_NONBLOCK)    = 0
+fcntl(3, F_SETFD, FD_CLOEXEC)           = 0
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"l\0\v\0\0\0\22\0\20\0", 10}, {"\0\0", 2}, {"MIT-MAGIC-COOKIE-1", 18}, {"\0\0", 2}, {"\316\250\301h:2\224\241\36\275\231O\332\243-(", 16}, {"", 0}], 6) = 48
+read(3, 0x6d2730, 8)                    = -1 EAGAIN (Resource temporarily unavailable)
+select(4, [3], NULL, NULL, NULL)        = 1 (in [3])
+read(3, "\1\0\v\0\0\0\3\3", 8)          = 8
+read(3, "Z\261\236\0\0\0`\1\377\377\37\0\0\1\0\0\24\0\377\377\1\7\0\0  \10\3779\177\0\0"..., 3084) = 3084
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"7\0\5\0\0\0`\1\246\1\0\0\10\0\0\0\377\377\377\0b\0\5\0\f\0\0\0BIG-"..., 40}], 1) = 40
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1q\2\0\0\0\0\0\1\204\0\0\0\0\0\0p\327<\3\0\0\0\0\234\23Q\0\0\0\0\0", 4096) = 32
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"\204\0\1\0", 4}], 1)       = 4
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1\0\3\0\0\0\0\0\377\377?\0\0\0\0\0P\260s\16\0\0\0\0\320\33KQ\377\177\0\0", 4096) = 32
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"\24\0\6\0\246\1\0\0\27\0\0\0\37\0\0\0\0\0\0\0\0\341\365\5", 24}], 1) = 24
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1\10\4\0\7\0\0\0\37\0\0\0\0\0\0\0\34\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 4096) = 60
+read(3, 0x6d05f4, 4096)                 = -1 EAGAIN (Resource temporarily unavailable)
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"b\0\5\0\t\0\0\0XKEYBOARD\0\0\0", 20}], 1) = 20
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1\0\5\0\0\0\0\0\1\227s\260\0\0\0\0p\327<\3\0\0\0\0\234\23Q\0\0\0\0\0", 4096) = 32
+read(3, 0x6d05f4, 4096)                 = -1 EAGAIN (Resource temporarily unavailable)
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"\227\0\2\0\1\0\0\0", 8}], 1) = 8
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1\1\6\0\0\0\0\0\1\0\0\0\0\0\0\0\227\0\0\0\0\0\0\0\f\23Q\0\0\0\0\0", 4096) = 32
+read(3, 0x6d05f4, 4096)                 = -1 EAGAIN (Resource temporarily unavailable)
+close(4294967295)                       = -1 EBADF (Bad file descriptor)
+close(4294967295)                       = -1 EBADF (Bad file descriptor)
+pipe([4, 5])                            = 0
+pipe([6, 7])                            = 0
+clone(child_stack=0, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7f09d19397a0) = 5208
+close(4)                                = 0
+close(7)                                = 0
+read(6, "\0", 1)                        = 1
+--- SIGCHLD (Child exited) @ 0 (0) ---
+close(5)                                = 0
+close(6)                                = 0
+wait4(5208, [{WIFEXITED(s) && WEXITSTATUS(s) == 3}], 0, NULL) = 5208
+ioctl(1, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+rt_sigaction(SIGCHLD, {0x440220, [], SA_RESTORER|SA_RESTART, 0x7f09d050d660}, NULL, 8) = 0
+stat("/home/nijman/.mc", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+rt_sigaction(SIGTSTP, NULL, {SIG_DFL}, 8) = 0
+open("/home/nijman/.terminfo/x/xterm", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/terminfo/x/xterm", O_RDONLY) = 4
+fstat(4, {st_mode=S_IFREG|0644, st_size=2584, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+read(4, "\32\0010\0&\0\17\0\235\1P\5xterm|xterm terminal"..., 4096) = 2584
+close(4)                                = 0
+munmap(0x7f09d1953000, 4096)            = 0
+ioctl(1, TIOCGWINSZ, {ws_row=50, ws_col=157, ws_xpixel=0, ws_ypixel=0}) = 0
+ioctl(0, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+open("/dev/tty", O_RDWR)                = 4
+ioctl(4, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(4, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(4, SNDCTL_TMR_STOP or TCSETSW, {B38400 -opost isig -icanon -echo ...}) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+ioctl(4, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 -opost isig -icanon -echo ...}) = 0
+ioctl(4, SNDCTL_TMR_STOP or TCSETSW, {B38400 -opost isig -icanon -echo ...}) = 0
+ioctl(4, SNDCTL_TMR_START or TCSETS, {B38400 -opost isig -icanon -echo ...}) = 0
+ioctl(4, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 -opost isig -icanon -echo ...}) = 0
+rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+rt_sigaction(SIGINT, {0x43f9a0, [], SA_RESTORER|SA_RESTART, 0x7f09d050d660}, {SIG_IGN}, 8) = 0
+access("/home/nijman/.mc/ini", R_OK)    = 0
+open("/home/nijman/.mc/ini", O_RDONLY)  = 5
+fstat(5, {st_mode=S_IFREG|0644, st_size=2838, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+read(5, "\n[Midnight-Commander]\nshow_backu"..., 4096) = 2838
+brk(0x706000)                           = 0x706000
+read(5, "", 4096)                       = 0
+close(5)                                = 0
+munmap(0x7f09d1953000, 4096)            = 0
+rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+write(1, "\33[?1049h\33[1;50r\33[4l\33(B\33)0\33[50;1H"..., 75) = 75
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+open("/home/nijman/.terminfo/x/xterm", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/share/terminfo/x/xterm", O_RDONLY) = 5
+fstat(5, {st_mode=S_IFREG|0644, st_size=2584, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+read(5, "\32\0010\0&\0\17\0\235\1P\5xterm|xterm terminal"..., 4096) = 2584
+close(5)                                = 0
+munmap(0x7f09d1953000, 4096)            = 0
+ioctl(1, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 -opost isig -icanon -echo ...}) = 0
+open("/dev/ptmx", O_RDWR)               = 5
+statfs("/dev/pts", {f_type="DEVPTS_SUPER_MAGIC", f_bsize=4096, f_blocks=0, f_bfree=0, f_bavail=0, f_files=0, f_ffree=0, f_fsid={0, 0}, f_namelen=255, f_frsize=4096}) = 0
+ioctl(5, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(5, TIOCGPTN, [17])                = 0
+stat("/dev/pts/17", {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 17), ...}) = 0
+statfs("/dev/pts/17", {f_type="DEVPTS_SUPER_MAGIC", f_bsize=4096, f_blocks=0, f_bfree=0, f_bavail=0, f_files=0, f_ffree=0, f_fsid={0, 0}, f_namelen=255, f_frsize=4096}) = 0
+ioctl(5, TIOCSPTLCK, [0])               = 0
+ioctl(5, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(5, TIOCGPTN, [17])                = 0
+stat("/dev/pts/17", {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 17), ...}) = 0
+open("/dev/pts/17", O_RDWR)             = 6
+pipe([7, 8])                            = 0
+clone(child_stack=0, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7f09d19397a0) = 5209
+close(6)                                = 0
+write(5, " PROMPT_COMMAND=\'pwd>&8;kill -ST"..., 39) = 39
+rt_sigaction(SIGINT, {0x43f9a0, [], SA_RESTORER, 0x7f09d050d660}, NULL, 8) = 0
+select(8, [5 7], NULL, NULL, {10, 0})   = 1 (in [5], left {10, 0})
+read(5, " PROMPT_COMMAND=\'pwd>&8;kill -ST"..., 100) = 40
+select(8, [5 7], NULL, NULL, {10, 0})   = 1 (in [5], left {9, 984000})
+read(5, "\33[?1034h", 100)              = 8
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "nijman@h090:~> ", 100)         = 15
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, " ", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "P", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "R", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "O", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "M", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "P", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "T", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "_", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "C", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "O", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "M", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "M", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "A", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "N", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "D", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "=", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "\'", 100)                      = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "p", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "w", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "d", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, ">", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "&", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "8", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, ";", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "k", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "i", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "l", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 984000})
+read(5, "l", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 984000}) = 1 (in [5], left {9, 980000})
+read(5, " ", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "-", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "S", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "T", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "O", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "P", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, " ", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "$", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "$", 100)                       = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "\'", 100)                      = 1
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [5], left {9, 980000})
+read(5, "\r\n", 100)                    = 2
+select(8, [5 7], NULL, NULL, {9, 980000}) = 1 (in [7], left {9, 980000})
+read(7, "/home/nijman\n", 4097)         = 13
+rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
+rt_sigsuspend([])                       = ? ERESTARTNOHAND (To be restarted)
+--- SIGCHLD (Child exited) @ 0 (0) ---
+wait4(5209, [{WIFSTOPPED(s) && WSTOPSIG(s) == SIGSTOP}], WNOHANG|WSTOPPED, NULL) = 5209
+wait4(5208, 0x7fffd9966cbc, WNOHANG|WSTOPPED, NULL) = -1 ECHILD (No child processes)
+rt_sigreturn(0x1458)                    = -1 EINTR (Interrupted system call)
+ioctl(5, TCFLSH, 0x1)                   = 0
+kill(5209, SIGCONT)                     = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+--- SIGCHLD (Child exited) @ 0 (0) ---
+wait4(5209, 0x7fffd9966ccc, WNOHANG|WSTOPPED, NULL) = 0
+wait4(5208, 0x7fffd9966ccc, WNOHANG|WSTOPPED, NULL) = -1 ECHILD (No child processes)
+rt_sigreturn(0x1458)                    = 0
+rt_sigaction(SIGINT, {SIG_IGN}, NULL, 8) = 0
+open("/usr/local/share/mc/mc.lib", O_RDONLY) = -1 ENOENT (No such file or directory)
+getcwd("/home/nijman", 4096)            = 13
+stat("/home/nijman", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+stat("/home/nijman", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/home/nijman/.mc/history", O_RDONLY) = 6
+fstat(6, {st_mode=S_IFREG|0600, st_size=6344, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+read(6, "\n[inp Save As ]\n0=mount_nw_drive"..., 4096) = 4096
+read(6, "I_J\n5=/home/nijman/customers/jim"..., 4096) = 2248
+read(6, "", 4096)                       = 0
+close(6)                                = 0
+munmap(0x7f09d1953000, 4096)            = 0
+open("/etc/localtime", O_RDONLY)        = 6
+fstat(6, {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+fstat(6, {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+read(6, "TZif2\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\r\0\0\0\r\0\0\0\0"..., 4096) = 2917
+lseek(6, -1843, SEEK_CUR)               = 1074
+read(6, "TZif2\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\16\0\0\0\16\0\0\0\0"..., 4096) = 1843
+close(6)                                = 0
+munmap(0x7f09d1953000, 4096)            = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+open("/home/nijman", O_RDONLY|O_NONBLOCK|O_DIRECTORY|0x80000) = 6
+fstat(6, {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+fcntl(6, F_GETFD)                       = 0x1 (flags FD_CLOEXEC)
+getdents64(6, /* 84 entries */, 4096)   = 2808
+lstat("/home/nijman/vmware", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/cd_images", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/backup", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/bin", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.dbus", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.assembler", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.ssh", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.fonts", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.gstreamer-0.10", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/scripts", {st_mode=S_IFDIR|0775, st_size=4096, ...}) = 0
+lstat("/home/nijman/customers", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.DCOPserver_h090_:0", {st_mode=S_IFLNK|0777, st_size=32, ...}) = 0
+stat("/home/nijman/.DCOPserver_h090_:0", {st_mode=S_IFREG|0644, st_size=51, ...}) = 0
+lstat("/home/nijman/.w3m", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/downloads", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.adobe", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.mcop", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.bashrc", {st_mode=S_IFREG|0644, st_size=1177, ...}) = 0
+lstat("/home/nijman/.inputrc", {st_mode=S_IFREG|0644, st_size=861, ...}) = 0
+lstat("/home/nijman/.recently-used", {st_mode=S_IFREG|0600, st_size=300, ...}) = 0
+lstat("/home/nijman/.virt-manager", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.emacs", {st_mode=S_IFREG|0644, st_size=1637, ...}) = 0
+lstat("/home/nijman/.viminfo", {st_mode=S_IFREG|0600, st_size=1413, ...}) = 0
+lstat("/home/nijman/qtl", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.nx", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.kde", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/i_drive", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.fontconfig", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.mozilla", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.DCOPserver_h090__0", {st_mode=S_IFREG|0644, st_size=51, ...}) = 0
+lstat("/home/nijman/.qt", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/solid", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.mc", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+write(1, "\33[?1049h\33[1;50r\33[4l\33(B\33)0\33[?1h\33="..., 92) = 92
+lstat("/home/nijman/.bash_history", {st_mode=S_IFREG|0600, st_size=6683, ...}) = 0
+lstat("/home/nijman/.ooo-2.0", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.DCOPserver_linux-d40v__0", {st_mode=S_IFREG|0644, st_size=57, ...}) = 0
+lstat("/home/nijman/g_drive", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/education", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.kde4", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.y2usersettings", {st_mode=S_IFREG|0644, st_size=281, ...}) = 0
+lstat("/home/nijman/lambal", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.ICEauthority", {st_mode=S_IFREG|0600, st_size=1861, ...}) = 0
+lstat("/home/nijman/.Xauthority", {st_mode=S_IFREG|0600, st_size=562, ...}) = 0
+lstat("/home/nijman/454", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.google", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.skel", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/Firefox_wallpaper.png", {st_mode=S_IFREG|0644, st_size=3020450, ...}) = 0
+lstat("/home/nijman/Desktop", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.gnome2_private", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.cpan", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/MyShares", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.DCOPserver_linux-d40v_:0", {st_mode=S_IFLNK|0777, st_size=38, ...}) = 0
+stat("/home/nijman/.DCOPserver_linux-d40v_:0", {st_mode=S_IFREG|0644, st_size=57, ...}) = 0
+lstat("/home/nijman/.gconf", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/public_html", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.xinitrc.template", {st_mode=S_IFREG|0755, st_size=1446, ...}) = 0
+lstat("/home/nijman/.wapi", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.xsession-errors", {st_mode=S_IFREG|0600, st_size=61653726, ...}) = 0
+lstat("/home/nijman/.fonts.conf", {st_mode=S_IFREG|0644, st_size=516, ...}) = 0
+lstat("/home/nijman/.gnome2", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.beagle", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/scnv", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.local", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.profile", {st_mode=S_IFREG|0644, st_size=1353, ...}) = 0
+lstat("/home/nijman/.recently-used.xbel", {st_mode=S_IFREG|0644, st_size=806, ...}) = 0
+lstat("/home/nijman/.config", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+write(1, "\33[1;156H\33[30m\33[47m\33[1K \33(B\33[m\33[3"..., 40) = 40
+lstat("/home/nijman/.gconfd", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/Documents", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.y2log", {st_mode=S_IFREG|0644, st_size=93123, ...}) = 0
+lstat("/home/nijman/strace_mc.txt", {st_mode=S_IFREG|0644, st_size=45638, ...}) = 0
+lstat("/home/nijman/.vmware", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/h_drive", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.superkaramba", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.DCOPserver_h090.cbs-niob.local_:0", {st_mode=S_IFLNK|0777, st_size=47, ...}) = 0
+stat("/home/nijman/.DCOPserver_h090.cbs-niob.local_:0", {st_mode=S_IFREG|0644, st_size=66, ...}) = 0
+lstat("/home/nijman/.thumbnails", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/kinome_umc_project", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/.dmrc", {st_mode=S_IFREG|0600, st_size=23, ...}) = 0
+lstat("/home/nijman/.xim.template", {st_mode=S_IFREG|0644, st_size=1940, ...}) = 0
+lstat("/home/nijman/.gnupg", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/.macromedia", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+lstat("/home/nijman/rat_mod_screen", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/temp", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/nijman/src", {st_mode=S_IFDIR|0755, st_size=12288, ...}) = 0
+lstat("/home/nijman/.DCOPserver_h090.cbs-niob.local__0", {st_mode=S_IFREG|0644, st_size=66, ...}) = 0
+getdents64(6, /* 0 entries */, 4096)    = 0
+open("/proc/meminfo", O_RDONLY)         = 9
+fstat(9, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+read(9, "MemTotal:      6131172 kB\nMemFre"..., 1024) = 748
+close(9)                                = 0
+munmap(0x7f09d1953000, 4096)            = 0
+close(6)                                = 0
+chdir("/usr/local/share")               = 0
+getcwd("/usr/local/share", 4096)        = 17
+stat("/usr/local/share", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+stat("/usr/local/share", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/usr/local/share", O_RDONLY|O_NONBLOCK|O_DIRECTORY|0x80000) = 6
+fstat(6, {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+getdents64(6, /* 5 entries */, 4096)    = 136
+lstat("/usr/local/share/man", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local/share/locale", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local/share/hddtemp.db", {st_mode=S_IFREG|0644, st_size=29069, ...}) = 0
+getdents64(6, /* 0 entries */, 4096)    = 0
+close(6)                                = 0
+write(1, "\33[49;1H\33[39m\33[49m               "..., 181) = 181
+fstat(1, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 16), ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1953000
+write(1, "\33]0;mc - ~\7", 11)          = 11
+rt_sigaction(SIGWINCH, {0x4308f0, [], SA_RESTORER|SA_RESTART, 0x7f09d050d660}, {SIG_DFL}, 8) = 0
+write(1, "\33[?1001s\33[?1000h", 16)    = 16
+open("/usr/local/share/mc/mc.hint.en_US", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/share/mc/mc.hint.en", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/share/mc/mc.hint", O_RDONLY) = -1 ENOENT (No such file or directory)
+write(1, "\33[AGNU Midnight Commander 4.6.1 "..., 160) = 160
+chdir("/home/nijman")                   = 0
+write(1, "\33]0;mc - ~\7", 11)          = 11
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+chdir("/home/nijman")                   = 0
+write(1, "\33]0;mc - ~\7", 11)          = 11
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+select(5, [4], NULL, NULL, {0, 0})      = 0 (Timeout)
+select(5, [4], NULL, NULL, {0, 0})      = 0 (Timeout)
+write(1, "\33[1;1H\33[30m\33[46m  Left     File "..., 4096) = 4096
+write(1, "                                "..., 4096) = 4096
+write(1, "7m\33[44mx\33[24;1Hx\33(B\33[m\17\33[1m\33[37m"..., 4096) = 4096
+write(1, "[m\17\33[1m\33[37m\33[44m   4096\33(B\33[m\16\33"..., 4096) = 4096
+write(1, "mHelp  \33[39m\33[49m 2\33[30m\33[46mMen"..., 373) = 373
+rt_sigaction(SIGINT, {0x43f9a0, [], SA_RESTORER, 0x7f09d050d660}, NULL, 8) = 0
+select(6, [4 5], NULL, NULL, NULL)      = 1 (in [5])
+rt_sigaction(SIGINT, {SIG_IGN}, NULL, 8) = 0
+select(6, [5], NULL, NULL, {0, 0})      = 1 (in [5], left {0, 0})
+read(5, "nijman@h090:~> ", 100)         = 15
+select(6, [5], NULL, NULL, {0, 0})      = 0 (Timeout)
+write(1, "nijman@h090:~>\33[140C\33[37m\33[44m[^"..., 41) = 41
+rt_sigaction(SIGINT, {0x43f9a0, [], SA_RESTORER, 0x7f09d050d660}, NULL, 8) = 0
+select(6, [4 5], NULL, NULL, NULL)      = 1 (in [4])
+rt_sigaction(SIGINT, {SIG_IGN}, NULL, 8) = 0
+select(6, [4 5], NULL, NULL, NULL)      = 1 (in [4])
+select(5, [4], NULL, NULL, {10, 0})     = 1 (in [4], left {10, 0})
+read(4, "\33", 1)                       = 1
+select(5, [4], NULL, NULL, {10, 0})     = 1 (in [4], left {10, 0})
+read(4, "[", 1)                         = 1
+select(5, [4], NULL, NULL, {10, 0})     = 1 (in [4], left {10, 0})
+read(4, "2", 1)                         = 1
+select(5, [4], NULL, NULL, {10, 0})     = 1 (in [4], left {10, 0})
+read(4, "1", 1)                         = 1
+select(5, [4], NULL, NULL, {10, 0})     = 1 (in [4], left {10, 0})
+read(4, "~", 1)                         = 1
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"&\0\2\0\246\1\0\0", 8}], 1) = 8
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1\1\7\0\0\0\0\0\246\1\0\0\316d\"\3\346\7\237\1\346\7\237\1\20\0W\0\0\0\0\0", 4096) = 32
+read(3, 0x6d05f4, 4096)                 = -1 EAGAIN (Resource temporarily unavailable)
+select(5, [4], NULL, NULL, {0, 0})      = 0 (Timeout)
+select(5, [4], NULL, NULL, {0, 0})      = 0 (Timeout)
+write(1, "\33[15;50H\33[30m\33[47m              "..., 762) = 762
+rt_sigaction(SIGINT, {0x43f9a0, [], SA_RESTORER, 0x7f09d050d660}, NULL, 8) = 0
+select(6, [4 5], NULL, NULL, NULL)      = 1 (in [4])
+rt_sigaction(SIGINT, {SIG_IGN}, NULL, 8) = 0
+select(6, [4 5], NULL, NULL, NULL)      = 1 (in [4])
+select(5, [4], NULL, NULL, {10, 0})     = 1 (in [4], left {10, 0})
+read(4, "\r", 1)                        = 1
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"&\0\2\0\246\1\0\0", 8}], 1) = 8
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1\1\10\0\0\0\0\0\246\1\0\0\316d\"\3\346\7\237\1\346\7\237\1\20\0W\0\0\0\0\0", 4096) = 32
+read(3, 0x6d05f4, 4096)                 = -1 EAGAIN (Resource temporarily unavailable)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=2917, ...}) = 0
+write(1, "\33[?1000l\33[?1001r", 16)    = 16
+open("/home/nijman/.mc/ini", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 6
+fstat(6, {st_mode=S_IFREG|0644, st_size=0, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1952000
+write(6, "\n[Midnight-Commander]\nshow_backu"..., 2838) = 2838
+close(6)                                = 0
+munmap(0x7f09d1952000, 4096)            = 0
+open("/home/nijman/.mc/history", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 6
+fstat(6, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1952000
+write(6, "\n[inp Save As ]\n0=mount_nw_drive"..., 4096) = 4096
+write(6, "I_J\n5=/home/nijman/customers/jim"..., 2248) = 2248
+close(6)                                = 0
+munmap(0x7f09d1952000, 4096)            = 0
+write(1, "\33[1;1H\33[30m\33[47m\33[K\n\33[K\n\33[K\n\33[K\n"..., 215) = 215
+ioctl(4, SNDCTL_TMR_START or TCSETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(4, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+open("/home/nijman/.mc/history", O_RDONLY|O_CREAT|O_EXCL, 0600) = -1 EEXIST (File exists)
+chmod("/home/nijman/.mc/history", 0600) = 0
+open("/home/nijman/.mc/history", O_RDONLY|O_CREAT|O_EXCL, 0600) = -1 EEXIST (File exists)
+chmod("/home/nijman/.mc/history", 0600) = 0
+open("/home/nijman/.mc/history", O_RDONLY|O_CREAT|O_EXCL, 0600) = -1 EEXIST (File exists)
+chmod("/home/nijman/.mc/history", 0600) = 0
+open("/home/nijman/.mc/ini", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 6
+fstat(6, {st_mode=S_IFREG|0644, st_size=0, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1952000
+write(6, "\n[Midnight-Commander]\nshow_backu"..., 2838) = 2838
+close(6)                                = 0
+munmap(0x7f09d1952000, 4096)            = 0
+open("/home/nijman/.mc/history", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 6
+fstat(6, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1952000
+write(6, "\n[inp Save As ]\n0=mount_nw_drive"..., 4096) = 4096
+write(6, "I_J\n5=/home/nijman/customers/jim"..., 2248) = 2248
+close(6)                                = 0
+munmap(0x7f09d1952000, 4096)            = 0
+open("/home/nijman/.mc/Tree.tmp", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 6
+fstat(6, {st_mode=S_IFREG|0644, st_size=0, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f09d1952000
+write(6, "Midnight Commander TreeStore v 2"..., 35) = 35
+close(6)                                = 0
+munmap(0x7f09d1952000, 4096)            = 0
+rename("/home/nijman/.mc/Tree.tmp", "/home/nijman/.mc/Tree") = 0
+rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+write(1, "\33[?1l\33>\33[50;1H\33(B\33[m\33[39;49m\r\33[K"..., 41) = 41
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+ioctl(4, SNDCTL_TMR_START or TCSETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(4, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(1, "\33[?47l\0338\33[m", 11)      = 11
+rt_sigprocmask(SIG_BLOCK, [INT QUIT TSTP TTIN TTOU WINCH], [], 8) = 0
+ioctl(4, SNDCTL_TMR_STOP or TCSETSW, {B38400 opost isig icanon echo ...}) = 0
+close(4)                                = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+write(1, "\33[39;49m", 8)               = 8
+rt_sigaction(SIGCHLD, {SIG_DFL}, {0x440220, [], SA_RESTORER|SA_RESTART, 0x7f09d050d660}, 8) = 0
+write(1, "\n", 1)                       = 1
+select(4, [3], [3], NULL, NULL)         = 1 (out [3])
+writev(3, [{"<\0\2\0\0\0`\1+\0\1\0", 12}], 1) = 12
+select(4, [3], [], NULL, NULL)          = 1 (in [3])
+read(3, "\1\1\n\0\0\0\0\0\316d\"\3\0\0\0\0\\\263s\16\0\0\0\0\320\33KQ\377\177\0\0", 4096) = 32
+read(3, 0x6d05f4, 4096)                 = -1 EAGAIN (Resource temporarily unavailable)
+close(3)                                = 0
+exit_group(0)                           = ?

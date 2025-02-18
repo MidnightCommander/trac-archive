@@ -1,0 +1,28 @@
+From d3ed6710bf221f2b7be17759b647349d2346a0b6 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 15:34:32 +0000
+Subject: [PATCH] viewer/search.c: cleanup some -Wcast-qual warning
+
+search.c: In function 'mcview_search_cmd_callback':
+search.c:189:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     WView *view = ((mcview_search_status_msg_t *) user_data)->view;
+                    ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/search.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/viewer/search.c b/src/viewer/search.c
+index 3180c7c..10af1f3 100644
+--- a/src/viewer/search.c
++++ b/src/viewer/search.c
+@@ -186,7 +186,7 @@ mcview_search_show_result (WView * view, size_t match_len)
+ mc_search_cbret_t
+ mcview_search_cmd_callback (const void *user_data, gsize char_offset, int *current_char)
+ {
+-    WView *view = ((mcview_search_status_msg_t *) user_data)->view;
++    WView *view = ((const mcview_search_status_msg_t *) user_data)->view;
+ 
+     /*    view_read_continue (view, &view->search_onechar_info); *//* AB:FIXME */
+     if (!view->text_nroff_mode)

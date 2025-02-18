@@ -1,0 +1,48 @@
+Comparing Floating Point Numbers, 2012 Edition
+Posted on February 25, 2012 by brucedawson
+This post is a more carefully thought out and peer reviewed version of a floating-point comparison article I wrote many years ago. This one gives solid advice and some surprising observations about the tricky subject of comparing floating-point numbers. A compilable source file with license is available.
+
+We’ve finally reached the point in this series that I’ve been waiting for. In this post I am going to share the most crucial piece of floating-point math knowledge that I have. Here it is:
+
+
+[Floating-point] math is hard.
+
+You just won’t believe how vastly, hugely, mind-bogglingly hard it is. I mean, you may think it’s difficult to calculate when trains from Chicago and Los Angeles will collide, but that’s just peanuts to floating-point math.
+
+Seriously. Each time I think that I’ve wrapped my head around the subtleties and implications of floating-point math I find that I’m wrong and that there is some extra confounding factor that I had failed to consider. So, the lesson to remember is that floating-point math is always more complex than you think it is. Keep that in mind through the rest of the post where we talk about the promised topic of comparing floats, and understand that this post gives some suggestions on techniques, but no silver bullets.
+
+Previously on this channel…
+This is the fifth chapter in a long series. The first couple in the series are particularly important for understanding this point. A (mostly) complete list of the other posts includes:
+
+1: Tricks With the Floating-Point Format – an overview of the float format
+2: Stupid Float Tricks – incrementing the integer representation
+3: Don’t Store That in a Float – a cautionary tale about time
+3b: They sure look equal… – ranting about Visual Studio’s float failings
+4: Comparing Floating Point Numbers, 2012 Edition (return *this;)
+5: Float Precision–From Zero to 100+ Digits – non-obvious answers to how many digits of precision a float has
+6: C++ 11 std::async for Fast Float Format Finding – running tests on all floats in just a few minutes
+7: Intermediate Floating-Point Precision – the surprising complexities of how expressions can be evaluated
+8: Floating-point complexities – some favorite quirks of floating-point math
+9: Exceptional Floating Point – using floating point exceptions for fun and profit
+10: That’s Not Normal–the Performance of Odd Floats – the performance implications of infinities, NaNs, and denormals
+11: Doubles are not floats, so don’t compare them – a common type of float comparison mistake
+12: Float Precision Revisited: Nine Digit Float Portability – moving floats between gcc and VC++ through text
+13: Floating-Point Determinism – what does it take to get bit-identical results
+14: There are Only Four Billion Floats–So Test Them All! – exhaustive testing to avoid embarrassing mistakes
+15: Please Calculate This Circle’s Circumference – the intersection of C++, const, and floats
+16: Intel Underestimates Error Bounds by 1.3 quintillion – the headline is not an exaggeration, but it’s not as bad as it sounds
+Comparing for equality
+Floating point math is not exact. Simple values like 0.1 cannot be precisely represented using binary floating point numbers, and the limited precision of floating point numbers means that slight changes in the order of operations or the precision of intermediates can change the result. That means that comparing two floats to see if they are equal is usually not what you want. GCC even has a (well intentioned but misguided) warning for this: “warning: comparing floating point with == or != is unsafe”.
+
+Here’s one example of the inexactness that can creep in:
+
+float f = 0.1f;
+float sum;
+sum = 0;
+
+for (int i = 0; i < 10; ++i)
+    sum += f;
+float product = f * 10;
+printf("sum = %1.15f, mul = %1.15f, mul2 = %1.15f\n",
+        sum, product, f * 10);
+This code tries to calculate ‘one’ in three different ways: repeated adding, and two slight variants of multiplication. Naturally we get three different results, and only one of them is 1.0:

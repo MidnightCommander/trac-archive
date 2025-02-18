@@ -1,0 +1,94 @@
+From b65b37c36cc38518602322f3fe19298f905c5184 Mon Sep 17 00:00:00 2001
+From: Michael Osipov <1983-01-06@gmx.net>
+Date: Sat, 30 Jul 2016 23:59:20 +0200
+Subject: [PATCH] *.po: Removed redundant words from msgid "%s in %d file"
+ translations
+
+Several translations had byte or bytes translated altough this information
+is supplied by %s. Some had leading spaces.
+---
+ po/de.po | 4 ++--
+ po/fr.po | 2 +-
+ po/it.po | 4 ++--
+ po/nl.po | 4 ++--
+ po/sk.po | 6 +++---
+ 5 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/po/de.po b/po/de.po
+index e821a2f..6d78997 100644
+--- a/po/de.po
++++ b/po/de.po
+@@ -3528,8 +3528,8 @@ msgstr "<readlink fehlgeschlagen>"
+ #, c-format
+ msgid "%s in %d file"
+ msgid_plural "%s in %d files"
+-msgstr[0] "%s Bytes in %d Datei"
+-msgstr[1] "%s Bytes in %d Dateien"
++msgstr[0] "%s in %d Datei"
++msgstr[1] "%s in %d Dateien"
+ 
+ msgid "Panelize"
+ msgstr "Anordnen"
+diff --git a/po/fr.po b/po/fr.po
+index 53eb641..8ccde49 100644
+--- a/po/fr.po
++++ b/po/fr.po
+@@ -3429,7 +3429,7 @@ msgstr "<échec de readlink>"
+ #, c-format
+ msgid "%s in %d file"
+ msgid_plural "%s in %d files"
+-msgstr[0] " %s octets dans %d fichier"
++msgstr[0] "%s dans %d fichier"
+ msgstr[1] "%s dans %d fichiers"
+ 
+ msgid "Panelize"
+diff --git a/po/it.po b/po/it.po
+index 18b08a1..c3bbc06 100644
+--- a/po/it.po
++++ b/po/it.po
+@@ -3517,8 +3517,8 @@ msgstr "<readlink fallito>"
+ #, c-format
+ msgid "%s in %d file"
+ msgid_plural "%s in %d files"
+-msgstr[0] " %s byte in %d file"
+-msgstr[1] " %s byte in %d file"
++msgstr[0] ""
++msgstr[1] ""
+ 
+ msgid "Panelize"
+ msgstr "Pannellizza"
+diff --git a/po/nl.po b/po/nl.po
+index da7d48f..87d9151 100644
+--- a/po/nl.po
++++ b/po/nl.po
+@@ -3513,8 +3513,8 @@ msgstr "<readlink mislukt>"
+ #, c-format
+ msgid "%s in %d file"
+ msgid_plural "%s in %d files"
+-msgstr[0] "%s bytes in %d bestand"
+-msgstr[1] "%s bytes in %d bestand(en)"
++msgstr[0] "%s in %d bestand"
++msgstr[1] "%s in %d bestand(en)"
+ 
+ msgid "Panelize"
+ msgstr "Als venster"
+diff --git a/po/sk.po b/po/sk.po
+index 4416cd4..5b6a63e 100644
+--- a/po/sk.po
++++ b/po/sk.po
+@@ -3523,9 +3523,9 @@ msgstr "<čítanie odkazu zlyhalo>"
+ #, c-format
+ msgid "%s in %d file"
+ msgid_plural "%s in %d files"
+-msgstr[0] "%s bajt v %d súboroch"
+-msgstr[1] "%s bajty v %d súboroch"
+-msgstr[2] "%s bajtov v %d súboroch"
++msgstr[0] "%s v %d súboroch"
++msgstr[1] "%s v %d súboroch"
++msgstr[2] "%s v %d súboroch"
+ 
+ msgid "Panelize"
+ msgstr "Panelizovať"
+-- 
+2.9.2
+

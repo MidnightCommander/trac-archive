@@ -1,0 +1,34 @@
+From 36cd293a4ca087810d541c4b2a303e4fcc6b4334 Mon Sep 17 00:00:00 2001
+From: Igor Urazov <z0rc3r@gmail.com>
+Date: Mon, 16 Dec 2013 22:06:01 +0200
+Subject: [PATCH] Ticket #3124: really escape Zsh history
+
+Per Zsh documentation last command prefixed with space lingers in the
+internal history until the next command is entered before it vanishes.
+To make it vanish right away, type a space and press return.
+---
+ src/subshell.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/subshell.c b/src/subshell.c
+index 80ce405..0a7b941 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -1233,6 +1233,14 @@ do_subshell_chdir (const vfs_path_t * vpath, gboolean update_prompt)
+         }
+     }
+ 
++    /* Really escape Zsh history */
++    if (subshell_type == ZSH)
++    {
++        write_all (mc_global.tty.subshell_pty, " \n", 2);
++        subshell_state = RUNNING_COMMAND;
++        feed_subshell (QUIETLY, FALSE);
++    }
++
+     update_subshell_prompt = FALSE;
+ 
+     g_free (pcwd);
+-- 
+1.8.5.1
+

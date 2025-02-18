@@ -1,0 +1,34 @@
+From c03259438e623a4dae8bbffe3bb137c386f188c2 Mon Sep 17 00:00:00 2001
+From: admin <admin@holmes.(none)>
+Date: Wed, 18 Feb 2009 11:50:57 +0000
+Subject: [PATCH] add exit point from panelized filter (/. in top list)
+
+---
+ src/panelize.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/src/panelize.c b/src/panelize.c
+index f102812..343c053 100644
+--- a/src/panelize.c
++++ b/src/panelize.c
+@@ -372,6 +372,17 @@ static void do_external_panelize (char *command)
+ 	close_error_pipe (D_ERROR, _("Cannot invoke command."));
+ 	return;
+     }
++
++    list->list[next_free].fnamelen = 1;
++    list->list[next_free].fname = ".";
++    status = handle_path (list, current_panel->cwd,
++                          &st, next_free, &link_to_dir, &stale_link);
++    list->list[next_free].f.link_to_dir = link_to_dir;
++    list->list[next_free].f.stale_link = stale_link;
++    list->list[next_free].f.dir_size_computed = 0;
++    list->list[next_free].st = st;
++    next_free++;
++
+     /* Clear the counters and the directory list */
+     panel_clean_dir (current_panel);
+ 
+-- 
+1.6.1.1
+

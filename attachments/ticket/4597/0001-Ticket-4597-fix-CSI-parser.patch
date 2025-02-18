@@ -1,0 +1,46 @@
+From 113d0e761c0987190b039f5297f4c6b494dd6f71 Mon Sep 17 00:00:00 2001
+From: Johannes Altmanninger <aclopte@gmail.com>
+Date: Wed, 9 Oct 2024 07:25:18 +0200
+Subject: [PATCH 1/3] Ticket #4597: fix CSI parser
+
+fish shell 4.0 wants to send sequences like "\x1b[=5u",
+so strip them from the output as well.
+
+See https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
+
+In future we should probably pass through some sequences like bracketed paste.
+---
+ lib/util.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 3fb8c54e5..c25cb05a0 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -736,7 +736,10 @@ skip_numbers (const char *s)
+  * "control sequence", in a sort of pidgin BNF, as follows:
+  *
+  * control-seq = Esc non-'['
+- *             | Esc '[' (0 or more digits or ';' or ':' or '?') (any other char)
++ *             | Esc '[' (parameter-byte)* (intermediate-byte)* final-byte
++ * parameter-byte = [\x30-\x3F]     # one of "0-9;:<=>?"
++ * intermediate-byte = [\x20–\x2F]  # one of " !\"#$%&'()*+,-./"
++ * final-byte = [\x40-\x7e]         # one of "@A–Z[\]^_`a–z{|}~"
+  *
+  * The 256-color and true-color escape sequences should allow either ';' or ':' inside as separator,
+  * actually, ':' is the more correct according to ECMA-48.
+@@ -763,8 +766,10 @@ strip_ctrl_codes (char *s)
+             if (*(++r) == '[' || *r == '(')
+             {
+                 /* strchr() matches trailing binary 0 */
+-                while (*(++r) != '\0' && strchr ("0123456789;:?", *r) != NULL)
++                while (*(++r) != '\0' && strchr ("0123456789;:<=>?", *r) != NULL)
+                     ;
++                while (*r != 0 && (*r < 0x40 || *r > 0x7E))
++                    ++r;
+             }
+             else if (*r == ']')
+             {
+-- 
+2.47.0.rc0
+

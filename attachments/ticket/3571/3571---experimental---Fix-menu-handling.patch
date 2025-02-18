@@ -1,0 +1,123 @@
+From 04294b2bff23656eb3b7468095b90c4401419810 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 8 Mar 2016 22:45:17 +0200
+Subject: [PATCH] !!experimental!! Fix menu handling.
+
+---
+ lib/widget/dialog.c        | 36 +++++++++++++++++++++---------------
+ src/filemanager/midnight.c | 28 +---------------------------
+ 2 files changed, 22 insertions(+), 42 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index ddf78f7..4601bcb 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -376,11 +376,19 @@ dlg_mouse_translator (Gpm_Event * event, Widget * w)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static cb_ret_t
++try_mouse_event (Widget * w, Gpm_Event * event)
++{
++    if ((w->options & W_DISABLED) == 0 && w->mouse_callback != NULL)
++        return dlg_mouse_translator (event, w);
++    return MSG_NOT_HANDLED;
++}
++
++static cb_ret_t
+ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+ {
+     Widget *wh = WIDGET (h);
+-
+-    GList *p, *first;
++    GList *p;
++    cb_ret_t ret;
+ 
+     /* close the dialog by mouse left click out of dialog area */
+     if (mouse_close_dialog && !h->fullscreen && ((event->buttons & GPM_B_LEFT) != 0)
+@@ -400,26 +408,24 @@ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+             return mou;
+     }
+ 
+-    first = h->current;
+-    p = first;
++    /* First, send the event to the focused widget. */
++    /* FIXME: This is just for the case where it's the menu. We can instead make
++       the menu make itself the topmost, on activation, and then remove this code. */
++    if ((ret = try_mouse_event (WIDGET (h->current->data), event)) != MSG_NOT_HANDLED)
++        return ret;
+ 
++    /* Send the event to widgets in stacking order: from the topmost to the bottomost. */
++    p = g_list_last (h->widgets);
+     do
+     {
+         Widget *w = WIDGET (p->data);
+ 
+-        p = dlg_widget_prev (h, p);
++        if ((ret = try_mouse_event (w, event)) != MSG_NOT_HANDLED)
++            return ret;
+ 
+-        if ((w->options & W_DISABLED) == 0 && w->mouse_callback != NULL)
+-        {
+-            /* put global cursor position to the widget */
+-            cb_ret_t ret;
+-
+-            ret = dlg_mouse_translator (event, w);
+-            if (ret != MSG_NOT_HANDLED)
+-                return ret;
+-        }
++        p = g_list_previous (p);
+     }
+-    while (p != first);
++    while (p != NULL);
+ 
+     return MSG_NOT_HANDLED;
+ }
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index 73dfff5..e0a284d 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -1590,32 +1590,6 @@ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-
+-/**
+- * Handle mouse events of file manager screen.
+- *
+- * @param w Widget object (the file manager)
+- * @param msg mouse event message
+- * @param event mouse event data
+- */
+-static cb_ret_t
+-midnight_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+-{
+-    (void) w;
+-    (void) msg;
+-
+-    if (msg == MSG_MOUSE_DOWN && event->y == 0)
+-    {
+-        /* menubar */
+-        if (!the_menubar->is_active)
+-            dlg_select_widget (WIDGET (the_menubar));
+-    }
+-
+-    /* allow handle menu events */
+-    return MSG_NOT_HANDLED;
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -1798,7 +1772,7 @@ do_nc (void)
+ #endif
+ 
+     midnight_dlg = dlg_create (FALSE, 0, 0, LINES, COLS, dialog_colors, midnight_callback,
+-                               midnight_mouse_callback, "[main]", NULL, DLG_NONE);
++                               NULL, "[main]", NULL, DLG_NONE);
+ 
+     /* Check if we were invoked as an editor or file viewer */
+     if (mc_global.mc_run_mode != MC_RUN_FULL)
+-- 
+2.5.0
+

@@ -1,0 +1,103 @@
+From 28c2cae07f03c0b5f86d894a6c692136a28b37f7 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Thu, 3 Dec 2009 14:58:31 +0000
+Subject: [PATCH] missing check in src_mcconfig_get.c-mc_config_get_groups()_-2
+
+---
+ src/filehighlight/ini-file-read.c |    3 +--
+ src/mcconfig/common.c             |    2 ++
+ src/mcconfig/get.c                |    3 +--
+ src/setup.c                       |    3 +--
+ src/skin/colors.c                 |    3 +--
+ 5 files changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/src/filehighlight/ini-file-read.c b/src/filehighlight/ini-file-read.c
+index b2f4901..4aee22a 100644
+--- a/src/filehighlight/ini-file-read.c
++++ b/src/filehighlight/ini-file-read.c
+@@ -243,12 +243,11 @@ gboolean
+ mc_fhl_parse_ini_file (mc_fhl_t * fhl)
+ {
+     gchar **group_names, **orig_group_names;
+-    gsize ftype_names_size;
+ 
+     mc_fhl_array_free (fhl);
+     fhl->filters = g_ptr_array_new ();
+ 
+-    orig_group_names = group_names = mc_config_get_groups (fhl->config, &ftype_names_size);
++    orig_group_names = group_names = mc_config_get_groups (fhl->config, NULL);
+ 
+     if (group_names == NULL)
+         return FALSE;
+diff --git a/src/mcconfig/common.c b/src/mcconfig/common.c
+index b0999ba..d7233f9 100644
+--- a/src/mcconfig/common.c
++++ b/src/mcconfig/common.c
+@@ -208,6 +208,8 @@ mc_config_read_file (mc_config_t * mc_config, const gchar * ini_path)
+         return FALSE;
+ 
+     groups = mc_config_get_groups (tmp_config, NULL);
++    if (!groups)
++        return FALSE;
+ 
+     for (curr_grp = groups; *curr_grp != NULL; curr_grp++) {
+         keys = mc_config_get_keys (tmp_config, *curr_grp, NULL);
+diff --git a/src/mcconfig/get.c b/src/mcconfig/get.c
+index 693ebf4..a7bdf34 100644
+--- a/src/mcconfig/get.c
++++ b/src/mcconfig/get.c
+@@ -45,10 +45,9 @@ mc_config_get_groups (mc_config_t * mc_config, gsize * len)
+ 
+     if (!mc_config)
+     {
+-	ret = g_try_malloc0 (sizeof (gchar **));
+         if (len)
+             *len = 0;
+-	return ret;
++	return NULL;
+     }
+     ret = g_key_file_get_groups (mc_config->handle, len);
+     if (ret == NULL)
+diff --git a/src/setup.c b/src/setup.c
+index 3f7adca..7b7cee1 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -492,7 +492,6 @@ setup__move_panels_config_into_separate_file(const char*profile)
+     mc_config_t *tmp_cfg;
+     char **groups, **curr_grp;
+     const char *need_grp;
+-    gsize groups_count;
+ 
+     if (!exist_file(profile))
+         return;
+@@ -501,7 +500,7 @@ setup__move_panels_config_into_separate_file(const char*profile)
+     if (!tmp_cfg)
+         return;
+ 
+-    curr_grp = groups = mc_config_get_groups (tmp_cfg, &groups_count);
++    curr_grp = groups = mc_config_get_groups (tmp_cfg, NULL);
+     if (!groups)
+     {
+         mc_config_deinit(tmp_cfg);
+diff --git a/src/skin/colors.c b/src/skin/colors.c
+index e4dd66b..d595bb5 100644
+--- a/src/skin/colors.c
++++ b/src/skin/colors.c
+@@ -250,13 +250,12 @@ mc_skin_color_check_inisection (const gchar * group)
+ static void
+ mc_skin_color_check_bw_mode (mc_skin_t * mc_skin)
+ {
+-    gsize items_count;
+     gchar **groups, **orig_groups;
+ 
+     if (!mc_args__disable_colors)
+         return;
+ 
+-    orig_groups = groups = mc_config_get_groups (mc_skin->config, &items_count);
++    orig_groups = groups = mc_config_get_groups (mc_skin->config, NULL);
+ 
+     if (groups == NULL)
+         return;
+-- 
+1.6.4
+

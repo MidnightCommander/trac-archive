@@ -1,0 +1,36 @@
+From 7315abf9e4c387c107013bd1d1bf7bd86a2a03a9 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 6 Mar 2010 16:39:03 +0000
+Subject: [PATCH] ftpfs.c repl deprecated g_strup by g_ascii_strup
+
+---
+ lib/vfs/mc-vfs/ftpfs.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/lib/vfs/mc-vfs/ftpfs.c b/lib/vfs/mc-vfs/ftpfs.c
+index 93bfab6..f8dbd83 100644
+--- a/lib/vfs/mc-vfs/ftpfs.c
++++ b/lib/vfs/mc-vfs/ftpfs.c
+@@ -501,11 +501,14 @@ ftpfs_login_server (struct vfs_class *me, struct vfs_s_super *super,
+     } else
+ 	name = g_strdup (SUP.user);
+ 
+-    if (ftpfs_get_reply
+-	(me, SUP.sock, reply_string,
+-	 sizeof (reply_string) - 1) == COMPLETE) {
+-	g_strup (reply_string);
+-	SUP.remote_is_amiga = strstr (reply_string, "AMIGA") != 0;
++    if (ftpfs_get_reply (me, SUP.sock, reply_string, 
++                        sizeof (reply_string) - 1) == COMPLETE) {
++	char *repup_string;
++	
++	repup_string = g_ascii_strup (reply_string, sizeof (reply_string) - 1);
++	SUP.remote_is_amiga = (strstr (repup_string, "AMIGA") != 0);
++	g_free (repup_string);
++	
+ 	if (MEDATA->logfile) {
+ 	    fprintf (MEDATA->logfile, "MC -- remote_is_amiga =  %d\n",
+ 		     SUP.remote_is_amiga);
+-- 
+1.6.4
+

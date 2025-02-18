@@ -1,0 +1,45 @@
+From 2c643fd0df6b13d78f4cac21c9f5d01667537905 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 16:25:32 +0000
+Subject: [PATCH] (extfs.c) Fix -Wcast-qual warning
+
+extfs.c:799:24: warning: cast from 'const struct extfs_super_t *' to 'struct vfs_s_super *' drops const qualifier [-Wcast-qual]
+        archive_name = VFS_SUPER (archive)->name;
+                       ^
+../../../lib/vfs/xdirentry.h:39:46: note: expanded from macro 'VFS_SUPER'
+#define VFS_SUPER(a) ((struct vfs_s_super *) (a))
+                                             ^
+
+Found by Clang-11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/vfs/xdirentry.h   | 1 +
+ src/vfs/extfs/extfs.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/vfs/xdirentry.h b/lib/vfs/xdirentry.h
+index 7b6410e74..0f198127c 100644
+--- a/lib/vfs/xdirentry.h
++++ b/lib/vfs/xdirentry.h
+@@ -37,6 +37,7 @@
+ #define VFS_SUBCLASS(a) ((struct vfs_s_subclass *) (a))
+ 
+ #define VFS_SUPER(a) ((struct vfs_s_super *) (a))
++#define CONST_VFS_SUPER(a) ((const struct vfs_s_super *) (a))
+ #define VFS_ENTRY(a) ((struct vfs_s_entry *) (a))
+ #define VFS_INODE(a) ((struct vfs_s_inode *) (a))
+ 
+diff --git a/src/vfs/extfs/extfs.c b/src/vfs/extfs/extfs.c
+index 6852f788e..223b52400 100644
+--- a/src/vfs/extfs/extfs.c
++++ b/src/vfs/extfs/extfs.c
+@@ -796,7 +796,7 @@ extfs_get_archive_name (const struct extfs_super_t *archive)
+     if (archive->local_name != NULL)
+         archive_name = archive->local_name;
+     else
+-        archive_name = VFS_SUPER (archive)->name;
++        archive_name = CONST_VFS_SUPER (archive)->name;
+ 
+     if (archive_name == NULL || *archive_name == '\0')
+         return g_strdup ("no_archive_name");

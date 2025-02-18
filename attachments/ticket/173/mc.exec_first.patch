@@ -1,0 +1,269 @@
+diff -u -r src/boxes.c /home/makesub/mc-4.6.3-r504-my/src/boxes.c
+--- src/boxes.c	2009-01-02 01:35:54.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/boxes.c	2009-01-13 14:28:59.000000000 +0000
+@@ -269,22 +269,23 @@
+     return result;
+ }
+ 
+-static int SORT_X = 40, SORT_Y = 14;
++static int SORT_X = 60, SORT_Y = 14;
+ 
+ static const char *sort_orders_names [SORT_TYPES];
+ 
+ sortfn *
+-sort_box (sortfn *sort_fn, int *reverse, int *case_sensitive)
++sort_box (sortfn *sort_fn, int *reverse, int *case_sensitive, int *exec_first)
+ {
+     int i, r, l;
+     sortfn *result;
+-    WCheck *c, *case_sense;
++    WCheck *c, *case_sense, *exec_ff;
+ 
+     const char *ok_button = _("&OK");
+     const char *cancel_button = _("&Cancel");
+     const char *reverse_label = _("&Reverse");
+     const char *case_label = _("case sensi&tive");
+     const char *sort_title = _("Sort order");
++    const char *exec_label = _("Executable first");
+ 
+     static int i18n_sort_flag = 0, check_pos = 0, button_pos = 0;
+ 
+@@ -342,6 +343,8 @@
+ 		button_new (9, button_pos, B_ENTER, DEFPUSH_BUTTON,
+ 			    ok_button, 0));
+ 
++    exec_ff = check_new (5, check_pos, *exec_first, exec_label);
++    add_widget (dd, exec_ff);
+     case_sense = check_new (4, check_pos, *case_sensitive, case_label);
+     add_widget (dd, case_sense);
+     c = check_new (3, check_pos, *reverse, reverse_label);
+@@ -355,11 +358,13 @@
+ 
+     r = dd->ret_value;
+     if (r != B_CANCEL) {
+-	result = (sortfn *) sort_orders[my_radio->sel].sort_fn;
+-	*reverse = c->state & C_BOOL;
+-	*case_sensitive = case_sense->state & C_BOOL;
+-    } else
+-	result = sort_fn;
++        result = (sortfn *) sort_orders[my_radio->sel].sort_fn;
++        *reverse = c->state & C_BOOL;
++        *case_sensitive = case_sense->state & C_BOOL;
++        *exec_first = exec_ff->state & C_BOOL;
++    } else {
++        result = sort_fn;
++    }
+     destroy_dlg (dd);
+ 
+     return result;
+diff -u -r src/boxes.h /home/makesub/mc-4.6.3-r504-my/src/boxes.h
+--- src/boxes.h	2008-12-21 14:48:56.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/boxes.h	2009-01-13 14:20:57.000000000 +0000
+@@ -7,7 +7,7 @@
+ int     display_box      (WPanel *p, char **user, char **mini,
+ 			  int *use_msformat, int num);
+ sortfn *sort_box         (sortfn *sort_fn, int *reverse,
+-			  int *case_sensitive);
++			  int *case_sensitive, int *exec_first);
+ void    confirm_box      (void);
+ void    display_bits_box (void);
+ void	file_highlighting_box (void);
+diff -u -r src/dir.c /home/makesub/mc-4.6.3-r504-my/src/dir.c
+--- src/dir.c	2008-12-28 17:20:37.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/dir.c	2009-01-14 14:48:21.000000000 +0000
+@@ -48,12 +48,13 @@
+ 
+ /* Are the files sorted case sensitively? */
+ static int case_sensitive = OS_SORT_CASE_SENSITIVE_DEFAULT;
++static int exec_first = 1;
+ 
+ #ifdef ENABLE_DNOTIFY
+ extern int panel_dnotify_handler_set;
+ #endif
+ 
+-#define MY_ISDIR(x) ( (S_ISDIR (x->st.st_mode) || x->f.link_to_dir) ? 1 : 0)
++#define MY_ISDIR(x) ( (is_exe (x->st.st_mode) && !(S_ISDIR (x->st.st_mode) || x->f.link_to_dir) && (exec_first == 1)) ? 1 : ( (S_ISDIR (x->st.st_mode) || x->f.link_to_dir) ? 2 : 0) )
+ 
+ sort_orders_t sort_orders [SORT_TYPES_TOTAL] = {
+     { N_("&Unsorted"),    unsorted },
+@@ -233,7 +234,7 @@
+ 
+ 
+ void
+-do_sort (dir_list *list, sortfn *sort, int top, int reverse_f, int case_sensitive_f)
++do_sort (dir_list *list, sortfn *sort, int top, int reverse_f, int case_sensitive_f, int exec_first_f)
+ {
+     int dot_dot_found = 0;
+ 
+@@ -247,6 +248,7 @@
+ 
+     reverse = reverse_f ? -1 : 1;
+     case_sensitive = case_sensitive_f;
++    exec_first = exec_first_f;
+     qsort (&(list->list) [dot_dot_found],
+ 	   top + 1 - dot_dot_found, sizeof (file_entry), sort);
+ }
+@@ -400,12 +402,12 @@
+ #ifdef ENABLE_DNOTIFY
+ _GNU_INLINE_ int _ATTRIBUTE_ALWAYS_INLINE_
+ do_load_dir (const char *path, dir_list *list, sortfn *sort, int local_reverse,
+-	     int case_sens, const char *filter,
++	     int case_sens, int exec_ff, const char *filter,
+ 	     int *dn_fd, char *dn_dir, void (*dn_hd)(int, siginfo_t *, void *))
+ #else
+ _GNU_INLINE_ int _ATTRIBUTE_ALWAYS_INLINE_
+ do_load_dir (const char *path, dir_list *list, sortfn *sort, int local_reverse,
+-	     int case_sens, const char *filter)
++	     int case_sens, int exec_ff, const char *filter)
+ #endif
+ {
+     DIR *dirp;
+@@ -518,7 +520,7 @@
+     }
+ 
+     if (next_free) {
+-	do_sort (list, sort, next_free - 1, local_reverse, case_sens);
++	do_sort (list, sort, next_free - 1, local_reverse, case_sens, exec_ff);
+     }
+ 
+     mc_closedir (dirp);
+@@ -574,7 +576,7 @@
+ /* If filter is null, then it is a match */
+ int
+ do_reload_dir (const char *path, dir_list *list, sortfn *sort, int count,
+-	       int rev, int do_case_sensitive, const char *filter)
++	       int rev, int do_case_sensitive, int do_exec_first, const char *filter)
+ {
+     DIR *dirp;
+     struct dirent *dp;
+@@ -671,7 +673,7 @@
+     tree_store_end_check ();
+     g_hash_table_destroy (marked_files);
+     if (next_free) {
+-	do_sort (list, sort, next_free - 1, rev, do_case_sensitive);
++	do_sort (list, sort, next_free - 1, rev, do_case_sensitive, do_exec_first);
+     }
+     clean_dir (&dir_copy, count);
+     return next_free;
+diff -u -r src/dir.h /home/makesub/mc-4.6.3-r504-my/src/dir.h
+--- src/dir.h	2009-01-04 00:01:55.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/dir.h	2009-01-13 14:42:06.000000000 +0000
+@@ -31,9 +31,9 @@
+ typedef int sortfn (const void *, const void *);
+ 
+ void do_sort (dir_list * list, sortfn * sort, int top, int reverse,
+-	      int case_sensitive);
++	      int case_sensitive, int exec_first);
+ int do_reload_dir (const char *path, dir_list * list, sortfn * sort, int count,
+-		   int reverse, int case_sensitive, const char *filter);
++		   int reverse, int case_sensitive, int exec_first, const char *filter);
+ void clean_dir (dir_list * list, int count);
+ int set_zero_dir (dir_list * list);
+ int handle_path (dir_list *list, const char *path, struct stat *buf1,
+Только в /home/makesub/mc-4.6.3-r504-my/src: hotlist.o
+Только в /home/makesub/mc-4.6.3-r504-my/src: info.o
+diff -u -r src/inline_dir.h /home/makesub/mc-4.6.3-r504-my/src/inline_dir.h
+--- src/inline_dir.h	2008-12-28 01:13:28.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/inline_dir.h	2009-01-13 14:53:44.000000000 +0000
+@@ -15,12 +15,12 @@
+ #ifdef ENABLE_DNOTIFY
+ extern int
+ do_load_dir (const char *path, dir_list *list, sortfn *sort, int local_reverse,
+-	     int case_sens, const char *filter,
++	     int case_sens, int exec_ff, const char *filter,
+ 	     int *dn_fd, char *dn_dir, void (*dn_hd)(int, siginfo_t *, void *));
+ #else
+ extern int
+ do_load_dir (const char *path, dir_list *list, sortfn *sort, int local_reverse,
+-	     int case_sens, const char *filter);
++	     int case_sens, int exec_ff, const char *filter);
+ #endif
+ 
+ #ifdef	__cplusplus
+diff -u -r src/main.c /home/makesub/mc-4.6.3-r504-my/src/main.c
+--- src/main.c	2009-01-08 00:20:34.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/main.c	2009-01-13 14:54:33.000000000 +0000
+@@ -696,7 +696,7 @@
+     panel_clean_dir (panel);
+     panel->count =
+ 	do_load_dir (panel->cwd, &panel->dir, panel->sort_type,
+-		     panel->reverse, panel->case_sensitive, panel->filter
++		     panel->reverse, panel->case_sensitive, panel->exec_first, panel->filter
+ #ifdef ENABLE_DNOTIFY
+ #  ifdef __linux__
+ 		     , &panel->dnotify_fd, panel->dnotify_dir, panel_dnotify_handler);
+@@ -852,7 +852,7 @@
+ 	return;
+ 
+     p = MENU_PANEL;
+-    sort_order = sort_box (p->sort_type, &p->reverse, &p->case_sensitive);
++    sort_order = sort_box (p->sort_type, &p->reverse, &p->case_sensitive, &p->exec_first);
+ 
+     panel_set_sort_order (p, sort_order);
+ 
+diff -u -r src/panel.h /home/makesub/mc-4.6.3-r504-my/src/panel.h
+--- src/panel.h	2008-12-21 14:48:56.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/panel.h	2009-01-13 14:31:31.000000000 +0000
+@@ -51,6 +51,7 @@
+     int      selected;		/* Index to the selected file */
+     int      reverse;		/* Show listing in reverse? */
+     int      case_sensitive;    /* Listing is case sensitive? */
++    int      exec_first;    /* Show executable first */
+     int      split;		/* Split panel to allow two columns */
+     int      is_panelized;	/* Flag: special filelisting, can't reload */
+     int      frame_size;	/* half or full frame */
+Только в /home/makesub/mc-4.6.3-r504-my/src: panelize.o
+Только в /home/makesub/mc-4.6.3-r504-my/src: profile.o
+Только в /home/makesub/mc-4.6.3-r504-my/src: recode.o
+Только в /home/makesub/mc-4.6.3-r504-my/src: regex.o
+Только в /home/makesub/mc-4.6.3-r504-my/src: rxvt.o
+diff -u -r src/screen.c /home/makesub/mc-4.6.3-r504-my/src/screen.c
+--- src/screen.c	2009-01-08 00:53:20.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/screen.c	2009-01-13 14:56:32.000000000 +0000
+@@ -1642,7 +1642,7 @@
+     /* Load the default format */
+     panel->count =
+ 	do_load_dir (panel->cwd, &panel->dir, panel->sort_type,
+-		     panel->reverse, panel->case_sensitive, panel->filter
++		     panel->reverse, panel->case_sensitive, panel->exec_first, panel->filter
+ #ifdef ENABLE_DNOTIFY
+ #  ifdef __linux__
+ 		     , &panel->dnotify_fd, panel->dnotify_dir, panel_dnotify_handler);
+@@ -1684,7 +1684,7 @@
+ 
+     panel->count =
+ 	do_reload_dir (panel->cwd, &panel->dir, panel->sort_type,
+-		       panel->count, panel->reverse, panel->case_sensitive,
++		       panel->count, panel->reverse, panel->case_sensitive,panel->exec_first,
+ 		       panel->filter);
+ 
+     panel->dirty = 1;
+@@ -3162,7 +3162,7 @@
+ 
+     filename = g_strdup (selection (panel)->fname);
+     unselect_item (panel);
+-    do_sort (&panel->dir, panel->sort_type, panel->count-1, panel->reverse, panel->case_sensitive);
++    do_sort (&panel->dir, panel->sort_type, panel->count-1, panel->reverse, panel->case_sensitive, panel->exec_first);
+     panel->selected = -1;
+     for (i = panel->count; i; i--){
+ 	if (!strcmp (panel->dir.list [i-1].fname, filename)){
+diff -u -r src/setup.c /home/makesub/mc-4.6.3-r504-my/src/setup.c
+--- src/setup.c	2009-01-05 23:26:55.000000000 +0000
++++ /home/makesub/mc-4.6.3-r504-my/src/setup.c	2009-01-14 15:00:43.000000000 +0000
+@@ -270,6 +270,8 @@
+     save_string (section, "reverse", buffer, profile_name);
+     g_snprintf (buffer, sizeof (buffer), "%d", panel->case_sensitive);
+     save_string (section, "case_sensitive", buffer, profile_name);
++    g_snprintf (buffer, sizeof (buffer), "%d", panel->exec_first);
++    save_string (section, "exec_first", buffer, profile_name);
+     for (i = 0; sort_names [i].key; i++)
+ 	if (sort_names [i].sort_type == (sortfn *) panel->sort_type){
+ 	    save_string (section, "sort_order",
+@@ -423,6 +425,7 @@
+ 
+     panel->reverse = load_int (section, "reverse", 0);
+     panel->case_sensitive = load_int (section, "case_sensitive", OS_SORT_CASE_SENSITIVE_DEFAULT);
++    panel->exec_first = load_int (section, "exec_first", 0);
+ 
+     /* Load sort order */
+     load_string (section, "sort_order", "name", buffer, sizeof (buffer));

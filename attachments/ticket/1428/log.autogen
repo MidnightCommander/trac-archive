@@ -1,0 +1,108 @@
+Copying file ABOUT-NLS
+Copying file config/config.rpath
+Creating directory intl
+Copying file intl/ChangeLog
+Copying file intl/Makefile.in
+Copying file intl/VERSION
+Copying file intl/bindtextdom.c
+Copying file intl/config.charset
+Copying file intl/dcgettext.c
+Copying file intl/dcigettext.c
+Copying file intl/dcngettext.c
+Copying file intl/dgettext.c
+Copying file intl/dngettext.c
+Copying file intl/eval-plural.h
+Copying file intl/explodename.c
+Copying file intl/finddomain.c
+Copying file intl/gettext.c
+Copying file intl/gettextP.h
+Copying file intl/gmo.h
+Copying file intl/hash-string.h
+Copying file intl/intl-compat.c
+Copying file intl/l10nflist.c
+Copying file intl/langprefs.c
+Copying file intl/libgnuintl.h.in
+Copying file intl/loadinfo.h
+Copying file intl/loadmsgcat.c
+Copying file intl/localcharset.c
+Copying file intl/localcharset.h
+Copying file intl/locale.alias
+Copying file intl/localealias.c
+Copying file intl/localename.c
+Copying file intl/log.c
+Copying file intl/ngettext.c
+Copying file intl/os2compat.c
+Copying file intl/os2compat.h
+Copying file intl/osdep.c
+Copying file intl/plural-exp.c
+Copying file intl/plural-exp.h
+Copying file intl/plural.c
+Copying file intl/plural.y
+Copying file intl/printf-args.c
+Copying file intl/printf-args.h
+Copying file intl/printf-parse.c
+Copying file intl/printf-parse.h
+Copying file intl/printf.c
+Copying file intl/ref-add.sin
+Copying file intl/ref-del.sin
+Copying file intl/relocatable.c
+Copying file intl/relocatable.h
+Copying file intl/textdomain.c
+Copying file intl/vasnprintf.c
+Copying file intl/vasnprintf.h
+Copying file intl/vasnwprintf.h
+Copying file intl/wprintf-parse.h
+Copying file intl/xsize.h
+Creating directory m4
+Copying file m4/codeset.m4
+Copying file m4/gettext.m4
+Copying file m4/glibc2.m4
+Copying file m4/glibc21.m4
+Copying file m4/iconv.m4
+Copying file m4/intdiv0.m4
+Copying file m4/intmax.m4
+Copying file m4/inttypes-pri.m4
+Copying file m4/inttypes.m4
+Copying file m4/inttypes_h.m4
+Copying file m4/isc-posix.m4
+Copying file m4/lcmessage.m4
+Copying file m4/lib-ld.m4
+Copying file m4/lib-link.m4
+Copying file m4/lib-prefix.m4
+Copying file m4/longdouble.m4
+Copying file m4/longlong.m4
+Copying file m4/nls.m4
+Copying file m4/po.m4
+Copying file m4/printf-posix.m4
+Copying file m4/progtest.m4
+Copying file m4/signed.m4
+Copying file m4/size_max.m4
+Copying file m4/stdint_h.m4
+Copying file m4/uintmax_t.m4
+Copying file m4/ulonglong.m4
+Copying file m4/wchar_t.m4
+Copying file m4/wint_t.m4
+Copying file m4/xsize.m4
+Copying file config/mkinstalldirs
+Copying file po/Makefile.in.in
+Copying file po/Makevars.template
+Copying file po/Rules-quot
+Copying file po/boldquot.sed
+Copying file po/en@boldquot.header
+Copying file po/en@quot.header
+Copying file po/insert-header.sin
+Copying file po/quot.sed
+Copying file po/remove-potcdate.sin
+libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `config'.
+libtoolize: linking file `config/ltmain.sh'
+libtoolize: putting macros in `m4'.
+libtoolize: linking file `m4/libtool.m4'
+libtoolize: linking file `m4/ltoptions.m4'
+libtoolize: linking file `m4/ltsugar.m4'
+libtoolize: linking file `m4/ltversion.m4'
+libtoolize: linking file `m4/lt~obsolete.m4'
+libtoolize: Consider adding `AC_CONFIG_MACRO_DIR([m4])' to configure.ac and
+libtoolize: rerunning libtoolize, to keep the correct libtool macros in-tree.
+configure:1758: error: possibly undefined macro: _m4_text_wrap_word
+      If this token and others are legitimate, please use m4_pattern_allow.
+      See the Autoconf documentation.

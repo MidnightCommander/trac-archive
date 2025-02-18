@@ -1,0 +1,74 @@
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: [PATCH 4/5] keyboard input: treat only ESC<char><end> or <ESC><char><ESC> as valid
+Date: Mon, 22 Oct 2012 16:49:44 +0200
+
+This change prevents misinterpreting an unknown ESC sequence's
+tail as a garbage input. To reproduce, run "sleep 3" and
+hold down Down_Arrow key until sleep runs.
+With debugging log enabled, the following can be seen:
+
+entered get_key_code(no_delay:0)
+ c=tty_lowlevel_getch()=27
+ push_char(27) !0
+ c=xgetch_second()=91
+ push_char(91) !0
+ 2 c=tty_lowlevel_getch()=66
+ push_char(66)
+  seq_buffer[0]:27   <---- the saved Down Arrow sequence "ESC [ B"
+  seq_buffer[1]:91
+  seq_buffer[2]:66
+  seq_buffer[3]:0
+ pending_keys!=NULL. m=-1
+ d=*pending_keys++=27
+ d=ALT(*pending_keys++)=ALT(91)=8283
+ ^^^^^^^^^^^^^^^^^^^^^^^ we misinterpret "ESC [ B" as "ESC ["
+return correct_key_code(8283)
+entered get_key_code(no_delay:0)
+ pending_keys!=NULL. m=-1
+ d=*pending_keys++=66
+ ^^^^^^^^^^^^ we think user pressed "B"
+return correct_key_code(66)
+
+With this patch, no bogus "input" is generated.
+
+Longer unknown sequences need an additional fix, coming next.
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+---
+ lib/tty/key.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 77185ce..9b97aa8 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1874,7 +1874,6 @@ get_key_code (int no_delay)
+         {
+             int d = *pending_keys++;
+             keylog (" d=*pending_keys++=%d\n", d);
+-          check_pend:
+             if (*pending_keys == 0)
+             {
+                 pending_keys = NULL;
+@@ -1882,9 +1881,17 @@ get_key_code (int no_delay)
+             }
+             else if (d == ESC_CHAR)
+             {
++                int bad_seq;
+                 d = ALT (*pending_keys++);
+                 keylog (" d=ALT(*pending_keys++)=ALT(%d)=%d\n", pending_keys[-1], d);
+-                goto check_pend;
++                bad_seq = (*pending_keys != ESC_CHAR && *pending_keys != 0);
++                if (*pending_keys == 0 || bad_seq)
++                {
++                    pending_keys = NULL;
++                    seq_append = NULL;
++                }
++                if (bad_seq)
++                    goto nodelay_try_again;
+             }
+             if ((d > 127 && d < 256) && use_8th_bit_as_meta)
+             {
+-- 
+1.7.7.6
+

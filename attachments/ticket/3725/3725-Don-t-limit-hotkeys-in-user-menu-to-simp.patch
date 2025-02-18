@@ -1,0 +1,84 @@
+From 68f058f98ccd5b08d8add4c0493b393ba45a257a Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 14 Nov 2016 13:30:30 +0200
+Subject: [PATCH] Ticket #3725: Don't limit hotkeys in user menu to simple
+ letters only.
+
+---
+ src/filemanager/usermenu.c | 45 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 43 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/usermenu.c b/src/filemanager/usermenu.c
+index a9c3a02..3fd88ad 100644
+--- a/src/filemanager/usermenu.c
++++ b/src/filemanager/usermenu.c
+@@ -39,6 +39,7 @@
+ #include "lib/global.h"
+ #include "lib/fileloc.h"
+ #include "lib/tty/tty.h"
++#include "lib/tty/key.h"        /* lookup_key() */
+ #include "lib/skin.h"
+ #include "lib/search.h"
+ #include "lib/vfs/vfs.h"
+@@ -598,6 +599,41 @@ menu_file_own (char *path)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++/**
++ * Extracts the hotkey from a menu label.
++ *
++ * If the first word in the label is a valid hotkey name, its code is
++ * returned. Otherwise, the first character is assumed to be the hotkey.
++ *
++ * Examples:
++ *
++ *        "c       Copy file to clipboard"  =>  (int)'c'
++ *        "ctrl-c  Copy file to clipboard"  =>  16387    (i.e., the keycode of "ctrl-c")
++ *        "Copy file to clipboard"          =>  (int)'C'
++ */
++static int
++extract_hotkey (const char *s)
++{
++    static char first_word[BUF_MEDIUM]; /* as in extract_line() */
++    const char *p;
++    int hotkey;
++
++    p = strpbrk (s, " \t");
++    if (p == NULL)
++        p = s + strlen (s);
++
++    g_strlcpy (first_word, s, p - s + 1);
++
++    hotkey = lookup_key (first_word, NULL);
++
++    if (hotkey != 0)
++        return hotkey;
++    else
++        return (unsigned char) s[0];
++}
++
++/* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -1101,9 +1137,14 @@ user_menu_cmd (const WEdit * edit_widget, const char *menu_file, int selected_en
+             /* insert all the items found */
+             for (i = 0; i < menu_lines; i++)
+             {
++                const char *label;
++                int hotkey;
++
+                 p = entries[i];
+-                LISTBOX_APPEND_TEXT (listbox, (unsigned char) p[0],
+-                                     extract_line (p, p + MAX_ENTRY_LEN), p, FALSE);
++                label = extract_line (p, p + MAX_ENTRY_LEN);
++                hotkey = extract_hotkey (label);
++
++                LISTBOX_APPEND_TEXT (listbox, hotkey, label, p, FALSE);
+             }
+             /* Select the default entry */
+             listbox_select_entry (listbox->list, selected);
+-- 
+2.9.3
+

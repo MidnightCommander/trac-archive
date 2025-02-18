@@ -1,0 +1,69 @@
+diff --git a/src/vfs/extfs/helpers/iso9660.in b/src/vfs/extfs/helpers/iso9660.in
+index a4519dc3c..2e2a3390d 100644
+--- a/src/vfs/extfs/helpers/iso9660.in
++++ b/src/vfs/extfs/helpers/iso9660.in
+@@ -80,17 +80,16 @@ awk_xorriso_unesc=$(cat <<'EOF'
+ EOF
+ )
+ 
+-xorriso_list() {
++xorriso_list() (
+     if test -z "$XORRISO"; then
+         return 1
+     fi
+ 
+-    local temp_ls
+     temp_ls=$(mktemp "${MC_TMPDIR:-/tmp}"/mc-iso9660.XXXXXX) || return 1
+ 
+     # $XORRISO must be unquoted here to hook into the testing framework
+     $XORRISO -abort_on FATAL -dev stdio:"$1" -find / -exec lsdl 2>/dev/null >"$temp_ls"
+-    local r=$?
++    r=$?
+ 
+     if [ "$r" != 0 ]; then
+         rm -f "$temp_ls"
+@@ -105,7 +104,7 @@ xorriso_list() {
+         @AWK@ "$awk_xorriso_unesc"
+ 
+     rm -f "$temp_ls"
+-}
++)
+ 
+ xorriso_copyout() {
+     if test -z "$XORRISO"; then
+@@ -175,9 +174,7 @@ test_iso () {
+     fi
+ }
+ 
+-mcisofs_list () {
+-    local lsl r
+-
++mcisofs_list () (
+     # left as a reminder to implement compressed image support =)
+     case "$1" in
+       *.lz)  MYCAT="lzip -dc";;
+@@ -227,7 +224,7 @@ BEGIN {
+   if (name == "..") next;
+   printf "%s%s%s\n", attr, dir, name
+ }'
+-}
++)
+ 
+ mcisofs_copyout () {
+     if [ "x$SEMICOLON" = "xYES" ]; then
+diff --git a/tests/src/vfs/extfs/helpers-list/test_all b/tests/src/vfs/extfs/helpers-list/test_all
+index f5f9be616..b7b604fa8 100755
+--- a/tests/src/vfs/extfs/helpers-list/test_all
++++ b/tests/src/vfs/extfs/helpers-list/test_all
+@@ -94,6 +94,11 @@ opt_run_mcdiff_on_error=no  # "yes" if '--mcdiff' provided.
+ 
+ ############################ Utility functions #############################
+ 
++# Support ksh93+
++if type typeset > /dev/null 2>&1; then
++  alias local="typeset"
++fi
++
+ #
+ # Does $1 contain $2?
+ #

@@ -1,0 +1,35 @@
+#
+# Adds 7zip extfs descriptor
+#
+# Source:	Gentoo Portage
+# Reference:	mc-4.6.1
+# Submit-By:	Enrico Weigelt, metux IT service <weigelt metux de>
+# Submit-Date:	2008-12-26
+# State:	new
+#
+diff -ruN mc-4.6.1.orig/lib/mc.ext.in mc-4.6.1/lib/mc.ext.in
+--- mc-4.6.1.orig/lib/mc.ext.in	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/lib/mc.ext.in	2008-12-26 03:03:19.000000000 +0100
+@@ -246,6 +246,12 @@
+ shell/.info
+    Open=info -f %f
+ 
++# 7-Zip, Needs to be before manual page definitions
++regex/\.(7z|7Z)$
++	View=%view{ascii} 7za l %f 2>/dev/null
++	Open=%cd %p#u7z
++
++
+ # Manual page
+ # Exception - .so libraries are not manual pages
+ regex/\.(so|so\.[0-9\.]*)$
+diff -ruN mc-4.6.1.orig/vfs/extfs/extfs.ini mc-4.6.1/vfs/extfs/extfs.ini
+--- mc-4.6.1.orig/vfs/extfs/extfs.ini	2008-12-26 02:19:54.000000000 +0100
++++ mc-4.6.1/vfs/extfs/extfs.ini	2008-12-26 03:03:19.000000000 +0100
+@@ -7,6 +7,7 @@
+ ulha
+ urar
+ uha
++u7z
+ # For arj usage you need a special patch to unarj (see unarj.diff)
+ uarj

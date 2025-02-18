@@ -1,0 +1,39 @@
+
+fix cflags check when using clang compiler
+
+with clang invalid cflags usage result in exit 0, we expect exit 1
+
+$ clang -c -Wmaybe-uninitialized conftest.c ; echo $?
+warning: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Wunknown-warning-option]
+1 warning generated.
+0
+
+solution with -Werror on cflags check
+
+$ clang -c -Werror -Wmaybe-uninitialized conftest.c ; echo $?
+error: unknown warning option '-Wmaybe-uninitialized'; did you mean '-Wuninitialized'? [-Werror,-Wunknown-warning-option]
+1
+
+(tested with clang 3.6)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -12,7 +12,15 @@
+   AC_MSG_CHECKING([whether ${CC} accepts $1])
+ 
+   safe_CFLAGS=$CFLAGS
+-  CFLAGS="$1"
++
++  case "$CC" in
++    clang*)
++      CFLAGS="-Werror $1"
++      ;;
++    *)
++      CFLAGS="$1"
++      ;;
++  esac
+ 
+   AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([], [[return 0;]])],

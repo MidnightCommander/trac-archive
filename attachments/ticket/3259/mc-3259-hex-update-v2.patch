@@ -1,0 +1,210 @@
+diff --git a/src/viewer/hex.c b/src/viewer/hex.c
+index e355cfb..78e9c90 100644
+--- a/src/viewer/hex.c
++++ b/src/viewer/hex.c
+@@ -73,42 +73,6 @@ static const char hex_char[] = "0123456789ABCDEF";
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-#ifdef HAVE_CHARSET
+-static int
+-utf8_to_int (char *str, int *char_width, gboolean * result)
+-{
+-    int res = -1;
+-    gunichar ch;
+-    gchar *next_ch = NULL;
+-    int width = 0;
+-
+-    *result = TRUE;
+-
+-    if (str == NULL)
+-    {
+-        *result = FALSE;
+-        return 0;
+-    }
+-
+-    res = g_utf8_get_char_validated (str, -1);
+-
+-    if (res < 0)
+-        ch = *str;
+-    else
+-    {
+-        ch = res;
+-        /* Calculate UTF-8 char width */
+-        next_ch = g_utf8_next_char (str);
+-        if (next_ch)
+-            width = next_ch - str;
+-        else
+-            ch = 0;
+-    }
+-    *char_width = width;
+-    return ch;
+-}
+-#endif /* HAVE_CHARSET */
+-
+ /* --------------------------------------------------------------------------------------------- */
+ /** Determine the state of the current byte.
+  *
+@@ -146,13 +110,15 @@ mcview_display_hex (mcview_t * view)
+     const screen_dimen text_start = 8 + 13 * ngroups +
+         ((width < 80) ? 0 : (width == 80) ? (ngroups - 1) : (ngroups - 1 + 1));
+ 
+-    screen_dimen row;
++    int row;
+     off_t from;
+     int c;
+     mark_t boldflag = MARK_NORMAL;
+     struct hexedit_change_node *curr = view->change_list;
+ #ifdef HAVE_CHARSET
+     int ch = 0;
++    int cont_bytes = 0;  /* number of continuation bytes remanining from current UTF-8 */
++    gboolean cjk_right = FALSE;  /* whether the second byte of a CJK is to be processed */
+ #endif /* HAVE_CHARSET */
+ 
+     char hex_buff[10];          /* A temporary buffer for sprintf and mvwaddstr */
+@@ -161,13 +127,28 @@ mcview_display_hex (mcview_t * view)
+     mcview_display_clean (view);
+ 
+     /* Find the first displayable changed byte */
++    /* In UTF-8 mode, go back by 1 or maybe 2 lines to handle continuation bytes properly. */
+     from = view->dpy_start;
++    row = 0;
++#ifdef HAVE_CHARSET
++    if (view->utf8)
++    {
++        if (from >= view->bytes_per_line) {
++            row--;
++            from -= view->bytes_per_line;
++        }
++        if (view->bytes_per_line == 4 && from >= view->bytes_per_line) {
++            row--;
++            from -= view->bytes_per_line;
++        }
++    }
++#endif /* HAVE_CHARSET */
+     while (curr && (curr->offset < from))
+     {
+         curr = curr->next;
+     }
+ 
+-    for (row = 0; mcview_get_byte (view, from, NULL) == TRUE && row < height; row++)
++    for (; mcview_get_byte (view, from, NULL) == TRUE && row < (int) height; row++)
+     {
+         screen_dimen col = 0;
+         size_t i;
+@@ -175,16 +156,17 @@ mcview_display_hex (mcview_t * view)
+         col = 0;
+ 
+         /* Print the hex offset */
+-        g_snprintf (hex_buff, sizeof (hex_buff), "%08" PRIXMAX " ", (uintmax_t) from);
+-        widget_move (view, top + row, left);
+-        tty_setcolor (VIEW_BOLD_COLOR);
+-        for (i = 0; col < width && hex_buff[i] != '\0'; i++)
+-        {
+-            tty_print_char (hex_buff[i]);
+-            /*              tty_print_char(hex_buff[i]); */
+-            col += 1;
++        if (row >= 0) {
++            g_snprintf (hex_buff, sizeof (hex_buff), "%08" PRIXMAX " ", (uintmax_t) from);
++            widget_move (view, top + row, left);
++            tty_setcolor (VIEW_BOLD_COLOR);
++            for (i = 0; col < width && hex_buff[i] != '\0'; i++)
++            {
++                tty_print_char (hex_buff[i]);
++                col += 1;
++            }
++            tty_setcolor (VIEW_NORMAL_COLOR);
+         }
+-        tty_setcolor (VIEW_NORMAL_COLOR);
+ 
+         for (bytes = 0; bytes < view->bytes_per_line; bytes++, from++)
+         {
+@@ -192,38 +174,59 @@ mcview_display_hex (mcview_t * view)
+ #ifdef HAVE_CHARSET
+             if (view->utf8)
+             {
+-                int cw = 1;
+-                gboolean read_res = TRUE;
+-
+-                ch = mcview_get_utf (view, from, &cw, &read_res);
+-                if (!read_res)
+-                    break;
+-                /* char width is greater 0 bytes */
+-                if (cw != 0)
+-                {
+-                    int cnt;
+-                    char corr_buf[UTF8_CHAR_LEN + 1];
+-                    struct hexedit_change_node *corr = curr;
+-                    int res;
+-
+-                    res = g_unichar_to_utf8 (ch, (char *) corr_buf);
+-
+-                    for (cnt = 0; cnt < cw; cnt++)
+-                    {
+-                        if (curr != NULL && from + cnt == curr->offset)
+-                        {
+-                            /* replace only changed bytes in array of multibyte char */
+-                            corr_buf[cnt] = curr->value;
+-                            curr = curr->next;
+-                        }
++                int res;
++                int j;
++                struct hexedit_change_node *corr = curr;
++                gchar utf8buf[UTF8_CHAR_LEN + 1];
++
++                if (cont_bytes) {
++		    /* UTF-8 continuation bytes, print a space (with proper attributes)... */
++                    cont_bytes--;
++                    ch = ' ';
++		    if (cjk_right) {
++			/* ... except when it'd wipe out the right half of a CJK, then print nothing */
++			cjk_right = FALSE;
++			ch = -1;
+                     }
+-                    corr_buf[res] = '\0';
+-                    /* Determine the state of the current multibyte char */
+-                    ch = utf8_to_int ((char *) corr_buf, &cw, &read_res);
+-                    curr = corr;
+-                }
++                } else {
++		    for (j = 0; j < UTF8_CHAR_LEN; j++) {
++		        if (mcview_get_byte (view, from + j, &res))
++			    utf8buf[j] = res;
++		        else
++		        {
++			    utf8buf[j] = '\0';
++			    break;
++		        }
++		        if (curr != NULL && from + j == curr->offset)
++			    utf8buf[j] = curr->value;
++		        if (curr != NULL && from + j >= curr->offset)
++			    curr = curr->next;
++		    }
++		    utf8buf[UTF8_CHAR_LEN] = '\0';
++		    /* Determine the state of the current multibyte char */
++		    ch = g_utf8_get_char_validated (utf8buf, -1);
++		    if (ch == -1 || ch == -2) {
++			ch = '.';
++		    } else {
++			gchar *next_ch = g_utf8_next_char (utf8buf);
++                        cont_bytes = next_ch - utf8buf - 1;
++			if (g_unichar_iswide(ch))
++			    cjk_right = TRUE;
++                    }
++		    curr = corr;
++		}
+             }
+ #endif /* HAVE_CHARSET */
++
++            /* For negative rows, the only thing we care about is overflowing
++             * UTF-8 continuation bytes which were handled above. */
++            if (row < 0)
++            {
++                if (curr != NULL && from == curr->offset)
++                    curr = curr->next;
++                continue;
++            }
++
+             if (!mcview_get_byte (view, from, &c))
+                 break;
+ 

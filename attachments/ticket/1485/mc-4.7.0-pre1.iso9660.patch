@@ -1,0 +1,21 @@
+diff -Naur mc-4.7.0-pre1~/vfs/extfs/iso9660.in mc-4.7.0-pre1/vfs/extfs/iso9660.in
+--- mc-4.7.0-pre1~/vfs/extfs/iso9660.in	2009-06-23 21:55:12.000000000 +0300
++++ mc-4.7.0-pre1/vfs/extfs/iso9660.in	2009-08-07 01:06:15.000000000 +0300
+@@ -15,7 +15,7 @@
+     fi
+     if test -n "$CHARSET"; then
+ 	CHARSET=`echo "$CHARSET" | tr '[A-Z]' '[a-z]' | sed -e 's/^iso-/iso/'`
+-	isoinfo -j $CHARSET -i /dev/null 2>&1 | grep "Unknown charset" >/dev/null && CHARSET=
++	isoinfo -j $CHARSET -i /dev/null 2>&1 | egrep "Iconv not yet supported|Unknown charset" >/dev/null && CHARSET=
+     fi
+     if test -n "$CHARSET"; then
+ 	JOLIET_OPT="-j $CHARSET -J"
+@@ -23,7 +23,7 @@
+ 	JOLIET_OPT="-J"
+     fi
+     ISOINFO="isoinfo -R"
+-    isoinfo -d -i "$1" | grep "NO Joliet" > /dev/null || ISOINFO="$ISOINFO $JOLIET_OPT"
++    isoinfo -d -i "$1" | egrep "UCS level 1|NO Joliet" > /dev/null || ISOINFO="$ISOINFO $JOLIET_OPT"
+ }
+ 
+ mcisofs_list () {

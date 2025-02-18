@@ -1,0 +1,11 @@
+--- misc.sh.in	2013-07-05 15:21:59.000000000 +0300
++++ misc.sh.in.fix	2013-10-21 16:08:07.000000000 +0300
+@@ -22,7 +22,7 @@
+         file "${MC_EXT_FILENAME}" && nm -C "${MC_EXT_FILENAME}"
+         ;;
+     lib)
+-        gplib -t "${MC_EXT_FILENAME}" || >&2 | \
++        gplib -t "${MC_EXT_FILENAME}" || >&2 \
+             @PERL@ -e '@a=split /[\s\t]+/, <>; printf ("%-30s | %10d | %s.%s.%02d | %s\n", $a[0], ($a[1]*1),$a[7], lc($a[4]), $a[5], $a[6]);'
+         ;;
+     so)

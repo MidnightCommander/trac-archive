@@ -1,0 +1,367 @@
+diff -urp /home/users/gotar/git/mc/src/viewer/actions_cmd.c ./actions_cmd.c
+--- /home/users/gotar/git/mc/src/viewer/actions_cmd.c	2010-11-20 13:22:07.000000000 +0100
++++ ./actions_cmd.c	2010-12-03 01:54:06.000000000 +0100
+@@ -242,7 +242,7 @@ mcview_handle_editkey (mcview_t * view, 
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static cb_ret_t
++static int
+ mcview_execute_cmd (mcview_t * view, unsigned long command)
+ {
+     int res = MSG_HANDLED;
+@@ -297,21 +297,20 @@ mcview_execute_cmd (mcview_t * view, uns
+         view->dirty++;
+         break;
+     case CK_ViewMoveToBol:
+-        mcview_moveto_bol (view);
++        return mcview_moveto_bol (view);
+         break;
+     case CK_ViewMoveToEol:
+         mcview_moveto_eol (view);
+         break;
+     case CK_ViewMoveLeft:
+-        mcview_move_left (view, 1);
+-        break;
++        return mcview_move_left (view, 1);
+     case CK_ViewMoveRight:
+         mcview_move_right (view, 1);
+         break;
+     case CK_ViewMoveLeft10:
+         if (!view->hex_mode)
+-            mcview_move_left (view, 10);
+-        break;
++            return mcview_move_left (view, 10);
++        return -MSG_HANDLED;
+     case CK_ViewMoveRight10:
+         if (!view->hex_mode)
+             mcview_move_right (view, 10);
+@@ -323,32 +322,28 @@ mcview_execute_cmd (mcview_t * view, uns
+         mcview_display_toggle_ruler (view);
+         break;
+     case CK_ViewMoveUp:
+-        mcview_move_up (view, 1);
+-        break;
++        return mcview_move_up (view, 1);
+     case CK_ViewMoveDown:
+         mcview_move_down (view, 1);
+         break;
+     case CK_ViewMoveHalfPgUp:
+-        mcview_move_up (view, (view->data_area.height + 1) / 2);
+-        break;
++        return mcview_move_up (view, (view->data_area.height + 1) / 2);
+     case CK_ViewMoveHalfPgDn:
+         mcview_move_down (view, (view->data_area.height + 1) / 2);
+         break;
+     case CK_ViewMovePgUp:
+-        mcview_move_up (view, view->data_area.height);
+-        break;
++        return mcview_move_up (view, view->data_area.height);
+     case CK_ViewMovePgDn:
+         mcview_move_down (view, view->data_area.height);
+         break;
+     case CK_ViewMoveTop:
+-        mcview_moveto_top (view);
+-        break;
++        return mcview_moveto_top (view);
+     case CK_ViewMoveBottom:
+         mcview_moveto_bottom (view);
+         break;
+     case CK_ShowCommandLine:
+         view_other_cmd ();
+-        break;
++        return -MSG_HANDLED;
+         /*
+            // Unlike Ctrl-O, run a new shell if the subshell is not running
+            case '!':
+@@ -376,7 +371,7 @@ mcview_execute_cmd (mcview_t * view, uns
+     case CK_ViewQuit:
+         if (!mcview_is_in_panel (view))
+             dlg_stop (view->widget.owner);
+-        break;
++        return -MSG_HANDLED;
+     default:
+         res = MSG_NOT_HANDLED;
+     }
+@@ -384,10 +379,11 @@ mcview_execute_cmd (mcview_t * view, uns
+ }
+ 
+ /* Both views */
+-static cb_ret_t
++static int
+ mcview_handle_key (mcview_t * view, int key)
+ {
+     unsigned long command;
++    int res;
+ 
+     key = convert_from_input_c (key);
+ 
+@@ -402,8 +398,12 @@ mcview_handle_key (mcview_t * view, int 
+     }
+ 
+     command = lookup_keymap_command (view->plain_map, key);
+-    if ((command != CK_Ignore_Key) && (mcview_execute_cmd (view, command) == MSG_HANDLED))
+-        return MSG_HANDLED;
++    if (command != CK_Ignore_Key)
++    {
++        res = mcview_execute_cmd (view, command);
++        if (res != MSG_NOT_HANDLED)
++            return res;
++    }
+ 
+ #ifdef MC_ENABLE_DEBUGGING_CODE
+     if (c == 't')
+@@ -450,7 +450,7 @@ cb_ret_t
+ mcview_callback (Widget * w, widget_msg_t msg, int parm)
+ {
+     mcview_t *view = (mcview_t *) w;
+-    cb_ret_t i;
++    int i;
+ 
+     mcview_compute_areas (view);
+     mcview_update_bytes_per_line (view);
+@@ -475,8 +475,11 @@ mcview_callback (Widget * w, widget_msg_
+ 
+     case WIDGET_KEY:
+         i = mcview_handle_key (view, parm);
+-        mcview_update (view);
+-        return i;
++        if (i != MSG_NOT_HANDLED && i != -MSG_HANDLED)
++            mcview_update (view);
++        if (i != MSG_NOT_HANDLED)
++            return MSG_HANDLED;
++        return MSG_NOT_HANDLED;
+ 
+     case WIDGET_COMMAND:
+         i = mcview_execute_cmd (view, parm);
+diff -urp /home/users/gotar/git/mc/src/viewer/datasource.c ./datasource.c
+--- /home/users/gotar/git/mc/src/viewer/datasource.c	2010-11-20 13:22:07.000000000 +0100
++++ ./datasource.c	2010-11-11 23:32:50.000000000 +0100
+@@ -136,8 +136,7 @@ mcview_get_ptr_file (mcview_t * view, of
+ {
+     assert (view->datasource == DS_FILE);
+ 
+-    mcview_file_load_data (view, byte_index);
+-    if (mcview_already_loaded (view->ds_file_offset, byte_index, view->ds_file_datalen))
++    if (mcview_file_load_data (view, byte_index))
+         return (char *) (view->ds_file_data + (byte_index - view->ds_file_offset));
+     return NULL;
+ }
+@@ -259,7 +258,7 @@ mcview_set_byte (mcview_t * view, off_t 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ /*static */
+-void
++gboolean
+ mcview_file_load_data (mcview_t * view, off_t byte_index)
+ {
+     off_t blockoffset;
+@@ -269,10 +268,10 @@ mcview_file_load_data (mcview_t * view, 
+     assert (view->datasource == DS_FILE);
+ 
+     if (mcview_already_loaded (view->ds_file_offset, byte_index, view->ds_file_datalen))
+-        return;
++        return TRUE;
+ 
+     if (byte_index >= view->ds_file_filesize)
+-        return;
++        return FALSE;
+ 
+     blockoffset = mcview_offset_rounddown (byte_index, view->ds_file_datasize);
+     if (mc_lseek (view->ds_file_fd, blockoffset, SEEK_SET) == -1)
+@@ -300,10 +299,11 @@ mcview_file_load_data (mcview_t * view, 
+     {
+         view->ds_file_datalen = bytes_read;
+     }
+-    return;
++    return TRUE;
+ 
+   error:
+     view->ds_file_datalen = 0;
++    return FALSE;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff -urp /home/users/gotar/git/mc/src/viewer/display.c ./display.c
+--- /home/users/gotar/git/mc/src/viewer/display.c	2010-11-20 13:22:07.000000000 +0100
++++ ./display.c	2010-12-03 00:39:13.000000000 +0100
+@@ -183,6 +183,10 @@ mcview_update (mcview_t * view)
+ {
+     static int dirt_limit = 1;
+ 
++    /* don't update viewer in inactive dialog */
++    if (view->widget.owner->state != DLG_ACTIVE)
++        return;
++
+     if (view->dpy_bbar_dirty)
+     {
+         view->dpy_bbar_dirty = FALSE;
+diff -urp /home/users/gotar/git/mc/src/viewer/inlines.h ./inlines.h
+--- /home/users/gotar/git/mc/src/viewer/inlines.h	2010-11-20 13:22:07.000000000 +0100
++++ ./inlines.h	2010-11-11 22:08:26.000000000 +0100
+@@ -80,8 +80,7 @@ mcview_get_byte_file (mcview_t * view, o
+ {
+     assert (view->datasource == DS_FILE);
+ 
+-    mcview_file_load_data (view, byte_index);
+-    if (mcview_already_loaded (view->ds_file_offset, byte_index, view->ds_file_datalen))
++    if (mcview_file_load_data (view, byte_index))
+     {
+         if (retval)
+             *retval = view->ds_file_data[byte_index - view->ds_file_offset];
+diff -urp /home/users/gotar/git/mc/src/viewer/internal.h ./internal.h
+--- /home/users/gotar/git/mc/src/viewer/internal.h	2010-11-20 13:22:07.000000000 +0100
++++ ./internal.h	2010-12-03 01:55:23.000000000 +0100
+@@ -242,7 +242,7 @@ int mcview_get_utf (mcview_t *, off_t, i
+ gboolean mcview_get_byte_string (mcview_t *, off_t, int *);
+ gboolean mcview_get_byte_none (mcview_t *, off_t, int *);
+ void mcview_set_byte (mcview_t *, off_t, byte);
+-void mcview_file_load_data (mcview_t *, off_t);
++gboolean mcview_file_load_data (mcview_t *, off_t);
+ void mcview_close_datasource (mcview_t *);
+ void mcview_set_datasource_file (mcview_t *, int, const struct stat *);
+ gboolean mcview_load_command_output (mcview_t *, const char *);
+@@ -296,14 +296,14 @@ gboolean mcview_lock_file (mcview_t * vi
+ gboolean mcview_unlock_file (mcview_t * view);
+ 
+ /* move.c */
+-void mcview_move_up (mcview_t *, off_t);
++int mcview_move_up (mcview_t *, off_t);
+ void mcview_move_down (mcview_t *, off_t);
+-void mcview_move_left (mcview_t *, off_t);
++int mcview_move_left (mcview_t *, off_t);
+ void mcview_move_right (mcview_t *, off_t);
+ void mcview_scroll_to_cursor (mcview_t *);
+-void mcview_moveto_top (mcview_t *);
++int mcview_moveto_top (mcview_t *);
+ void mcview_moveto_bottom (mcview_t *);
+-void mcview_moveto_bol (mcview_t *);
++int mcview_moveto_bol (mcview_t *);
+ void mcview_moveto_eol (mcview_t *);
+ void mcview_moveto_offset (mcview_t *, off_t);
+ void mcview_moveto (mcview_t *, off_t, off_t);
+diff -urp /home/users/gotar/git/mc/src/viewer/move.c ./move.c
+--- /home/users/gotar/git/mc/src/viewer/move.c	2010-11-20 13:22:07.000000000 +0100
++++ ./move.c	2010-12-03 02:23:37.000000000 +0100
+@@ -85,13 +85,14 @@ mcview_movement_fixups (mcview_t * view,
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-void
++int
+ mcview_move_up (mcview_t * view, off_t lines)
+ {
+-    off_t new_offset;
++    off_t new_offset, i;
+ 
+     if (view->hex_mode)
+     {
++        i = MSG_HANDLED;	/* in this mode actual linecount doesn't matter */
+         off_t bytes = lines * view->bytes_per_line;
+         if (view->hex_cursor >= bytes)
+         {
+@@ -106,7 +107,6 @@ mcview_move_up (mcview_t * view, off_t l
+     }
+     else
+     {
+-        off_t i;
+ 
+         for (i = 0; i < lines; i++)
+         {
+@@ -147,7 +147,9 @@ mcview_move_up (mcview_t * view, off_t l
+             }
+         }
+     }
++    if (i == 0) return -MSG_HANDLED;
+     mcview_movement_fixups (view, TRUE);
++    return i;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -220,11 +222,15 @@ mcview_move_down (mcview_t * view, off_t
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-void
++int
+ mcview_move_left (mcview_t * view, off_t columns)
+ {
++    int ret;
++    ret = -MSG_HANDLED;
++
+     if (view->hex_mode)
+     {
++        ret = MSG_HANDLED;
+         off_t old_cursor = view->hex_cursor;
+         assert (columns == 1);
+         if (view->hexview_in_text || !view->hexedit_lownibble)
+@@ -239,11 +245,18 @@ mcview_move_left (mcview_t * view, off_t
+     else
+     {
+         if (view->dpy_text_column >= columns)
++        {
+             view->dpy_text_column -= columns;
+-        else
++            ret = columns;
++        }
++        else {
++            if (view->dpy_text_column > 0)
++                ret = view->dpy_text_column;
+             view->dpy_text_column = 0;
++        }
+     }
+     mcview_movement_fixups (view, FALSE);
++    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -295,13 +308,20 @@ mcview_scroll_to_cursor (mcview_t * view
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-void
++int
+ mcview_moveto_top (mcview_t * view)
+ {
++    int ret;
++    ret = -MSG_HANDLED;
++
++    if (view->dpy_start > 0 || view->hex_cursor > 0 || view->dpy_text_column > 0)
++        ret = MSG_HANDLED;
++        
+     view->dpy_start = 0;
+     view->hex_cursor = 0;
+     view->dpy_text_column = 0;
+     mcview_movement_fixups (view, TRUE);
++    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -334,19 +354,26 @@ mcview_moveto_bottom (mcview_t * view)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-void
++int
+ mcview_moveto_bol (mcview_t * view)
+ {
++    int ret;
++    ret = -MSG_HANDLED;
+     if (view->hex_mode)
+     {
++        ret = MSG_HANDLED;
+         view->hex_cursor -= view->hex_cursor % view->bytes_per_line;
+     }
+     else if (!view->text_wrap_mode)
+     {
++	/* this doesn't seem to do anything, according to this file header this is always the beginning of current line */
+         view->dpy_start = mcview_bol (view, view->dpy_start, 0);
+     }
++    if (view->dpy_text_column > 0)
++        ret = view->dpy_text_column;
+     view->dpy_text_column = 0;
+     mcview_movement_fixups (view, TRUE);
++    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

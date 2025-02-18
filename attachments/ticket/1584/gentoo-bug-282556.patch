@@ -1,0 +1,66 @@
+diff -ruN src.jj/boxes.c src/boxes.c
+--- src.jj/boxes.c	2009-08-13 05:05:16.000000000 +0800
++++ src/boxes.c	2009-09-04 18:15:23.332878146 +0800
+@@ -572,7 +572,7 @@
+ 
+     (void) action;
+ 
+-    new_dcp = select_charset (0, 0, new_display_codepage, TRUE);
++    new_dcp = select_charset (new_display_codepage, TRUE);
+ 
+     if (new_dcp != SELECT_CHARSET_CANCEL) {
+ 	const char *cpname;
+diff -ruN src.jj/screen.c src/screen.c
+--- src.jj/screen.c	2009-08-24 04:17:14.000000000 +0800
++++ src/screen.c	2009-09-04 18:15:00.326645290 +0800
+@@ -2703,9 +2703,8 @@
+ #ifdef HAVE_CHARSET
+     const char *errmsg;
+     int r;
+-    int width = (panel->widget.x)? panel->widget.cols : panel->widget.cols * (-1);
+ 
+-    r = select_charset (width, 0, source_codepage, FALSE);
++    r = select_charset (source_codepage, FALSE);
+ 
+     if (r == SELECT_CHARSET_CANCEL)
+ 	return; /* Cancel */
+diff -ruN src.jj/selcodepage.c src/selcodepage.c
+--- src.jj/selcodepage.c	2009-08-05 05:36:33.000000000 +0800
++++ src/selcodepage.c	2009-09-04 18:12:33.351863371 +0800
+@@ -55,13 +55,13 @@
+  *   >= 0                             : charset number
+  */
+ int
+-select_charset (int delta_x, int delta_y, int current_charset, gboolean seldisplay)
++select_charset (int current_charset, gboolean seldisplay)
+ {
+     int i;
+     char buffer[255];
+ 
+     /* Create listbox */
+-    Listbox *listbox = create_listbox_window_delta (delta_x, delta_y,
++    Listbox *listbox = create_listbox_window_delta (0, 0,
+ 					      ENTRY_LEN + 2, n_codepages + 1,
+ 					      _("Choose codepage"),
+ 					      "[Codepages Translation]");
+@@ -114,7 +114,7 @@
+     const char *errmsg = NULL;
+     int r;
+ 
+-    r = select_charset (0, 0, source_codepage, FALSE);
++    r = select_charset (source_codepage, FALSE);
+     if (r == SELECT_CHARSET_CANCEL)
+ 	return FALSE;
+ 
+diff -ruN src.jj/selcodepage.h src/selcodepage.h
+--- src.jj/selcodepage.h	2009-08-05 05:36:33.000000000 +0800
++++ src/selcodepage.h	2009-09-04 18:12:52.769863733 +0800
+@@ -10,7 +10,7 @@
+ 
+ #include "global.h"
+ 
+-int select_charset (int delta_x, int delta_y, int current_charset, gboolean seldisplay);
++int select_charset (int current_charset, gboolean seldisplay);
+ gboolean do_select_codepage (void);
+ 
+ /* some results of select_charset() */

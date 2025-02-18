@@ -1,0 +1,46 @@
+
+fix compile warning regression introduced recently
+
+editcmd.c:3647:9: error: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+editcmd.c:3653:32: error: passing argument 1 of 'g_free' discards 'const' qualifier from pointer target type [-Werror=discarded-qualifiers]
+
+patch against 52fd328042a426e885da891c8ce8218cda3a1cf7
+compile test with GCC 5.2.0
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3601,6 +3601,7 @@
+     {
+         GArray *suggest;
+         unsigned int res;
++        guint i;
+ 
+         suggest = g_array_new (TRUE, FALSE, sizeof (char *));
+ 
+@@ -3620,7 +3621,6 @@
+ 
+             if (retval == B_ENTER && new_word != NULL)
+             {
+-                guint i;
+                 char *cp_word;
+ 
+ #ifdef HAVE_CHARSET
+@@ -3644,13 +3644,12 @@
+             else if (retval == B_ADD_WORD && match_word != NULL)
+                 aspell_add_to_dict (match_word->str, (int) word_len);
+         }
+-        guint i;
+         for (i = 0; i < suggest->len; i++)
+         {
+-            const char *cur_sugg_word;
+-            cur_sugg_word = g_array_index (suggest, const char *, i);
++            char *cur_sugg_word;
++            cur_sugg_word = g_array_index (suggest, char *, i);
+             if (cur_sugg_word != NULL)
+-                (void) g_free (cur_sugg_word);
++                g_free (cur_sugg_word);
+         }
+         g_array_free (suggest, TRUE);
+         edit->found_start = 0;

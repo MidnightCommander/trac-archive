@@ -1,0 +1,27 @@
+diff -ru mc-4.8.11.orig/src/vfs/extfs/helpers/iso9660.in mc-4.8.11/src/vfs/extfs/helpers/iso9660.in
+--- mc-4.8.11.orig/src/vfs/extfs/helpers/iso9660.in	2013-10-15 13:52:41.000000000 +0400
++++ mc-4.8.11/src/vfs/extfs/helpers/iso9660.in	2014-02-04 20:36:33.358549705 +0400
+@@ -37,14 +37,16 @@
+     if test -z "$XORRISO"; then
+         return 1
+     fi
+-    local dir attr ln usr gr sz dt1 dt2 dt3 nm len name
+-    dir="$2"
+-    $XORRISO -dev stdio:"$1" -cd "$dir" -lsl 2> /dev/null | @GREP@ "^[-d]" | \
++    local dir attr ln usr gr sz dt1 dt2 dt3 nm len name lsl r
++    dir="${2:-/}"
++    lsl=$( $XORRISO -abort_on FATAL -dev stdio:"$1" -cd "$dir" -lsl 2> /dev/null )
++    r=$?
++    test $r -gt 0 && return $r
++    echo "$lsl" | @GREP@ "^[-d]" | \
+     while read attr ln usr gr sz dt1 dt2 dt3 nm ; do
+-        len=$((${#nm} - 1))
+-        name=$(printf "$nm" | cut -c2-$len)  # remove quotes
+-        if test $(printf "$nm" | cut -c1-2) != "d"; then
+-            printf "%s %s %s %s %s %s %s %s %s/%s\n" "$attr" "$ln" "$usr" "$gr" "$sz" "$dt1" "$dt2" "$dt3" "$dir" "$name"
++        name=${nm:1:${#nm}-2} # remove quotes
++        if test ${attr:0:1} != "d"; then
++            printf -- "%s %s %s %s %s %s %s %s %s/%s\n" "$attr" "$ln" "$usr" "$gr" "$sz" "$dt1" "$dt2" "$dt3" "$dir" "$name"
+         else
+             xorriso_list "$1" "$dir/$name"
+         fi

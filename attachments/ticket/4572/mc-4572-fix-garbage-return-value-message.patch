@@ -1,0 +1,45 @@
+From 1ece5b341f5db7f9e098ce60c660672f0c6c7b4c Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 18 Dec 2024 14:00:00 +0000
+Subject: [PATCH] fix Garbage return value warning
+
+Make Static Analyzer happy.
+
+Bug Group   Bug Type              File                     Function/Method       Line
+Logic error Garbage return value  src/filemanager/boxes.c  cd_box                1236
+Logic error Garbage return value  lib/widget/wtools.c      fg_input_dialog_help  198
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/wtools.c     | 2 +-
+ src/filemanager/boxes.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/widget/wtools.c b/lib/widget/wtools.c
+index b0a31c76a..040417ab5 100644
+--- a/lib/widget/wtools.c
++++ b/lib/widget/wtools.c
+@@ -154,7 +154,7 @@ fg_input_dialog_help (const char *header, const char *text, const char *help,
+     char *p_text;
+     char histname[64] = "inp|";
+     gboolean is_passwd = FALSE;
+-    char *my_str;
++    char *my_str = NULL;
+     int ret;
+ 
+     /* label text */
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 279926690..6c7f0cda2 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -1218,7 +1218,7 @@ char *
+ cd_box (const WPanel *panel)
+ {
+     const Widget *w = CONST_WIDGET (panel);
+-    char *my_str;
++    char *my_str = NULL;
+ 
+     quick_widget_t quick_widgets[] = {
+         QUICK_LABELED_INPUT (N_("cd"), input_label_left, "", "input", &my_str, NULL, FALSE, TRUE,

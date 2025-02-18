@@ -1,0 +1,61 @@
+From e1411707ac5d2a890d853d8a595f103e4e07053f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 5 Jan 2019 19:25:29 +0000
+Subject: [PATCH] (viewer) Cleanup -Wstring-conversion warning
+
+Found by Clang 6.0.1
+
+In file included from ./internal.h:345:
+./inlines.h:110:20: warning: implicit conversion turns string literal into bool: 'const char [24]' to 'bool' [-Wstring-conversion]
+        g_assert (!"Unknown datasource type");
+                  ~^~~~~~~~~~~~~~~~~~~~~~~~~
+
+datasource.c:117:20: warning: implicit conversion turns string literal into bool: 'const char [24]' to '_Bool' [-Wstring-conversion]
+        g_assert (!"Unknown datasource type");
+                  ~^~~~~~~~~~~~~~~~~~~~~~~~~
+
+datasource.c:362:20: warning: implicit conversion turns string literal into bool: 'const char [24]' to '_Bool' [-Wstring-conversion]
+        g_assert (!"Unknown datasource type");
+                  ~^~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/datasource.c | 4 ++--
+ src/viewer/inlines.h    | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/viewer/datasource.c b/src/viewer/datasource.c
+index d5e91dd34..8078b81ea 100644
+--- a/src/viewer/datasource.c
++++ b/src/viewer/datasource.c
+@@ -114,7 +114,7 @@ mcview_get_filesize (WView * view)
+     case DS_STRING:
+         return view->ds_string_len;
+     default:
+-        g_assert (!"Unknown datasource type");
++        g_assert (FALSE && "Unknown datasource type");
+         return 0;
+     }
+ }
+@@ -359,7 +359,7 @@ mcview_close_datasource (WView * view)
+         MC_PTR_FREE (view->ds_string_data);
+         break;
+     default:
+-        g_assert (!"Unknown datasource type");
++        g_assert (FALSE && "Unknown datasource type");
+     }
+     view->datasource = DS_NONE;
+ }
+diff --git a/src/viewer/inlines.h b/src/viewer/inlines.h
+index efa3eb10a..0f6c6faac 100644
+--- a/src/viewer/inlines.h
++++ b/src/viewer/inlines.h
+@@ -107,7 +107,7 @@ mcview_get_byte (WView * view, off_t offset, int *retval)
+     case DS_NONE:
+         return mcview_get_byte_none (view, offset, retval);
+     default:
+-        g_assert (!"Unknown datasource type");
++        g_assert (FALSE && "Unknown datasource type");
+         return FALSE;
+     }
+ }

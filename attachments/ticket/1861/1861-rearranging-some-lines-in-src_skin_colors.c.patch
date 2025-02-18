@@ -1,0 +1,45 @@
+From c40aa7b9647152427485ee3fb97955d8e6325fb8 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Fri, 4 Dec 2009 23:45:19 +0000
+Subject: [PATCH]  rearranging some lines in src_skin_colors.c mc_skin_color_parse_ini_file()
+
+---
+ src/skin/colors.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/src/skin/colors.c b/src/skin/colors.c
+index e4dd66b..8ae5b79 100644
+--- a/src/skin/colors.c
++++ b/src/skin/colors.c
+@@ -285,9 +285,10 @@ mc_skin_color_parse_ini_file (mc_skin_t * mc_skin)
+ 
+     orig_groups = groups = mc_config_get_groups (mc_skin->config, &items_count);
+ 
+-    if (groups == NULL || *groups == NULL) {
+-        if (groups != NULL)
+-            g_strfreev (groups);
++    if (groups == NULL) {
++        return FALSE;
++    } else if (*groups == NULL) {
++        g_strfreev (groups);
+         return FALSE;
+     }
+ 
+@@ -305,9 +306,11 @@ mc_skin_color_parse_ini_file (mc_skin_t * mc_skin)
+             continue;
+ 
+         orig_keys = keys = mc_config_get_keys (mc_skin->config, *groups, &items_count);
+-        if (keys == NULL || *keys == NULL) {
+-            if (keys != NULL)
+-                g_strfreev (keys);
++
++        if (keys == NULL) {
++            continue;
++        } else if (*keys == NULL) {
++            g_strfreev (keys);
+             continue;
+         }
+ 
+-- 
+1.6.4
+

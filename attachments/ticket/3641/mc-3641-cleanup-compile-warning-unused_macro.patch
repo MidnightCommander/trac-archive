@@ -1,0 +1,329 @@
+From ffcccaf6a5e85a7d31c5a71880a85c5b895d6b7f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 16 Jul 2016 18:52:39 +0000
+Subject: [PATCH] Cleanup unused macro warnings
+
+Cleanup unused macro warnings.
+
+charsets.c:61:9: warning: macro is not used [-Wunused-macros]
+#define CP_ASCII 0
+        ^
+
+strverscmp.c:41:10: warning: macro is not used [-Wunused-macros]
+#define  S_N    0x0
+         ^
+strverscmp.c:42:10: warning: macro is not used [-Wunused-macros]
+#define  S_I    0x4
+         ^
+strverscmp.c:43:10: warning: macro is not used [-Wunused-macros]
+#define  S_F    0x8
+         ^
+strverscmp.c:44:10: warning: macro is not used [-Wunused-macros]
+#define  S_Z    0xC
+         ^
+strverscmp.c:47:10: warning: macro is not used [-Wunused-macros]
+#define  CMP    2
+         ^
+strverscmp.c:48:10: warning: macro is not used [-Wunused-macros]
+#define  LEN    3
+         ^
+
+vfs.c:82:9: warning: macro is not used [-Wunused-macros]
+#define ISSLASH(a) (a == '\0' || IS_PATH_SEP (a))
+        ^
+
+input_complete.c:74:9: warning: macro is not used [-Wunused-macros]
+#define cr_whitespace(c) (whitespace (c) || (c) == '\n' || (c) == '\r')
+        ^
+
+editcmd.c:107:9: warning: macro is not used [-Wunused-macros]
+#define is_digit(x) ((x) >= '0' && (x) <= '9')
+        ^
+editcmd.c:102:9: warning: macro is not used [-Wunused-macros]
+#define INPUT_INDEX 9
+        ^
+
+syntax.c:82:9: warning: macro is not used [-Wunused-macros]
+#define MAX_CONTEXTS            128
+        ^
+syntax.c:77:9: warning: macro is not used [-Wunused-macros]
+#define TRANSIENT_WORD_TIME_OUT 60
+        ^
+syntax.c:79:9: warning: macro is not used [-Wunused-macros]
+#define UNKNOWN_FORMAT "unknown"
+        ^
+syntax.c:81:9: warning: macro is not used [-Wunused-macros]
+#define MAX_WORDS_PER_CONTEXT   1024
+        ^
+
+achown.c:69:9: warning: macro is not used [-Wunused-macros]
+#define B_OTH           (B_USER + 5)
+        ^
+achown.c:68:9: warning: macro is not used [-Wunused-macros]
+#define B_GRP           (B_USER + 4)
+        ^
+achown.c:71:9: warning: macro is not used [-Wunused-macros]
+#define B_OGROUP        (B_USER + 7)
+        ^
+achown.c:67:9: warning: macro is not used [-Wunused-macros]
+#define B_OWN           (B_USER + 3)
+        ^
+achown.c:70:9: warning: macro is not used [-Wunused-macros]
+#define B_OUSER         (B_USER + 6)
+        ^
+
+cmd.c:102:9: warning: macro is not used [-Wunused-macros]
+#define MAP_FILE 0
+        ^
+
+filegui.c:176:9: warning: macro is not used [-Wunused-macros]
+#define WITH_FULL_PATHS 1
+        ^
+
+hotlist.c:77:9: warning: macro is not used [-Wunused-macros]
+#define LABELS          3
+        ^
+hotlist.c:75:9: warning: macro is not used [-Wunused-macros]
+#define BY (LINES - 6)
+        ^
+hotlist.c:74:9: warning: macro is not used [-Wunused-macros]
+#define BX UX
+        ^
+
+layout.c:1144:9: warning: macro is not used [-Wunused-macros]
+#define panelswapstr(e) strcpy (panel.e, panel1->e); \
+        ^
+
+panelize.c:66:9: warning: macro is not used [-Wunused-macros]
+#define LABELS   3
+        ^
+
+ftpfs.c:155:9: warning: macro is not used [-Wunused-macros]
+#define UPLOAD_ZERO_LENGTH_FILE
+        ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/charsets.c              | 6 ------
+ lib/strutil/strverscmp.c    | 4 ++++
+ lib/vfs/vfs.c               | 2 --
+ lib/widget/input_complete.c | 1 -
+ src/editor/editcmd.c        | 7 -------
+ src/editor/syntax.c         | 7 -------
+ src/filemanager/achown.c    | 5 -----
+ src/filemanager/cmd.c       | 2 ++
+ src/filemanager/filegui.c   | 3 ---
+ src/filemanager/hotlist.c   | 4 ----
+ src/filemanager/layout.c    | 5 -----
+ src/filemanager/panelize.c  | 1 -
+ src/vfs/ftpfs/ftpfs.c       | 1 -
+ 13 files changed, 6 insertions(+), 42 deletions(-)
+
+diff --git a/lib/charsets.c b/lib/charsets.c
+index 148c691..9a08054 100644
+--- a/lib/charsets.c
++++ b/lib/charsets.c
+@@ -54,12 +54,6 @@ const char *cp_source = NULL;
+ 
+ #define OTHER_8BIT "Other_8_bit"
+ 
+-/*
+- * FIXME: This assumes that ASCII is always the first encoding
+- * in mc.charsets
+- */
+-#define CP_ASCII 0
+-
+ /*** file scope type declarations ****************************************************************/
+ 
+ /*** file scope variables ************************************************************************/
+diff --git a/lib/strutil/strverscmp.c b/lib/strutil/strverscmp.c
+index a37131c..81f878a 100644
+--- a/lib/strutil/strverscmp.c
++++ b/lib/strutil/strverscmp.c
+@@ -36,6 +36,8 @@
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
++#ifndef HAVE_STRVERSCMP
++
+ /* states: S_N: normal, S_I: comparing integral part, S_F: comparing
+    fractionnal parts, S_Z: idem but with leading Zeroes only */
+ #define  S_N    0x0
+@@ -47,6 +49,8 @@
+ #define  CMP    2
+ #define  LEN    3
+ 
++#endif /* HAVE_STRVERSCMP */
++
+ /*** file scope type declarations ****************************************************************/
+ 
+ /*** file scope variables ************************************************************************/
+diff --git a/lib/vfs/vfs.c b/lib/vfs/vfs.c
+index 49a6762..ed8034a 100644
+--- a/lib/vfs/vfs.c
++++ b/lib/vfs/vfs.c
+@@ -79,8 +79,6 @@ vfs_class *current_vfs = NULL;
+ 
+ #define VFS_FIRST_HANDLE 100
+ 
+-#define ISSLASH(a) (a == '\0' || IS_PATH_SEP (a))
+-
+ /*** file scope type declarations ****************************************************************/
+ 
+ struct vfs_openfile
+diff --git a/lib/widget/input_complete.c b/lib/widget/input_complete.c
+index 1534531..ab46ad3 100644
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -71,7 +71,6 @@ extern char **environ;
+ #endif /* DO_CMPLETION_DEBUG */
+ 
+ #define whitespace(c) ((c) == ' ' || (c) == '\t')
+-#define cr_whitespace(c) (whitespace (c) || (c) == '\n' || (c) == '\r')
+ 
+ #define DO_INSERTION 1
+ #define DO_QUERY     2
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index aee2013..e70ae17 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -99,13 +99,6 @@ int option_drop_selection_on_copy = 1;
+ 
+ #define TEMP_BUF_LEN 1024
+ 
+-#define INPUT_INDEX 9
+-
+-/* thanks to  Liviu Daia <daia@stoilow.imar.ro>  for getting this
+-   (and the above) routines to work properly - paul */
+-
+-#define is_digit(x) ((x) >= '0' && (x) <= '9')
+-
+ #define MAX_WORD_COMPLETIONS 100        /* in listbox */
+ 
+ /*** file scope type declarations ****************************************************************/
+diff --git a/src/editor/syntax.c b/src/editor/syntax.c
+index 3f4de4c..96f9ca4 100644
+--- a/src/editor/syntax.c
++++ b/src/editor/syntax.c
+@@ -74,13 +74,6 @@ int option_auto_syntax = 1;
+ /* bytes */
+ #define SYNTAX_MARKER_DENSITY 512
+ 
+-#define TRANSIENT_WORD_TIME_OUT 60
+-
+-#define UNKNOWN_FORMAT "unknown"
+-
+-#define MAX_WORDS_PER_CONTEXT   1024
+-#define MAX_CONTEXTS            128
+-
+ #define RULE_ON_LEFT_BORDER 1
+ #define RULE_ON_RIGHT_BORDER 2
+ 
+diff --git a/src/filemanager/achown.c b/src/filemanager/achown.c
+index dd8a85c..a2199f8 100644
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -64,11 +64,6 @@
+ 
+ #define B_SETALL        B_USER
+ #define B_SKIP          (B_USER + 1)
+-#define B_OWN           (B_USER + 3)
+-#define B_GRP           (B_USER + 4)
+-#define B_OTH           (B_USER + 5)
+-#define B_OUSER         (B_USER + 6)
+-#define B_OGROUP        (B_USER + 7)
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 1884589..7d148c7 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -98,9 +98,11 @@
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
++#ifdef HAVE_MMAP
+ #ifndef MAP_FILE
+ #define MAP_FILE 0
+ #endif
++#endif /* HAVE_MMAP */
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index 72fd3e3..2b6871a 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -172,9 +172,6 @@ int classic_progressbar = 1;
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+-/* Hack: the vfs code should not rely on this */
+-#define WITH_FULL_PATHS 1
+-
+ #define truncFileString(dlg, s)       str_trunc (s, WIDGET (dlg)->cols - 10)
+ #define truncFileStringSecure(dlg, s) path_trunc (s, WIDGET (dlg)->cols - 10)
+ 
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index f4e016e..b77e212 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -71,10 +71,6 @@
+ #define UX 3
+ #define UY 2
+ 
+-#define BX UX
+-#define BY (LINES - 6)
+-
+-#define LABELS          3
+ #define B_ADD_CURRENT   B_USER
+ #define B_REMOVE        (B_USER + 1)
+ #define B_NEW_GROUP     (B_USER + 2)
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index e4deb86..06022c8 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -1140,10 +1140,6 @@ swap_panels (void)
+         WPanel panel;
+ 
+ #define panelswap(x) panel.x = panel1->x; panel1->x = panel2->x; panel2->x = panel.x;
+-
+-#define panelswapstr(e) strcpy (panel.e, panel1->e); \
+-                        strcpy (panel1->e, panel2->e); \
+-                        strcpy (panel2->e, panel.e);
+         /* Change content and related stuff */
+         panelswap (dir);
+         panelswap (active);
+@@ -1156,7 +1152,6 @@ swap_panels (void)
+         panelswap (selected);
+         panelswap (is_panelized);
+         panelswap (dir_stat);
+-#undef panelswapstr
+ #undef panelswap
+ 
+         panel1->searching = FALSE;
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index b468695..9715b35 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -63,7 +63,6 @@
+ #define UX 3
+ #define UY 2
+ 
+-#define LABELS   3
+ #define B_ADD    B_USER
+ #define B_REMOVE (B_USER + 1)
+ 
+diff --git a/src/vfs/ftpfs/ftpfs.c b/src/vfs/ftpfs/ftpfs.c
+index 391bd55..e60b6ec 100644
+--- a/src/vfs/ftpfs/ftpfs.c
++++ b/src/vfs/ftpfs/ftpfs.c
+@@ -152,7 +152,6 @@ int ftpfs_ignore_chattr_errors = 1;
+ #define MAXHOSTNAMELEN 64
+ #endif
+ 
+-#define UPLOAD_ZERO_LENGTH_FILE
+ #define SUP ((ftp_super_data_t *) super->data)
+ #define FH_SOCK ((ftp_fh_data_t *) fh->data)->sock
+ 

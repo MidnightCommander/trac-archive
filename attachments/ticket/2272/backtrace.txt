@@ -1,0 +1,28 @@
+#0  0x00000000004a3edf in edit_replace_cmd (edit=0x7f8000, 
+    again=<value optimized out>) at editcmd.c:1869
+#1  0x000000000049e970 in edit_execute_cmd (edit=0x7f8000, command=303, 
+    char_for_insertion=-1) at edit.c:3489
+#2  0x00000000004a06e4 in edit_execute_key_command (edit=0x7f8000, 
+    command=303, char_for_insertion=-1) at edit.c:2897
+#3  0x00000000004a7a93 in edit_callback (w=0x7f8000, 
+    msg=<value optimized out>, parm=303) at editwidget.c:192
+#4  0x000000000042e2a2 in buttonbar_callback (w=0x7bb600, 
+    msg=<value optimized out>, parm=1004) at widget.c:3014
+#5  0x000000000042438e in dlg_process_event (h=0x78b340, key=1004, 
+    event=<value optimized out>) at ../src/dialog.h:268
+#6  0x000000000042458a in run_dlg (h=0x78b340) at dialog.c:1004
+#7  0x00000000004a75a4 in edit_file (_file=<value optimized out>, 
+    line=<value optimized out>) at editwidget.c:296
+#8  0x00000000004414f5 in do_edit_at_line (what=0x7c42a0 "Makefile", 
+    start_line=-149200800) at cmd.c:344
+#9  0x000000000045b845 in midnight_execute_cmd (sender=0x7a0550, command=7020)
+    at main.c:1241
+#10 0x000000000045bea8 in midnight_callback (h=<value optimized out>, 
+    sender=0x1, msg=849, parm=-149200800, data=0x794a10) at main.c:1767
+#11 0x000000000042e2a2 in buttonbar_callback (w=0x7a0550, 
+    msg=<value optimized out>, parm=1004) at widget.c:3014
+#12 0x000000000042438e in dlg_process_event (h=0x7968f0, key=1004, 
+    event=<value optimized out>) at ../src/dialog.h:268
+#13 0x000000000042458a in run_dlg (h=0x7968f0) at dialog.c:1004
+#14 0x000000000045a677 in main (argc=<value optimized out>, 
+    argv=<value optimized out>) at main.c:1879

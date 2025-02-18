@@ -1,0 +1,31 @@
+From ae6e2e2d089e8ab82bc817058471dfe6cffc726a Mon Sep 17 00:00:00 2001
+From: Stanislav Brabec <sbrabec@suse.cz>
+Date: Wed, 27 Nov 2019 20:53:44 +0100
+Subject: [PATCH] Add new scriptlets to spec.syntax
+
+Add scriptlets %pretrans, %posttrans and %verifyscript to the spec file syntax.
+
+Ticket #4037.
+
+Signed-off-by: Stanislav Brabec <sbrabec@suse.cz>
+---
+ misc/syntax/spec.syntax | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/misc/syntax/spec.syntax b/misc/syntax/spec.syntax
+index 836c12d88..a9e13bb4a 100644
+--- a/misc/syntax/spec.syntax
++++ b/misc/syntax/spec.syntax
+@@ -55,6 +55,9 @@ context default
+     keyword whole linestart %pre red
+     keyword whole linestart %prep red
+     keyword whole linestart %preun red
++    keyword whole linestart %pretrans red
++    keyword whole linestart %posttrans red
++    keyword whole linestart %verifyscript red
+ 
+     keyword whole %define brightmagenta
+     keyword whole %dump brightmagenta
+-- 
+2.24.0
+

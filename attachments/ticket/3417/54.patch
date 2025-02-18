@@ -1,0 +1,25 @@
+From f74d02ae2f403c4ee3cbb13626d877eb67bc76f6 Mon Sep 17 00:00:00 2001
+From: oblique <psyberbits@gmail.com>
+Date: Mon, 16 Mar 2015 11:41:30 +0200
+Subject: [PATCH] Fix vertical line color if a file is marked and selected
+
+---
+ src/filemanager/panel.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index a7a275a..a678cf5 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -860,8 +860,10 @@ format_file (WPanel * panel, int file_index, int width, int attr, gboolean issta
+         }
+         else
+         {
+-            if (attr == SELECTED || attr == MARKED_SELECTED)
++            if (attr == SELECTED)
+                 tty_setcolor (SELECTED_COLOR);
++            else if (attr == MARKED_SELECTED)
++                tty_setcolor (MARKED_SELECTED_COLOR);
+             else
+                 tty_setcolor (NORMAL_COLOR);
+             tty_print_one_vline (TRUE);

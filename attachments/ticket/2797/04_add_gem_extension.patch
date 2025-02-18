@@ -1,0 +1,19 @@
+Last-Update: 2012-02-24
+Reviewed-by: Dmitry Smirnov <onlyjob@member.fsf.org>
+Forwarded: yes
+Bug-Debian: http://bugs.debian.org/541673
+Author: Patrick Winnertz <winnie@debian.org>
+Description: Add gem extension
+
+
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -113,7 +113,7 @@
+ ### Archives ###
+ 
+ # .tgz, .tpz, .tar.gz, .tar.z, .tar.Z, .ipk
+-regex/\.t([gp]?z|ar\.g?[zZ])$|\.ipk$
++regex/\.t([gp]?z|ar\.g?[zZ])$|\.ipk|\.gem$
+ 	Open=%cd %p/utar://
+ 	View=%view{ascii} gzip -dc %f 2>/dev/null | tar tvvf -
+ 

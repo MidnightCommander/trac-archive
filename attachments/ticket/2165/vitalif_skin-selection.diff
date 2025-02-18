@@ -1,0 +1,331 @@
+commit 023aeb3da9a7be530dfc882c628caecb02736dfd
+Author: Vitaliy Filippov <vitalif@yourcmc.ru>
+Date:   Fri Feb 7 03:54:37 2014 +0400
+
+    Skin selection UI
+
+Index: mc-4.8.11/lib/keybind.h
+===================================================================
+--- mc-4.8.11.orig/lib/keybind.h	2013-04-11 00:04:31.000000000 +0400
++++ mc-4.8.11/lib/keybind.h	2014-02-07 14:37:30.000000000 +0400
+@@ -154,6 +154,7 @@
+     CK_ConnectSmb,
+     CK_PanelInfo,
+     CK_Jobs,
++    CK_OptionsSkin,
+     CK_OptionsLayout,
+     CK_Link,
+     CK_PanelListing,
+Index: mc-4.8.11/lib/skin.h
+===================================================================
+--- mc-4.8.11.orig/lib/skin.h	2013-04-11 00:04:31.000000000 +0400
++++ mc-4.8.11/lib/skin.h	2014-02-07 15:44:04.312343742 +0400
+@@ -138,4 +138,6 @@
+ 
+ gchar *mc_skin_get (const gchar *, const gchar *, const gchar *);
+ 
++GArray *mc_skin_list (void);
++
+ #endif /* MC_SKIN_H */
+Index: mc-4.8.11/lib/skin/ini-file.c
+===================================================================
+--- mc-4.8.11.orig/lib/skin/ini-file.c	2013-04-11 00:04:31.000000000 +0400
++++ mc-4.8.11/lib/skin/ini-file.c	2014-02-07 15:51:08.068357204 +0400
+@@ -124,6 +124,63 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static void
++mc_skin_get_list_from_dir (const gchar * base_dir, GArray * list)
++{
++    unsigned int i;
++    char *dir_name;
++    DIR *dir;
++    gchar *name;
++
++    dir_name = g_build_filename (base_dir, MC_SKINS_SUBDIR, NULL);
++    dir = opendir (dir_name);
++    if (dir != NULL)
++    {
++        struct dirent *de;
++        while ((de = readdir(dir)) != NULL)
++        {
++            if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
++                continue;
++            if (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ini"))
++                de->d_name[strlen(de->d_name) - 4] = '\0';
++            for (i = 0; i < list->len; i++)
++                if (!strcmp(de->d_name, g_array_index(list, gchar *, i)))
++                    break;
++            if (i < list->len)
++                continue;
++            name = g_strdup(de->d_name);
++            g_array_append_val(list, name);
++        }
++        closedir(dir);
++    }
++    g_free(dir_name);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static int pstrcmp (char **a, char **b)
++{
++    return strcmp(*a, *b);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++GArray *
++mc_skin_list ()
++{
++    GArray *list = g_array_new(FALSE, FALSE, sizeof(gchar *));
++    /* ${XDG_DATA_HOME}/mc/skins/ */
++    mc_skin_get_list_from_dir (mc_config_get_data_path (), list);
++    /* /etc/mc/skins/ */
++    mc_skin_get_list_from_dir (mc_global.sysconfig_dir, list);
++    /* /usr/share/mc/skins/ */
++    mc_skin_get_list_from_dir (mc_global.share_data_dir, list);
++    g_array_sort(list, (GCompareFunc) pstrcmp);
++    return list;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ mc_skin_set_hardcoded_skin (mc_skin_t * mc_skin)
+ {
+Index: mc-4.8.11/po/ru.po
+===================================================================
+--- mc-4.8.11.orig/po/ru.po	2013-11-29 22:47:00.000000000 +0400
++++ mc-4.8.11/po/ru.po	2014-02-07 14:37:30.000000000 +0400
+@@ -3065,6 +3065,15 @@
+ msgid "Layout"
+ msgstr "Внешний вид"
+ 
++msgid "&Skin..."
++msgstr "&Оформление..."
++
++msgid "Choose skin"
++msgstr "Выберите оформление"
++
++msgid "< Default >"
++msgstr "< По умолчанию >"
++
+ msgid "File listin&g"
+ msgstr "&Список файлов"
+ 
+Index: mc-4.8.11/src/filemanager/Makefile.am
+===================================================================
+--- mc-4.8.11.orig/src/filemanager/Makefile.am	2013-04-11 00:04:31.000000000 +0400
++++ mc-4.8.11/src/filemanager/Makefile.am	2014-02-07 14:37:30.000000000 +0400
+@@ -5,6 +5,7 @@
+ 	achown.c achown.h \
+ 	boxes.c boxes.h \
+ 	chmod.c chmod.h \
++	chooseskin.c chooseskin.h \
+ 	chown.c chown.h \
+ 	cmd.c cmd.h \
+ 	command.c command.h \
+Index: mc-4.8.11/src/filemanager/chooseskin.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ mc-4.8.11/src/filemanager/chooseskin.c	2014-02-07 15:51:48.084358475 +0400
+@@ -0,0 +1,140 @@
++/*
++   User interface for skin selection.
++
++   Copyright (C) 2014
++   Vitaliy Filippov <vitalif at mail ru>
++
++   Written by:
++   Vitaliy Filippov <vitalif at mail ru>
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file
++ *  \brief Source: user %interface for skin %selection
++ *  \author Vitaliy Filippov
++ *  \date 2014
++ */
++
++#include <config.h>
++
++#include <stdlib.h>
++#include <sys/types.h>
++
++#include "lib/global.h"
++#include "lib/widget.h"         /* Listbox */
++#include "lib/skin.h"
++#include "midnight.h"
++#include "chooseskin.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++#define MAX_ENTRY_LEN 40
++#define LIST_LINES 14
++#define N_DFLT_ENTRIES 1
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++/*** file scope functions ************************************************************************/
++
++static int
++exec_skin_dialog (GArray *names, const char *current_skin)
++{
++    int i;
++
++    Listbox *skinlist = create_listbox_window (LIST_LINES, MAX_ENTRY_LEN,
++                                                 _("Choose skin"), NULL);
++    LISTBOX_APPEND_TEXT (skinlist, 'A', _("< Default >"), NULL);
++
++    for (i = 0; i < names->len; i++)
++    {
++        LISTBOX_APPEND_TEXT (skinlist, 0, g_array_index(names, char*, i), NULL);
++        if (current_skin && !strcmp(g_array_index(names, char*, i), current_skin))
++            listbox_select_entry (skinlist->list, i+N_DFLT_ENTRIES);
++    }
++
++    return run_listbox (skinlist);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++void
++filemanager_skin_dialog ()
++{
++    int skin;
++
++    GArray *names = mc_skin_list ();
++    char *current_skin = mc_skin__default.name;
++    skin = exec_skin_dialog (names, current_skin);
++
++    if (skin >= 0)
++    {
++        GError *error = NULL;
++        dlg_colors_t midnight_colors;
++        mc_skin_deinit ();
++        if (mc_global.tty.skin)
++        {
++            g_free(mc_global.tty.skin);
++        }
++        if (skin == 0)
++        {
++            /* default skin */
++            mc_global.tty.skin = g_strdup ("default");
++        }
++        else
++        {
++            mc_global.tty.skin = g_strdup (g_array_index (names, char *, skin-N_DFLT_ENTRIES));
++        }
++        mc_config_set_string (mc_main_config, CONFIG_APP_SECTION, "skin", mc_global.tty.skin);
++        mc_skin_init (&error);
++        if (error != NULL)
++        {
++            message (D_ERROR, _("Warning"), "%s", error->message);
++            g_error_free (error);
++            error = NULL;
++        }
++
++        /* refresh panel colors */
++        panel_deinit ();
++        panel_init ();
++
++        /* refresh global dialog colors */
++        midnight_colors[DLG_COLOR_NORMAL] = mc_skin_color_get ("dialog", "_default_");
++        midnight_colors[DLG_COLOR_FOCUS] = mc_skin_color_get ("dialog", "focus");
++        midnight_colors[DLG_COLOR_HOT_NORMAL] = mc_skin_color_get ("dialog", "hotnormal");
++        midnight_colors[DLG_COLOR_HOT_FOCUS] = mc_skin_color_get ("dialog", "hotfocus");
++        midnight_colors[DLG_COLOR_TITLE] = mc_skin_color_get ("dialog", "title");
++        memmove (midnight_dlg->color, midnight_colors, sizeof (dlg_colors_t));
++
++        /* refresh highlighting colors */
++        mc_fhl_free (&mc_filehighlight);
++        mc_filehighlight = mc_fhl_new (TRUE);
++
++        dlg_redraw(midnight_dlg);
++    }
++
++    for (skin = 0; skin < names->len; skin++)
++        g_free (g_array_index (names, char *, skin));
++    g_array_free (names, TRUE);
++}
++
++/* --------------------------------------------------------------------------------------------- */
+Index: mc-4.8.11/src/filemanager/chooseskin.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ mc-4.8.11/src/filemanager/chooseskin.h	2014-02-07 14:37:30.000000000 +0400
+@@ -0,0 +1,22 @@
++/** \file chooseskin.h
++ *  \brief Header: skin choose dialog for Midnight Commander
++ */
++
++#ifndef MC__CHOOSESKIN_H
++#define MC__CHOOSESKIN_H
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++/*** enums ***************************************************************************************/
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++void filemanager_skin_dialog (void);
++
++/*** inline functions ****************************************************************************/
++
++#endif /* MC__CHOOSESKIN_H */
+Index: mc-4.8.11/src/filemanager/midnight.c
+===================================================================
+--- mc-4.8.11.orig/src/filemanager/midnight.c	2013-11-29 22:27:07.000000000 +0400
++++ mc-4.8.11/src/filemanager/midnight.c	2014-02-07 14:37:30.000000000 +0400
+@@ -77,6 +77,7 @@
+ #include "chmod.h"
+ #include "chown.h"
+ #include "achown.h"
++#include "chooseskin.h"
+ 
+ #ifdef USE_INTERNAL_EDIT
+ #include "src/editor/edit.h"
+@@ -332,6 +333,7 @@
+     GList *entries = NULL;
+ 
+     entries = g_list_prepend (entries, menu_entry_create (_("&Configuration..."), CK_Options));
++    entries = g_list_prepend (entries, menu_entry_create (_("&Skin..."), CK_OptionsSkin));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Layout..."), CK_OptionsLayout));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Panel options..."), CK_OptionsPanel));
+     entries =
+@@ -1247,6 +1249,9 @@
+         jobs_cmd ();
+         break;
+ #endif
++    case CK_OptionsSkin:
++        filemanager_skin_dialog ();
++        break;
+     case CK_OptionsLayout:
+         layout_box ();
+         break;

@@ -1,0 +1,48 @@
+From 4b77c4c1907566ca36e48b8fd8dad625bb7d16ab Mon Sep 17 00:00:00 2001
+From: Avi Kelman <patcherton.fixesthings@gmail.com>
+Date: Sat, 24 Aug 2013 16:21:11 -0400
+Subject: [PATCH 3/3] Fix [en|dis]abling of layout split adjust buttons
+
+ Switching between vertical and horizontal layouts doesn't properly
+ activate or deactivate the < and > widget buttons in the layout dialog
+ according to the setting of the mode being switched to.
+---
+ src/filemanager/layout.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index da12ac9..8d4274b 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -376,18 +376,26 @@ layout_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *
+         {
+             if (panels_layout.horizontal_split != radio_widget->sel)
+             {
++                int eq;
++
+                 panels_layout.horizontal_split = radio_widget->sel;
+ 
+                 if (panels_layout.horizontal_split)
+                 {
+-                    if (panels_layout.horizontal_equal)
++                    eq = panels_layout.horizontal_equal;
++                    if (eq)
+                         panels_layout.top_panel_size = height / 2;
+                 }
+                 else
+                 {
+-                    if (panels_layout.vertical_equal)
++                    eq = panels_layout.vertical_equal;
++                    if (eq)
+                         panels_layout.left_panel_size = COLS / 2;
+                 }
++
++                widget_disable (WIDGET (bleft_widget), eq);
++                widget_disable (WIDGET (bright_widget), eq);
++
+                 layout_change ();
+                 do_refresh ();
+             }
+-- 
+1.8.3.1
+

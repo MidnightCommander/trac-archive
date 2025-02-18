@@ -1,0 +1,27 @@
+From dd496bbcf74d0e1357ac2c3ad6a0f98664b9ab15 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sun, 25 Oct 2009 02:58:43 +0000
+Subject: [PATCH]  Ignoring system dirs /dev, /proc and /sys
+  when <Find file> to avoid search in /proc/kcore and so on
+
+        (modified: src/find.c)
+---
+ src/find.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/find.c b/src/find.c
+index 8955dc7..e82f683 100644
+--- a/src/find.c
++++ b/src/find.c
+@@ -84,7 +84,7 @@ typedef enum {
+ } FindProgressStatus;
+ 
+ /* List of directories to be ignored, separated by ':' */
+-char *find_ignore_dirs = NULL;
++char *find_ignore_dirs = ":./dev:./proc:./sys:"; /* to search in all dirs: char *find_ignore_dirs = NULL; */
+ 
+ /* static variables to remember find parameters */
+ static WInput *in_start;			/* Start path */
+-- 
+1.6.4
+

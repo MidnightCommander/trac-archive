@@ -1,0 +1,43 @@
+Hi
+
+I am sending this patch that fixes GPM bug.
+
+How to reproduce the bug:
+
+* compile mc with gpm support
+* run the gpm daemon on the console
+* login to the machine with ssh from console on another machine
+* run mc
+
+At this situation, keyboard response will be sluggish and mc will consume
+CPU time when idle. The reason is that mc is trying to reopen the Gpm
+connection over and over again and gpm will try to close the connection
+over and over again (because the user is not on the local console).
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+
+---
+ lib/tty/key.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+Index: mc/lib/tty/key.c
+===================================================================
+--- mc.orig/lib/tty/key.c	2019-02-27 18:54:15.000000000 +0100
++++ mc/lib/tty/key.c	2019-02-27 19:22:19.000000000 +0100
+@@ -2091,14 +2091,13 @@ tty_get_event (struct Gpm_Event *event,
+                         *event = ev;
+                         return EV_MOUSE;
+                     }
+-                    else if (status == 0)       /* connection closed; -1 == error */
++                    else if (status <= 0)       /* connection closed; -1 == error */
+                     {
+                         if (mouse_fd >= 0 && FD_ISSET (mouse_fd, &select_set))
+                             FD_CLR (mouse_fd, &select_set);
+ 
+-                        /* Try to reopen gpm_mouse connection */
+                         disable_mouse ();
+-                        enable_mouse ();
++                        return EV_NONE;
+                     }
+                 }
+             }

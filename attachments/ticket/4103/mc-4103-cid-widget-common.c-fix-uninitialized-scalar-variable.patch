@@ -1,0 +1,35 @@
+From c16d411841025121267b1b72e85a429cde0a3817 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 7 Dec 2020 13:41:18 +0000
+Subject: [PATCH] (widget-common.c) fix uninitialized scalar variable
+
+Fix uninitialized scalar variable
+
+found by Coverity
+coverity id #32631
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/widget-common.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index 405269ff9..00ca8b094 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -798,13 +798,9 @@ mouse_get_local (const Gpm_Event * global, const Widget * w)
+ {
+     Gpm_Event local;
+ 
++    memset(&local, 0, sizeof(Gpm_Event));
++
+     local.buttons = global->buttons;
+-#ifdef HAVE_LIBGPM
+-    local.clicks = 0;
+-    local.margin = 0;
+-    local.modifiers = 0;
+-    local.vc = 0;
+-#endif
+     local.x = global->x - w->x;
+     local.y = global->y - w->y;
+     local.type = global->type;

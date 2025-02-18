@@ -1,0 +1,58 @@
+From 942a51d3d77e13c21d9b87336e0cb5beccc2aa04 Mon Sep 17 00:00:00 2001
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Date: Fri, 22 Jun 2012 12:45:57 +0300
+Subject: [PATCH] configure: don't fail if 'sftp' support was not requested
+ explicitly
+
+Before the patch default ./configure led to configure crash:
+    checking for LIBSSH... no
+    configure: error: libssh2 >= 1.2.5 library not found
+
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+---
+ doc/INSTALL                   |    2 +-
+ m4.include/vfs/mc-vfs-sftp.m4 |    7 +++++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/doc/INSTALL b/doc/INSTALL
+index d276241..6bd77bd 100644
+--- a/doc/INSTALL
++++ b/doc/INSTALL
+@@ -172,7 +172,7 @@ VFS options:
+      Support for FISH vfs
+ 
+ `--enable-vfs-sftp'
+-     (off by default)
++     (auto)
+      Support for SFTP vfs
+ 
+ `--enable-vfs-extfs'
+diff --git a/m4.include/vfs/mc-vfs-sftp.m4 b/m4.include/vfs/mc-vfs-sftp.m4
+index a977c03..fa40010 100644
+--- a/m4.include/vfs/mc-vfs-sftp.m4
++++ b/m4.include/vfs/mc-vfs-sftp.m4
+@@ -2,7 +2,7 @@ dnl Enable SFTP filesystem
+ AC_DEFUN([AC_MC_VFS_SFTP],
+ [
+     AC_ARG_ENABLE([vfs-sftp],
+-                  AS_HELP_STRING([--enable-vfs-sftp], [Support for SFTP filesystem [[yes]]]))
++                  AS_HELP_STRING([--enable-vfs-sftp], [Support for SFTP filesystem [auto]]))
+     if test "$enable_vfs" != "no" -a x"$enable_vfs_sftp" != x"no"; then
+         PKG_CHECK_MODULES(LIBSSH, [libssh2 >= 1.2.5], [found_libssh=yes], [:])
+         if test x"$found_libssh" = "xyes"; then
+@@ -11,8 +11,11 @@ AC_DEFUN([AC_MC_VFS_SFTP],
+             MCLIBS="$MCLIBS $LIBSSH_LIBS"
+             enable_vfs_sftp="yes"
+         else
++            if test x"$enable_vfs_sftp" = x"yes"; then
++                dnl user explicitly requested feature
++                AC_ERROR([libssh2 >= 1.2.5 library not found])
++            fi
+             enable_vfs_sftp="no"
+-            AC_ERROR([libssh2 >= 1.2.5 library not found])
+         fi
+     fi
+     AM_CONDITIONAL([ENABLE_VFS_SFTP], [test "$enable_vfs" = "yes" -a x"$enable_vfs_sftp" = x"yes"])
+-- 
+1.7.8.6
+

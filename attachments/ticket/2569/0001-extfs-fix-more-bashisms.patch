@@ -1,0 +1,67 @@
+From 0a9e55870106ae5e841ebcf1d51659f9eb8b2382 Mon Sep 17 00:00:00 2001
+From: Jindrich Makovicka <makovick@gmail.com>
+Date: Tue, 5 Jul 2011 17:13:21 +0200
+Subject: [PATCH] extfs: fix more bashisms
+
+---
+ src/vfs/extfs/helpers/iso9660.in |    2 +-
+ src/vfs/extfs/helpers/uace.in    |    2 +-
+ src/vfs/extfs/helpers/uarc.in    |    2 +-
+ src/vfs/extfs/helpers/uc1541.in  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/iso9660.in b/src/vfs/extfs/helpers/iso9660.in
+index c78c829..296ac54 100644
+--- a/src/vfs/extfs/helpers/iso9660.in
++++ b/src/vfs/extfs/helpers/iso9660.in
+@@ -78,7 +78,7 @@ BEGIN {
+ }
+ 
+ mcisofs_copyout () {
+-        if [ "x$SEMICOLON" == "xYES" ]; then
++        if [ "x$SEMICOLON" = "xYES" ]; then
+             $ISOINFO -i "$1" -x "/$2;1" 2>/dev/null > "$3"
+         else
+             $ISOINFO -i "$1" -x "/$2" 2>/dev/null > "$3"
+diff --git a/src/vfs/extfs/helpers/uace.in b/src/vfs/extfs/helpers/uace.in
+index 062d82f..d245774 100644
+--- a/src/vfs/extfs/helpers/uace.in
++++ b/src/vfs/extfs/helpers/uace.in
+@@ -22,7 +22,7 @@ ACE_GET="unace x"
+ # ls:
+ mc_ace_fs_list()
+ {
+-    $ACE_LIST "$1" | gawk -v uid=${UID-0} '
++    $ACE_LIST "$1" | gawk -v uid=$(id -ru) '
+ BEGIN { Month="JanFebMarAprMayJunJulAugSepOctNovDec" }
+ /%/ { 
+   split($1,date,".")
+diff --git a/src/vfs/extfs/helpers/uarc.in b/src/vfs/extfs/helpers/uarc.in
+index 3f71277..aa7468e 100644
+--- a/src/vfs/extfs/helpers/uarc.in
++++ b/src/vfs/extfs/helpers/uarc.in
+@@ -19,7 +19,7 @@ ARC_DEL="arc d"
+ 
+ mc_arc_fs_list()
+ {
+-    $ARC_LIST "$1" | gawk -v uid=${UID-0} '
++    $ARC_LIST "$1" | gawk -v uid=$(id -ru) '
+ BEGIN { }
+ /^Name/ { next }
+ /===/ { next }
+diff --git a/src/vfs/extfs/helpers/uc1541.in b/src/vfs/extfs/helpers/uc1541.in
+index fed3301..4f8fc67 100644
+--- a/src/vfs/extfs/helpers/uc1541.in
++++ b/src/vfs/extfs/helpers/uc1541.in
+@@ -20,7 +20,7 @@ C1541="c1541"
+ # There are no time stamps in the disk image, so a bogus timestamp is displayed
+ mc_c1541_fs_list()
+ {
+-    $C1541 "$1" -list | gawk -v uid=${UID-0} '
++    $C1541 "$1" -list | gawk -v uid=$(id -ru) '
+ BEGIN { FS = "\"" }
+ /No LINES!/ { next }
+ /BLOCKS FREE/ { next }
+-- 
+1.7.5.4
+

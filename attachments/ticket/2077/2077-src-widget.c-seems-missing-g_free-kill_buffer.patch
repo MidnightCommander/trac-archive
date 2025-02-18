@@ -1,0 +1,25 @@
+From 47b064e47b4f003edc64b7a0bc69fc15577ce472 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 2 Mar 2010 14:02:49 +0000
+Subject: [PATCH]  src/widget.c seems missing g_free kill_buffer
+
+---
+ src/widget.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/widget.c b/src/widget.c
+index 4df7a5a..c486768 100644
+--- a/src/widget.c
++++ b/src/widget.c
+@@ -985,7 +985,7 @@ static void draw_history_button (WInput * in)
+ 
+ /* Input widgets now have a global kill ring */
+ /* Pointer to killed data */
+-static char *kill_buffer = 0;
++static char *kill_buffer = NULL;
+ 
+ void
+ update_input (WInput *in, int clear_first)
+-- 
+1.6.4
+

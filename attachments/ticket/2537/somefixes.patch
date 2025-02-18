@@ -1,0 +1,45 @@
+ lib/vfs/direntry.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/lib/vfs/direntry.c b/lib/vfs/direntry.c
+index 0a039ef..1c7ec51 100644
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -1029,13 +1029,13 @@ const char *
+ vfs_s_get_path_mangle (struct vfs_class *me, char *inname, struct vfs_s_super **archive, int flags)
+ {
+     GList *iter;
++    struct vfs_s_super *super;
++    void *cookie = NULL;
+     const char *retval;
+     char *local, *op;
+     const char *archive_name;
+-    int result = -1;
+-    struct vfs_s_super *super;
+-    void *cookie = NULL;
+-
++    int i;
++    
+     archive_name = inname;
+     vfs_split (inname, &local, &op);
+     retval = (local != NULL) ? local : "";
+@@ -1049,8 +1049,6 @@ vfs_s_get_path_mangle (struct vfs_class *me, char *inname, struct vfs_s_super **
+ 
+     for (iter = MEDATA->supers; iter != NULL; iter = g_list_next (iter))
+     {
+-        int i;
+-
+         super = (struct vfs_s_super *) iter->data;
+ 
+         /* 0 == other, 1 == same, return it, 2 == other but stop scanning */
+@@ -1067,8 +1065,8 @@ vfs_s_get_path_mangle (struct vfs_class *me, char *inname, struct vfs_s_super **
+         ERRNOR (EIO, NULL);
+ 
+     super = vfs_s_new_super (me);
+-    result = MEDATA->open_archive (me, super, archive_name, op);
+-    if (result == -1)
++
++    if ( MEDATA->open_archive (me, super, archive_name, op) == -1)
+     {
+         vfs_s_free_super (me, super);
+         ERRNOR (EIO, NULL);

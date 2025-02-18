@@ -1,0 +1,35 @@
+From 11b358567cdfeb7693a1182caea6606f2587d91b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 20 Dec 2015 23:21:09 +0000
+Subject: [PATCH] remove unused const value
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/internal.h | 1 -
+ src/viewer/lib.c      | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/src/viewer/internal.h b/src/viewer/internal.h
+index 57ac2a5..a5a7350 100644
+--- a/src/viewer/internal.h
++++ b/src/viewer/internal.h
+@@ -23,7 +23,6 @@ typedef unsigned char byte;
+ /* A width or height on the screen */
+ typedef unsigned int screen_dimen;
+ 
+-extern const off_t INVALID_OFFSET;
+ extern const off_t OFFSETTYPE_MAX;
+ 
+ /*** enums ***************************************************************************************/
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index c82bba8..0683a8c 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -56,7 +56,6 @@
+ /*** global variables ****************************************************************************/
+ 
+ #define OFF_T_BITWIDTH (unsigned int) (sizeof (off_t) * CHAR_BIT - 1)
+-const off_t INVALID_OFFSET = (off_t) (-1);
+ const off_t OFFSETTYPE_MAX = ((off_t) 1 << (OFF_T_BITWIDTH - 1)) - 1;
+ 
+ /*** file scope macro definitions ****************************************************************/

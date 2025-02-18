@@ -1,0 +1,41 @@
+From 3298a8d8d2a8fc8e7168ad0f0385d75a71ddff15 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 13 Dec 2016 01:05:55 +0200
+Subject: [PATCH 11/13] Ticket #3729: extfs: hp48: fix date format.
+
+Use "MM-DD-YYYY hh:mm" instead of "Mon DD YYYY hh:mm".
+
+Note: we assign to $NOW at the top-level, not inside hp48_parser(), because the
+communication is slow and we don't want each recursive call to hp48_parser() to
+potentially print a different time.
+---
+ src/vfs/extfs/helpers/hp48+.in | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/hp48+.in b/src/vfs/extfs/helpers/hp48+.in
+index 7c28494..322de59 100644
+--- a/src/vfs/extfs/helpers/hp48+.in
++++ b/src/vfs/extfs/helpers/hp48+.in
+@@ -24,6 +24,8 @@
+ AWK=@AWK@
+ KERMIT="kermit -l /dev/ttyS1 -b 9600"
+ 
++NOW=`date +"%m-%d-%Y %H:%M"`
++
+ hp48_cmd()
+ {
+ $KERMIT -C "SET EXIT WARNING OFF,REMOTE $1,QUIT"
+@@ -78,8 +80,8 @@ while [ "x$INPUT" != "xEOF" ]
+ do
+     case `echo "$INPUT" | $AWK '{if (int($2)) if ($3 == "Directory") print "dir";else print "file"}'` in
+     dir) HP48_DIRS="$HP48_DIRS `hp48_retdir $INPUT`"
+-    printf "drwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 0 0 `hp48_retsize $INPUT` "`date +\"%b %d %Y %k:%M\"`" "$HP48_CDIR/`hp48_retdir $INPUT`";;
+-    file) printf "%crw-r--r--   1 %-8d %-8d %8d %s %s\n" '-' 0 0 `hp48_retsize $INPUT` "`date +\"%b %d %Y %k:%M\"`" "$HP48_CDIR/`hp48_retdir $INPUT`";;
++    printf "drwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 0 0 `hp48_retsize $INPUT` "$NOW" "$HP48_CDIR/`hp48_retdir $INPUT`";;
++    file) printf "%crw-r--r--   1 %-8d %-8d %8d %s %s\n" '-' 0 0 `hp48_retsize $INPUT` "$NOW" "$HP48_CDIR/`hp48_retdir $INPUT`";;
+     esac
+     read -r INPUT
+ done
+-- 
+2.9.3
+

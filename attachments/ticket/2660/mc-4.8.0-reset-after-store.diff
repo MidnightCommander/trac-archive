@@ -1,0 +1,10 @@
+--- src/editor/editcmd.c	2011-11-01 15:41:31.402535200 +0400
++++ src/editor/editcmd.c	2011-11-01 15:40:16.214331720 +0400
+@@ -2607,6 +2607,7 @@ edit_copy_to_X_buf_cmd (WEdit * edit)
+     /* try use external clipboard utility */
+     mc_event_raise (MCEVENT_GROUP_CORE, "clipboard_file_to_ext_clip", NULL);
+ 
++    edit_mark_cmd (edit, 1);
+     return 0;
+ }
+ 

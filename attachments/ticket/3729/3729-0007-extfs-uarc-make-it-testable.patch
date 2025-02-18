@@ -1,0 +1,25 @@
+From 9555c40c2c578a280290ced4cf6908ef8afab920 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 12 Dec 2016 14:28:35 +0200
+Subject: [PATCH 07/13] extfs: uarc: make it testable.
+
+---
+ src/vfs/extfs/helpers/uarc.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/uarc.in b/src/vfs/extfs/helpers/uarc.in
+index 2ddee8b..a81839a 100644
+--- a/src/vfs/extfs/helpers/uarc.in
++++ b/src/vfs/extfs/helpers/uarc.in
+@@ -8,7 +8,7 @@
+ #
+ 
+ # Define which archiver you are using with appropriate options
+-ARC_LIST="arc v"
++ARC_LIST=${MC_TEST_EXTFS_LIST_CMD:-"arc v"}
+ ARC_GET="arc x"
+ ARC_PUT="arc a"
+ ARC_DEL="arc d"
+-- 
+2.9.3
+

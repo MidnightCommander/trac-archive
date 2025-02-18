@@ -1,0 +1,231 @@
+From 2c0e1a7a88ff4e1d9aefd79285b139a3a35036a6 Mon Sep 17 00:00:00 2001
+From: SZABO Gergely <szg@subogero.com>
+Date: Wed, 2 Dec 2009 14:01:43 +0100
+Subject: [PATCH] Ticket #1370 (Update Hungarian translation)
+
+Hungarian translation updated, based on commit f5980a33...
+---
+ po/hu.po |   56 ++++++++++++++++++++++++++------------------------------
+ 1 files changed, 26 insertions(+), 30 deletions(-)
+
+diff --git a/po/hu.po b/po/hu.po
+index 0389d8f..77ea5a9 100644
+--- a/po/hu.po
++++ b/po/hu.po
+@@ -3,6 +3,7 @@
+ # Szabolcs Szasz <sz@szasz.hu>, 2001.
+ # Szabolcs Ban <shooby@gnome.hu>, 2001.
+ # Arpad Biro <biro_arpad@yahoo.com>, 2003, 2004, 2005.
++# SZABO Gergely <szg@subogero.com>, 2009
+ #
+ msgid ""
+ msgstr ""
+@@ -10,23 +11,21 @@ msgstr ""
+ "Report-Msgid-Bugs-To: \n"
+ "POT-Creation-Date: 2009-03-14 19:43+0000\n"
+ "PO-Revision-Date: 2005-07-22 00:47+0200\n"
+-"Last-Translator: Arpad Biro <biro_arpad@yahoo.com>\n"
++"Last-Translator: SZABO Gergely <szg@subogero.com>\n"
+ "Language-Team: Hungarian\n"
+ "MIME-Version: 1.0\n"
+ "Content-Type: text/plain; charset=ISO-8859-2\n"
+ "Content-Transfer-Encoding: 8bit\n"
+ "X-Generator: KBabel 1.9.1\n"
+ 
+-#, fuzzy
+ msgid " Choose syntax highlighting "
+-msgstr "&Szintaktikus szövegkiemelés"
++msgstr "Szintakszis választás"
+ 
+-#, fuzzy
+ msgid "< Auto >"
+-msgstr " Névjegy "
++msgstr "< Auto >"
+ 
+ msgid "< Reload Current Syntax >"
+-msgstr ""
++msgstr "< Aktuális szintaktika újratöltése >"
+ 
+ #, c-format
+ msgid " Cannot open %s for reading "
+@@ -67,7 +66,7 @@ msgid "Warning"
+ msgstr "Figyelem"
+ 
+ msgid " File has hard-links. Detach before saving? "
+-msgstr ""
++msgstr " A fájlra hard-linkek mutatnak. Leválaszt? "
+ 
+ msgid "&Yes"
+ msgstr "&Igen"
+@@ -80,7 +79,7 @@ msgid "&Cancel"
+ msgstr "&Mégsem"
+ 
+ msgid "The file has been modified in the meantime. Save anyway?"
+-msgstr ""
++msgstr "A fájl módosult idõközben. Mindenképp ment?"
+ 
+ msgid " Error writing to pipe: "
+ msgstr " Hiba a csõfájl írásakor: "
+@@ -539,15 +538,12 @@ msgstr "
+ msgid "&Save mode..."
+ msgstr "&Mentési mód..."
+ 
+-#, fuzzy
+ msgid "Learn &Keys..."
+ msgstr "&Billentyûk..."
+ 
+-#, fuzzy
+ msgid "Syntax &Highlighting..."
+ msgstr "&Szintaktikus szövegkiemelés"
+ 
+-#, fuzzy
+ msgid "Save setu&p..."
+ msgstr "Beállítások m&entése"
+ 
+@@ -813,11 +809,10 @@ msgid "Sort order"
+ msgstr " Rendezési mód "
+ 
+ msgid "Executable first"
+-msgstr ""
++msgstr "Futtathatók elõször "
+ 
+-#, fuzzy
+ msgid " confirm di&Rectory hotlist delete "
+-msgstr "Könyvtár-&gyorslista       C-\\"
++msgstr " Könyvtár-&gyorslista törlés megerõsítése "
+ 
+ msgid " confirm &Exit "
+ msgstr " &Kilépés elõtt "
+@@ -1221,9 +1216,9 @@ msgstr ""
+ msgid " Setup "
+ msgstr " Beállítások "
+ 
+-#, fuzzy, c-format
++#, c-format
+ msgid " Setup saved to ~/%s"
+-msgstr " Beállítások elmentve ide: ~/"
++msgstr " Beállítások mentve: ~/%s"
+ 
+ # 2. %s: unixos hibaüzenet
+ #, c-format
+@@ -1312,7 +1307,7 @@ msgstr ""
+ msgid " ~/%s file error "
+ msgstr " ~/%s fájlhiba "
+ 
+-#, fuzzy, c-format
++#, c-format
+ msgid ""
+ "The format of the ~/%s file has changed with version 3.0.  You may either "
+ "want to copy it from %smc.ext or use that file as an example of how to write "
+@@ -1384,7 +1379,7 @@ msgstr ""
+ " forrásfájl adatait. \n"
+ " %s "
+ 
+-#, fuzzy, c-format
++#, c-format
+ msgid ""
+ " `%s' \n"
+ " and \n"
+@@ -1585,7 +1580,7 @@ msgstr ""
+ " Nem sikerült letörölni a(z) \"%s\" fájlt. \n"
+ " %s "
+ 
+-#, fuzzy, c-format
++#, c-format
+ msgid ""
+ " `%s' \n"
+ " and \n"
+@@ -1852,12 +1847,11 @@ msgstr "&Megtekint
+ msgid "&Edit - F4"
+ msgstr "&Szerkesztés - F4"
+ 
+-#, fuzzy
+ msgid "&Find recursively"
+ msgstr "Rek&urzív keresés"
+ 
+ msgid "S&kip hidden"
+-msgstr ""
++msgstr "Rejtett &kihagy"
+ 
+ msgid "Start at:"
+ msgstr "Kezdõkönyvtár:"
+@@ -1986,6 +1980,8 @@ msgid ""
+ "\n"
+ " Are you sure you want to remove this entry?"
+ msgstr ""
++"\n"
++"Biztos törli az elemet?"
+ 
+ msgid ""
+ "\n"
+@@ -2002,10 +1998,11 @@ msgstr " Legfels
+ msgid " Hotlist Load "
+ msgstr " Gyorslista betöltése "
+ 
+-#, fuzzy, c-format
++#, c-format
+ msgid ""
+ "MC was unable to write ~/%s file, your old hotlist entries were not deleted"
+-msgstr " fájlt - a régi gyorslista-bejegyzések megtartva"
++msgstr ""
++" A(z) %s fájl nem írható - régi gyorslista-bejegyzések megtartva"
+ 
+ #, c-format
+ msgid "Midnight Commander %s"
+@@ -2057,7 +2054,7 @@ msgstr "M
+ # !! Ez ext2fs-en nem 'creation', hanem az utolso metadata-valtozas...
+ # Ext3 és ReiserFS esetén is: például chmod (csak) ezt a fájldátumot módosítja
+ #. TRANSLATORS: "Status changed", like in the stat(2) man page
+-#, fuzzy, c-format
++#, c-format
+ msgid "Status:    %s"
+ msgstr "Adatváltozás: %s"
+ 
+@@ -2069,7 +2066,7 @@ msgstr "Eszk
+ msgid "Size:      %s"
+ msgstr "Méret:        %s"
+ 
+-#, fuzzy, c-format
++#, c-format
+ msgid " (%ld block)"
+ msgid_plural " (%ld blocks)"
+ msgstr[0] " (%ld blokk)"
+@@ -2101,7 +2098,7 @@ msgid "&Horizontal"
+ msgstr "&Vízszintes"
+ 
+ msgid "show free sp&Ace"
+-msgstr ""
++msgstr "Üres tárhelyet mut&At"
+ 
+ msgid "&Xterm window title"
+ msgstr "&Xterm-ablakcím"
+@@ -2772,13 +2769,13 @@ msgid "<readlink failed>"
+ msgstr "<hibás szim. link>"
+ 
+ # szóköz: elválasztáshoz
+-#, fuzzy, c-format
++#, c-format
+ msgid "%s byte"
+ msgid_plural "%s bytes"
+ msgstr[0] " %s bájt"
+ msgstr[1] " %s bájt"
+ 
+-#, fuzzy, c-format
++#, c-format
+ msgid "%s in %d file"
+ msgid_plural "%s in %d files"
+ msgstr[0] "%s bájt %d fájlban"
+@@ -3113,9 +3110,8 @@ msgstr ""
+ msgid " Goto Address "
+ msgstr " Ugrás a megadott címre "
+ 
+-#, fuzzy
+ msgid " Invalid address "
+-msgstr " Hibás jelszó "
++msgstr " Érvénytelen cím "
+ 
+ msgid " Enter regexp:"
+ msgstr " Reguláris kifejezés:"
+-- 
+1.6.1.2
+

@@ -1,0 +1,42 @@
+
+bugfix for ticket #3280 - mcview: search off-by-one between plain and hex modes
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+diff -ruN mc-4.8.13/src/viewer/nroff.c mc-4.8.13.patch/src/viewer/nroff.c
+--- mc-4.8.13/src/viewer/nroff.c	2014-09-02 13:34:09.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/nroff.c	2015-02-16 13:00:00.000000000 +0200
+@@ -202,7 +202,7 @@
+             continue;
+         }
+ 
+-        if (view->search_start <= from && from < view->search_end)
++        if (view->search_start < from && from <= view->search_end)
+         {
+             tty_setcolor (SELECTED_COLOR);
+         }
+diff -ruN mc-4.8.13/src/viewer/plain.c mc-4.8.13.patch/src/viewer/plain.c
+--- mc-4.8.13/src/viewer/plain.c	2014-09-02 13:34:09.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/plain.c	2015-02-16 13:46:45.916741963 +0100
+@@ -140,7 +140,7 @@
+             continue;
+         }
+ 
+-        if (view->search_start <= from && from < view->search_end)
++        if (view->search_start < from && from <= view->search_end)
+             tty_setcolor (SELECTED_COLOR);
+         else
+             tty_setcolor (VIEW_NORMAL_COLOR);
+diff -ruN mc-4.8.13/src/viewer/search.c mc-4.8.13.patch/src/viewer/search.c
+--- mc-4.8.13/src/viewer/search.c	2014-09-02 11:23:58.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/search.c	2015-02-16 13:46:03.149987858 +0100
+@@ -168,9 +168,6 @@
+                                       view->search->normal_offset - view->search->start_buffer) : 0;
+     view->search_start = view->search->normal_offset + nroff_len;
+ 
+-    if (!view->hex_mode)
+-        view->search_start++;
+-
+     nroff_len =
+         view->text_nroff_mode ? mcview__get_nroff_real_len (view, view->search_start - 1,
+                                                             match_len) : 0;

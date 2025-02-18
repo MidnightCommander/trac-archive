@@ -1,0 +1,45 @@
+From f6a8af8623b68594fe49428d59931b52904d74c1 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 1 Jul 2015 09:38:57 +0300
+Subject: [PATCH] Switch "Local"/"User" buttons on menu selector.
+
+Users are more likely to want to edit their central user menu, not the local
+menu, so we make "User" the first button.
+---
+ src/filemanager/cmd.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index d824c3f..2df38e9 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -1013,7 +1013,7 @@ edit_mc_menu_cmd (void)
+ 
+     dir = query_dialog (_("Menu edit"),
+                         _("Which menu file do you want to edit?"),
+-                        D_NORMAL, geteuid ()? 2 : 3, _("&Local"), _("&User"), _("&System Wide"));
++                        D_NORMAL, geteuid ()? 2 : 3, _("&User"), _("&Local"), _("&System Wide"));
+ 
+     menufile_vpath = vfs_path_build_filename (mc_global.sysconfig_dir, MC_GLOBAL_MENU, NULL);
+ 
+@@ -1026,14 +1026,14 @@ edit_mc_menu_cmd (void)
+     switch (dir)
+     {
+     case 0:
+-        buffer_vpath = vfs_path_from_str (MC_LOCAL_MENU);
++        buffer_vpath = mc_config_get_full_vpath (MC_USERMENU_FILE);
+         check_for_default (menufile_vpath, buffer_vpath);
+-        chmod (vfs_path_get_last_path_str (buffer_vpath), 0600);
+         break;
+ 
+     case 1:
+-        buffer_vpath = mc_config_get_full_vpath (MC_USERMENU_FILE);
++        buffer_vpath = vfs_path_from_str (MC_LOCAL_MENU);
+         check_for_default (menufile_vpath, buffer_vpath);
++        chmod (vfs_path_get_last_path_str (buffer_vpath), 0600);
+         break;
+ 
+     case 2:
+-- 
+2.1.4
+

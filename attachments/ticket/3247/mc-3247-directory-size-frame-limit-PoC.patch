@@ -1,0 +1,91 @@
+diff --git a/lib/util.c b/lib/util.c
+index ceace41..556f370 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -1451,3 +1451,30 @@ mc_replace_error (GError ** dest, int code, const char *format, ...)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++/**
++ * Returns if the given duration has elapsed since the given timestamp,
++ * and if it has then updates the timestamp.
++ * Returns TRUE if clock skew detected.
++ *
++ * @param tv the last timestamp, updated if the given time elapsed
++ * @param duration amount of time in seconds
++ */
++gboolean
++mc_time_elapsed (double *timestamp, double delay)
++{
++    struct timeval tv_now;
++    double now;
++
++    if (gettimeofday(&tv_now, NULL) != 0)
++        return TRUE;
++    now = tv_now.tv_sec + tv_now.tv_usec / 1000000.0;
++
++    if (now >= *timestamp && now < *timestamp + delay)
++        return FALSE;
++
++    *timestamp = now;
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/util.h b/lib/util.h
+index 26ba190..5f29ff5 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -207,6 +207,8 @@ char *mc_build_filenamev (const char *first_element, va_list args);
+ void mc_propagate_error (GError ** dest, int code, const char *format, ...);
+ void mc_replace_error (GError ** dest, int code, const char *format, ...);
+ 
++gboolean mc_time_elapsed (double *timestamp, double delay);
++
+ /*** inline functions **************************************************/
+ 
+ static inline gboolean
+diff --git a/lib/widget/wtools.c b/lib/widget/wtools.c
+index 058db93..efab61e 100644
+--- a/lib/widget/wtools.c
++++ b/lib/widget/wtools.c
+@@ -575,7 +575,7 @@ status_msg_init (status_msg_t * sm, const char *title, double delay, status_msg_
+ {
+     sm->dlg = dlg_create (TRUE, 0, 0, 7, min (max (40, COLS / 2), COLS), dialog_colors,
+                           NULL, NULL, NULL, title, DLG_CENTER);
+-    sm->delay = delay * G_USEC_PER_SEC;
++    sm->delay = status_msg_delay_threshold + 1;  // delay * G_USEC_PER_SEC;
+     sm->block = FALSE;
+ 
+     sm->init = init_cb;
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index caf375b..f8cdf29 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -529,6 +529,7 @@ do_compute_dir_size (const vfs_path_t * dirname_vpath, dirsize_status_msg_t * ds
+     DIR *dir;
+     struct dirent *dirent;
+     FileProgressStatus ret = FILE_CONT;
++    static double timestamp = 0;
+ 
+     if (!compute_symlinks)
+     {
+@@ -568,7 +569,7 @@ do_compute_dir_size (const vfs_path_t * dirname_vpath, dirsize_status_msg_t * ds
+                 ret =
+                     do_compute_dir_size (tmp_vpath, dsm, dir_count, ret_marked, ret_total,
+                                          compute_symlinks);
+-                if (ret == FILE_CONT && sm->update != NULL)
++                if (ret == FILE_CONT && sm->update != NULL && mc_time_elapsed(&timestamp, 0.04 /* 25 FPS */))
+                 {
+                     dsm->dirname_vpath = tmp_vpath;
+                     dsm->dir_count = *dir_count;
+@@ -582,7 +583,7 @@ do_compute_dir_size (const vfs_path_t * dirname_vpath, dirsize_status_msg_t * ds
+                 *ret_total += (uintmax_t) s.st_size;
+ 
+                 update_ui_count++;
+-                if ((update_ui_count & 31) == 0)
++                if ((update_ui_count & 31) == 0 && mc_time_elapsed(&timestamp, 0.04 /* 25 FPS */))
+                 {
+                     if (sm->update == NULL)
+                         ret = FILE_CONT;

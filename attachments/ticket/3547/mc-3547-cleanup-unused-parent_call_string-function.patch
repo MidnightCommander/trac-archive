@@ -1,0 +1,49 @@
+From c22cc130b46432ebf78d64ebd1f9afb56bd19ea6 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 17:10:33 +0000
+Subject: [PATCH] cleanup unused parent_call_string function
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/background.c | 15 ---------------
+ src/background.h |  1 -
+ 2 files changed, 16 deletions(-)
+
+diff --git a/src/background.c b/src/background.c
+index 3360855..53391fc 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -601,21 +601,6 @@ parent_call (void *routine, file_op_context_t * ctx, int argc, ...)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-char *
+-parent_call_string (void *routine, int argc, ...)
+-{
+-    va_list ap;
+-    char *str;
+-
+-    va_start (ap, argc);
+-    str = parent_va_call_string (routine, argc, ap);
+-    va_end (ap);
+-
+-    return str;
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+ /* event callback */
+ gboolean
+ background_parent_call (const gchar * event_group_name, const gchar * event_name,
+diff --git a/src/background.h b/src/background.h
+index 33c421c..3d030a3 100644
+--- a/src/background.h
++++ b/src/background.h
+@@ -37,7 +37,6 @@ extern struct TaskList *task_list;
+ 
+ int do_background (file_op_context_t * ctx, char *info);
+ int parent_call (void *routine, file_op_context_t * ctx, int argc, ...);
+-char *parent_call_string (void *routine, int argc, ...);
+ 
+ void unregister_task_running (pid_t pid, int fd);
+ void unregister_task_with_pid (pid_t pid);

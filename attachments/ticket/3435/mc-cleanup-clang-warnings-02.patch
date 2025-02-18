@@ -1,0 +1,60 @@
+
+fix clang 3.6 compiler warnings
+
+patch 01: -Wundef
+patch 02: -Wunused-function
+patch 03: -Wnon-literal-null-conversion
+patch 04: -Wmissing-field-initializers
+patch 05: -Wabsolute-value
+patch 06: -Wtautological-pointer-compare
+patch 07: -Wformat
+
+strutil8bit.c:58:1: error: unused function 'char_isalpha' [-Wunused-function]
+strutil8bit.c:59:1: error: unused function 'char_isascii' [-Wunused-function]
+strutil8bit.c:60:1: error: unused function 'char_isblank' [-Wunused-function]
+strutil8bit.c:61:1: error: unused function 'char_iscntrl' [-Wunused-function]
+strutil8bit.c:63:1: error: unused function 'char_isgraph' [-Wunused-function]
+strutil8bit.c:64:1: error: unused function 'char_islower' [-Wunused-function]
+strutil8bit.c:68:1: error: unused function 'char_isupper' [-Wunused-function]
+strutil8bit.c:69:1: error: unused function 'char_isxdigit' [-Wunused-function]
+util.c:83:1: error: unused function 'is_7bit_printable' [-Wunused-function]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -55,18 +55,10 @@
+ 
+ /* *INDENT-OFF* */
+ DECLARE_CTYPE_WRAPPER (isalnum)
+-DECLARE_CTYPE_WRAPPER (isalpha)
+-DECLARE_CTYPE_WRAPPER (isascii)
+-DECLARE_CTYPE_WRAPPER (isblank)
+-DECLARE_CTYPE_WRAPPER (iscntrl)
+ DECLARE_CTYPE_WRAPPER (isdigit)
+-DECLARE_CTYPE_WRAPPER (isgraph)
+-DECLARE_CTYPE_WRAPPER (islower)
+ DECLARE_CTYPE_WRAPPER (isprint)
+ DECLARE_CTYPE_WRAPPER (ispunct)
+ DECLARE_CTYPE_WRAPPER (isspace)
+-DECLARE_CTYPE_WRAPPER (isupper)
+-DECLARE_CTYPE_WRAPPER (isxdigit)
+ DECLARE_CTYPE_WRAPPER (toupper)
+ DECLARE_CTYPE_WRAPPER (tolower)
+ /* *INDENT-ON* */
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -79,11 +79,13 @@
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++#ifndef HAVE_CHARSET
+ static inline int
+ is_7bit_printable (unsigned char c)
+ {
+     return (c > 31 && c < 127);
+ }
++#endif
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 

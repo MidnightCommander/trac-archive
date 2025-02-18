@@ -1,0 +1,254 @@
+From e2e6441e930731bb8f23764bc1a6b04026617b50 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 20 Nov 2016 06:04:26 +0200
+Subject: [PATCH 09/11] extfs: urar: add tests.
+
+---
+ tests/src/extfs-helpers-listcmd/Makefile.am        |   7 ++
+ tests/src/extfs-helpers-listcmd/data/urar.README   |  17 ++++
+ .../extfs-helpers-listcmd/data/urar.v4,v3.env_vars |   1 +
+ .../extfs-helpers-listcmd/data/urar.v4,v3.input    |  29 ++++++
+ .../extfs-helpers-listcmd/data/urar.v4,v3.output   |   9 ++
+ .../extfs-helpers-listcmd/data/urar.v5.env_vars    |   1 +
+ tests/src/extfs-helpers-listcmd/data/urar.v5.input | 102 +++++++++++++++++++++
+ .../src/extfs-helpers-listcmd/data/urar.v5.output  |   9 ++
+ 8 files changed, 175 insertions(+)
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/urar.README
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/urar.v4,v3.env_vars
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/urar.v4,v3.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/urar.v4,v3.output
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/urar.v5.env_vars
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/urar.v5.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/urar.v5.output
+
+diff --git a/tests/src/extfs-helpers-listcmd/Makefile.am b/tests/src/extfs-helpers-listcmd/Makefile.am
+index e205882..aec7d0a 100644
+--- a/tests/src/extfs-helpers-listcmd/Makefile.am
++++ b/tests/src/extfs-helpers-listcmd/Makefile.am
+@@ -22,6 +22,13 @@ mc_parse_ls_l_SOURCES = \
+ 	mc_parse_ls_l.c
+ 
+ data_files_to_distribute = \
++	data/urar.README \
++	data/urar.v4,v3.env_vars \
++	data/urar.v4,v3.input \
++	data/urar.v4,v3.output \
++	data/urar.v5.env_vars \
++	data/urar.v5.input \
++	data/urar.v5.output \
+ 	data/uzip.README \
+ 	data/uzip.with-zipinfo.env_vars \
+ 	data/uzip.with-zipinfo.input \
+diff --git a/tests/src/extfs-helpers-listcmd/data/urar.README b/tests/src/extfs-helpers-listcmd/data/urar.README
+new file mode 100644
+index 0000000..75f1297
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/urar.README
+@@ -0,0 +1,17 @@
++
++The archive was created thus:
++
++    echo hello > 'filename with spaces.txt'
++    rar a archive.rar 'filename with spaces.txt' ...
++
++Our 'urar' supports two listing formats: that of version 5, and that of
++version 4.
++
++'urar.v5.input' was created with "unrar vt -c- -cfg- archive.rar" using
++unrar 5.30.
++
++'urar.v4,v3.input' was created with "unrar v -c- -cfg- archive.rar" using
++unrar 3.80 for DOS (google "unrar dos"), via DOSBox (and then the "\" was
++changed to "/" by hand). An inspection of our urar's source code should
++lead us to conclude that this format is compatible with that of version
++4.
+diff --git a/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.env_vars b/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.env_vars
+new file mode 100644
+index 0000000..475a847
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.env_vars
+@@ -0,0 +1 @@
++MC_TEST_EXTFS_UNRAR_VERSION=4
+diff --git a/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.input b/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.input
+new file mode 100644
+index 0000000..75f7948
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.input
+@@ -0,0 +1,29 @@
++
++UNRAR 3.80 freeware      Copyright (c) 1993-2008 Alexander Roshal
++
++Archive ARCHIVE.RAR
++
++Pathname/Comment
++                  Size   Packed Ratio  Date   Time     Attr      CRC   Meth Ver
++-------------------------------------------------------------------------------
++ .viminfo
++                 11032     2468  22% 23-11-16 07:10 -rw------- 295ED9AB m3g 2.9
++ .wget-hsts
++                   205      181  88% 26-10-16 13:14 -rw-rw-r-- 58429CA4 m3g 2.9
++ .xboardrc
++                  7527     2964  39% 17-04-16 01:21 -rw-rw-r-- 1DA6AD04 m3g 2.9
++ .xchm
++                   559      382  68% 29-09-16 01:08 -rw-rw-r-- 73DBF2B9 m3g 2.9
++ .xinputrc
++                   130      123  94% 27-12-15 17:08 -rw-rw-r-- 70CD8EF3 m3g 2.9
++ .dosbox/dosbox-0.74.conf
++                 10730     4005  37% 07-06-16 20:43 -rw-rw-r-- 1D5A9AA6 m3g 2.9
++ log.txt
++               5869937    42114   0% 23-11-16 07:43 -rw-rw-r-- E63DE4A6 m3g 2.9
++ filename with spaces.txt
++                     6       16 266% 23-11-16 07:39 -rw-r--r-- 363A3020 m3g 2.9
++ .dosbox
++                     0        0   0% 07-06-16 20:43 drwx------ 00000000 m0  2.0
++-------------------------------------------------------------------------------
++    9          5900126    52253   0%
++
+diff --git a/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.output b/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.output
+new file mode 100644
+index 0000000..771ab45
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/urar.v4,v3.output
+@@ -0,0 +1,9 @@
++drwx------   1  <<uid>>  <<gid>>          0 2016-06-07 20:43:00 ./.dosbox
++-rw-rw-r--   1  <<uid>>  <<gid>>      10730 2016-06-07 20:43:00 ./.dosbox/dosbox-0.74.conf
++-rw-r--r--   1  <<uid>>  <<gid>>          6 2016-11-23 07:39:00 ./filename with spaces.txt
++-rw-rw-r--   1  <<uid>>  <<gid>>    5869937 2016-11-23 07:43:00 ./log.txt
++-rw-------   1  <<uid>>  <<gid>>      11032 2016-11-23 07:10:00 ./.viminfo
++-rw-rw-r--   1  <<uid>>  <<gid>>        205 2016-10-26 13:14:00 ./.wget-hsts
++-rw-rw-r--   1  <<uid>>  <<gid>>       7527 2016-04-17 01:21:00 ./.xboardrc
++-rw-rw-r--   1  <<uid>>  <<gid>>        559 2016-09-29 01:08:00 ./.xchm
++-rw-rw-r--   1  <<uid>>  <<gid>>        130 2015-12-27 17:08:00 ./.xinputrc
+diff --git a/tests/src/extfs-helpers-listcmd/data/urar.v5.env_vars b/tests/src/extfs-helpers-listcmd/data/urar.v5.env_vars
+new file mode 100644
+index 0000000..abdefcc
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/urar.v5.env_vars
+@@ -0,0 +1 @@
++MC_TEST_EXTFS_UNRAR_VERSION=5
+diff --git a/tests/src/extfs-helpers-listcmd/data/urar.v5.input b/tests/src/extfs-helpers-listcmd/data/urar.v5.input
+new file mode 100644
+index 0000000..5039076
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/urar.v5.input
+@@ -0,0 +1,102 @@
++
++UNRAR 5.30 beta 2 freeware      Copyright (c) 1993-2015 Alexander Roshal
++
++Archive: archive.rar
++Details: RAR 4
++
++        Name: .viminfo
++        Type: File
++        Size: 11032
++ Packed size: 2468
++       Ratio: 22%
++       mtime: 2016-11-23 07:10:39,000
++  Attributes: -rw-------
++       CRC32: 295ED9AB
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: .wget-hsts
++        Type: File
++        Size: 205
++ Packed size: 181
++       Ratio: 88%
++       mtime: 2016-10-26 13:14:09,000
++  Attributes: -rw-rw-r--
++       CRC32: 58429CA4
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: .xboardrc
++        Type: File
++        Size: 7527
++ Packed size: 2964
++       Ratio: 39%
++       mtime: 2016-04-17 01:21:46,000
++  Attributes: -rw-rw-r--
++       CRC32: 1DA6AD04
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: .xchm
++        Type: File
++        Size: 559
++ Packed size: 382
++       Ratio: 68%
++       mtime: 2016-09-29 01:08:46,000
++  Attributes: -rw-rw-r--
++       CRC32: 73DBF2B9
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: .xinputrc
++        Type: File
++        Size: 130
++ Packed size: 123
++       Ratio: 94%
++       mtime: 2015-12-27 17:08:35,000
++  Attributes: -rw-rw-r--
++       CRC32: 70CD8EF3
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: .dosbox/dosbox-0.74.conf
++        Type: File
++        Size: 10730
++ Packed size: 4005
++       Ratio: 37%
++       mtime: 2016-06-07 20:43:58,000
++  Attributes: -rw-rw-r--
++       CRC32: 1D5A9AA6
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: log.txt
++        Type: File
++        Size: 5869937
++ Packed size: 42114
++       Ratio: 0%
++       mtime: 2016-11-23 07:43:18,000
++  Attributes: -rw-rw-r--
++       CRC32: E63DE4A6
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: filename with spaces.txt
++        Type: File
++        Size: 6
++ Packed size: 16
++       Ratio: 266%
++       mtime: 2016-11-23 07:39:15,000
++  Attributes: -rw-r--r--
++       CRC32: 363A3020
++     Host OS: Unix
++ Compression: RAR 3.0(v29) -m3 -md=4M
++
++        Name: .dosbox
++        Type: Directory
++       mtime: 2016-06-07 20:43:58,000
++  Attributes: drwx------
++       CRC32: 00000000
++     Host OS: Unix
++ Compression: RAR 3.0(v20) -m0 -md=0K
++
+diff --git a/tests/src/extfs-helpers-listcmd/data/urar.v5.output b/tests/src/extfs-helpers-listcmd/data/urar.v5.output
+new file mode 100644
+index 0000000..771ab45
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/urar.v5.output
+@@ -0,0 +1,9 @@
++drwx------   1  <<uid>>  <<gid>>          0 2016-06-07 20:43:00 ./.dosbox
++-rw-rw-r--   1  <<uid>>  <<gid>>      10730 2016-06-07 20:43:00 ./.dosbox/dosbox-0.74.conf
++-rw-r--r--   1  <<uid>>  <<gid>>          6 2016-11-23 07:39:00 ./filename with spaces.txt
++-rw-rw-r--   1  <<uid>>  <<gid>>    5869937 2016-11-23 07:43:00 ./log.txt
++-rw-------   1  <<uid>>  <<gid>>      11032 2016-11-23 07:10:00 ./.viminfo
++-rw-rw-r--   1  <<uid>>  <<gid>>        205 2016-10-26 13:14:00 ./.wget-hsts
++-rw-rw-r--   1  <<uid>>  <<gid>>       7527 2016-04-17 01:21:00 ./.xboardrc
++-rw-rw-r--   1  <<uid>>  <<gid>>        559 2016-09-29 01:08:00 ./.xchm
++-rw-rw-r--   1  <<uid>>  <<gid>>        130 2015-12-27 17:08:00 ./.xinputrc
+-- 
+2.9.3
+

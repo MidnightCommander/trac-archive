@@ -1,0 +1,28 @@
+From 3f0e5eceb4877f6e4abaaac2356d02fcec3da0d2 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 21 Dec 2020 10:15:10 +0000
+Subject: [PATCH] (util.c) fix Logically dead code
+
+Statement cannot be NULL at this state
+
+Found by Coverity
+Coverity id #110817
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/util.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 9e83a9748..32eaa4ad1 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -664,7 +664,7 @@ x_basename (const char *s)
+     {
+         /* avoid trailing PATH_SEP, if present */
+         if (!IS_PATH_SEP (s[strlen (s) - 1]))
+-            return (path_sep != NULL) ? path_sep + 1 : s;
++            return path_sep + 1;
+ 
+         while (--path_sep > s && !IS_PATH_SEP (*path_sep))
+             ;

@@ -1,0 +1,33 @@
+From 8de74f76308a5001368baa3308c8c8bce7768669 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 11 Jan 2019 14:58:16 +0000
+Subject: [PATCH] interface.c: cleanup -Wnull-dereference warning
+
+Found by GCC8
+
+interface.c:144:56: error: potential null pointer dereference [-Werror=null-dereference]
+         if (vfs_path_get_last_path_vfs (filename_vpath)->write == NULL)
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/vfs/interface.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/vfs/interface.c b/lib/vfs/interface.c
+index c7dd220e7..f5ce8dc34 100644
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -140,8 +140,11 @@ mc_def_ungetlocalcopy (const vfs_path_t * filename_vpath,
+     {
+         char buffer[BUF_1K * 8];
+         ssize_t i;
++        const struct vfs_class *class;
+ 
+-        if (vfs_path_get_last_path_vfs (filename_vpath)->write == NULL)
++        class = vfs_path_get_last_path_vfs (filename_vpath);
++
++        if (class == NULL || class->write == NULL)
+             goto failed;
+ 
+         fdin = open (local, O_RDONLY);

@@ -1,0 +1,50 @@
+--- mc-4.6.0/src/dir.c.jj	2003-01-21 02:41:45.000000000 +0200
++++ mc-4.6.0/src/dir.c	2004-03-14 04:02:52.000000000 +0200
+@@ -83,9 +83,46 @@
+ static int string_sortcomp (char *str1, char *str2)
+ {
+     static strcoll_status use_strcoll = STRCOLL_TEST;
++    wchar_t *s1=0;
++    wchar_t *s2=0;
++    int result;
+ 
+     if (case_sensitive) {
+-	return strcmp (str1, str2);
++	/* To compare two string with locale specific characters correctly,
++	   we need to convert it to wide characters and compare resulting
++	   strings.
++	   Note: this is really working solution for remark above :)
++	*/
++	/* Allocating memory for first string */
++	result=mbsrtowcs(0,&str1,0,0);
++	if (result > 0) {
++	    result=(result+1)*sizeof(wchar_t);
++	    s1=(wchar_t *)malloc(result*sizeof(wchar_t));
++	    if (s1) memset(s1,result,1);
++	    else
++		/* No memory. Returning standard comparision result */
++		return strcmp (str1, str2);
++	};
++	/* Allocating memory for second string */
++	result=mbsrtowcs(0,&str2,0,0);
++	if (result > 0) {
++	    result=(result+1)*sizeof(wchar_t);
++	    s2=(wchar_t *)malloc(result*sizeof(wchar_t));
++	    if (s2) memset(s2,result,1);
++	    else {
++		/* No memory. Returning standard comparision result */
++		free(s1);
++		return strcmp (str1, str2);
++	    };
++	};
++	/* Converting strings */
++	mbsrtowcs(s1,&str1,strlen(str1),0);
++	mbsrtowcs(s2,&str2,strlen(str2),0);
++	/* Comparing and returning result */
++	result=wcscmp(s1, s2);
++	free(s1);
++	free(s2);
++	return result;
+     }
+ 
+     /* Initialize use_strcoll once.  */

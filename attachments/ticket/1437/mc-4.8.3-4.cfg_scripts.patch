@@ -1,0 +1,38 @@
+diff --git a/misc/Makefile.am b/misc/Makefile.am
+index 4ed4e7a..234376e 100644
+--- a/misc/Makefile.am
++++ b/misc/Makefile.am
+@@ -14,8 +14,6 @@ endif
+ 
+ LIBFILES_CONST = \
+ 	mcedit.menu      \
+-	edit.indent.rc \
+-	edit.spell.rc \
+ 	filehighlight.ini \
+ 	mc.keymap \
+ 	mc.keymap.default \
+@@ -23,6 +21,10 @@ LIBFILES_CONST = \
+ 	mc.menu \
+ 	mc.menu.sr
+ 
++LIBFILES_SCRIPT = \
++	edit.indent.rc \
++	edit.spell.rc
++
+ CLEANFILES = $(SCRIPTS_OUT)
+ 
+ cfgdir = $(sysconfdir)/@PACKAGE@
+@@ -30,9 +32,13 @@ cfg_DATA = \
+ 	$(LIBFILES_CONST) \
+ 	$(LIBFILES_OUT)
+ 
++cfg_SCRIPTS = \
++	$(LIBFILES_SCRIPT)
++
+ # Files processed by configure don't need to be here
+ EXTRA_DIST = \
+ 	$(LIBFILES_CONST) \
++	$(LIBFILES_SCRIPT) \
+ 	$(SCRIPTS_IN) \
+ 	$(noinst_DATA) \
+ 	$(pkgdata_DATA)

@@ -1,0 +1,156 @@
+From a6b3156a2e95786932eff861fa1552eff8ec085e Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Fri, 4 Dec 2009 03:00:05 +0000
+Subject: [PATCH] fixing some g_malloc callsNreturn
+
+---
+ edit/bookmark.c     |    6 ++++++
+ edit/choosesyntax.c |    3 +++
+ edit/editcmd.c      |   35 ++++++++++++++++++++++++-----------
+ edit/etags.c        |    5 ++++-
+ edit/wordproc.c     |    6 +++---
+ 5 files changed, 40 insertions(+), 15 deletions(-)
+
+diff --git a/edit/bookmark.c b/edit/bookmark.c
+index 00dfe8e..3b23c6a 100644
+--- a/edit/bookmark.c
++++ b/edit/bookmark.c
+@@ -66,6 +66,9 @@ struct _book_mark *book_mark_find (WEdit * edit, int line)
+     if (!edit->book_mark) {
+ /* must have an imaginary top bookmark at line -1 to make things less complicated  */
+ 	edit->book_mark = g_malloc0 (sizeof (struct _book_mark));
++        if (!edit->book_mark)
++            return NULL;
++            
+ 	edit->book_mark->line = -1;
+ 	return edit->book_mark;
+     }
+@@ -137,6 +140,9 @@ book_mark_insert (WEdit *edit, int line, int c)
+     edit->force |= REDRAW_LINE;
+     /* create list entry */
+     q = g_malloc0 (sizeof (struct _book_mark));
++    if (!q)
++        return;
++
+     q->line = line;
+     q->c = c;
+     q->next = p->next;
+diff --git a/edit/choosesyntax.c b/edit/choosesyntax.c
+index 20df935..11d6f07 100644
+--- a/edit/choosesyntax.c
++++ b/edit/choosesyntax.c
+@@ -70,6 +70,9 @@ edit_syntax_dialog (void) {
+     int count = 0;
+ 
+     names = (char**) g_malloc (sizeof (char*));
++    if (!names)
++        return;
++
+     names[0] = NULL;
+     /* We fill the list of syntax files every time the editor is invoked.
+        Instead we could save the list to a file and update it once the syntax
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 7328ac8..51f1a1f 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -1127,7 +1127,10 @@ edit_insert_column_of_text_from_file (WEdit * edit, int file)
+     unsigned char *data;
+     cursor = edit->curs1;
+     col = edit_get_col (edit);
+-    data = g_malloc (TEMP_BUF_LEN);
++    data = g_malloc (TEMP_BUF_LEN * sizeof (*data));
++    if (!data)
++	return 0;
++
+     while ((blocklen = mc_read (file, (char *) data, TEMP_BUF_LEN)) > 0) {
+         for (width = 0; width < blocklen; width++) {
+             if (data[width] == '\n')
+@@ -1279,7 +1282,10 @@ edit_block_move_cmd (WEdit *edit)
+ 	edit_push_action (edit, COLUMN_ON);
+ 	column_highlighting = 0;
+     } else {
+-	copy_buf = g_malloc (end_mark - start_mark);
++	copy_buf = g_malloc ((end_mark - start_mark) * sizeof (*copy_buf));
++        if (!copy_buf)
++            return;
++
+ 	edit_cursor_move (edit, start_mark - edit->curs1);
+ 	edit_scroll_screen_over_cursor (edit);
+ 	count = start_mark;
+@@ -1822,7 +1828,10 @@ static unsigned char *
+ edit_get_block (WEdit *edit, long start, long finish, int *l)
+ {
+     unsigned char *s, *r;
+-    r = s = g_malloc (finish - start + 1);
++    r = s = g_malloc ((finish - start + 1) * sizeof (*r));
++    if (!r)
++        return;
++
+     if (column_highlighting) {
+ 	*l = 0;
+ 	/* copy from buffer, excluding chars that are out of the column 'margins' */
+@@ -1878,15 +1887,19 @@ edit_save_block (WEdit * edit, const char *filename, long start,
+ 	unsigned char *buf;
+ 	int i = start, end;
+ 	len = finish - start;
+-	buf = g_malloc (TEMP_BUF_LEN);
+-	while (start != finish) {
+-	    end = min (finish, start + TEMP_BUF_LEN);
+-	    for (; i < end; i++)
+-		buf[i - start] = edit_get_byte (edit, i);
+-	    len -= mc_write (file, (char *) buf, end - start);
+-	    start = end;
++        buf = g_malloc (TEMP_BUF_LEN * sizeof (*buf));
++        if (buf) {
++            while (start != finish) {
++                end = min (finish, start + TEMP_BUF_LEN);
++                for (; i < end; i++)
++                    buf[i - start] = edit_get_byte (edit, i);
++                len -= mc_write (file, (char *) buf, end - start);
++                start = end;
++            }
++            g_free (buf);
++        } else {
++            len = 0;
+ 	}
+-	g_free (buf);
+     }
+     mc_close (file);
+     if (len)
+diff --git a/edit/etags.c b/edit/etags.c
+index 474203f..2b7cade 100644
+--- a/edit/etags.c
++++ b/edit/etags.c
+@@ -162,7 +162,10 @@ int etags_set_definition_hash(const char *tagfile, const char *start_path,
+         case in_filename:
+             pos = strcspn(buf, ",");
+             g_free(filename);
+-            filename = g_malloc (pos + 2);
++            filename = g_malloc ((pos + 2) * sizeof (*filename));
++            if (!filename)
++                return 0;
++
+             g_strlcpy(filename, (char *)buf, pos + 1);
+             state = in_define;
+             break;
+diff --git a/edit/wordproc.c b/edit/wordproc.c
+index e3c3055..cbdbef9 100644
+--- a/edit/wordproc.c
++++ b/edit/wordproc.c
+@@ -141,10 +141,10 @@ get_paragraph (WEdit *edit, long p, long q, int indent, int *size)
+ {
+     unsigned char *s, *t;
+ #if 0
+-    t = g_malloc ((q - p) + 2 * (q - p) / option_word_wrap_line_length +
+-		  10);
++    t = g_malloc (((q - p) + 2 * (q - p) / option_word_wrap_line_length +
++		  10) * sizeof (*t));
+ #else
+-    t = g_malloc (2 * (q - p) + 100);
++    t = g_malloc ((2 * (q - p) + 100) * sizeof (*t));
+ #endif
+     if (!t)
+ 	return 0;
+-- 
+1.6.4
+

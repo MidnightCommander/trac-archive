@@ -1,0 +1,129 @@
+From b7f010902585692326161e6e4b16fcd9a9378854 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Sat, 23 Jan 2021 23:16:37 -0600
+Subject: CenterView action
+
+---
+ lib/keybind.c          |  1 +
+ lib/keybind.h          |  1 +
+ misc/mc.default.keymap |  1 +
+ misc/mc.emacs.keymap   |  1 +
+ src/editor/edit-impl.h |  1 +
+ src/editor/edit.c      | 21 +++++++++++++++++++++
+ src/keybind-defaults.c |  1 +
+ 7 files changed, 27 insertions(+)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..9ab8dd5a6 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -64,6 +64,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (PageDown),
+     ADD_KEYMAP_NAME (HalfPageUp),
+     ADD_KEYMAP_NAME (HalfPageDown),
++    ADD_KEYMAP_NAME (CenterView),
+     ADD_KEYMAP_NAME (Top),
+     ADD_KEYMAP_NAME (Bottom),
+     ADD_KEYMAP_NAME (TopOnScreen),
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..1cef8138d 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -55,6 +55,7 @@ enum
+     CK_PageDown,
+     CK_HalfPageUp,
+     CK_HalfPageDown,
++    CK_CenterView,
+     CK_Top,
+     CK_Bottom,
+     CK_TopOnScreen,
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 2931ddd0a..fe9b5adb1 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -275,6 +275,7 @@ End = end
+ Tab = tab; shift-tab; ctrl-tab; ctrl-shift-tab
+ Undo = ctrl-u
+ Redo = alt-r
++CenterView = alt-c
+ Top = ctrl-home; alt-lt
+ Bottom = ctrl-end; alt-gt
+ ScrollUp = ctrl-up
+diff --git a/misc/mc.emacs.keymap b/misc/mc.emacs.keymap
+index 7cc305db7..9d8ee0fd8 100644
+--- a/misc/mc.emacs.keymap
++++ b/misc/mc.emacs.keymap
+@@ -275,6 +275,7 @@ End = end; ctrl-e
+ Tab = tab; shift-tab; ctrl-tab; ctrl-shift-tab
+ Undo = ctrl-u
+ # Redo =
++CenterView = alt-c
+ Top = ctrl-home; alt-lt
+ Bottom = ctrl-end; alt-gt
+ ScrollUp = ctrl-up
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 3ad04dbea..69f8c1683 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -233,6 +233,7 @@ void edit_save_size (WEdit * edit);
+ gboolean edit_handle_move_resize (WEdit * edit, long command);
+ void edit_toggle_fullscreen (WEdit * edit);
+ void edit_move_to_line (WEdit * e, long line);
++void edit_center_display (WEdit * e, long diff);
+ void edit_move_display (WEdit * e, long line);
+ void edit_word_wrap (WEdit * edit);
+ int edit_sort_cmd (WEdit * edit);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 50879cee2..9146069a2 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3023,6 +3023,22 @@ edit_move_to_line (WEdit * e, long line)
+     edit_scroll_screen_over_cursor (e);
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++/** scroll window so that current line is in center; the diff is a relative offset from that
++  * position */
++
++void
++edit_center_display (WEdit * e, long diff)
++{
++    int center_line_diff = WIDGET (e)->lines / 2 + diff;
++    int current_line = e->curs_row;
++
++    if (current_line < center_line_diff)
++        edit_scroll_upward (e, center_line_diff - current_line);
++    else
++        edit_scroll_downward (e, current_line - center_line_diff);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /** scroll window so that first visible line is 'line' */
+ 
+@@ -3766,6 +3782,11 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         }
+         break;
+ 
++    case CK_CenterView:
++        /* Center view at cursor line. */
++        edit_center_display (edit, 0);
++        break;
++
+     case CK_Top:
+     case CK_MarkToFileBegin:
+         edit_move_to_top (edit);
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7b87c2f5a..ad4b59780 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -420,6 +420,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"Goto", "alt-l; alt-shift-l"},
+     {"Refresh", "ctrl-l"},
+     {"Shell", "ctrl-o"},
++    {"CenterView", "alt-c"},
+     {"Top", "ctrl-home; ctrl-pgup; alt-lt"},
+     {"Bottom", "ctrl-end; ctrl-pgdn; alt-gt"},
+     {"TopOnScreen", "ctrl-pgup"},
+-- 
+2.28.0
+

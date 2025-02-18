@@ -1,0 +1,29 @@
+From 2ac4a5486c41b3b11a520dec1400a48bad450782 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 May 2016 14:51:46 +0000
+Subject: [PATCH] Cleanup Wconditional-uninitialized warning at input_complete.c
+
+Cleanup Wconditional-uninitialized warning.
+
+input_complete.c:383:42: error: variable 'p' may be uninitialized when used here [-Werror,-Wconditional-uninitialized]
+        temp = g_string_new_len (*env_p, p - *env_p);
+                                         ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/input_complete.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/input_complete.c b/lib/widget/input_complete.c
+index d38460b..8543211 100644
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -353,7 +353,7 @@ variable_completion_function (const char *text, int state, input_complete_t flag
+     static char **env_p = NULL;
+     static gboolean isbrace = FALSE;
+     static size_t varlen = 0;
+-    const char *p;
++    const char *p = NULL;
+ 
+     (void) flags;
+     SHOW_C_CTX ("variable_completion_function");

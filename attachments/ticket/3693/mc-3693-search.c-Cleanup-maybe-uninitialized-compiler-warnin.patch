@@ -1,0 +1,28 @@
+From 338aed96cd080535beb9a854f367a9462e906603 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 10:21:02 +0000
+Subject: [PATCH] (search.c) Cleanup maybe-uninitialized compiler warning
+
+Found by GCC 6.2.0.
+
+search.c:83:24: error: 'num_of_types' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+search.c:77:12: note: 'num_of_types' was declared here
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/diffviewer/search.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/diffviewer/search.c b/src/diffviewer/search.c
+index 9504ebe..735f22c 100644
+--- a/src/diffviewer/search.c
++++ b/src/diffviewer/search.c
+@@ -74,7 +74,7 @@ mcdiffview_dialog_search (WDiff * dview)
+ {
+     char *exp = NULL;
+     int qd_result;
+-    size_t num_of_types;
++    size_t num_of_types = 0;
+     gchar **list_of_types;
+ 
+     list_of_types = mc_search_get_types_strings_array (&num_of_types);

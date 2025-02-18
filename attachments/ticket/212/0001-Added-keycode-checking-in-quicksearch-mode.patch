@@ -1,0 +1,86 @@
+From 3f882ce5a673f5716269777d9f119021b81a93e6 Mon Sep 17 00:00:00 2001
+From: ierton <ierton@vault.homelinux.net>
+Date: Sat, 12 Sep 2009 19:04:22 +0400
+Subject: [PATCH] Added keycode checking in quicksearch mode. This
+ checking prevents execution of single-char
+ keybind handlers (allows user to type letters).
+
+---
+ src/screen.c |   44 +++++++++++++++++++++++---------------------
+ 1 files changed, 23 insertions(+), 21 deletions(-)
+
+diff --git a/src/screen.c b/src/screen.c
+index 4dd246a..c3a3c4f 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -2431,25 +2431,27 @@ screen_execute_cmd (WPanel *panel, int command, int key)
+     }
+ }
+ 
++/* Keys, that should be redirected to active search engine, if any */
++#define SEARCHKEY(key) ((( key ) >= ' ' && ( key ) <= 255) || ( key ) == KEY_BACKSPACE)
++
+ static cb_ret_t
+ panel_key (WPanel *panel, int key)
+ {
+     int i;
+ 
+-    for (i = 0; panel_map[i].key; i++) {
+-	if (key == panel_map[i].key) {
+-	    int old_searching = panel->searching;
+-
+-	    if (panel_map[i].command != CK_PanelStartSearch)
+-		panel->searching = 0;
++	if(!panel->searching || (panel->searching && !SEARCHKEY(key))) {
++		for (i = 0; panel_map[i].key; i++) {
++			if (key == panel_map[i].key) {
++				int old_searching = panel->searching;
+ 
+-	    screen_execute_cmd (panel, panel_map[i].command, key);
++				screen_execute_cmd (panel, panel_map[i].command, key);
+ 
+-	    if (panel->searching != old_searching)
+-		display_mini_info (panel);
+-	    return MSG_HANDLED;
++				if (panel->searching != old_searching)
++					display_mini_info (panel);
++				return MSG_HANDLED;
++			}
++		}
+ 	}
+-    }
+ 
+     if (torben_fj_mode && key == ALT ('h')) {
+ 	goto_middle_file (panel);
+@@ -2472,18 +2474,18 @@ panel_key (WPanel *panel, int key)
+     }
+ 
+     /* Do not eat characters not meant for the panel below ' ' (e.g. C-l). */
+-    if ((key >= ' ' && key <= 255) || key == KEY_BACKSPACE) {
+-	if (panel->searching) {
+-	    do_search (panel, key);
+-	    return MSG_HANDLED;
+-	}
++	if (SEARCHKEY(key)) {
++		if (panel->searching) {
++			do_search (panel, key);
++			return MSG_HANDLED;
++		}
+ 
+-	if (!command_prompt) {
+-	    start_search (panel);
+-	    do_search (panel, key);
+-	    return MSG_HANDLED;
++		if (!command_prompt) {
++			start_search (panel);
++			do_search (panel, key);
++			return MSG_HANDLED;
++		}
+ 	}
+-    }
+ 
+     return MSG_NOT_HANDLED;
+ }
+-- 
+1.6.3.3
+

@@ -1,0 +1,34 @@
+diff --git a/vfs/direntry.c b/vfs/direntry.c
+index 3a52d22..b1dfdca 100644
+--- a/vfs/direntry.c
++++ b/vfs/direntry.c
+@@ -251,7 +251,13 @@ vfs_s_find_entry_tree (struct vfs_class *me, struct vfs_s_inode *root,
+     char * const pathref = g_strdup (a_path);
+     char *path = pathref;
+ 
+-    canonicalize_pathname (path);
++    if (strncmp(me->name, "ftpfs", 5) != 0)
++	canonicalize_pathname (path);
++    else {
++	char *p = path + strlen (path) - 1;
++	while (p > path && *p == PATH_SEP)
++	    *p-- = 0;
++    }
+ 
+     while (root) {
+ 	while (*path == PATH_SEP)	/* Strip leading '/' */
+@@ -324,7 +330,13 @@ vfs_s_find_entry_linear (struct vfs_class *me, struct vfs_s_inode *root,
+     if (root->super->root != root)
+ 	vfs_die ("We have to use _real_ root. Always. Sorry.");
+ 
+-    canonicalize_pathname (path);
++    if (strncmp (me->name, "ftpfs", 5) != 0)
++	canonicalize_pathname (path);
++    else {
++	char *p = path + strlen (path) - 1;
++	while (p > path && *p == PATH_SEP)
++	    *p-- = 0;
++    }
+ 
+     if (!(flags & FL_DIR)) {
+ 	char *dirname, *name, *save;

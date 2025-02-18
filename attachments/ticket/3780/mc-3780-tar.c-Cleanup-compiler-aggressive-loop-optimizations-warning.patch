@@ -1,0 +1,39 @@
+From 0f551ab4dccba214bb7217be284428115ce02a10 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 10 May 2017 19:22:06 +0000
+Subject: [PATCH] (tar.c) Cleanup compiler aggressive-loop-optimizations warning
+
+tar.c: In function 'tar_checksum':
+tar.c:403:44: error: iteration 8u invokes undefined behavior [-Werror=aggressive-loop-optimizations]
+         sum -= 0xFF & header->header.chksum[i];
+                                            ^
+tar.c:401:5: note: containing loop
+     for (i = sizeof (header->header.chksum); i-- >= 0;)
+     ^
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index 9016a3d..8e9446f 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -387,7 +387,7 @@ tar_checksum (const union record *header)
+ 
+     recsum = tar_from_oct (8, header->header.chksum);
+ 
+-    for (i = sizeof (*header); i-- >= 0;)
++    for (i = sizeof (*header); --i >= 0;)
+     {
+         /*
+          * We can't use unsigned char here because of old compilers,
+@@ -398,7 +398,7 @@ tar_checksum (const union record *header)
+     }
+ 
+     /* Adjust checksum to count the "chksum" field as blanks. */
+-    for (i = sizeof (header->header.chksum); i-- >= 0;)
++    for (i = sizeof (header->header.chksum); --i >= 0;)
+     {
+         sum -= 0xFF & header->header.chksum[i];
+         signed_sum -= (char) header->header.chksum[i];

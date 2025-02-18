@@ -1,0 +1,13 @@
+diff --git a/src/main.c b/src/main.c
+index de9aec0..624df71 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -1614,6 +1614,8 @@ update_xterm_title_path (void)
+ 	    if (!is_printable ((unsigned char) *s))
+ 		*s = '?';
+ 	} while (*++s);
++	if (!alternate_plus_minus)
++	    numeric_keypad_mode ();
+ 	fprintf (stdout, "\33]0;mc - %s\7", p);
+ 	fflush (stdout);
+ 	g_free (p);

@@ -1,0 +1,28 @@
+From 69c4a2f082f81b78c774293bf23cbac0d178dcf6 Mon Sep 17 00:00:00 2001
+From: Grzegorz Szymaszek <gszymaszek@short.pl>
+Date: Wed, 18 Sep 2019 13:47:43 +0200
+Subject: [PATCH] =?UTF-8?q?Added=20=E2=80=9Chttps://=E2=80=9D=20to=20Debia?=
+ =?UTF-8?q?n=20sources.list=20syntax?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ misc/syntax/debian-sources-list.syntax | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/misc/syntax/debian-sources-list.syntax b/misc/syntax/debian-sources-list.syntax
+index 30d645753..2f279bfcf 100644
+--- a/misc/syntax/debian-sources-list.syntax
++++ b/misc/syntax/debian-sources-list.syntax
+@@ -6,6 +6,7 @@ context default
+ context # \n brown/22
+ context ftp\:\/\/ \s green/6
+ context http\:\/\/ \s green/6
++context https\:\/\/ \s green/6
+ context cdrom\:\/ \s yellow/24
+ context file\:\/ \s brightcyan/14
+ 
+-- 
+2.23.0
+

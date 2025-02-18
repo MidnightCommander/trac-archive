@@ -1,0 +1,33 @@
+From 4631f33b7700df2eb1a7d52ac21481ed333776ac Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 21 May 2016 14:18:25 +0000
+Subject: [PATCH] Add new MC_SEARCH_E_ABORT element to mc_search_error_t
+
+Backwards search relay on repeating call of mc_search_run()
+and interpret mc_search_run() return value=false as "not_found" only.
+When user abort mc_search_run() will return with value=false too.
+
+Currently there is no way to differ between not_found and user_abort returns
+to break backwards search loop on user request.
+
+So, add new MC_SEARCH_E_ABORT element to mc_search_error_t
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/search.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/search.h b/lib/search.h
+index 52a6a30..3abea87 100644
+--- a/lib/search.h
++++ b/lib/search.h
+@@ -36,7 +36,8 @@ typedef enum
+     MC_SEARCH_E_REGEX_COMPILE,
+     MC_SEARCH_E_REGEX,
+     MC_SEARCH_E_REGEX_REPLACE,
+-    MC_SEARCH_E_NOTFOUND
++    MC_SEARCH_E_NOTFOUND,
++    MC_SEARCH_E_ABORT
+ } mc_search_error_t;
+ 
+ typedef enum

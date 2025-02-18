@@ -1,0 +1,43 @@
+From 4ca731b84fae2407c7194de69dffb26c4d5fc966 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 09:16:51 +0000
+Subject: [PATCH] (ioblksize.h) fix Big parameter passed by value warning
+
+found by Coverity
+coverity id #164546
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/file.c      | 2 +-
+ src/filemanager/ioblksize.h | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 7d8fa9960..04ed9e051 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -2528,7 +2528,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+ 
+         tv_last_update = tv_transfer_start;
+ 
+-        bufsize = io_blksize (dst_stat);
++        bufsize = io_blksize (&dst_stat);
+         buf = g_malloc (bufsize);
+ 
+         while (TRUE)
+diff --git a/src/filemanager/ioblksize.h b/src/filemanager/ioblksize.h
+index 3a8b50181..3420c183d 100644
+--- a/src/filemanager/ioblksize.h
++++ b/src/filemanager/ioblksize.h
+@@ -78,9 +78,9 @@ enum { IO_BUFSIZE = 128 * 1024 };
+ /* *INDENT-ON* */
+ 
+ static inline size_t
+-io_blksize (struct stat sb)
++io_blksize (struct stat *sb)
+ {
+-    size_t blksize = ST_BLKSIZE (sb);
++    size_t blksize = ST_BLKSIZE (*sb);
+ 
+     return MAX (IO_BUFSIZE, blksize);
+ }

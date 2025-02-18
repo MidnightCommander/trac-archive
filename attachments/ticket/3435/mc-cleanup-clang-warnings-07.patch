@@ -1,0 +1,36 @@
+
+fix clang 3.6 compiler warnings
+
+patch 01: -Wundef
+patch 02: -Wunused-function
+patch 03: -Wnon-literal-null-conversion
+patch 04: -Wmissing-field-initializers
+patch 05: -Wabsolute-value
+patch 06: -Wtautological-pointer-compare
+patch 07: -Wformat
+
+lib/charset.c:269:81: warning: format specifies type 'unsigned short' but the argument has type 'unsigned int' [-Wformat]
+lib/charset.c:277:72: warning: format specifies type 'unsigned short' but the argument has type 'unsigned int' [-Wformat]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/vfs/smbfs/helpers/lib/charset.c
++++ b/src/vfs/smbfs/helpers/lib/charset.c
+@@ -266,7 +266,7 @@
+     if (SVAL (buf, CODEPAGE_VERSION_OFFSET) != CODEPAGE_FILE_VERSION_ID)
+     {
+         DEBUG (0, ("load_client_codepage: filename %s has incorrect version id. \
+-Needed %hu, got %hu.\n", codepage_file_name, (uint16) CODEPAGE_FILE_VERSION_ID, SVAL (buf, CODEPAGE_VERSION_OFFSET)));
++Needed %hu, got %u.\n", codepage_file_name, (uint16) CODEPAGE_FILE_VERSION_ID, SVAL (buf, CODEPAGE_VERSION_OFFSET)));
+         goto clean_and_exit;
+     }
+ 
+@@ -274,7 +274,7 @@
+     if (SVAL (buf, CODEPAGE_CLIENT_CODEPAGE_OFFSET) != (uint16) client_codepage)
+     {
+         DEBUG (0, ("load_client_codepage: filename %s has incorrect codepage. \
+-Needed %hu, got %hu.\n", codepage_file_name, (uint16) client_codepage, SVAL (buf, CODEPAGE_CLIENT_CODEPAGE_OFFSET)));
++Needed %hu, got %u.\n", codepage_file_name, (uint16) client_codepage, SVAL (buf, CODEPAGE_CLIENT_CODEPAGE_OFFSET)));
+         goto clean_and_exit;
+     }
+ 

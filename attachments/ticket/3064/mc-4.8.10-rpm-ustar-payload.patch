@@ -1,0 +1,29 @@
+diff -Naur mc-4.8.10.orig/src/vfs/extfs/helpers/rpm mc-4.8.10/src/vfs/extfs/helpers/rpm
+--- mc-4.8.10.orig/src/vfs/extfs/helpers/rpm	2013-08-29 15:10:06.780827049 +0400
++++ mc-4.8.10/src/vfs/extfs/helpers/rpm	2013-08-29 15:09:32.000000000 +0400
+@@ -196,6 +196,7 @@
+ 	exit 1
+     }
+     DATE=`mcrpmfs_getRawOneTag "%{BUILDTIME:date}\n" | cut -c 5-11,21-24`
++    PAYLOAD=`mcrpmfs_getRawOneTag "%{PAYLOADFORMAT}\n" | sed s/ustar/tar/`
+ 
+     HEADERSIZE=`echo "$DESC" | wc -c`
+     printf '%s %s %s HEADER\n' "${FILEPREF}"  "${HEADERSIZE}" "${DATE}"
+@@ -225,7 +226,7 @@
+ 	mcrpmfs_list_fastRPM
+     fi
+ 
+-    echo "$FILEPREF 0 $DATE CONTENTS.cpio"
++    echo "$FILEPREF 0 $DATE CONTENTS.$PAYLOAD"
+ }
+ 
+ mcrpmfs_copyout ()
+@@ -279,7 +280,7 @@
+ 	INFO/SIZE)		mcrpmfs_getRawOneTag "%{SIZE} bytes\n" > "$2"; exit 0;;
+ 	INFO/OBSOLETES)		mcrpmfs_getRawOneTag "[%{OBSOLETENAME} %|OBSOLETEFLAGS?{%{OBSOLETEFLAGS:depflags} %{OBSOLETEVERSION}}:{}|\n]" > "$2"; exit 0;;
+ 	INFO/CONFLICTS)		mcrpmfs_getRawOneTag "[%{CONFLICTNAME} %{CONFLICTFLAGS:depflags} %{CONFLICTVERSION}\n]" >"$2"; exit 0;;
+-	CONTENTS.cpio)		$RPM2CPIO "${rpm_filename}" > "$2"; exit 0;;
++	CONTENTS.*)		$RPM2CPIO "${rpm_filename}" > "$2"; exit 0;;
+ 	*)
+ 	    ;;
+     esac

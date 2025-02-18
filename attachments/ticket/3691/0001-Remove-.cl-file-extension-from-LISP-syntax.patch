@@ -1,0 +1,31 @@
+From d65611ba41062d054dff84744e8d96d4e8adf1dd Mon Sep 17 00:00:00 2001
+From: Sergey Sharybin <sergey.vfx@gmail.com>
+Date: Wed, 21 Sep 2016 11:27:49 +0200
+Subject: [PATCH] Remove .cl file extension from LISP syntax
+
+According to the LISP users this file extension can only be
+seen in old projects and nowadays it's much more common in
+the computer graphics applications for the OpenCL programs.
+
+This is a part of work related on adding OpenCL syntax highlight
+to mcedit. See tocket #3690 for the details.
+---
+ misc/syntax/Syntax.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/syntax/Syntax.in b/misc/syntax/Syntax.in
+index d8da1b9..b56c8af 100644
+--- a/misc/syntax/Syntax.in
++++ b/misc/syntax/Syntax.in
+@@ -136,7 +136,7 @@ include aspx.syntax
+ file ..\*\\.st$ SmallTalk\sProgram
+ include smalltalk.syntax
+ 
+-file ..\*\\.(lisp|lsp|el|cl)$ Lisp\sProgram
++file ..\*\\.(lisp|lsp|el)$ Lisp\sProgram
+ include lisp.syntax
+ 
+ file ..\*\\.(ml|mli|mly|mll|mlp)$ ML\sProgram
+-- 
+2.9.3
+

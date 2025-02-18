@@ -1,0 +1,55 @@
+From 1ae307f822d27b7c15b30559844e8dc0fb97cd15 Mon Sep 17 00:00:00 2001
+From: Joshua Watt <JPEWhacker@gmail.com>
+Date: Tue, 12 Nov 2019 08:58:23 -0600
+Subject: [PATCH 3/3] Allow info flags to be combined
+
+Allows the various information flags available to mc (-V, -F, -f) to be
+combined so that all the information can be displayed in a single
+invocation of mc. For example, the command `mc -VF` will now show both
+the build time information and the data directory information in a
+single command.
+
+Signed-off-by: Joshua Watt <JPEWhacker@gmail.com>
+---
+ src/args.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/args.c b/src/args.c
+index 52f478c59..776e59a73 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -731,25 +731,27 @@ mc_args_parse (int *argc, char ***argv, const char *translation_domain, GError *
+ gboolean
+ mc_args_show_info (void)
+ {
++    gboolean ret = TRUE;
++
+     if (mc_args__show_version)
+     {
+         show_version ();
+-        return FALSE;
++        ret = FALSE;
+     }
+ 
+     if (mc_args__show_datadirs)
+     {
+         printf ("%s (%s)\n", mc_global.sysconfig_dir, mc_global.share_data_dir);
+-        return FALSE;
++        ret = FALSE;
+     }
+ 
+     if (mc_args__show_datadirs_extended)
+     {
+         show_datadirs_extended ();
+-        return FALSE;
++        ret = FALSE;
+     }
+ 
+-    return TRUE;
++    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-- 
+2.23.0
+

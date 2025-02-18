@@ -1,0 +1,20 @@
+diff --git a/subshell1.c b/subshell.c
+index b36fbbc..5ca60b5 100644
+--- a/subshell1.c
++++ b/subshell.c
+@@ -1169,7 +1169,14 @@ do_subshell_chdir (const vfs_path_t * vpath, gboolean update_prompt)
+         return;
+     }
+ 
+-    /* The initial space keeps this out of the command history (in bash
++    if (strstr (mc_global.tty.shell, "/bash") || getenv ("BASH"))
++	{		
++		static char erase[] = "   ";		
++		erase[1] = shell_mode.c_cc[VKILL]; // def CKILL = CTRL('u')
++		write_all (mc_global.tty.subshell_pty, erase, strlen(erase));
++	}
++	
++	/* The initial space keeps this out of the command history (in bash
+        because we set "HISTCONTROL=ignorespace") */
+     write_all (mc_global.tty.subshell_pty, " cd ", 4);
+ 

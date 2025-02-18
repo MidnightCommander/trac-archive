@@ -1,0 +1,40 @@
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index 00c6ec0..225938b 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -325,10 +325,10 @@ mcview_update_bytes_per_line (mcview_t * view)
+     const screen_dimen cols = view->data_area.width;
+     int bytes;
+ 
+-    if (cols < 8 + 17)
++    if (cols < 9 + 17)
+         bytes = 4;
+     else
+-        bytes = 4 * ((cols - 8) / ((cols < 80) ? 17 : 18));
++        bytes = 4 * ((cols - 9) / ((cols <= 80) ? 17 : 18));
+ #ifdef HAVE_ASSERT_H
+     assert (bytes != 0);
+ #endif
+diff --git a/src/viewer/hex.c b/src/viewer/hex.c
+index ff7d501..e355cfb 100644
+--- a/src/viewer/hex.c
++++ b/src/viewer/hex.c
+@@ -137,12 +137,14 @@ mcview_display_hex (mcview_t * view)
+     const screen_dimen height = view->data_area.height;
+     const screen_dimen width = view->data_area.width;
+     const int ngroups = view->bytes_per_line / 4;
+-    const screen_dimen text_start = 8 + 13 * ngroups + ((width < 80) ? 0 : (ngroups - 1 + 1));
+     /* 8 characters are used for the file offset, and every hex group
+-     * takes 13 characters. On "big" screens, the groups are separated
+-     * by an extra vertical line, and there is an extra space before the
+-     * text column.
++     * takes 13 characters. Starting at width of 80 columns, the groups
++     * are separated by an extra vertical line. Starting at width of 81,
++     * there is an extra space before the text column. There is always a
++     * mostly empty column on the right, to allow overflowing CJKs.
+      */
++    const screen_dimen text_start = 8 + 13 * ngroups +
++        ((width < 80) ? 0 : (width == 80) ? (ngroups - 1) : (ngroups - 1 + 1));
+ 
+     screen_dimen row;
+     off_t from;

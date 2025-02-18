@@ -1,0 +1,87 @@
+--- mc.git/src/file.c	2009-09-27 10:59:15.000000000 +0200
++++ mc.src/src/file.c	2009-10-12 11:37:04.000000000 +0200
+@@ -1627,12 +1627,12 @@ panel_compute_totals (WPanel *panel, con
+  * This array introduced to avoid translation problems. The former (op_names)
+  * is assumed to be nouns, suitable in dialog box titles; this one should
+  * contain whatever is used in prompt itself (i.e. in russian, it's verb).
+- * Notice first symbol - it is to fool gettext and force these strings to
+- * be different for it. First symbol is skipped while building a prompt.
+  * (I don't use spaces around the words, because someday they could be
+  * dropped, when widgets get smarter)
+  */
+-static const char *op_names1[] = { N_("1Copy"), N_("1Move"), N_("1Delete") };
++
++/* TRANSLATORS: no need to translate 'action', it's just a context prefix  */
++static const char *op_names1[] = { N_("action|Copy"), N_("action|Move"), N_("action|Delete") };
+ #define	FMD_XLEN 64
+ 
+ int fmd_xlen = FMD_XLEN;
+@@ -1654,6 +1654,7 @@ static const char *prompt_parts[] = {
+     N_("file"), N_("files"), N_("directory"), N_("directories"),
+     N_("files/directories"), N_(" with source mask:"), N_(" to:")
+ };
++static const char *question_format = N_("%s?");
+ 
+ /*
+  * Generate user prompt for panel operation.
+@@ -1670,18 +1671,20 @@ panel_operate_generate_prompt (const WPa
+     register int i;
+     char format_string[BUF_MEDIUM];
+     char *dp = format_string;
++    gboolean build_question=FALSE;
+ 
+ #ifdef ENABLE_NLS
+     static int i18n_flag = 0;
+     if (!i18n_flag) {
+ 	for (i = sizeof (op_names1) / sizeof (op_names1[0]); i--;)
+-	    op_names1[i] = _(op_names1[i]);
++	    op_names1[i] = Q_(op_names1[i]);
+ 
+ 	for (i = sizeof (prompt_parts) / sizeof (prompt_parts[0]); i--;)
+ 	    prompt_parts[i] = _(prompt_parts[i]);
+ 
+ 	one_format = _(one_format);
+ 	many_format = _(many_format);
++	question_format = _(question_format);
+ 	i18n_flag = 1;
+     }
+ #endif				/* ENABLE_NLS */
+@@ -1694,13 +1697,23 @@ panel_operate_generate_prompt (const WPa
+ 	    cp = NULL;
+ 	    switch (sp[1]) {
+ 	    case 'o':
+-		cp = op_names1[operation] + 1;
++		cp = op_names1[operation];
+ 		break;
+ 	    case 'm':
+-		cp = operation == OP_DELETE ? "?" : prompt_parts[5];
++		if (operation == OP_DELETE) {
++		    build_question=TRUE;
++		    cp="";
++		} else {
++		    cp = prompt_parts[5];
++		}
+ 		break;
+ 	    case 'e':
+-		cp = operation == OP_DELETE ? "?" : prompt_parts[6];
++		if (operation == OP_DELETE) {
++		    build_question=TRUE;
++		    cp="";
++		} else {
++		    cp = prompt_parts[6];
++		}
+ 		break;
+ 	    case 'f':
+ 		if (single_source) {
+@@ -1729,6 +1742,11 @@ panel_operate_generate_prompt (const WPa
+     }
+     *dp = '\0';
+ 
++    if (build_question) {
++	g_snprintf (format_string, sizeof (format_string),
++		   question_format, g_strdup(format_string));
++    }
++
+     if (single_source) {
+         i = fmd_xlen - str_term_width1 (format_string) - 4;
+ 	g_snprintf (cmd_buf, sizeof (cmd_buf), format_string,

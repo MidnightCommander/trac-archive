@@ -1,0 +1,32 @@
+From 7f5e747874802d69d4bd9f7e9740312ef91e74cc Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@gmx.de>
+Date: Thu, 8 Oct 2020 13:26:17 +0200
+Subject: [PATCH 6/7] optimize bash cursor position translation
+
+the previous algorithm was O(n^2).
+---
+ src/subshell/common.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 32577bcb2..b9e04e8ea 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -633,10 +633,10 @@ read_command_line_buffer (gboolean test_mode)
+     {
+         /* We need to do this because bash gives the cursor position in a utf-8 string based
+          * on the location in bytes, not in unicode characters. */
+-        for (i = 0; i < command_buffer_length; i++)
+-            if (str_offset_to_pos (subshell_command_buffer, i) == cursor_position)
+-                break;
+-        cursor_position = i;
++        char *curr = subshell_command_buffer;
++        char *stop = curr + cursor_position;
++        for (cursor_position = 0; curr < stop; cursor_position++)
++            str_next_char_safe (&curr);
+     }
+     if (cursor_position > command_buffer_length)
+         cursor_position = command_buffer_length;
+-- 
+2.28.0.1.g7ba5ae0684
+

@@ -1,0 +1,68 @@
+From bd353aedb50d29f2be2d06dd64f0c17aa3c2c483 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 17 Sep 2016 12:06:19 +0000
+Subject: [PATCH] (info.c) Cleanup -Wformat-signedness warning
+
+Cleanup -Wformat-signedness warning.
+
+info.c: In function 'info_show_info':
+info.c:193:29: error: format '%X' expects argument of type 'unsigned int', but argument 2 has type 'int' [-Werror=format=]
+             tty_printf (" (%Xh)", myfs_stats.type);
+                             ^
+
+info.c:239:51: error: format '%ld' expects argument of type 'long int', but argument 2 has type 'long unsigned int' [-Werror=format=]
+             tty_printf (ngettext (" (%ld block)", " (%ld blocks)",
+                                                   ^
+info.c:239:35: error: format '%ld' expects argument of type 'long int', but argument 2 has type 'long unsigned int' [-Werror=format=]
+             tty_printf (ngettext (" (%ld block)", " (%ld blocks)",
+                                   ^
+
+info.c:259:23: error: format '%X' expects argument of type 'unsigned int', but argument 2 has type 'int' [-Werror=format=]
+         tty_printf (_("Location:   %Xh:%Xh"), (int) st.st_dev, (int) st.st_ino);
+                       ^
+info.c:259:21: note: in expansion of macro '_'
+         tty_printf (_("Location:   %Xh:%Xh"), (int) st.st_dev, (int) st.st_ino);
+                     ^
+info.c:259:23: error: format '%X' expects argument of type 'unsigned int', but argument 3 has type 'int' [-Werror=format=]
+         tty_printf (_("Location:   %Xh:%Xh"), (int) st.st_dev, (int) st.st_ino);
+                       ^
+info.c:259:21: note: in expansion of macro '_'
+         tty_printf (_("Location:   %Xh:%Xh"), (int) st.st_dev, (int) st.st_ino);
+                     ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/info.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index f6da163..9d98a56 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -190,7 +190,7 @@ info_show_info (WInfo * info)
+         tty_printf (_("Type:       %s"),
+                     myfs_stats.typename ? myfs_stats.typename : _("non-local vfs"));
+         if (myfs_stats.type != 0xffff && myfs_stats.type != -1)
+-            tty_printf (" (%Xh)", myfs_stats.type);
++            tty_printf (" (%Xh)", (unsigned int) myfs_stats.type);
+ 
+     case 13:
+         widget_move (w, 13, 3);
+@@ -236,7 +236,7 @@ info_show_info (WInfo * info)
+             size_trunc_len (buffer, 9, st.st_size, 0, panels_options.kilobyte_si);
+             tty_printf (_("Size:       %s"), buffer);
+ #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+-            tty_printf (ngettext (" (%ld block)", " (%ld blocks)",
++            tty_printf (ngettext (" (%lu block)", " (%lu blocks)",
+                                   (unsigned long) st.st_blocks), (unsigned long) st.st_blocks);
+ #endif
+         }
+@@ -256,7 +256,7 @@ info_show_info (WInfo * info)
+ 
+     case 4:
+         widget_move (w, 4, 3);
+-        tty_printf (_("Location:   %Xh:%Xh"), (int) st.st_dev, (int) st.st_ino);
++        tty_printf (_("Location:   %Xh:%Xh"), (unsigned int) st.st_dev, (unsigned int) st.st_ino);
+ 
+     case 3:
+         {

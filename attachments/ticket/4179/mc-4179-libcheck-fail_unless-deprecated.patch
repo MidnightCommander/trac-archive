@@ -1,0 +1,204 @@
+From 1e8ebe86fc5a46395257f37ae9713bb87f3cd065 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 28 Dec 2020 16:52:04 +0000
+Subject: [PATCH] libcheck: replace deprecated fail_unless() function
+
+libcheck fail_unless() is deprecated since 0.10.0
+also fix -Wformat-extra-args warnings
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ tests/lib/search/regex_replace_esc_seq.c  |  6 +++---
+ tests/lib/strutil/parse_integer.c         |  2 +-
+ tests/lib/utilunix__my_system-common.c    | 10 +++++-----
+ tests/lib/vfs/tempdir.c                   |  6 +++---
+ tests/lib/widget/group_init_destroy.c     |  6 +++---
+ tests/lib/widget/widget_find_by_id.c      | 18 +++++++++---------
+ tests/src/execute__execute_with_vfs_arg.c |  6 +++---
+ tests/src/filemanager/examine_cd.c        |  2 +-
+ 8 files changed, 28 insertions(+), 28 deletions(-)
+
+diff --git a/tests/lib/search/regex_replace_esc_seq.c b/tests/lib/search/regex_replace_esc_seq.c
+index 2a6090dbc..c3521ce7f 100644
+--- a/tests/lib/search/regex_replace_esc_seq.c
++++ b/tests/lib/search/regex_replace_esc_seq.c
+@@ -32,9 +32,9 @@
+ /* --------------------------------------------------------------------------------------------- */
+ #define test_helper_check_valid_data( a, b, c, d, e, f ) \
+ { \
+-    fail_unless( a == b, "ret_value != %s", (b) ? "TRUE": "FALSE" ); \
+-    fail_unless( c == d, "skip_len(%d) != %d", c, d ); \
+-    if (f!=0) fail_unless( e == f, "ret(%d) != %d", e, f ); \
++    ck_assert_msg( a == b, "ret_value != %s", (b) ? "TRUE": "FALSE" ); \
++    ck_assert_msg( c == d, "skip_len(%d) != %d", c, d ); \
++    if (f!=0) ck_assert_msg( e == f, "ret(%d) != %d", e, f ); \
+ }
+ 
+ #define test_helper_handle_esc_seq( pos, r, skip, flag ) \
+diff --git a/tests/lib/strutil/parse_integer.c b/tests/lib/strutil/parse_integer.c
+index f3e5ba357..04b0f7322 100644
+--- a/tests/lib/strutil/parse_integer.c
++++ b/tests/lib/strutil/parse_integer.c
+@@ -130,7 +130,7 @@ START_PARAMETRIZED_TEST (parse_integer_test, parse_integer_test_ds)
+     actual_result = parse_integer (data->haystack, &invalid);
+ 
+     /* then */
+-    fail_unless (invalid == data->invalid && actual_result == data->expected_result,
++    ck_assert_msg (invalid == data->invalid && actual_result == data->expected_result,
+                  "actial ( %" PRIuMAX ") not equal to\nexpected (%" PRIuMAX ")",
+                  actual_result, data->expected_result);
+ }
+diff --git a/tests/lib/utilunix__my_system-common.c b/tests/lib/utilunix__my_system-common.c
+index 0ce748899..4cca23127 100644
+--- a/tests/lib/utilunix__my_system-common.c
++++ b/tests/lib/utilunix__my_system-common.c
+@@ -245,7 +245,7 @@ execvp__deinit (void)
+ #define VERIFY_SIGACTION__IS_RESTORED(oldact_idx, act_idx) { \
+     struct sigaction *_oldact = (struct sigaction *) g_ptr_array_index(sigaction_oldact__captured, oldact_idx); \
+     struct sigaction *_act = (struct sigaction *) g_ptr_array_index(sigaction_act__captured, act_idx); \
+-    fail_unless (memcmp(_oldact, _act, sizeof(struct sigaction)) == 0, \
++    ck_assert_msg (memcmp(_oldact, _act, sizeof(struct sigaction)) == 0, \
+         "sigaction(): oldact[%d] should be equals to act[%d]", oldact_idx, act_idx); \
+ }
+ 
+@@ -264,7 +264,7 @@ execvp__deinit (void)
+     VERIFY_SIGACTION__ACT_IGNORED(g_ptr_array_index(sigaction_act__captured, 1)); \
+     { \
+         struct sigaction *_act  = g_ptr_array_index(sigaction_act__captured, 2); \
+-        fail_unless (memcmp (_act, &startup_handler, sizeof(struct sigaction)) == 0, \
++        ck_assert_msg (memcmp (_act, &startup_handler, sizeof(struct sigaction)) == 0, \
+             "The 'act' in third call to sigaction() should be equals to startup_handler"); \
+     } \
+ \
+@@ -272,11 +272,11 @@ execvp__deinit (void)
+     VERIFY_SIGACTION__IS_RESTORED (1, 4); \
+     VERIFY_SIGACTION__IS_RESTORED (2, 5); \
+ \
+-    fail_unless (g_ptr_array_index(sigaction_oldact__captured, 3) == NULL, \
++    ck_assert_msg (g_ptr_array_index(sigaction_oldact__captured, 3) == NULL, \
+         "oldact in fourth call to sigaction() should be NULL"); \
+-    fail_unless (g_ptr_array_index(sigaction_oldact__captured, 4) == NULL, \
++    ck_assert_msg (g_ptr_array_index(sigaction_oldact__captured, 4) == NULL, \
+         "oldact in fifth call to sigaction() should be NULL"); \
+-    fail_unless (g_ptr_array_index(sigaction_oldact__captured, 5) == NULL, \
++    ck_assert_msg (g_ptr_array_index(sigaction_oldact__captured, 5) == NULL, \
+         "oldact in sixth call to sigaction() should be NULL"); \
+ }
+ 
+diff --git a/tests/lib/vfs/tempdir.c b/tests/lib/vfs/tempdir.c
+index 8c5f3b359..5324572f7 100644
+--- a/tests/lib/vfs/tempdir.c
++++ b/tests/lib/vfs/tempdir.c
+@@ -78,7 +78,7 @@ START_TEST (test_mc_tmpdir)
+     env_tmpdir = g_getenv ("MC_TMPDIR");
+ 
+     /* then */
+-    fail_unless (g_file_test (tmpdir, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR),
++    ck_assert_msg (g_file_test (tmpdir, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR),
+                  "\nNo such directory: %s\n", tmpdir);
+     mctest_assert_str_eq (env_tmpdir, tmpdir);
+ }
+@@ -105,11 +105,11 @@ START_TEST (test_mc_mkstemps)
+     /* then */
+     close (fd);
+     mctest_assert_int_ne (fd, -1);
+-    fail_unless (g_file_test
++    ck_assert_msg (g_file_test
+                  (vfs_path_as_str (pname_vpath), G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR),
+                  "\nNo such file: %s\n", vfs_path_as_str (pname_vpath));
+     unlink (vfs_path_as_str (pname_vpath));
+-    fail_unless (strncmp (vfs_path_as_str (pname_vpath), begin_pname, strlen (begin_pname)) == 0,
++    ck_assert_msg (strncmp (vfs_path_as_str (pname_vpath), begin_pname, strlen (begin_pname)) == 0,
+                  "\nstart of %s should be equal to %s\n", vfs_path_as_str (pname_vpath),
+                  begin_pname);
+     vfs_path_free (pname_vpath);
+diff --git a/tests/lib/widget/group_init_destroy.c b/tests/lib/widget/group_init_destroy.c
+index 56fbec41e..9e3ed6fd9 100644
+--- a/tests/lib/widget/group_init_destroy.c
++++ b/tests/lib/widget/group_init_destroy.c
+@@ -115,15 +115,15 @@ START_TEST (test_group_init_deinit)
+     widget_init (w0, 5, 5, 10, 10, widget_callback, NULL);
+     group_add_widget (g, w0);
+ 
+-    fail_unless (w0->id == 7, "last id (%d) != 7", ref);
++    ck_assert_msg (w0->id == 7, "last id (%d) != 7", ref);
+ 
+     send_message (g, NULL, MSG_INIT, 0, NULL);
+ 
+-    fail_unless (ref == 8, "ref (%d) != 8", ref);
++    ck_assert_msg (ref == 8, "ref (%d) != 8", ref);
+ 
+     widget_destroy (WIDGET (g));
+ 
+-    fail_unless (ref == 0, "ref (%d) != 0", ref);
++    ck_assert_msg (ref == 0, "ref (%d) != 0", ref);
+ }
+ /* *INDENT-OFF* */
+ END_TEST
+diff --git a/tests/lib/widget/widget_find_by_id.c b/tests/lib/widget/widget_find_by_id.c
+index ddb528db9..832831008 100644
+--- a/tests/lib/widget/widget_find_by_id.c
++++ b/tests/lib/widget/widget_find_by_id.c
+@@ -73,15 +73,15 @@ START_TEST (test_widget_find_by_id)
+ 
+     w0 = WIDGET (g);
+ 
+-    fail_unless (widget_find_by_id (w0, 0) != NULL, "Not found ID=0");
+-    fail_unless (widget_find_by_id (w0, 1) != NULL, "Not found ID=1");
+-    fail_unless (widget_find_by_id (w0, 2) != NULL, "Not found ID=2");
+-    fail_unless (widget_find_by_id (w0, 3) != NULL, "Not found ID=3");
+-    fail_unless (widget_find_by_id (w0, 4) != NULL, "Not found ID=4");
+-    fail_unless (widget_find_by_id (w0, 5) != NULL, "Not found ID=5");
+-    fail_unless (widget_find_by_id (w0, 6) != NULL, "Not found ID=6");
+-    fail_unless (widget_find_by_id (w0, 7) != NULL, "Not found ID=7");
+-    fail_unless (widget_find_by_id (w0, 8) == NULL, "Found ID=8");
++    ck_assert_msg (widget_find_by_id (w0, 0) != NULL, "Not found ID=0");
++    ck_assert_msg (widget_find_by_id (w0, 1) != NULL, "Not found ID=1");
++    ck_assert_msg (widget_find_by_id (w0, 2) != NULL, "Not found ID=2");
++    ck_assert_msg (widget_find_by_id (w0, 3) != NULL, "Not found ID=3");
++    ck_assert_msg (widget_find_by_id (w0, 4) != NULL, "Not found ID=4");
++    ck_assert_msg (widget_find_by_id (w0, 5) != NULL, "Not found ID=5");
++    ck_assert_msg (widget_find_by_id (w0, 6) != NULL, "Not found ID=6");
++    ck_assert_msg (widget_find_by_id (w0, 7) != NULL, "Not found ID=7");
++    ck_assert_msg (widget_find_by_id (w0, 8) == NULL, "Found ID=8");
+ 
+     send_message (g, NULL, MSG_INIT, 0, NULL);
+     widget_destroy (w0);
+diff --git a/tests/src/execute__execute_with_vfs_arg.c b/tests/src/execute__execute_with_vfs_arg.c
+index 84f64b8a5..244d6d983 100644
+--- a/tests/src/execute__execute_with_vfs_arg.c
++++ b/tests/src/execute__execute_with_vfs_arg.c
+@@ -75,7 +75,7 @@ START_PARAMETRIZED_TEST (the_file_is_local, the_file_is_local_ds)
+                                tmp_vpath), TRUE);
+     }
+     mctest_assert_int_eq (do_execute__flags__captured, EXECUTE_INTERNAL);
+-    fail_unless (mc_getlocalcopy__pathname_vpath__captured == NULL,
++    ck_assert_msg (mc_getlocalcopy__pathname_vpath__captured == NULL,
+                  "\nFunction mc_getlocalcopy() shouldn't be called!");
+ 
+     vfs_path_free (filename_vpath);
+@@ -109,9 +109,9 @@ START_TEST (the_file_is_remote_but_empty)
+     mctest_assert_int_eq (vfs_path_equal
+                           (g_ptr_array_index (vfs_file_is_local__vpath__captured, 0),
+                            vfs_get_raw_current_dir ()), TRUE);
+-    fail_unless (g_ptr_array_index (vfs_file_is_local__vpath__captured, 1) == NULL,
++    ck_assert_msg (g_ptr_array_index (vfs_file_is_local__vpath__captured, 1) == NULL,
+                  "\nParameter for second call to vfs_file_is_local() should be NULL!");
+-    fail_unless (mc_getlocalcopy__pathname_vpath__captured == NULL,
++    ck_assert_msg (mc_getlocalcopy__pathname_vpath__captured == NULL,
+                  "\nFunction mc_getlocalcopy() shouldn't be called!");
+ 
+     vfs_path_free (filename_vpath);
+diff --git a/tests/src/filemanager/examine_cd.c b/tests/src/filemanager/examine_cd.c
+index 31cdb7555..34dde0dfd 100644
+--- a/tests/src/filemanager/examine_cd.c
++++ b/tests/src/filemanager/examine_cd.c
+@@ -75,7 +75,7 @@ teardown (void)
+ #define check_examine_cd(input, etalon) \
+ { \
+     result = examine_cd (input); \
+-    fail_unless (strcmp (result->str, etalon) == 0, \
++    ck_assert_msg (strcmp (result->str, etalon) == 0, \
+     "\ninput (%s)\nactial (%s) not equal to\netalon (%s)", input, result->str, etalon); \
+     g_string_free (result, TRUE); \
+ }

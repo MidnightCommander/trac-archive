@@ -1,0 +1,211 @@
+From 58229b6eacaddcd7ceec8e45a52fba6d3993e700 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 15:08:19 +0000
+Subject: [PATCH] sftp: fix connection memleaks
+
+1) open_connection abort not handled correct yet
+2) missing libssh2_session_free() on close_connection
+3) internal list from libssh2_userauth_list() must not freed by mc
+4) cosmetic: re-order open_connection and close_connection steps
+5) cosmetic: sftpfs_super_data created at sftpfs_cb_open_connection() was freed at sftpfs_close_connection()
+   it should be sftpfs_cb_close_connection() for logical right location
+6) add FIXME for deprected libssh2_session_startup() since libssh2 1.2.8
+
+found by Clang/AddressSanitizer
+
+Direct leak of 54520 byte(s) in 1 object(s) allocated from:
+    #0 0x4c7310 in __interceptor_malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c7310)
+    #1 0x7fceea957200 in libssh2_session_init_ex (/usr/lib64/libssh2.so.1+0x15200)
+    #2 0x620c2e in sftpfs_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/connection.c:372:27
+    #3 0x620c2e in sftpfs_cb_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/vfs_subclass.c:123
+    #4 0x7fceeb19ff59 in vfs_s_get_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:1139:18
+    #5 0x7fceeb1a513d in vfs_s_inode_from_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:380:9
+    #6 0x7fceeb1a3727 in vfs_s_opendir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:409:11
+    #7 0x7fceeb1a3c88 in vfs_s_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:476:12
+    #8 0x7fceeb1a87c3 in mc_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/interface.c:687:14
+    #9 0x535b44 in _do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3250:9
+    #10 0x5f37e1 in do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4627:9
+    #11 0x5f37e1 in nice_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:460
+    #12 0x529961 in fishlink_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:1430:5
+    #13 0x529961 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1208
+    #14 0x7fceeb1d909d in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #15 0x7fceeb1d909d in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341
+    #16 0x7fceeb1d830b in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #17 0x7fceeb1d555f in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #18 0x7fceeb1bbfec in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #19 0x7fceeb1bbfec in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450
+    #20 0x7fceeb1bbfec in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509
+    #21 0x7fceeb1bbfec in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1236
+    #22 0x7fceeb1bd9e7 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #23 0x7fceeb1bc585 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #24 0x4fc7b8 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:954:5
+    #25 0x4fc7b8 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757
+    #26 0x4fc7b8 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:401
+    #27 0x7fcee9722953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #28 0x4270e8 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4270e8)
+
+Indirect leak of 8 byte(s) in 1 object(s) allocated from:
+    #0 0x4c7370 in __interceptor_malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c7370)
+    #1 0x7feb83ffa366 in CRYPTO_malloc (/usr/lib64/libcrypto.so.1.0.0+0x1a8366)
+    #2 0x7feb83ee7316  (/usr/lib64/libcrypto.so.1.0.0+0x95316)
+    #3 0x7feb83ee7ae7 in bn_expand2 (/usr/lib64/libcrypto.so.1.0.0+0x95ae7)
+    #4 0x7feb83ee817e in BN_bin2bn (/usr/lib64/libcrypto.so.1.0.0+0x9617e)
+    #5 0x7feb85b80100  (/usr/lib64/libssh2.so.1+0x25100)
+    #6 0x7feb85b65d9f  (/usr/lib64/libssh2.so.1+0xad9f)
+    #7 0x7feb85b664d0  (/usr/lib64/libssh2.so.1+0xb4d0)
+    #8 0x7feb85b67a5c  (/usr/lib64/libssh2.so.1+0xca5c)
+    #9 0x7feb85b68756  (/usr/lib64/libssh2.so.1+0xd756)
+    #10 0x7feb85b71563 in libssh2_session_handshake (/usr/lib64/libssh2.so.1+0x16563)
+    #11 0x620dc1 in sftpfs_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/connection.c:389:10
+    #12 0x620dc1 in sftpfs_cb_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/vfs_subclass.c:123
+    #13 0x7feb863b8f29 in vfs_s_get_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:1139:18
+    #14 0x7feb863be10d in vfs_s_inode_from_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:380:9
+    #15 0x7feb863bc6f7 in vfs_s_opendir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:409:11
+    #16 0x7feb863bcc58 in vfs_s_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:476:12
+    #17 0x7feb863c1793 in mc_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/interface.c:687:14
+    #18 0x535bb4 in _do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3250:9
+    #19 0x5f3891 in do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4627:9
+    #20 0x5f3891 in nice_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:460
+    #21 0x5299d1 in fishlink_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:1430:5
+    #22 0x5299d1 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1208
+    #23 0x7feb863f207d in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #24 0x7feb863f207d in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341
+    #25 0x7feb863f12eb in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #26 0x7feb863ee53f in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #27 0x7feb863d4fcc in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #28 0x7feb863d4fcc in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450
+    #29 0x7feb863d4fcc in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509
+    #30 0x7feb863d4fcc in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1236
+    #31 0x7feb863d69c7 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #32 0x7feb863d5565 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #33 0x4fc818 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:954:5
+    #34 0x4fc818 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757
+    #35 0x4fc818 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:401
+    #36 0x7feb8493b953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #37 0x427148 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427148)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/connection.c   | 37 +++++++++++++++++++++----------------
+ src/vfs/sftpfs/vfs_subclass.c |  6 ++++++
+ 2 files changed, 27 insertions(+), 16 deletions(-)
+
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index fceb961..ba60076 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -170,6 +170,8 @@ sftpfs_recognize_auth_types (struct vfs_s_super *super)
+     super_data->auth_type = NONE;
+ 
+     /* check what authentication methods are available */
++    /* userauthlist is internally managed by libssh2 and
++       freed by libssh2_session_free() */
+     userauthlist = libssh2_userauth_list (super_data->session, super->path_element->user,
+                                           strlen (super->path_element->user));
+ 
+@@ -183,8 +185,6 @@ sftpfs_recognize_auth_types (struct vfs_s_super *super)
+ 
+     if ((super_data->config_auth_type & AGENT) != 0)
+         super_data->auth_type |= AGENT;
+-
+-    g_free (userauthlist);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -368,10 +368,9 @@ sftpfs_open_connection (struct vfs_s_super *super, GError ** mcerror)
+ 
+     super_data = (sftpfs_super_data_t *) super->data;
+ 
+-    /* Create a session instance */
+-    super_data->session = libssh2_session_init ();
+-    if (super_data->session == NULL)
+-        return (-1);
++    super_data->session = NULL;
++    super_data->agent = NULL;
++    super_data->sftp_session = NULL;
+ 
+     /*
+      * The application code is responsible for creating the socket
+@@ -381,9 +380,16 @@ sftpfs_open_connection (struct vfs_s_super *super, GError ** mcerror)
+     if (super_data->socket_handle == -1)
+         return (-1);
+ 
++    /* Create a session instance */
++    super_data->session = libssh2_session_init ();
++    if (super_data->session == NULL)
++        return (-1);
++
+     /* ... start it up. This will trade welcome banners, exchange keys,
+      * and setup crypto, compression, and MAC layers
+      */
++    /* FIXME: Starting in libssh2 version 1.2.8  this function is considered deprecated.
++       Use libssh2_session_handshake instead. */
+     rc = libssh2_session_startup (super_data->session, super_data->socket_handle);
+     if (rc != 0)
+     {
+@@ -430,14 +436,18 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+ {
+     sftpfs_super_data_t *super_data;
+ 
+-    mc_return_if_error (mcerror);
++    /* no mc_return_*_if_error() here because of abort open_connection handling too */
++    (void) mcerror;
+ 
+     super_data = (sftpfs_super_data_t *) super->data;
+     if (super_data == NULL)
+         return;
+ 
+-    vfs_path_element_free (super_data->original_connection_info);
+-    super_data->original_connection_info = NULL;
++    if (super_data->sftp_session != NULL)
++    {
++        libssh2_sftp_shutdown (super_data->sftp_session);
++        super_data->sftp_session = NULL;
++    }
+ 
+     if (super_data->agent != NULL)
+     {
+@@ -446,20 +456,15 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+         super_data->agent = NULL;
+     }
+ 
+-    if (super_data->sftp_session != NULL)
+-    {
+-        libssh2_sftp_shutdown (super_data->sftp_session);
+-        super_data->sftp_session = NULL;
+-    }
++    super_data->fingerprint = NULL;
+ 
+     if (super_data->session != NULL)
+     {
+         libssh2_session_disconnect (super_data->session, shutdown_message);
++        libssh2_session_free(super_data->session);
+         super_data->session = NULL;
+     }
+ 
+-    super_data->fingerprint = NULL;
+-
+     if (super_data->socket_handle != -1)
+     {
+         close (super_data->socket_handle);
+diff --git a/src/vfs/sftpfs/vfs_subclass.c b/src/vfs/sftpfs/vfs_subclass.c
+index 8ddff74..a5826e6 100644
+--- a/src/vfs/sftpfs/vfs_subclass.c
++++ b/src/vfs/sftpfs/vfs_subclass.c
+@@ -137,10 +137,16 @@ static void
+ sftpfs_cb_close_connection (struct vfs_class *me, struct vfs_s_super *super)
+ {
+     GError *mcerror = NULL;
++    sftpfs_super_data_t *sftpfs_super_data;
+ 
+     (void) me;
+     sftpfs_close_connection (super, "Normal Shutdown", &mcerror);
+     mc_error_message (&mcerror, NULL);
++
++    sftpfs_super_data = (sftpfs_super_data_t *) super->data;
++    if (sftpfs_super_data != NULL)
++        vfs_path_element_free (sftpfs_super_data->original_connection_info);
++
+     g_free (super->data);
+ }
+ 

@@ -1,0 +1,13 @@
+diff --git a/lib/mc.ext.in b/lib/mc.ext.in
+index af63f0e..6396bdf 100644
+--- a/lib/mc.ext.in
++++ b/lib/mc.ext.in
+@@ -132,7 +132,7 @@ regex/\.(qp[rk])$
+ # tar
+ regex/\.(tar|TAR)$
+ 	Open=%cd %p#utar
+-	View=%view{ascii} tar tvvf %f
++	View=%view{ascii} tar tvvf - %f
+ 
+ # lha
+ type/^LHa\ .*archive

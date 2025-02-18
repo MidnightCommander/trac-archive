@@ -1,0 +1,96 @@
+From 8aab29c1c7d25d0c31b725eeab7c105349b62d4e Mon Sep 17 00:00:00 2001
+From: Ilia Maslakov <il.smind@gmail.com>
+Date: Tue, 29 Mar 2011 13:29:31 +0000
+Subject: [PATCH 2/2] added options editor_autodetect_linebreak
+
+Signed-off-by: Ilia Maslakov <il.smind@gmail.com>
+---
+ src/editor/edit.c        |    7 ++++++-
+ src/editor/edit.h        |    1 +
+ src/editor/editoptions.c |   16 +++++++++-------
+ src/setup.c              |    1 +
+ 4 files changed, 17 insertions(+), 8 deletions(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 0d854f9..4ab612a 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -83,6 +83,7 @@ int option_persistent_selections = 1;
+ int option_cursor_beyond_eol = 0;
+ int option_line_state = 0;
+ int option_line_state_width = 0;
++int option_autodetect_lb = 0;
+ 
+ int option_edit_right_extreme = 0;
+ int option_edit_left_extreme = 0;
+@@ -484,7 +485,11 @@ edit_load_file (WEdit * edit)
+         /* If we are dealing with a real file, check that it exists */
+         if (check_file_access (edit, edit->filename, &edit->stat1))
+             return 1;
+-        lb_type = detect_lb_type(edit->filename);
++
++        if (option_autodetect_lb)
++            lb_type = detect_lb_type(edit->filename);
++        else
++            lb_type = LB_UNIX;
+ 
+         if (lb_type != LB_ASIS && lb_type != LB_UNIX)
+             fast_load = 0;
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index d6b8344..09c3350 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -55,6 +55,7 @@ extern int option_auto_para_formatting;
+ extern int option_fill_tabs_with_spaces;
+ extern int option_return_does_auto_indent;
+ extern int option_backspace_through_tabs;
++extern int option_autodetect_lb;
+ extern int option_fake_half_tabs;
+ extern int option_persistent_selections;
+ extern int option_cursor_beyond_eol;
+diff --git a/src/editor/editoptions.c b/src/editor/editoptions.c
+index ece015c..11993ee 100644
+--- a/src/editor/editoptions.c
++++ b/src/editor/editoptions.c
+@@ -107,17 +107,19 @@ edit_options_dialog (WEdit * edit)
+                                  N_("Confir&m before saving"), &edit_confirm_save),
+         /* 12 */ QUICK_CHECKBOX (OPT_DLG_W / 2 + 1, OPT_DLG_W, 3, OPT_DLG_H,
+                                  N_("&Return does autoindent"), &option_return_does_auto_indent),
+-        /* 13 */ QUICK_LABEL (3, OPT_DLG_W, 11, OPT_DLG_H, N_("Tab spacing:")),
+-        /* 14 */ QUICK_INPUT (3 + 24, OPT_DLG_W, 11, OPT_DLG_H,
++        /* 13 */ QUICK_LABEL (3, OPT_DLG_W, 12, OPT_DLG_H, N_("Tab spacing:")),
++        /* 14 */ QUICK_INPUT (3 + 24, OPT_DLG_W, 12, OPT_DLG_H,
+                               tab_spacing, OPT_DLG_W / 2 - 4 - 24, 0, "edit-tab-spacing", &q),
+-        /* 15 */ QUICK_CHECKBOX (3, OPT_DLG_W, 10, OPT_DLG_H,
++        /* 15 */ QUICK_CHECKBOX (3, OPT_DLG_W, 11, OPT_DLG_H,
+                                  N_("Fill tabs with &spaces"), &option_fill_tabs_with_spaces),
+-        /* 16 */ QUICK_CHECKBOX (3, OPT_DLG_W, 9, OPT_DLG_H,
++        /* 16 */ QUICK_CHECKBOX (3, OPT_DLG_W, 10, OPT_DLG_H,
+                                  N_("&Backspace through tabs"), &option_backspace_through_tabs),
+-        /* 17 */ QUICK_CHECKBOX (3, OPT_DLG_W, 8, OPT_DLG_H,
++        /* 17 */ QUICK_CHECKBOX (3, OPT_DLG_W, 9, OPT_DLG_H,
+                                  N_("&Fake half tabs"), &option_fake_half_tabs),
+-        /* 18 */ QUICK_RADIO (4, OPT_DLG_W, 4, OPT_DLG_H, 3, wrap_str, &wrap_mode),
+-        /* 19 */ QUICK_LABEL (3, OPT_DLG_W, 3, OPT_DLG_H, N_("Wrap mode")),
++        /* 18 */ QUICK_CHECKBOX (3, OPT_DLG_W, 8, OPT_DLG_H,
++                                 N_("&Autodetect line break"), &option_autodetect_lb),
++        /* 19 */ QUICK_RADIO (4, OPT_DLG_W, 4, OPT_DLG_H, 3, wrap_str, &wrap_mode),
++        /* 20 */ QUICK_LABEL (3, OPT_DLG_W, 3, OPT_DLG_H, N_("Wrap mode")),
+         QUICK_END
+     };
+ 
+diff --git a/src/setup.c b/src/setup.c
+index 2d7dad7..9d7b042 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -292,6 +292,7 @@ static const struct
+     { "editor_word_wrap_line_length", &option_word_wrap_line_length },
+     { "editor_fill_tabs_with_spaces", &option_fill_tabs_with_spaces },
+     { "editor_return_does_auto_indent", &option_return_does_auto_indent },
++    { "editor_autodetect_linebreak", &option_autodetect_lb },
+     { "editor_backspace_through_tabs", &option_backspace_through_tabs },
+     { "editor_fake_half_tabs", &option_fake_half_tabs },
+     { "editor_option_save_mode", &option_save_mode },
+-- 
+1.7.3.5
+

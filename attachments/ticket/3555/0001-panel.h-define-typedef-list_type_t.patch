@@ -1,0 +1,43 @@
+From 3f7616c095434841b26b2ac673557da4ebdcb3e4 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Fri, 13 Nov 2015 16:00:35 +0200
+Subject: [PATCH] panel.h: define typedef list_type_t.
+
+We use 'typedef' to make it conform with all other type declarations
+in that file.
+---
+ src/filemanager/panel.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/filemanager/panel.h b/src/filemanager/panel.h
+index c1b7f2a..6ebd1ed 100644
+--- a/src/filemanager/panel.h
++++ b/src/filemanager/panel.h
+@@ -27,13 +27,13 @@
+ 
+ /*** enums ***************************************************************************************/
+ 
+-enum list_types
++typedef enum
+ {
+     list_full,                  /* Name, size, perm/date */
+     list_brief,                 /* Name */
+     list_long,                  /* Like ls -l */
+     list_user                   /* User defined */
+-};
++} list_type_t;
+ 
+ typedef enum
+ {
+@@ -93,7 +93,7 @@ typedef struct
+     Widget widget;
+     dir_list dir;               /* Directory contents */
+ 
+-    enum list_types list_type;  /* listing type */
++    list_type_t list_type;      /* listing type */
+     int active;                 /* If panel is currently selected */
+     vfs_path_t *cwd_vpath;      /* Current Working Directory */
+     vfs_path_t *lwd_vpath;      /* Last Working Directory */
+-- 
+2.1.4
+

@@ -1,0 +1,28 @@
+From 8f57ff0e332a85e5ac25857d2696a7eb014fde2e Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 16:32:32 +0000
+Subject: [PATCH] subshell/common.c: cleanup -Wcast-qual warning
+
+common.c: In function 'init_subshell_child':
+common.c:287:17: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         putenv ((char *) "HISTCONTROL=ignoreboth");
+                 ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/subshell/common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 0be0127..96f5912 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -284,7 +284,7 @@ init_subshell_child (const char *pty_name)
+ 
+         /* Make MC's special commands not show up in bash's history and also suppress
+          * consecutive identical commands*/
+-        putenv ((char *) "HISTCONTROL=ignoreboth");
++        putenv (g_strdup ("HISTCONTROL=ignoreboth"));
+ 
+         /* Allow alternative readline settings for MC */
+         {

@@ -1,0 +1,37 @@
+From 6026af6ac5168315c0712085ce40d75053ccdd1b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 27 Feb 2016 22:42:34 +0000
+Subject: [PATCH] editcmd.c: cleanup -Wlogical-not-parentheses warning
+
+upcoming clang 3.8 raise a new warning at location
+
+editcmd.c:797:9: error: logical not is only applied to the left hand side of this comparison [-Werror,-Wlogical-not-parentheses]
+    if (!eval_marks (edit, &start_mark, &end_mark) != 0)
+        ^                                          ~~
+editcmd.c:797:9: note: add parentheses after the '!' to evaluate the comparison first
+    if (!eval_marks (edit, &start_mark, &end_mark) != 0)
+        ^
+         (                                             )
+editcmd.c:797:9: note: add parentheses around left hand side expression to silence this warning
+    if (!eval_marks (edit, &start_mark, &end_mark) != 0)
+        ^
+        (                                         )
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 0d2d6e1..c7e5f70 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -794,7 +794,7 @@ edit_search_fix_search_start_if_selection (WEdit * edit)
+     if (!edit_search_options.only_in_selection)
+         return;
+ 
+-    if (!eval_marks (edit, &start_mark, &end_mark) != 0)
++    if (!eval_marks (edit, &start_mark, &end_mark))
+         return;
+ 
+     if (edit_search_options.backwards)

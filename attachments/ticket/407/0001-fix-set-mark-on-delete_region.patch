@@ -1,0 +1,37 @@
+From 32582dad68899e479770dddbc33806fe876b452c Mon Sep 17 00:00:00 2001
+From: Stan. S. Krupoderov <pashelper@gmail.com>
+Date: Mon, 15 Jun 2009 02:05:20 +0400
+Subject: [PATCH] fix set mark on delete_region
+
+---
+ src/widget.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/src/widget.c b/src/widget.c
+index b0fe757..ce790e6 100644
+--- a/src/widget.c
++++ b/src/widget.c
+@@ -1415,13 +1415,14 @@ delete_region (WInput *in, int x_first, int x_last)
+    int last  = max (x_first, x_last);
+     size_t len;
+ 
++   if (in->mark > first)
++       in->mark  = first;
+    in->point = first;
+-   in->mark  = first;
+-    last = str_offset_to_pos (in->buffer, last);
+-    first = str_offset_to_pos (in->buffer, first);
+-    len = strlen (&in->buffer[last]) + 1;
+-    memmove (&in->buffer[first], &in->buffer[last], len);
+-    in->charpoint = 0;
++   last = str_offset_to_pos (in->buffer, last);
++   first = str_offset_to_pos (in->buffer, first);
++   len = strlen (&in->buffer[last]) + 1;
++   memmove (&in->buffer[first], &in->buffer[last], len);
++   in->charpoint = 0;
+    in->need_push = 1;
+ }
+ 
+-- 
+1.6.0.4
+

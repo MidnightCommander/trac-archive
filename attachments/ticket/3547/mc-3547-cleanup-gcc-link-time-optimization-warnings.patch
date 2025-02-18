@@ -1,0 +1,93 @@
+From 5df661ee89a3363c4b9e5bd92b98ae2aad6b41fb Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 13 Dec 2015 11:49:36 +0000
+Subject: [PATCH] cleanup gcc link time optimization warnings
+
+coord_cache.c: In function 'mcview_ccache_lookup.constprop':
+coord_cache.c:374:31: error: 'nextc' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+coord_cache.c:342:16: note: 'nextc' was declared here
+boxes.c: In function 'sort_box':
+boxes.c:877:5: error: 'sort_names_num' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+boxes.c:871:11: note: 'sort_names_num' was declared here
+actions_cmd.c: In function 'mcview_callback':
+actions_cmd.c:252:42: error: 'byte_val' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+actions_cmd.c:223:9: note: 'byte_val' was declared here
+In function '__read_alias',
+    inlined from 'fish_linear_abort.isra.0' at fish.c:1047:15:
+/usr/include/bits/unistd.h:39:9: error: call to '__read_chk_warn' declared with attribute warning: read called with bigger length than size of the destination buffer [-Werror]
+  return __read_chk (__fd, __buf, __nbytes, __bos0 (__buf));
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/boxes.c  | 3 ++-
+ src/vfs/fish/fish.c      | 7 +++----
+ src/viewer/actions_cmd.c | 2 +-
+ src/viewer/coord_cache.c | 3 ++-
+ 4 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 6874426..f0cd61e 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -868,7 +868,8 @@ const panel_field_t *
+ sort_box (dir_sort_options_t * op, const panel_field_t * sort_field)
+ {
+     const char **sort_orders_names;
+-    gsize sort_names_num, i;
++    gsize i;
++    gsize sort_names_num = 0;
+     int sort_idx = 0;
+     const panel_field_t *result = NULL;
+ 
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index 1172f31..f54f406 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -1034,17 +1034,16 @@ fish_linear_abort (struct vfs_class *me, vfs_file_handler_t * fh)
+ {
+     fish_fh_data_t *fish = (fish_fh_data_t *) fh->data;
+     struct vfs_s_super *super = FH_SUPER;
+-    char buffer[BUF_8K];
+-    ssize_t n;
++    off_t n;
+ 
+     vfs_print_message ("%s", _("Aborting transfer..."));
+ 
+     do
+     {
+-        n = MIN ((off_t) sizeof (buffer), (fish->total - fish->got));
++        n = fish->total - fish->got;
+         if (n != 0)
+         {
+-            n = read (SUP->sockr, buffer, n);
++            n = lseek (SUP->sockr, n, SEEK_CUR);
+             if (n < 0)
+                 return;
+             fish->got += n;
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index 2e970d1..22807f0 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -220,7 +220,7 @@ static cb_ret_t
+ mcview_handle_editkey (WView * view, int key)
+ {
+     struct hexedit_change_node *node;
+-    int byte_val;
++    int byte_val = -1;
+ 
+     /* Has there been a change at this position? */
+     node = view->change_list;
+diff --git a/src/viewer/coord_cache.c b/src/viewer/coord_cache.c
+index 665e58a..a920eb8 100644
+--- a/src/viewer/coord_cache.c
++++ b/src/viewer/coord_cache.c
+@@ -339,7 +339,8 @@ mcview_ccache_lookup (WView * view, coord_cache_entry_t * coord, enum ccache_typ
+     nroff_state = NROFF_START;
+     for (; current.cc_offset < limit; current = next)
+     {
+-        int c, nextc;
++        int c;
++        int nextc = -1;
+ 
+         if (!mcview_get_byte (view, current.cc_offset, &c))
+             break;

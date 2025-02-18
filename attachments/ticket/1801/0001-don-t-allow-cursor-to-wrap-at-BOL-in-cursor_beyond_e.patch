@@ -1,0 +1,42 @@
+From c427ae74f832f3db35d9221500a8efecb8649a5e Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@gmx.de>
+Date: Thu, 8 Apr 2010 00:58:10 +0200
+Subject: [PATCH] don't allow cursor to wrap at BOL in cursor_beyond_eol mode
+
+enabling "Cursor beyond end of line" ("virtual whitespace") mode stops
+right-arrow from wrapping into the next line. however, left-arrow
+continued to wrap to the previous line. this asymmetry felt highly
+unnatural and often caused "navigation challenges" for me.
+
+consequently, this patch makes left-arrow stop at the beginning of the
+line in virtual whitespace mode. put differently, it couples BOL
+wrapping to EOL wrapping. just about every other editor that has such a
+switch behaves this way (FAR's being the only other exception known to
+me).
+---
+ src/editor/edit.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e13be389a..c4f834f11 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -1040,8 +1040,13 @@ edit_left_char_move_cmd (WEdit * edit)
+     }
+ #endif
+ 
+-    if (option_cursor_beyond_eol && edit->over_col > 0)
+-        edit->over_col--;
++    if (option_cursor_beyond_eol)
++    {
++        if (edit->over_col > 0)
++            edit->over_col--;
++        else if (edit->buffer.curs1 != edit_buffer_get_bol (&edit->buffer, edit->buffer.curs1))
++            edit_cursor_move (edit, -char_length);
++    }
+     else
+         edit_cursor_move (edit, -char_length);
+ }
+-- 
+2.28.0.1.g7ba5ae0684
+

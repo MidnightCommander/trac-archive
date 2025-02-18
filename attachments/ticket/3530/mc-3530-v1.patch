@@ -1,0 +1,862 @@
+diff --git a/lib/widget/dialog-switch.c b/lib/widget/dialog-switch.c
+index f008674..a3732bb 100644
+--- a/lib/widget/dialog-switch.c
++++ b/lib/widget/dialog-switch.c
+@@ -250,7 +250,8 @@ dialog_switch_list (void)
+         else
+             title = g_strdup ("");
+ 
+-        listbox_add_item (listbox->list, LISTBOX_APPEND_BEFORE, get_hotkey (i++), title, NULL);
++        listbox_add_item (listbox->list, LISTBOX_APPEND_BEFORE, get_hotkey (i++), title, NULL,
++                          FALSE);
+ 
+         g_free (title);
+     }
+diff --git a/lib/widget/input_complete.c b/lib/widget/input_complete.c
+index 0de9618..200d414 100644
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -1251,7 +1251,7 @@ complete_engine (WInput * in, int what_to_do)
+             query_list = listbox_new (1, 1, h - 2, w - 2, FALSE, NULL);
+             add_widget (query_dlg, query_list);
+             for (p = in->completions + 1; *p; p++)
+-                listbox_add_item (query_list, LISTBOX_APPEND_AT_END, 0, *p, NULL);
++                listbox_add_item (query_list, LISTBOX_APPEND_AT_END, 0, *p, NULL, FALSE);
+             dlg_run (query_dlg);
+             q = NULL;
+             if (query_dlg->ret_value == B_ENTER)
+diff --git a/lib/widget/listbox-window.h b/lib/widget/listbox-window.h
+index a96cd59..b4c3f28 100644
+--- a/lib/widget/listbox-window.h
++++ b/lib/widget/listbox-window.h
+@@ -7,8 +7,8 @@
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+-#define LISTBOX_APPEND_TEXT(l,h,t,d) \
+-    listbox_add_item (l->list, LISTBOX_APPEND_AT_END, h, t, d)
++#define LISTBOX_APPEND_TEXT(l,h,t,d,f) \
++    listbox_add_item (l->list, LISTBOX_APPEND_AT_END, h, t, d, f)
+ 
+ /*** enums ***************************************************************************************/
+ 
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index fd97b76..d7fbb4c 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -76,6 +76,8 @@ listbox_entry_free (void *data)
+ {
+     WLEntry *e = data;
+     g_free (e->text);
++    if (e->free_data)
++        g_free (e->data);
+     g_free (e);
+ }
+ 
+@@ -770,7 +772,8 @@ listbox_remove_list (WListbox * l)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ char *
+-listbox_add_item (WListbox * l, listbox_append_t pos, int hotkey, const char *text, void *data)
++listbox_add_item (WListbox * l, listbox_append_t pos, int hotkey, const char *text, void *data,
++                  gboolean free_data)
+ {
+     WLEntry *entry;
+ 
+@@ -783,6 +786,7 @@ listbox_add_item (WListbox * l, listbox_append_t pos, int hotkey, const char *te
+     entry = g_new (WLEntry, 1);
+     entry->text = g_strdup (text);
+     entry->data = data;
++    entry->free_data = free_data;
+     entry->hotkey = hotkey;
+ 
+     listbox_append_item (l, entry, pos);
+diff --git a/lib/widget/listbox.h b/lib/widget/listbox.h
+index f8f2491..62d5e15 100644
+--- a/lib/widget/listbox.h
++++ b/lib/widget/listbox.h
+@@ -40,6 +40,7 @@ typedef struct WLEntry
+     char *text;                 /* Text to display */
+     int hotkey;
+     void *data;                 /* Client information */
++    gboolean free_data;         /* Whether to free the data on entry's removal */
+ } WLEntry;
+ 
+ typedef struct WListbox
+@@ -74,7 +75,7 @@ gboolean listbox_is_empty (const WListbox * l);
+ void listbox_set_list (WListbox * l, GList * list);
+ void listbox_remove_list (WListbox * l);
+ char *listbox_add_item (WListbox * l, listbox_append_t pos,
+-                        int hotkey, const char *text, void *data);
++                        int hotkey, const char *text, void *data, gboolean free_data);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+diff --git a/src/editor/choosesyntax.c b/src/editor/choosesyntax.c
+index af62818..129d77f 100644
+--- a/src/editor/choosesyntax.c
++++ b/src/editor/choosesyntax.c
+@@ -74,15 +74,15 @@ exec_edit_syntax_dialog (const GPtrArray * names, const char *current_syntax)
+ 
+     syntaxlist = create_listbox_window (LIST_LINES, MAX_ENTRY_LEN,
+                                         _("Choose syntax highlighting"), NULL);
+-    LISTBOX_APPEND_TEXT (syntaxlist, 'A', _("< Auto >"), NULL);
+-    LISTBOX_APPEND_TEXT (syntaxlist, 'R', _("< Reload Current Syntax >"), NULL);
++    LISTBOX_APPEND_TEXT (syntaxlist, 'A', _("< Auto >"), NULL, FALSE);
++    LISTBOX_APPEND_TEXT (syntaxlist, 'R', _("< Reload Current Syntax >"), NULL, FALSE);
+ 
+     for (i = 0; i < names->len; i++)
+     {
+         const char *name;
+ 
+         name = g_ptr_array_index (names, i);
+-        LISTBOX_APPEND_TEXT (syntaxlist, 0, name, NULL);
++        LISTBOX_APPEND_TEXT (syntaxlist, 0, name, NULL, FALSE);
+         if (current_syntax != NULL && strcmp (name, current_syntax) == 0)
+             listbox_select_entry (syntaxlist->list, i + N_DFLT_ENTRIES);
+     }
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index 3a9883a..079407e 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -390,7 +390,8 @@ editcmd_dialog_completion_show (const WEdit * edit, int max_len, GString ** comp
+ 
+     /* fill the listbox with the completions */
+     for (i = num_compl - 1; i >= 0; i--)        /* reverse order */
+-        listbox_add_item (compl_list, LISTBOX_APPEND_AT_END, 0, (char *) compl[i]->str, NULL);
++        listbox_add_item (compl_list, LISTBOX_APPEND_AT_END, 0, (char *) compl[i]->str, NULL,
++                          FALSE);
+ 
+     /* pop up the dialog and apply the chosen completion */
+     if (dlg_run (compl_dlg) == B_ENTER)
+@@ -461,7 +462,7 @@ editcmd_dialog_select_definition_show (WEdit * edit, char *match_expr, int max_l
+         label_def =
+             g_strdup_printf ("%s -> %s:%ld", def_hash[i].short_define, def_hash[i].filename,
+                              def_hash[i].line);
+-        listbox_add_item (def_list, LISTBOX_APPEND_AT_END, 0, label_def, &def_hash[i]);
++        listbox_add_item (def_list, LISTBOX_APPEND_AT_END, 0, label_def, &def_hash[i], FALSE);
+         g_free (label_def);
+     }
+ 
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 40f60ba..eb2e812 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -342,7 +342,7 @@ edit_window_list (const WDialog * h)
+                                      vfs_path_as_str (e->filename_vpath));
+ 
+             listbox_add_item (listbox->list, LISTBOX_APPEND_AT_END, get_hotkey (i++),
+-                              str_term_trim (fname, WIDGET (listbox->list)->cols - 2), NULL);
++                              str_term_trim (fname, WIDGET (listbox->list)->cols - 2), NULL, FALSE);
+             g_free (fname);
+         }
+ 
+diff --git a/src/editor/spell_dialogs.c b/src/editor/spell_dialogs.c
+index 012dce6..9e1e53d 100644
+--- a/src/editor/spell_dialogs.c
++++ b/src/editor/spell_dialogs.c
+@@ -120,7 +120,7 @@ spell_dialog_spell_suggest_show (WEdit * edit, const char *word, char **new_word
+     sug_list = listbox_new (5, 2, sug_dlg_h - 7, 24, FALSE, NULL);
+     for (i = 0; i < suggest->len; i++)
+         listbox_add_item (sug_list, LISTBOX_APPEND_AT_END, 0, g_array_index (suggest, char *, i),
+-                          NULL);
++                          NULL, FALSE);
+     add_widget (sug_dlg, sug_list);
+ 
+     add_widget (sug_dlg, add_btn);
+@@ -170,7 +170,7 @@ spell_dialog_lang_list_show (GArray * languages)
+                                                 _("Select language"), "[ASpell]");
+ 
+     for (i = 0; i < languages->len; i++)
+-        LISTBOX_APPEND_TEXT (lang_list, 0, g_array_index (languages, char *, i), NULL);
++        LISTBOX_APPEND_TEXT (lang_list, 0, g_array_index (languages, char *, i), NULL, FALSE);
+ 
+     res = run_listbox (lang_list);
+     if (res >= 0)
+diff --git a/src/filemanager/achown.c b/src/filemanager/achown.c
+index f14f15c..146a172 100644
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -343,13 +343,14 @@ do_enter_key (WDialog * h, int f_pos)
+ 
+         /* get new listboxes */
+         chl_list = listbox_new (1, 1, 11, 15, FALSE, NULL);
+-        listbox_add_item (chl_list, LISTBOX_APPEND_AT_END, 0, "<Unknown>", NULL);
++        listbox_add_item (chl_list, LISTBOX_APPEND_AT_END, 0, "<Unknown>", NULL, FALSE);
+         if (is_owner)
+         {
+             /* get and put user names in the listbox */
+             setpwent ();
+             while ((chl_pass = getpwent ()) != NULL)
+-                listbox_add_item (chl_list, LISTBOX_APPEND_SORTED, 0, chl_pass->pw_name, NULL);
++                listbox_add_item (chl_list, LISTBOX_APPEND_SORTED, 0, chl_pass->pw_name, NULL,
++                                  FALSE);
+             endpwent ();
+             fe = listbox_search_text (chl_list, get_owner (sf_stat->st_uid));
+         }
+@@ -358,7 +359,8 @@ do_enter_key (WDialog * h, int f_pos)
+             /* get and put group names in the listbox */
+             setgrent ();
+             while ((chl_grp = getgrent ()) != NULL)
+-                listbox_add_item (chl_list, LISTBOX_APPEND_SORTED, 0, chl_grp->gr_name, NULL);
++                listbox_add_item (chl_list, LISTBOX_APPEND_SORTED, 0, chl_grp->gr_name, NULL,
++                                  FALSE);
+             endgrent ();
+             fe = listbox_search_text (chl_list, get_group (sf_stat->st_gid));
+         }
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 82a93ee..875eb1b 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -205,7 +205,7 @@ sel_skin_button (WButton * button, int action)
+     skin_list = listbox_new (1, 1, 11, 22, FALSE, NULL);
+     skin_name = "default";
+     listbox_add_item (skin_list, LISTBOX_APPEND_AT_END, 0, skin_name_to_label (skin_name),
+-                      (void *) skin_name);
++                      (void *) skin_name, FALSE);
+ 
+     if (strcmp (skin_name, current_skin_name) == 0)
+         listbox_select_entry (skin_list, 0);
+@@ -216,7 +216,7 @@ sel_skin_button (WButton * button, int action)
+         if (strcmp (skin_name, "default") != 0)
+         {
+             listbox_add_item (skin_list, LISTBOX_APPEND_AT_END, 0, skin_name_to_label (skin_name),
+-                              (void *) skin_name);
++                              (void *) skin_name, FALSE);
+             if (strcmp (skin_name, current_skin_name) == 0)
+                 listbox_select_entry (skin_list, pos);
+             pos++;
+@@ -467,7 +467,7 @@ jobs_fill_listbox (WListbox * list)
+         char *s;
+ 
+         s = g_strconcat (state_str[tl->state], " ", tl->info, (char *) NULL);
+-        listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, s, (void *) tl);
++        listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, s, (void *) tl, FALSE);
+         g_free (s);
+     }
+ }
+diff --git a/src/filemanager/chown.c b/src/filemanager/chown.c
+index 41d800a..263efe9 100644
+--- a/src/filemanager/chown.c
++++ b/src/filemanager/chown.c
+@@ -218,22 +218,22 @@ init_chown (void)
+     l_user = listbox_new (3, 4, GH - 2, GW - 2, FALSE, NULL);
+     add_widget (ch_dlg, l_user);
+     /* add field for unknown names (numbers) */
+-    listbox_add_item (l_user, LISTBOX_APPEND_AT_END, 0, _("<Unknown user>"), NULL);
++    listbox_add_item (l_user, LISTBOX_APPEND_AT_END, 0, _("<Unknown user>"), NULL, FALSE);
+     /* get and put user names in the listbox */
+     setpwent ();
+     while ((l_pass = getpwent ()) != NULL)
+-        listbox_add_item (l_user, LISTBOX_APPEND_SORTED, 0, l_pass->pw_name, NULL);
++        listbox_add_item (l_user, LISTBOX_APPEND_SORTED, 0, l_pass->pw_name, NULL, FALSE);
+     endpwent ();
+ 
+     add_widget (ch_dlg, groupbox_new (2, 4 + GW, GH, GW, _("Group name")));
+     l_group = listbox_new (3, 5 + GW, GH - 2, GW - 2, FALSE, NULL);
+     add_widget (ch_dlg, l_group);
+     /* add field for unknown names (numbers) */
+-    listbox_add_item (l_group, LISTBOX_APPEND_AT_END, 0, _("<Unknown group>"), NULL);
++    listbox_add_item (l_group, LISTBOX_APPEND_AT_END, 0, _("<Unknown group>"), NULL, FALSE);
+     /* get and put group names in the listbox */
+     setgrent ();
+     while ((l_grp = getgrent ()) != NULL)
+-        listbox_add_item (l_group, LISTBOX_APPEND_SORTED, 0, l_grp->gr_name, NULL);
++        listbox_add_item (l_group, LISTBOX_APPEND_SORTED, 0, l_grp->gr_name, NULL, FALSE);
+     endgrent ();
+ 
+     add_widget (ch_dlg, groupbox_new (2, 5 + GW * 2, GH, GW, _("File")));
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 557964e..fabafc1 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -541,7 +541,7 @@ set_basic_panel_listing_to (int panel_index, int listing_mode)
+ 
+ gboolean
+ view_file_at_line (const vfs_path_t * filename_vpath, gboolean plain_view, gboolean internal,
+-                   long start_line)
++                   long start_line, off_t search_start, off_t search_end)
+ {
+     gboolean ret = TRUE;
+ 
+@@ -564,7 +564,7 @@ view_file_at_line (const vfs_path_t * filename_vpath, gboolean plain_view, gbool
+         mcview_default_nroff_flag = 0;
+         mcview_default_magic_flag = 0;
+ 
+-        ret = mcview_viewer (NULL, filename_vpath, start_line);
++        ret = mcview_viewer (NULL, filename_vpath, start_line, search_start, search_end);
+ 
+         if (changed_hex_mode && !mcview_altered_hex_mode)
+             mcview_default_hex_mode = 1;
+@@ -587,7 +587,7 @@ view_file_at_line (const vfs_path_t * filename_vpath, gboolean plain_view, gbool
+         ret = (regex_command (filename_vpath, view_entry) == 0);
+         if (ret)
+         {
+-            ret = mcview_viewer (NULL, filename_vpath, start_line);
++            ret = mcview_viewer (NULL, filename_vpath, start_line, search_start, search_end);
+             dialog_switch_process_pending ();
+         }
+     }
+@@ -623,7 +623,7 @@ view_file_at_line (const vfs_path_t * filename_vpath, gboolean plain_view, gbool
+ gboolean
+ view_file (const vfs_path_t * filename_vpath, gboolean plain_view, gboolean internal)
+ {
+-    return view_file_at_line (filename_vpath, plain_view, internal, 0);
++    return view_file_at_line (filename_vpath, plain_view, internal, 0, 0, 0);
+ }
+ 
+ 
+@@ -687,7 +687,7 @@ view_filtered_cmd (void)
+ 
+     if (command != NULL)
+     {
+-        mcview_viewer (command, NULL, 0);
++        mcview_viewer (command, NULL, 0, 0, 0);
+         g_free (command);
+         dialog_switch_process_pending ();
+     }
+diff --git a/src/filemanager/cmd.h b/src/filemanager/cmd.h
+index 892f1ce..cc57e49 100644
+--- a/src/filemanager/cmd.h
++++ b/src/filemanager/cmd.h
+@@ -44,7 +44,8 @@ void smart_dirsize_cmd (void);
+ void single_dirsize_cmd (void);
+ void dirsizes_cmd (void);
+ gboolean view_file_at_line (const vfs_path_t * filename_vpath, gboolean plain_view,
+-                            gboolean internal, long start_line);
++                            gboolean internal, long start_line, off_t search_start,
++                            off_t search_end);
+ gboolean view_file (const vfs_path_t * filename_vpath, gboolean normal, gboolean internal);
+ void view_cmd (void);
+ void view_file_cmd (void);
+diff --git a/src/filemanager/ext.c b/src/filemanager/ext.c
+index 2fa9ae5..b8f7da3 100644
+--- a/src/filemanager/ext.c
++++ b/src/filemanager/ext.c
+@@ -364,9 +364,9 @@ exec_extension_view (void *target, char *cmd, const vfs_path_t * filename_vpath,
+         changed_nroff_flag = 1;
+ 
+     if (target == NULL)
+-        mcview_viewer (cmd, filename_vpath, start_line);
++        mcview_viewer (cmd, filename_vpath, start_line, 0, 0);
+     else
+-        mcview_load ((mcview_t *) target, cmd, vfs_path_as_str (filename_vpath), start_line);
++        mcview_load ((mcview_t *) target, cmd, vfs_path_as_str (filename_vpath), start_line, 0, 0);
+ 
+     if (changed_hex_mode && !mcview_altered_hex_mode)
+         mcview_default_hex_mode = def_hex_mode;
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index 1b829b3..980f60c 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -111,6 +111,13 @@ typedef struct
+     char *ignore_dirs;
+ } find_file_options_t;
+ 
++typedef struct
++{
++    char *dir;
++    gsize start;
++    gsize end;
++} find_match_location_t;
++
+ /*** file scope variables ************************************************************************/
+ 
+ /* button callbacks */
+@@ -157,6 +164,8 @@ static struct timeval last_refresh;
+ static gboolean resuming;
+ static int last_line;
+ static int last_pos;
++static off_t last_off;
++static int last_i;
+ 
+ static size_t ignore_count = 0;
+ 
+@@ -332,7 +341,7 @@ find_save_options (void)
+ static inline char *
+ add_to_list (const char *text, void *data)
+ {
+-    return listbox_add_item (find_list, LISTBOX_APPEND_AT_END, 0, text, data);
++    return listbox_add_item (find_list, LISTBOX_APPEND_AT_END, 0, text, data, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -364,9 +373,24 @@ found_num_update (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-get_list_info (char **file, char **dir)
++get_list_info (char **file, char **dir, gsize * start, gsize * end)
+ {
+-    listbox_get_current (find_list, file, (void **) dir);
++    find_match_location_t *location;
++    listbox_get_current (find_list, file, (void **) &location);
++    if (location != NULL)
++    {
++        if (dir != NULL)
++            *dir = location->dir;
++        if (start != NULL)
++            *start = location->start;
++        if (end != NULL)
++            *end = location->end;
++    }
++    else
++    {
++        if (dir != NULL)
++            *dir = NULL;
++    }
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -825,10 +849,11 @@ clear_stack (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-insert_file (const char *dir, const char *file)
++insert_file (const char *dir, const char *file, gsize start, gsize end)
+ {
+     char *tmp_name = NULL;
+     static char *dirname = NULL;
++    find_match_location_t *location;
+ 
+     while (IS_PATH_SEP (dir[0]) && IS_PATH_SEP (dir[1]))
+         dir++;
+@@ -849,16 +874,20 @@ insert_file (const char *dir, const char *file)
+     }
+ 
+     tmp_name = g_strdup_printf ("    %s", file);
+-    add_to_list (tmp_name, dirname);
++    location = g_malloc (sizeof (*location));
++    location->dir = dirname;
++    location->start = start;
++    location->end = end;
++    add_to_list (tmp_name, location);
+     g_free (tmp_name);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-find_add_match (const char *dir, const char *file)
++find_add_match (const char *dir, const char *file, gsize start, gsize end)
+ {
+-    insert_file (dir, file);
++    insert_file (dir, file, start, end);
+ 
+     /* Don't scroll */
+     if (matches == 0)
+@@ -967,11 +996,14 @@ search_content (WDialog * h, const char *directory, const char *filename)
+         int line = 1;
+         int pos = 0;
+         int n_read = 0;
++        off_t off = 0;          /* file_fd's offset corresponding to strbuf[0] */
+         gboolean found = FALSE;
+         gsize found_len;
++        gsize found_start;
+         char result[BUF_MEDIUM];
+         char *strbuf = NULL;    /* buffer for fetched string */
+         int strbuf_size = 0;
++        int i = -1;             /* compensate for a newline we'll add when we first enter the loop */
+ 
+         if (resuming)
+         {
+@@ -979,12 +1011,15 @@ search_content (WDialog * h, const char *directory, const char *filename)
+             resuming = FALSE;
+             line = last_line;
+             pos = last_pos;
++            off = last_off;
++            i = last_i;
+         }
+ 
+         while (!ret_val)
+         {
+             char ch = '\0';
+-            int i = 0;
++            off += i + 1;       /* the previous line, plus a newline character */
++            i = 0;
+ 
+             /* read to buffer and get line from there */
+             while (TRUE)
+@@ -1002,7 +1037,10 @@ search_content (WDialog * h, const char *directory, const char *filename)
+                 {
+                     /* skip possible leading zero(s) */
+                     if (i == 0)
++                    {
++                        off++;
+                         continue;
++                    }
+                     break;
+                 }
+ 
+@@ -1045,7 +1083,8 @@ search_content (WDialog * h, const char *directory, const char *filename)
+                 }
+ 
+                 g_snprintf (result, sizeof (result), "%d:%s", line, filename);
+-                find_add_match (directory, result);
++                found_start = off + search_content_handle->normal_offset + 1;   /* off by one: ticket 3280 */
++                find_add_match (directory, result, found_start, found_start + found_len);
+                 found = TRUE;
+             }
+ 
+@@ -1073,6 +1112,8 @@ search_content (WDialog * h, const char *directory, const char *filename)
+                     resuming = TRUE;
+                     last_line = line;
+                     last_pos = pos;
++                    last_off = off;
++                    last_i = i;
+                     ret_val = TRUE;
+                     break;
+                 default:
+@@ -1301,7 +1342,7 @@ do_search (WDialog * h)
+             if (search_ok)
+             {
+                 if (content_pattern == NULL)
+-                    find_add_match (directory, dp->d_name);
++                    find_add_match (directory, dp->d_name, 0, 0);
+                 else if (search_content (h, directory, dp->d_name))
+                     return 1;
+             }
+@@ -1336,7 +1377,8 @@ init_find_vars (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-find_do_view_edit (gboolean unparsed_view, gboolean edit, char *dir, char *file)
++find_do_view_edit (gboolean unparsed_view, gboolean edit, char *dir, char *file, off_t search_start,
++                   off_t search_end)
+ {
+     char *fullname = NULL;
+     const char *filename = NULL;
+@@ -1358,7 +1400,8 @@ find_do_view_edit (gboolean unparsed_view, gboolean edit, char *dir, char *file)
+     if (edit)
+         edit_file_at_line (fullname_vpath, use_internal_edit != 0, line);
+     else
+-        view_file_at_line (fullname_vpath, unparsed_view, use_internal_view != 0, line);
++        view_file_at_line (fullname_vpath, unparsed_view, use_internal_view != 0, line,
++                           search_start, search_end);
+     vfs_path_free (fullname_vpath);
+     g_free (fullname);
+ }
+@@ -1368,15 +1411,15 @@ find_do_view_edit (gboolean unparsed_view, gboolean edit, char *dir, char *file)
+ static cb_ret_t
+ view_edit_currently_selected_file (gboolean unparsed_view, gboolean edit)
+ {
+-    char *dir = NULL;
+     char *text = NULL;
++    find_match_location_t *location;
+ 
+-    listbox_get_current (find_list, &text, (void **) &dir);
++    listbox_get_current (find_list, &text, (void **) &location);
+ 
+-    if ((text == NULL) || (dir == NULL))
++    if ((text == NULL) || (location == NULL) || (location->dir == NULL))
+         return MSG_NOT_HANDLED;
+ 
+-    find_do_view_edit (unparsed_view, edit, dir, text);
++    find_do_view_edit (unparsed_view, edit, location->dir, text, location->start, location->end);
+     return MSG_HANDLED;
+ }
+ 
+@@ -1647,7 +1690,7 @@ do_find (const char *start_dir, ssize_t start_dir_len, const char *ignore_dirs,
+     /* Clear variables */
+     init_find_vars ();
+ 
+-    get_list_info (&file_tmp, &dir_tmp);
++    get_list_info (&file_tmp, &dir_tmp, NULL, NULL);
+ 
+     if (dir_tmp)
+         *dirname = g_strdup (dir_tmp);
+@@ -1670,9 +1713,10 @@ do_find (const char *start_dir, ssize_t start_dir_len, const char *ignore_dirs,
+         {
+             const char *lc_filename = NULL;
+             WLEntry *le = LENTRY (entry->data);
++            find_match_location_t *location = le->data;
+             char *p;
+ 
+-            if ((le->text == NULL) || (le->data == NULL))
++            if ((le->text == NULL) || (location == NULL) || (location->dir == NULL))
+                 continue;
+ 
+             if (content_pattern != NULL)
+@@ -1680,7 +1724,7 @@ do_find (const char *start_dir, ssize_t start_dir_len, const char *ignore_dirs,
+             else
+                 lc_filename = le->text + 4;
+ 
+-            name = mc_build_filename (le->data, lc_filename, (char *) NULL);
++            name = mc_build_filename (location->dir, lc_filename, (char *) NULL);
+             /* skip initial start dir */
+             if (start_dir_len < 0)
+                 p = name;
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index 3d76082..869ef08 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -290,12 +290,12 @@ fill_listbox (WListbox * list)
+                 g_string_truncate (buff, 0);
+                 g_string_append (buff, "->");
+                 g_string_append (buff, current->label);
+-                listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, buff->str, current);
++                listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, buff->str, current, FALSE);
+             }
+             break;
+         case HL_TYPE_DOTDOT:
+         case HL_TYPE_ENTRY:
+-            listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, current->label, current);
++            listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, current->label, current, FALSE);
+         default:
+             break;
+         }
+@@ -328,7 +328,7 @@ unlink_entry (struct hotlist *entry)
+ static void
+ add_name_to_list (const char *path)
+ {
+-    listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, path, 0);
++    listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, path, 0, FALSE);
+ }
+ #endif /* !ENABLE_VFS */
+ 
+@@ -476,7 +476,7 @@ hotlist_button_callback (WButton * button, int action)
+ 
+     case B_REFRESH_VFS:
+         listbox_remove_list (l_hotlist);
+-        listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, mc_config_get_home_dir (), 0);
++        listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, mc_config_get_home_dir (), 0, FALSE);
+         vfs_fill_names (add_name_to_list);
+         return 0;
+ #endif /* ENABLE_VFS */
+@@ -762,7 +762,7 @@ init_hotlist (hotlist_t list_type)
+ #ifdef ENABLE_VFS
+     if (list_type == LIST_VFSLIST)
+     {
+-        listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, mc_config_get_home_dir (), 0);
++        listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, mc_config_get_home_dir (), 0, FALSE);
+         vfs_fill_names (add_name_to_list);
+     }
+     else
+@@ -948,11 +948,11 @@ add2hotlist (char *label, char *directory, enum HotListType type, listbox_append
+             char *lbl;
+ 
+             lbl = g_strconcat ("->", new->label, (char *) NULL);
+-            listbox_add_item (l_hotlist, pos, 0, lbl, new);
++            listbox_add_item (l_hotlist, pos, 0, lbl, new, FALSE);
+             g_free (lbl);
+         }
+         else
+-            listbox_add_item (l_hotlist, pos, 0, new->label, new);
++            listbox_add_item (l_hotlist, pos, 0, new->label, new, FALSE);
+         listbox_select_entry (l_hotlist, l_hotlist->pos);
+     }
+ 
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 7b948d1..3fa3827 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -1021,7 +1021,7 @@ set_display_type (int num, panel_view_mode_t type)
+         else
+             file_name = "";
+ 
+-        mcview_load ((struct mcview_struct *) new_widget, 0, file_name, 0);
++        mcview_load ((struct mcview_struct *) new_widget, 0, file_name, 0, 0, 0);
+         break;
+ 
+     default:
+diff --git a/src/filemanager/listmode.c b/src/filemanager/listmode.c
+index 2504c93..3a01166 100644
+--- a/src/filemanager/listmode.c
++++ b/src/filemanager/listmode.c
+@@ -120,7 +120,8 @@ select_new_item (void)
+     mylistbox = create_listbox_window (20, 12, "Add listing format item", listmode_section);
+     for (i = 0; possible_items[i]; i++)
+     {
+-        listbox_add_item (mylistbox->list, LISTBOX_APPEND_AT_END, 0, possible_items[i], NULL);
++        listbox_add_item (mylistbox->list, LISTBOX_APPEND_AT_END, 0, possible_items[i], NULL,
++                          FALSE);
+     }
+ 
+     i = run_listbox (mylistbox);
+@@ -155,7 +156,7 @@ badd_cback (int action)
+     char *s = select_new_item ();
+     if (s)
+     {
+-        listbox_add_item (l_listmode, LISTBOX_APPEND_AT_END, 0, s, NULL);
++        listbox_add_item (l_listmode, LISTBOX_APPEND_AT_END, 0, s, NULL, FALSE);
+         g_free (s);
+     }
+     return 0;
+@@ -250,7 +251,7 @@ init_listmode (char *oldlistformat)
+ 
+     while (s)
+     {
+-        listbox_add_item (l_listmode, LISTBOX_APPEND_AT_END, 0, s, NULL);
++        listbox_add_item (l_listmode, LISTBOX_APPEND_AT_END, 0, s, NULL, FALSE);
+         s = strtok (NULL, ",");
+     }
+ 
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 893357d..328e7c7 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -179,7 +179,7 @@ init_panelize (void)
+ 
+     l_panelize = listbox_new (y, UX + 1, 10, panelize_cols - UX * 2 - 2, FALSE, NULL);
+     for (current = panelize; current != NULL; current = current->next)
+-        listbox_add_item (l_panelize, LISTBOX_APPEND_AT_END, 0, current->label, current);
++        listbox_add_item (l_panelize, LISTBOX_APPEND_AT_END, 0, current->label, current, FALSE);
+     listbox_select_entry (l_panelize, listbox_search_text (l_panelize, _("Other command")));
+     add_widget (panelize_dlg, l_panelize);
+ 
+diff --git a/src/filemanager/usermenu.c b/src/filemanager/usermenu.c
+index fc593b5..e63564f 100644
+--- a/src/filemanager/usermenu.c
++++ b/src/filemanager/usermenu.c
+@@ -550,7 +550,7 @@ execute_menu_command (WEdit * edit_widget, const char *commands, gboolean show_p
+     mc_chmod (file_name_vpath, S_IRWXU);
+     if (run_view)
+     {
+-        mcview_viewer (vfs_path_as_str (file_name_vpath), NULL, 0);
++        mcview_viewer (vfs_path_as_str (file_name_vpath), NULL, 0, 0, 0);
+         dialog_switch_process_pending ();
+     }
+     else
+@@ -1107,7 +1107,7 @@ user_menu_cmd (struct WEdit * edit_widget, const char *menu_file, int selected_e
+             {
+                 p = entries[i];
+                 LISTBOX_APPEND_TEXT (listbox, (unsigned char) p[0],
+-                                     extract_line (p, p + MAX_ENTRY_LEN), p);
++                                     extract_line (p, p + MAX_ENTRY_LEN), p, FALSE);
+             }
+             /* Select the default entry */
+             listbox_select_entry (listbox->list, selected);
+diff --git a/src/selcodepage.c b/src/selcodepage.c
+index 57f76c6..9bb6d24 100644
+--- a/src/selcodepage.c
++++ b/src/selcodepage.c
+@@ -86,20 +86,20 @@ select_charset (int center_y, int center_x, int current_charset, gboolean seldis
+                                                        "[Codepages Translation]");
+ 
+     if (!seldisplay)
+-        LISTBOX_APPEND_TEXT (listbox, '-', _("-  < No translation >"), NULL);
++        LISTBOX_APPEND_TEXT (listbox, '-', _("-  < No translation >"), NULL, FALSE);
+ 
+     /* insert all the items found */
+     for (i = 0; i < codepages->len; i++)
+     {
+         const char *name = ((codepage_desc *) g_ptr_array_index (codepages, i))->name;
+         g_snprintf (buffer, sizeof (buffer), "%c  %s", get_hotkey (i), name);
+-        LISTBOX_APPEND_TEXT (listbox, get_hotkey (i), buffer, NULL);
++        LISTBOX_APPEND_TEXT (listbox, get_hotkey (i), buffer, NULL, FALSE);
+     }
+     if (seldisplay)
+     {
+         unsigned char hotkey = get_hotkey (codepages->len);
+         g_snprintf (buffer, sizeof (buffer), "%c  %s", hotkey, _("Other 8 bit"));
+-        LISTBOX_APPEND_TEXT (listbox, hotkey, buffer, NULL);
++        LISTBOX_APPEND_TEXT (listbox, hotkey, buffer, NULL, FALSE);
+     }
+ 
+     /* Select the default entry */
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index 20fdbf1..492dcfa 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -210,7 +210,7 @@ mcview_hook (void *v)
+ 
+     mcview_done (view);
+     mcview_init (view);
+-    mcview_load (view, 0, panel->dir.list[panel->selected].fname, 0);
++    mcview_load (view, 0, panel->dir.list[panel->selected].fname, 0, 0, 0);
+     mcview_display (view);
+ }
+ 
+@@ -369,7 +369,7 @@ mcview_load_next_prev (mcview_t * view, int direction)
+     mcview_remove_ext_script (view);
+     mcview_init (view);
+     if (regex_command_for (view, vfile, "View", &ext_script) == 0)
+-        mcview_load (view, NULL, vfs_path_as_str (vfile), 0);
++        mcview_load (view, NULL, vfs_path_as_str (vfile), 0, 0, 0);
+     vfs_path_free (vfile);
+     view->dir = dir;
+     view->dir_idx = dir_idx;
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index 2528c10..4d72f60 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -91,7 +91,7 @@ mcview_toggle_magic_mode (mcview_t * view)
+     view->dir_idx = NULL;
+     mcview_done (view);
+     mcview_init (view);
+-    mcview_load (view, command, filename, 0);
++    mcview_load (view, command, filename, 0, 0, 0);
+     view->dir = dir;
+     view->dir_idx = dir_idx;
+     g_free (filename);
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index a34099b..530ac31 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -232,7 +232,8 @@ mcview_new (int y, int x, int lines, int cols, gboolean is_panel)
+ /** Real view only */
+ 
+ gboolean
+-mcview_viewer (const char *command, const vfs_path_t * file_vpath, int start_line)
++mcview_viewer (const char *command, const vfs_path_t * file_vpath, int start_line,
++               off_t search_start, off_t search_end)
+ {
+     gboolean succeeded;
+     mcview_t *lc_mcview;
+@@ -249,7 +250,9 @@ mcview_viewer (const char *command, const vfs_path_t * file_vpath, int start_lin
+ 
+     view_dlg->get_title = mcview_get_title;
+ 
+-    succeeded = mcview_load (lc_mcview, command, vfs_path_as_str (file_vpath), start_line);
++    succeeded =
++        mcview_load (lc_mcview, command, vfs_path_as_str (file_vpath), start_line, search_start,
++                     search_end);
+ 
+     if (succeeded)
+         dlg_run (view_dlg);
+@@ -267,7 +270,8 @@ mcview_viewer (const char *command, const vfs_path_t * file_vpath, int start_lin
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ gboolean
+-mcview_load (mcview_t * view, const char *command, const char *file, int start_line)
++mcview_load (mcview_t * view, const char *command, const char *file, int start_line,
++             off_t search_start, off_t search_end)
+ {
+     gboolean retval = FALSE;
+     vfs_path_t *vpath = NULL;
+@@ -409,8 +413,6 @@ mcview_load (mcview_t * view, const char *command, const char *file, int start_l
+     mcview_state_machine_init (&view->dpy_state_top, 0);
+     view->dpy_wrap_dirty = FALSE;
+     view->force_max = -1;
+-    view->search_start = 0;
+-    view->search_end = 0;
+     view->dpy_text_column = 0;
+ 
+     mcview_compute_areas (view);
+@@ -441,6 +443,8 @@ mcview_load (mcview_t * view, const char *command, const char *file, int start_l
+     else if (start_line > 0)
+         mcview_moveto (view, start_line - 1, 0);
+ 
++    view->search_start = search_start;
++    view->search_end = search_end;
+     view->hexedit_lownibble = FALSE;
+     view->hexview_in_text = FALSE;
+     view->change_list = NULL;
+diff --git a/src/viewer/mcviewer.h b/src/viewer/mcviewer.h
+index e68642b..89c4073 100644
+--- a/src/viewer/mcviewer.h
++++ b/src/viewer/mcviewer.h
+@@ -43,10 +43,11 @@ extern mcview_t *mcview_new (int y, int x, int lines, int cols, gboolean is_pane
+ /* Shows {file} or the output of {command} in the internal viewer,
+  * starting in line {start_line}.
+  */
+-extern gboolean mcview_viewer (const char *command, const vfs_path_t * file_vpath, int start_line);
++extern gboolean mcview_viewer (const char *command, const vfs_path_t * file_vpath, int start_line,
++                               off_t search_start, off_t search_end);
+ 
+ extern gboolean mcview_load (mcview_t * view, const char *command, const char *file,
+-                             int start_line);
++                             int start_line, off_t search_start, off_t search_end);
+ 
+ /*** inline functions ****************************************************************************/
+ #endif /* MC__VIEWER_H */

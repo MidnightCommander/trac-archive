@@ -1,0 +1,79 @@
+From 421e03211d49f6129a02d88b39771763699d8e95 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 17:36:34 +0000
+Subject: [PATCH 04/05] sftp: fix connection memleaks (cosmetic)
+
+re-order open_connection and reverse re-order close_connection steps
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/connection.c | 25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
+
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index b3fe4d0..03a5b7e 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -369,15 +369,9 @@ sftpfs_open_connection (struct vfs_s_super *super, GError ** mcerror)
+     super_data = (sftpfs_super_data_t *) super->data;
+ 
+     super_data->session = NULL;
+-    super_data->socket_handle = -1;
+     super_data->agent = NULL;
+     super_data->sftp_session = NULL;
+ 
+-    /* Create a session instance */
+-    super_data->session = libssh2_session_init ();
+-    if (super_data->session == NULL)
+-        return (-1);
+-
+     /*
+      * The application code is responsible for creating the socket
+      * and establishing the connection
+@@ -386,6 +380,11 @@ sftpfs_open_connection (struct vfs_s_super *super, GError ** mcerror)
+     if (super_data->socket_handle == -1)
+         return (-1);
+ 
++    /* Create a session instance */
++    super_data->session = libssh2_session_init ();
++    if (super_data->session == NULL)
++        return (-1);
++
+     /* ... start it up. This will trade welcome banners, exchange keys,
+      * and setup crypto, compression, and MAC layers
+      */
+@@ -442,6 +441,12 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+     if (super_data == NULL)
+         return;
+ 
++    if (super_data->sftp_session != NULL)
++    {
++        libssh2_sftp_shutdown (super_data->sftp_session);
++        super_data->sftp_session = NULL;
++    }
++
+     if (super_data->agent != NULL)
+     {
+         libssh2_agent_disconnect (super_data->agent);
+@@ -449,11 +454,7 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+         super_data->agent = NULL;
+     }
+ 
+-    if (super_data->sftp_session != NULL)
+-    {
+-        libssh2_sftp_shutdown (super_data->sftp_session);
+-        super_data->sftp_session = NULL;
+-    }
++    super_data->fingerprint = NULL;
+ 
+     if (super_data->session != NULL)
+     {
+@@ -462,8 +463,6 @@ sftpfs_close_connection (struct vfs_s_super *super, const char *shutdown_message
+         super_data->session = NULL;
+     }
+ 
+-    super_data->fingerprint = NULL;
+-
+     if (super_data->socket_handle != -1)
+     {
+         close (super_data->socket_handle);

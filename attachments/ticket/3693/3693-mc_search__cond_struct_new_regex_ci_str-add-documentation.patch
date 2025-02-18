@@ -1,0 +1,36 @@
+From c124965799fa9052e74756ab78d03714c6e54fff Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 1 Dec 2016 16:14:27 +0200
+Subject: [PATCH] (mc_search__cond_struct_new_regex_ci_str): add documentation.
+
+---
+ lib/search/regex.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index e8d896c..863fb57 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -195,6 +195,19 @@ mc_search__cond_struct_new_regex_accum_append (const char *charset, GString * st
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Creates a case-insensitive version of a regex pattern.
++ *
++ * For example (assuming ASCII charset): given "\\bHello!\\xAB", returns
++ * "\\b[Hh][Ee][Ll][Ll][Oo]!\\xAB" (this example is for easier reading; in
++ * reality hex codes are used instead of letters).
++ *
++ * This function knows not to ruin special regex symbols.
++ *
++ * This function is used when working with non-UTF-8 charsets: GLib's
++ * regex engine doesn't understand such charsets and therefore can't do
++ * this job itself.
++ */
+ static GString *
+ mc_search__cond_struct_new_regex_ci_str (const char *charset, const GString * astr)
+ {
+-- 
+2.9.3
+

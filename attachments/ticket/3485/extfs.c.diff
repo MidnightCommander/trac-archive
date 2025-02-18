@@ -1,0 +1,8 @@
+1156d1155
+<     struct stat tmp_stat;
+1158,1162d1156
+<     if (!stat(file->entry->inode->local_filename,&tmp_stat))
+< 	{
+< 	    file->entry->inode->mtime = tmp_stat.st_mtime;
+< 	    file->entry->inode->atime = tmp_stat.st_atime;
+< 	}

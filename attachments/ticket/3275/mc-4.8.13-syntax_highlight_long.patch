@@ -1,0 +1,285 @@
+fix ticket #3275 - Highlight %lf in C code in mcedit
+
+not all combinations are valid, but was before also not
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+diff -ruN mc-4.8.13/misc/syntax/awk.syntax mc-4.8.13.patch/misc/syntax/awk.syntax
+--- mc-4.8.13/misc/syntax/awk.syntax	2013-05-22 17:55:01.000000000 +0200
++++ mc-4.8.13.patch/misc/syntax/awk.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -160,7 +160,7 @@
+     keyword \\" brightgreen/16
+     keyword \\\n brightgreen/16
+     keyword %% brightgreen/16
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen/16
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen/16
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diu\} brightgreen/16
+     keyword %\[hl\]n brightgreen/16
+     keyword %\[.\]\[0123456789\]s brightgreen/16
+diff -ruN mc-4.8.13/misc/syntax/cabal.syntax mc-4.8.13.patch/misc/syntax/cabal.syntax
+--- mc-4.8.13/misc/syntax/cabal.syntax	2013-05-22 17:55:01.000000000 +0200
++++ mc-4.8.13.patch/misc/syntax/cabal.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -259,7 +259,7 @@
+ 
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/cs.syntax mc-4.8.13.patch/misc/syntax/cs.syntax
+--- mc-4.8.13/misc/syntax/cs.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/cs.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -136,7 +136,7 @@
+     spellcheck
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/c.syntax mc-4.8.13.patch/misc/syntax/c.syntax
+--- mc-4.8.13/misc/syntax/c.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/c.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -95,7 +95,7 @@
+     spellcheck
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/cxx.syntax mc-4.8.13.patch/misc/syntax/cxx.syntax
+--- mc-4.8.13/misc/syntax/cxx.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/cxx.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -113,7 +113,7 @@
+     spellcheck
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/cython.syntax mc-4.8.13.patch/misc/syntax/cython.syntax
+--- mc-4.8.13/misc/syntax/cython.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/cython.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -238,7 +238,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diu\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+@@ -255,7 +255,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diu\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+@@ -277,7 +277,7 @@
+ context " " green
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+@@ -292,7 +292,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/d.syntax mc-4.8.13.patch/misc/syntax/d.syntax
+--- mc-4.8.13/misc/syntax/d.syntax	2014-03-13 10:06:03.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/d.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -547,7 +547,7 @@
+     spellcheck
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/haskell.syntax mc-4.8.13.patch/misc/syntax/haskell.syntax
+--- mc-4.8.13/misc/syntax/haskell.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/haskell.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -267,7 +267,7 @@
+ 
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/idl.syntax mc-4.8.13.patch/misc/syntax/idl.syntax
+--- mc-4.8.13/misc/syntax/idl.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/idl.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -94,7 +94,7 @@
+     spellcheck
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diu\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/java.syntax mc-4.8.13.patch/misc/syntax/java.syntax
+--- mc-4.8.13/misc/syntax/java.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/java.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -118,7 +118,7 @@
+     keyword \\" brightgreen
+     keyword \\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/ml.syntax mc-4.8.13.patch/misc/syntax/ml.syntax
+--- mc-4.8.13/misc/syntax/ml.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/ml.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -83,7 +83,7 @@
+     keyword \\" brightmagenta
+     keyword \\n brightmagenta
+     keyword %% brightmagenta
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightmagenta
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightmagenta
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightmagenta
+     keyword %\[hl\]n brightmagenta
+     keyword %\[.\]\[0123456789\]s brightmagenta
+diff -ruN mc-4.8.13/misc/syntax/nemerle.syntax mc-4.8.13.patch/misc/syntax/nemerle.syntax
+--- mc-4.8.13/misc/syntax/nemerle.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/nemerle.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -156,7 +156,7 @@
+     keyword $\[().abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_\*\] brightgreen
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/php.syntax mc-4.8.13.patch/misc/syntax/php.syntax
+--- mc-4.8.13/misc/syntax/php.syntax	2014-08-14 15:29:32.000000000 +0200
++++ mc-4.8.13.patch/misc/syntax/php.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -3119,7 +3119,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diu\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/po.syntax mc-4.8.13.patch/misc/syntax/po.syntax
+--- mc-4.8.13/misc/syntax/po.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/po.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -41,7 +41,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgG\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgG\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diouxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+@@ -58,7 +58,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgG\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgG\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diouxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/python.syntax mc-4.8.13.patch/misc/syntax/python.syntax
+--- mc-4.8.13/misc/syntax/python.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/python.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -209,7 +209,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diu\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+@@ -226,7 +226,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diu\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+@@ -248,7 +248,7 @@
+ context " " green
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+@@ -263,7 +263,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/slang.syntax mc-4.8.13.patch/misc/syntax/slang.syntax
+--- mc-4.8.13/misc/syntax/slang.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/slang.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -97,7 +97,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/swig.syntax mc-4.8.13.patch/misc/syntax/swig.syntax
+--- mc-4.8.13/misc/syntax/swig.syntax	2011-12-19 23:23:13.000000000 +0100
++++ mc-4.8.13.patch/misc/syntax/swig.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -147,7 +147,7 @@
+     keyword \\" brightgreen
+     keyword \\\n brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\]\[.\]\[0123456789\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[.\]\[0123456789\]s brightgreen
+diff -ruN mc-4.8.13/misc/syntax/yxx.syntax mc-4.8.13.patch/misc/syntax/yxx.syntax
+--- mc-4.8.13/misc/syntax/yxx.syntax	2013-05-22 17:55:01.000000000 +0200
++++ mc-4.8.13.patch/misc/syntax/yxx.syntax	2015-02-16 18:00:00.000000000 +0200
+@@ -192,7 +192,7 @@
+     spellcheck
+     keyword \\" brightgreen
+     keyword %% brightgreen
+-    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[L\]\{eEfgGoxX\} brightgreen
++    keyword %\[#0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[Ll\]\{eEfgGoxX\} brightgreen
+     keyword %\[0\s-\+,\]\[0123456789\*\]\[.\]\[0123456789\*\]\[hl\]\{diuxX\} brightgreen
+     keyword %\[hl\]n brightgreen
+     keyword %\[-\]\[0123456789\*\]\[.\]\[0123456789\*\]s brightgreen

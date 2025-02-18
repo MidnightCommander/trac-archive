@@ -1,0 +1,44 @@
+From 9bf43d4debdde213427d37006b28d82647df1175 Mon Sep 17 00:00:00 2001
+From: Sergei Trofimovich <slyfox@inbox.ru>
+Date: Sat, 20 Jun 2009 16:29:44 +0300
+Subject: [PATCH] viewer: Ticket: #410  certain binary treated-as-roff files cause viewer hangup
+
+Hangup state:
+viewer executes program an checks whether it emits data from stdout
+or stderr and receives them via UNIX pipes. Viewer reads stdout
+synchronously (fread). Inferior program tries to write large chunk
+to stderr when viewer is blocked on stdout read. We get a deadlock:
+
+* viewer is blocked reading from empty nonclosed stdout
+* inferior app is blocked by full stderr pipe
+
+To prevent this we close stderr right after first read byte from stdout.
+
+Signed-off-by: Sergei Trofimovich <slyfox@inbox.ru>
+---
+ src/view.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/src/view.c b/src/view.c
+index 59ef83d..53db50f 100644
+--- a/src/view.c
++++ b/src/view.c
+@@ -1936,6 +1936,15 @@ view_load_command_output (WView *view, const char *command)
+ 	if (!close_error_pipe (view_is_in_panel (view) ? -1 : D_ERROR, NULL))
+ 	    view_show_error (view, _("Empty output from child filter"));
+ 	return FALSE;
++    } else {
++	/*
++	 * At least something was read correctly. Close stderr and let
++	 * program die if it will try to write something there.
++	 *
++	 * Ideally stderr should be read asynchronously to prevent programs
++	 * from blocking (poll/select multiplexor).
++	 */
++	close_error_pipe (D_NORMAL, NULL);
+     }
+     return TRUE;
+ }
+-- 
+1.6.0.6
+

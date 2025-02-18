@@ -1,0 +1,11 @@
+--- interface.orig	2016-03-15 16:27:26.000000000 +0200
++++ interface.c	2016-03-15 16:27:57.000000000 +0200
+@@ -200,7 +200,7 @@
+     {
+         va_list ap;
+         va_start (ap, flags);
+-        mode = va_arg (ap, mode_t);
++        mode = va_arg (ap, int);
+         va_end (ap);
+     }
+ 

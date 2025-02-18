@@ -1,0 +1,51 @@
+*** mc -V
+
+GNU Midnight Commander 4.8.0-pre2
+Built with GLib 2.24.2
+Using the S-Lang library with terminfo database
+With builtin Editor
+With subshell support as default
+With support for background operations
+With mouse support on xterm and Linux console
+With support for X11 events
+With internationalization support
+With multiple codepages support
+Virtual File Systems: cpiofs, tarfs, sfs, extfs, ftpfs, fish
+Data types: char: 8; int: 32; long: 32; void *: 32; size_t: 32; off_t: 64;
+
+*** file ~/test.tar; file --version
+
+/home/andrey/test.tar: POSIX tar archive (GNU)
+file-5.04
+magic file from /etc/magic:/usr/share/misc/magic
+
+*** strace -fF -p `pidof -s mc` (related to openning ~/test.tar)
+
+rt_sigaction(SIGINT, {SIG_IGN, [], 0}, NULL, 8) = 0
+select(5, [3 4], NULL, NULL, NULL)      = 1 (in [3])
+select(4, [3], NULL, NULL, {10, 0})     = 1 (in [3], left {9, 999986})
+read(3, "\r", 1)                        = 1
+ioctl(0, TIOCLINUX, 0xbf9a2f7c)         = -1 EINVAL (Invalid argument)
+access("/home/andrey/.local/share/mc/mc.ext", R_OK) = 0
+open("/home/andrey/.local/share/mc/mc.ext", O_RDONLY|O_LARGEFILE) = 8
+fstat64(8, {st_mode=S_IFREG|0644, st_size=18087, ...}) = 0
+read(8, "# Midnight Commander 3.0 extensi"..., 18087) = 18087
+close(8)                                = 0
+stat64("/home/andrey/test.tar", {st_mode=S_IFREG|0644, st_size=136724480, ...}) = 0
+lstat64("/home/andrey/tmp/mc-andrey", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+getuid32()                              = 1000
+gettimeofday({1316599632, 400952}, NULL) = 0
+open("/home/andrey/tmp/mc-andrey/mcextpJShDb", O_RDWR|O_CREAT|O_EXCL|O_TRUNC|O_LARGEFILE, 0600) = 8
+fcntl64(8, F_GETFL)                     = 0x8002 (flags O_RDWR|O_LARGEFILE)
+fstat64(8, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb7185000
+_llseek(8, 0, [0], SEEK_CUR)            = 0
+write(8, "#! /bin/sh\n\n/bin/rm -f /home/and"..., 62) = 62
+close(8)                                = 0
+munmap(0xb7185000, 4096)                = 0
+unlink("/home/andrey/tmp/mc-andrey/mcextpJShDb") = 0
+chdir("/home/andrey/test.tar#utar")     = -1 ENOENT (No such file or directory)
+select(4, [3], NULL, NULL, {0, 0})      = 0 (Timeout)
+select(4, [3], NULL, NULL, {0, 0})      = 0 (Timeout)
+gettimeofday({1316599632, 407323}, NULL) = 0
+rt_sigaction(SIGINT, {0x8070320, [], 0}, NULL, 8) = 0

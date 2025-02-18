@@ -1,0 +1,45 @@
+From abe34f7a0a0e3f696e8de6191e53f4d0707e223b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 28 Sep 2023 22:11:54 +0000
+Subject: [PATCH] (tar.c) remove unused macro and function
+
+tar.c:128:9: warning: macro is not used [-Wunused-macros]
+#define UINTMAX_FROM_HEADER(where) uintmax_from_header (where, sizeof (where))
+        ^
+tar.c:253:1: warning: unused function 'uintmax_from_header' [-Wunused-function]
+uintmax_from_header (const char *p, size_t s)
+
+Found by clang-16
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index f718dc0e7..3554b7322 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -125,7 +125,6 @@ struct tar_stat_info current_stat_info;
+ #define MODE_FROM_HEADER(where,hbits) mode_from_header (where, sizeof (where), hbits)
+ #define TIME_FROM_HEADER(where) time_from_header (where, sizeof (where))
+ #define UID_FROM_HEADER(where) uid_from_header (where, sizeof (where))
+-#define UINTMAX_FROM_HEADER(where) uintmax_from_header (where, sizeof (where))
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+@@ -249,14 +248,6 @@ uid_from_header (const char *p, size_t s)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static inline uintmax_t
+-uintmax_from_header (const char *p, size_t s)
+-{
+-    return tar_from_header (p, s, "uintmax_t", 0, UINTMAX_MAX, FALSE);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+ static void
+ tar_calc_sparse_offsets (struct vfs_s_inode *inode)
+ {

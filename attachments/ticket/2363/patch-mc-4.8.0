@@ -1,0 +1,41 @@
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index 790254b..fc1b345 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -1236,8 +1236,12 @@ input_update (WInput * in, gboolean clear_first)
+     if (!in->is_password)
+     {
+         if (!in->highlight)
++        {
+             tty_print_string (str_term_substring (in->buffer, in->term_first_shown,
+                                                   in->field_width - has_history));
++            widget_move (&in->widget, 0, str_term_width2 (in->buffer, in->point)
++                         - in->term_first_shown);
++        }
+         else
+         {
+             long m1, m2;
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 3ee0a88..4b51050 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -3004,6 +3004,8 @@ panel_callback (Widget * w, widget_msg_t msg, int parm)
+         paint_dir (panel);
+         mini_info_separator (panel);
+         display_mini_info (panel);
++        widget_move(&panel->widget, (panel->selected - panel->top_file) %
++                   llines (panel) + 2, 1);
+         panel->dirty = 0;
+         return MSG_HANDLED;
+ 
+@@ -3636,8 +3638,8 @@ panel_new_with_dir (const char *panel_name, const char *wpath)
+     /* No know sizes of the panel at startup */
+     init_widget (&panel->widget, 0, 0, 0, 0, panel_callback, panel_event);
+ 
+-    /* We do not want the cursor */
+-    widget_want_cursor (panel->widget, 0);
++    /* We do want the cursor */
++    widget_want_cursor (panel->widget, 1);
+ 
+     if (wpath != NULL)
+     {

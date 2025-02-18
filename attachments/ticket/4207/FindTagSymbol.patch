@@ -1,0 +1,28 @@
+From 1054155af26f75caf56fab796fed2547e0f2a83d Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Thu, 18 Feb 2021 23:52:10 -0600
+Subject: Fix "Find declaration" disrupting file's path
+
+---
+ src/editor/editcmd_dialogs.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index 8b3634f23..786cbb4dc 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -483,7 +483,10 @@ editcmd_dialog_select_definition_show (WEdit * edit, char *match_expr, int max_l
+         {
+             vfs_path_free (edit_history_moveto[edit_stack_iterator].filename_vpath);
+ 
+-            if (edit->dir_vpath != NULL)
++            /* Is file path absolute? Prepend with dir_vpath if necessary */
++            if (edit->filename_vpath != NULL
++                && !IS_PATH_SEP (*vfs_path_as_str (edit->filename_vpath))
++                && edit->dir_vpath != NULL)
+                 edit_history_moveto[edit_stack_iterator].filename_vpath =
+                     vfs_path_append_vpath_new (edit->dir_vpath, edit->filename_vpath, NULL);
+             else
+-- 
+2.28.0
+

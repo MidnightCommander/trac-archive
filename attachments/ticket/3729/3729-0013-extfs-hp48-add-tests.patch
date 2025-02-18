@@ -1,0 +1,77 @@
+From 2330bdb89aaa0c37f51346cd35e9367c8dcc841f Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 13 Dec 2016 01:13:00 +0200
+Subject: [PATCH 13/13] extfs: hp48: add tests.
+
+---
+ tests/src/vfs/extfs/helpers-list/Makefile.am       | 4 ++++
+ tests/src/vfs/extfs/helpers-list/data/hp48+.README | 8 ++++++++
+ tests/src/vfs/extfs/helpers-list/data/hp48+.args   | 1 +
+ tests/src/vfs/extfs/helpers-list/data/hp48+.input  | 6 ++++++
+ tests/src/vfs/extfs/helpers-list/data/hp48+.output | 3 +++
+ 5 files changed, 22 insertions(+)
+ create mode 100644 tests/src/vfs/extfs/helpers-list/data/hp48+.README
+ create mode 100644 tests/src/vfs/extfs/helpers-list/data/hp48+.args
+ create mode 100644 tests/src/vfs/extfs/helpers-list/data/hp48+.input
+ create mode 100644 tests/src/vfs/extfs/helpers-list/data/hp48+.output
+
+diff --git a/tests/src/vfs/extfs/helpers-list/Makefile.am b/tests/src/vfs/extfs/helpers-list/Makefile.am
+index 06cb9ef..a0a28e9 100644
+--- a/tests/src/vfs/extfs/helpers-list/Makefile.am
++++ b/tests/src/vfs/extfs/helpers-list/Makefile.am
+@@ -22,6 +22,10 @@ mc_parse_ls_l_SOURCES = \
+ 	mc_parse_ls_l.c
+ 
+ data_files_to_distribute = \
++	data/hp48+.README \
++	data/hp48+.args \
++	data/hp48+.input \
++	data/hp48+.output \
+ 	data/lslR.1.spaces.args \
+ 	data/lslR.1.spaces.input \
+ 	data/lslR.1.spaces.output \
+diff --git a/tests/src/vfs/extfs/helpers-list/data/hp48+.README b/tests/src/vfs/extfs/helpers-list/data/hp48+.README
+new file mode 100644
+index 0000000..d87ee97
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/data/hp48+.README
+@@ -0,0 +1,8 @@
++
++The input file was taken from a comment in the helper (after removing
++the "Directory" line (which is tricky to test), and adding the
++not-really-necessary "EOF").
++
++The '--drop-mtime' argument is needed because the helper emits the
++current date, which is always changing, whereas our output files have to
++be constant.
+diff --git a/tests/src/vfs/extfs/helpers-list/data/hp48+.args b/tests/src/vfs/extfs/helpers-list/data/hp48+.args
+new file mode 100644
+index 0000000..990629a
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/data/hp48+.args
+@@ -0,0 +1 @@
++--drop-mtime
+diff --git a/tests/src/vfs/extfs/helpers-list/data/hp48+.input b/tests/src/vfs/extfs/helpers-list/data/hp48+.input
+new file mode 100644
+index 0000000..2204139
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/data/hp48+.input
+@@ -0,0 +1,6 @@
++{ HOME } 105617
++YEN 30.5 Program 53391
++JYTLIGHT 21848.5 String 62692
++IOPAR 37.5 List 61074
++
++EOF
+diff --git a/tests/src/vfs/extfs/helpers-list/data/hp48+.output b/tests/src/vfs/extfs/helpers-list/data/hp48+.output
+new file mode 100644
+index 0000000..3a24e4e
+--- /dev/null
++++ b/tests/src/vfs/extfs/helpers-list/data/hp48+.output
+@@ -0,0 +1,3 @@
++-rw-r--r--   1        0        0         30 /YEN
++-rw-r--r--   1        0        0      21848 /JYTLIGHT
++-rw-r--r--   1        0        0         37 /IOPAR
+-- 
+2.9.3
+

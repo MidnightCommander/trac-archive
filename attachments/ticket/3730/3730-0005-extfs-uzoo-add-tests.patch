@@ -1,0 +1,94 @@
+From 2c15e13d3289126fe37322eac2c27fef5d56d1c7 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 19 Nov 2016 22:43:14 +0200
+Subject: [PATCH 05/11] extfs: uzoo: add tests.
+
+---
+ tests/src/extfs-helpers-listcmd/Makefile.am      |  3 +++
+ tests/src/extfs-helpers-listcmd/data/uzoo.README |  8 ++++++++
+ tests/src/extfs-helpers-listcmd/data/uzoo.input  | 18 ++++++++++++++++++
+ tests/src/extfs-helpers-listcmd/data/uzoo.output | 18 ++++++++++++++++++
+ 4 files changed, 47 insertions(+)
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzoo.README
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzoo.input
+ create mode 100644 tests/src/extfs-helpers-listcmd/data/uzoo.output
+
+diff --git a/tests/src/extfs-helpers-listcmd/Makefile.am b/tests/src/extfs-helpers-listcmd/Makefile.am
+index 8c6105b..22273ca 100644
+--- a/tests/src/extfs-helpers-listcmd/Makefile.am
++++ b/tests/src/extfs-helpers-listcmd/Makefile.am
+@@ -22,6 +22,9 @@ mc_parse_ls_l_SOURCES = \
+ 	mc_parse_ls_l.c
+ 
+ data_files_to_distribute = \
++	data/uzoo.README \
++	data/uzoo.input \
++	data/uzoo.output \
+ 	data/dummy
+ 
+ EXTRA_DIST = mc_xcat test_all $(data_files_to_distribute)
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzoo.README b/tests/src/extfs-helpers-listcmd/data/uzoo.README
+new file mode 100644
+index 0000000..ea3077a
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzoo.README
+@@ -0,0 +1,8 @@
++
++The input file was created by running "zoo lq" on the archive at:
++
++    http://www.midnight-commander.org/ticket/3696
++
++Known bugs in our uzoo:
++- It doesn't support filenames with spaces.
++- It reports '0' gid.
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzoo.input b/tests/src/extfs-helpers-listcmd/data/uzoo.input
+new file mode 100644
+index 0000000..4659744
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzoo.input
+@@ -0,0 +1,18 @@
++       4   0%        4  26 Sep 16 12:56:02+61   тест/тест3/тест2.txt
++       4   0%        4  26 Sep 16 12:56:00+61   тест/тест3/тест1.txt
++       4   0%        4  26 Sep 16 12:56:08+61   тест/тест3/тест3.txt
++       4   0%        4  26 Sep 16 12:56:02+61   тест/тест1/тест2.txt
++       4   0%        4  26 Sep 16 12:56:00+61   тест/тест1/тест1.txt
++       4   0%        4  26 Sep 16 12:56:08+61   тест/тест1/тест3.txt
++       4   0%        4  26 Sep 16 12:56:02+61   тест/тест2/тест2.txt
++       4   0%        4  26 Sep 16 12:56:00+61   тест/тест2/тест1.txt
++       4   0%        4  26 Sep 16 12:56:08+61   тест/тест2/тест3.txt
++       4   0%        4  26 Sep 16 12:56:02+61   тест/test1/тест2.txt
++       4   0%        4  26 Sep 16 12:56:00+61   тест/test1/тест1.txt
++       4   0%        4  26 Sep 16 12:56:08+61   тест/test1/тест3.txt
++       4   0%        4  26 Sep 16 12:56:02+61   тест/test3/тест2.txt
++       4   0%        4  26 Sep 16 12:56:00+61   тест/test3/тест1.txt
++       4   0%        4  26 Sep 16 12:56:08+61   тест/test3/тест3.txt
++       4   0%        4  26 Sep 16 12:56:02+61   тест/test2/тест2.txt
++       4   0%        4  26 Sep 16 12:56:00+61   тест/test2/тест1.txt
++       4   0%        4  26 Sep 16 12:56:08+61   тест/test2/тест3.txt
+diff --git a/tests/src/extfs-helpers-listcmd/data/uzoo.output b/tests/src/extfs-helpers-listcmd/data/uzoo.output
+new file mode 100644
+index 0000000..2e9ad9a
+--- /dev/null
++++ b/tests/src/extfs-helpers-listcmd/data/uzoo.output
+@@ -0,0 +1,18 @@
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест3/тест2.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест3/тест1.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест3/тест3.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест1/тест2.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест1/тест1.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест1/тест3.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест2/тест2.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест2/тест1.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/тест2/тест3.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test1/тест2.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test1/тест1.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test1/тест3.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test3/тест2.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test3/тест1.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test3/тест3.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test2/тест2.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test2/тест1.txt
++-rw-r--r--   1  <<uid>>        0          4 2016-09-26 12:56:00 тест/test2/тест3.txt
+-- 
+2.9.3
+

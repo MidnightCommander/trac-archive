@@ -1,0 +1,139 @@
+From 86baadb5e225e1fd930592a0da04ffcea2699656 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Wed, 3 Mar 2010 16:55:26 +0000
+Subject: [PATCH]  removing unused parm struct vfs_class *
+
+---
+ lib/vfs/mc-vfs/extfs.c    |    8 ++------
+ lib/vfs/mc-vfs/ftpfs.c    |    4 +---
+ lib/vfs/mc-vfs/sfs.c      |    8 ++------
+ lib/vfs/mc-vfs/vfs-impl.h |    4 ++--
+ lib/vfs/mc-vfs/vfs.c      |    4 ++--
+ 5 files changed, 9 insertions(+), 19 deletions(-)
+
+diff --git a/lib/vfs/mc-vfs/extfs.c b/lib/vfs/mc-vfs/extfs.c
+index 752ec99..b16246e 100644
+--- a/lib/vfs/mc-vfs/extfs.c
++++ b/lib/vfs/mc-vfs/extfs.c
+@@ -1516,13 +1516,11 @@ extfs_get_plugins (const char *where, gboolean silent)
+ 
+ 
+ static int
+-extfs_init (struct vfs_class *me)
++extfs_init (void)
+ {
+     gboolean d1, d2;
+     char *dirname;
+ 
+-    (void) me;
+-
+     /* 1st: scan user directory */
+     dirname = g_build_path (PATH_SEP_STR, home_dir, MC_USERCONF_DIR, (char *) NULL);
+     d1 = extfs_get_plugins (dirname, TRUE);     /* silent about user dir */
+@@ -1534,13 +1532,11 @@ extfs_init (struct vfs_class *me)
+ }
+ 
+ static void
+-extfs_done (struct vfs_class *me)
++extfs_done (void)
+ {
+     size_t i;
+     struct archive *ar;
+ 
+-    (void) me;
+-
+     for (ar = first_archive; ar != NULL;)
+     {
+         extfs_free ((vfsid) ar);
+diff --git a/lib/vfs/mc-vfs/ftpfs.c b/lib/vfs/mc-vfs/ftpfs.c
+index 93bfab6..581ce93 100644
+--- a/lib/vfs/mc-vfs/ftpfs.c
++++ b/lib/vfs/mc-vfs/ftpfs.c
+@@ -1835,12 +1835,10 @@ static int ftpfs_fh_close (struct vfs_class *me, struct vfs_s_fh *fh)
+ }
+ 
+ static void
+-ftpfs_done (struct vfs_class *me)
++ftpfs_done (void)
+ {
+     struct no_proxy_entry *np;
+ 
+-    (void) me;
+-
+     while (no_proxy) {
+ 	np = no_proxy->next;
+ 	g_free (no_proxy->domain);
+diff --git a/lib/vfs/mc-vfs/sfs.c b/lib/vfs/mc-vfs/sfs.c
+index a5a2423..85fff22 100644
+--- a/lib/vfs/mc-vfs/sfs.c
++++ b/lib/vfs/mc-vfs/sfs.c
+@@ -336,14 +336,12 @@ sfs_ungetlocalcopy (struct vfs_class *me, const char *path,
+     return 0;
+ }
+ 
+-static int sfs_init (struct vfs_class *me)
++static int sfs_init (void)
+ {
+     char *mc_sfsini;
+     FILE *cfg;
+     char key[256];
+ 
+-    (void) me;
+-
+     mc_sfsini = g_build_filename (mc_home, "sfs.ini", (char *) NULL);
+     cfg = fopen (mc_sfsini, "r");
+ 
+@@ -407,12 +405,10 @@ static int sfs_init (struct vfs_class *me)
+ }
+ 
+ static void
+-sfs_done (struct vfs_class *me)
++sfs_done (void)
+ {
+     int i;
+ 
+-    (void) me;
+-
+     for (i = 0; i < sfs_no; i++){
+         g_free (sfs_prefix [i]);
+ 	g_free (sfs_command [i]);
+diff --git a/lib/vfs/mc-vfs/vfs-impl.h b/lib/vfs/mc-vfs/vfs-impl.h
+index 02e5520..b91e98c 100644
+--- a/lib/vfs/mc-vfs/vfs-impl.h
++++ b/lib/vfs/mc-vfs/vfs-impl.h
+@@ -35,8 +35,8 @@ struct vfs_class {
+     void *data;			/* this is for filesystem's own use */
+     int verrno;			/* can't use errno because glibc2 might define errno as function */
+ 
+-    int (*init) (struct vfs_class *me);
+-    void (*done) (struct vfs_class *me);
++    int (*init) (void);
++    void (*done) (void);
+     
+     /**
+      * The fill_names method shall call the callback function for every
+diff --git a/lib/vfs/mc-vfs/vfs.c b/lib/vfs/mc-vfs/vfs.c
+index 14d2c0c..693de04 100644
+--- a/lib/vfs/mc-vfs/vfs.c
++++ b/lib/vfs/mc-vfs/vfs.c
+@@ -193,7 +193,7 @@ int
+ vfs_register_class (struct vfs_class *vfs)
+ {
+     if (vfs->init)		/* vfs has own initialization function */
+-	if (!(*vfs->init)(vfs))	/* but it failed */
++	if (!(*vfs->init)())	/* but it failed */
+ 	    return 0;
+ 
+     vfs->next = vfs_list;
+@@ -1313,7 +1313,7 @@ vfs_shut (void)
+ 
+     for (vfs = vfs_list; vfs; vfs = vfs->next)
+ 	if (vfs->done)
+-	    (*vfs->done) (vfs);
++	    (*vfs->done) ();
+ 
+     g_ptr_array_free (vfs_openfiles, TRUE);
+     g_string_free (vfs_str_buffer, TRUE);
+-- 
+1.6.4
+

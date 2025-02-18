@@ -1,0 +1,19 @@
+diff --git a/lib/search/glob.c b/lib/search/glob.c
+index d40d42a..0ac9fa6 100644
+--- a/lib/search/glob.c
++++ b/lib/search/glob.c
+@@ -121,12 +121,12 @@ mc_search__translate_replace_glob_to_regex (gchar *str)
+     int cnt = '0';
+ 
+     while (*str) {
+-	char c = *str++;
++	char c = (char)*str++;
+ 	switch (c) {
+ 	case '*':
+ 	case '?':
+ 	    g_string_append_c (buff, '\\');
+-	    c = ++cnt;
++	    c = (char)++cnt;
+ 	    break;
+ 	/* breaks copying: mc uses "\0" internally, it must not be changed */
+ 	/*case '\\':*/

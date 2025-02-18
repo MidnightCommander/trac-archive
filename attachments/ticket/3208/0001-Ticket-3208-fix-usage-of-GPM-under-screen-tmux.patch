@@ -1,0 +1,88 @@
+From 118c05cc72cc538f5f54be0391ed6b15ce2e73cd Mon Sep 17 00:00:00 2001
+From: Andrew Borodin <aborodin@vmail.ru>
+Date: Thu, 11 Sep 2014 13:48:12 +0400
+Subject: [PATCH] Ticket #3208: fix usage of GPM under screen/tmux.
+
+Signed-off-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ lib/tty/key.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index bdb4e1e..fc93b4e 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1698,22 +1698,21 @@ define_sequence (int code, const char *seq, int action)
+ gboolean
+ is_idle (void)
+ {
+-    int nfd;
++    int maxfdp;
+     fd_set select_set;
+-    struct timeval time_out;
++    struct timeval time_out = { 0, 0 };
+ 
+     FD_ZERO (&select_set);
+     FD_SET (input_fd, &select_set);
+-    nfd = max (0, input_fd) + 1;
+-    time_out.tv_sec = 0;
+-    time_out.tv_usec = 0;
++    maxfdp = max (0, input_fd);
++
+ #ifdef HAVE_LIBGPM
+     if (mouse_enabled && use_mouse_p == MOUSE_GPM)
+     {
+         if (gpm_fd >= 0)
+         {
+             FD_SET (gpm_fd, &select_set);
+-            nfd = max (nfd, gpm_fd + 1);
++            maxfdp = max (maxfdp, gpm_fd);
+         }
+         else
+         {
+@@ -1732,7 +1731,7 @@ is_idle (void)
+         }
+     }
+ #endif
+-    return (select (nfd, &select_set, 0, 0, &time_out) <= 0);
++    return (select (maxfdp + 1, &select_set, 0, 0, &time_out) <= 0);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1977,12 +1976,13 @@ tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
+     /* Repeat if using mouse */
+     while (pending_keys == NULL)
+     {
+-        int nfd;
++        int maxfdp;
+         fd_set select_set;
+ 
+         FD_ZERO (&select_set);
+         FD_SET (input_fd, &select_set);
+-        nfd = max (add_selects (&select_set), max (0, input_fd)) + 1;
++        maxfdp = add_selects (&select_set);
++        maxfdp = max (maxfdp, max (0, input_fd));
+ 
+ #ifdef HAVE_LIBGPM
+         if (mouse_enabled && (use_mouse_p == MOUSE_GPM))
+@@ -1990,7 +1990,7 @@ tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
+             if (gpm_fd >= 0)
+             {
+                 FD_SET (gpm_fd, &select_set);
+-                nfd = max (nfd, gpm_fd + 1);
++                maxfdp = max (maxfdp, gpm_fd);
+             }
+             else
+             {
+@@ -2046,7 +2046,7 @@ tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
+         }
+ 
+         tty_enable_interrupt_key ();
+-        flag = select (nfd, &select_set, NULL, NULL, time_addr);
++        flag = select (maxfdp + 1, &select_set, NULL, NULL, time_addr);
+         tty_disable_interrupt_key ();
+ 
+         /* select timed out: it could be for any of the following reasons:
+-- 
+1.8.1.1
+

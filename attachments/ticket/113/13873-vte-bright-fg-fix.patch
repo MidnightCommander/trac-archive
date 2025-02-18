@@ -1,0 +1,15 @@
+--- /home/ptsekov/src/vte-0.14.2/src/vte.c	2007-01-23 05:19:55.000000000 +0200
++++ /usr/src/redhat/BUILD/vte-0.14.2/src/vte.c	2007-09-03 15:05:33.000000000 +0300
+@@ -7587,7 +7587,11 @@ vte_terminal_determine_colors(VteTermina
+ 			*fore = VTE_BOLD_FG;
+ 		} else
+ 		if ((*fore != VTE_DEF_BG) && (*fore < VTE_LEGACY_COLOR_SET_SIZE)) {
+-			*fore += VTE_COLOR_BRIGHT_OFFSET;
++			if (reverse) {
++				*back += VTE_COLOR_BRIGHT_OFFSET;
++			} else {
++				*fore += VTE_COLOR_BRIGHT_OFFSET;
++			}
+ 		}
+ 	}
+ 	if (cell && cell->half) {

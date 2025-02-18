@@ -1,0 +1,35 @@
+fix -Wconversion warning at struct chown_but
+
+patch will fix these warnings:
+chown.c:136:34: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+chown.c:254:14: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+chown.c:259:78: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+chown.c:270:42: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+chown.c:274:42: warning: implicit conversion changes signedness: 'int' to 'button_flags_t' [-Wsign-conversion]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/chown.c
++++ b/src/filemanager/chown.c
+@@ -81,7 +81,8 @@
+ /* *INDENT-OFF* */
+ static struct
+ {
+-    int ret_cmd, flags, y, len;
++    int ret_cmd, y, len;
++    button_flags_t flags;
+     const char *text;
+ } chown_but[BUTTONS] = {
+     { B_SETALL, NORMAL_BUTTON,  5, 0, N_("Set &all") },
+@@ -92,7 +93,7 @@
+ };
+ 
+ /* summary length of three buttons */
+-static unsigned int blen = 0;
++static int blen = 0;
+ 
+ static struct {
+     int y;

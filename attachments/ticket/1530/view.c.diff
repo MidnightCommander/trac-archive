@@ -1,0 +1,22 @@
+diff -ur mc.git/src/view.c mc.src/src/view.c
+--- mc.git/src/view.c	2009-08-13 08:23:01.000000000 +0200
++++ mc.src/src/view.c	2009-08-13 09:31:11.000000000 +0200
+@@ -3005,12 +3005,14 @@
+ static void
+ view_moveto_addr_cmd (WView *view)
+ {
+-    char *line, *error, prompt[BUF_SMALL];
++    char *line, *error, prompt_format[BUF_SMALL], prompt[BUF_SMALL];
+     offset_type addr;
+ 
+-    g_snprintf (prompt, sizeof (prompt),
+-		_(" The current address is 0x%08"OFFSETTYPE_PRIX".\n"
+-		  " Enter the new address:"), view->hex_cursor);
++    g_snprintf (prompt_format, sizeof (prompt_format),
++		_(" The current address is %s.\n"
++		  " Enter the new address:"), "0x%08"OFFSETTYPE_PRIX"");
++
++    g_snprintf (prompt, sizeof (prompt), prompt_format, view->hex_cursor);
+ 
+     line = input_dialog (_(" Goto Address "), prompt, MC_HISTORY_VIEW_GOTO_ADDR, "");
+     if (line != NULL) {

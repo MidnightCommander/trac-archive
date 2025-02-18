@@ -1,0 +1,106 @@
+$ gdb --quiet /usr/local/bin/mc core
+...
+(gdb) bt
+#0  display_mini_info (panel=0x55817164a900) at panel.c:1067
+#1  0x000055816dc80e20 in panel_callback (w=0x55817164a900, sender=0x0, msg=MSG_DRAW, parm=0, data=0x0) at panel.c:3808
+#2  0x000055816dd34e50 in widget_draw (w=0x55817164a900) at widget-common.c:538
+#3  0x000055816dd26364 in group_draw (g=0x558171630430) at group.c:489
+#4  0x000055816dd267ce in group_default_callback (w=0x558171630430, sender=0x0, msg=MSG_DRAW, parm=0, data=0x0) at group.c:633
+#5  0x000055816dc6e0e3 in midnight_callback (w=0x558171630430, sender=0x0, msg=MSG_DRAW, parm=0, data=0x0) at filemanager.c:1482
+#6  0x000055816dd34e50 in widget_draw (w=0x558171630430) at widget-common.c:538
+#7  0x000055816dd23c60 in do_refresh () at dialog-switch.c:349
+#8  0x000055816dd303eb in menubar_execute (menubar=0x55817162cee0) at menu.c:364
+#9  0x000055816dd30b03 in menubar_execute_cmd (menubar=0x55817162cee0, command=1) at menu.c:587
+#10 0x000055816dd30b81 in menubar_handle_key (menubar=0x55817162cee0, key=10) at menu.c:614
+#11 0x000055816dd30d31 in menubar_callback (w=0x55817162cee0, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at menu.c:679
+#12 0x000055816dd2567d in send_message (w=0x55817162cee0, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at ../../lib/widget/widget-common.h:255
+#13 0x000055816dd2657e in group_handle_hotkey (g=0x558171630430, key=10) at group.c:552
+#14 0x000055816dd267ff in group_default_callback (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at group.c:640
+#15 0x000055816dd245f2 in dlg_default_callback (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at dialog.c:370
+#16 0x000055816dc6e5d1 in midnight_callback (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at filemanager.c:1602
+#17 0x000055816dd2567d in send_message (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at ../../lib/widget/widget-common.h:255
+#18 0x000055816dd263c4 in group_handle_key (g=0x558171630430, key=10) at group.c:503
+#19 0x000055816dd267e9 in group_default_callback (w=0x558171630430, sender=0x0, msg=MSG_KEY, parm=10, data=0x0) at group.c:637
+#20 0x000055816dd242a4 in dlg_key_event (h=0x558171630430, d_key=10) at dialog.c:252
+#21 0x000055816dd24c17 in dlg_process_event (h=0x558171630430, key=10, event=0x7fffa1c26310) at dialog.c:539
+#22 0x000055816dd24486 in frontend_dlg_run (h=0x558171630430) at dialog.c:321
+#23 0x000055816dd24cea in dlg_run (h=0x558171630430) at dialog.c:573
+#24 0x000055816dc6ed2c in do_nc () at filemanager.c:1813
+#25 0x000055816dc5c9bf in main (argc=1, argv=0x7fffa1c26528) at main.c:469
+(gdb) bt full
+#0  display_mini_info (panel=0x55817164a900) at panel.c:1067
+        link_target = "usr/bin\000\340T¡\377\177\000\000R\262\324m\201U\000\000R\262\324m\201U\000\000\000\000\000\000\000\000\000\000\3359tE\021\177\000\000M\262\324m\201U\000\000\000\000\000\000\000\000\000\000h\r\000\000\000\000\000\000\000\000\000\000\201U\000\000\000\000\000\000\021\177\000\000\n\000\000\000\021\177\000\000`N¡\377\177\000\000`R¡\377\177\000\000`N¡\377\177\000\000\000\004\000\000\000\000\000\0002\000\000\000\000\000\000\000\001\000\000\000\000\000\000\000\377\377\377\377\377\377\377\377\000\000\000\000\000\000\000\000 O¡\377\177\000\000\237\376\000u\000\000\000\000R\262\324m\201U\000\000\000\344أ\245[l\376\000\000\000\000\000\000\000\0000T¡\377\177\000\000"...
+        lc_link_vpath = 0x55816dc7bc08 <mini_info_separator+138>
+        len = 32767
+        w = 0x55817164a900
+        fe = 0x55817164ab80
+#1  0x000055816dc80e20 in panel_callback (w=0x55817164a900, sender=0x0, msg=MSG_DRAW, parm=0, data=0x0) at panel.c:3808
+        panel = 0x55817164a900
+        h = 0x558171630430
+        bb = 0x558171658300
+#2  0x000055816dd34e50 in widget_draw (w=0x55817164a900) at widget-common.c:538
+        g = 0x558171630430
+        ret = MSG_NOT_HANDLED
+#3  0x000055816dd26364 in group_draw (g=0x558171630430) at group.c:489
+        p = 0x55817162d460 = {0x55817164a900}
+        wg = 0x558171630430
+#4  0x000055816dd267ce in group_default_callback (w=0x558171630430, sender=0x0, msg=MSG_DRAW, parm=0, data=0x0) at group.c:633
+        g = 0x558171630430
+#5  0x000055816dc6e0e3 in midnight_callback (w=0x558171630430, sender=0x0, msg=MSG_DRAW, parm=0, data=0x0) at filemanager.c:1482
+        command = 281476879025200
+#6  0x000055816dd34e50 in widget_draw (w=0x558171630430) at widget-common.c:538
+        g = 0x558171630430
+        ret = MSG_NOT_HANDLED
+#7  0x000055816dd23c60 in do_refresh () at dialog-switch.c:349
+        d = 0x55817162d120 = {0x558171630430}
+#8  0x000055816dd303eb in menubar_execute (menubar=0x55817162cee0) at menu.c:364
+        w = 0x55817162cee0
+        menu = 0x55817164a530
+        entry = 0x55817164a0d0
+#9  0x000055816dd30b03 in menubar_execute_cmd (menubar=0x55817162cee0, command=1) at menu.c:587
+        ret = MSG_HANDLED
+#10 0x000055816dd30b81 in menubar_handle_key (menubar=0x55817162cee0, key=10) at menu.c:614
+        cmd = 1
+        ret = MSG_NOT_HANDLED
+#11 0x000055816dd30d31 in menubar_callback (w=0x55817162cee0, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at menu.c:679
+        menubar = 0x55817162cee0
+--Type <RET> for more, q to quit, c to continue without paging--
+#12 0x000055816dd2567d in send_message (w=0x55817162cee0, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#13 0x000055816dd2657e in group_handle_hotkey (g=0x558171630430, key=10) at group.c:552
+        current = 0xfe6c5ba5a3d8e400 = {<error reading variable current (Cannot access memory at address 0xfe6c5ba5a3d8e400)>
+        w = 0x55817162cee0
+        handled = MSG_NOT_HANDLED
+        c = 10
+#14 0x000055816dd267ff in group_default_callback (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at group.c:640
+        g = 0x558171630430
+#15 0x000055816dd245f2 in dlg_default_callback (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at dialog.c:370
+No locals.
+#16 0x000055816dc6e5d1 in midnight_callback (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at filemanager.c:1602
+        command = 25769803777
+#17 0x000055816dd2567d in send_message (w=0x558171630430, sender=0x0, msg=MSG_HOTKEY, parm=10, data=0x0) at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#18 0x000055816dd263c4 in group_handle_key (g=0x558171630430, key=10) at group.c:503
+        handled = MSG_NOT_HANDLED
+#19 0x000055816dd267e9 in group_default_callback (w=0x558171630430, sender=0x0, msg=MSG_KEY, parm=10, data=0x0) at group.c:637
+        g = 0x558171630430
+#20 0x000055816dd242a4 in dlg_key_event (h=0x558171630430, d_key=10) at dialog.c:252
+        w = 0x558171630430
+        g = 0x558171630430
+        handled = MSG_NOT_HANDLED
+#21 0x000055816dd24c17 in dlg_process_event (h=0x558171630430, key=10, event=0x7fffa1c26310) at dialog.c:539
+No locals.
+#22 0x000055816dd24486 in frontend_dlg_run (h=0x558171630430) at dialog.c:321
+        d_key = 10
+        wh = 0x558171630430
+        event = {buttons = 64 '@', modifiers = 99 'c', vc = 41410, dx = 32767, dy = 0, x = -1, y = 28114, type = (GPM_MOVE | GPM_MFLAG | GPM_HARD | GPM_LEAVE | unknown: 0x5000), 
+          clicks = 1841799443, margin = (GPM_TOP | unknown: 0x5580), wdx = 1072, wdy = 29027}
+#23 0x000055816dd24cea in dlg_run (h=0x558171630430) at dialog.c:573
+No locals.
+#24 0x000055816dc6ed2c in do_nc () at filemanager.c:1813
+        ret = 32529
+#25 0x000055816dc5c9bf in main (argc=1, argv=0x7fffa1c26528) at main.c:469
+        mcerror = 0x0
+        exit_code = 1
+        tmpdir = 0x55816ddb68e0 <buffer> "/tmp/mc-DTSAV2"
+(gdb) 

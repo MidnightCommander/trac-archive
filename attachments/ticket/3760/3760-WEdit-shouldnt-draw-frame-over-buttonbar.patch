@@ -1,0 +1,44 @@
+From f5e52a71befdc7568e6e85b89a8d43e222bc7ada Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 16 Feb 2017 00:23:33 +0200
+Subject: [PATCH] Ticket #3760: WEdit shouldn't draw frame over buttonbar.
+
+When dragging a framed WEdit with the mouse, the frame is painted over the
+buttonbar. This happens in two cases: when pressing the mouse down, and when
+releasing it.
+
+The patch fixes the problem by calling edit_update_screen() in these two cases.
+This paints the buttonbar over the frame.
+
+(The problem doesn't occur when moving the frame with the keyboard because
+edit_callback(msg==MSG_KEY) calls edit_update_screen() right after handling the
+key.)
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ src/editor/editwidget.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 0d1b6b3..7f85545 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -1005,6 +1005,7 @@ edit_mouse_handle_move_resize (Widget * w, mouse_msg_t msg, mouse_event_t * even
+     {
+         /* Exit move/resize mode. */
+         edit_execute_cmd (edit, CK_Enter, -1);
++        edit_update_screen (edit);      /* Paint the buttonbar over our possibly overlapping frame. */
+         return;
+     }
+ 
+@@ -1100,6 +1101,7 @@ edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+                 {
+                     /* start window move */
+                     edit_execute_cmd (edit, CK_WindowMove, -1);
++                    edit_update_screen (edit);  /* Paint the buttonbar over our possibly overlapping frame. */
+                     edit->drag_state_start = event->x;
+                 }
+                 break;
+-- 
+2.9.3
+

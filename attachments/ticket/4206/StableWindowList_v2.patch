@@ -1,0 +1,613 @@
+From bd9955a7064677f99e181596ec63b997e457c6fe Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Thu, 18 Feb 2021 02:12:39 -0600
+Subject: Stable, unchanged order of files in WindowList action.
+
+---
+ lib/widget.h                   |   1 +
+ lib/widget/Makefile.am         |   1 +
+ lib/widget/dialog.c            |  49 ++++--
+ lib/widget/dialog.h            |   6 +
+ lib/widget/order_kept_dialog.c | 262 +++++++++++++++++++++++++++++++++
+ lib/widget/order_kept_dialog.h |  50 +++++++
+ src/editor/edit.c              |   3 +-
+ src/editor/edit.h              |   2 +
+ src/editor/editwidget.c        |  63 +++++---
+ src/setup.c                    |   2 +
+ 10 files changed, 401 insertions(+), 38 deletions(-)
+ create mode 100644 lib/widget/order_kept_dialog.c
+ create mode 100644 lib/widget/order_kept_dialog.h
+
+diff --git a/lib/widget.h b/lib/widget.h
+index e3bb5cac2..2bbbd2cfb 100644
+--- a/lib/widget.h
++++ b/lib/widget.h
+@@ -21,6 +21,7 @@ typedef struct WGroup WGroup;
+ #include "lib/widget/background.h"
+ #include "lib/widget/frame.h"
+ #include "lib/widget/dialog.h"
++#include "lib/widget/order_kept_dialog.h"
+ #include "lib/widget/history.h"
+ #include "lib/widget/button.h"
+ #include "lib/widget/buttonbar.h"
+diff --git a/lib/widget/Makefile.am b/lib/widget/Makefile.am
+index 90f023bbc..b7276c47b 100644
+--- a/lib/widget/Makefile.am
++++ b/lib/widget/Makefile.am
+@@ -7,6 +7,7 @@ libmcwidget_la_SOURCES = \
+ 	buttonbar.c buttonbar.h \
+ 	check.c check.h \
+ 	dialog.c dialog.h \
++	order_kept_dialog.c order_kept_dialog.h \
+ 	dialog-switch.c dialog-switch.h \
+ 	frame.c frame.h \
+ 	gauge.c gauge.h \
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index b8a08f029..c400cd0c0 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -373,13 +373,36 @@ dlg_create (gboolean modal, int y1, int x1, int lines, int cols, widget_pos_flag
+             gboolean compact, const int *colors, widget_cb_fn callback,
+             widget_mouse_cb_fn mouse_callback, const char *help_ctx, const char *title)
+ {
+-    WDialog *new_d;
++    WDialog *new_h;
++    new_h = g_new0 (WDialog, 1);
++    if (new_h != NULL)
++    {
++        gboolean ret;
++        ret = dlg_init_object (new_h, modal, y1, x1, lines, cols, pos_flags, compact, colors,
++                               callback, mouse_callback, help_ctx, title);
++        if (!ret)
++        {
++            g_free (new_h);
++            return NULL;
++        }
++    }
++    return new_h;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++gboolean
++dlg_init_object (WDialog * new_h, gboolean modal, int y1, int x1, int lines, int cols,
++                 widget_pos_flags_t pos_flags, gboolean compact, const int *colors,
++                 widget_cb_fn callback, widget_mouse_cb_fn mouse_callback, const char *help_ctx,
++                 const char *title)
++{
+     Widget *w;
+     WGroup *g;
+ 
+-    new_d = g_new0 (WDialog, 1);
+-    w = WIDGET (new_d);
+-    g = GROUP (new_d);
++    w = WIDGET (new_h);
++    g = GROUP (new_h);
++
+     widget_adjust_position (pos_flags, &y1, &x1, &lines, &cols);
+     group_init (g, y1, x1, lines, cols, callback != NULL ? callback : dlg_default_callback,
+                 mouse_callback != NULL ? mouse_callback : dlg_default_mouse_callback);
+@@ -397,24 +420,24 @@ dlg_create (gboolean modal, int y1, int x1, int lines, int cols, widget_pos_flag
+ 
+     w->get_colors = dlg_default_get_colors;
+ 
+-    new_d->colors = colors;
+-    new_d->help_ctx = help_ctx;
+-    new_d->compact = compact;
+-    new_d->data = NULL;
++    new_h->colors = colors;
++    new_h->help_ctx = help_ctx;
++    new_h->compact = compact;
++    new_h->data = NULL;
+ 
+     if (modal)
+     {
+         w->state |= WST_MODAL;
+ 
+-        new_d->bg = WIDGET (frame_new (0, 0, w->lines, w->cols, title, FALSE, new_d->compact));
+-        group_add_widget (g, new_d->bg);
+-        frame_set_title (FRAME (new_d->bg), title);
++        new_h->bg = WIDGET (frame_new (0, 0, w->lines, w->cols, title, FALSE, new_h->compact));
++        group_add_widget (g, new_h->bg);
++        frame_set_title (FRAME (new_h->bg), title);
+     }
+ 
+     /* unique name of event group for this dialog */
+-    new_d->event_group = g_strdup_printf ("%s_%p", MCEVENT_GROUP_DIALOG, (void *) new_d);
++    new_h->event_group = g_strdup_printf ("%s_%p", MCEVENT_GROUP_DIALOG, (void *) new_h);
+ 
+-    return new_d;
++    return TRUE;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/dialog.h b/lib/widget/dialog.h
+index 1d08b8e1a..ed90118b4 100644
+--- a/lib/widget/dialog.h
++++ b/lib/widget/dialog.h
+@@ -102,6 +102,12 @@ WDialog *dlg_create (gboolean modal, int y1, int x1, int lines, int cols,
+                      const int *colors, widget_cb_fn callback, widget_mouse_cb_fn mouse_callback,
+                      const char *help_ctx, const char *title);
+ 
++gboolean dlg_init_object (WDialog * new_h, gboolean modal, int y1, int x1, int lines, int cols,
++                          widget_pos_flags_t pos_flags, gboolean compact,
++                          const int *colors, widget_cb_fn callback,
++                          widget_mouse_cb_fn mouse_callback, const char *help_ctx,
++                          const char *title);
++
+ void dlg_set_default_colors (void);
+ 
+ void dlg_init (WDialog * h);
+diff --git a/lib/widget/order_kept_dialog.c b/lib/widget/order_kept_dialog.c
+new file mode 100644
+index 000000000..99521ba60
+--- /dev/null
++++ b/lib/widget/order_kept_dialog.c
+@@ -0,0 +1,262 @@
++/*
++   This dialog keeps a fixed order list of the widgets in its group (no Z-depth reordering).
++
++   Copyright (C) 2021
++   Free Software Foundation, Inc.
++
++   Written by:
++   Sebastian Gniazdowski <sgniazdowski@gmail.com>, 2021
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file order_kept_dlg
++ *  \brief This extension of Dialog is to have a stable, fixed list of files in MCEdit.
++ *  \author Sebastian Gniazdowski
++ *  \date 2021
++ *
++ *  Before this class the files were fluctuating when they have been selected, as they
++ *  were brought to the front of the Z axis, which has been moving them in the `widgets`
++ *  list of the Group widget.
++ */
++
++#include <config.h>
++
++#include "lib/global.h"
++#include "lib/util.h"
++#include "lib/widget.h"
++
++#include "src/editor/editwidget.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++/* To search WEdit by file name till extension, if any - extensions and case can differ */
++static gboolean
++similar_filename_edit_widgets (gconstpointer a, gconstpointer b)
++{
++    WEdit *wa = (WEdit *) a;
++    const char *fname_a = NULL, *fname_b = (const char *) b, *ext_a, *ext_b;
++    int len_a = 0, len_b = 0;
++
++    if (wa != NULL && wa->filename_vpath != NULL)
++        fname_a = vfs_path_as_str (wa->filename_vpath);
++
++    /* Reject identical */
++    if ((fname_a == NULL || fname_b == NULL) || g_strcmp0 (fname_a, fname_b) == 0)
++        return FALSE;
++
++    ext_a = g_strrstr (fname_a, ".");
++    len_a = ext_a != NULL ? ext_a - fname_a : (int) strlen (fname_a);
++    ext_b = g_strrstr (fname_b, ".");
++    len_b = ext_b != NULL ? ext_b - fname_b : (int) strlen (fname_b);
++    return (len_a == len_b) && (g_ascii_strncasecmp (fname_a, fname_b, len_a) == 0);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/* Sorts widgets by clustering headers and sources adjacent */
++
++static gboolean
++sort_edit_widgets (GPtrArray * array, order_kept_dialog_sort_flags_t sort_flags)
++{
++    WEdit *we, *we_con;
++    const char *fname, *fname_con;
++    guint con_idx = 0, idx;
++    gboolean ret = FALSE, ret_con;
++    int sort;
++
++    /* No need to sort? */
++    if ((sort_flags & (ORDER_DLG_GLUE_DIFFERENT_EXTS |
++                       ORDER_DLG_GLUE_DIFFERENT_EXTS_REVERSED)) == 0)
++        return ret;
++
++    /* Iterate over array inserting headers before/after its sources */
++    for (idx = 0; idx < array->len; idx++)
++    {
++        we = (WEdit *) g_ptr_array_index (array, idx);
++        if (we->filename_vpath == NULL)
++            continue;
++        fname = vfs_path_as_str (we->filename_vpath);
++
++        if (fname == NULL)
++            continue;
++
++        /* Search for a similar file */
++        ret_con = g_ptr_array_find_with_equal_func (array, fname,
++                                                    similar_filename_edit_widgets, &con_idx);
++
++        /* There's no contary file? */
++        if (!ret_con || con_idx == idx || array->pdata[idx] == array->pdata[con_idx])
++            continue;
++
++        /* Fetch filename of found, similar file */
++        we_con = (WEdit *) g_ptr_array_index (array, con_idx);
++        if (we_con->filename_vpath == NULL)
++            continue;
++        fname_con = vfs_path_as_str (we_con->filename_vpath);
++
++        ret = TRUE;
++
++        /* E.g.: if fname has no extension, it'll be sorted first «» -1 */
++        sort = g_strcmp0 (extension (fname), extension (fname_con));
++        if (sort == 0)
++            sort = g_strcmp0 (fname, fname_con);
++
++        /* Move headers and their sources at adjacent positions */
++        if (con_idx < idx && (sort_flags & ORDER_DLG_GLUE_DIFFERENT_EXTS) != 0)
++        {
++            gpointer file = g_ptr_array_steal_index (array, idx);
++            g_ptr_array_insert (array, (sort < 0) ? con_idx : con_idx + 1, file);
++        }
++        else if (idx < con_idx && (sort_flags & ORDER_DLG_GLUE_DIFFERENT_EXTS) != 0)
++        {
++            gpointer con_file = g_ptr_array_steal_index (array, con_idx);
++            g_ptr_array_insert (array, (sort < 0) ? idx + 1 : idx, con_file);
++            idx++;
++        }
++        else if (con_idx < idx && (sort_flags & ORDER_DLG_GLUE_DIFFERENT_EXTS_REVERSED) != 0)
++        {
++            gpointer file = g_ptr_array_steal_index (array, idx);
++            g_ptr_array_insert (array, (sort < 0) ? con_idx + 1 : con_idx, file);
++        }
++        else if (idx < con_idx && (sort_flags & ORDER_DLG_GLUE_DIFFERENT_EXTS_REVERSED) != 0)
++        {
++            gpointer con_file = g_ptr_array_steal_index (array, con_idx);
++            g_ptr_array_insert (array, (sort < 0) ? idx : idx + 1, con_file);
++            idx++;
++        }
++    };
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/* Called after any action properly handled by front WDialog */
++
++static gboolean
++order_dlg_update_widgets_array (WOrderKeptDialog * h)
++{
++    GList *w;
++    gboolean ret = FALSE;
++    guint idx;
++
++    /* Initialize pointer array */
++    if (h->ordered_widgets == NULL)
++        h->ordered_widgets = g_ptr_array_new ();
++
++    /* Copy newly opened files */
++    for (w = GROUP (h)->widgets; w != NULL; w = g_list_next (w))
++    {
++        if (edit_widget_is_editor (CONST_WIDGET (w->data)) &&
++            !g_ptr_array_find (h->ordered_widgets, w->data, NULL))
++        {
++            g_ptr_array_add (h->ordered_widgets, w->data);
++            ret = TRUE;
++        }
++    }
++
++    /* Pop closed files */
++    for (idx = 0; idx < h->ordered_widgets->len; idx++)
++        if (g_list_find (GROUP (h)->widgets, g_ptr_array_index (h->ordered_widgets, idx)) == NULL)
++            g_ptr_array_remove_index (h->ordered_widgets, idx);
++
++    /* Sort if needed */
++    if (ret)
++        order_dlg_sort_widgets (h);
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++WOrderKeptDialog *
++order_dlg_create (gboolean modal, int y1, int x1, int lines, int cols,
++                  widget_pos_flags_t pos_flags, gboolean compact,
++                  const int *colors, widget_cb_fn callback,
++                  widget_cb_fn base_callback,
++                  widget_mouse_cb_fn mouse_callback,
++                  const char *help_ctx, const char *title, order_kept_dialog_sort_flags_t sort)
++{
++    WOrderKeptDialog *new_oh;
++    gboolean ret;
++
++    new_oh = g_new0 (WOrderKeptDialog, 1);
++    new_oh->sort_flags = sort;
++    ret = dlg_init_object (DIALOG (new_oh), modal, y1, x1, lines, cols, pos_flags, compact, colors,
++                           callback, mouse_callback, help_ctx, title);
++    if (!ret)
++    {
++        g_free (new_oh);
++        return NULL;
++    }
++
++    new_oh->base_callback = base_callback;
++    return new_oh;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++cb_ret_t
++order_dlg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    WOrderKeptDialog *h = ORDER_DIALOG (w);
++    cb_ret_t ret = MSG_NOT_HANDLED;
++
++    switch (msg)
++    {
++    case MSG_INIT:
++        /* Initial copy of WEdit pointers kept in WGroup::widgets */
++        order_dlg_update_widgets_array (h);
++        break;
++    case MSG_DESTROY:
++        /* Only a shallow release, as WEdit objects are owned by WGroup base object */
++        g_ptr_array_free (h->ordered_widgets, TRUE);
++        h->ordered_widgets = NULL;
++        break;
++    default:
++        break;
++    }
++
++    if (ret != MSG_HANDLED)
++    {
++        ret = h->base_callback (w, sender, msg, parm, data);
++        if (ret == MSG_HANDLED)
++            /* Add and pop new or closed files */
++            order_dlg_update_widgets_array (h);
++    }
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/* Sorts main widget list (adjacent headers/sources) */
++
++void
++order_dlg_sort_widgets (WOrderKeptDialog * h)
++{
++    sort_edit_widgets (h->ordered_widgets, h->sort_flags);
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/order_kept_dialog.h b/lib/widget/order_kept_dialog.h
+new file mode 100644
+index 000000000..8cbb51486
+--- /dev/null
++++ b/lib/widget/order_kept_dialog.h
+@@ -0,0 +1,50 @@
++#ifndef MC__TEMPLATE_H
++#define MC__TEMPLATE_H
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++#define ORDER_DIALOG(x) ((WOrderKeptDialog *)(x))
++#define CONST_ORDER_DIALOG(x) ((const WOrderKeptDialog *)(x))
++
++/*** enums ***************************************************************************************/
++
++/* Default is: (1<<0) | (1<<7) */
++typedef enum
++{
++    ORDER_DLG_DEFAULT_SORT = 0,
++    ORDER_DLG_GLUE_DIFFERENT_EXTS = (1 << 0),
++    ORDER_DLG_GLUE_DIFFERENT_EXTS_REVERSED = (1 << 1),
++    ORDER_DLG_ALLOW_STANDARD_REORDERING = (1 << 2),
++    ORDER_DLG_SORT_REVERSE = (1 << 3),
++    ORDER_DLG_SORT_BACKUP_FILES_LAST = (1 << 5)
++} order_kept_dialog_sort_flags_t;
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++typedef struct WOrderKeptDialog
++{
++    WDialog base;
++    GPtrArray *ordered_widgets;
++    widget_cb_fn base_callback;
++    order_kept_dialog_sort_flags_t sort_flags;
++} WOrderKeptDialog;
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++WOrderKeptDialog *order_dlg_create (gboolean modal, int y1, int x1, int lines, int cols,
++                                    widget_pos_flags_t pos_flags, gboolean compact,
++                                    const int *colors, widget_cb_fn callback,
++                                    widget_cb_fn base_callback,
++                                    widget_mouse_cb_fn mouse_callback,
++                                    const char *help_ctx, const char *title,
++                                    order_kept_dialog_sort_flags_t sort);
++
++cb_ret_t order_dlg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data);
++
++void order_dlg_sort_widgets (WOrderKeptDialog * h);
++
++/*** inline functions ****************************************************************************/
++
++#endif /* MC__ORDER_DIALOG_H */
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index edda1f832..48b7a05b5 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -90,7 +90,8 @@ gboolean option_line_state = FALSE;
+ int option_line_state_width = 0;
+ gboolean option_cursor_after_inserted_block = FALSE;
+ gboolean option_state_full_filename = FALSE;
+-
++gboolean option_cluster_similar_filenames = TRUE;
++gboolean option_cluster_similar_filenames_reversed = TRUE;
+ gboolean enable_show_tabs_tws = TRUE;
+ gboolean option_check_nl_at_eof = FALSE;
+ gboolean option_group_undo = FALSE;
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index 6c519e9d3..199394187 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -41,6 +41,8 @@ extern gboolean option_persistent_selections;
+ extern gboolean option_drop_selection_on_copy;
+ extern gboolean option_cursor_beyond_eol;
+ extern gboolean option_cursor_after_inserted_block;
++extern gboolean option_cluster_similar_filenames;
++extern gboolean option_cluster_similar_filenames_reversed;
+ extern gboolean option_state_full_filename;
+ extern gboolean option_line_state;
+ extern int option_save_mode;
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 18ac00e66..72f76d3c7 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -295,39 +295,41 @@ get_hotkey (int n)
+ static void
+ edit_window_list (const WDialog * h)
+ {
+-    const WGroup *g = CONST_GROUP (h);
+-    const size_t offset = 2;    /* skip menu and buttonbar */
+-    const size_t dlg_num = g_list_length (g->widgets) - offset;
++    const WOrderKeptDialog *od = ORDER_DIALOG (h);
++    const size_t dlg_num = od->ordered_widgets->len;
+     int lines, cols;
+     Listbox *listbox;
+-    GList *w;
+     WEdit *selected;
+-    int i = 0;
++    WListbox *lw;
++    uint idx;
+ 
+     lines = MIN ((size_t) (LINES * 2 / 3), dlg_num);
+     cols = COLS * 2 / 3;
+ 
+     listbox = create_listbox_window (lines, cols, _("Open files"), "[Open files]");
+ 
+-    for (w = g->widgets; w != NULL; w = g_list_next (w))
+-        if (edit_widget_is_editor (CONST_WIDGET (w->data)))
+-        {
+-            WEdit *e = (WEdit *) w->data;
+-            char *fname;
++    /* Convenience variable. */
++    lw = LISTBOX (listbox->list);
+ 
+-            if (e->filename_vpath == NULL)
+-                fname = g_strdup_printf ("%c [%s]", e->modified ? '*' : ' ', _("NoName"));
+-            else
+-                fname =
+-                    g_strdup_printf ("%c%s", e->modified ? '*' : ' ',
+-                                     vfs_path_as_str (e->filename_vpath));
++    /* Iterate over designated ptr array */
++    for (idx = 0; idx < od->ordered_widgets->len; idx++)
++    {
++        WEdit *e = (WEdit *) g_ptr_array_index (od->ordered_widgets, idx);
++        char *fname;
+ 
+-            listbox_add_item (listbox->list, LISTBOX_APPEND_AT_END, get_hotkey (i++),
+-                              str_term_trim (fname, WIDGET (listbox->list)->cols - 2), e, FALSE);
+-            g_free (fname);
+-        }
++        if (e->filename_vpath == NULL)
++            fname = g_strdup_printf ("%c [%s]", e->modified ? '*' : ' ', _("NoName"));
++        else
++            fname =
++                g_strdup_printf ("%c%s", e->modified ? '*' : ' ',
++                                 vfs_path_as_str (e->filename_vpath));
+ 
+-    selected = run_listbox_with_data (listbox, g->current->data);
++        listbox_add_item (lw, LISTBOX_APPEND_AT_END, get_hotkey (idx),
++                          str_term_trim (fname, WIDGET (lw)->cols - 2), e, FALSE);
++        g_free (fname);
++    }
++
++    selected = run_listbox_with_data (listbox, GROUP (od)->current->data);
+     if (selected != NULL)
+         widget_select (WIDGET (selected));
+ }
+@@ -1206,10 +1208,12 @@ gboolean
+ edit_files (const GList * files)
+ {
+     static gboolean made_directory = FALSE;
++    WOrderKeptDialog *order_edit_dlg;
+     WDialog *edit_dlg;
+     WGroup *g;
+     WMenuBar *menubar;
+     Widget *w, *wd;
++    order_kept_dialog_sort_flags_t sort_flags = ORDER_DLG_DEFAULT_SORT;
+     const GList *file;
+     gboolean ok = FALSE;
+ 
+@@ -1230,11 +1234,22 @@ edit_files (const GList * files)
+         g_free (dir);
+     }
+ 
++    if (option_cluster_similar_filenames)
++    {
++        if (!option_cluster_similar_filenames_reversed)
++            sort_flags |= ORDER_DLG_GLUE_DIFFERENT_EXTS;
++        else
++            sort_flags |= ORDER_DLG_GLUE_DIFFERENT_EXTS_REVERSED;
++    }
+     /* Create a new dialog and add it widgets to it */
+-    edit_dlg =
+-        dlg_create (FALSE, 0, 0, 1, 1, WPOS_FULLSCREEN, FALSE, NULL, edit_dialog_callback,
+-                    edit_dialog_mouse_callback, "[Internal File Editor]", NULL);
++    order_edit_dlg =
++        order_dlg_create (FALSE, 0, 0, 1, 1, WPOS_FULLSCREEN, FALSE, NULL,
++                          order_dlg_callback, edit_dialog_callback,
++                          edit_dialog_mouse_callback, "[Internal File Editor]", NULL, sort_flags);
++
++    edit_dlg = DIALOG (order_edit_dlg);
+     wd = WIDGET (edit_dlg);
++
+     widget_want_tab (wd, TRUE);
+     wd->keymap = editor_map;
+     wd->ext_keymap = editor_x_map;
+diff --git a/src/setup.c b/src/setup.c
+index 77c07649d..5e4d156b5 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -356,6 +356,8 @@ static const struct
+     { "editor_check_new_line", &option_check_nl_at_eof },
+     { "editor_show_right_margin", &show_right_margin },
+     { "editor_group_undo", &option_group_undo },
++    { "editor_cluster_similar_filenames", &option_cluster_similar_filenames },
++    { "editor_cluster_similar_filenames_reversed", &option_cluster_similar_filenames_reversed },
+     { "editor_state_full_filename", &option_state_full_filename },
+ #endif /* USE_INTERNAL_EDIT */
+     { "editor_ask_filename_before_edit", &editor_ask_filename_before_edit },
+-- 
+2.28.0
+

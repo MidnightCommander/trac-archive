@@ -1,0 +1,11 @@
+--- mc-4.8.11/src/vfs/extfs/helpers/urar.in~	2013-11-29 19:27:07.000000000 +0100
++++ mc-4.8.11/src/vfs/extfs/helpers/urar.in	2013-12-12 15:53:25.000000000 +0100
+@@ -50,7 +50,7 @@
+         sub ("^ ", "", $2);
+     }
+ 
+-    $1 ~ / *Name$/ {
++    $1 ~ /^ *Name$/ {
+         ### next file
+         name = mtime = size = attrs = "";
+         delete date;

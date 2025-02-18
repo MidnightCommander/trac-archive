@@ -1,0 +1,88 @@
+From 393792ff424dea52c46666c63502932f2da499e5 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 20 Feb 2010 17:54:23 +0000
+Subject: [PATCH]  g_strdup of _vfs_get_cwd ()
+     as it is mentioned in lib/vfs/mc-vfs/vfs.c just before _vfs_get_cwd ()
+     {{{
+           You must g_strdup() whatever this function returns.
+     }}}
+
+    and a little bit alignments
+---
+ lib/vfs/mc-vfs/vfs.c |   29 ++++++++++++++++-------------
+ 1 files changed, 16 insertions(+), 13 deletions(-)
+
+diff --git a/lib/vfs/mc-vfs/vfs.c b/lib/vfs/mc-vfs/vfs.c
+index 3f92269..1e7f71d 100644
+--- a/lib/vfs/mc-vfs/vfs.c
++++ b/lib/vfs/mc-vfs/vfs.c
+@@ -305,8 +305,9 @@ vfs_split (char *path, char **inpath, char **op)
+     if (slash)
+ 	*slash = 0;
+ 
+-    if ((ret = vfs_prefix_to_class (semi+1))){
+-	if (op) 
++    ret = vfs_prefix_to_class (semi + 1);
++    if (ret) {
++	if (op)
+ 	    *op = semi + 1;
+ 	if (inpath)
+ 	    *inpath = slash ? slash + 1 : NULL;
+@@ -559,7 +560,7 @@ mc_open (const char *filename, int flags, ...)
+ 
+     info = (*vfs->open) (vfs, file, flags, mode);	/* open must be supported */
+     g_free (file);
+-    if (!info){
++    if (!info) {
+ 	errno = ferrno (vfs);
+ 	return -1;
+     }
+@@ -947,17 +948,17 @@ _vfs_get_cwd (void)
+                 if (!sys_cwd)
+ 		    return current_dir;
+ 
+-	/* Otherwise check if it is O.K. to use the current_dir */
+-                if (!cd_symlinks || mc_stat (sys_cwd, &my_stat) 
+-	    || mc_stat (current_dir, &my_stat2)
+-	    || my_stat.st_ino != my_stat2.st_ino
+-	    || my_stat.st_dev != my_stat2.st_dev) {
+-	    g_free (current_dir);
++                /* Otherwise check if it is O.K. to use the current_dir */
++                if (!cd_symlinks || mc_stat (sys_cwd, &my_stat)
++                    || mc_stat (current_dir, &my_stat2)
++                    || my_stat.st_ino != my_stat2.st_ino 
++                    || my_stat.st_dev != my_stat2.st_dev) {
++                    g_free (current_dir);
+                     current_dir = sys_cwd;
+                     return sys_cwd;
+-                     }/* Otherwise we return current_dir below */
++                } /* Otherwise we return current_dir below */
+             }
+-    }
++        }
+     }
+     g_free (trans);
+     return current_dir;
+@@ -982,7 +983,9 @@ vfs_setup_wd (void)
+ char *
+ mc_get_current_wd (char *buffer, int size)
+ {
+-    const char *cwd = _vfs_get_cwd ();
++    const char *cwd = g_strdup (_vfs_get_cwd ());
++    if (cwd == NULL)
++        return NULL;
+ 
+     g_strlcpy (buffer, cwd, size);
+     return buffer;
+@@ -1028,7 +1031,7 @@ vfs_canon (const char *path)
+ 	vfs_die("Cannot canonicalize NULL");
+ 
+     /* Relative to current directory */
+-    if (*path != PATH_SEP){ 
++    if (*path != PATH_SEP) { 
+     	char *local, *result;
+ 
+ 	local = concat_dir_and_file (current_dir, path);
+-- 
+1.6.4
+

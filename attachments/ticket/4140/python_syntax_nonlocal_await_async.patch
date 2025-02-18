@@ -1,0 +1,52 @@
+From 1d987dd1596b2479d3e3a9a813b95145484eac5c Mon Sep 17 00:00:00 2001
+From: Witold Baryluk <witold.baryluk+github@gmail.com>
+Date: Sun, 1 Nov 2020 22:26:25 +0000
+Subject: [PATCH] Add nonlocal, async, await keywoards to python.syntax
+
+nonlocal:
+
+Added in Python 3.0 in 2006:
+
+https://docs.python.org/3.0/whatsnew/3.0.html
+https://www.python.org/dev/peps/pep-3104/
+https://docs.python.org/3/reference/simple_stmts.html#the-nonlocal-statement
+
+
+async, await:
+
+Added in Python 3.5 in 2015:
+
+https://docs.python.org/3.5/whatsnew/3.5.html#what-s-new-in-python-3-5
+https://www.python.org/downloads/release/python-350/
+https://www.python.org/dev/peps/pep-0492/
+https://docs.python.org/3/reference/compound_stmts.html#async-def
+https://docs.python.org/3/reference/compound_stmts.html#the-async-for-statement
+https://docs.python.org/3/reference/compound_stmts.html#the-async-with-statement
+https://docs.python.org/3/reference/expressions.html#await-expression
+https://docs.python.org/3/glossary.html#term-coroutine
+https://docs.python.org/3/library/asyncio-task.html
+---
+ misc/syntax/python.syntax | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/misc/syntax/python.syntax b/misc/syntax/python.syntax
+index 3bd2cb531a..f9fdf56e04 100644
+--- a/misc/syntax/python.syntax
++++ b/misc/syntax/python.syntax
+@@ -23,6 +23,8 @@ context default
+     keyword whole and yellow
+     keyword whole as yellow
+     keyword whole assert yellow
++    keyword whole async yellow
++    keyword whole await yellow
+     keyword whole break yellow
+     keyword whole class yellow
+     keyword whole continue yellow
+@@ -41,6 +43,7 @@ context default
+     keyword whole in yellow
+     keyword whole is yellow
+     keyword whole lambda yellow
++    keyword whole nonlocal yellow
+     keyword whole not yellow
+     keyword whole or yellow
+     keyword whole pass yellow

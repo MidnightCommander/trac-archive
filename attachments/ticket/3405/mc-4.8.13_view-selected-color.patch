@@ -1,0 +1,29 @@
+
+Since we have viewselected color tag, use it at mcview
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+diff -ruN mc-4.8.13/src/viewer/nroff.c mc-4.8.13.patch/src/viewer/nroff.c
+--- mc-4.8.13/src/viewer/nroff.c	2014-09-02 13:34:09.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/nroff.c	2015-02-16 14:00:00.000000000 +0200
+@@ -204,7 +204,7 @@
+ 
+         if (view->search_start <= from && from < view->search_end)
+         {
+-            tty_setcolor (SELECTED_COLOR);
++            tty_setcolor (VIEW_SELECTED_COLOR);
+         }
+ 
+         c_prev = c;
+diff -ruN mc-4.8.13/src/viewer/plain.c mc-4.8.13.patch/src/viewer/plain.c
+--- mc-4.8.13/src/viewer/plain.c	2014-09-02 13:34:09.000000000 +0200
++++ mc-4.8.13.patch/src/viewer/plain.c	2015-02-16 16:31:36.651020378 +0100
+@@ -141,7 +141,7 @@
+         }
+ 
+         if (view->search_start <= from && from < view->search_end)
+-            tty_setcolor (SELECTED_COLOR);
++            tty_setcolor (VIEW_SELECTED_COLOR);
+         else
+             tty_setcolor (VIEW_NORMAL_COLOR);
+ 

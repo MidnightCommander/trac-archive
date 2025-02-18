@@ -1,0 +1,44 @@
+From 69db8f5e9f965596de1d43415a869ed0420ce5f8 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 25 Sep 2016 17:24:44 +0300
+Subject: [PATCH 3/8] Hex patterns: fix trailing whitespace problem.
+
+sscanf() returns EOF when it reaches the end of the string. Our code
+erroneously interprets this as if a number was read. The fix: we test for an
+explicit '1'.
+---
+ lib/search/hex.c                          | 2 +-
+ tests/lib/search/hex_translate_to_regex.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/search/hex.c b/lib/search/hex.c
+index a56d173..524a322 100644
+--- a/lib/search/hex.c
++++ b/lib/search/hex.c
+@@ -85,7 +85,7 @@ mc_search__hex_translate_to_regex (const GString * astr, mc_search_hex_parse_err
+         int ptr;
+ 
+         /* cppcheck-suppress invalidscanf */
+-        if (sscanf (tmp_str + loop, "%x%n", &val, &ptr))
++        if (sscanf (tmp_str + loop, "%x%n", &val, &ptr) == 1)
+         {
+             if (val > 255)
+                 error = MC_SEARCH_HEX_E_NUM_OUT_OF_RANGE;
+diff --git a/tests/lib/search/hex_translate_to_regex.c b/tests/lib/search/hex_translate_to_regex.c
+index cd53486..c72dff9 100644
+--- a/tests/lib/search/hex_translate_to_regex.c
++++ b/tests/lib/search/hex_translate_to_regex.c
+@@ -56,8 +56,8 @@ static const struct test_hex_translate_to_regex_ds
+         MC_SEARCH_HEX_E_OK
+     },
+     {
+-        /* Extra whitespace (but not trailing one) */
+-        "  12  34",
++        /* Extra whitespace */
++        "  12  34  ",
+         "\\x12\\x34",
+         MC_SEARCH_HEX_E_OK
+     },
+-- 
+2.9.3
+

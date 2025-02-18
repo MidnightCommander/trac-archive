@@ -1,0 +1,15 @@
+
+
+
+ษอออออออออออออออออออออ Copy File(s) อออออออออออออออออออออป
+บ Copying the file:                                      บ
+บ /path/to/file/very long file name here.txt             บ
+บ to:                                                    บ
+บ /destination/some/a new file name here.txt             บ
+บ [********                                        ] 10% บ
+บ  ฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ 1250MB (2500MB) ฤฤฤฤฤฤฤฤฤฤฤฤฤ      บ
+บ [***************************                     ] 50% บ
+บ Files processed: 700 out of 1000                       บ
+บ Time: 00:01:10                     Remaining: 00:01:20 บ
+บ Current speed: 5MB/sec            Average speed: 6MB/s บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ

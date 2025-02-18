@@ -1,0 +1,27 @@
+From df887ef5ad8613753921a4e9ca482e939f44f8ec Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 12:36:11 +0000
+Subject: [PATCH] diffviewer/search.c: cleanup -Wcast-qual warning
+
+search.c:89:44: warning: to be safe all intermediate pointers in cast from 'gchar ** {aka char **}' to 'const char **' must be 'const' qualified [-Wcast-qual]
+                 QUICK_RADIO (num_of_types, (const char **) list_of_types,
+                                            ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/diffviewer/search.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/diffviewer/search.c b/src/diffviewer/search.c
+index 9504ebe..a07f7b5 100644
+--- a/src/diffviewer/search.c
++++ b/src/diffviewer/search.c
+@@ -86,7 +86,7 @@ mcdiffview_dialog_search (WDiff * dview)
+             MC_HISTORY_SHARED_SEARCH, &exp, NULL, FALSE, FALSE, INPUT_COMPLETE_NONE),
+             QUICK_SEPARATOR (TRUE),
+             QUICK_START_COLUMNS,
+-                QUICK_RADIO (num_of_types, (const char **) list_of_types,
++                QUICK_RADIO (num_of_types, (const char **)(void *) list_of_types,
+                              (int *) &mcdiffview_search_options.type, NULL),
+             QUICK_NEXT_COLUMN,
+                 QUICK_CHECKBOX (N_("Cas&e sensitive"), &mcdiffview_search_options.case_sens, NULL),

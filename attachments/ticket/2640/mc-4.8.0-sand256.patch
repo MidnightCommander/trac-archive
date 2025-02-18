@@ -1,0 +1,26 @@
+diff -Naur mc-4.8.0.orig/misc/skins/sand256.ini mc-4.8.0/misc/skins/sand256.ini
+--- mc-4.8.0.orig/misc/skins/sand256.ini	2011-10-17 11:33:45.000000000 +0200
++++ mc-4.8.0/misc/skins/sand256.ini	2011-10-22 20:46:13.000000000 +0200
+@@ -85,7 +85,12 @@
+     markselect=rgb400;rgb452
+     gauge=;rgb452
+     input=;rgb452
++    inputunchanged=gray;rgb452
++    inputmark=rgb452;gray
++    disabled=gray;rgb553
+     reverse=;rgb452
++    commandlinemark=white;gray
++    header=red
+ 
+ [dialog]
+     _default_=black;rgb553
+@@ -127,6 +132,9 @@
+     hotkey=black;rgb554
+     button=black;rgb452
+ 
++[statusbar]
++    _default_=black;rgb452
++
+ [help]
+     _default_=black;rgb553
+     helpitalic=green

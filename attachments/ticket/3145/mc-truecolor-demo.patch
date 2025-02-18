@@ -1,0 +1,73 @@
+diff -ur mc-4.8.11.orig/lib/tty/color-internal.c mc-4.8.11/lib/tty/color-internal.c
+--- mc-4.8.11.orig/lib/tty/color-internal.c	2013-11-29 19:27:07.000000000 +0100
++++ mc-4.8.11/lib/tty/color-internal.c	2014-01-16 01:12:10.353070897 +0100
+@@ -94,8 +94,19 @@
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++static inline int
++parse_hex_digit (char c)
++{
++   if (c >= '0' && c <= '9')
++       return c - '0';
++   c |= 0x20;
++   if (c >= 'a' && c <= 'f')
++       return c - 'a' + 10;
++   return -1;
++}
++
+ static int
+-parse_256_color_name (const char *color_name)
++parse_256_or_true_color_name (const char *color_name)
+ {
+     int i;
+     char dummy;
+@@ -117,6 +128,23 @@
+     {
+         return 16 + 36 * (color_name[3] - '0') + 6 * (color_name[4] - '0') + (color_name[5] - '0');
+     }
++    if (color_name[0] == '#')
++    {
++        int h[6];
++        color_name++; 
++        if (strlen(color_name) != 3 && strlen(color_name) != 6)
++            return -1;
++        for (i = 0; color_name[i] != '\0'; i++) {
++            h[i] = parse_hex_digit (color_name[i]);
++            if (h[i] == -1)
++                return -1;   
++        }
++        if (i == 3)
++            i = (h[0] << 20) | (h[0] << 16) | (h[1] << 12) | (h[1] << 8) | (h[2] << 4) | h[2];
++        else
++            i = (h[0] << 20) | (h[1] << 16) | (h[2] << 12) | (h[3] << 8) | (h[4] << 4) | h[5];
++        return (1 << 24) | i;
++    }
+     return -1;
+ }
+ 
+@@ -150,6 +178,15 @@
+         }
+         return color_N_names[idx - 16];
+     }
++    /* Create and return strings in "#rrggbb" format for true color. */
++    if (idx & (1 << 24))
++    {
++        // FIXME: The allocated string is not free()d.
++        // Not trivial to fix, needs some refactoring.
++        gchar *rgb = g_try_malloc(8);
++        sprintf(rgb, "#%06X", idx & 0xFFFFFF);
++        return rgb;
++    }
+     return "default";
+ }
+ 
+@@ -165,7 +202,7 @@
+         for (i = 0; color_table[i].name != NULL; i++)
+             if (strcmp (color_name, color_table[i].name) == 0)
+                 return color_table[i].value;
+-        return parse_256_color_name (color_name);
++        return parse_256_or_true_color_name (color_name);
+     }
+     return -1;
+ }

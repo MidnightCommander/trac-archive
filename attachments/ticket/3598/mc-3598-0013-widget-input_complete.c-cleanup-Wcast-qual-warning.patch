@@ -1,0 +1,59 @@
+From a40fa7b34502bc66d06daaf712deacb47559ba11 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 10:46:35 +0000
+Subject: [PATCH] widget/input_complete.c: cleanup -Wcast-qual warning
+
+input_complete.c:688:21: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return strcmp (*(char **) a, *(char **) b);
+                     ^
+input_complete.c:688:35: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     return strcmp (*(char **) a, *(char **) b);
+                                   ^
+input_complete.c:810:9: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     p = (char *) text;
+         ^
+input_complete.c:811:9: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+     q = (char *) text + lc_start;
+         ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/input_complete.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/lib/widget/input_complete.c b/lib/widget/input_complete.c
+index ccd4b81..1ad9df6 100644
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -685,7 +685,7 @@ command_completion_function (const char *_text, int state, input_complete_t flag
+ static int
+ match_compare (const void *a, const void *b)
+ {
+-    return strcmp (*(char **) a, *(char **) b);
++    return strcmp (*(char *const *) a, *(char *const *) b);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -799,7 +799,7 @@ completion_matches (const char *text, CompletionFunction entry_function, input_c
+ static gboolean
+ check_is_cd (const char *text, int lc_start, input_complete_t flags)
+ {
+-    char *p, *q;
++    const char *p, *q;
+ 
+     SHOW_C_CTX ("check_is_cd");
+ 
+@@ -807,10 +807,10 @@ check_is_cd (const char *text, int lc_start, input_complete_t flags)
+         return FALSE;
+ 
+     /* Skip initial spaces */
+-    p = (char *) text;
+-    q = (char *) text + lc_start;
++    p = text;
++    q = text + lc_start;
+     while (p < q && p[0] != '\0' && str_isspace (p))
+-        str_next_char (&p);
++        str_cnext_char (&p);
+ 
+     /* Check if the command is "cd" and the cursor is after it */
+     return (p[0] == 'c' && p[1] == 'd' && str_isspace (p + 2) && p + 2 < q);

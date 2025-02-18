@@ -1,0 +1,37 @@
+From 1ac2344aadd5080d42aa293e8d0fc71e54db0c02 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 3 Apr 2020 09:18:43 +0000
+Subject: [PATCH] (tree.c): Remove unreachable code
+
+Found by Clang 9.0.1
+
+tree.c:1107:10: error: code will never be executed [-Werror,-Wunreachable-code]
+    if (!command_prompt && ((key >= ' ' && key <= 255) || key == KEY_BACKSPACE))
+         ^~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/tree.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/src/filemanager/tree.c b/src/filemanager/tree.c
+index 7f925992b..a1c52f267 100644
+--- a/src/filemanager/tree.c
++++ b/src/filemanager/tree.c
+@@ -1102,16 +1102,6 @@ tree_key (WTree * tree, int key)
+         tree_execute_cmd (tree, command);
+         return MSG_HANDLED;
+     }
+-
+-    /* Do not eat characters not meant for the tree below ' ' (e.g. C-l). */
+-    if (!command_prompt && ((key >= ' ' && key <= 255) || key == KEY_BACKSPACE))
+-    {
+-        tree_start_search (tree);
+-        tree_do_search (tree, key);
+-        return MSG_HANDLED;
+-    }
+-
+-    return MSG_NOT_HANDLED;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

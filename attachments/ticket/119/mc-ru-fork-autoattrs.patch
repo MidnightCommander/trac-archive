@@ -1,0 +1,63 @@
+Index: mc/src/filegui.c
+===================================================================
+--- mc/src/filegui.c	(revision 7)
++++ mc/src/filegui.c	(revision 8)
+@@ -50,6 +50,7 @@
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <sys/statfs.h>
+ #include <unistd.h>
+ 
+ #include "global.h"
+@@ -67,6 +68,27 @@
+ #include "util.h"               /* strip_password() */
+ #include "tty.h"
+ 
++#ifndef MSDOS_SUPER_MAGIC
++#define MSDOS_SUPER_MAGIC 0x4d44
++#endif //MSDOS_SUPER_MAGIC
++
++#ifndef NTFS_SB_MAGIC
++#define NTFS_SB_MAGIC 0x5346544e
++#endif //NTFS_SB_MAGIC
++
++#ifndef PROC_SUPER_MAGIC
++#define PROC_SUPER_MAGIC 0x9fa0
++#endif //PROC_SUPER_MAGIC
++
++#ifndef SMB_SUPER_MAGIC
++#define SMB_SUPER_MAGIC 0x517B
++#endif //SMB_SUPER_MAGIC
++
++#ifndef NCP_SUPER_MAGIC
++#define NCP_SUPER_MAGIC 0x564c
++#endif //NCP_SUPER_MAGIC
++
++
+ /* }}} */
+ 
+ /* Hack: the vfs code should not rely on this */
+@@ -865,11 +887,22 @@
+     struct stat buf;
+     int val;
+     QuickDialog Quick_input;
++    static struct statfs stfs;
+     char *def_text;
+     g_return_val_if_fail (ctx != NULL, NULL);
+ 
+     def_text = g_strdup(def_text_orig);
+ 
++    if (statfs(def_text, &stfs)==0) {
++      if (stfs.f_type==MSDOS_SUPER_MAGIC ||
++          stfs.f_type==NTFS_SB_MAGIC ||
++	  stfs.f_type==SMB_SUPER_MAGIC ||
++	  stfs.f_type==NCP_SUPER_MAGIC
++	  ) {
++        ctx->op_preserve=0;
++      }
++    }
++
+ #if 0
+     message (1, __FUNCTION__, "text = `%s' \n def_text = `%s'", text,
+ 		def_text);

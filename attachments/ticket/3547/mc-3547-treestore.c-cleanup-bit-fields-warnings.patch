@@ -1,0 +1,59 @@
+From 16d025d04d65074acf284f2c13b30ce680ca2f1b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 13 Dec 2015 16:52:24 +0000
+Subject: [PATCH] treestore.c cleanup bit fields warnings
+
+treestore.c:89:16: warning: conversion to 'unsigned char:1' from 'int' may alter its value [-Wconversion]
+treestore.c:288:42: warning: conversion to 'unsigned char:1' from 'int' may alter its value [-Wconversion]
+treestore.c:302:34: warning: conversion to 'unsigned char:1' from 'int' may alter its value [-Wconversion]
+
+what more preferred? using bit fields and saving bytes or using gboolean for FALSE/TRUE state values
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/treestore.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/filemanager/treestore.c b/src/filemanager/treestore.c
+index 093c99f..21445e4 100644
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -84,9 +84,9 @@ static tree_entry *tree_store_add_entry (const vfs_path_t * name);
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-tree_store_dirty (int state)
++tree_store_dirty (unsigned int state)
+ {
+-    ts.dirty = state;
++    ts.dirty = state & (1 << 0);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -247,7 +247,7 @@ tree_store_load_from (char *name)
+         while (fgets (buffer, MC_MAXPATHLEN, file))
+         {
+             tree_entry *e;
+-            int scanned;
++            unsigned int scanned;
+             char *lc_name;
+ 
+             /* Skip invalid records */
+@@ -285,7 +285,7 @@ tree_store_load_from (char *name)
+                             tmp_vpath = vfs_path_from_str (oldname);
+                             e = tree_store_add_entry (tmp_vpath);
+                             vfs_path_free (tmp_vpath);
+-                            e->scanned = scanned;
++                            e->scanned = scanned & (1 << 0);
+                         }
+                         vfs_path_free (vpath);
+                     }
+@@ -299,7 +299,7 @@ tree_store_load_from (char *name)
+                 if (vfs_file_is_local (vpath))
+                 {
+                     e = tree_store_add_entry (vpath);
+-                    e->scanned = scanned;
++                    e->scanned = scanned & (1 << 0);
+                 }
+                 vfs_path_free (vpath);
+                 strcpy (oldname, lc_name);

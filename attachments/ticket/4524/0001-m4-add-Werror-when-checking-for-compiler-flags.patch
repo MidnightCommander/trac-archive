@@ -1,0 +1,53 @@
+From 52866c44ceee5e07c450374857ff501eb581fd3c Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 30 May 2024 16:25:34 +0200
+Subject: [PATCH] m4: add Werror when checking for compiler flags
+
+Seemingly that at some point clang started accepting _any_ flags,
+whereas previously it would error out.
+
+These days, you can give it -Whamsandwich and it will succeed, while
+at the same time throwing an annoying warning.
+
+Add -Werror so that everything gets flagged and set accordingly.
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=108082
+Cc: Vinson Lee <vlee@freedesktop.org>
+Repored-by: Vinson Lee <vlee@freedesktop.org>
+Signed-off-by: Emil Velikov <emil.velikov@collabora.com>
+Reviewed-by: Dylan Baker <dylan@pnwbakers.com>
+Reviewed-by: Eric Engestrom <eric.engestrom@intel.com>
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ m4.include/ax_check_compile_flag.m4 | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/m4.include/ax_check_compile_flag.m4 b/m4.include/ax_check_compile_flag.m4
+index bd753b34d..8323a2275 100644
+--- a/m4.include/ax_check_compile_flag.m4
++++ b/m4.include/ax_check_compile_flag.m4
+@@ -34,6 +34,11 @@
+ #   and this notice are preserved.  This file is offered as-is, without any
+ #   warranty.
+ 
++# Yury Zaytsev:
++# Toggle Werror since at some point clang started treating unknown -W
++# flags as warnings, succeeding with the build, yet issuing an annoying
++# warning.
++
+ #serial 6
+ 
+ AC_DEFUN([AX_CHECK_COMPILE_FLAG],
+@@ -41,7 +46,7 @@ AC_DEFUN([AX_CHECK_COMPILE_FLAG],
+ AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_check_[]_AC_LANG_ABBREV[]flags_$4_$1])dnl
+ AC_CACHE_CHECK([whether _AC_LANG compiler accepts $1], CACHEVAR, [
+   ax_check_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
+-  _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $4 $1"
++  _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $4 $1 -Werror"
+   AC_COMPILE_IFELSE([m4_default([$5],[AC_LANG_PROGRAM()])],
+     [AS_VAR_SET(CACHEVAR,[yes])],
+     [AS_VAR_SET(CACHEVAR,[no])])
+-- 
+2.39.3 (Apple Git-146)
+

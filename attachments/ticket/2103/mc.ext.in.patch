@@ -1,0 +1,144 @@
+diff -urN misc/mc.ext.in misc.new/mc.ext.in
+--- misc/mc.ext.in	2010-03-14 03:11:53.000000000 +0100
++++ misc.new/mc.ext.in	2010-03-14 04:11:59.000000000 +0100
+@@ -345,7 +345,7 @@
+ 
+ # CHM
+ regex/\.(chm|CHM)$
+-	Open=which kchmviewer > /dev/null 2>&1 && (kchmviewer %f &) || (xchm %f &)
++	Open=if [ -n "$DISPLAY" ]; then which kchmviewer > /dev/null 2>&1 && (kchmviewer %f &) || (xchm %f &); else chm_http %f & elinks http://localhost:8080/index.html; kill -INT %%1; fi
+ 
+ ### Images ###
+ 
+@@ -391,15 +391,14 @@
+ 	Include=image
+ 
+ include/image
+-	Open=if [ "$DISPLAY" = "" ]; then zgv %f; else (gqview %f &); fi
++	Open=if [ -z "$DISPLAY" ]; then zgv %f; else (gqview %f &); fi
+ 	View=%view{ascii} identify %f
+ 	#View=%view{ascii} asciiview %f
+ 
+-
+ ### Sound files ###
+ 
+ regex/\.([wW][aA][vV]|[sS][nN][dD]|[vV][oO][cC]|[aA][uU]|[sS][mM][pP]|[aA][iI][fF][fF]|[sS][nN][dD])$
+-       Open=if [ "$DISPLAY" = "" ]; then play %f; else (xmms %f >/dev/null 2>&1 &); fi
++       Open=if [ -z "$DISPLAY" ]; then play %f; else (xmms %f >/dev/null 2>&1 &); fi
+ 
+ regex/\.([mM][oO][dD]|[sS]3[mM]|[xX][mM]|[iI][tT]|[mM][tT][mM]|669|[sS][tT][mM]|[uU][lL][tT]|[fF][aA][rR])$
+        Open=mikmod %f
+@@ -409,15 +408,15 @@
+        Open=vplay -s 22 %f
+ 
+ regex/\.([mM][pP]3)$
+-	Open=if [ "$DISPLAY" = "" ]; then mpg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
++	Open=if [ -z "$DISPLAY" ]; then mpg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
+ 	View=%view{ascii} mpg123 -vtn1 %f 2>&1 | sed -n '/^Title/,/^Comment/p;/^MPEG/,/^Audio/p'
+ 
+ regex/\.([oO][gG][gG|aA|vV|xX])$
+-	Open=if [ "$DISPLAY" = "" ]; then ogg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
++	Open=if [ -z "$DISPLAY" ]; then ogg123 %f; else (xmms %f >/dev/null 2>&1 &); fi
+ 	View=%view{ascii} ogginfo %s
+ 
+ regex/\.([sS][pP][xX]|[fF][lL][aA][cC])$
+-	Open=if [ "$DISPLAY" = "" ]; then play %f; else (xmms %f >/dev/null 2>&1 &); fi
++	Open=if [ -z "$DISPLAY" ]; then play %f; else (xmms %f >/dev/null 2>&1 &); fi
+ 
+ regex/\.([mM][iI][dD][iI]?|[rR][mM][iI][dD]?)$
+ 	Open=timidity %f
+@@ -469,7 +467,7 @@
+ 	Open=(realplay %f >/dev/null 2>&1 &)
+ 
+ include/video
+-	Open=(mplayer %f >/dev/null 2>&1 &)
++	Open=if [ -z "$DISPLAY" ]; then mplayer -vo null %f; else (mplayer %f >/dev/null 2>&1 &); fi
+ 	#Open=(gtv %f >/dev/null 2>&1 &)
+ 	#Open=(xanim %f >/dev/null 2>&1 &)
+ 
+@@ -478,28 +476,35 @@
+ 
+ # Postscript
+ type/^PostScript
+-	Open=(gv %f &)
++	Open=if [ -n "$DISPLAY" ]; then (gv %f &); else ps2ascii %f | %var{PAGER:more}; fi
+ 	View=%view{ascii} ps2ascii %f
+ 
+ # PDF
+ type/^PDF
+-	Open=(xpdf %f &)
++	Open=if [ -n "$DISPLAY" ]; then (xpdf %f &); else pdftotext -layout -nopgbrk %f - | %var{PAGER:more}; fi
+ 	#Open=(acroread %f &)
+ 	#Open=(ghostview %f &)
+-	View=%view{ascii} pdftotext %f -
++	View=%view{ascii} pdftotext -layout -nopgbrk %f -
+ 
+ # The following code very ugly and should not be taken as example.
+ # It should be cleaned up when the new format of mc.ext is developed.
+ 
+ # html
+ regex/\.([hH][tT][mM][lL]?)$
+-	Open=(if test -n "@X11_WWW@" && test -n "$DISPLAY"; then (@X11_WWW@ file://%d/%p &) 1>&2; else links %f || lynx -force_html %f || ${PAGER:-more} %f; fi) 2>/dev/null
+-	View=%view{ascii} links -dump %f 2>/dev/null || w3m -dump %f 2>/dev/null || lynx -dump -force_html %f
++	Open=(if test -n "@X11_WWW@" && [ -n "$DISPLAY" ]; then (@X11_WWW@ file://%d/%p &) 1>&2; else elinks %f || links %f || lynx -force_html %f || %var{PAGER:more} %f; fi) 2>/dev/null
++	View=%view{ascii} elinks -dump %f 2>/dev/null || links -dump %f 2>/dev/null || w3m -dump %f 2>/dev/null || lynx -dump -force_html %f
+ 
+ # StarOffice 5.2
+ shell/.sdw
+ 	Open=(ooffice %f &)
+ 
++regex/\.(sxw|SXW)$
++	Open=if [ -n "$DISPLAY" ]; then (ooffice %f &); else tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; cd $tmp; /usr/bin/soffice2html.pl %d/%f; /usr/bin/elinks content.html; /bin/rm -rf "$tmp"; fi
++	View=%view{ascii} tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; cd $tmp; /usr/bin/soffice2html.pl %d/%f; /usr/bin/elinks -dump content.html; rm -rf "$tmp"
++
++regex/\.(odp|ODP|ods|ODS|odt|ODT)$
++	Open=if [ -n "$DISPLAY" ]; then (ooffice %f &); else odt2txt %f | %var{PAGER:more}; fi
++
+ # StarOffice 6 and OpenOffice.org formats
+ regex/\.(odt|ott|sxw|stw|ods|ots|sxc|stc|odp|otp|sxi|sti|odg|otg|sxd|std|odb|odf|sxm|odm|sxg)$
+ 	Open=(ooffice %f &)
+@@ -511,11 +516,11 @@
+ 
+ # Microsoft Word Document
+ regex/\.([Dd][oO][cCtT]|[Ww][rR][iI])$
+-	Open=(abiword %f >/dev/null 2>&1 &)
+-	View=%view{ascii} antiword -t %f || catdoc -w %f || word2x -f text %f - || strings %f
++	Open=if [ -n "$DISPLAY" ]; then (abiword %f >/dev/null 2>&1 &); else tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/wvHtml %f --targetdir="$tmp" page.html -1; /usr/bin/elinks "$tmp/page.html"; /bin/rm -rf "$tmp"; fi
++	View=%view{ascii} tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/wvHtml %f --targetdir="$tmp" page.html; /usr/bin/elinks -dump "$tmp/page.html"; /bin/rm -rf "$tmp" || antiword -t %f || catdoc -w %f || word2x -f text %f - || strings %fantiword -t %f || catdoc -w %f || word2x -f text %f - || strings %f
+ type/^Microsoft\ Word
+-	Open=(abiword %f >/dev/null 2>&1 &)
+-	View=%view{ascii} antiword -t %f || catdoc -w %f || word2x -f text %f - || strings %f
++	Open=if [ -n "$DISPLAY" ]; then (abiword %f >/dev/null 2>&1 &); else tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/wvHtml %f --targetdir="$tmp" page.html -1; /usr/bin/elinks "$tmp/page.html"; /bin/rm -rf "$tmp"; fi
++	View=%view{ascii} tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/wvHtml %f --targetdir="$tmp" page.html; /usr/bin/elinks -dump "$tmp/page.html"; /bin/rm -rf "$tmp" || antiword -t %f || catdoc -w %f || word2x -f text %f - || strings %fantiword -t %f || catdoc -w %f || word2x -f text %f - || strings %f
+ 
+ # RTF document
+ regex/\.([rR][tT][fF])$
+@@ -523,11 +528,15 @@
+ 
+ # Microsoft Excel Worksheet
+ regex/\.([xX][lL][sSwW])$
+-	Open=(gnumeric %f >/dev/null 2>&1 &)
+-	View=%view{ascii} xls2csv %f || strings %f
++	Open=if [ -n "$DISPLAY" ]; then (gnumeric %f >/dev/null 2>&1 &); else tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/xlhtml -a %f > "$tmp/page.html"; /usr/bin/elinks "$tmp/page.html"; /bin/rm -rf "$tmp"; fi
++	View=%view{ascii} tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/xlhtml -a %f > "$tmp/page.html"; /usr/bin/elinks -dump "$tmp/page.html"; /bin/rm -rf "$tmp" || xls2csv %f || strings %f
+ type/^Microsoft\ Excel
+-	Open=(gnumeric %f >/dev/null 2>&1 &)
+-	View=%view{ascii} xls2csv %f || strings %f
++	Open=if [ -n "$DISPLAY" ]; then (gnumeric %f >/dev/null 2>&1 &); else tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/xlhtml -a %f > "$tmp/page.html"; /usr/bin/elinks "$tmp/page.html"; /bin/rm -rf "$tmp"; fi
++	View=%view{ascii} tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/xlhtml -a %f > "$tmp/page.html"; /usr/bin/elinks -dump "$tmp/page.html"; /bin/rm -rf "$tmp" || xls2csv %f || strings %f
++
++regex/\.(ppt|PPT|pps|PPS)$
++	Open=if [ -n "$DISPLAY" ]; then (ooffice %f >/dev/null 2>&1 &); else tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/ppthtml %f > "$tmp/page.html"; /usr/bin/elinks "$tmp/page.html"; /bin/rm -rf "$tmp"; fi
++	View=%view{ascii} tmp=`/bin/mktemp -d ${TMPDIR:-/tmp}/%p.XXXXXX`; /usr/bin/ppthtml %f > "$tmp/page.html"; /usr/bin/elinks -dump "$tmp/page.html"; /bin/rm -rf "$tmp"
+ 
+ # Use OpenOffice.org to open any MS Office documents
+ type/^Microsoft\ Office\ Document
+@@ -539,7 +548,7 @@
+ 
+ # DVI
+ regex/\.([dD][vV][iI])$
+-	Open=if [ x$DISPLAY = x ]; then dvisvga %f; else (xdvi %f &); fi
++	Open=if [ -z "$DISPLAY" ]; then dvisvga %f || dvi2tty %f | %var{PAGER:more}; else (xdvi %f &); fi
+ 	View=%view{ascii} dvi2tty %f
+ 
+ # TeX

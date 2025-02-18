@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -e
+
+function pause() {
+   read -p "$*"
+}
+
+if [ $# -ne 2 ]
+then
+  echo "Usage: `basename $0` BRANCH_FROM BRANCH_TO"
+  exit 1
+fi
+
+BRANCH_FROM=$1
+BRANCH_TO=$2
+
+echo "Checking out branch $BRANCH_TO..."
+git checkout $BRANCH_TO
+
+echo "Pulling latest changes into $BRANCH_TO..."
+git pull
+
+echo "Checking out branch in question ($BRANCH_FROM)..."
+git checkout $BRANCH_FROM
+
+pause "Rebasing $BRANCH_FROM on top of $BRANCH_TO... OK?"
+git rebase origin/$BRANCH_TO
+
+echo "Checking out branch $BRANCH_TO..."
+git checkout $BRANCH_TO
+
+echo "Pulling latest changes into $BRANCH_TO..."
+git pull
+
+pause "Merging $BRANCH_FROM with $BRANCH_TO... OK? (If there were updates on the previous step, press CTRL+C to abort!)"
+git merge --log --no-ff $BRANCH_FROM
+
+echo "Starting gitk to make sure you like the result..."
+gitk
+
+pause "Push to the origin!? (Press CTRL+C to abort!)"
+git push origin $BRANCH_TO
+
+pause "Proceed with the cleanup? (Press CTRL+C to abort!)"
+git push origin :$BRANCH_FROM
+git branch -d $BRANCH_FROM
+
+echo "Congratulations! Yet another glorious merge succesfully completed!"
+
+exit 0

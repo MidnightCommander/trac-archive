@@ -1,0 +1,24 @@
+From c85a4ce61ed5bbedb59463bfcd2116af662e0565 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Sat, 13 Jun 2009 10:13:53 +0200
+Subject: [PATCH 2/4] remove bashism
+
+---
+ maint/version.sh |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/maint/version.sh b/maint/version.sh
+index 13cdc86..a3d6114 100755
+--- a/maint/version.sh
++++ b/maint/version.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ 
+-git --version &>/dev/null || exit
++git --version >/dev/null 2>&1 || exit
+ 
+ curr_dir=$(pwd)
+ 
+-- 
+1.6.3.1
+

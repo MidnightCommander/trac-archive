@@ -1,0 +1,70 @@
+From c29bbe7dd78b47401700d4fc95e130b7187c4b47 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 15:11:40 +0000
+Subject: [PATCH] clarify edit_file and edit_stack_* declares
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/edit.c       | 2 ++
+ src/editor/edit.h       | 2 ++
+ src/editor/editwidget.c | 2 ++
+ 3 files changed, 6 insertions(+)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e69a9d4..a609e66 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3979,6 +3979,7 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++#ifdef USE_INTERNAL_EDIT
+ void
+ edit_stack_init (void)
+ {
+@@ -3999,6 +4000,7 @@ edit_stack_free (void)
+     for (edit_stack_iterator = 0; edit_stack_iterator < MAX_HISTORY_MOVETO; edit_stack_iterator++)
+         vfs_path_free (edit_history_moveto[edit_stack_iterator].filename_vpath);
+ }
++#endif /* USE_INTERNAL_EDIT */
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /** move i lines */
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index 1359891..b2539fb 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -63,11 +63,13 @@ extern int show_right_margin;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
++#ifdef USE_INTERNAL_EDIT
+ /* used in main() */
+ void edit_stack_init (void);
+ void edit_stack_free (void);
+ 
+ gboolean edit_file (const vfs_path_t * file_vpath, long line);
++#endif /* USE_INTERNAL_EDIT */
+ gboolean edit_files (const GList * files);
+ 
+ char *edit_get_file_name (const WEdit * edit);
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 9c2fcb3..e8a2bba 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -1183,6 +1183,7 @@ edit_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *da
+  * @return TRUE if no errors was occurred, FALSE otherwise
+  */
+ 
++#ifdef USE_INTERNAL_EDIT
+ gboolean
+ edit_file (const vfs_path_t * file_vpath, long line)
+ {
+@@ -1196,6 +1197,7 @@ edit_file (const vfs_path_t * file_vpath, long line)
+ 
+     return ok;
+ }
++#endif /* USE_INTERNAL_EDIT */
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 

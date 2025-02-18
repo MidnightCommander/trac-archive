@@ -1,0 +1,423 @@
+# LDIF file syntax, see: man 5 ldif for more details
+# Copyleft, by KLArk (A), 2012
+#
+
+define KeyName cyan
+define Comments green
+define Base64str blue
+define Delimeter gray
+define RefStrID brown
+define NamePart white
+define StringID yellow
+define ObjClassName red
+define Reference magenta
+define SchemaEquality red
+define SchemaStruct white
+define SchemaOID brightblue
+define UrlAddress brightred
+define DigitalID brightgreen
+define RecordID brightmagenta
+define UpdatesLeft brightcyan
+define UpdatesRight brightblue
+define SchemaAttrUsage brightred
+
+wholechars 0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz
+
+
+context default
+    keyword linestart # Comments
+
+    keyword :\s\[\s\] Delimeter
+    keyword ::\s\[\s\] Delimeter
+    keyword :<\s\[\s\] Delimeter
+    keyword linestart -\n Delimeter
+
+    keyword whole linestart \{Dd\}\{Nn\} RecordID
+    keyword whole linestart \{Dd\}\{Ii\}\{Ss\}\{Tt\}\{Ii\}\{Nn\}\{Gg\}\{Uu\}\{Ii\}\{Ss\}\{Hh\}\{Ee\}\{Dd\}\{Nn\}\{Aa\}\{Mm\}\{Ee\} RecordID
+
+    keyword linestart \{Ss\}\{Nn\}:\s KeyName
+    keyword linestart \{Gg\}\{Nn\}:\s KeyName
+    keyword linestart \{Tt\}\{Ii\}\{Tt\}\{Ll\}\{Ee\}:\s KeyName
+    keyword linestart \{Gg\}\{Ee\}\{Cc\}\{Oo\}\{Ss\}:\s KeyName
+    keyword linestart \{Ss\}\{Uu\}\{Rr\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s KeyName
+    keyword linestart \{Ii\}\{Nn\}\{Ii\}\{Tt\}\{Ii\}\{Aa\}\{Ll\}\{Ss\}:\s KeyName
+    keyword linestart \{Gg\}\{Ii\}\{Vv\}\{Ee\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s KeyName
+    keyword linestart \{Dd\}\{Ee\}\{Ss\}\{Cc\}\{Rr\}\{Ii\}\{Pp\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}:\s KeyName
+    keyword linestart \{Dd\}\{Ii\}\{Ss\}\{Pp\}\{Ll\}\{Aa\}\{Yy\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s KeyName
+
+    keyword linestart \{Cc\}\{Hh\}\{Aa\}\{Nn\}\{Gg\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\}:\s\[\s\]\{Aa\}\{Dd\}\{Dd\}\n UpdatesLeft
+    keyword linestart \{Cc\}\{Hh\}\{Aa\}\{Nn\}\{Gg\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\}:\s\[\s\]\{Mm\}\{Oo\}\{Dd\}\{Ii\}\{Ff\}\{Yy\}\n UpdatesLeft
+    keyword linestart \{Cc\}\{Hh\}\{Aa\}\{Nn\}\{Gg\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\}:\s\[\s\]\{Dd\}\{Ee\}\{Ll\}\{Ee\}\{Tt\}\{Ee\}\n UpdatesLeft
+    keyword linestart \{Cc\}\{Hh\}\{Aa\}\{Nn\}\{Gg\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\}:\s\[\s\]\{Mm\}\{Oo\}\{Dd\}\{Rr\}\{Dd\}\{Nn\}\n UpdatesLeft
+
+    keyword whole linestart \{Aa\}\{Dd\}\{Dd\} UpdatesLeft
+    keyword whole linestart \{Nn\}\{Ee\}\{Ww\}\{Rr\}\{Dd\}\{Nn\} UpdatesLeft
+    keyword whole linestart \{Rr\}\{Ee\}\{Pp\}\{Ll\}\{Aa\}\{Cc\}\{Ee\} UpdatesLeft
+    keyword whole linestart \{Nn\}\{Ee\}\{Ww\}\{Ss\}\{Uu\}\{Pp\}\{Ee\}\{Rr\}\{Ii\}\{Oo\}\{Rr\} UpdatesLeft
+    keyword whole linestart \{Dd\}\{Ee\}\{Ll\}\{Ee\}\{Tt\}\{Ee\}\{Oo\}\{Ll\}\{Dd\}\{Rr\}\{Dd\}\{Nn\} UpdatesLeft
+
+    keyword whole linestart \{Ee\}\{Nn\}\{Tt\}\{Rr\}\{Yy\}\{Cc\}\{Ss\}\{Nn\} Delimeter
+    keyword whole linestart \{Ee\}\{Nn\}\{Tt\}\{Rr\}\{Yy\}\{Uu\}\{Uu\}\{Ii\}\{Dd\} Delimeter
+    keyword whole linestart \{Cc\}\{Rr\}\{Ee\}\{Aa\}\{Tt\}\{Ee\}\{Tt\}\{Ii\}\{Mm\}\{Ee\}\{Ss\}\{Tt\}\{Aa\}\{Mm\}\{Pp\} Delimeter
+    keyword whole linestart \{Mm\}\{Oo\}\{Dd\}\{Ii\}\{Ff\}\{Yy\}\{Tt\}\{Ii\}\{Mm\}\{Ee\}\{Ss\}\{Tt\}\{Aa\}\{Mm\}\{Pp\} Delimeter
+    keyword whole linestart \{Mm\}\{Oo\}\{Dd\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\}\{Ss\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: Delimeter
+    keyword whole linestart \{Cc\}\{Rr\}\{Ee\}\{Aa\}\{Tt\}\{Oo\}\{Rr\}\{Ss\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: Delimeter
+
+    keyword whole linestart \{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\] KeyName
+
+# Comments
+context exclusive linestart # \n Comments
+
+# Base64 encoded values and password hashes
+context exclusive ::\s \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\} Base64str
+
+# URL's
+context exclusive :<\s \n UrlAddress
+context ftp:\/\/ \n  UrlAddress
+context ftps:\/\/ \n UrlAddress
+context file:\/\/ \n UrlAddress
+context http:\/\/ \n UrlAddress
+context https:\/\/ \n UrlAddress
+
+# Descriptions
+context exclusive linestart D\{Ee\}\{Ss\}\{Cc\}\{Rr\}\{Ii\}\{Pp\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}:\s\[\s\] \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\} Delimeter
+context exclusive linestart d\{Ee\}\{Ss\}\{Cc\}\{Rr\}\{Ii\}\{Pp\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}:\s\[\s\] \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\} Delimeter
+
+# LDAP Schema fields values
+context exclusive linestart O\{Ll\}\{Cc\}\{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Ii\}\{Dd\}\{Ee\}\{Nn\}\{Tt\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\} \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}
+    keyword :\s\[\s\] Delimeter
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+context exclusive linestart o\{Ll\}\{Cc\}\{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Ii\}\{Dd\}\{Ee\}\{Nn\}\{Tt\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\} \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}
+    keyword :\s\[\s\] Delimeter
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+context exclusive linestart O\{Ll\}\{Cc\}\{Aa\}\{Tt\}\{Tt\}\{Rr\}\{Ii\}\{Bb\}\{Uu\}\{Tt\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\}\{Ss\} \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}
+    keyword :\s\[\s\] Delimeter
+    keyword '*' StringID
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole USAGE SchemaStruct
+    keyword whole SUBSTR SchemaStruct
+    keyword whole SYNTAX SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole EQUALITY SchemaStruct
+    keyword whole ORDERING SchemaStruct
+    keyword whole COLLECTIVE SchemaStruct
+    keyword whole SINGLE-VALUE SchemaStruct
+    keyword whole NO-USER-MODIFICATION SchemaStruct
+    keyword whole userApplications SchemaAttrUsage
+    keyword whole directoryOperation SchemaAttrUsage
+    keyword whole distributedOperation SchemaAttrUsage
+    keyword whole dSAOperation SchemaAttrUsage
+    keyword whole booleanMatch SchemaEquality
+    keyword whole caseIgnoreMatch SchemaEquality
+    keyword whole caseIgnoreOrderingMatch SchemaEquality
+    keyword whole caseIgnoreSubstringsMatch SchemaEquality
+    keyword whole caseExactMatch SchemaEquality
+    keyword whole caseExactOrderingMatch SchemaEquality
+    keyword whole caseExactSubstringsMatch SchemaEquality
+    keyword whole distinguishedNameMatch SchemaEquality
+    keyword whole integerMatch SchemaEquality
+    keyword whole integerOrderingMatch SchemaEquality
+    keyword whole numericStringMatch SchemaEquality
+    keyword whole numericStringOrderingMatch SchemaEquality
+    keyword whole numericStringSubstringsMatch SchemaEquality
+    keyword whole octetStringMatch SchemaEquality
+    keyword whole octetStringOrderingMatch SchemaEquality
+    keyword whole octetStringSubstringsMatch SchemaEquality
+    keyword whole objectIdentiferMatch SchemaEquality
+    keyword whole caseIgnoreListMatch SchemaEquality
+    keyword whole caseIgnoreListSubstringsMatch SchemaEquality
+    keyword whole telephoneNumberMatch SchemaEquality
+    keyword whole telephoneNumberSubstringsMatch SchemaEquality
+    keyword whole presentationAddressMatch SchemaEquality
+    keyword whole objectIdentifierMatch SchemaEquality
+    keyword whole certificateExactMatch SchemaEquality
+    keyword whole bitStringMatch SchemaEquality
+    keyword whole protocolInformationMatch SchemaEquality
+    keyword whole uniqueMemberMatch SchemaEquality
+    keyword whole caseExactIA5Match SchemaEquality
+    keyword whole caseIgnoreIA5Match SchemaEquality
+    keyword whole caseExactIA5SubstringsMatch SchemaEquality
+    keyword whole caseIgnoreIA5SubstringsMatch SchemaEquality
+    keyword wholeright {\{01234567890\}\[.01234567890\]} DigitalID
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+context exclusive linestart o\{Ll\}\{Cc\}\{Aa\}\{Tt\}\{Tt\}\{Rr\}\{Ii\}\{Bb\}\{Uu\}\{Tt\}\{Ee\}\{Tt\}\{Yy\}\{Pp\}\{Ee\}\{Ss\} \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}
+    keyword :\s\[\s\] Delimeter
+    keyword '*' StringID
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole USAGE SchemaStruct
+    keyword whole SUBSTR SchemaStruct
+    keyword whole SYNTAX SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole EQUALITY SchemaStruct
+    keyword whole ORDERING SchemaStruct
+    keyword whole COLLECTIVE SchemaStruct
+    keyword whole SINGLE-VALUE SchemaStruct
+    keyword whole NO-USER-MODIFICATION SchemaStruct
+    keyword whole userApplications SchemaAttrUsage
+    keyword whole directoryOperation SchemaAttrUsage
+    keyword whole distributedOperation SchemaAttrUsage
+    keyword whole dSAOperation SchemaAttrUsage
+    keyword whole booleanMatch SchemaEquality
+    keyword whole caseIgnoreMatch SchemaEquality
+    keyword whole caseIgnoreOrderingMatch SchemaEquality
+    keyword whole caseIgnoreSubstringsMatch SchemaEquality
+    keyword whole caseExactMatch SchemaEquality
+    keyword whole caseExactOrderingMatch SchemaEquality
+    keyword whole caseExactSubstringsMatch SchemaEquality
+    keyword whole distinguishedNameMatch SchemaEquality
+    keyword whole integerMatch SchemaEquality
+    keyword whole integerOrderingMatch SchemaEquality
+    keyword whole numericStringMatch SchemaEquality
+    keyword whole numericStringOrderingMatch SchemaEquality
+    keyword whole numericStringSubstringsMatch SchemaEquality
+    keyword whole octetStringMatch SchemaEquality
+    keyword whole octetStringOrderingMatch SchemaEquality
+    keyword whole octetStringSubstringsMatch SchemaEquality
+    keyword whole objectIdentiferMatch SchemaEquality
+    keyword whole caseIgnoreListMatch SchemaEquality
+    keyword whole caseIgnoreListSubstringsMatch SchemaEquality
+    keyword whole telephoneNumberMatch SchemaEquality
+    keyword whole telephoneNumberSubstringsMatch SchemaEquality
+    keyword whole presentationAddressMatch SchemaEquality
+    keyword whole objectIdentifierMatch SchemaEquality
+    keyword whole certificateExactMatch SchemaEquality
+    keyword whole bitStringMatch SchemaEquality
+    keyword whole protocolInformationMatch SchemaEquality
+    keyword whole uniqueMemberMatch SchemaEquality
+    keyword whole caseExactIA5Match SchemaEquality
+    keyword whole caseIgnoreIA5Match SchemaEquality
+    keyword whole caseExactIA5SubstringsMatch SchemaEquality
+    keyword whole caseIgnoreIA5SubstringsMatch SchemaEquality
+    keyword wholeright {\{01234567890\}\[.01234567890\]} DigitalID
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+context exclusive linestart O\{Ll\}\{Cc\}\{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\}\{Ee\}\{Ss\} \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}
+    keyword :\s\[\s\] Delimeter
+    keyword '*' StringID
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole $ SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole MAY SchemaStruct
+    keyword whole MUST SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole ABSTRACT SchemaStruct
+    keyword whole AUXILIARY SchemaStruct
+    keyword whole STRUCTURAL SchemaStruct
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+context exclusive linestart o\{Ll\}\{Cc\}\{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\}\{Ee\}\{Ss\} \n\{#\n-ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}
+    keyword :\s\[\s\] Delimeter
+    keyword '*' StringID
+    keyword whole ( SchemaStruct
+    keyword whole ) SchemaStruct
+    keyword whole $ SchemaStruct
+    keyword whole SUP SchemaStruct
+    keyword whole MAY SchemaStruct
+    keyword whole MUST SchemaStruct
+    keyword whole NAME SchemaStruct
+    keyword whole DESC SchemaStruct
+    keyword whole OBSOLETE SchemaStruct
+    keyword whole ABSTRACT SchemaStruct
+    keyword whole AUXILIARY SchemaStruct
+    keyword whole STRUCTURAL SchemaStruct
+    keyword whole \{01234567890\}\[.01234567890\] SchemaOID
+
+# Records modify commands:
+context exclusive linestart A\{Dd\}\{Dd\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart a\{Dd\}\{Dd\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart N\{Ee\}\{Ww\}\{Rr\}\{Dd\}\{Nn\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart n\{Ee\}\{Ww\}\{Rr\}\{Dd\}\{Nn\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart R\{Ee\}\{Pp\}\{Ll\}\{Aa\}\{Cc\}\{Ee\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart r\{Ee\}\{Pp\}\{Ll\}\{Aa\}\{Cc\}\{Ee\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart N\{Ee\}\{Ww\}\{Ss\}\{Uu\}\{Pp\}\{Ee\}\{Rr\}\{Ii\}\{Oo\}\{Rr\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart n\{Ee\}\{Ww\}\{Ss\}\{Uu\}\{Pp\}\{Ee\}\{Rr\}\{Ii\}\{Oo\}\{Rr\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart D\{Ee\}\{Ll\}\{Ee\}\{Tt\}\{Ee\}\{Oo\}\{Ll\}\{Dd\}\{Rr\}\{Dd\}\{Nn\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart d\{Ee\}\{Ll\}\{Ee\}\{Tt\}\{Ee\}\{Oo\}\{Ll\}\{Dd\}\{Rr\}\{Dd\}\{Nn\} \n UpdatesRight
+    keyword :\s\[\s\] Delimeter
+
+# Record start
+context exclusive linestart D\{Ii\}\{Ss\}\{Tt\}\{Ii\}\{Nn\}\{Gg\}\{Uu\}\{Ii\}\{Ss\}\{Hh\}\{Ee\}\{Dd\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: \n RecordID
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Ss\}\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Dd\}\{Oo\}\{Mm\}\{Aa\}\{Ii\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+context exclusive linestart d\{Ii\}\{Ss\}\{Tt\}\{Ii\}\{Nn\}\{Gg\}\{Uu\}\{Ii\}\{Ss\}\{Hh\}\{Ee\}\{Dd\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: \n RecordID
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Ss\}\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Dd\}\{Oo\}\{Mm\}\{Aa\}\{Ii\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+context exclusive linestart D\{Nn\}: \n RecordID
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Ss\}\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Dd\}\{Oo\}\{Mm\}\{Aa\}\{Ii\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+context exclusive linestart d\{Nn\}: \n RecordID
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Ss\}\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Dd\}\{Oo\}\{Mm\}\{Aa\}\{Ii\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] StringID
+
+# Object classes
+context exclusive linestart S\{Tt\}\{Rr\}\{Uu\}\{Cc\}\{Tt\}\{Uu\}\{Rr\}\{Aa\}\{Ll\}\{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\} \n ObjClassName
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart s\{Tt\}\{Rr\}\{Uu\}\{Cc\}\{Tt\}\{Uu\}\{Rr\}\{Aa\}\{Ll\}\{Oo\}\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\} \n ObjClassName
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart O\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\} \n ObjClassName
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart o\{Bb\}\{Jj\}\{Ee\}\{Cc\}\{Tt\}\{Cc\}\{Ll\}\{Aa\}\{Ss\}\{Ss\} \n ObjClassName
+    keyword :\s\[\s\] Delimeter
+
+# System fields
+context exclusive linestart C\{Rr\}\{Ee\}\{Aa\}\{Tt\}\{Oo\}\{Rr\}\{Ss\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: \n Reference
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+context exclusive linestart c\{Rr\}\{Ee\}\{Aa\}\{Tt\}\{Oo\}\{Rr\}\{Ss\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: \n Reference
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+context exclusive linestart M\{Oo\}\{Dd\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\}\{Ss\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: \n Reference
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+context exclusive linestart m\{Oo\}\{Dd\}\{Ii\}\{Ff\}\{Ii\}\{Ee\}\{Rr\}\{Ss\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}: \n Reference
+    keyword \s\{Oo\}\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Uu\}\{Ii\}\{Dd\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Cc\}\{Nn\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+    keyword \s\{Oo\}\{Uu\}=\{ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\}\[0123456789_-\sABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\] RefStrID
+context exclusive linestart E\{Nn\}\{Tt\}\{Rr\}\{Yy\}\{Cc\}\{Ss\}\{Nn\}: \n Delimeter
+context exclusive linestart e\{Nn\}\{Tt\}\{Rr\}\{Yy\}\{Cc\}\{Ss\}\{Nn\}: \n Delimeter
+context exclusive linestart E\{Nn\}\{Tt\}\{Rr\}\{Yy\}\{Uu\}\{Uu\}\{Ii\}\{Dd\}: \n Delimeter
+context exclusive linestart e\{Nn\}\{Tt\}\{Rr\}\{Yy\}\{Uu\}\{Uu\}\{Ii\}\{Dd\}: \n Delimeter
+context exclusive linestart C\{Rr\}\{Ee\}\{Aa\}\{Tt\}\{Ee\}\{Tt\}\{Ii\}\{Mm\}\{Ee\}\{Ss\}\{Tt\}\{Aa\}\{Mm\}\{Pp\}: \n Delimeter
+context exclusive linestart c\{Rr\}\{Ee\}\{Aa\}\{Tt\}\{Ee\}\{Tt\}\{Ii\}\{Mm\}\{Ee\}\{Ss\}\{Tt\}\{Aa\}\{Mm\}\{Pp\}: \n Delimeter
+context exclusive linestart M\{Oo\}\{Dd\}\{Ii\}\{Ff\}\{Yy\}\{Tt\}\{Ii\}\{Mm\}\{Ee\}\{Ss\}\{Tt\}\{Aa\}\{Mm\}\{Pp\}: \n Delimeter
+context exclusive linestart m\{Oo\}\{Dd\}\{Ii\}\{Ff\}\{Yy\}\{Tt\}\{Ii\}\{Mm\}\{Ee\}\{Ss\}\{Tt\}\{Aa\}\{Mm\}\{Pp\}: \n Delimeter
+
+# Member references
+context exclusive linestart M\{Ee\}\{Mm\}\{Bb\}\{Ee\}\{Rr\}\{Uu\}\{Ii\}\{Dd\} \n RefStrID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart m\{Ee\}\{Mm\}\{Bb\}\{Ee\}\{Rr\}\{Uu\}\{Ii\}\{Dd\} \n RefStrID
+    keyword :\s\[\s\] Delimeter
+
+# String ID's:
+context exclusive linestart O\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart o\{Rr\}\{Gg\}\{Aa\}\{Nn\}\{Ii\}\{Zz\}\{Aa\}\{Tt\}\{Ii\}\{Oo\}\{Nn\}\{Aa\}\{Ll\}\{Uu\}\{Nn\}\{Ii\}\{Tt\}\{Nn\}\{Aa\}\{Mm\}\{Ee\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart S\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Dd\}\{Oo\}\{Mm\}\{Aa\}\{Ii\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart s\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Dd\}\{Oo\}\{Mm\}\{Aa\}\{Ii\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart C\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart c\{Oo\}\{Mm\}\{Mm\}\{Oo\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart U\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart u\{Ss\}\{Ee\}\{Rr\}\{Ii\}\{Dd\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart U\{Ii\}\{Dd\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart u\{Ii\}\{Dd\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart D\{Cc\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart d\{Cc\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart O\{Uu\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart o\{Uu\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart C\{Nn\} \n StringID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart c\{Nn\} \n StringID
+    keyword :\s\[\s\] Delimeter
+
+# Name parts
+context exclusive linestart S\{Nn\}:\s\[\s\] \n NamePart
+context exclusive linestart s\{Nn\}:\s\[\s\] \n NamePart
+context exclusive linestart G\{Nn\}:\s\[\s\] \n NamePart
+context exclusive linestart g\{Nn\}:\s\[\s\] \n NamePart
+context exclusive linestart G\{Ee\}\{Cc\}\{Oo\}\{Ss\}:\s\[\s\] \n NamePart
+context exclusive linestart g\{Ee\}\{Cc\}\{Oo\}\{Ss\}:\s\[\s\] \n NamePart
+context exclusive linestart T\{Ii\}\{Tt\}\{Ll\}\{Ee\}:\s\[\s\] \n NamePart
+context exclusive linestart t\{Ii\}\{Tt\}\{Ll\}\{Ee\}:\s\[\s\] \n NamePart
+context exclusive linestart S\{Uu\}\{Rr\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s\[\s\] \n NamePart
+context exclusive linestart s\{Uu\}\{Rr\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s\[\s\] \n NamePart
+context exclusive linestart I\{Nn\}\{Ii\}\{Tt\}\{Ii\}\{Aa\}\{Ll\}\{Ss\}:\s\[\s\] \n NamePart
+context exclusive linestart i\{Nn\}\{Ii\}\{Tt\}\{Ii\}\{Aa\}\{Ll\}\{Ss\}:\s\[\s\] \n NamePart
+context exclusive linestart G\{Ii\}\{Vv\}\{Ee\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s\[\s\] \n NamePart
+context exclusive linestart g\{Ii\}\{Vv\}\{Ee\}\{Nn\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s\[\s\] \n NamePart
+context exclusive linestart D\{Ii\}\{Ss\}\{Pp\}\{Ll\}\{Aa\}\{Yy\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s\[\s\] \n NamePart
+context exclusive linestart d\{Ii\}\{Ss\}\{Pp\}\{Ll\}\{Aa\}\{Yy\}\{Nn\}\{Aa\}\{Mm\}\{Ee\}:\s\[\s\] \n NamePart
+
+# Digital ID's
+context exclusive linestart G\{Ii\}\{Dd\}\{Nn\}\{Uu\}\{Mm\}\{Bb\}\{Ee\}\{Rr\} \n DigitalID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart g\{Ii\}\{Dd\}\{Nn\}\{Uu\}\{Mm\}\{Bb\}\{Ee\}\{Rr\} \n DigitalID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart u\{Ii\}\{Dd\}\{Nn\}\{Uu\}\{Mm\}\{Bb\}\{Ee\}\{Rr\} \n DigitalID
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart U\{Ii\}\{Dd\}\{Nn\}\{Uu\}\{Mm\}\{Bb\}\{Ee\}\{Rr\} \n DigitalID
+    keyword :\s\[\s\] Delimeter
+
+# Hashes and Base64 hidden fields
+context exclusive linestart S\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Ss\}\{Ii\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart s\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Ss\}\{Ii\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart S\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Nn\}\{Tt\}\{Pp\}\{Aa\}\{Ss\}\{Ss\}\{Ww\}\{Oo\}\{Rr\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart s\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Nn\}\{Tt\}\{Pp\}\{Aa\}\{Ss\}\{Ss\}\{Ww\}\{Oo\}\{Rr\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart S\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Ll\}\{Mm\}\{Pp\}\{Aa\}\{Ss\}\{Ss\}\{Ww\}\{Oo\}\{Rr\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart s\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Ll\}\{Mm\}\{Pp\}\{Aa\}\{Ss\}\{Ss\}\{Ww\}\{Oo\}\{Rr\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart S\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Pp\}\{Rr\}\{Ii\}\{Mm\}\{Aa\}\{Rr\}\{Yy\}\{Gg\}\{Rr\}\{Oo\}\{Uu\}\{Pp\}\{Ss\}\{Ii\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+context exclusive linestart s\{Aa\}\{Mm\}\{Bb\}\{Aa\}\{Pp\}\{Rr\}\{Ii\}\{Mm\}\{Aa\}\{Rr\}\{Yy\}\{Gg\}\{Rr\}\{Oo\}\{Uu\}\{Pp\}\{Ss\}\{Ii\}\{Dd\} \n Base64str
+    keyword :\s\[\s\] Delimeter
+

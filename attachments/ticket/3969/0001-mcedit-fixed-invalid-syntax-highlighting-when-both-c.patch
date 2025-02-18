@@ -1,0 +1,42 @@
+From c4742d7a2d4c5dcba43050f4fb71a0b363ad1231 Mon Sep 17 00:00:00 2001
+From: Sergii Pylypenko <x.pelya.x@gmail.com>
+Date: Thu, 7 Feb 2019 20:21:43 +0200
+Subject: [PATCH 1/2] mcedit: fixed invalid syntax highlighting when both
+ context and keyword end with a newline
+
+To reproduce, create .c or .cxx file and open it in mcedit:
+
+\#endif // preprocessor macro with one-line comment
+int code; /* <-- this line is colorized incorrectly */
+int code2; /* <-- next line is colorized properly */
+---
+ src/editor/syntax.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/src/editor/syntax.c b/src/editor/syntax.c
+index 0ee33f85d..adbb27792 100644
+--- a/src/editor/syntax.c
++++ b/src/editor/syntax.c
+@@ -446,6 +446,19 @@ apply_rules_going_right (WEdit * edit, off_t i)
+                                            k->whole_word_chars_right, k->line_start);
+                 if (e > 0)
+                 {
++                    /* when both context and keyword terminate with a newline,
++                       the context overflows to the next line and colorizes it incorrectly */
++                    if (_rule._context != 0 && k->keyword[strlen (k->keyword) - 1] == '\n')
++                    {
++                        r = CONTEXT_RULE (g_ptr_array_index (edit->rules, _rule._context));
++                        if (r->right != NULL && r->right[0] != '\0' && r->right[strlen (r->right) - 1] == '\n')
++                        {
++                            if (e > i + 1)
++                            {
++                                e--;
++                            }
++                        }
++                    }
+                     end = e;
+                     _rule.end = e;
+                     _rule.keyword = count;
+-- 
+2.20.1
+

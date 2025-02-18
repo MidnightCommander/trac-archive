@@ -1,0 +1,26 @@
+From 0645e9248a69168bc09fc52dba831bbe9a204ec4 Mon Sep 17 00:00:00 2001
+From: Yury V. Zaytsev <yury@shurup.com>
+Date: Sun, 2 May 2010 20:31:29 +0200
+Subject: [PATCH] ChangeLog in its current form does not strictly make any sense. The
+ suggested wording makes it explicit where to look for the traditional
+ list of changes since the last release and how to obtain a detailed log
+ of changes.
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ ChangeLog |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index 342d026..ac537f0 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,2 +1,3 @@
+-See
+-git log
++For the major changes since the last release see doc/NEWS. For the
++detailed commit log please refer to the output of 'git log' on a checked
++out copy of the repository.
+-- 
+1.7.1
+

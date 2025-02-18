@@ -1,0 +1,2715 @@
+From 2cf267d8a0cfda61fdc94696bbc997c8369a43d1 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Mon, 25 Jan 2021 13:54:14 -0600
+Subject: Slang Scripting Support.
+
+---
+ lib/fileloc.h                           |   2 +
+ lib/keybind.c                           | 140 +++-
+ lib/keybind.h                           |  31 +-
+ lib/mcconfig/paths.c                    |   3 +
+ lib/widget/dialog.c                     |   4 +
+ lib/widget/wtools.c                     |  64 ++
+ lib/widget/wtools.h                     |  11 +
+ misc/grow_shrink_integer.plugin.sl      | 102 +++
+ misc/init.sl                            |  49 ++
+ src/Makefile.am                         |   5 +-
+ src/editor/edit.c                       |  26 +
+ src/editor/editbuffer.c                 | 122 ++++
+ src/editor/editbuffer.h                 |   4 +
+ src/editor/editcmd.c                    |  58 +-
+ src/editor/editwidget.c                 |   1 +
+ src/main.c                              |  11 +
+ src/setup.c                             |  18 +-
+ src/slang_api_functions.c               | 423 ++++++++++++
+ src/slang_api_functions.h               |  52 ++
+ src/slang_api_functions_glue.c          | 871 ++++++++++++++++++++++++
+ src/slang_engine.c                      | 275 ++++++++
+ src/{vfs/fish/fish.h => slang_engine.h} |  19 +-
+ 22 files changed, 2212 insertions(+), 79 deletions(-)
+ create mode 100644 misc/grow_shrink_integer.plugin.sl
+ create mode 100644 misc/init.sl
+ create mode 100644 src/slang_api_functions.c
+ create mode 100644 src/slang_api_functions.h
+ create mode 100644 src/slang_api_functions_glue.c
+ create mode 100644 src/slang_engine.c
+ copy src/{vfs/fish/fish.h => slang_engine.h} (72%)
+
+diff --git a/lib/fileloc.h b/lib/fileloc.h
+index c7d3bc625..44c3b5efd 100644
+--- a/lib/fileloc.h
++++ b/lib/fileloc.h
+@@ -30,6 +30,8 @@
+ #define CHARSETS_LIST           "mc.charsets"
+ #define MC_LIB_EXT              "mc.ext"
+ #define MC_MACRO_FILE           "mc.macros"
++#define MC_SLANG_INIT_FILE      "init.sl"
++#define MC_PLUGIN_DIR           "plugin"
+ 
+ #define FISH_PREFIX             "fish"
+ 
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..4fd8aaed6 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -38,6 +38,8 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
++int new_dynamic_command_id = 100000;
++
+ /*** file scope macro definitions ****************************************************************/
+ 
+ #define ADD_KEYMAP_NAME(name) \
+@@ -47,7 +49,7 @@
+ 
+ /*** file scope variables ************************************************************************/
+ 
+-static name_keymap_t command_names[] = {
++static name_keymap_t command_names_start[] = {
+     /* common */
+     ADD_KEYMAP_NAME (InsertChar),
+     ADD_KEYMAP_NAME (Enter),
+@@ -375,13 +377,24 @@ static name_keymap_t command_names[] = {
+     {NULL, CK_IgnoreKey}
+ };
+ 
+-/* *INDENT-OFF* */
+-static const size_t num_command_names = G_N_ELEMENTS (command_names) - 1;
+-/* *INDENT-ON* */
++static name_keymap_t *command_names = NULL;
++
++static size_t num_command_names = 0;
++
++static gboolean has_been_sorted = FALSE;
+ 
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/* Initializes the dynamic command names array. */
++static void
++init_command_names (void)
++{
++    keybind_add_new_action (NULL, -1);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static int
+ name_keymap_comparator (const void *p1, const void *p2)
+ {
+@@ -396,12 +409,14 @@ name_keymap_comparator (const void *p1, const void *p2)
+ static inline void
+ sort_command_names (void)
+ {
+-    static gboolean has_been_sorted = FALSE;
++    if (!command_names)
++        init_command_names ();
+ 
+     if (!has_been_sorted)
+     {
+         qsort (command_names, num_command_names,
+                sizeof (command_names[0]), &name_keymap_comparator);
++
+         has_been_sorted = TRUE;
+     }
+ }
+@@ -409,7 +424,7 @@ sort_command_names (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-keymap_add (GArray * keymap, long key, long cmd, const char *caption)
++keymap_add (GArray * keymap, long key, long cmd, const char *caption, key_origin_t origin)
+ {
+     if (key != 0 && cmd != CK_IgnoreKey)
+     {
+@@ -417,6 +432,7 @@ keymap_add (GArray * keymap, long key, long cmd, const char *caption)
+ 
+         new_bind.key = key;
+         new_bind.command = cmd;
++        new_bind.origin = origin;
+         g_snprintf (new_bind.caption, sizeof (new_bind.caption), "%s", caption);
+         g_array_append_val (keymap, new_bind);
+     }
+@@ -426,14 +442,96 @@ keymap_add (GArray * keymap, long key, long cmd, const char *caption)
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/* Adds a dynamic command name. Can be used to initialize the dynamic
++   command names array by passing NULL as the first parameter. */
++int
++keybind_add_new_action (const char *new_command_name, int new_ck_id)
++{
++    name_keymap_t search_key = { 0 };
++    name_keymap_t *old_command_names = command_names, *res = NULL, *src_commands;
++    int ret = 0,                /* Default return code → no command name added */
++        size = 0;
++
++    /* Make a private copy of the command name. */
++    search_key.name = new_command_name = g_strdup (new_command_name);
++
++    /* Count the size of the existing command names array. */
++
++    src_commands = command_names ? command_names : command_names_start;
++    for (; src_commands[size].name; size++);
++
++    /* Initialize the size variable of the command names array. */
++    num_command_names = size;
++
++    /* Check if the key already exists, i.e.: if the command is already registered. */
++    if (search_key.name != NULL && strlen (search_key.name))
++    {
++        res = bsearch (&search_key, src_commands,
++                       num_command_names, sizeof (command_names_start[0]), name_keymap_comparator);
++    }
++
++    /*
++     * a) Such command already exists or, b) no command given and the registry is already
++     * initialized (the first bootstrap invocation has been already run) ? If so, then exit doing
++     * no action. Note that the CK ID of the existing command is not updated and remains the same.
++     */
++
++    if (res != NULL || (!new_command_name && old_command_names))
++    {
++        return ret;
++    }
++
++    /* Allocate new space and copy the old keymap names. */
++    command_names = (name_keymap_t *) calloc (size + (new_command_name ? 2 : 1),
++                                              sizeof (name_keymap_t));
++
++    /* Extending an existing array? */
++    if (old_command_names != NULL)
++    {
++        /* ...yes. Copy from `old_command_names` dynamic array. */
++        memcpy (command_names, old_command_names, (size + 1) * sizeof (name_keymap_t));
++
++        /* Release the previous command names after copying them. */
++        free (old_command_names);
++    }
++    else
++    {
++        /* ...no. Copy the initial, compiled in command names into the dynamic array. */
++        memcpy (command_names, command_names_start, sizeof (command_names_start));
++    }
++
++    /* Add a new keymap if requested (i.e.: if given any non-NULL name). */
++    if (new_command_name != NULL)
++    {
++        /* Insert the new command name at the end, then follow an empty sentinel element. */
++        command_names[size].name = new_command_name;
++        command_names[size].val = new_ck_id;
++        command_names[size + 1].name = NULL;
++        command_names[size + 1].val = CK_IgnoreKey;
++
++        /* Increase the command name count. */
++        num_command_names++;
++
++        /* Sort the new array. */
++        has_been_sorted = FALSE;
++        sort_command_names ();
++
++        /* Return that a new command name has been registered. */
++        ret = 1;
++    }
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+-keybind_cmd_bind (GArray * keymap, const char *keybind, long action)
++keybind_cmd_bind (GArray * keymap, const char *keybind, long action, key_origin_t origin)
+ {
+     char *caption = NULL;
+     long key;
+ 
+     key = lookup_key (keybind, &caption);
+-    keymap_add (keymap, key, action, caption);
++    keymap_add (keymap, key, action, caption, origin);
+     g_free (caption);
+ }
+ 
+@@ -459,12 +557,34 @@ const char *
+ keybind_lookup_actionname (long action)
+ {
+     size_t i;
++    const char *name = NULL;
+ 
+     for (i = 0; command_names[i].name != NULL; i++)
+         if (command_names[i].val == action)
+-            return command_names[i].name;
++        {
++            name = command_names[i].name;
++            break;
++        }
+ 
+-    return NULL;
++
++    return name;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/* Finds and returns the ·origin· field of the key bound to the given CK action. */
++key_origin_t
++keybind_lookup_keymap_origin (const global_keymap_t * keymap, long action)
++{
++    if (keymap != NULL)
++    {
++        size_t i;
++
++        for (i = 0; keymap[i].key != 0; i++)
++            if (keymap[i].command == action)
++                return keymap[i].origin;
++    }
++    return ORIGIN_UNKNOWN;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..a3f1cd268 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -346,6 +346,30 @@ enum
+     CK_MergeOther
+ };
+ 
++/*
++ * The values of the key binding «origin» indicator field in the global_keymap_t entry for the
++ * binding. It informs about from where the key binding comes from (the binary, a config file,
++ * a slang script / plugin).
++ */
++
++typedef enum
++{
++    /*
++     * A special, error value used when the keymap entry for the given action cannot be found,
++     * when looking up origin field by the CK action code.
++     */
++    ORIGIN_UNKNOWN = -1,
++
++    /*
++     * Assign 0, so that omision of the field in the global_keymap_t initializer will lead to this.
++     * Meaning: the `mc` binary is the origin of the keybinding.
++     */
++    ORIGIN_COMPILE_TIME = 0,
++
++    ORIGIN_FILE,                /* The binding comes from a file. */
++    ORIGIN_SLANG_SCRIPT         /* The binding comes from S-Lang script execution (e.g.: a plugin) */
++} key_origin_t;
++
+ /*** structures declarations (and typedefs of structures)*****************************************/
+ 
+ typedef struct name_keymap_t
+@@ -368,15 +392,20 @@ typedef struct global_keymap_t
+     long key;
+     long command;
+     char caption[KEYMAP_SHORTCUT_LENGTH];
++    key_origin_t origin;
+ } global_keymap_t;
+ 
+ /*** global variables defined in .c file *********************************************************/
+ 
++extern int new_dynamic_command_id;
++
+ /*** declarations of public functions ************************************************************/
+ 
+-void keybind_cmd_bind (GArray * keymap, const char *keybind, long action);
++int keybind_add_new_action (const char *new_command_name, int new_ck_id);
++void keybind_cmd_bind (GArray * keymap, const char *keybind, long action, key_origin_t origin);
+ long keybind_lookup_action (const char *name);
+ const char *keybind_lookup_actionname (long action);
++key_origin_t keybind_lookup_keymap_origin (const global_keymap_t * keymap, long action);
+ const char *keybind_lookup_keymap_shortcut (const global_keymap_t * keymap, long action);
+ long keybind_lookup_keymap_command (const global_keymap_t * keymap, long key);
+ 
+diff --git a/lib/mcconfig/paths.c b/lib/mcconfig/paths.c
+index e111dc7a2..33ca890b4 100644
+--- a/lib/mcconfig/paths.c
++++ b/lib/mcconfig/paths.c
+@@ -72,6 +72,9 @@ static const struct
+     { "cedit" PATH_SEP_STR "menu",           &mc_config_str, EDIT_HOME_MENU },
+     { "panels.ini",                          &mc_config_str, MC_PANELS_FILE },
+ 
++    /* Plugins (S-Lang scripting). */
++    { "plugin",                              &mc_config_str, MC_PLUGIN_DIR },
++
+     /* User should move this file with applying some changes in file */
+     { "",                                    &mc_config_str, MC_FILEBIND_FILE },
+ 
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index b8a08f029..2aca8f8a0 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -313,6 +313,10 @@ frontend_dlg_run (WDialog * h)
+ 
+         widget_update_cursor (wh);
+ 
++        /* Emit any postponed message boxes. */
++        if (are_postponed_messages ())
++            display_postponed_messages ();
++
+         /* Clear interrupt flag */
+         tty_got_interrupt ();
+         d_key = tty_get_event (&event, GROUP (h)->mouse_status == MOU_REPEAT, TRUE);
+diff --git a/lib/widget/wtools.c b/lib/widget/wtools.c
+index 5c5dc4487..d1104d8bc 100644
+--- a/lib/widget/wtools.c
++++ b/lib/widget/wtools.c
+@@ -50,8 +50,17 @@
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
++typedef struct postponed_msg_s
++{
++    int flags;
++    char *title;
++    char *text;
++} postponed_msg_t;
++
+ /*** file scope variables ************************************************************************/
+ 
++static GSList *postponed_msgs = NULL;
++
+ static WDialog *last_query_dlg;
+ 
+ static int sel_pos = 0;
+@@ -268,6 +277,61 @@ wtools_parent_call_string (void *routine, int argc, ...)
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/* Return truth if there are some queued postponed messages. */
++gboolean
++are_postponed_messages (void)
++{
++    return postponed_msgs != NULL;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++postponed_message (int flags_, const char *title, const char *text, ...)
++{
++    va_list args;
++
++    /* Initialize a heap allocated, message container struct. */
++    postponed_msg_t *msg_heap;
++    msg_heap = g_new (postponed_msg_t, 1);
++
++    va_start (args, text);
++
++    *msg_heap = (postponed_msg_t)
++    {
++    flags_, g_strdup (title), g_strdup_vprintf (text, args)};
++
++    va_end (args);
++
++    /* Append the heap pointer to the GSList. */
++    postponed_msgs = g_slist_append (postponed_msgs, msg_heap);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++display_postponed_messages ()
++{
++    GSList *it;
++
++    for (it = postponed_msgs; it != NULL; it = it->next)
++    {
++        postponed_msg_t *msg = (postponed_msg_t *) it->data;
++
++        /* Show the dialog with the saved message body and flags. */
++        message (msg->flags, msg->title, msg->text);
++
++        /* Release the fields of the struct. */
++        g_free (msg->title);
++        g_free (msg->text);
++    }
++
++    /* Release whole list and also call g_free on each element. */
++    g_slist_free_full (g_steal_pointer (&postponed_msgs), g_free);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ /** Used to ask questions to the user */
+ int
+ query_dialog (const char *header, const char *text, int flags, int count, ...)
+diff --git a/lib/widget/wtools.h b/lib/widget/wtools.h
+index cd0bc3253..b1f7a9b47 100644
+--- a/lib/widget/wtools.h
++++ b/lib/widget/wtools.h
+@@ -61,6 +61,17 @@ struct simple_status_msg_t
+ 
+ /*** declarations of public functions ************************************************************/
+ 
++/*
++ * A simple message queue that postpones the messages until MC enters the main loop. It allows to
++ * use dialog messages early during the initialization, e.g.: to signal problems during it. Message
++ * will appear when UI is fully initialized and drawn.
++ */
++
++gboolean are_postponed_messages (void);
++void postponed_message (int flags, const char *title, const char *text, ...)
++    __attribute__ ((format (printf, 3, 4)));
++void display_postponed_messages (void);
++
+ /* The input dialogs */
+ char *input_dialog (const char *header, const char *text,
+                     const char *history_name, const char *def_text,
+diff --git a/misc/grow_shrink_integer.plugin.sl b/misc/grow_shrink_integer.plugin.sl
+new file mode 100644
+index 000000000..ad91db04e
+--- /dev/null
++++ b/misc/grow_shrink_integer.plugin.sl
+@@ -0,0 +1,102 @@
++% Copy this file to ~/.config/mc/plugin/, it'll be automatically loaded at startup.
++
++define grow_shrink_int__get_current_or_next_number() {
++    variable pos = -1, bol_offset, eol_offset, start_digit_offset, 
++        t = "", found, start_digit_seen, c1,  c2;
++
++    bol_offset = mc->cure_get_bol ();
++    eol_offset = mc->cure_get_eol ();
++
++    % Find the start of the number (a word, actually)
++    for (pos = mc->cure_cursor_offset(); pos >= bol_offset; pos--)
++    {
++        c1 = mc->cure_get_byte (pos);
++        c2 = mc->cure_get_byte (pos - 1);
++
++        if (not isdigit(c1))
++            break;
++        if (not isspace (c1) && isspace (c2))
++            break;
++    }
++
++    % Find the end of the number (a word, actually)
++    found=0;
++    start_digit_offset=0;
++    start_digit_seen=0;
++    for (; pos <= eol_offset; pos++)
++    {
++        c1 = mc->cure_get_byte (pos);
++        c2 = mc->cure_get_byte (pos + 1);
++
++        % Append the byte to the string
++        if (isdigit (c1)) {
++            if (not start_digit_seen) {
++                start_digit_seen=1;
++                start_digit_offset=pos;
++            }
++            found = 1; t += char(c1);
++        }
++
++        if (isdigit (c1) && not isdigit (c2)) {
++            found += 1;
++            break;
++        }
++    }
++
++    % Any number found?
++    % If not, return an empty string and minus one position
++    if (found == 2) {
++        % Include any minus sign
++        c1 = mc->cure_get_byte (start_digit_offset-1);
++        if (c1 == '-')
++            t = char(c1) + t;
++    }
++    return t, pos;
++}
++
++% A backend function for the two next public functions
++define grow_shrink_int__increment(direction) {
++    variable pos, cpos, number = 0;
++    variable number_str, new_number_buf;
++    variable number_len = 0, new_number_len = 0, idx;
++
++    % Get the number
++    (number_str, pos) = grow_shrink_int__get_current_or_next_number();
++    % Has been a number found?
++    if (strlen(number_str) > 0) {
++        number_len = strlen(number_str);
++        % Convert the string into integer to increment it
++        number = atoll(number_str);
++        number += (direction > 0) ? 1 : -1;
++        new_number_buf = string(number);
++        new_number_len = strlen(new_number_buf);
++
++        % Move the cursor to the found number
++        cpos = mc->cure_cursor_offset();
++        mc->cure_cursor_move (pos-cpos);
++        % Delete the existing number
++        mc->cure_delete();
++        for (idx = 0; idx < number_len-1; idx ++)
++            mc->cure_backspace();
++        % Insert updated number
++        for (idx = 0; idx < new_number_len; idx ++)
++            mc->cure_insert_ahead(new_number_buf[new_number_len-idx-1]);
++    }
++
++    % Return the updated number. Just for fun :) Maybe it'll find some use one day
++    return number;
++}
++
++% The end user function for incrementing an integer
++define grow_shrink_int__grow_int() {
++    return grow_shrink_int__increment(1);
++}
++
++% The end user function for taking 1 from an integer
++define grow_shrink_int__shrink_int() {
++    return grow_shrink_int__increment(-1);
++}
++
++% Register the default key bindings – Alt-a for grow, Alt-x for shrink.
++mc->editor_map_key_to_func("GrowInteger", "alt-a", "grow_shrink_int__grow_int");
++mc->editor_map_key_to_func("ShrinkInteger", "alt-x", "grow_shrink_int__shrink_int");
+diff --git a/misc/init.sl b/misc/init.sl
+new file mode 100644
+index 000000000..9f77dcfa5
+--- /dev/null
++++ b/misc/init.sl
+@@ -0,0 +1,49 @@
++% MCEdit Startup Script in S-Lang Scripting Language
++%
++% See:
++% – https://www.jedsoft.org/slang/doc/html/slang.html,
++% for a reference on the language.
++
++% Increase to 2 to have confirmation messages after loading this script and other plugins.
++mc_loglevel=1;
++
++% A function showing a listbox:
++define listbox_display_function() {
++    variable items = ["This is a listbox", "It's displayed from…",
++        "…`init.sl` S-Lang startup script"];
++
++    variable sel = mc->listbox(5, 35, "Welcome",items);
++
++    if (sel >= 0)
++        mc->message("You have selected:", "item #" + string(sel+1) + ": " + items[sel]);
++    else
++        mc->message("Info", "No selection have been made");
++
++    return 1;
++}
++
++% A function causing runtime error:
++define divide_by_zero() {
++    variable string = "Divided by 0 on purpose";
++    variable mc = 1 / 0;
++}
++
++% A function to present backtrace functionality:
++define b_function() {
++    variable tmp_variable = 5;
++    divide_by_zero();
++    return 0;
++}
++
++% A function to present backtrace functionality:
++define a_function() {
++    b_function();
++    return 0;
++}
++
++
++% Show an error message on Ctrl-t:
++mc->editor_map_key_to_func("DivBy0Action", "ctrl-t", "a_function");
++
++% Show a listbox on Alt-y:
++mc->editor_map_key_to_func("ListboxAction", "alt-y", "listbox_display_function");
+diff --git a/src/Makefile.am b/src/Makefile.am
+index e883ab4bd..3f8100352 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -80,7 +80,10 @@ libinternal_la_SOURCES = \
+ 	setup.c setup.h \
+ 	textconf.c textconf.h \
+ 	usermenu.c usermenu.h \
+-	util.c util.h
++	util.c util.h \
++	slang_engine.c slang_engine.h \
++	slang_api_functions.c \
++	slang_api_functions_glue.c
+ 
+ if CHARSET
+     libinternal_la_SOURCES += selcodepage.c selcodepage.h
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index edda1f832..53b9c059c 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -42,6 +42,7 @@
+ #include <sys/stat.h>
+ #include <stdint.h>             /* UINTMAX_MAX */
+ #include <stdlib.h>
++#include <slang.h>
+ 
+ #include "lib/global.h"
+ 
+@@ -65,6 +66,7 @@
+ 
+ #include "src/setup.h"          /* option_tab_spacing */
+ #include "src/keybind-defaults.h"
++#include "src/slang_engine.h"
+ 
+ #include "edit-impl.h"
+ #include "editwidget.h"
+@@ -3248,7 +3250,31 @@ void
+ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+ {
+     Widget *w = WIDGET (edit);
++    GSList *slang_code = NULL;
++    /* Check if the command is a S-Lang script registered command */
++    if ((slang_code = get_command_callback (command)) != NULL)
++    {
++        int ret_api, ret_api2 = -1, ret_fun = 0;
++        ret_api = SLang_execute_function (slang_code->data);
++        if (ret_api == 0)
++            message (D_ERROR, "S-Lang plugin error", "Function doesn't exist.");
+ 
++        else if (ret_api < 0 || -1 == (ret_api2 = SLang_pop_int (&ret_fun)))
++        {
++            /*
++             * If the function returned 1, then edit_execute_cmd() will continue, otherwise it will
++             * exit. This feature can be used to tap into build in commands and moderate/replace
++             * their execution.
++             */
++            if (SLang_get_error ())
++            {
++                SLang_restart (1);
++                SLang_set_error (0);
++            }
++        }
++        if (ret_api <= 0 || ret_api2 <= 0 || !ret_fun)
++            return;
++    }
+     if (command == CK_WindowFullscreen)
+     {
+         edit_toggle_fullscreen (edit);
+diff --git a/src/editor/editbuffer.c b/src/editor/editbuffer.c
+index 101918bef..d3f78271f 100644
+--- a/src/editor/editbuffer.c
++++ b/src/editor/editbuffer.c
+@@ -33,6 +33,7 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
++#include <ctype.h>
+ #include <sys/types.h>
+ 
+ #include "lib/global.h"
+@@ -384,6 +385,127 @@ edit_buffer_get_eol (const edit_buffer_t * buf, off_t current)
+     return current;
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++/**
++ * Find first character of current word. If jump_spaces is TRUE, then any whitespace gap on the
++   left is being ignored (i.e.: jumped across for the preceding word). */
++
++gboolean
++edit_buffer_find_word_start (const edit_buffer_t * buf, gboolean jump_spaces, off_t * word_start,
++                             gsize * word_len)
++{
++    int c, spc_count = 0;
++    off_t i = 1;
++    gboolean have_ending_char = FALSE;
++
++    /* STARTUP: Initialize the output variables to a reasonable initial values. */
++    *word_start = buf->curs1;
++    *word_len = (gsize) 0;
++
++    /* Return nothing if at begin of file. */
++    if (buf->curs1 <= 0)
++        return FALSE;
++
++    /* A first peek at the first preceding char. */
++    c = edit_buffer_get_previous_byte (buf);
++    /* Return if the word is empty (i.e.: the char is a space and we're not jumping over them). */
++    if ((!jump_spaces && isspace (c)) || c == '\n')
++        return FALSE;
++
++    /* Skip any whitespace. */
++    if (jump_spaces && isspace (c))
++    {
++        spc_count++;
++        /* Jump over all whitespace on the left. Initial i++ means: a skip of the first space (move
++         * on to processing next char before it). */
++        for (i++; buf->curs1 - i >= 0; i++)
++        {
++            c = edit_buffer_get_byte (buf, buf->curs1 - i);
++            if (!isspace (c))
++            {
++                break;
++            }
++            else if (c == '\n')
++                /* Preliminary new line → return nothing. This function works in current line. */
++                return FALSE;
++            spc_count++;
++        }
++    }
++
++    /* Whitespace till the beginning of the buffer? */
++    if (isspace (c))
++        return FALSE;
++
++    /* Accept this (either initial or one found after skipping spaces) char and move on, if
++     * there are any left chars in buffer. */
++    i++;
++
++    /*
++     * Word boundary char right after optional spaces → accept only it.
++     * This means that a single word boundary char constitutes a word of length 1, either
++     * after spaces (skipped above ↑) or immediately before cursor.
++     */
++
++    if (is_break_char (c))
++        /* i variable points to the single char, skip iterating more. */
++        have_ending_char = TRUE;
++
++    /* Search start of word to be completed. */
++    for (; !have_ending_char && buf->curs1 - i >= 0; i++)
++    {
++        c = edit_buffer_get_byte (buf, buf->curs1 - i);
++
++        if (is_break_char (c))
++            /*
++             * The isdigit() condition here was too specific for this general function (it was
++             * excluding any words starting with a digit).
++             */
++            break;
++    }
++
++    /* Success – a word has been properly found and delimited. */
++    *word_start = buf->curs1 - i + 1;   /* Save start found to result variable */
++    *word_len = (gsize) i - 1 - spc_count;      /* …and word length */
++
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/* Gets the word on the left of the cursor.
++ *
++ * @param buf The edit buffer.
++ * @param jump_spaces Should any whitespace gap be jumped over? If not, it'll cause empty result.
++ * @param initial Initial contents of the result.
++ * @param release_on_empty Should the initial g_string be released when returning NULL.
++ * @return g_string with the word or NULL if the word is empty.
++ */
++GString *
++edit_buffer_get_left_whole_word (const edit_buffer_t * buf, gboolean jump_spaces, GString * initial,
++                                 gboolean release_on_empty)
++{
++    GString *ret = initial;
++    gsize i, word_len = 0;
++    off_t word_start = 0;
++
++    /* Search start of word left of cursor. */
++    if (!edit_buffer_find_word_start (buf, jump_spaces, &word_start, &word_len))
++    {
++        if (initial && release_on_empty)
++            g_string_free (initial, TRUE);
++        return NULL;
++    }
++
++    /* ret = g_strdup_printf ("\\b%.*s[a-zA-Z_0-9]+", word_len, bufpos); */
++    if (!ret)
++        ret = g_string_sized_new (32);
++
++    for (i = 0; i < word_len; i++)
++        g_string_append_c (ret, edit_buffer_get_byte (buf, word_start + i));
++
++    return ret;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Get word from specified offset.
+diff --git a/src/editor/editbuffer.h b/src/editor/editbuffer.h
+index 9d65e71eb..33dd8f548 100644
+--- a/src/editor/editbuffer.h
++++ b/src/editor/editbuffer.h
+@@ -46,6 +46,10 @@ int edit_buffer_get_prev_utf (const edit_buffer_t * buf, off_t byte_index, int *
+ long edit_buffer_count_lines (const edit_buffer_t * buf, off_t first, off_t last);
+ off_t edit_buffer_get_bol (const edit_buffer_t * buf, off_t current);
+ off_t edit_buffer_get_eol (const edit_buffer_t * buf, off_t current);
++gboolean edit_buffer_find_word_start (const edit_buffer_t * buf, gboolean jump_spaces,
++                                      off_t * word_start, gsize * word_len);
++GString *edit_buffer_get_left_whole_word (const edit_buffer_t * buf, gboolean jump_spaces,
++                                          GString * initial, gboolean release_on_empty);
+ GString *edit_buffer_get_word_from_pos (const edit_buffer_t * buf, off_t start_pos, off_t * start,
+                                         gsize * cut);
+ 
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 0d2caa923..6ec993e4d 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -1127,49 +1127,6 @@ pipe_mail (const edit_buffer_t * buf, char *to, char *subject, char *cc)
+     }
+ }
+ 
+-/* --------------------------------------------------------------------------------------------- */
+-/** find first character of current word */
+-
+-static gboolean
+-edit_find_word_start (const edit_buffer_t * buf, off_t * word_start, gsize * word_len)
+-{
+-    int c;
+-    off_t i;
+-
+-    /* return if at begin of file */
+-    if (buf->curs1 <= 0)
+-        return FALSE;
+-
+-    c = edit_buffer_get_previous_byte (buf);
+-    /* return if not at end or in word */
+-    if (is_break_char (c))
+-        return FALSE;
+-
+-    /* search start of word to be completed */
+-    for (i = 1;; i++)
+-    {
+-        int last;
+-
+-        last = c;
+-        c = edit_buffer_get_byte (buf, buf->curs1 - i - 1);
+-
+-        if (is_break_char (c))
+-        {
+-            /* return if word starts with digit */
+-            if (isdigit (last))
+-                return FALSE;
+-
+-            break;
+-        }
+-    }
+-
+-    /* success */
+-    *word_start = buf->curs1 - i;       /* start found */
+-    *word_len = (gsize) i;
+-
+-    return TRUE;
+-}
+-
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Get current word under cursor
+@@ -3340,7 +3297,7 @@ edit_complete_word_cmd (WEdit * edit)
+     GString *compl[MAX_WORD_COMPLETIONS];       /* completions */
+ 
+     /* search start of word to be completed */
+-    if (!edit_find_word_start (&edit->buffer, &word_start, &word_len))
++    if (!edit_buffer_find_word_start (&edit->buffer, FALSE, &word_start, &word_len))
+         return;
+ 
+     /* prepare match expression */
+@@ -3508,7 +3465,6 @@ edit_get_match_keyword_cmd (WEdit * edit)
+     gsize word_len = 0, max_len = 0;
+     int num_def = 0;
+     gsize i;
+-    off_t word_start = 0;
+     GString *match_expr;
+     char *path = NULL;
+     char *ptr = NULL;
+@@ -3519,15 +3475,10 @@ edit_get_match_keyword_cmd (WEdit * edit)
+     for (i = 0; i < MAX_DEFINITIONS; i++)
+         def_hash[i].filename = NULL;
+ 
+-    /* search start of word to be completed */
+-    if (!edit_find_word_start (&edit->buffer, &word_start, &word_len))
+-        return;
+-
+     /* prepare match expression */
+-    match_expr = g_string_sized_new (word_len);
+-    for (i = 0; i < word_len; i++)
+-        g_string_append_c (match_expr, edit_buffer_get_byte (&edit->buffer, word_start + i));
+-
++    match_expr = edit_buffer_get_left_whole_word (&edit->buffer, TRUE, NULL, FALSE);
++    if (match_expr == NULL)
++        return;
+     ptr = g_get_current_dir ();
+     path = g_strconcat (ptr, PATH_SEP_STR, (char *) NULL);
+     g_free (ptr);
+@@ -3554,7 +3505,6 @@ edit_get_match_keyword_cmd (WEdit * edit)
+     g_free (path);
+ 
+     max_len = MAX_WIDTH_DEF_DIALOG;
+-    word_len = 0;
+     if (num_def > 0)
+         editcmd_dialog_select_definition_show (edit, match_expr->str, max_len, word_len,
+                                                (etags_hash_t *) & def_hash, num_def);
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 18ac00e66..5f553a8cb 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -61,6 +61,7 @@
+ #include "src/filemanager/cmd.h"        /* save_setup_cmd()  */
+ #include "src/learn.h"          /* learn_keys() */
+ #include "src/args.h"           /* mcedit_arg_t */
++#include "src/slang_engine.h"
+ 
+ #include "edit-impl.h"
+ #include "editwidget.h"
+diff --git a/src/main.c b/src/main.c
+index d691bcb2a..dd8b0b7ea 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -62,6 +62,7 @@
+ #include "filemanager/ext.h"    /* flush_extension_file() */
+ #include "filemanager/command.h"        /* cmdline */
+ #include "filemanager/panel.h"  /* panalized_panel */
++#include "editor/editwidget.h"
+ 
+ #include "vfs/plugins_init.h"
+ 
+@@ -77,6 +78,7 @@
+ #include "selcodepage.h"
+ #endif /* HAVE_CHARSET */
+ 
++#include "slang_engine.h"
+ #include "consaver/cons.saver.h"        /* cons_saver_pid */
+ 
+ /*** global variables ****************************************************************************/
+@@ -456,6 +458,15 @@ main (int argc, char *argv[])
+         }
+     }
+ 
++    /* Initialize the S-Lang interpreter and load `init.sl` file. */
++    slang_init_engine ();
++
++    /*
++     * Load the plugins before the setup so that the commands that are being
++     * created in them can be bound with a key.
++     */
++    slang_plugins_init ();
++
+     /* Program main loop */
+     if (mc_global.midnight_shutdown)
+         exit_code = EXIT_SUCCESS;
+diff --git a/src/setup.c b/src/setup.c
+index 77c07649d..fce4f18a9 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -784,12 +784,28 @@ load_keymap_from_section (const char *section_name, GArray * keymap, mc_config_t
+             long action;
+ 
+             action = keybind_lookup_action (*profile_keys);
++
++            /*
++             * Dynamically created commands – registered on demand. If the command doesn't exist,
++             * meaning that it isn't a compile-time, original command, then extend the internal
++             * data structures with a new command entry, assigning it an unique CK id. Such command
++             * can then be legally mapped to a key.
++             */
++            if (action <= 0)
++            {
++                int added;
++                added = keybind_add_new_action (*profile_keys, new_dynamic_command_id);
++                action = added ? new_dynamic_command_id : 0;    /* check if CK ID was assigned */
++                new_dynamic_command_id += added;        /* if yes, increment the root CK ID variable */
++            }
++
++            /* Do the binding if the command has been found (i.e.: its CK ID is known). */
+             if (action > 0)
+             {
+                 gchar **curr_values;
+ 
+                 for (curr_values = values; *curr_values != NULL; curr_values++)
+-                    keybind_cmd_bind (keymap, *curr_values, action);
++                    keybind_cmd_bind (keymap, *curr_values, action, ORIGIN_FILE);
+             }
+ 
+             g_strfreev (values);
+diff --git a/src/slang_api_functions.c b/src/slang_api_functions.c
+new file mode 100644
+index 000000000..be961d969
+--- /dev/null
++++ b/src/slang_api_functions.c
+@@ -0,0 +1,423 @@
++/*
++   Implementation of functions supplied to S-Lang interpreter.
++
++   Copyright (C) 2021
++   Free Software Foundation, Inc.
++
++   Written by:
++   Sebastian Gniazdowski <sgniazdowski@gmail.com>, 2021
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file slang_api_functions.c
++ *  \brief Implementation of functions exported/added to S-Lang interpreter.
++ *  \author Sebastian Gniazdowski
++ *  \date 2021
++ *
++ *  Here are functions implemented that are automatically exported to S-Lang interpreter by Slirp
++ *  utility. They connect the interpreter with mc process and allow to direct it to perform some
++ *  tasks like getting a word from current buffer, moving a cursor, etc.
++ */
++
++
++#include <config.h>
++
++#include "lib/global.h"
++#include "lib/widget.h"
++#include "lib/util.h"
++
++#include "src/slang_engine.h"
++#include "src/slang_api_functions.h"
++#include "src/keybind-defaults.h"
++#include "src/editor/editwidget.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++/* Gets  current editor object. */
++static WEdit *
++get_cure (void)
++{
++    GList *dialog = top_dlg;
++
++    /* Search first fullscreen dialog */
++    for (; dialog != NULL; dialog = g_list_next (dialog))
++        if ((WIDGET (dialog->data)->pos_flags & WPOS_FULLSCREEN) != 0)
++            break;
++    if (dialog)
++        return (WEdit *) (GROUP (dialog->data)->current->data);
++    else
++        return NULL;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * Updates  possibly reallocated keymap pointer in all open editors.
++ */
++
++static gboolean
++update_editor_keymaps (global_keymap_t * keymap)
++{
++    WEdit *e;
++    WGroup *g;
++    gboolean ret = FALSE;
++
++    e = get_cure ();
++    if (e == NULL)
++        return ret;
++    g = GROUP (WIDGET (e)->owner);
++    if (g == NULL)
++        return ret;
++
++    editor_map = keymap;
++    for (GList * it = g->widgets; it != NULL; it = g_list_next (it))
++    {
++        if (edit_widget_is_editor (WIDGET (it->data)))
++        {
++            WIDGET (it->data)->keymap = keymap;
++            ret = TRUE;
++        }
++    }
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: _cure_cursor_move(offset)
++ */
++
++void
++slang_api__cure_cursor_move (int offset)
++{
++    edit_cursor_move (get_cure (), offset);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_cursor_offset()
++ * RETURN VALUE: The offset in bytes of the current cursor position
++ */
++
++int
++slang_api__cure_cursor_offset (void)
++{
++    return get_cure ()->buffer.curs1;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_get_eol(byte_idx)
++ * RETURN VALUE: the byte offset of the end of the current line
++ */
++
++int
++slang_api__cure_get_eol (void)
++{
++    return edit_buffer_get_current_eol (&get_cure ()->buffer);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_get_bol(byte_idx)
++ * RETURN VALUE: the byte offset of the beginning of the current line
++ */
++
++int
++slang_api__cure_get_bol (void)
++{
++    return edit_buffer_get_current_bol (&get_cure ()->buffer);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_get_byte(byte_idx)
++ * RETURN VALUE: the byte at the given index in the currently open file
++ */
++
++int
++slang_api__cure_get_byte (int byte_idx)
++{
++    return edit_buffer_get_byte (&get_cure ()->buffer, byte_idx);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_get_left_whole_word(byte_idx)
++ * RETURN VALUE: word the byte at the given index in the currently open file
++ */
++
++char *
++slang_api__cure_get_left_whole_word (int skip_space)
++{
++    GString *res_gstr;
++    char *res;
++    res_gstr = edit_buffer_get_left_whole_word (&get_cure ()->buffer, skip_space, NULL, FALSE);
++
++    /* Ensure a non-null result. */
++    if (!res_gstr)
++        res_gstr = g_string_new ("");
++
++    /* Return inner buffer of GString. */
++    res = res_gstr->str;
++    g_string_free (res_gstr, FALSE);
++
++    return res;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_delete()
++ * RETURN VALUE: The code of the deleted character
++ */
++
++int
++slang_api__cure_delete (void)
++{
++    return edit_buffer_delete (&get_cure ()->buffer);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_backspace()
++ * RETURN VALUE: The code of the deleted character
++ */
++
++int
++slang_api__cure_backspace (void)
++{
++    return edit_buffer_backspace (&get_cure ()->buffer);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: cure_insert_ahead()
++ */
++
++void
++slang_api__cure_insert_ahead (int c)
++{
++    edit_buffer_insert_ahead (&get_cure ()->buffer, c);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: listbox( width, height, [ items…, NULL ], help_anchor )
++ * RETURN VALUE: the index of the selected element or -1 if cancelled.
++ */
++
++/* A S-Lang script function which allows to display a centered dialog with a listbox
++   in it and then get the index of the selected item, if any. */
++int
++slang_api__listbox (int h, int w, char *title, char **items, unsigned long size)
++{
++    Listbox *listb;
++    char **cur_item;
++    int selected;
++    unsigned long i = 0;
++
++    /* Use an utility function to create the dialog with the listbox in it. */
++    listb = create_listbox_window (h, w, title, "");
++
++    /* Add the requested elements to the listbox. */
++    for (cur_item = items; i < size && *cur_item != NULL; i++, cur_item++)
++    {
++        listbox_add_item (listb->list, LISTBOX_APPEND_AT_END, 's', *cur_item, NULL, FALSE);
++    }
++
++    /* Run the dialog and get and then return the index of the selected item. */
++    selected = run_listbox (listb);
++    return selected;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: listbox_with_data( width, height, [ items…, NULL ], [ data…, NULL ], help_anchor )
++ * RETURN VALUE: the associated data of the selected element or NULL if cancelled.
++ */
++
++/* A S-Lang script function which allows to display a centered dialog with a listbox
++   in it and then get the associated data of the selected item, if any (otherwise,
++   i.e.: if canceled, it returns "". The data has to be an array of char* strings
++   (ended with NULL). */
++char *
++slang_api__listbox_with_data (int h, int w, char *title, char **items, unsigned long size,
++                              char **data, unsigned long size2)
++{
++    Listbox *listb;
++    char **cur_item, **cur_data = data;
++    char *selected;
++    unsigned long p, q = 0;
++
++    /* Use an utility function to create the dialog with the listbox in it. */
++    listb = create_listbox_window (h, w, title, "");
++
++    /* Add the requested elements to the listbox, also passing the associated data. */
++    for (p = 0, cur_item = items; p < size && *cur_item != NULL; p++, cur_item++)
++    {
++        listbox_add_item (listb->list, LISTBOX_APPEND_AT_END, 's', *cur_item, *cur_data, FALSE);
++
++        /* Advance the item data pointer, respecting its size. */
++        if (q < size2)
++        {
++            q++;
++            cur_data++;
++        }
++    }
++
++    /* Run the dialog and get and then return the associated data of the selected
++       item, duplicating its allocation (for S-Lang scripting host memory
++       management). The data has to be a char* string. */
++    selected = run_listbox_with_data (listb, NULL);
++    return selected ? g_strdup (selected) : NULL;       //g_strdup("");
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: listbox_auto(title, [items…, NULL])
++ * RETURN VALUE: the index of the selected item or -1 if cancelled.
++ */
++
++/*
++ * Shows a listbox with the height and width automatically adapted for the
++ * contents and the title.
++ */
++int
++slang_api__listbox_auto (char *title, char **items, unsigned long size)
++{
++    return slang_api__listbox (5, 5, title, items, size);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: message(title, body)
++ */
++
++/* Shows a message popup with the given title and body. */
++void
++slang_api__message (const char *title, const char *body)
++{
++    message (D_NORMAL, title, "%s", body);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: set_action_hook(command, function_name, user_data)
++ * RETURN VALUE: The number of the registered callbacks after the addition
++ */
++
++int
++slang_api__set_action_hook (const char *command, const char *function_name, const char *user_data)
++{
++    int value, ins_ret;
++    GSList *new_element = NULL;
++
++    /* Get the integer value code for the command name `command`. */
++    value = keybind_lookup_action (command);
++
++    new_element = g_slist_append (new_element, (char *) function_name);
++    new_element = g_slist_append (new_element, (char *) user_data);
++
++    /* Insert the `function_name` into the hash table. */
++    ins_ret = g_hash_table_insert (action_hook_functions, GINT_TO_POINTER (value), new_element);
++
++    /* Increase the element count accordingly. */
++    num_action_hook_functions += ins_ret;
++    return num_action_hook_functions;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: editor_map_key(key_combination, command_name)
++ * RETURN VALUE: 1 or 0 indicating if the binding was properly added
++ */
++int
++slang_api__editor_map_key_to_action (const char *command_name, const char *key_combination)
++{
++    int value;
++    value = keybind_lookup_action (command_name);
++    if (value == CK_IgnoreKey)
++        /* No such command found - return 0. */
++        return FALSE;
++
++    /* Overriding the bindings coming from a keymap *file* is not allowed for S-Lang plugins. */
++    if (keybind_lookup_keymap_origin (editor_map, value) != ORIGIN_FILE)
++    {
++        keybind_cmd_bind (editor_keymap, key_combination, value, ORIGIN_SLANG_SCRIPT);
++        /* Update editors' keymap pointers  to the GArray's data in case it is reallocated. */
++        update_editor_keymaps ((global_keymap_t *) editor_keymap->data);
++    }
++    else
++    {
++        /* Returning -1 will mean that action exists, but its key mapping cannot be altered. */
++        return -TRUE;
++    }
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * S-LANG FUNCTION: editor_map_key_to_func(new_command_name, key_combination, function_name)
++ * RETURN VALUE: 1
++ *
++ * This is a convenience function that equals to calling the following 3 function
++ *   mc->add_new_action("CustomCommand", <some-int-ID>);
++ *   mc->set_action_hook("CustomCommand", "a_slang_function_name");
++ *   mc->editor_map_key("CustomCommand", "alt-y");
++ *
++ * with the only difference that the ID of the command is chosen automatically.
++ */
++int
++slang_api__editor_map_key_to_func (const char *new_command_name,
++                                   const char *key_combination, const char *function_name)
++{
++    int ret;
++    keybind_add_new_action (new_command_name, new_dynamic_command_id++);
++    slang_api__set_action_hook (new_command_name, function_name, NULL);
++    ret = slang_api__editor_map_key_to_action (new_command_name, key_combination);
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/src/slang_api_functions.h b/src/slang_api_functions.h
+new file mode 100644
+index 000000000..2c29a3448
+--- /dev/null
++++ b/src/slang_api_functions.h
+@@ -0,0 +1,52 @@
++#ifndef MC__SLANG_API_FUNCTIONS_H
++#define MC__SLANG_API_FUNCTIONS_H
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++/*** enums ***************************************************************************************/
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++/* Movement functions */
++void slang_api__cure_cursor_move (int offset);
++
++/* Getting offsets */
++int slang_api__cure_cursor_offset (void);
++int slang_api__cure_get_eol (void);
++int slang_api__cure_get_bol (void);
++
++/* Getting data from  buffer */
++char *slang_api__cure_get_left_whole_word (int skip_space);
++int slang_api__cure_get_byte (int byte_idx);
++
++/* Editing functions */
++int slang_api__cure_delete (void);
++int slang_api__cure_backspace (void);
++void slang_api__cure_insert_ahead (int c);
++
++/* Dialog functions */
++int slang_api__listbox (int h, int w, char *title, char **items, unsigned long size);
++char *slang_api__listbox_with_data (int h, int w, char *title, char **items, unsigned long size,
++                                    char **data, unsigned long size2);
++int slang_api__listbox_auto (char *title, char **items, unsigned long size);
++void slang_api__message (const char *title, const char *body);
++
++/* Action hooks */
++int slang_api__set_action_hook (const char *command, const char *function_name,
++                                const char *user_data);
++#ifndef MC__KEYBIND_H
++int keybind_add_new_action (const char *new_command_name, int new_ck_id);
++#endif
++
++/* Key bindings */
++int slang_api__editor_map_key_to_action (const char *key_combination, const char *command_name);
++int slang_api__editor_map_key_to_func (const char *new_command_name,
++                                       const char *key_combination, const char *function_name);
++
++/*** inline functions ****************************************************************************/
++
++#endif
+diff --git a/src/slang_api_functions_glue.c b/src/slang_api_functions_glue.c
+new file mode 100644
+index 000000000..ca71c281d
+--- /dev/null
++++ b/src/slang_api_functions_glue.c
+@@ -0,0 +1,871 @@
++#define HAVE_LONG_LONG 1
++/* * This file was generated by SLIRP, the (Sl)ang (I)nte(r)face (P)ackage,
++ * a S-Lang module code generator for C, C++, and FORTRAN.
++ *
++ * Copyright (C) 2003-2009 Massachusetts Institute of Technology 
++ * Copyright (C) 2002 Michael S. Noble <mnoble@space.mit.edu>
++ *
++ * SLIRP is free software, and may be used under the conditions stipulated
++ * in the COPYRIGHT agreement bundled within the SLIRP distribution.
++ */
++#include <stdlib.h>		/* SLIRP common {{{ */
++#include <unistd.h>
++#include <string.h>
++#include <stdarg.h>
++#include <ctype.h>
++#include <slang.h>
++
++#define SAFE_DEREF_OPAQUE(po)		(po == NULL ? NULL : po->instance)
++#define SAFE_DEREF_ARRAY(pa)		(pa == NULL ? NULL : pa->data)
++#define SLang_pop_array(x)		SLang_pop_array(x, 1)
++#define SLang_pop_string(x)             ( (SLang_peek_at_stack() == SLANG_NULL_TYPE && (SLdo_pop() || 1)) ? ((*x = NULL) || 1): SLang_pop_slstring(x))
++#define SLang_push_size_t		SLang_push_ulong
++#define SLang_push_ptrdiff_t		SLang_push_long
++
++#define pop_defaultable(argno, kind, type, obj, value) \
++   (SLang_Num_Function_Args >= argno ? SLang_pop_##kind ( (type*)&obj) : ((obj = value) || ( (void*)&obj > (void*)0) ) )
++
++#ifdef __cplusplus
++#define LINKAGE "C"
++#else
++#define LINKAGE
++#endif
++
++#define USAGE(msg) \
++    {SLang_verror(SL_USAGE_ERROR, (char*)"Usage: %s", msg); return;}
++
++static void Slirp_usage(int i, int j, int flags);
++
++static int slang_abi_mismatch(void)
++{
++   long module_abi = SLANG_VERSION / 10000;
++   long app_abi    = SLang_Version / 10000;
++
++   if (module_abi != app_abi) {
++	SLang_verror(SL_APPLICATION_ERROR, (char*)
++		"S-Lang library abi mismatch\nmodule: %s, application: %s",
++		SLANG_VERSION_STRING, SLang_Version_String);
++	return 1;
++   }
++			        
++   return 0;
++} /* }}} */
++
++static char *slns;  /* slang namespace active at time of module load */
++#include "slang_api_functions.h"
++#define BEGIN_DECLS
++#define END_DECLS
++static unsigned char map_scalars_to_refs = 0;
++
++typedef struct _Slirp_Ref {			/* Ref handling code {{{ */
++#define	REF_FLAG_FREE_DATA			0x01
++#define	REF_FLAG_IS_OPAQUE			0x02
++#define	REF_FLAG_COLUMN_MAJOR			0x04
++#define	REF_FLAG_ARRAY_EXPECTED			0x08
++   unsigned int		flags;		/* Slirp_Ref encapsulates S-Lang    */
++   SLtype		sltype;		/* array, ref, and MMT types, the   */
++   size_t		sizeof_type;	/* latter two of which are seen as  */
++   void			**data;		/* pointing to a single object      */
++   unsigned int		vstride;	/* how to find "next" vectored elem */
++   SLang_Array_Type	*array;
++   SLang_Ref_Type	*ref;
++   SLang_MMT_Type	*mmt;		/* mmt supports passing around C    */
++} Slirp_Ref;				/* ptr arrays of indeterminate size */
++
++static Slirp_Ref* ref_new(SLtype t,size_t typesize, void *d,unsigned int flags)
++{
++   Slirp_Ref *ref;
++   if ((ref = (Slirp_Ref*)SLcalloc( sizeof(Slirp_Ref), 1)) != NULL) {
++	ref->sltype = t;
++	ref->sizeof_type = typesize;
++	ref->flags = flags;
++	ref->data = (void**)d;
++	*ref->data = NULL;
++   }
++   return ref;
++}
++
++static int ref_finalize(Slirp_Ref *r) /* {{{ */
++{
++   int status = 0;
++   if (r == NULL) return 0;
++
++   if (r->ref) {
++
++        void *ref_value = NULL; SLtype ref_type = 0; double dc[2];
++
++	if (r->flags & REF_FLAG_IS_OPAQUE) { 	/* wrap aggregates/opaques  */
++#ifdef NUM_RESERVED_OPAQUES			/* in mmt before ref assign */
++	   void *opaqval = *r->data;		/* the mmt w/be freed when  */
++	   if (opaqval == NULL) {		/* the S-Lang object goes   */
++		ref_value = NULL;		/* out of scope		    */
++		ref_type = SLANG_NULL_TYPE;
++	   }
++	   else {
++		SLang_MMT_Type *mmt = create_opaque_mmt(r->sltype, opaqval, 0);
++		ref_value = &mmt;
++		ref_type = r->sltype;
++	   }
++#endif
++	}
++	else {
++	   ref_type = r->sltype;
++	   if (ref_type == SLANG_COMPLEX_TYPE && r->sizeof_type < sizeof(dc)) {
++		float *fc = (float*) r->data;
++		dc[0] = fc[0];
++		dc[1] = fc[1];
++		ref_value = dc;
++	   }
++	   else
++		ref_value = r->data;
++	}
++
++	status = SLang_assign_to_ref (r->ref, ref_type, ref_value);
++	SLang_free_ref(r->ref);
++   }
++   else if (r->array) {
++#ifdef HAVE_FORTRAN_CODE
++	if ((r->flags & REF_FLAG_COLUMN_MAJOR) && TRANSPOSE(1,r->array) == -1)
++		return -1;
++#endif
++	SLang_free_array(r->array);
++   }
++   else if (r->mmt)
++	SLang_free_mmt(r->mmt);
++
++   if (r->flags & REF_FLAG_FREE_DATA)
++	SLfree( (char*) r->data );
++
++   SLfree((char*)r);
++   return status;
++} /* }}} */
++
++static void finalize_refs(unsigned int nargs, ...) /* {{{ */
++{
++   va_list ap;
++   va_start(ap, nargs);
++   while (nargs--) ref_finalize(va_arg(ap, Slirp_Ref *));
++   va_end(ap);
++} /* }}} */
++
++static unsigned int ref_get_size(Slirp_Ref *r, int which_dimension) /* {{{ */
++{
++   if (r->array) {
++	if (which_dimension == 0)
++	   return (unsigned int)r->array->num_elements;
++	else if (which_dimension < 0)
++	   return r->array->num_dims;
++	else {
++	   which_dimension--;
++	   if ((unsigned int)which_dimension < r->array->num_dims)
++		return (unsigned int)r->array->dims[which_dimension];
++	   else
++		return 0;
++	}
++   }
++
++   return 1;
++} /* }}} */
++
++extern LINKAGE int _SLang_get_class_type (SLtype t);	/* quasi-public  */
++
++#ifdef NUM_RESERVED_OPAQUES
++static SLtype sltype_to_opaque_ptr_type(SLtype sltype) /*{{{*/
++{
++   Reserved_Opaque_Type *pt;
++
++   if (sltype > Last_Reserved_Opaque_Type) return opaque_ptr_Type;
++   if (sltype == void_ptr_Type) return void_ptr_Type;
++
++   pt = Reserved_Opaque_Types;		/* sequential search, but s/b < O(n) */
++   while (pt->name) {			/* since list is ordered by expected */
++	if (pt->masked_type == sltype)	/* frequency of use for each SLtype  */
++	   return *pt->type;		
++	pt++;
++   }
++   return 0;
++} /*}}}*/
++#endif
++
++static int try_pop_mmt(SLtype type, SLang_MMT_Type **mmt) /*{{{*/
++{
++   static SLang_Name_Type *cl_type_func;	/* SLang_pop_mmt doesn't */
++   int classtype;				/* validate that type is */
++						/* an MMT, so we do here */
++   *mmt = NULL;					/* FIXME: remove v2.0.7  */
++
++   if (cl_type_func == NULL)
++	cl_type_func = SLang_get_function( (char*) "__class_type");
++
++   if (cl_type_func == NULL)
++      return 0;
++
++   if (-1 == SLang_push_datatype(type) ||		/* do the hard way, */
++	-1 == SLexecute_function(cl_type_func) ||	/* as C api lacks   */
++	-1 == SLang_pop_int(&classtype))		/* get_class_type() */
++	return -1;
++
++   if (classtype == SLANG_CLASS_TYPE_MMT) {
++	*mmt = SLang_pop_mmt(type);
++	return 1;
++   }
++   return 0;
++} /*}}}*/
++
++#define POP_FLAG_NULLABLE	0x1
++#define POP_FLAG_VECTORIZE	0x2
++static int pop_array_or_ref(Slirp_Ref *r, int flags, int defaultable) /*{{{*/
++{
++   SLtype type;
++   unsigned int i, objtype;
++#ifdef NUM_RESERVED_OPAQUES
++   unsigned int is_opaque;
++#endif
++
++   if (r == NULL) {
++	SLang_verror(SL_INTRINSIC_ERROR, (char*)"Attempted NULL reference (out of memory?)");
++	return -1;
++   }
++
++   if (defaultable && SLang_Num_Function_Args < defaultable) {
++	r->ref   = NULL;	/* observe that only NULL can be */
++	*r->data = NULL;	/* assigned as the default value */
++	return 0;
++   }
++   
++   objtype = SLang_peek_at_stack();
++
++   if ((flags & POP_FLAG_NULLABLE) && objtype == SLANG_NULL_TYPE) {
++	r->ref   = NULL;		/* nullable flag: a pointer arg for */
++	*r->data = NULL;		/* which NULL is a legitimate value */
++	return SLang_pop_null ();
++   }
++
++   type = r->sltype;
++
++#ifdef NUM_RESERVED_OPAQUES
++   is_opaque =(type >= First_Opaque_Type && sltype_to_slirp_type(type) != NULL);
++   if (is_opaque) r->flags |= REF_FLAG_IS_OPAQUE;
++#endif
++
++   switch(objtype) {
++
++	case SLANG_ARRAY_TYPE:
++
++	   if (SLang_pop_array_of_type(&r->array, type) == -1)
++		return -1;
++
++#ifdef HAVE_FORTRAN_CODE
++	   if (r->flags & REF_FLAG_COLUMN_MAJOR) {
++		if (flags & POP_FLAG_VECTORIZE)		/* vectorizable arrs*/
++		   r->flags ^= REF_FLAG_COLUMN_MAJOR;   /* r not transposed */
++		else if (TRANSPOSE(0,r->array) == -1)
++		   return -1;
++	   }
++#endif
++
++	   i = r->array->num_elements;
++#ifdef NUM_RESERVED_OPAQUES
++	   if (is_opaque) {
++	      	Slirp_Opaque *ot;
++		SLang_MMT_Type** mmts = (SLang_MMT_Type**)r->array->data;
++		void **arr = (void**)SLmalloc(i * sizeof(void*) );
++		if (arr == NULL) return -1;
++
++		while (i--) {
++		   ot = (Slirp_Opaque*) SLang_object_from_mmt (mmts[i]);
++		   if (ot == NULL) {
++			SLfree((char*)arr);
++			return -1;
++		   }
++		   arr[i] = ot->instance;
++		}
++
++		*r->data = (void*)arr; r->data = (void**)arr;
++		r->flags |= REF_FLAG_FREE_DATA;
++	   }
++	   else
++#endif
++	   if (type == SLANG_COMPLEX_TYPE &&
++		 		r->sizeof_type < r->array->sizeof_type) {
++		double *dc = (double*) r->array->data;
++		float  *fc = (float *) SLmalloc(i * r->sizeof_type);
++		if (fc == NULL) return -1;
++		*r->data = fc; r->data = (void**)fc;
++		while (i--) { *fc++ = (float) *dc++; *fc++ = (float) *dc++; }
++		r->flags |= REF_FLAG_FREE_DATA;
++	   }
++	   else {
++		*r->data = r->array->data;
++		r->data = (void**)*r->data;
++	   }
++
++	   break;
++
++	case SLANG_REF_TYPE:
++
++	   /* Refs can only send values one-way (C to S-Lang, not reverse) */
++	   if (SLang_pop_ref(&r->ref) == -1)
++		return -1;
++
++	   /* Ref is assumed to point to a scalar instance of the  */
++	   /* refd type, so declare enough space to hold one such. */
++	   *r->data = (void*)SLmalloc(r->sizeof_type);
++	   if (*r->data == NULL) return -1;
++	   memset(*r->data, 0, r->sizeof_type);
++	   r->flags |= REF_FLAG_FREE_DATA;
++	   r->data = (void**)*r->data;
++	   break;
++
++	/* Allow scalars to used as if they were 1-element arrays */
++	case SLANG_CHAR_TYPE: case SLANG_UCHAR_TYPE:
++	case SLANG_SHORT_TYPE: case SLANG_USHORT_TYPE:
++	case SLANG_INT_TYPE: case SLANG_UINT_TYPE:
++	case SLANG_LONG_TYPE: case SLANG_ULONG_TYPE:
++	case SLANG_FLOAT_TYPE: case SLANG_DOUBLE_TYPE:
++	case SLANG_COMPLEX_TYPE: case SLANG_STRING_TYPE:
++
++	   /* Accomodate FORTRAN-style pass by reference semantics */
++	   if (map_scalars_to_refs &&
++		 	SLang_pop_array_of_type(&r->array,type) == 0) {
++
++		*r->data = (void*)SLmalloc(r->sizeof_type);
++		if (*r->data == NULL) return -1;
++
++		if (r->sizeof_type == r->array->sizeof_type)
++		   memcpy(*r->data, r->array->data, r->sizeof_type);
++		else if (type == SLANG_COMPLEX_TYPE) {
++		   double *dc = (double*) r->array->data;
++		   float  *fc = (float*) *r->data;
++		   fc[0] = (float)dc[0];
++		   fc[1] = (float)dc[1];
++		}
++		else  {
++		   SLang_verror(SL_TYPE_MISMATCH, (char*)
++			"mismatched type sizes, when popping scalar as ref");
++		   SLang_free_array(r->array);
++		   return -1;
++		}
++
++		r->data = (void**)*r->data;
++		r->flags |= REF_FLAG_FREE_DATA;
++		/* Nullify to distinguish between vectored/non-vectored args */
++		SLang_free_array(r->array); r->array = NULL;
++		break;
++	   }				/* intentional fallthrough */
++
++	default:
++
++#ifdef NUM_RESERVED_OPAQUES
++	   if (objtype >= First_Opaque_Type && 
++		 		sltype_to_slirp_type(objtype) != NULL) {
++
++		if (!(flags & POP_FLAG_VECTORIZE))
++		   type = sltype_to_opaque_ptr_type(type);
++
++		if (type) {
++
++		   Slirp_Opaque *otp;
++		   if (SLang_pop_opaque(type, NULL, &otp) == -1)
++			return -1;
++		
++		   if (flags & POP_FLAG_VECTORIZE) {
++			void **arr = (void**) SLmalloc(sizeof(void*));
++			if (arr == NULL) return -1;
++			arr[0] = otp->instance;
++			*r->data = arr;
++			r->flags |= REF_FLAG_FREE_DATA;
++		   }
++		   else
++			*r->data = otp->instance;
++
++		   r->data = (void**)*r->data;
++		   r->mmt = otp->mmt;
++		   return 0;
++		}
++	   }
++	   else
++#endif
++	   if ( try_pop_mmt(objtype, &r->mmt) == 1 &&
++		(*r->data = SLang_object_from_mmt (r->mmt)) != NULL) {
++		   r->data = (void**)*r->data;	 /* not flagged for freeing */
++		   return 0;
++	   }
++
++	   SLang_verror(SL_TYPE_MISMATCH, (char*)
++			"context requires array, ref, or opaque pointer");
++	   return -1;
++   }
++   return 0;
++} /*}}}*/
++/* }}} */
++
++/* Wrapper functions */ /* {{{ */
++static void sl_set_action_hook (void)
++{
++   int retval;
++   char* arg1;
++   char* arg2;
++   char* arg3;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 3) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg3)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg2)) goto free_and_return_3;
++   if (-1 == SLang_pop_string((char**)&arg1)) goto free_and_return_2;
++   issue_usage = 0;
++
++   retval = slang_api__set_action_hook(arg1, arg2, arg3);
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++   SLang_free_slstring(arg1);
++free_and_return_2:
++   SLang_free_slstring(arg2);
++free_and_return_3:
++   SLang_free_slstring(arg3);
++usage_label:
++   if (issue_usage) Slirp_usage (0, 0, 0);
++}
++
++static void sl_cure_backspace (void)
++{
++   int retval;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 0) goto usage_label;
++   issue_usage = 0;
++
++   retval = slang_api__cure_backspace();
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (1, 1, 0);
++}
++
++static void sl_add_new_action (void)
++{
++   int retval;
++   char* arg1;
++   int arg2;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 2) goto usage_label;
++   if (-1 == SLang_pop_int((int*)&arg2)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg1)) goto usage_label;
++   issue_usage = 0;
++
++   retval = keybind_add_new_action(arg1,  arg2);
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++   SLang_free_slstring(arg1);
++usage_label:
++   if (issue_usage) Slirp_usage (2, 2, 0);
++}
++
++static void sl_editor_map_key_to_func (void)
++{
++   int retval;
++   char* arg1;
++   char* arg2;
++   char* arg3;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 3) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg3)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg2)) goto free_and_return_3;
++   if (-1 == SLang_pop_string((char**)&arg1)) goto free_and_return_2;
++   issue_usage = 0;
++
++   retval = slang_api__editor_map_key_to_func(arg1, arg2, arg3);
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++   SLang_free_slstring(arg1);
++free_and_return_2:
++   SLang_free_slstring(arg2);
++free_and_return_3:
++   SLang_free_slstring(arg3);
++usage_label:
++   if (issue_usage) Slirp_usage (3, 3, 0);
++}
++
++static void sl_editor_map_key_to_action (void)
++{
++   int retval;
++   char* arg1;
++   char* arg2;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 2) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg2)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg1)) goto free_and_return_2;
++   issue_usage = 0;
++
++   retval = slang_api__editor_map_key_to_action(arg1, arg2);
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++   SLang_free_slstring(arg1);
++free_and_return_2:
++   SLang_free_slstring(arg2);
++usage_label:
++   if (issue_usage) Slirp_usage (4, 4, 0);
++}
++
++static void sl_cure_get_eol (void)
++{
++   int retval;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 0) goto usage_label;
++   issue_usage = 0;
++
++   retval = slang_api__cure_get_eol();
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (5, 5, 0);
++}
++
++static void sl_cure_get_bol (void)
++{
++   int retval;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 0) goto usage_label;
++   issue_usage = 0;
++
++   retval = slang_api__cure_get_bol();
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (6, 6, 0);
++}
++
++static void sl_cure_delete (void)
++{
++   int retval;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 0) goto usage_label;
++   issue_usage = 0;
++
++   retval = slang_api__cure_delete();
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (7, 7, 0);
++}
++
++static void sl_cure_cursor_move (void)
++{
++   int arg1;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 1) goto usage_label;
++   if (-1 == SLang_pop_int((int*)&arg1)) goto usage_label;
++   issue_usage = 0;
++
++   slang_api__cure_cursor_move( arg1);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (8, 8, 0);
++}
++
++static void sl_cure_cursor_offset (void)
++{
++   int retval;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 0) goto usage_label;
++   issue_usage = 0;
++
++   retval = slang_api__cure_cursor_offset();
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (9, 9, 0);
++}
++
++static void sl_listbox_with_data (void)
++{
++   char* retval;
++   int arg1;
++   int arg2;
++   char* arg3;
++   char** arg4;
++   Slirp_Ref *arg4_r = ref_new(SLANG_STRING_TYPE,sizeof(char*),&arg4,0x0);
++   unsigned long arg5;
++   char** arg6;
++   Slirp_Ref *arg6_r = ref_new(SLANG_STRING_TYPE,sizeof(char*),&arg6,0x0);
++   unsigned long arg7;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 5) goto usage_label;
++   if (-1 == pop_array_or_ref( arg6_r, 0x0, 0)) goto usage_label;
++   if (-1 == pop_array_or_ref( arg4_r, 0x0, 0)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg3)) goto usage_label;
++   if (-1 == SLang_pop_int((int*)&arg2)) goto free_and_return_3;
++   if (-1 == SLang_pop_int((int*)&arg1)) goto free_and_return_3;
++   issue_usage = 0;
++
++   arg5 = (unsigned long) ref_get_size(arg4_r, 1);
++   arg7 = (unsigned long) ref_get_size(arg6_r, 1);
++   retval = slang_api__listbox_with_data( arg1,  arg2, arg3, arg4,  arg5, arg6,  arg7);
++   (void)SLang_push_malloced_string(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++free_and_return_3:
++   SLang_free_slstring(arg3);
++usage_label:
++   if (issue_usage) Slirp_usage (10, 10, 0);
++   finalize_refs(2,arg4_r,arg6_r); 
++}
++
++static void sl_cure_get_left_whole_word (void)
++{
++   char* retval;
++   int arg1;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 1) goto usage_label;
++   if (-1 == SLang_pop_int((int*)&arg1)) goto usage_label;
++   issue_usage = 0;
++
++   retval = slang_api__cure_get_left_whole_word( arg1);
++   (void)SLang_push_malloced_string(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (11, 11, 0);
++}
++
++static void sl_listbox (void)
++{
++   int retval;
++   int arg1;
++   int arg2;
++   char* arg3;
++   char** arg4;
++   Slirp_Ref *arg4_r = ref_new(SLANG_STRING_TYPE,sizeof(char*),&arg4,0x0);
++   unsigned long arg5;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 4) goto usage_label;
++   if (-1 == pop_array_or_ref( arg4_r, 0x0, 0)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg3)) goto usage_label;
++   if (-1 == SLang_pop_int((int*)&arg2)) goto free_and_return_3;
++   if (-1 == SLang_pop_int((int*)&arg1)) goto free_and_return_3;
++   issue_usage = 0;
++
++   arg5 = (unsigned long) ref_get_size(arg4_r, 1);
++   retval = slang_api__listbox( arg1,  arg2, arg3, arg4,  arg5);
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++free_and_return_3:
++   SLang_free_slstring(arg3);
++usage_label:
++   if (issue_usage) Slirp_usage (12, 12, 0);
++   finalize_refs(1,arg4_r); 
++}
++
++static void sl_message (void)
++{
++   char* arg1;
++   char* arg2;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 2) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg2)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg1)) goto free_and_return_2;
++   issue_usage = 0;
++
++   slang_api__message(arg1, arg2);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++   SLang_free_slstring(arg1);
++free_and_return_2:
++   SLang_free_slstring(arg2);
++usage_label:
++   if (issue_usage) Slirp_usage (13, 13, 0);
++}
++
++static void sl_listbox_auto (void)
++{
++   int retval;
++   char* arg1;
++   char** arg2;
++   Slirp_Ref *arg2_r = ref_new(SLANG_STRING_TYPE,sizeof(char*),&arg2,0x0);
++   unsigned long arg3;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 2) goto usage_label;
++   if (-1 == pop_array_or_ref( arg2_r, 0x0, 0)) goto usage_label;
++   if (-1 == SLang_pop_string((char**)&arg1)) goto usage_label;
++   issue_usage = 0;
++
++   arg3 = (unsigned long) ref_get_size(arg2_r, 1);
++   retval = slang_api__listbox_auto(arg1, arg2,  arg3);
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++   SLang_free_slstring(arg1);
++usage_label:
++   if (issue_usage) Slirp_usage (14, 14, 0);
++   finalize_refs(1,arg2_r); 
++}
++
++static void sl_cure_get_byte (void)
++{
++   int retval;
++   int arg1;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 1) goto usage_label;
++   if (-1 == SLang_pop_int((int*)&arg1)) goto usage_label;
++   issue_usage = 0;
++
++   retval = slang_api__cure_get_byte( arg1);
++   (void)SLang_push_int(retval);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (15, 15, 0);
++}
++
++static void sl_cure_insert_ahead (void)
++{
++   int arg1;
++   int issue_usage = 1;
++
++   if (SLang_Num_Function_Args != 1) goto usage_label;
++   if (-1 == SLang_pop_int((int*)&arg1)) goto usage_label;
++   issue_usage = 0;
++
++   slang_api__cure_insert_ahead( arg1);
++   goto free_and_return;
++free_and_return:
++   /* drop */
++usage_label:
++   if (issue_usage) Slirp_usage (16, 16, 0);
++}
++
++
++static SLang_Intrin_Fun_Type slang_api_functions_Funcs [] =
++{
++   MAKE_INTRINSIC_0((char*)"set_action_hook",sl_set_action_hook,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_backspace",sl_cure_backspace,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"add_new_action",sl_add_new_action,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"editor_map_key_to_func",sl_editor_map_key_to_func,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"editor_map_key_to_action",sl_editor_map_key_to_action,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_get_eol",sl_cure_get_eol,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_get_bol",sl_cure_get_bol,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_delete",sl_cure_delete,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_cursor_move",sl_cure_cursor_move,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_cursor_offset",sl_cure_cursor_offset,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"listbox_with_data",sl_listbox_with_data,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_get_left_whole_word",sl_cure_get_left_whole_word,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"listbox",sl_listbox,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"message",sl_message,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"listbox_auto",sl_listbox_auto,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_get_byte",sl_cure_get_byte,SLANG_VOID_TYPE),
++   MAKE_INTRINSIC_0((char*)"cure_insert_ahead",sl_cure_insert_ahead,SLANG_VOID_TYPE),
++   SLANG_END_INTRIN_FUN_TABLE
++};   /* }}} */
++
++static const char* usage_strings[] = { /* {{{ */
++   "int = set_action_hook(string,string,string)",
++   "int = cure_backspace()",
++   "int = add_new_action(string,int)",
++   "int = editor_map_key_to_func(string,string,string)",
++   "int = editor_map_key_to_action(string,string)",
++   "int = cure_get_eol()",
++   "int = cure_get_bol()",
++   "int = cure_delete()",
++   "cure_cursor_move(int)",
++   "int = cure_cursor_offset()",
++   "string = listbox_with_data(int,int,string,string[],string[])",
++   "string = cure_get_left_whole_word(int)",
++   "int = listbox(int,int,string,string[])",
++   "message(string,string)",
++   "int = listbox_auto(string,string[])",
++   "int = cure_get_byte(int)",
++   "cure_insert_ahead(int)",
++NULL
++}; /* }}} */
++
++static void Slirp_usage(int i, int last, int flags) /* {{{ */
++{
++   char *indent;
++   int npop = SLstack_depth();
++   if (npop > SLang_Num_Function_Args) npop = SLang_Num_Function_Args;
++   SLdo_pop_n(npop);
++   if (last == i)
++	indent = (char*)"Usage:  ";
++   else {
++	indent = (char*)"\t";
++	SLang_verror(SL_USAGE_ERROR, (char*)"Usage: one of");
++   }
++   do
++	SLang_verror(SL_USAGE_ERROR, (char*)"%s%s", indent, usage_strings[i++]);
++   while (i < last);
++   if (flags & 0x2)
++	SLang_verror(SL_USAGE_ERROR,
++		(char*)"\tThis function has been vectorized and parallelized.");
++   else if (flags & 0x1)
++	SLang_verror(SL_USAGE_ERROR, (char*)"\tThis function has been vectorized.");
++} /* }}} */
++
++#define SLIRP_VERSION_STRING pre2.0.0-34
++#define SLIRP_VERSION_NUMBER 20000
++SLANG_MODULE(slang_api_functions);
++int init_slang_api_functions_module_ns(char *ns_name)	/* {{{ */
++{
++   SLang_NameSpace_Type *ns = NULL;
++
++   if (slang_abi_mismatch()) return -1;
++   if (ns_name != NULL) {
++	ns = SLns_create_namespace (ns_name);
++       if (ns == NULL ||
++          (slns = SLmalloc(strlen(ns_name)+1)) == NULL)
++          return -1;
++       strcpy(slns, ns_name);
++   }
++
++
++#ifdef HAVE_OPAQUE_IVARS
++   if (-1 == set_opaque_ivar_types(slang_api_functions_Opaque_IVars) ||
++       -1 == SLns_add_intrin_var_table(ns,slang_api_functions_Opaque_IVars,NULL))
++	return -1;
++#endif
++
++   if (	-1 == SLns_add_intrin_fun_table (ns,slang_api_functions_Funcs,(char*)"__slang_api_functions__"))
++	return -1;
++
++   return 0;
++} /* }}} */
+diff --git a/src/slang_engine.c b/src/slang_engine.c
+new file mode 100644
+index 000000000..7bb01730a
+--- /dev/null
++++ b/src/slang_engine.c
+@@ -0,0 +1,275 @@
++/*
++   Implements S-Lang scripting for MC.
++
++   Copyright (C) 2021
++   Free Software Foundation, Inc.
++
++   Written by:
++   Sebastian Gniazdowski, 2021
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file slang_engine.c
++ *  \brief Internals of the S-Lang scripting for MC
++ *  \author Sebastian Gniazdowski
++ *  \date 2021
++ *
++ *  Functions that initialize S-Lang interpreter, load init.sl initialization script, load all
++ *  plugins from the plugin directory, catch errors and display them in dialogs, etc.
++ */
++
++#include <config.h>
++
++#include <slang.h>
++#include <ctype.h>
++
++#include "lib/global.h"
++
++#include "lib/fileloc.h"
++#include "lib/widget.h"
++#include "lib/widget/wtools.h"
++#include "lib/util.h"
++
++#include "src/slang_engine.h"
++#include "src/filemanager/dir.h"
++
++/*** global variables ****************************************************************************/
++
++int num_action_hook_functions = 0;
++GHashTable *action_hook_functions = NULL;
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++static int mc_loglevel = 0;
++static GString *last_error = NULL;
++static char *last_fname = NULL;
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++slang_error_handler (char *error_msg)
++{
++    if (!last_error)
++        last_error = g_string_sized_new (255);
++
++    /* Truncate previous message. */
++    g_string_truncate (last_error, 0);
++    /* Append  error message (copying it) and a two new lines. */
++    g_string_append (last_error, "Error in script:");
++
++    /* Does message contain a file path? If so, append a newline, else a space. */
++    if (strchr (error_msg, '/'))
++        g_string_append_c (last_error, '\n');
++    else
++        g_string_append_c (last_error, ' ');
++
++    /* Append message. */
++    g_string_append (last_error, error_msg);
++    g_string_append (last_error, "\n\n");
++
++    /* Append a traceback header. */
++    g_string_append (last_error, "Traceback:\n");
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++slang_dump_handler (char *traceback)
++{
++    char *last_fragment_search_str, **tb_bits;
++
++    if (!last_error)
++        last_error = g_string_sized_new (255);
++
++    /* Split to check for `/path:<number>:other` pattern. If detected, add preceding new line. */
++    tb_bits = g_strsplit (traceback, ":", 3);
++    if (strchr (tb_bits[0], '/') != NULL && tb_bits[1] && isdigit (tb_bits[1][0]) && tb_bits[2])
++        g_string_append (last_error, "\n");
++    g_strfreev (tb_bits);
++
++    /* Append traceback into error message buffer. */
++    if (traceback)
++        g_string_append (last_error, traceback);
++
++    /*  Search string to detect last part of traceback (i.e.: if it's top function traceback). */
++    last_fragment_search_str = g_strdup_printf (":%s:", last_fname ? last_fname : "");
++
++    /* If it's final message, then schedule a message display with complete error buffer. */
++    if (g_strstr_len (traceback, -1, last_fragment_search_str) != NULL ||
++        g_strstr_len (traceback, -1, ":<top-level>:") != NULL)
++        postponed_message (D_ERROR, " S-Lang script error ", "%s", last_error->str);
++
++    g_free (last_fragment_search_str);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++slang_exit_hook_handler (char *fname)
++{
++    /* g_free is NULL safe, no need to check. */
++    g_free (last_fname);
++    last_fname = g_strdup (fname);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++/* Slirp doesn't provide a header so the declaration is placed here to mute warning. */
++int init_slang_api_functions_module_ns (char *ns_name);
++
++int
++slang_init_engine (void)
++{
++    const char *slang_init_path;
++
++    /* Handler for the (generated first) basic error message. */
++    SLang_Error_Hook = slang_error_handler;
++    /* Handler for the (generated second) detailed traceback message. */
++    SLang_Dump_Routine = slang_dump_handler;
++    /* Used to detect the last fragment of a traceback. */
++    SLang_Exit_Function = slang_exit_hook_handler;
++
++    /* Set traceback level - do a full traceback via the dump handler. */
++    SLang_Traceback = SL_TB_FULL;
++
++    /* Create the hash table for hooks. */
++    action_hook_functions = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, NULL);
++
++    /* Init S-Lang subsystems. */
++    if (-1 == SLang_init_all ())
++        return FALSE;
++
++    /* Add `mc_loglevel` variable that controls execution information messages. */
++    if (-1 == SLadd_intrinsic_variable ((char *) "mc_loglevel",
++                                        (VOID_STAR) & mc_loglevel, SLANG_INT_TYPE, 0))
++    {
++        postponed_message (D_ERROR, "MC Plugin Subsystem Error", "%s\n%s",
++                           "Couldn't add mc_loglevel to S-Lang interpreter.",
++                           "Something is very wrong.");
++    }
++
++    /* Init the `mc` namespace. */
++    init_slang_api_functions_module_ns ((char *) "mc");
++
++    /* Establish path to the init.sl file. */
++    slang_init_path =
++        mc_build_filename (mc_global.sysconfig_dir, MC_SLANG_INIT_FILE, (char *) NULL);
++
++    /* Source `init.sl` into the S-Lang interpreter. */
++    if (-1 == SLang_load_file ((char *) slang_init_path))
++    {
++        /* Clear the error and reset the interpreter */
++        SLang_restart (1);
++        SLang_set_error (0);
++        if (mc_loglevel >= 2)
++            postponed_message (D_ERROR, "MC Plugin Subsystem Error",
++                               "Couldn't load init.sl startup script.");
++    }
++    else
++    {
++        if (mc_loglevel >= 2)
++            postponed_message (D_NORMAL, "MC Plugin Subsystem",
++                               "Correctly loaded init.sl startup script.");
++    }
++    return 1;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++int
++slang_plugins_init (void)
++{
++    int ret = TRUE,             /* Default is OK return value */
++        i;
++    const char *plugin_dir_path;
++    dir_list dir;
++    vfs_path_t *path;
++    file_entry_t *ptr;
++    dir_sort_options_t sort_options = { 0, 1, 0 };      /* A case-sensitive sort */
++
++    dir.size = DIR_LIST_MIN_SIZE;
++    dir.list = g_new (file_entry_t, DIR_LIST_MIN_SIZE);
++    dir.len = 0;
++    dir.callback = NULL;
++
++    /* Get the VFS path for the plugins directory. */
++    plugin_dir_path = mc_config_get_full_path (MC_PLUGIN_DIR);
++    path = vfs_path_from_str (plugin_dir_path);
++
++    if (!dir_list_load (&dir, path, (GCompareFunc) strcmp, &sort_options, "*.sl"))
++    {
++        postponed_message (D_ERROR, "MC Plugin Subsystem", "Couldn't read the plugin folder.");
++        return FALSE;
++    }
++
++    for (i = 0, ptr = dir.list; i < dir.len; i++, ptr++)
++    {
++        char *pl_path;
++
++        if (DIR_IS_DOT (ptr->fname) || DIR_IS_DOTDOT (ptr->fname))
++            continue;
++        /* Construct full path to the found plugin (a text file with an .sl extension) script. */
++        pl_path = mc_build_filename (plugin_dir_path, ptr->fname, (char *) NULL);
++
++        if (!pl_path)
++            continue;
++
++        /* Load the script with the interpreter. */
++        if (-1 == SLang_load_file ((char *) pl_path) || SLang_get_error ())
++        {
++            /* Error occurred: clear the error and reset the interpreter. */
++            SLang_restart (1);
++            SLang_set_error (0);
++
++            if (mc_loglevel >= 2)
++                postponed_message (D_ERROR, "MC Plugin Subsystem", "Couldn't load the plugin: %s",
++                                   pl_path);
++
++            ret = FALSE;
++        }
++        else
++        {
++
++            /* Report if the loglevel is 2 or more. */
++            if (mc_loglevel >= 2)
++                postponed_message (D_NORMAL, "MC Plugin Subsystem", "Plugin: %s loaded correctly",
++                                   pl_path);
++        }
++        g_free (pl_path);
++    }
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/* A function that looks up the command associated S-Lang code callback. */
++GSList *
++get_command_callback (int ck_id)
++{
++    GSList *value = g_hash_table_lookup (action_hook_functions, GINT_TO_POINTER (ck_id));
++    return value;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/src/vfs/fish/fish.h b/src/slang_engine.h
+similarity index 72%
+copy from src/vfs/fish/fish.h
+copy to src/slang_engine.h
+index 5d834cbd2..d8c5ac474 100644
+--- a/src/vfs/fish/fish.h
++++ b/src/slang_engine.h
+@@ -1,13 +1,5 @@
+-
+-/**
+- * \file
+- * \brief Header: Virtual File System: FISH implementation for transfering files over
+- * shell connections
+- */
+-
+-
+-#ifndef MC__VFS_FISH_H
+-#define MC__VFS_FISH_H
++#ifndef MC__SLANG_ENGINE_H
++#define MC__SLANG_ENGINE_H
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+@@ -17,11 +9,14 @@
+ 
+ /*** global variables defined in .c file *********************************************************/
+ 
+-extern int fish_directory_timeout;
++extern int num_action_hook_functions;
++extern GHashTable *action_hook_functions;
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-void vfs_init_fish (void);
++int slang_init_engine (void);
++int slang_plugins_init (void);
++GSList *get_command_callback (int ck_id);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+-- 
+2.28.0
+

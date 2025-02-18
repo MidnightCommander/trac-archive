@@ -1,0 +1,321 @@
+diff -urNb mc/configure.ac mc-modifs/configure.ac
+--- mc/configure.ac	2007-10-11 08:32:42.000000000 -0400
++++ mc-modifs/configure.ac	2008-01-14 23:31:30.000000000 -0500
+@@ -607,9 +607,12 @@
+ vfs/extfs/mailfs
+ vfs/extfs/patchfs
+ vfs/extfs/rpms
++vfs/extfs/uace
+ vfs/extfs/ualz
+ vfs/extfs/uar
++vfs/extfs/uarc
+ vfs/extfs/uarj
++vfs/extfs/uc1541
+ vfs/extfs/uha
+ vfs/extfs/ulha 
+ vfs/extfs/urar
+diff -urNb mc/lib/mc.ext.in mc-modifs/lib/mc.ext.in
+--- mc/lib/mc.ext.in	2007-11-02 10:20:27.000000000 -0400
++++ mc-modifs/lib/mc.ext.in	2008-01-15 00:36:01.000000000 -0500
+@@ -512,9 +512,28 @@
+ regex/\.(rexx?|cmd)$
+        Open=rexx %f %{Enter parameters};echo "Press ENTER";read y
+ 
++# Disk images for Commodore computers (VIC20, C64, C128)
++regex/\.(d64|D64)$
++	Open=%cd %p#uc1541
++	View=%view{ascii} c1541 %f -list
++	Extract=c1541 %f -extract
++
+ 
+ ### Plain compressed files ###
+ 
++# ace
++regex/\.(ace|ACE)$
++	Open=%cd %p#uace
++	View=%view{ascii} unace l %f
++	Extract=unace x %f
++
++# arc
++regex/\.(arc|ARC)$
++	Open=%cd %p#uarc
++	View=%view{ascii} arc l %f
++	Extract=arc x %f '*'
++	Extract (with flags)=I=%{Enter any Arc flags:}; if test -n "$I"; then arc x $I %f; fi
++
+ # zip
+ type/^([Zz][Ii][Pp])\ archive
+ 	Open=%cd %p#uzip
+diff -urNb mc/vfs/extfs/extfs.ini mc-modifs/vfs/extfs/extfs.ini
+--- mc/vfs/extfs/extfs.ini	2005-07-20 15:03:54.000000000 -0400
++++ mc-modifs/vfs/extfs/extfs.ini	2008-01-12 02:34:45.000000000 -0500
+@@ -11,6 +11,8 @@
+ ualz
+ # For arj usage you need a special patch to unarj (see unarj.diff)
+ uarj
++uarc
++uace
+ 
+ # ar is used for static libraries
+ uar
+@@ -28,6 +30,9 @@
+ # Hewlett Packard calculator
+ hp48:
+ 
++# Commodore 64/128 d64/D64 files
++uc1541
++
+ # Break patches into chunks
+ patchfs
+ 
+diff -urNb mc/vfs/extfs/Makefile.am mc-modifs/vfs/extfs/Makefile.am
+--- mc/vfs/extfs/Makefile.am	2005-07-20 15:03:54.000000000 -0400
++++ mc-modifs/vfs/extfs/Makefile.am	2008-01-12 02:33:41.000000000 -0500
+@@ -21,9 +21,12 @@
+ 	mailfs.in		\
+ 	patchfs.in		\
+ 	rpms.in			\
++	uace.in			\
+ 	ualz.in			\
+ 	uar.in			\
++	uarc.in			\
+ 	uarj.in			\
++	uc1541.in		\
+ 	uha.in			\
+ 	ulha.in			\
+ 	urar.in			\
+@@ -45,9 +48,12 @@
+ 	mailfs			\
+ 	patchfs			\
+ 	rpms			\
++	uace			\
+ 	ualz			\
+ 	uar			\
++	uarc			\
+ 	uarj			\
++	uc1541			\
+ 	uha			\
+ 	ulha			\
+ 	urar			\
+diff -urNb mc/vfs/extfs/uace.in mc-modifs/vfs/extfs/uace.in
+--- mc/vfs/extfs/uace.in	1969-12-31 19:00:00.000000000 -0500
++++ mc-modifs/vfs/extfs/uace.in	2008-01-15 00:07:20.000000000 -0500
+@@ -0,0 +1,58 @@
++#! /bin/sh
++
++#
++# ACE Virtual filesystem executive v0.1
++# Works with unace v2.5
++
++# Copyright (C) 2008 Jacques Pelletier
++# May be distributed under the terms of the GNU Public License
++# <jpelletier@ieee.org>
++#
++
++# Define your awk
++AWK=gawk
++# Define which archiver you are using with appropriate options
++ACE_LIST="unace l"
++ACE_GET="unace x"
++# ACE_PUT="unace ?"  not available
++
++# The 'list' command executive
++
++# Unace:	DD.MM.YY HH.MM packed size ratio file
++# ls:
++mc_ace_fs_list()
++{
++    $ACE_LIST "$1" | gawk -v uid=${UID-0} '
++BEGIN { Month="JanFebMarAprMayJunJulAugSepOctNovDec" }
++/%/ {
++  split($1,date,".")
++
++  if (date[3] > 50)
++    date[3]=date[3] + 1900
++  else
++    date[3]=date[3] + 2000
++
++  printf "-rw-r--r--   1 %-8d %-8d %8d %s %2d %4d %s %s\n", uid, 0, $3, substr(Month,3*(date[2]-1)+1,3),date[1],date[3], $2, $6
++}' 2>/dev/null
++    exit 0
++}
++
++# Command: copyout archivename storedfilename extractto
++mc_ace_fs_copyout()
++{
++   $ACE_GET "$1" "$2" > /dev/null 2>&1
++        mv "$2" "$3"
++}
++
++# The main routine
++umask 077
++
++cmd="$1"
++shift
++
++case "$cmd" in
++   list) 	mc_ace_fs_list 	  "$@" ;;
++   copyout) mc_ace_fs_copyout "$@" ;;
++   *)       exit 1 ;;
++esac
++exit 0
+diff -urNb mc/vfs/extfs/uarc.in mc-modifs/vfs/extfs/uarc.in
+--- mc/vfs/extfs/uarc.in	1969-12-31 19:00:00.000000000 -0500
++++ mc-modifs/vfs/extfs/uarc.in	2008-01-15 00:47:49.000000000 -0500
+@@ -0,0 +1,82 @@
++#! /bin/sh
++
++#
++# ARC Virtual filesystem executive
++# Copyright (C) 2008 Jacques Pelletier
++# May be distributed under the terms of the GNU Public License
++# <jpelletier@ieee.org>
++#
++
++# Define your awk
++AWK=gawk
++# Define which archiver you are using with appropriate options
++ARC_LIST="arc v"
++ARC_GET="arc x"
++ARC_PUT="arc a"
++ARC_DEL="arc d"
++
++# The 'list' command executive
++
++mc_arc_fs_list()
++{
++    $ARC_LIST "$1" | gawk -v uid=${UID-0} '
++BEGIN { }
++/^Name/ { next }
++/===/ { next }
++/^Total/ { next }
++{
++        if ($8 > 50)
++        $8=$8 + 1900
++        else
++        $8=$8 + 2000
++
++        split($9, a, ":")
++
++        # convert AM/PM to 00-23
++        if (a[2] ~ /a$|p$/)
++        {
++                if (a[2] ~ /p$/)
++                        a[1] = a[1]+12
++
++                a[2]=substr(a[2],1,2)
++        }
++
++        printf "-rw-r--r--   1 %-8d %-8d %8d %s %2d %4d %02d:%02d %s\n", uid, 0, $2, $7, $6, $8, a[1], a[2], $1
++}' 2>/dev/null
++    exit 0
++}
++
++# Command: copyout archivename storedfilename extractto
++mc_arc_fs_copyout()
++{
++   $ARC_GET "$1" "$2" 2> /dev/null
++        mv "$2" "$3"
++}
++
++# Command: copyin archivename storedfilename sourcefile
++mc_arc_fs_copyin()
++{
++	mv "$3" "$2"
++	$ARC_PUT "$1" "$2" 2> /dev/null
++}
++
++# Command: rm archivename storedfilename
++mc_arc_fs_rm()
++{
++	$ARC_DEL "$1" "$2" 2> /dev/null
++}
++
++# The main routine
++umask 077
++
++cmd="$1"
++shift
++
++case "$cmd" in
++   list)	mc_arc_fs_list 	  "$@" ;;
++   copyout) mc_arc_fs_copyout "$@" ;;
++   copyin)	mc_arc_fs_copyin  "$@" ;;
++   rm)		mc_arc_fs_rm      "$@" ;;
++   *)       exit 1 ;;
++esac
++exit 0
+diff -urNb mc/vfs/extfs/uc1541.in mc-modifs/vfs/extfs/uc1541.in
+--- mc/vfs/extfs/uc1541.in	1969-12-31 19:00:00.000000000 -0500
++++ mc-modifs/vfs/extfs/uc1541.in	2008-01-15 00:55:27.000000000 -0500
+@@ -0,0 +1,70 @@
++#! /bin/sh
++
++#
++# UC1541 Virtual filesystem executive v0.1
++
++# This is for accessing disk image files for the Commodore VIC20/C64/C128
++# It requires the utility c1541 that comes bundled with Vice, the emulator
++# for the VIC20, C64, C128 and other computers made by Commodore.
++
++# Copyright (C) 2008 Jacques Pelletier
++# May be distributed under the terms of the GNU Public License
++# <jpelletier@ieee.org>
++#
++
++# Define your awk
++AWK=gawk
++# Define which archiver you are using with appropriate options
++C1541="c1541"
++
++# There are no time stamps in the disk image, so a bogus timestamp is displayed
++mc_c1541_fs_list()
++{
++    $C1541 "$1" -list | gawk -v uid=${UID-0} '
++BEGIN { FS = "\"" }
++/No LINES!/ { next }
++/BLOCKS FREE/ { next }
++$1 == 0 { next }
++{
++  printf "-rw-r--r--   1 %-8d %-8d %8d Jan 01 1980 00:00 %s\n", uid, 0, $1 * 256, $2
++}' 2>/dev/null
++}
++
++# Command: copyout archivename storedfilename extractto
++# -read image 1541name [fsname]
++mc_c1541_fs_copyout()
++{
++	$C1541 "$1" -read "$2" 2> /dev/null
++	mv "$2" "$3"
++}
++
++# FIXME mc can't do chown of the file inside the archive
++# Command: copyin archivename storedfilename sourcefile
++# -write image fsname [1541name]
++mc_c1541_fs_copyin()
++{
++	mv "$3" "$2"
++	$C1541 "$1" -write "$2" 2> /dev/null
++}
++
++# Command: rm archivename storedfilename
++# -delete image files
++mc_c1541_fs_rm()
++{
++	$C1541 "$1" -delete "$2" 2> /dev/null
++}
++
++# The main routine
++umask 077
++
++cmd="$1"
++shift
++
++case "$cmd" in
++   list) 	mc_c1541_fs_list    "$@" ;;
++   copyout) mc_c1541_fs_copyout "$@" ;;
++#   copyin) 	mc_c1541_fs_copyin  "$@" ;;
++   rm) 		mc_c1541_fs_rm      "$@" ;;
++   *)       exit 1 ;;
++esac
++exit 0

@@ -1,0 +1,191 @@
+
+fix -Wmissing-variable-declarations warnings and add to mc cflags
+
+color-internal.c:57:28: warning: no previous extern declaration for non-static variable 'color_table' [-Wmissing-variable-declarations]
+color-internal.c:84:28: warning: no previous extern declaration for non-static variable 'attributes_table' [-Wmissing-variable-declarations]
+vfs.c:65:12: warning: no previous extern declaration for non-static variable 'vfs__classes_list' [-Wmissing-variable-declarations]
+vfs.c:67:10: warning: no previous extern declaration for non-static variable 'vfs_str_buffer' [-Wmissing-variable-declarations]
+vfs.c:68:19: warning: no previous extern declaration for non-static variable 'current_vfs' [-Wmissing-variable-declarations]
+interface.c:67:16: warning: no previous extern declaration for non-static variable 'mc_readdir_result' [-Wmissing-variable-declarations]
+boxes.c:96:15: warning: no previous extern declaration for non-static variable 'configure_old_esc_mode_id' [-Wmissing-variable-declarations]
+boxes.c:96:42: warning: no previous extern declaration for non-static variable 'configure_time_out_id' [-Wmissing-variable-declarations]
+boxes.c:114:12: warning: no previous extern declaration for non-static variable 'skin_names' [-Wmissing-variable-declarations]
+boxes.c:115:8: warning: no previous extern declaration for non-static variable 'current_skin_name' [-Wmissing-variable-declarations]
+filegui.c:253:3: warning: no previous extern declaration for non-static variable 'progress_buttons' [-Wmissing-variable-declarations]
+find.c:195:14: warning: no previous extern declaration for non-static variable 'quit_button' [-Wmissing-variable-declarations]
+layout.c:105:5: warning: no previous extern declaration for non-static variable 'ok_to_refresh' [-Wmissing-variable-declarations]
+extfs.c:69:9: warning: no previous extern declaration for non-static variable 'extfs_plugins' [-Wmissing-variable-declarations]
+args.c:50:10: warning: no previous extern declaration for non-static variable 'mc_args__show_version' [-Wmissing-variable-declarations]
+args.c:195:15: warning: no previous extern declaration for non-static variable 'terminal_group' [-Wmissing-variable-declarations]
+args.c:282:15: warning: no previous extern declaration for non-static variable 'color_group' [-Wmissing-variable-declarations]
+setup.c:127:5: warning: no previous extern declaration for non-static variable 'saving_setup' [-Wmissing-variable-declarations]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -66,6 +66,7 @@
+     MC_CHECK_ONE_CFLAG([-Wmissing-field-initializers])
+     MC_CHECK_ONE_CFLAG([-Wmissing-parameter-type])
+     MC_CHECK_ONE_CFLAG([-Wmissing-prototypes])
++    MC_CHECK_ONE_CFLAG([-Wmissing-variable-declarations])
+     MC_CHECK_ONE_CFLAG([-Wnested-externs])
+     MC_CHECK_ONE_CFLAG([-Wno-long-long])
+     MC_CHECK_ONE_CFLAG([-Wno-unreachable-code])
+
+--- a/src/args.c
++++ b/src/args.c
+@@ -47,7 +47,7 @@
+ /*** global variables ****************************************************************************/
+ 
+ /* If true, show version info and exit */
+-gboolean mc_args__show_version = FALSE;
++static gboolean mc_args__show_version = FALSE;
+ 
+ /* If true, assume we are running on an xterm terminal */
+ gboolean mc_args__force_xterm = FALSE;
+@@ -192,7 +192,7 @@
+     /* *INDENT-ON* */
+ };
+ 
+-GOptionGroup *terminal_group;
++static GOptionGroup *terminal_group;
+ #define ARGS_TERM_OPTIONS 0
+ static const GOptionEntry argument_terminal_table[] = {
+     /* *INDENT-OFF* */
+@@ -279,7 +279,7 @@
+ 
+ #undef ARGS_TERM_OPTIONS
+ 
+-GOptionGroup *color_group;
++static GOptionGroup *color_group;
+ #define ARGS_COLOR_OPTIONS 0
+ /* #define ARGS_COLOR_OPTIONS G_OPTION_FLAG_IN_MAIN */
+ static const GOptionEntry argument_color_table[] = {
+--- a/lib/tty/color-internal.c
++++ b/lib/tty/color-internal.c
+@@ -54,7 +54,7 @@
+ 
+ /*** file scope variables ************************************************************************/
+ 
+-mc_tty_color_table_t const color_table[] = {
++static mc_tty_color_table_t const color_table[] = {
+     {"black", COLOR_BLACK},
+     {"gray", COLOR_BLACK + COLOR_INTENSITY},
+     {"red", COLOR_RED},
+@@ -81,7 +81,7 @@
+     {NULL, 0}
+ };
+ 
+-mc_tty_color_table_t const attributes_table[] = {
++static mc_tty_color_table_t const attributes_table[] = {
+     {"bold", A_BOLD},
+ #ifdef A_ITALIC                 /* available since ncurses-5.9-20130831 / slang-pre2.3.0-107 */
+     {"italic", A_ITALIC},
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -61,7 +61,7 @@
+ 
+ extern GString *vfs_str_buffer;
+ extern struct vfs_class *current_vfs;
+-
++extern struct dirent *mc_readdir_result;
+ /*** global variables ****************************************************************************/
+ 
+ struct dirent *mc_readdir_result = NULL;
+--- a/lib/vfs/vfs.c
++++ b/lib/vfs/vfs.c
+@@ -60,13 +60,16 @@
+ #include "gc.h"
+ 
+ extern struct dirent *mc_readdir_result;
++extern GPtrArray *vfs__classes_list;
++extern GString *vfs_str_buffer;
++extern struct vfs_class *current_vfs;
+ /*** global variables ****************************************************************************/
+ 
+ GPtrArray *vfs__classes_list = NULL;
+ 
+ GString *vfs_str_buffer = NULL;
+-struct vfs_class *current_vfs = NULL;
+ 
++struct vfs_class *current_vfs = NULL;
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -93,7 +93,7 @@
+ 
+ /*** file scope variables ************************************************************************/
+ 
+-unsigned long configure_old_esc_mode_id, configure_time_out_id;
++static unsigned long configure_old_esc_mode_id, configure_time_out_id;
+ 
+ /* Index in list_types[] for "user defined" */
+ static const int panel_listing_user_idx = 3;
+@@ -111,8 +111,8 @@
+ static unsigned long ftpfs_always_use_proxy_id, ftpfs_proxy_host_id;
+ #endif /* ENABLE_VFS && ENABLE_VFS_FTP */
+ 
+-GPtrArray *skin_names;
+-gchar *current_skin_name;
++static GPtrArray *skin_names;
++static gchar *current_skin_name;
+ 
+ #ifdef ENABLE_BACKGROUND
+ static WListbox *bg_list = NULL;
+
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -243,7 +243,7 @@
+ 
+ /*** file scope variables ************************************************************************/
+ 
+-struct
++static struct
+ {
+     Widget *w;
+     FileProgressStatus action;
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -192,7 +192,7 @@
+ /* *INDENT-ON* */
+ 
+ static const size_t fbuts_num = G_N_ELEMENTS (fbuts);
+-const size_t quit_button = 4;   /* index of "Quit" button */
++static const size_t quit_button = 4;   /* index of "Quit" button */
+ 
+ static WListbox *find_list;     /* Listbox with the file list */
+ 
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -66,6 +66,7 @@
+ #include "layout.h"
+ #include "info.h"               /* The Info widget */
+ 
++extern int ok_to_refresh;
+ /*** global variables ****************************************************************************/
+ 
+ panels_layout_t panels_layout = {
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -78,6 +78,7 @@
+ 
+ #include "setup.h"
+ 
++extern int saving_setup;
+ /*** global variables ****************************************************************************/
+ 
+ char *global_profile_name;      /* mc.lib */
+--- a/src/vfs/extfs/extfs.c
++++ b/src/vfs/extfs/extfs.c
+@@ -66,7 +66,7 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
+-GArray *extfs_plugins = NULL;
++static GArray *extfs_plugins = NULL;
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 

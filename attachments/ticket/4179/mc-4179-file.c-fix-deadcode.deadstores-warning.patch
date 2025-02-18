@@ -1,0 +1,30 @@
+From a27a8c5aac101624fcd8e74865b3965a4a02d561 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 18 May 2021 18:04:22 +0000
+Subject: [PATCH] (file.c) fix deadcode.DeadStores warning
+
+file.c:1621:17: warning: Value stored to 'calc_total' is never read [deadcode.DeadStores]
+                calc_total = TRUE;
+                ^            ~~~~
+
+Found by Clang-11 analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+---
+ src/filemanager/file.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 49c35a10b..32d0c714e 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -1617,8 +1617,6 @@ do_move_dir_dir (const WPanel * panel, file_op_total_context_t * tctx, file_op_c
+                                                FILEGUI_DIALOG_MULTI_ITEM);
+                 if (return_status != FILE_CONT)
+                     goto ret;
+-
+-                calc_total = TRUE;
+             }
+ 
+             return_status = copy_dir_dir (tctx, ctx, s, d, FALSE, TRUE, TRUE, NULL);

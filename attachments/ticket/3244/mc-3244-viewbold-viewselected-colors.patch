@@ -1,0 +1,260 @@
+diff --git a/misc/skins/gray-green-purple256.ini b/misc/skins/gray-green-purple256.ini
+index 2794d53..964b26f 100644
+--- a/misc/skins/gray-green-purple256.ini
++++ b/misc/skins/gray-green-purple256.ini
+@@ -47,7 +47,8 @@
+     dtitle = rgb303
+ 
+ [error]
+-    _default_ = white;rgb400;bold
++    # "white" might change color when going bold, so use "rgb555" instead
++    _default_ = rgb555;rgb400;bold
+     errdfocus = ;rgb303
+     errdhotnormal = rgb141
+     errdhotfocus = rgb141;rgb303
+@@ -58,7 +59,7 @@
+     executable = rgb030
+     symlink = rgb202
+     hardlink =
+-    stalelink = rgb303
++    stalelink = rgb400
+     device = rgb231
+     special = rgb331
+     core = rgb430
+@@ -66,7 +67,7 @@
+     archive = rgb012
+     doc = rgb103
+     source = rgb310
+-    media = rgb303
++    media = rgb024
+     graph = rgb033
+     database = rgb421
+ 
+@@ -115,7 +116,10 @@
+ 
+ [viewer]
+     _default_ = black;gray22
++    # "black" might change color when going bold, so use "rgb000" instead
++    viewbold = rgb000;;bold
+     viewunderline = ;;underline
++    viewselected = rgb303;rgb141;bold
+ 
+ [diffviewer]
+     added = ;rgb340
+@@ -123,7 +127,8 @@
+     changednew = rgb303;gray20
+     changed = ;gray21
+     removed = ;rgb511
+-    error = white;rgb400;bold
++    # "white" might change color when going bold, so use "rgb555" instead
++    error = rgb555;rgb400;bold
+ 
+ [widget-common]
+     sort-sign-up = ▴
+diff --git a/misc/skins/gray-orange-blue256.ini b/misc/skins/gray-orange-blue256.ini
+index 7f778c0..f8426f1 100644
+--- a/misc/skins/gray-orange-blue256.ini
++++ b/misc/skins/gray-orange-blue256.ini
+@@ -47,7 +47,8 @@
+     dtitle = rgb004
+ 
+ [error]
+-    _default_ = white;rgb400;bold
++    # "white" might change color when going bold, so use "rgb555" instead
++    _default_ = rgb555;rgb400;bold
+     errdfocus = ;rgb004
+     errdhotnormal = rgb530
+     errdhotfocus = rgb530;rgb004
+@@ -58,7 +59,7 @@
+     executable = rgb030
+     symlink = rgb202
+     hardlink =
+-    stalelink = rgb404
++    stalelink = rgb400
+     device = rgb231
+     special = rgb331
+     core = rgb430
+@@ -66,7 +67,7 @@
+     archive = rgb012
+     doc = rgb103
+     source = rgb310
+-    media = rgb004
++    media = rgb024
+     graph = rgb033
+     database = rgb421
+ 
+@@ -115,7 +116,10 @@
+ 
+ [viewer]
+     _default_ = black;gray22
++    # "black" might change color when going bold, so use "rgb000" instead
++    viewbold = rgb000;;bold
+     viewunderline = ;;underline
++    viewselected = rgb004;rgb530;bold
+ 
+ [diffviewer]
+     added = ;rgb340
+@@ -123,7 +127,8 @@
+     changednew = rgb004;gray20
+     changed = ;gray21
+     removed = ;rgb511
+-    error = white;rgb400;bold
++    # "white" might change color when going bold, so use "rgb555" instead
++    error = rgb555;rgb400;bold
+ 
+ [widget-common]
+     sort-sign-up = ▴
+diff --git a/misc/skins/modarcon16-defbg.ini b/misc/skins/modarcon16-defbg.ini
+index 87c3078..b4b5b43 100644
+--- a/misc/skins/modarcon16-defbg.ini
++++ b/misc/skins/modarcon16-defbg.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color7;default
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color11;color2;bold
+ 
+ [diffviewer]
+     changedline = color15;color4
+diff --git a/misc/skins/modarcon16.ini b/misc/skins/modarcon16.ini
+index 468602c..9381d37 100644
+--- a/misc/skins/modarcon16.ini
++++ b/misc/skins/modarcon16.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color7;color0
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color11;color2;bold
+ 
+ [diffviewer]
+     changedline = color15;color4
+diff --git a/misc/skins/modarcon16root-defbg.ini b/misc/skins/modarcon16root-defbg.ini
+index 749c875..b910c81 100644
+--- a/misc/skins/modarcon16root-defbg.ini
++++ b/misc/skins/modarcon16root-defbg.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color7;default
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color11;color1;bold
+ 
+ [diffviewer]
+     changedline = color15;color4
+diff --git a/misc/skins/modarcon16root.ini b/misc/skins/modarcon16root.ini
+index b507988..498a40c 100644
+--- a/misc/skins/modarcon16root.ini
++++ b/misc/skins/modarcon16root.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color7;color0
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color11;color1;bold
+ 
+ [diffviewer]
+     changedline = color15;color4
+diff --git a/misc/skins/modarin256-defbg.ini b/misc/skins/modarin256-defbg.ini
+index 48791e9..4e86e62 100644
+--- a/misc/skins/modarin256-defbg.ini
++++ b/misc/skins/modarin256-defbg.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color250;default
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color228;color23;bold
+ 
+ [diffviewer]
+     changedline = color231;color29
+diff --git a/misc/skins/modarin256.ini b/misc/skins/modarin256.ini
+index 7176f0f..6d3415e 100644
+--- a/misc/skins/modarin256.ini
++++ b/misc/skins/modarin256.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color252;color237
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color228;color23;bold
+ 
+ [diffviewer]
+     changedline = color231;color29
+diff --git a/misc/skins/modarin256root-defbg.ini b/misc/skins/modarin256root-defbg.ini
+index da55024..6f32ca4 100644
+--- a/misc/skins/modarin256root-defbg.ini
++++ b/misc/skins/modarin256root-defbg.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color250;default
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color228;color88;bold
+ 
+ [diffviewer]
+     changedline = color231;color130
+diff --git a/misc/skins/modarin256root.ini b/misc/skins/modarin256root.ini
+index ba36eca..ef36965 100644
+--- a/misc/skins/modarin256root.ini
++++ b/misc/skins/modarin256root.ini
+@@ -152,7 +152,9 @@
+ 
+ [viewer]
+     _default_ = color252;color237
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color228;color88;bold
+ 
+ [diffviewer]
+     changedline = color231;color130
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index 70e0a4c..5783e2d 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -101,9 +101,10 @@
+ 
+ [error]
+     _default_ = rgb554;rgb320;bold
+-    errdfocus = black;rgb452;bold
++    # "black" might change color when going bold, so use "rgb000" instead
++    errdfocus = rgb000;rgb452;bold
+     errdhotnormal = ;;bold+underline
+-    errdhotfocus = black;rgb452;bold+underline
++    errdhotfocus = rgb000;rgb452;bold+underline
+     errdtitle = ;;bold+underline
+ 
+ [filehighlight]
+@@ -169,7 +170,10 @@
+ 
+ [viewer]
+     _default_ = black;rgb554
++    # "black" might change color when going bold, so use "rgb000" instead
++    viewbold = rgb000;;bold
+     viewunderline = ;;underline
++    viewselected = rgb400;rgb452
+ 
+ [diffviewer]
+     added = ;rgb450
+diff --git a/misc/skins/xoria256.ini b/misc/skins/xoria256.ini
+index d258556..9a41a39 100644
+--- a/misc/skins/xoria256.ini
++++ b/misc/skins/xoria256.ini
+@@ -158,7 +158,9 @@
+ 
+ [viewer]
+     _default_ = color250;color234
++    viewbold = ;;bold
+     viewunderline = ;;underline
++    viewselected = color228;color60
+ 
+ [diffviewer]
+     changedline = ;color60

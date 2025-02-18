@@ -1,0 +1,16 @@
+Index: vfs/direntry.c
+===================================================================
+RCS file: /cvsroot/mc/mc/vfs/direntry.c,v
+retrieving revision 1.121
+diff -u -p -r1.121 direntry.c
+--- vfs/direntry.c	28 Jan 2006 15:47:02 -0000	1.121
++++ vfs/direntry.c	21 Feb 2006 15:05:05 -0000
+@@ -581,7 +581,7 @@ vfs_s_inode_from_path (struct vfs_class 
+ 	vfs_s_find_inode (me, super, q,
+ 			  flags & FL_FOLLOW ? LINK_FOLLOW : LINK_NO_FOLLOW,
+ 			  flags & ~FL_FOLLOW);
+-    if ((!ino) && (!*q))
++    if (!ino)
+ 	/* We are asking about / directory of ftp server: assume it exists */
+ 	ino =
+ 	    vfs_s_find_inode (me, super, q,

@@ -1,0 +1,76 @@
+From 5206642072a3e65aa47cba81c9d08856ee2f7bd1 Mon Sep 17 00:00:00 2001
+From: Yury V. Zaytsev <yury@shurup.com>
+Date: Sat, 28 Nov 2009 22:08:48 +0100
+Subject: [PATCH] Fixed forgotten PCRE dependency for EL5.
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ contrib/dist/redhat/mc.spec.in |   24 ++++++++++++++----------
+ 1 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/contrib/dist/redhat/mc.spec.in b/contrib/dist/redhat/mc.spec.in
+index 2d87df6..9d1a9e1 100644
+--- a/contrib/dist/redhat/mc.spec.in
++++ b/contrib/dist/redhat/mc.spec.in
+@@ -32,13 +32,16 @@ URL:            http://www.midnight-commander.org/
+ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+ BuildRequires:  e2fsprogs-devel gpm-devel
+ 
++%if %{legacy_rhel}%{?el5}
++BuildRequires:  pcre-devel
++%endif
++
+ %if %{legacy_rhel}
+ 
+-BuildRequires:  pcre-devel ncurses-devel
++BuildRequires:  ncurses-devel
+ 
+ # From Glib
+-BuildRequires:  pkgconfig
+-BuildRequires:  gettext
++BuildRequires:  pkgconfig gettext
+ 
+ %else
+ BuildRequires:  glib2-devel slang-devel
+@@ -150,17 +153,18 @@ rm -rf $RPM_BUILD_ROOT
+ 
+ %changelog
+ * Fri Nov 27 2009 Yury V. Zaytsev <yury@shurup.com>
+-- Rewritten and simplified static build procedure.
++- Fixed debug info generation for legacy distros
++- Rewritten and simplified static build procedure
+ 
+ * Mon Oct 26 2009 Andrew Borodin <aborodin@vmail.ru>
+-- Add new %%{_sysconfdir}/mc/mc.keymap.* files.
++- Added new %%{_sysconfdir}/mc/mc.keymap.* files
+ 
+ * Fri Sep 04 2009 Slava Zanko <slavazanko@gmail.com>
+ - Add new file %%{_sysconfdir}/mc/filehighlight.ini
+ 
+ * Sat Aug 01 2009 Yury V. Zaytsev <yury@shurup.com>
+ - Fixed EL4 (and supposedly EL3) builds
+-- Fixed some of rpmlint warnings
++- Fixed some of the rpmlint warnings
+ 
+ * Sat Jul 04 2009 Yury V. Zaytsev <yury@shurup.com>
+ - Fix the issue when wrappers were left unpackaged
+@@ -169,12 +173,12 @@ rm -rf $RPM_BUILD_ROOT
+ - Fix install patches: use %%{_sysconfdir}/mc directory
+ 
+ * Fri May 8 2009 Slava Zanko <slavazanko@gmail.com>
+-- Review spec-file to build on the current distributions
+-- Change build rules
+-- Fix install pathes
++- Reviewed spec-file to build on the current distributions
++- Changed build rules
++- Fixed install paths
+ 
+ * Fri Jun 22 2007 Pavel Roskin <proski@gnu.org>
+-- Make cons.saver suid vcsa, it's needed for Fedora 7
++- Made cons.saver suid vcsa, it's needed for Fedora 7
+ 
+ * Thu Dec 21 2006 Pavel Roskin <proski@gnu.org>
+ - Don't rely on brace expansion, it may be disabled
+-- 
+1.5.4.3
+

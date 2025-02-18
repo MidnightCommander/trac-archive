@@ -1,0 +1,58 @@
+From e98c4800914883f925c005b97492239b1ccae182 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 27 Nov 2015 22:54:46 +0000
+Subject: [PATCH] fix memleak at edit_sort_cmd()
+
+editor: using sort command results in unfreed exp variable
+
+Direct leak of 1 byte(s) in 1 object(s) allocated from:
+    #0 0x4c7c30 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c7c30)
+    #1 0x7fbef6d3ad38 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x66d38)
+    #2 0x7fbef6d63011 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8f011)
+    #3 0x7fbef7a14c89 in quick_dialog_skip /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/quick.c:595:59
+    #4 0x7fbef7a1b904 in fg_input_dialog_help /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/wtools.c:225:15
+    #5 0x7fbef7a1bf73 in input_dialog /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/wtools.c:498:12
+    #6 0x5aba7c in edit_sort_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editcmd.c:3158:11
+    #7 0x593106 in edit_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3881:9
+    #8 0x591e3a in edit_execute_key_command /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3224:5
+    #9 0x5c12b2 in edit_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1146:9
+    #10 0x7fbef7a0fea9 in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341:9
+    #11 0x7fbef7a0e4f2 in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #12 0x7fbef7a0c550 in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #13 0x7fbef79f6113 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450:19
+    #14 0x7fbef79f54c0 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #15 0x7fbef79f5982 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #16 0x7fbef79f5685 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #17 0x5c0171 in edit_files /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1255:9
+    #18 0x5bfcaf in edit_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1194:10
+    #19 0x5ef09b in edit_file_at_line /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:704:9
+    #20 0x5ef20b in edit_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:742:9
+    #21 0x52d687 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1175:9
+    #22 0x7fbef79f0059 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #23 0x7fbef79f61cc in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #24 0x7fbef79f54c0 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #25 0x7fbef79f5982 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #26 0x7fbef79f5685 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #27 0x52bb1d in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757:9
+    #28 0x4f94b7 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:463:21
+    #29 0x7fbef5e10953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+
+SUMMARY: AddressSanitizer: 1 byte(s) leaked in 1 allocation(s).
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 7970a9b..bd48bb2 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3169,6 +3169,7 @@ edit_sort_cmd (WEdit * edit)
+                      " > ", tmp_edit_temp_name, (char *) NULL);
+     g_free (tmp_edit_temp_name);
+     g_free (tmp_edit_block_name);
++    g_free (exp);
+ 
+     e = system (tmp);
+     g_free (tmp);

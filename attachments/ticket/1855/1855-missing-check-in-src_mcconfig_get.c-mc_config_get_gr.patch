@@ -1,0 +1,36 @@
+From 1aadad22a9ab6ed81de2cfa6b8665810fef01ef3 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Fri, 4 Dec 2009 23:47:21 +0000
+Subject: [PATCH]  small fix in src_mcconfig_get.c
+
+---
+ src/mcconfig/get.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/mcconfig/get.c b/src/mcconfig/get.c
+index 8a1a449..fbb5218 100644
+--- a/src/mcconfig/get.c
++++ b/src/mcconfig/get.c
+@@ -46,7 +46,8 @@ mc_config_get_groups (mc_config_t * mc_config, gsize * len)
+     if (!mc_config)
+     {
+ 	ret = g_try_malloc0 (sizeof (gchar **));
+-	*len=0;
++        if (len)
++            *len = 0;
+ 	return ret;
+     }
+     ret = g_key_file_get_groups (mc_config->handle, len);
+@@ -67,7 +68,8 @@ mc_config_get_keys (mc_config_t * mc_config, const gchar * group, gsize * len)
+     if (!mc_config || !group)
+     {
+ 	ret = g_try_malloc0 (sizeof (gchar **));
+-	*len=0;
++        if (len)
++            *len = 0;
+ 	return ret;
+     }
+     ret = g_key_file_get_keys (mc_config->handle, group, len, NULL);
+-- 
+1.6.4
+

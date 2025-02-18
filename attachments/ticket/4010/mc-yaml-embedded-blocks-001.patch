@@ -1,0 +1,11 @@
+diff --git a/misc/syntax/yaml.syntax b/misc/syntax/yaml.syntax
+index e416e3c..215e990 100644
+--- a/misc/syntax/yaml.syntax
++++ b/misc/syntax/yaml.syntax
+@@ -35,3 +35,6 @@ context " " green
+ context ' ' green
+     spellcheck
+     keyword {{*}} brightred
++
++context exclusive |\[123456789\+\-\s\t\]\n \n- brown
++context exclusive >\[123456789\+\-\s\t\]\n \n- brown

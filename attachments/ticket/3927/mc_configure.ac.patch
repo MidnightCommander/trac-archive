@@ -1,0 +1,14 @@
+--- a/configure.ac	2017-11-25 12:20:33 +0000
++++ b/configure.ac	2018-08-15 13:11:47 +0000
+@@ -230,7 +230,10 @@
+ ])
+ 
+ dnl utimensat is supported since glibc 2.6 and specified in POSIX.1-2008
+-AC_CHECK_FUNCS([utimensat])
++dnl utimensat causes different timespec structures to cause failures on IBM i. Need to investigate check: AC_CHECK_FUNCS([utimensat])
++
++dnl openpty can simplify opening of master/slave devices for subshell
++AC_CHECK_FUNCS(openpty)
+ 
+ dnl getpt is a GNU Extension (glibc 2.1.x)
+ AC_CHECK_FUNCS(posix_openpt, , [AC_CHECK_FUNCS(getpt)])

@@ -1,0 +1,61 @@
+--- original/mc-4.7.4/src/background.c	2010-09-07 09:16:44.000000000 +0200
++++ patched/mc-4.7.4/src/background.c	2010-11-01 02:11:28.000000000 +0100
+@@ -75,11 +75,25 @@
+ register_task_running (FileOpContext * ctx, pid_t pid, int fd, int to_child, char *info)
+ {
+     TaskList *new;
++    TaskList *p = task_list; /* Dany */
+ 
+     new = g_new (TaskList, 1);
+     new->pid = pid;
+     new->info = info;
+     new->state = Task_Running;
++
++/* Dany is "Danilo Schembri" <danilo.schembri@gmail.com>
++   Dany: copy/move queue handling - Begin */
++    while (p){
++	if (p->state == Task_Running){
++	    new->state = Task_Stopped;
++	    kill (pid, SIGSTOP);
++	    break;
++	}
++	p = p->next;
++    }
++/* Dany: file copy/move queue handling - End */
++
+     new->next = task_list;
+     new->fd = fd;
+     new->to_child_fd = to_child;
+@@ -93,6 +107,7 @@
+ {
+     TaskList *p = task_list;
+     TaskList *prev = 0;
++    TaskList *presume = 0; /* Dany: Remaining task list. */
+ 
+     while (p)
+     {
+@@ -104,6 +119,24 @@
+                 task_list = p->next;
+             g_free (p->info);
+             g_free (p);
++
++/* Dany: copy/move queue handling - Begin */
++	    if (prev && prev->state == Task_Stopped){
++	      prev->state = Task_Running;
++	      kill (prev->pid, SIGCONT);
++	    } else if (!prev || prev->state != Task_Running)
++		presume = task_list; // Dany: Save remaining task list.
++
++	    while (presume){
++		if (presume->state == Task_Stopped){
++		    presume->state = Task_Running;
++		    kill (presume->pid, SIGCONT);
++		    break;
++		}
++		presume = presume->next;
++	    }
++/* Dany: copy/move queue handling - End */
++
+             return p->fd;
+         }
+         prev = p;

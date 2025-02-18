@@ -1,0 +1,13 @@
+--- mc-4.6.1-old/edit/editdraw.c	2005-05-27 16:19:18.000000000 +0200
++++ mc-4.6.1/edit/editdraw.c		2007-04-21 12:34:36.000000000 +0200
+@@ -183,6 +183,10 @@
+ #define lowlevel_set_color(x) attrset(MY_COLOR_PAIR(color))
+ #endif
+ 
++static void clean_line (){
++  set_default_colors();
++  SLsmg_erase_eol();
++}
+ static void
+ print_to_widget (WEdit *edit, long row, int start_col, int start_col_real,
+ 		 long end_col, unsigned int line[])

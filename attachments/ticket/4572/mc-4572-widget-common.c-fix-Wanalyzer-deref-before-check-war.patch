@@ -1,0 +1,73 @@
+From 02b805038643c276b44af58c33b183261fba8431 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 23 Nov 2024 12:00:00 +0000
+Subject: [PATCH] (widget-common.c) fix -Wanalyzer-deref-before-check warning
+
+widget-common.c: In function 'widget_focus':
+widget-common.c:123:12: error: check of '*g.current' for NULL after already dereferencing it []8;;https://gcc.gnu.org/onlinedocs/gcc-14.2.0/gcc/Static-Analyzer-Options.html#index-Wanalyzer-deref-before-check-Werror=analyzer-deref-before-check]8;;]
+  123 |         if (g->current == NULL || !widget_get_state (WIDGET (g->current->data), WST_FOCUSED))
+      |            ^
+  'widget_focus': event 1
+    |
+    |  116 |     if (g == NULL)
+    |      |        ^
+    |      |        |
+    |      |        (1) following 'false' branch (when 'g' is non-NULL)...
+    |
+  'widget_focus': event 2
+    |
+    |  119 |     if (WIDGET (g->current->data) != w)
+    |      |                 ~^~~~~~~~~
+    |      |                  |
+    |      |                  (2) ...to here
+../../lib/widget/widget-common.h:15:31: note: in definition of macro 'WIDGET'
+    |   15 | #define WIDGET(x) ((Widget *)(x))
+    |      |                               ^
+    |
+  'widget_focus': event 3
+    |
+    |widget-common.c:119:27:
+    |  119 |     if (WIDGET (g->current->data) != w)
+../../lib/widget/widget-common.h:15:31: note: in definition of macro 'WIDGET'
+    |   15 | #define WIDGET(x) ((Widget *)(x))
+    |      |                               ^
+    |
+  'widget_focus': events 4-6
+    |
+    |widget-common.c:119:8:
+    |  119 |     if (WIDGET (g->current->data) != w)
+    |      |        ^
+    |      |        |
+    |      |        (4) following 'true' branch...
+    |  120 |     {
+    |  121 |         widget_do_focus (WIDGET (g->current->data), FALSE);
+    |      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    |      |         |
+    |      |         (5) ...to here
+    |  122 |         /* Test if focus lost was allowed and focus has really been loose */
+    |  123 |         if (g->current == NULL || !widget_get_state (WIDGET (g->current->data), WST_FOCUSED))
+    |      |            ~
+    |      |            |
+    |      |            (6) pointer '*g.current' is checked for NULL here but it was already dereferenced at (3)
+    |
+
+Found by gcc-14 analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/widget-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index 6d0a8d958..2d0e070d8 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -113,7 +113,7 @@ widget_focus (Widget *w)
+ {
+     WGroup *g = w->owner;
+ 
+-    if (g == NULL)
++    if (g == NULL || g->current == NULL)
+         return;
+ 
+     if (WIDGET (g->current->data) != w)

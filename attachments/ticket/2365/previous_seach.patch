@@ -1,0 +1,49 @@
+diff --git a/src/panel.h b/src/panel.h
+index 65bde53..cf2cac2 100644
+--- a/src/panel.h
++++ b/src/panel.h
+@@ -96,6 +96,7 @@ typedef struct WPanel {
+     struct   stat dir_stat;	/* Stat of current dir: used by execute () */
+ 
+     gboolean searching;
++    char     previous_search_buffer [256];
+     char     search_buffer [256];
+     char     search_char [MB_LEN_MAX]; /*buffer for multibytes characters*/
+     int      search_chpoint;           /*point after last characters in search_char*/
+diff --git a/src/screen.c b/src/screen.c
+index 1425796..43bdedb 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -2471,6 +2471,16 @@ start_search (WPanel * panel)
+             panel->selected = 0;
+         else
+             move_down (panel);
++
++        gboolean recall_search_string = panel->search_buffer[0] == '\0';
++
++        if (recall_search_string)
++        {
++           /* in case if there was no search string we need to recall
++              previous string, with which we ended previous searching */
++           strncpy(panel->search_buffer, panel->previous_search_buffer, 256);
++        }
++        
+         do_search (panel, 0);
+     }
+     else
+@@ -2488,6 +2498,15 @@ static void
+ stop_search (WPanel * panel)
+ {
+     panel->searching = FALSE;
++
++    gboolean had_search_string = panel->search_buffer[0] != '\0';
++
++    /* if user had overrdied search string, we need to store it to the
++       previous_search_buffer */
++    if (had_search_string) {
++       strncpy(panel->previous_search_buffer, panel->search_buffer, 256);
++    } 
++    
+     display_mini_info (panel);
+ }
+ 

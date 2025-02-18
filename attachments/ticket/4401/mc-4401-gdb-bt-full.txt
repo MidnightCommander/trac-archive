@@ -1,0 +1,211 @@
+#0  0x000d8708 in mc_pclose (p=0x0, error=0x0) at utilunix.c:678
+        res = 0
+#1  0x000d1be0 in mcview_growbuf_done (view=0x226338) at growbuf.c:82
+No locals.
+#2  0x000d2074 in mcview_growbuf_read_until (view=0x226338, ofs=1) at growbuf.c:213
+        sp = 0x21bf80
+        error = 0x0
+        nread = 0
+        p = 0x20ff4d ""
+        bytesfree = 7979
+        short_read = 1
+        __func__ = "mcview_growbuf_read_until"
+#3  0x000d23d0 in mcview_get_ptr_growing_buffer (view=0x226338, byte_index=0) at growbuf.c:279
+        pageno = 0
+        pageindex = 0
+        __func__ = "mcview_get_ptr_growing_buffer"
+#4  0x000d2224 in mcview_get_byte_growing_buffer (view=0x226338, byte_index=0, retval=0x0) at growbuf.c:254
+        p = 0x126d00 <__libc_csu_init> "\360G", <incomplete sequence \351>
+        __func__ = "mcview_get_byte_growing_buffer"
+#5  0x000cf420 in mcview_get_byte (view=0x226338, offset=0, retval=0x0) at internal.h:399
+No locals.
+#6  0x000cffbc in mcview_load_command_output (view=0x226338, command=0x2272d8 "/bin/sh /tmp/mc-pi/mcextJFYTQ1")
+    at datasource.c:399
+        p = 0x21bf80
+        error = 0x0
+#7  0x000662cc in mcview_load (view=0x226338, command=0x2272d8 "/bin/sh /tmp/mc-pi/mcextJFYTQ1", 
+    file=0x221d90 "/usr/bin/ls", start_line=0, search_start=0, search_end=0) at mcviewer.c:325
+        retval = 0
+        vpath = 0x0
+        __func__ = "mcview_load"
+#8  0x00064af4 in mcview_toggle_magic_mode (view=0x226338) at lib.c:90
+        filename = 0x221d90 "/usr/bin/ls"
+        command = 0x2272d8 "/bin/sh /tmp/mc-pi/mcextJFYTQ1"
+        dir = 0x0
+        dir_idx = 0x0
+#9  0x000cbbbc in mcview_execute_cmd (view=0x226338, command=601) at actions_cmd.c:489
+        res = 1
+#10 0x000cc344 in mcview_callback (w=0x226338, sender=0x226588, msg=MSG_ACTION, parm=601, data=0x0)
+    at actions_cmd.c:704
+        view = 0x226338
+        i = MSG_HANDLED
+#11 0x00108e9c in send_message (w=0x226338, sender=0x226588, msg=MSG_ACTION, parm=601, data=0x0)
+    at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#12 0x00109358 in buttonbar_call (bb=0x226588, i=7) at buttonbar.c:154
+        ret = MSG_NOT_HANDLED
+        w = 0x226588
+        target = 0x226338
+#13 0x001093f0 in buttonbar_callback (w=0x226588, sender=0x0, msg=MSG_HOTKEY, parm=1008, data=0x0)
+    at buttonbar.c:171
+        bb = 0x226588
+        i = 7
+#14 0x0010c9c8 in send_message (w=0x226588, sender=0x0, msg=MSG_HOTKEY, parm=1008, data=0x0)
+    at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#15 0x0010dc54 in group_handle_hotkey (g=0x2254a0, key=1008) at group.c:564
+        current = 0x221c60 = {0x226588}
+        w = 0x226588
+        handled = MSG_NOT_HANDLED
+        c = 1008
+#16 0x0010dec4 in group_default_callback (w=0x2254a0, sender=0x0, msg=MSG_HOTKEY, parm=1008, data=0x0)
+    at group.c:638
+        g = 0x2254a0
+#17 0x0010b4cc in dlg_default_callback (w=0x2254a0, sender=0x0, msg=MSG_HOTKEY, parm=1008, data=0x0)
+    at dialog.c:368
+No locals.
+#18 0x000cc538 in mcview_dialog_callback (w=0x2254a0, sender=0x0, msg=MSG_HOTKEY, parm=1008, data=0x0)
+    at actions_cmd.c:785
+        h = 0x2254a0
+        view = 0x7effecfc
+#19 0x0010c9c8 in send_message (w=0x2254a0, sender=0x0, msg=MSG_HOTKEY, parm=1008, data=0x0)
+    at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#20 0x0010d9e0 in group_handle_key (g=0x2254a0, key=1008) at group.c:501
+        handled = (unknown: 1000156)
+#21 0x0010deb0 in group_default_callback (w=0x2254a0, sender=0x0, msg=MSG_KEY, parm=1008, data=0x0) at group.c:635
+        g = 0x2254a0
+#22 0x0010b4cc in dlg_default_callback (w=0x2254a0, sender=0x0, msg=MSG_KEY, parm=1008, data=0x0) at dialog.c:368
+No locals.
+#23 0x000cc538 in mcview_dialog_callback (w=0x2254a0, sender=0x0, msg=MSG_KEY, parm=1008, data=0x0)
+    at actions_cmd.c:785
+        h = 0x2254a0
+        view = 0x0
+#24 0x0010aae4 in send_message (w=0x2254a0, sender=0x0, msg=MSG_KEY, parm=1008, data=0x0)
+    at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#25 0x0010b120 in dlg_key_event (h=0x2254a0, d_key=1008) at dialog.c:248
+        w = 0x2254a0
+        g = 0x2254a0
+        handled = MSG_NOT_HANDLED
+#26 0x0010bd30 in dlg_process_event (h=0x2254a0, key=1008, event=0x7effee3c) at dialog.c:568
+No locals.
+#27 0x0010b36c in frontend_dlg_run (h=0x2254a0) at dialog.c:320
+        d_key = 1008
+        wh = 0x2254a0
+        event = {buttons = 160 '\240', modifiers = 84 'T', vc = 34, dx = -4500, dy = 32511, x = -1, y = 16, 
+          type = (unknown: 0), clicks = 2250153, margin = (unknown: 101232), wdx = 21664, wdy = 34}
+#28 0x0010be30 in dlg_run (h=0x2254a0) at dialog.c:602
+No locals.
+#29 0x000660bc in mcview_viewer (command=0x2071f0 "/bin/sh /tmp/mc-pi/mcextJFYTQ1", file_vpath=0x1ef460, 
+    start_line=0, search_start=0, search_end=0) at mcviewer.c:266
+        succeeded = 1
+        lc_mcview = 0x226338
+        view_dlg = 0x2254a0
+        vw = 0x2254a0
+        b = 0x226588
+        g = 0x2254a0
+#30 0x000260ec in exec_extension_view (target=0x0, cmd=0x2071f0 "/bin/sh /tmp/mc-pi/mcextJFYTQ1", 
+    filename_vpath=0x1ef460, start_line=0) at ext.c:384
+        def_flags = {wrap = 0, hex = 0, magic = 0, nroff = 0}
+        changed_flags = {wrap = 0, hex = 0, magic = 0, nroff = 0}
+#31 0x00026630 in exec_extension (panel=0x1e7680, target=0x0, filename_vpath=0x1ef460, 
+    lc_data=0x20d255 "%view{ascii} /usr/lib/mc/ext.d/misc.sh view elf\n\n### Documentation ###\n\n# Texinfo\n#regex/\\.(te?xi|texinfo)$\n\n# GNU Info page\ntype/^Info\\ text\n \tOpen=/usr/lib/mc/ext.d/text.sh open info\n\nshell/.info\n\tO"..., start_line=0) at ext.c:512
+        shell_string = 0x2232d0
+        export_variables = 0x221c40
+        script_vpath = 0x207430
+        cmd_file_fd = 12
+        cmd_file = 0x1978a0
+        cmd = 0x2071f0 "/bin/sh /tmp/mc-pi/mcextJFYTQ1"
+        __func__ = "exec_extension"
+#32 0x000278d0 in regex_command_for (target=0x0, filename_vpath=0x1ef460, action=0x7efff094 "View", 
+    script_vpath=0x0) at ext.c:1043
+        sv = 0x126d00 <__libc_csu_init>
+        p = 0x20d255 "%view{ascii} /usr/lib/mc/ext.d/misc.sh view elf\n\n### Documentation ###\n\n# Texinfo\n#regex/\\.(te?xi|texinfo)$\n\n# GNU Info page\ntype/^Info\\ text\n \tOpen=/usr/lib/mc/ext.d/text.sh open info\n\nshell/.info\n\tO"...
+        q = 0x20d284 "\n\n### Documentation ###\n\n# Texinfo\n#regex/\\.(te?xi|texinfo)$\n\n# GNU Info page\ntype/^Info\\ text\n \tOpen=/usr/lib/mc/ext.d/text.sh open info\n\nshell/.info\n\tOpen=/usr/lib/mc/ext.d/text.sh open info\n\n# Exce"...
+        r = 0x20d254 "=%view{ascii} /usr/lib/mc/ext.d/misc.sh view elf\n\n### Documentation ###\n\n# Texinfo\n#regex/\\.(te?xi|texinfo)$\n\n# GNU Info page\ntype/^Info\\ text\n \tOpen=/usr/lib/mc/ext.d/text.sh open info\n\nshell/.info\n\t"...
+        c = 61 '='
+        filename = 0x1f4831 "ls"
+        file_len = 2
+        found = 1
+        error_flag = 0
+        ret = 0
+        mystat = {st_dev = 45826, __pad1 = 0, __st_ino = 270235, st_mode = 33261, st_nlink = 1, st_uid = 0, 
+          st_gid = 0, st_rdev = 0, __pad2 = 0, st_size = 108752, st_blksize = 4096, st_blocks = 216, st_atim = {
+            tv_sec = 1620400930, tv_nsec = 99528752}, st_mtim = {tv_sec = 1551367831, tv_nsec = 0}, st_ctim = {
+            tv_sec = 1620400930, tv_nsec = 99528752}, st_ino = 270235}
+        view_at_line_number = 0
+        include_target = 0x0
+        include_target_len = 0
+        have_type = 1
+#33 0x000af380 in regex_command (filename_vpath=0x1ef460, action=0x7efff094 "View") at ext.h:30
+No locals.
+#34 0x000b039c in view_file_at_line (filename_vpath=0x1ef460, plain_view=0, internal=1, start_line=0, 
+    search_start=0, search_end=0) at cmd.c:532
+        view_entry = "View", '\000' <repeats 13 times>, "\360\377v\364\360\377~ \017\301v\000\000\025\000\000m\022\000p\213\001\000xM\020\000p\213\001\000\000\000\000\000\001\000\000\000\000ag>\330\362\036"
+        ret = 1
+#35 0x000b0528 in view_file (filename_vpath=0x1ef460, plain_view=0, internal=1) at cmd.c:571
+No locals.
+#36 0x000af578 in do_view_cmd (panel=0x1e7680, plain_view=0) at cmd.c:153
+        file_idx = 908
+        filename_vpath = 0x1ef460
+#37 0x000b0554 in view_cmd (panel=0x1e7680) at cmd.c:581
+No locals.
+#38 0x0002ecac in midnight_execute_cmd (sender=0x2024b8, command=101) at filemanager.c:1414
+        res = MSG_HANDLED
+#39 0x0002f4a4 in midnight_callback (w=0x1ec8d8, sender=0x2024b8, msg=MSG_ACTION, parm=101, data=0x0)
+    at filemanager.c:1609
+        command = 1325400064
+#40 0x00108e9c in send_message (w=0x1ec8d8, sender=0x2024b8, msg=MSG_ACTION, parm=101, data=0x0)
+    at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#41 0x00109358 in buttonbar_call (bb=0x2024b8, i=2) at buttonbar.c:154
+        ret = MSG_NOT_HANDLED
+        w = 0x2024b8
+        target = 0x1ec8d8
+#42 0x001093f0 in buttonbar_callback (w=0x2024b8, sender=0x0, msg=MSG_HOTKEY, parm=1003, data=0x0)
+    at buttonbar.c:171
+        bb = 0x2024b8
+        i = 2
+#43 0x0010c9c8 in send_message (w=0x2024b8, sender=0x0, msg=MSG_HOTKEY, parm=1003, data=0x0)
+    at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#44 0x0010dc54 in group_handle_hotkey (g=0x1ec8d8, key=1003) at group.c:564
+        current = 0x1ec320 = {0x2024b8, 0x1e7680}
+        w = 0x2024b8
+        handled = MSG_NOT_HANDLED
+        c = 1003
+#45 0x0010dec4 in group_default_callback (w=0x1ec8d8, sender=0x0, msg=MSG_HOTKEY, parm=1003, data=0x0)
+    at group.c:638
+        g = 0x1ec8d8
+#46 0x0010b4cc in dlg_default_callback (w=0x1ec8d8, sender=0x0, msg=MSG_HOTKEY, parm=1003, data=0x0)
+    at dialog.c:368
+No locals.
+#47 0x0002f4d4 in midnight_callback (w=0x1ec8d8, sender=0x0, msg=MSG_HOTKEY, parm=1003, data=0x0)
+    at filemanager.c:1616
+        command = 2017496
+#48 0x0010c9c8 in send_message (w=0x1ec8d8, sender=0x0, msg=MSG_HOTKEY, parm=1003, data=0x0)
+    at ../../lib/widget/widget-common.h:255
+        ret = MSG_NOT_HANDLED
+#49 0x0010d9e0 in group_handle_key (g=0x1ec8d8, key=1003) at group.c:501
+        handled = (unknown: 1092324)
+#50 0x0010deb0 in group_default_callback (w=0x1ec8d8, sender=0x0, msg=MSG_KEY, parm=1003, data=0x0) at group.c:635
+        g = 0x1ec8d8
+#51 0x0010b14c in dlg_key_event (h=0x1ec8d8, d_key=1003) at dialog.c:251
+        w = 0x1ec8d8
+        g = 0x1ec8d8
+        handled = MSG_NOT_HANDLED
+#52 0x0010bd30 in dlg_process_event (h=0x1ec8d8, key=1003, event=0x7efff40c) at dialog.c:568
+No locals.
+#53 0x0010b36c in frontend_dlg_run (h=0x1ec8d8) at dialog.c:320
+        d_key = 1003
+        wh = 0x1ec8d8
+        event = {buttons = 216 '\330', modifiers = 200 '\310', vc = 30, dx = -3012, dy = 32511, x = -1, y = 16, 
+          type = (unknown: 0), clicks = 0, margin = (GPM_LFT | unknown: 256272), wdx = -14120, wdy = 30}
+#54 0x0010be30 in dlg_run (h=0x1ec8d8) at dialog.c:602
+No locals.
+#55 0x0002feb0 in do_nc () at filemanager.c:1827
+        ret = 0
+#56 0x00019458 in main (argc=2, argv=0x7efff624) at main.c:455
+        mcerror = 0x0
+        exit_code = 1

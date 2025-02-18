@@ -1,0 +1,43 @@
+From 52562306a49eda0faf6465cd730e4e1e77728b30 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Piotrek=20=C5=BBygie=C5=82o?=
+ <pzygielo@users.noreply.github.com>
+Date: Thu, 25 Mar 2021 16:59:19 +0100
+Subject: [PATCH] Recognize JAR files as ZIP archives
+
+Similar to 7881ed2 that solved Ticket 4180.
+
+Not all JARs are reported the same by `file` utility:
+
+$ curl -sO https://repo.maven.apache.org/maven2/org/apache/ant/ant/1.10.9/ant-1.10.9.jar
+$ curl -sO https://repo.maven.apache.org/maven2/org/apache/maven/enforcer/enforcer-api/1.0/enforcer-api-1.0.jar
+$ file -z ant-1.10.9.jar enforcer-api-1.0.jar
+ant-1.10.9.jar:       ERROR:[gzip: Stdin has more than one entry--rest ignored] (Java archive data (JAR))
+enforcer-api-1.0.jar: ERROR:[gzip: Stdin has more than one entry--rest ignored] (Zip archive data, at least v1.0 to extract)
+$ file --version
+file-5.39
+magic file from /etc/magic:/usr/share/misc/magic
+
+Above makes some JARs to be mc-viewable (reported as Zip archive),
+and some not (reported as Java archive data).
+
+This change allows the jar(zip) rule to work again.
+---
+ misc/mc.ext.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index eb1c20708..ad45dfde2 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -757,7 +757,7 @@ type/\(Zip archive
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view zip
+ 
+ # jar(zip)
+-type/i/^Java\ (Jar\ file|archive)\ data\ \((zip|JAR)\)
++type/i/\(Java\ (Jar\ file|archive)\ data\ \((zip|JAR)\)
+ 	Open=%cd %p/uzip://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view zip
+ 
+-- 
+2.31.1
+

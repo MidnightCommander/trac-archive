@@ -1,0 +1,21 @@
+diff -ur mc-4.8.12.orig/lib/widget/input.c mc-4.8.12/lib/widget/input.c
+--- mc-4.8.12.orig/lib/widget/input.c	2014-04-01 12:54:01.000000000 +0200
++++ mc-4.8.12/lib/widget/input.c	2014-06-19 15:58:12.850947366 +0200
+@@ -754,7 +754,7 @@
+         forward_word (in);
+         break;
+     case CK_BackSpace:
+-        if (in->highlight)
++        if (in->highlight && in->point != in->mark)
+         {
+             long m1, m2;
+             if (input_eval_marks (in, &m1, &m2))
+@@ -766,7 +766,7 @@
+     case CK_Delete:
+         if (in->first)
+             port_region_marked_for_delete (in);
+-        else if (in->highlight)
++        else if (in->highlight && in->point != in->mark)
+         {
+             long m1, m2;
+             if (input_eval_marks (in, &m1, &m2))

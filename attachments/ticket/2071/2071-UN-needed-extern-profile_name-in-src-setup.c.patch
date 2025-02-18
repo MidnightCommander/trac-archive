@@ -1,0 +1,171 @@
+From e71d68daeec26f239f6c81eb5de1162cc8bd4f6f Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Mon, 1 Mar 2010 20:37:03 +0000
+Subject: [PATCH]  UN needed extern profile_name in src/setup.c
+
+'char * setup_init (void);' with allocated 'return (char *) profile_name;'
+
+is called from
+
+    src/treestore.c:757:
+{{{
+            loaded = 1;
+            setup_init();
+}}}
+
+without even possible g_free ....
+---
+ src/setup.c     |   68 +++++++++++++++++++++++++++---------------------------
+ src/setup.h     |    1 -
+ src/treestore.c |    7 ++++-
+ 3 files changed, 39 insertions(+), 37 deletions(-)
+
+diff --git a/src/setup.c b/src/setup.c
+index 78dfb1b..ed4b8c5 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -75,7 +75,6 @@
+ 
+ extern int num_history_items_recorded;
+ 
+-char *profile_name;             /* .mc/ini */
+ char *global_profile_name;      /* mc.lib */
+ 
+ char *setup_color_string;
+@@ -727,48 +726,48 @@ load_setup_get_keymap_profile_config (void)
+ char *
+ setup_init (void)
+ {
+-    char *profile;
+-    char *inifile;
++    static char *profile_name = NULL;
++    char *tmp;
+ 
+-    if (profile_name)
+-        return profile_name;
++    if (profile_name != NULL) 
++        return (tmp = g_strdup (profile_name));
++        
+ 
+-    profile = g_build_filename (home_dir, MC_USERCONF_DIR, MC_CONFIG_FILE, NULL);
+-    if (!exist_file (profile))
+-    {
+-        inifile = concat_dir_and_file (mc_home, "mc.ini");
+-        if (exist_file (inifile))
+-        {
+-            g_free (profile);
+-            profile = inifile;
+-        }
+-        else
+-        {
+-            g_free (inifile);
+-            inifile = concat_dir_and_file (mc_home_alt, "mc.ini");
+-            if (exist_file (inifile))
+-            {
+-                g_free (profile);
+-                profile = inifile;
+-            }
+-            else
+-                g_free (inifile);
+-        }
+-    }
++    tmp = g_build_filename (home_dir, MC_USERCONF_DIR, MC_CONFIG_FILE, NULL);
++    if (tmp == NULL)
++        return NULL;
++
++    if (exist_file (tmp))
++        return tmp;
++
++    g_free (tmp);
++    tmp = concat_dir_and_file (mc_home, "mc.ini");
++    if (tmp == NULL)
++        return NULL;
++
++    if (exist_file (tmp))
++        return tmp;
++
++    g_free (tmp);
++    tmp = concat_dir_and_file (mc_home_alt, "mc.ini");
++    if (tmp == NULL)
++        return NULL;
+ 
+-    profile_name = profile;
++    if (exist_file (tmp))
++        return tmp;
+ 
+-    return profile;
++    g_free (tmp);
++    return NULL;
+ }
+ 
+ void
+ load_setup (void)
+ {
+-    char *profile;
++    char *profile_name;
+     int i;
+     char *buffer;
+ 
+-    profile = setup_init ();
++    profile_name = setup_init ();
+ 
+     /* mc.lib is common for all users, but has priority lower than
+        ~/.mc/ini.  FIXME: it's only used for keys and treestore now */
+@@ -781,10 +780,12 @@ load_setup (void)
+ 
+     panels_profile_name = g_build_filename (home_dir, MC_USERCONF_DIR, MC_PANELS_FILE, NULL);
+ 
+-    mc_main_config = mc_config_init (profile);
++    mc_main_config = mc_config_init (profile_name);
+ 
+     if (!exist_file (panels_profile_name))
+-        setup__move_panels_config_into_separate_file (profile);
++        setup__move_panels_config_into_separate_file (profile_name);
++
++    g_free (profile_name);
+ 
+     mc_panels_config = mc_config_init (panels_profile_name);
+ 
+@@ -893,7 +894,6 @@ done_setup (void)
+ {
+     int i;
+ 
+-    g_free (profile_name);
+     g_free (global_profile_name);
+     g_free (color_terminal_string);
+     g_free (term_color_string);
+diff --git a/src/setup.h b/src/setup.h
+index 04d66d8..bf9e41e 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -22,7 +22,6 @@ void panel_load_setup (struct WPanel *panel, const char *section);
+ void save_panel_types (void);
+ void load_keymap_defs (void);
+ void free_keymap_defs (void);
+-extern char *profile_name;
+ extern char *global_profile_name;
+ 
+ extern char *setup_color_string;
+diff --git a/src/treestore.c b/src/treestore.c
+index 2d2c4d6..7419a4f 100644
+--- a/src/treestore.c
++++ b/src/treestore.c
+@@ -753,10 +753,13 @@ should_skip_directory(const char *dir)
+     static int loaded;
+ 
+     if (loaded == 0) {
+-	loaded = 1;
+-	setup_init();
++	char *profile_name;
++	
++	profile_name = setup_init();
+ 	process_special_dirs(&special_dirs, profile_name);
++	g_free (profile_name);
+ 	process_special_dirs(&special_dirs, global_profile_name);
++	loaded = 1;
+     }
+ 
+     for (l = special_dirs; l; l = l->next) {
+-- 
+1.6.4
+

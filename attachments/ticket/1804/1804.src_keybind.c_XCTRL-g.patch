@@ -1,0 +1,25 @@
+From 40016d02961b70b0aa08f941fe2e31176ea7b9c6 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 7 Nov 2009 23:37:37 +0000
+Subject: [PATCH] src_keybind.c_XCTRL-g
+
+---
+ src/keybind.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/keybind.c b/src/keybind.c
+index f1d1859..77fb34c 100644
+--- a/src/keybind.c
++++ b/src/keybind.c
+@@ -449,7 +449,7 @@ const global_keymap_t default_viewer_keymap[] = {
+     { XCTRL ('b'), CK_ViewPrevFile,       "C-b" },
+ 
+     { 'q',         CK_ViewQuit,           "q" },
+-    { XCTRL ('q'), CK_ViewQuit,           "C-q" },
++    { XCTRL ('g'), CK_ViewQuit,           "C-g" },
+     { ESC_CHAR,    CK_ViewQuit,           "Esc" },
+ 
+     { ALT ('e'),   CK_SelectCodepage,     "M-e" },
+-- 
+1.6.4
+

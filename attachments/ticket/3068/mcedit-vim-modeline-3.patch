@@ -1,0 +1,552 @@
+diff --git a/.gitignore b/.gitignore
+index 310c62f..9e8b9e7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -46,3 +46,12 @@ make.log
+ make.clang
+ make.gcc
+ make.tcc
++misc/ext.d/doc.sh
++misc/ext.d/misc.sh
++misc/ext.d/text.sh
++misc/ext.d/web.sh
++misc/syntax/Syntax
++src/man2hlp/man2hlp
++src/vfs/extfs/helpers/uc1541
++src/vfs/extfs/helpers/ulib
++tests/src/editor/test-data.txt
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index e840d30..5eb417e 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -59,10 +59,6 @@
+ #define MARK_CURS       1000000000
+ #define KEY_PRESS       1500000000
+ 
+-/* Tabs spaces: (sofar only HALF_TAB_SIZE is used: */
+-#define TAB_SIZE      option_tab_spacing
+-#define HALF_TAB_SIZE ((int) option_tab_spacing / 2)
+-
+ /* max count stack files */
+ #define MAX_HISTORY_MOVETO     50
+ #define LINE_STATE_WIDTH 8
+@@ -286,6 +282,8 @@ void format_paragraph (WEdit * edit, gboolean force);
+ /* either command or char_for_insertion must be passed as -1 */
+ void edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion);
+ 
++int edit_tab_spacing(const WEdit *edit, gboolean half);
++
+ /*** inline functions ****************************************************************************/
+ 
+ /**
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 1c80466..4de00f0 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -142,6 +142,34 @@ static const off_t option_filesize_default_threshold = 64 * 1024 * 1024;
+ /* --------------------------------------------------------------------------------------------- */
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++edit_fake_half_tabs(WEdit *edit)
++{
++    if (edit->force_halftabs == -1)
++        return option_fake_half_tabs;
++    return edit->force_halftabs;
++}
++
++static gboolean
++edit_fill_tabs_with_spaces(WEdit *edit)
++{
++    if (edit->force_fill_tabs_with_spaces == -1)
++        return option_fill_tabs_with_spaces;
++    return edit->force_fill_tabs_with_spaces;
++}
++
++int
++edit_tab_spacing(const WEdit *edit, gboolean half)
++{
++    int spacing = option_tab_spacing;
++    if (edit->force_tab_spacing > 0)
++        spacing = edit->force_tab_spacing;
++    if (half)
++        spacing /= 2;
++    return spacing;
++}
++
+ /**
+  * Load file OR text into buffers.  Set cursor to the beginning of file.
+  *
+@@ -1302,8 +1330,8 @@ is_aligned_on_a_tab (WEdit * edit)
+     long curs_col;
+ 
+     edit_update_curs_col (edit);
+-    curs_col = edit->curs_col % (TAB_SIZE * space_width);
+-    return (curs_col == 0 || curs_col == (HALF_TAB_SIZE * space_width));
++    curs_col = edit->curs_col % (edit_tab_spacing(edit, FALSE) * space_width);
++    return (curs_col == 0 || curs_col == (edit_tab_spacing(edit, TRUE) * space_width));
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1313,7 +1341,7 @@ right_of_four_spaces (WEdit * edit)
+ {
+     int i, ch = 0;
+ 
+-    for (i = 1; i <= HALF_TAB_SIZE; i++)
++    for (i = 1; i <= edit_tab_spacing(edit, TRUE); i++)
+         ch |= edit_buffer_get_byte (&edit->buffer, edit->buffer.curs1 - i);
+ 
+     return (ch == ' ' && is_aligned_on_a_tab (edit));
+@@ -1326,7 +1354,7 @@ left_of_four_spaces (WEdit * edit)
+ {
+     int i, ch = 0;
+ 
+-    for (i = 0; i < HALF_TAB_SIZE; i++)
++    for (i = 0; i < edit_tab_spacing(edit, TRUE); i++)
+         ch |= edit_buffer_get_byte (&edit->buffer, edit->buffer.curs1 + i);
+ 
+     return (ch == ' ' && is_aligned_on_a_tab (edit));
+@@ -1374,9 +1402,7 @@ insert_spaces_tab (WEdit * edit, gboolean half)
+     long i;
+ 
+     edit_update_curs_col (edit);
+-    i = option_tab_spacing * space_width;
+-    if (half)
+-        i /= 2;
++    i = edit_tab_spacing(edit, half) * space_width;
+     if (i != 0)
+     {
+         i = ((edit->curs_col / i) + 1) * i - edit->curs_col;
+@@ -1393,23 +1419,23 @@ insert_spaces_tab (WEdit * edit, gboolean half)
+ static inline void
+ edit_tab_cmd (WEdit * edit)
+ {
+-    if (option_fake_half_tabs && is_in_indent (&edit->buffer))
++    if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer))
+     {
+         /* insert a half tab (usually four spaces) unless there is a
+            half tab already behind, then delete it and insert a
+            full tab. */
+-        if (option_fill_tabs_with_spaces || !right_of_four_spaces (edit))
++        if (edit_fill_tabs_with_spaces(edit) || !right_of_four_spaces (edit))
+             insert_spaces_tab (edit, TRUE);
+         else
+         {
+             int i;
+ 
+-            for (i = 1; i <= HALF_TAB_SIZE; i++)
++            for (i = 1; i <= edit_tab_spacing(edit, TRUE); i++)
+                 edit_backspace (edit, TRUE);
+             edit_insert (edit, '\t');
+         }
+     }
+-    else if (option_fill_tabs_with_spaces)
++    else if (edit_fill_tabs_with_spaces(edit))
+         insert_spaces_tab (edit, FALSE);
+     else
+         edit_insert (edit, '\t');
+@@ -1545,8 +1571,8 @@ edit_move_block_to_right (WEdit * edit)
+         edit_cursor_move (edit, cur_bol - edit->buffer.curs1);
+         if (!edit_line_is_blank (edit, edit->buffer.curs_line))
+         {
+-            if (option_fill_tabs_with_spaces)
+-                insert_spaces_tab (edit, option_fake_half_tabs);
++            if (edit_fill_tabs_with_spaces(edit))
++                insert_spaces_tab (edit, edit_fake_half_tabs(edit));
+             else
+                 edit_insert (edit, '\t');
+             edit_cursor_move (edit,
+@@ -1585,10 +1611,7 @@ edit_move_block_to_left (WEdit * edit)
+ 
+         edit_cursor_move (edit, cur_bol - edit->buffer.curs1);
+ 
+-        if (option_fake_half_tabs)
+-            del_tab_width = HALF_TAB_SIZE;
+-        else
+-            del_tab_width = option_tab_spacing;
++        del_tab_width = edit_tab_spacing(edit, edit_fake_half_tabs(edit));
+ 
+         next_char = edit_buffer_get_current_byte (&edit->buffer);
+         if (next_char == '\t')
+@@ -2017,6 +2040,112 @@ edit_insert_file (WEdit * edit, const vfs_path_t * filename_vpath)
+  * cursor on that line and show it in the middle of the screen.
+  */
+ 
++static off_t
++mc_findinfile(int handle, const char *searchstr)
++{
++    off_t offset_bak, offset_cur, filesize;
++    char buff[10240];
++    ssize_t got;
++    const char *found;
++    size_t searchstr_len;
++
++    searchstr_len = strlen(searchstr);
++
++    offset_bak = mc_lseek(handle, 0, SEEK_CUR);
++    if (offset_bak < 0)
++        return -1;
++
++    filesize = mc_lseek(handle, 0, SEEK_END);
++    offset_cur = mc_lseek(handle, offset_bak, SEEK_SET);
++
++    do {
++        got = mc_read(handle, buff, sizeof(buff) - 1);
++        if (got <= 0)
++            return -1;
++        buff[got] = '\0';
++
++        found = strstr(buff, searchstr);
++        if (found)
++            return mc_lseek(handle, offset_cur + (found - buff), SEEK_SET);
++
++        offset_cur = mc_lseek(handle,
++            offset_cur + (sizeof(buff) - 1) - searchstr_len, SEEK_SET);
++    } while (offset_cur + searchstr_len < filesize);
++
++    return -1;
++}
++
++static void
++scan_modeline(WEdit *edit, const vfs_path_t *filename)
++{
++    int fd;
++    int conf_tabstop = -1;
++    int conf_softtabstop = -1;
++    int conf_expandtab = -1;
++    int dst_halftabs = -1;
++    int dst_fill_tabs_with_spaces = -1;
++    int dst_force_tab_spacing = -1;
++
++    fd = mc_open(filename, O_RDONLY | O_BINARY);
++    while (1) {
++        off_t foundat;
++        char buff[200];
++        char *s;
++        ssize_t got;
++        const char *foundstr;
++
++        foundat = mc_findinfile(fd, "\n/*");
++        if (foundat < 0)
++            return;
++
++        got = mc_read(fd, buff, sizeof(buff) - 1);
++        if (got <= 0)
++            return;
++        buff[got] = '\0';
++
++        mc_lseek(fd, foundat + 3, SEEK_SET);
++
++        s = &buff[3];
++        while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
++            s++;
++
++        if (strncmp(s, "vim:", 4) != 0)
++            continue;
++        s += 4;
++
++        foundstr = strstr(s, "tabstop=");
++        if (foundstr)
++            conf_tabstop=atoi(foundstr + 8);
++        foundstr = strstr(s, "softtabstop=");
++        if (foundstr)
++            conf_softtabstop=atoi(foundstr + 12);
++        foundstr = strstr(s, "expandtab");
++        if (foundstr)
++            conf_expandtab = 1;
++        foundstr = strstr(s, "noexpandtab");
++        if (foundstr)
++            conf_expandtab = 0;
++
++        break;
++    }
++
++    if (conf_softtabstop > 0 && conf_tabstop > 0 &&
++        conf_softtabstop * 2 == conf_tabstop)
++    {
++        dst_halftabs = 1;
++    }
++
++    dst_fill_tabs_with_spaces = conf_expandtab;
++
++    dst_force_tab_spacing = conf_tabstop;
++
++    edit->force_halftabs = dst_halftabs;
++    edit->force_fill_tabs_with_spaces = dst_fill_tabs_with_spaces;
++    edit->force_tab_spacing = dst_force_tab_spacing;
++
++    mc_close(fd);
++}
++
+ WEdit *
+ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * filename_vpath,
+            long line)
+@@ -2054,6 +2183,12 @@ edit_init (WEdit * edit, int y, int x, int lines, int cols, const vfs_path_t * f
+         edit_save_size (edit);
+     }
+ 
++    edit->force_halftabs = -1;
++    edit->force_fill_tabs_with_spaces = -1;
++    edit->force_tab_spacing = -1;
++
++    scan_modeline(edit, filename_vpath);
++
+     edit->drag_state = MCEDIT_DRAG_NORMAL;
+ 
+     edit->stat1.st_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+@@ -2755,8 +2890,10 @@ edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto)
+ 
+         if (c == '\n')
+             return (upto != 0 ? (off_t) col : p);
+-        if (c == '\t')
+-            col += TAB_SIZE - col % TAB_SIZE;
++        if (c == '\t') {
++            int tab_size = edit_tab_spacing(edit, FALSE);
++            col += tab_size - col % tab_size;
++        }
+         else if ((c < 32 || c == 127) && (orig_c == c
+ #ifdef HAVE_CHARSET
+                                           || (!mc_global.utf8_display && !edit->utf8)
+@@ -2909,13 +3046,13 @@ edit_move_to_prev_col (WEdit * edit, off_t p)
+     else
+     {
+         edit->over_col = 0;
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer))
++        if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer))
+         {
+             long fake_half_tabs;
+ 
+             edit_update_curs_col (edit);
+ 
+-            fake_half_tabs = HALF_TAB_SIZE * space_width;
++            fake_half_tabs = edit_tab_spacing(edit, TRUE) * space_width;
+             if (fake_half_tabs != 0 && edit->curs_col % fake_half_tabs != 0)
+             {
+                 int q;
+@@ -3402,14 +3539,24 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+             while (edit_buffer_get_previous_byte (&edit->buffer) != '\n' && edit->buffer.curs1 > 0)
+                 edit_backspace (edit, TRUE);
+         }
+-        else if (option_fake_half_tabs && is_in_indent (&edit->buffer)
++        else if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer)
+                  && right_of_four_spaces (edit))
+         {
+             int i;
+ 
+-            for (i = 0; i < HALF_TAB_SIZE; i++)
++            for (i = 0; i < edit_tab_spacing(edit, TRUE); i++)
+                 edit_backspace (edit, TRUE);
+         }
++        else if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer)
++                 && edit_buffer_get_byte(&edit->buffer, edit->buffer.curs1 - 1) == '\t') {
++            int i;
++
++            edit_backspace (edit, TRUE);
++            for (i = 0; i < edit_tab_spacing(edit, TRUE); i++)
++                edit_insert (edit, ' ');
++            /* TODO: if (right_of_four_spaces(edit) && left_of_four_spaces(edit)
++             * - replace spaces with a tab */
++        }
+         else
+             edit_backspace (edit, FALSE);
+         break;
+@@ -3422,11 +3569,11 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+             if (option_cursor_beyond_eol && edit->over_col > 0)
+                 edit_insert_over (edit);
+ 
+-            if (option_fake_half_tabs && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
++            if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
+             {
+                 int i;
+ 
+-                for (i = 1; i <= HALF_TAB_SIZE; i++)
++                for (i = 1; i <= edit_tab_spacing(edit, TRUE); i++)
+                     edit_delete (edit, TRUE);
+             }
+             else
+@@ -3488,12 +3635,12 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+         edit->column_highlight = 1;
+     case CK_Left:
+     case CK_MarkLeft:
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer) && right_of_four_spaces (edit))
++        if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer) && right_of_four_spaces (edit))
+         {
+             if (option_cursor_beyond_eol && edit->over_col > 0)
+                 edit->over_col--;
+             else
+-                edit_cursor_move (edit, -HALF_TAB_SIZE);
++                edit_cursor_move (edit, -edit_tab_spacing(edit, TRUE));
+             edit->force &= (0xFFF - REDRAW_CHAR_ONLY);
+         }
+         else
+@@ -3503,9 +3650,9 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+         edit->column_highlight = 1;
+     case CK_Right:
+     case CK_MarkRight:
+-        if (option_fake_half_tabs && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
++        if (edit_fake_half_tabs(edit) && is_in_indent (&edit->buffer) && left_of_four_spaces (edit))
+         {
+-            edit_cursor_move (edit, HALF_TAB_SIZE);
++            edit_cursor_move (edit, edit_tab_spacing(edit, TRUE));
+             edit->force &= (0xFFF - REDRAW_CHAR_ONLY);
+         }
+         else
+@@ -3964,3 +4111,5 @@ edit_move_down (WEdit * edit, long i, gboolean do_scroll)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++/* vim: set tabstop=8 softtabstop=4 shiftwidth=4 expandtab: */
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 4347fd7..a51839c 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -67,7 +67,7 @@
+ #endif
+ 
+ #include "src/history.h"
+-#include "src/setup.h"          /* option_tab_spacing */
++#include "src/setup.h"
+ #ifdef HAVE_CHARSET
+ #include "src/selcodepage.h"
+ #endif
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index cd084de..c66b675 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -584,6 +584,7 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                 int tab_over = 0;
+                 gboolean wide_width_char = FALSE;
+                 gboolean control_char = FALSE;
++                int tab_size = edit_tab_spacing(edit, FALSE);
+ 
+                 p->ch = 0;
+                 p->style = 0;
+@@ -632,7 +633,7 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                     col = end_col - edit->start_col + 1;        /* quit */
+                     break;
+                 case '\t':
+-                    i = TAB_SIZE - ((int) col % TAB_SIZE);
++                    i = tab_size - ((int) col % tab_size);
+                     tab_over = (end_col - edit->start_col) - (col + i - 1);
+                     if (tab_over < 0)
+                         i += tab_over;
+diff --git a/src/editor/editwidget.h b/src/editor/editwidget.h
+index 90c73f6..d58e197 100644
+--- a/src/editor/editwidget.h
++++ b/src/editor/editwidget.h
+@@ -163,6 +163,10 @@ struct WEdit
+     /* line break */
+     LineBreaks lb;
+     gboolean extmod;
++
++    int force_halftabs;
++    int force_fill_tabs_with_spaces;
++    int force_tab_spacing;
+ };
+ 
+ /*** global variables defined in .c file *********************************************************/
+@@ -171,3 +175,5 @@ struct WEdit
+ 
+ /*** inline functions ****************************************************************************/
+ #endif /* MC__EDIT_WIDGET_H */
++
++/* vim: set tabstop=8 softtabstop=4 shiftwidth=4 expandtab: */
+diff --git a/src/editor/wordproc.c b/src/editor/wordproc.c
+index 8c42ce9..5358dab 100644
+--- a/src/editor/wordproc.c
++++ b/src/editor/wordproc.c
+@@ -50,8 +50,6 @@
+ 
+ #include "lib/global.h"
+ 
+-#include "src/setup.h"          /* option_tab_spacing */
+-
+ #include "edit-impl.h"
+ #include "editwidget.h"
+ 
+@@ -59,8 +57,6 @@
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+-#define tab_width option_tab_spacing
+-
+ #define NO_FORMAT_CHARS_START "-+*\\,.;:&>"
+ #define FONT_MEAN_WIDTH 1
+ 
+@@ -205,7 +201,7 @@ strip_newlines (unsigned char *t, off_t size)
+  */
+ 
+ static inline off_t
+-next_tab_pos (off_t x)
++next_tab_pos (off_t x, int tab_width)
+ {
+     x += tab_width - x % tab_width;
+     return x;
+@@ -214,7 +210,7 @@ next_tab_pos (off_t x)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static inline off_t
+-line_pixel_length (unsigned char *t, off_t b, off_t l, gboolean utf8)
++line_pixel_length (unsigned char *t, off_t b, off_t l, int tab_width, gboolean utf8)
+ {
+     off_t xn, x;                /* position conters */
+     off_t cw;                   /* character width in bytes */
+@@ -235,7 +231,7 @@ line_pixel_length (unsigned char *t, off_t b, off_t l, gboolean utf8)
+         case '\n':
+             return b;
+         case '\t':
+-            xn = next_tab_pos (x);
++            xn = next_tab_pos (x, tab_width);
+             break;
+         default:
+ #ifdef HAVE_CHARSET
+@@ -324,7 +320,7 @@ word_start (unsigned char *t, off_t q, off_t size)
+ /** replaces ' ' with '\n' to properly format a paragraph */
+ 
+ static inline void
+-format_this (unsigned char *t, off_t size, long indent, gboolean utf8)
++format_this (unsigned char *t, off_t size, long indent, int tab_width, gboolean utf8)
+ {
+     off_t q = 0, ww;
+ 
+@@ -337,7 +333,7 @@ format_this (unsigned char *t, off_t size, long indent, gboolean utf8)
+     {
+         off_t p;
+ 
+-        q = line_pixel_length (t, q, ww, utf8);
++        q = line_pixel_length (t, q, ww, tab_width, utf8);
+         if (q > size)
+             break;
+         if (t[q] == '\n')
+@@ -386,11 +382,12 @@ edit_indent_width (const WEdit * edit, off_t p)
+ static void
+ edit_insert_indent (WEdit * edit, long indent)
+ {
++    int tab_size = edit_tab_spacing(edit, FALSE);
+     if (!option_fill_tabs_with_spaces)
+-        while (indent >= TAB_SIZE)
++        while (indent >= tab_size)
+         {
+             edit_insert (edit, '\t');
+-            indent -= TAB_SIZE;
++            indent -= tab_size;
+         }
+ 
+     while (indent-- > 0)
+@@ -513,7 +510,7 @@ format_paragraph (WEdit * edit, gboolean force)
+ #ifdef HAVE_CHARSET
+     utf8 = edit->utf8;
+ #endif
+-    format_this (t2, q - p, indent, utf8);
++    format_this (t2, q - p, indent, edit_tab_spacing(edit, FALSE), utf8);
+     put_paragraph (edit, t2, p, indent, size);
+     g_free ((char *) t2);
+ 
+@@ -522,3 +519,5 @@ format_paragraph (WEdit * edit, gboolean force)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
++/* vim: set tabstop=8 softtabstop=4 shiftwidth=4 expandtab: */

@@ -1,0 +1,13 @@
+Add detection of broken spftp servers, like ftp.symantec.com and download.nvidia.com
+diff -urN mc-4.7.5.5.orig/lib/vfs/mc-vfs/ftpfs.c mc-4.7.5.5/lib/vfs/mc-vfs/ftpfs.c
+--- mc-4.7.5.5.orig/lib/vfs/mc-vfs/ftpfs.c	2011-09-28 12:49:09.000000000 -0400
++++ mc-4.7.5.5/lib/vfs/mc-vfs/ftpfs.c	2011-10-19 14:34:34.000000000 -0400
+@@ -592,6 +592,8 @@
+ 
+         reply_up = g_ascii_strup (reply_string, -1);
+         SUP.remote_is_amiga = strstr (reply_up, "AMIGA") != 0;
++        if (strstr (reply_up, " SPFTP/1.0.0000 SERVER ")) // handles `LIST -la` in a weird way
++            SUP.strict = RFC_STRICT;
+         g_free (reply_up);
+ 
+         if (MEDATA->logfile)

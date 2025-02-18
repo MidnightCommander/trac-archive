@@ -1,0 +1,40 @@
+From 6ac95b0f227d806a8e98948f79cb039739a497de Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Sat, 8 Jul 2017 12:54:57 +0200
+Subject: [PATCH] Ticket #3836: maint - set default `--with-homedir` value to
+ `.mc` instead of `yes`
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+Reviewed-by: Andrew Borodin <aborodin@vmail.ru>
+---
+ configure.ac |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index 387110d..5541393 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -367,8 +367,20 @@ AC_ARG_WITH([homedir],
+     AS_HELP_STRING([--with-homedir],
+                    [Choose any place of user settings relative to home dir, or XDG for respect XDG standards @<:@XDG@:>@]),
+     [
++	dnl Unfortunately, there is no way to tell AC_ARG_WITH that the
++	dnl argument value is required, so we can't differentiate
++	dnl between `--with-homedir` and `--with-homedir=yes`, because
++	dnl `with_homedir` is set to `yes` in both cases.
++	dnl
++	dnl We opt to set `with_homedir` to `.mc` if the value is `yes`
++	dnl in order to avoid the surprise for users using
++	dnl `--with-homedir` w/o any value and then getting mc to store
++	dnl settings in the `yes` directory.
++
+ 	if test "x$withval" = "xXDG"; then
+ 	    with_homedir=XDG
++	elif test "x$withval" = "xyes"; then
++	    with_homedir=.mc
+ 	else
+ 	    with_homedir=$withval
+ 	fi
+-- 
+1.7.10
+

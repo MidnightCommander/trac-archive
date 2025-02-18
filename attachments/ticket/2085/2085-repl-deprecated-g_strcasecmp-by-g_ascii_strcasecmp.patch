@@ -1,0 +1,88 @@
+From ce86a63418c84606c16bc231124bf200a0c5271a Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Sat, 6 Mar 2010 21:15:19 +0000
+Subject: [PATCH] repl deprecated g_strcasecmp by g_ascii_strcasecmp
+
+---
+ lib/strutil/strutil8bit.c |    2 +-
+ lib/vfs/mc-vfs/ftpfs.c    |    6 +++---
+ src/setup.c               |    6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/lib/strutil/strutil8bit.c b/lib/strutil/strutil8bit.c
+index f8a934f..d19c849 100644
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -643,7 +643,7 @@ str_8bit_ncompare (const char *t1, const char *t2)
+ static int
+ str_8bit_casecmp (const char *t1, const char *t2)
+ {
+-    return g_strcasecmp (t1, t2);
++    return g_ascii_strcasecmp (t1, t2);
+ }
+ 
+ static int
+diff --git a/lib/vfs/mc-vfs/ftpfs.c b/lib/vfs/mc-vfs/ftpfs.c
+index 93bfab6..6e7a3df 100644
+--- a/lib/vfs/mc-vfs/ftpfs.c
++++ b/lib/vfs/mc-vfs/ftpfs.c
+@@ -643,7 +643,7 @@ ftpfs_check_proxy (const char *host)
+ 	    if (!ld)
+ 		return 0;
+ 	} else
+-	    if (!g_strcasecmp (host, domain))
++	    if (!g_ascii_strcasecmp (host, domain))
+ 		return 0;
+     }
+ 
+@@ -1980,14 +1980,14 @@ static int ftpfs_find_machine (const char *host, const char *domain)
+ 	if (ftpfs_netrc_next () == NETRC_NONE)
+ 	    break;
+ 
+-	if (g_strcasecmp (host, buffer)) {
++	if (g_ascii_strcasecmp (host, buffer)) {
+ 	    /* Try adding our domain to short names in .netrc */
+ 	    const char *host_domain = strchr (host, '.');
+ 	    if (!host_domain)
+ 		continue;
+ 
+ 	    /* Compare domain part */
+-	    if (g_strcasecmp (host_domain, domain))
++	    if (g_ascii_strcasecmp (host_domain, domain))
+ 		continue;
+ 
+ 	    /* Compare local part */
+diff --git a/src/setup.c b/src/setup.c
+index 78dfb1b..0a78a43 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -449,7 +449,7 @@ panel_load_setup (WPanel * panel, const char *section)
+     buffer = mc_config_get_string (mc_panels_config, section, "list_mode", "full");
+     panel->list_type = list_full;
+     for (i = 0; list_types[i].key; i++)
+-        if (g_strcasecmp (list_types[i].key, buffer) == 0)
++        if (g_ascii_strcasecmp (list_types[i].key, buffer) == 0)
+         {
+             panel->list_type = list_types[i].list_type;
+             break;
+@@ -494,7 +494,7 @@ setup__load_panel_state (const char *section)
+     buffer = mc_config_get_string (mc_panels_config, section, "display", "listing");
+ 
+     for (i = 0; panel_types[i].opt_name != NULL; i++)
+-        if (g_strcasecmp (panel_types[i].opt_name, buffer) == 0)
++        if (g_ascii_strcasecmp (panel_types[i].opt_name, buffer) == 0)
+         {
+             mode = panel_types[i].opt_type;
+             break;
+@@ -933,7 +933,7 @@ load_keys_from_section (const char *terminal, mc_config_t * cfg)
+     {
+ 
+         /* copy=other causes all keys from [terminal:other] to be loaded.  */
+-        if (g_strcasecmp (*profile_keys, "copy") == 0)
++        if (g_ascii_strcasecmp (*profile_keys, "copy") == 0)
+         {
+             valcopy = mc_config_get_string (cfg, section_name, *profile_keys, "");
+             load_keys_from_section (valcopy, cfg);
+-- 
+1.6.4
+

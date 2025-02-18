@@ -1,0 +1,11 @@
+diff -Naur mc-4.7.0-pre1~/src/execute.c mc-4.7.0-pre1/src/execute.c
+--- mc-4.7.0-pre1~/src/execute.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/src/execute.c	2009-08-11 03:14:55.000000000 +0300
+@@ -21,6 +21,7 @@
+ 
+ #include <config.h>
+ 
++#include <signal.h>
+ #include <sys/stat.h>
+ #include <sys/time.h>
+ 

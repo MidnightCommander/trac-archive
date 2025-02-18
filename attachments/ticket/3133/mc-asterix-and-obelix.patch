@@ -1,0 +1,39 @@
+diff -ur mc-4.8.11.orig/misc/mc.lib mc-4.8.11/misc/mc.lib
+--- mc-4.8.11.orig/misc/mc.lib	2013-11-29 19:27:07.000000000 +0100
++++ mc-4.8.11/misc/mc.lib	2014-01-03 15:48:45.388913211 +0100
+@@ -34,7 +34,7 @@
+ kpppage=\\eOy
+ kpplus=\\eOl
+ kpminus=\\eOS
+-kpasterix=\\eOR
++kpasterisk=\\eOR
+ kpinsert=\\eOp
+ kpdelete=\\eOn
+ kpenter=\\eOM
+@@ -63,7 +63,7 @@
+ kpppage=\\eOy
+ kpplus=\\eOl
+ kpminus=\\eOS
+-kpasterix=\\eOR
++kpasterisk=\\eOR
+ kpinsert=\\eOp
+ kpdelete=\\eOn
+ kpenter=\\eOM
+@@ -92,7 +92,7 @@
+ kpppage=\\eOy
+ kpplus=\\eOk
+ kpminus=\\eOm
+-kpasterix=\\eOj
++kpasterisk=\\eOj
+ delete=\\e[3~
+ bs=
+ home=\\e[1~;\\e[7~;\\eOH;\\e[H
+@@ -149,7 +149,7 @@
+ end=\\e[F
+ kpplus=\\e[+
+ kpminus=\\e[-
+-kpasterix=\\e[*
++kpasterisk=\\e[*
+ 
+ [terminal:cons25]
+ f11=\\e[Y

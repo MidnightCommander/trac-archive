@@ -1,0 +1,25 @@
+From 0dec6b2f9cb88fc9e3c74204bea29d851e23051a Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Thu, 19 Nov 2009 16:55:50 +0000
+Subject: [PATCH] show two upper lines when_M-?_then_F4
+
+---
+ edit/edit.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/edit/edit.c b/edit/edit.c
+index e2c36d5..41ae765 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -837,7 +837,7 @@ edit_init (WEdit *edit, int lines, int columns, const char *filename,
+     } else {
+ 	if (line <= 0)
+ 	    line = 1;
+-	edit_move_display (edit, line - 1);
++	edit_move_display (edit, line - 3);
+ 	edit_move_to_line (edit, line - 1);
+     }
+ 
+-- 
+1.6.4
+

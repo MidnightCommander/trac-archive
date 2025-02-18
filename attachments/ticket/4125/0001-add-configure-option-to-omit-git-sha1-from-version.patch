@@ -1,0 +1,101 @@
+From 1093fd992cee39b0c4c8c72f09dffa1a8442941c Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@gmx.de>
+Date: Thu, 24 Jun 2021 10:21:23 +0200
+Subject: [PATCH] add configure option to omit git sha1 from version
+
+when working with git, in particular when using git-rebase extensively,
+the full rebuild caused by every modification of HEAD quickly becomes a
+significant time-sink without adding any tangible value. consequently,
+add an option to suppress this behavior.
+---
+ Makefile.am              |  2 +-
+ autogen.sh               |  2 +-
+ m4.include/mc-version.m4 |  6 ++++++
+ version.sh               | 16 +++++++++++++---
+ 4 files changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index caadeed10..55801e8e8 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -32,7 +32,7 @@ CONFIG_STATUS_DEPENDENCIES = $(top_srcdir)/mc-version.h
+ 
+ update-version:
+ 	@if test -x $(top_srcdir)/version.sh; then \
+-	    $(top_srcdir)/version.sh "$(top_srcdir)" 2>&1 >/dev/null; \
++	    $(top_srcdir)/version.sh "$(top_srcdir)" $(USE_GIT_SHA1) 2>&1 >/dev/null; \
+ 	else \
+ 	    if test ! -e $(top_srcdir)/mc-version.h; then \
+ 	        echo "File not found: $(top_srcdir)/version.sh"; \
+diff --git a/autogen.sh b/autogen.sh
+index e462872fa..582c737b6 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -20,7 +20,7 @@ ${XGETTEXT:-xgettext} --keyword=_ --keyword=N_ --keyword=Q_ --output=- \
+ cd src/vfs/smbfs/helpers
+ date -u >include/stamp-h.in
+ 
+-$srcdir/version.sh "$srcdir"
++$srcdir/version.sh "$srcdir" $USE_GIT_SHA1
+ 
+ if test -x $srcdir/configure.mc; then
+   $srcdir/configure.mc "$@"
+diff --git a/m4.include/mc-version.m4 b/m4.include/mc-version.m4
+index 51b6b77c4..0c04798cd 100644
+--- a/m4.include/mc-version.m4
++++ b/m4.include/mc-version.m4
+@@ -9,6 +9,12 @@ dnl @copyright Free Software Foundation, Inc.
+ dnl @modified Andrew Borodin <aborodin@vmail.ru>
+ 
+ AC_DEFUN([mc_VERSION],[
++    AC_ARG_ENABLE([git-sha1],
++        [AS_HELP_STRING([--disable-git-sha1], [Do not include git SHA1 in version string])],
++        [USE_GIT_SHA1=$enableval],
++        [USE_GIT_SHA1=yes])
++    AC_SUBST(USE_GIT_SHA1)
++
+     if test -f ${srcdir}/mc-version.h; then
+         VERSION=$(grep '^#define MC_CURRENT_VERSION' ${srcdir}/mc-version.h | sed 's/.*"\(.*\)"$/\1/')
+     else
+diff --git a/version.sh b/version.sh
+index 5d7aa1615..b4638b19e 100755
+--- a/version.sh
++++ b/version.sh
+@@ -50,11 +50,12 @@ EOF
+ 
+ if [ -z "$1" ]
+   then
+-      echo "usage: $0 <toplevel-source-dir>"
++      echo "usage: $0 <toplevel-source-dir> [<use-git-sha1>]"
+       exit 1
+ fi
+ 
+ src_top_dir="$1"
++use_git_sha1="$2"
+ 
+ VERSION_FILE="${src_top_dir}/mc-version.h"
+ PREV_MC_VERSION="unknown"
+@@ -72,9 +73,18 @@ git_head=`git --git-dir "${src_top_dir}/.git" rev-parse --verify HEAD 2>/dev/nul
+ # try to store sha1
+ CURR_MC_VERSION="${git_head}"
+ 
+-new_version=`git --git-dir "${src_top_dir}/.git" describe --always 2>/dev/null`
++if [ "x$use_git_sha1" = xno ]
++  then
++    arg=--abbrev=0
++    sfx=-dirty
++  else
++    arg=
++    sfx=
++fi
++
++new_version=`git --git-dir "${src_top_dir}/.git" describe --always $arg 2>/dev/null`
+ [ -z "${new_version}" ] && mc_print_version
+ 
+ # store pretty tagged version
+-CURR_MC_VERSION="${new_version}"
++CURR_MC_VERSION="${new_version}${sfx}"
+ mc_print_version
+-- 
+2.31.1.2.g8c0bdb8a70
+

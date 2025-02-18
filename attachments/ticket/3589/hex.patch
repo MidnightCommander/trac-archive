@@ -1,0 +1,39 @@
+--- hex.c	2016-01-24 16:10:47.694887555 +1100
++++ hex.c~	2016-01-06 07:09:09.000000000 +1100
+@@ -73,13 +73,12 @@
+ 
+     while (loop < tmp_str_len)
+     {
+-        unsigned int    val;
+-        int             ptr;
++        int val, ptr;
+ 
+         /* cppcheck-suppress invalidscanf */
+         if (sscanf (tmp_str + loop, "%x%n", &val, &ptr))
+         {
+-            if (val > 255)
++            if (val < -128 || val > 255)
+                 loop++;
+             else
+             {
+@@ -100,10 +99,8 @@
+                 loop2++;
+             }
+ 
+-//          g_string_append_len (buff, tmp_str + loop, loop2 - 1);
+-//          loop += loop2;
+-            g_string_append_len (buff, tmp_str + loop, loop2);
+-            loop += loop2 + 1;
++            g_string_append_len (buff, tmp_str + loop, loop2 - 1);
++            loop += loop2;
+         }
+         else
+             loop++;
+@@ -126,7 +123,6 @@
+     tmp = mc_search__hex_translate_to_regex (mc_search_cond->str);
+     g_string_free (mc_search_cond->str, TRUE);
+     mc_search_cond->str = tmp;
+-    lc_mc_search->is_case_sensitive = TRUE;                 // always case-sensitive here
+ 
+     mc_search__cond_struct_new_init_regex (charset, lc_mc_search, mc_search_cond);
+ }

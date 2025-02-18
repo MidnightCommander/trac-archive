@@ -1,0 +1,318 @@
+tting latency timer to 64
+pci 0000:00:0b.0: setting latency timer to 64
+pci 0000:00:0c.0: setting latency timer to 64
+pci_bus 0000:00: resource 0 io:  [0x00-0xffff]
+pci_bus 0000:00: resource 1 mem: [0x000000-0xffffffff]
+pci_bus 0000:01: resource 0 io:  [0xe000-0xefff]
+pci_bus 0000:01: resource 1 mem: [0xdff00000-0xdfffffff]
+pci_bus 0000:01: resource 2 mem: [0x0-0x0]
+pci_bus 0000:01: resource 3 io:  [0x00-0xffff]
+pci_bus 0000:01: resource 4 mem: [0x000000-0xffffffff]
+pci_bus 0000:02: resource 0 mem: [0x0-0x0]
+pci_bus 0000:02: resource 1 mem: [0x0-0x0]
+pci_bus 0000:02: resource 2 mem: [0x0-0x0]
+pci_bus 0000:02: resource 3 mem: [0x0-0x0]
+pci_bus 0000:03: resource 0 mem: [0x0-0x0]
+pci_bus 0000:03: resource 1 mem: [0x0-0x0]
+pci_bus 0000:03: resource 2 mem: [0x0-0x0]
+pci_bus 0000:03: resource 3 mem: [0x0-0x0]
+pci_bus 0000:04: resource 0 mem: [0x0-0x0]
+pci_bus 0000:04: resource 1 mem: [0x0-0x0]
+pci_bus 0000:04: resource 2 mem: [0x0-0x0]
+pci_bus 0000:04: resource 3 mem: [0x0-0x0]
+NET: Registered protocol family 2
+IP route cache hash table entries: 32768 (order: 5, 131072 bytes)
+TCP established hash table entries: 131072 (order: 8, 1048576 bytes)
+TCP bind hash table entries: 65536 (order: 7, 524288 bytes)
+TCP: Hash tables configured (established 131072 bind 65536)
+TCP reno registered
+NET: Registered protocol family 1
+checking if image is initramfs... it is
+Freeing initrd memory: 864k freed
+highmem bounce pool size: 64 pages
+VFS: Disk quotas dquot_6.5.2
+Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+msgmni has been set to 1731
+alg: No test for cipher_null (cipher_null-generic)
+alg: No test for digest_null (digest_null-generic)
+alg: No test for compress_null (compress_null-generic)
+alg: No test for fcrypt (fcrypt-generic)
+alg: No test for stdrng (krng)
+async_tx: api initialized (async)
+io scheduler noop registered
+io scheduler anticipatory registered
+io scheduler deadline registered
+io scheduler cfq registered (default)
+pci 0000:00:00.0: Found enabled HT MSI Mapping
+pci 0000:00:00.0: Found enabled HT MSI Mapping
+pci 0000:00:00.0: Found enabled HT MSI Mapping
+pci 0000:00:00.0: Found enabled HT MSI Mapping
+pci 0000:00:00.0: Found enabled HT MSI Mapping
+pci 0000:00:00.0: Found enabled HT MSI Mapping
+pci 0000:00:00.0: Found enabled HT MSI Mapping
+pci 0000:00:0d.0: Boot video device
+pcieport-driver 0000:00:09.0: setting latency timer to 64
+pcieport-driver 0000:00:09.0: irq 24 for MSI/MSI-X
+pcieport-driver 0000:00:0b.0: setting latency timer to 64
+pcieport-driver 0000:00:0b.0: irq 25 for MSI/MSI-X
+pcieport-driver 0000:00:0c.0: setting latency timer to 64
+pcieport-driver 0000:00:0c.0: irq 26 for MSI/MSI-X
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+vesafb: framebuffer at 0xc0000000, mapped to 0xf8080000, using 1536k, total 65536k
+vesafb: mode is 1024x768x8, linelength=1024, pages=3
+vesafb: protected mode interface info at c000:d560
+vesafb: pmi: set display start = c00cd596, set palette = c00cd600
+vesafb: pmi: ports = b4c3 b503 ba03 c003 c103 c403 c503 c603 c703 c803 c903 cc03 ce03 cf03 d003 d103 d203 d303 d403 d503 da03 ff03 
+vesafb: scrolling: redraw
+vesafb: Pseudocolor: size=8:8:8:8, shift=0:0:0:0
+Console: switching to colour frame buffer device 128x48
+fb0: VESA VGA frame buffer device
+isapnp: Scanning for PnP cards...
+isapnp: No Plug & Play device found
+Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+00:05: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+Floppy drive(s): fd0 is 1.44M
+FDC 0 is a post-1991 82077
+brd: module loaded
+loop: module loaded
+input: Macintosh mouse button emulation as /devices/virtual/input/input0
+Uniform Multi-Platform E-IDE driver
+amd74xx 0000:00:06.0: UDMA133 controller
+amd74xx 0000:00:06.0: IDE controller (0x10de:0x03ec rev 0xa2)
+amd74xx 0000:00:06.0: IDE port disabled
+amd74xx 0000:00:06.0: BIOS didn't set cable bits correctly. Enabling workaround.
+amd74xx 0000:00:06.0: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0xfff0-0xfff7
+Probing IDE interface ide0...
+hda: Optiarc DVD RW AD-7170A, ATAPI CD/DVD-ROM drive
+hdb: HL-DT-ST DVDRAM GSA-4167B, ATAPI CD/DVD-ROM drive
+hda: host max PIO5 wanted PIO255(auto-tune) selected PIO4
+hda: UDMA/66 mode selected
+hdb: host max PIO5 wanted PIO255(auto-tune) selected PIO4
+hdb: UDMA/33 mode selected
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+ide-gd driver 1.18
+ide-cd driver 5.00
+ide-cd: hda: ATAPI 48X DVD-ROM DVD-R/RAM CD-R/RW drive, 2048kB Cache
+Uniform CD-ROM driver Revision: 3.20
+ide-cd: hdb: ATAPI 48X DVD-ROM DVD-R/RAM CD-R/RW drive, 2048kB Cache
+Driver 'sd' needs updating - please use bus_type methods
+Driver 'sr' needs updating - please use bus_type methods
+sata_nv 0000:00:08.0: version 3.5
+ACPI: PCI Interrupt Link [LSA0] enabled at IRQ 23
+sata_nv 0000:00:08.0: PCI INT A -> Link[LSA0] -> GSI 23 (level, low) -> IRQ 23
+sata_nv 0000:00:08.0: setting latency timer to 64
+scsi0 : sata_nv
+scsi1 : sata_nv
+ata1: SATA max UDMA/133 cmd 0xdd80 ctl 0xdd00 bmdma 0xdb00 irq 23
+ata2: SATA max UDMA/133 cmd 0xdc00 ctl 0xdb80 bmdma 0xdb08 irq 23
+ata1: SATA link up 3.0 Gbps (SStatus 123 SControl 300)
+ata1.00: ATA-8: SAMSUNG HD321KJ, CP100-12, max UDMA7
+ata1.00: 625142448 sectors, multi 16: LBA48 NCQ (depth 0/32)
+ata1.00: configured for UDMA/133
+scsi 0:0:0:0: Direct-Access     ATA      SAMSUNG HD321KJ  CP10 PQ: 0 ANSI: 5
+sd 0:0:0:0: [sda] 625142448 512-byte hardware sectors: (320 GB/298 GiB)
+sd 0:0:0:0: [sda] Write Protect is off
+sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+sd 0:0:0:0: [sda] 625142448 512-byte hardware sectors: (320 GB/298 GiB)
+sd 0:0:0:0: [sda] Write Protect is off
+sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+ sda: sda1 sda2 < sda5 > sda3 sda4
+sd 0:0:0:0: [sda] Attached SCSI disk
+PNP: PS/2 Controller [PNP0303:PS2K] at 0x60,0x64 irq 1
+PNP: PS/2 appears to have AUX port disabled, if this is incorrect please boot with i8042.nopnp
+serio: i8042 KBD port at 0x60,0x64 irq 1
+mice: PS/2 mouse device common for all mice
+md: linear personality registered for level -1
+md: raid0 personality registered for level 0
+md: raid1 personality registered for level 1
+md: raid10 personality registered for level 10
+raid6: int32x1    979 MB/s
+raid6: int32x2   1035 MB/s
+raid6: int32x4    957 MB/s
+raid6: int32x8    702 MB/s
+input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input1
+raid6: mmxx1     2139 MB/s
+raid6: mmxx2     3940 MB/s
+raid6: sse1x1    2176 MB/s
+raid6: sse1x2    3691 MB/s
+raid6: sse2x1    3541 MB/s
+raid6: sse2x2    4884 MB/s
+raid6: using algorithm sse2x2 (4884 MB/s)
+md: raid6 personality registered for level 6
+md: raid5 personality registered for level 5
+md: raid4 personality registered for level 4
+md: multipath personality registered for level -4
+device-mapper: ioctl: 4.14.0-ioctl (2008-04-23) initialised: dm-devel@redhat.com
+cpuidle: using governor ladder
+TCP cubic registered
+Initializing XFRM netlink socket
+NET: Registered protocol family 17
+Using IPI No-Shortcut mode
+Freeing unused kernel memory: 368k freed
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs: mounted filesystem with ordered data mode.
+input: Power Button (FF) as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input2
+ACPI: Power Button (FF) [PWRF]
+input: Power Button (CM) as /devices/LNXSYSTM:00/device:00/PNP0C0C:00/input/input3
+ACPI: Power Button (CM) [PWRB]
+k8temp 0000:00:18.3: Temperature readouts might be wrong - check erratum #141
+sd 0:0:0:0: Attached scsi generic sg0 type 0
+rtc_cmos 00:02: RTC can wake from S4
+rtc_cmos 00:02: rtc core: registered rtc_cmos as rtc0
+rtc0: alarms up to one year, y3k, 114 bytes nvram
+i2c-adapter i2c-0: nForce2 SMBus adapter at 0x4d00
+i2c-adapter i2c-1: nForce2 SMBus adapter at 0x4e00
+parport_pc 00:07: reported by Plug and Play ACPI
+parport0: PC-style at 0x378 (0x778), irq 7 [PCSPP,TRISTATE,EPP]
+forcedeth: Reverse Engineered nForce ethernet driver. Version 0.62.
+ACPI: PCI Interrupt Link [LMAC] enabled at IRQ 22
+forcedeth 0000:00:07.0: PCI INT A -> Link[LMAC] -> GSI 22 (level, low) -> IRQ 22
+forcedeth 0000:00:07.0: setting latency timer to 64
+processor ACPI_CPU:00: registered as cooling_device0
+processor ACPI_CPU:01: registered as cooling_device1
+Linux agpgart interface v0.103
+ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+ppdev: user-space parallel port driver
+b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded successfully
+flexcop-pci: will use the HW PID filter.
+flexcop-pci: card revision 2
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 19
+b2c2_flexcop_pci 0000:01:09.0: PCI INT A -> Link[LNKB] -> GSI 19 (level, low) -> IRQ 19
+DVB: registering new adapter (FlexCop Digital TV device)
+b2c2-flexcop: MAC address = 00:d0:d7:0e:2f:5b
+b2c2-flexcop: i2c master_xfer failed
+b2c2-flexcop: i2c master_xfer failed
+CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
+CX24123: wrong demod revision: 87
+forcedeth 0000:00:07.0: ifname eth0, PHY OUI 0x732 @ 1, addr 00:1d:93:fa:e0:1a
+forcedeth 0000:00:07.0: highdma pwrctl mgmt timirq lnktim msi desc-v3
+ACPI: PCI Interrupt Link [LUB2] enabled at IRQ 21
+ehci_hcd 0000:00:02.1: PCI INT B -> Link[LUB2] -> GSI 21 (level, low) -> IRQ 21
+ehci_hcd 0000:00:02.1: setting latency timer to 64
+ehci_hcd 0000:00:02.1: EHCI Host Controller
+ehci_hcd 0000:00:02.1: new USB bus registered, assigned bus number 1
+ehci_hcd 0000:00:02.1: debug port 1
+ehci_hcd 0000:00:02.1: cache line size of 64 is not supported
+ehci_hcd 0000:00:02.1: irq 21, io mem 0xdfe7ec00
+ehci_hcd 0000:00:02.1: USB 2.0 started, EHCI 1.00
+usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+usb usb1: Product: EHCI Host Controller
+usb usb1: Manufacturer: Linux 2.6.29.1-smp ehci_hcd
+usb usb1: SerialNumber: 0000:00:02.1
+usb usb1: configuration #1 chosen from 1 choice
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 10 ports detected
+ACPI: PCI Interrupt Link [LAZA] enabled at IRQ 20
+HDA Intel 0000:00:05.0: PCI INT B -> Link[LAZA] -> GSI 20 (level, low) -> IRQ 20
+HDA Intel 0000:00:05.0: setting latency timer to 64
+ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+b2c2-flexcop: found 'ST STV0299 DVB-S' .
+DVB: registering adapter 0 frontend 3744 (ST STV0299 DVB-S)...
+b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2 DVB-S' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+usb 1-1: new high speed USB device using ehci_hcd and address 2
+nvidia: module license 'NVIDIA' taints kernel.
+usb 1-1: New USB device found, idVendor=05e3, idProduct=0608
+usb 1-1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+usb 1-1: Product: USB2.0 Hub
+usb 1-1: configuration #1 chosen from 1 choice
+hub 1-1:1.0: USB hub found
+hub 1-1:1.0: 4 ports detected
+usb 1-2: new high speed USB device using ehci_hcd and address 3
+hda_codec: Unknown model for ALC883, trying auto-probe from BIOS...
+usb 1-2: New USB device found, idVendor=05e3, idProduct=0608
+usb 1-2: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+usb 1-2: Product: USB2.0 Hub
+usb 1-2: configuration #1 chosen from 1 choice
+hub 1-2:1.0: USB hub found
+hub 1-2:1.0: 4 ports detected
+usb 1-2.1: new low speed USB device using ehci_hcd and address 4
+ACPI: PCI Interrupt Link [LUB0] enabled at IRQ 23
+ohci_hcd 0000:00:02.0: PCI INT A -> Link[LUB0] -> GSI 23 (level, low) -> IRQ 23
+ohci_hcd 0000:00:02.0: setting latency timer to 64
+ohci_hcd 0000:00:02.0: OHCI Host Controller
+ohci_hcd 0000:00:02.0: new USB bus registered, assigned bus number 2
+ohci_hcd 0000:00:02.0: irq 23, io mem 0xdfe7f000
+usb usb2: New USB device found, idVendor=1d6b, idProduct=0001
+usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+usb usb2: Product: OHCI Host Controller
+usb usb2: Manufacturer: Linux 2.6.29.1-smp ohci_hcd
+usb usb2: SerialNumber: 0000:00:02.0
+usb usb2: configuration #1 chosen from 1 choice
+hub 2-0:1.0: USB hub found
+hub 2-0:1.0: 10 ports detected
+ACPI: PCI Interrupt Link [LMC9] enabled at IRQ 22
+nvidia 0000:00:0d.0: PCI INT A -> Link[LMC9] -> GSI 22 (level, low) -> IRQ 22
+nvidia 0000:00:0d.0: setting latency timer to 64
+NVRM: loading NVIDIA UNIX x86 Kernel Module  180.22  Tue Jan  6 09:29:08 PST 2009
+usb 1-2.1: New USB device found, idVendor=09da, idProduct=000a
+usb 1-2.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 1-2.1: Product: PS/2+USB Mouse
+usb 1-2.1: Manufacturer: A4Tech
+usb 1-2.1: configuration #1 chosen from 1 choice
+usbcore: registered new interface driver hiddev
+usbcore: registered new interface driver usbhid
+usbhid: v2.6:USB HID core driver
+input: A4Tech PS/2+USB Mouse as /devices/pci0000:00/0000:00:02.1/usb1/1-2/1-2.1/1-2.1:1.0/input/input4
+a4tech 0003:09DA:000A.0001: input,hidraw0: USB HID v1.10 Mouse [A4Tech PS/2+USB Mouse] on usb-0000:00:02.1-2.1/input0
+EXT3 FS on sda3, internal journal
+lp0: using parport0 (interrupt-driven).
+lp0: console ready
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on sda5, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+Adding 1999992k swap on /.site/.swap.  Priority:-1 extents:511 across:10850476k 
+forcedeth 0000:00:07.0: irq 27 for MSI/MSI-X
+eth0: no link during initialization.
+eth0: link up.
+NET: Registered protocol family 10
+lo: Disabled Privacy Extensions
+eth0: no IPv6 routers present
+IRQ 22/nvidia: IRQF_DISABLED is not guaranteed on shared IRQs
+eth0: link down.
+eth0: link up.
+eth0: link down.
+eth0: link up.
+ISO 9660 Extensions: Microsoft Joliet Level 3
+ISO 9660 Extensions: RRIP_1991A
+UDP: short packet: From 0.234.0.247:33480 25649/109 to 185.14.248.248:53318
+UDP: short packet: From 0.234.0.247:35407 25649/109 to 185.14.248.248:53318
+
+...
+
+eth0: link down.
+eth0: link up.
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012b 00000002
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012b 00000002
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012c 00000002
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012c 00000002
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012b 00000002
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012b 00000002
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012c 00000002
+NVRM: Xid (0000:0d): 13, 0002 beef3097 00004497 00000208 0000012c 00000002
+
+...
+
+eth0: link down.
+eth0: link up.
+eth0: link down.
+eth0: link up.
+eth0: link down.
+eth0: link up.
+mc[29410]: segfault at 69633d01 ip 080a1041 sp bff4df50 error 4 in mc[8048000+b9000]
+mc[29633]: segfault at 12 ip 080a09c3 sp bfd28d68 error 4 in mc[8048000+b9000]
+mc[29914]: segfault at 79742f6d ip b7d65939 sp bff3bedc error 6 in libc-2.7.so[b7cfa000+145000]
+mc[30444]: segfault at 69732e3b ip b7df9e94 sp bf9d12bc error 4 in libc-2.7.so[b7d8e000+145000]
+mc[30470]: segfault at 69732e3b ip b7ca2e94 sp bfc7855c error 4 in libc-2.7.so[b7c37000+145000]
+mc[30750]: segfault at 122 ip 080a339c sp bf93da30 error 4 in mc[8048000+b9000]
+mc[30813]: segfault at c ip b7d13e94 sp bfcebddc error 4 in libc-2.7.so[b7ca8000+145000]
+mcedit[30919]: segfault at 69732e3b ip b7dd4e94 sp bfcabcac error 4 in libc-2.7.so[b7d69000+145000]
+mcedit[30945]: segfault at 69732e3b ip b7d60e94 sp bf83502c error 4 in libc-2.7.so[b7cf5000+145000]
+mcedit[31210]: segfault at bff0e4ec ip b7c6c8a3 sp bfc458ac error 4 in libc-2.7.so[b7c03000+145000]
+mcedit[31522]: segfault at bff084ec ip b7c668a3 sp bf83d4ac error 4 in libc-2.7.so[b7bfd000+145000]
+mcedit[31528]: segfault at c00aa4ec ip b7e088a3 sp bfedfb4c error 5 in libc-2.7.so[b7d9f000+145000]
+mcedit[31533]: segfault at c00ae4ec ip b7e0c8a3 sp bffe3c4c error 5 in libc-2.7.so[b7da3000+145000]

@@ -1,0 +1,52 @@
+diff --git a/src/viewer/actions_cmd.c b/src/viewer/actions_cmd.c
+index 87743fb8b..0bcfe1b94 100644
+--- a/src/viewer/actions_cmd.c
++++ b/src/viewer/actions_cmd.c
+@@ -189,6 +189,8 @@ mcview_hook (void *v)
+ {
+     WView *view = (WView *) v;
+     WPanel *panel;
++    const char* path = NULL;
++    const vfs_path_t *vfile = NULL;
+ 
+     /* If the user is busy typing, wait until he finishes to update the
+        screen */
+@@ -210,7 +212,10 @@ mcview_hook (void *v)
+ 
+     mcview_done (view);
+     mcview_init (view);
+-    mcview_load (view, 0, panel->dir.list[panel->selected].fname, 0, 0, 0);
++    path = panel->dir.list[panel->selected].fname;
++    vfile = vfs_path_from_str(path);
++    if (regex_command_for (view, vfile, "View", NULL) == 0)
++        mcview_load (view, NULL, path, 0, 0, 0);
+     mcview_display (view);
+ }
+ 
+diff --git a/src/viewer/growbuf.c b/src/viewer/growbuf.c
+index c1172b6d6..e9349f465 100644
+--- a/src/viewer/growbuf.c
++++ b/src/viewer/growbuf.c
+@@ -218,9 +218,8 @@ mcview_growbuf_read_until (WView * view, off_t ofs)
+                 return;
+             }
+         }
+-        else
++        else if (view->datasource == DS_VFS_PIPE)
+         {
+-            g_assert (view->datasource == DS_VFS_PIPE);
+             do
+             {
+                 nread = mc_read (view->ds_vfs_pipe, p, bytesfree);
+@@ -233,6 +232,11 @@ mcview_growbuf_read_until (WView * view, off_t ofs)
+                 return;
+             }
+         }
++        else
++        {
++            // Skip the rest of file
++            nread = bytesfree;
++        }
+         short_read = ((size_t) nread < bytesfree);
+         view->growbuf_lastindex += nread;
+     }

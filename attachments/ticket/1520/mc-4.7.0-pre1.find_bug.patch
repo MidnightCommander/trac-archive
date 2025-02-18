@@ -1,0 +1,11 @@
+diff -Naur mc-4.7.0-pre1~/src/find.c mc-4.7.0-pre1/src/find.c
+--- mc-4.7.0-pre1~/src/find.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/find.c	2009-08-10 19:09:10.000000000 +0300
+@@ -599,6 +599,7 @@
+     Gpm_Event event;
+     int c;
+      
++    event.x = -1;
+     c = get_event (&event, h->mouse_status == MOU_REPEAT, 0);
+     if (c != EV_NONE) {
+  	dlg_process_event (h, c, &event);

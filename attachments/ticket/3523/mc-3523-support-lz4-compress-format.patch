@@ -1,0 +1,350 @@
+From 740a0f1807871740f8f3c4aeb9ca64626f26c416 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 27 Dec 2015 19:53:02 +0000
+Subject: [PATCH] support lz4 compress format (#3523)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/util.c                       |  6 ++++++
+ lib/util.h                       |  1 +
+ misc/ext.d/archive.sh            | 14 ++++++++++++++
+ misc/ext.d/text.sh.in            |  7 +++++--
+ misc/filehighlight.ini           |  2 +-
+ misc/mc.ext.in                   | 18 ++++++++++++++++++
+ misc/mc.menu.in                  |  5 ++++-
+ misc/mc.menu.sr.in               |  5 ++++-
+ src/editor/edit.c                |  1 +
+ src/vfs/extfs/helpers/iso9660.in |  1 +
+ src/vfs/extfs/helpers/lslR.in    |  1 +
+ src/vfs/extfs/helpers/mailfs.in  |  3 +++
+ src/vfs/extfs/helpers/patchfs.in |  9 +++++++--
+ src/vfs/extfs/helpers/sfs.ini    |  2 ++
+ 14 files changed, 68 insertions(+), 7 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index 5fcfd7c..342c3dc 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -864,6 +864,10 @@ get_compression_type (int fd, const char *name)
+         }
+     }
+ 
++    /* LZ4 format - v1.5.0 - 0x184D2204 (little endian) */
++    if (magic[0] == 0x04 && magic[1] == 0x22 && magic[2] == 0x4d && magic[3] == 0x18)
++        return COMPRESSION_LZ4;
++
+     /* Support for LZMA (only utils format with magic in header).
+      * This is the default format of LZMA utils 4.32.1 and later. */
+ 
+@@ -904,6 +908,8 @@ decompress_extension (int type)
+         return "/ubz" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_BZIP2:
+         return "/ubz2" VFS_PATH_URL_DELIMITER;
++    case COMPRESSION_LZ4:
++        return "/ulz4" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_LZMA:
+         return "/ulzma" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_XZ:
+diff --git a/lib/util.h b/lib/util.h
+index 9c972ed..1832c9e 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -54,6 +54,7 @@ enum compression_type
+     COMPRESSION_GZIP,
+     COMPRESSION_BZIP,
+     COMPRESSION_BZIP2,
++    COMPRESSION_LZ4,
+     COMPRESSION_LZMA,
+     COMPRESSION_XZ
+ };
+diff --git a/misc/ext.d/archive.sh b/misc/ext.d/archive.sh
+index e141bf8..27d5116 100755
+--- a/misc/ext.d/archive.sh
++++ b/misc/ext.d/archive.sh
+@@ -23,6 +23,9 @@ do_view_action() {
+     bzip)
+         bzip2 -dc "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
++    lz4)
++        lz4 -dc "${MC_EXT_FILENAME}" 2>/dev/null
++        ;;
+     lzma)
+         lzma -dc "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+@@ -44,6 +47,10 @@ do_view_action() {
+         bzip2 -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
+             tar tvvf -
+         ;;
++    tar.lz4)
++        lz4 -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
++            tar tvvf -
++        ;;
+     tar.lzma)
+         lzma -dc "${MC_EXT_FILENAME}" 2>/dev/null | \
+             tar tvvf -
+@@ -81,6 +88,10 @@ do_view_action() {
+         gzip -dc "${MC_EXT_FILENAME}" | \
+             cpio -itv 2>/dev/null
+         ;;
++    cpio.lz4)
++        lz4 -dc "${MC_EXT_FILENAME}" | \
++            cpio -itv 2>/dev/null
++        ;;
+     cpio.xz)
+         xz -dc "${MC_EXT_FILENAME}" | \
+             cpio -itv 2>/dev/null
+@@ -124,6 +135,9 @@ do_open_action() {
+     gz)
+         gz -dc "${MC_EXT_FILENAME}" | ${pager}
+         ;;
++    lz4)
++        lz4 -dc "${MC_EXT_FILENAME}" | ${pager}
++        ;;
+     lzma)
+         lzma -dc "${MC_EXT_FILENAME}" | ${pager}
+         ;;
+diff --git a/misc/ext.d/text.sh.in b/misc/ext.d/text.sh.in
+index d6e1933..b5476cf 100644
+--- a/misc/ext.d/text.sh.in
++++ b/misc/ext.d/text.sh.in
+@@ -22,6 +22,9 @@ get_unpacker() {
+     man.bz2)
+         unpacker="bzip2 -dc"
+         ;;
++    man.lz4)
++        unpacker="lz4 -dc"
++        ;;
+     man.lzma)
+         unpacker="lzma -dc"
+         ;;
+@@ -58,7 +61,7 @@ do_view_action() {
+     nroff.ms)
+         nroff @MAN_FLAGS@ -ms "${MC_EXT_FILENAME}"
+         ;;
+-    man.gz|man.bz|man.bz2|man.lzma|man.xz)
++    man.gz|man.bz|man.bz2|man.lz4|man.lzma|man.xz)
+         case "${MC_EXT_FILENAME}" in
+         */log/*|*/logs/*)
+             ${unpacker} "${MC_EXT_FILENAME}"
+@@ -105,7 +108,7 @@ do_open_action() {
+     nroff.ms)
+         nroff @MAN_FLAGS@ -ms "${MC_EXT_FILENAME}" | ${pager}
+         ;;
+-    man.gz|man.bz|man.bz2|man.lzma|man.xz)
++    man.gz|man.bz|man.bz2|man.lz4|man.lzma|man.xz)
+         case "${MC_EXT_FILENAME}" in
+         */log/*|*/logs/*)
+             ${unpacker} "${MC_EXT_FILENAME}"
+diff --git a/misc/filehighlight.ini b/misc/filehighlight.ini
+index 8bc1722..cae8732 100644
+--- a/misc/filehighlight.ini
++++ b/misc/filehighlight.ini
+@@ -28,7 +28,7 @@
+     regexp=(^#.*|.*~$)
+ 
+ [archive]
+-    extensions=gz;bz2;tar;tgz;rpm;Z;rar;zip;arj;cab;lzh;lha;zoo;arc;ark;xz;tbz;tbz2;7z;ace
++    extensions=gz;bz2;tar;tgz;rpm;Z;rar;zip;arj;cab;lzh;lha;zoo;arc;ark;xz;tbz;tbz2;7z;ace;lz4
+ 
+ [doc]
+     extensions=txt;doc;rtf;diz;ctl;me;ps;pdf;xml;xsd;xslt;dtd;html;shtml;htm;mail;msg;lsm;po;nroff;man;tex;sgml;css;text;letter;chm;docx;docm;xlsx;xlsm;pptx;pptm
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 70a5089..c78a298 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -135,6 +135,11 @@ regex/\.t(ar\.lzma|lz)$
+ 	Open=%cd %p/utar://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view tar.lzma
+ 
++# .tar.lz4, .tlz4
++regex/\.t(ar\.lz4|lz4)$
++	Open=%cd %p/utar://
++	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view tar.lz4
++
+ # .tar.xz, .txz
+ regex/\.t(ar\.xz|xz)$
+ 	Open=%cd %p/utar://
+@@ -190,6 +195,10 @@ shell/.cpio.Z
+ 	Open=%cd %p/ucpio://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio.z
+ 
++shell/.cpio.lz4
++	Open=%cd %p/ucpio://
++	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio.lz4
++
+ shell/.cpio.xz
+ 	Open=%cd %p/ucpio://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view cpio.xz
+@@ -360,6 +369,10 @@ regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.bz2$
+ 	Open=@EXTHELPERSDIR@/text.sh open man.bz2 %var{PAGER:more}
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.bz2 %var{PAGER:more}
+ 
++regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.lz4$
++	Open=@EXTHELPERSDIR@/text.sh open man.lz4 %var{PAGER:more}
++	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.lz4 %var{PAGER:more}
++
+ regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.lzma$
+ 	Open=@EXTHELPERSDIR@/text.sh open man.lzma %var{PAGER:more}
+ 	View=%view{ascii,nroff} @EXTHELPERSDIR@/text.sh view man.lzma %var{PAGER:more}
+@@ -730,6 +743,11 @@ type/^compress
+ 	Open=@EXTHELPERSDIR@/archive.sh view gz %var{PAGER:more}
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view gz
+ 
++# lz4
++regex/\.lz4$
++	Open=@EXTHELPERSDIR@/archive.sh view lz4 %var{PAGER:more}
++	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view lz4
++
+ # lzma
+ regex/\.lzma$
+ 	Open=@EXTHELPERSDIR@/archive.sh view lzma %var{PAGER:more}
+diff --git a/misc/mc.menu.in b/misc/mc.menu.in
+index 4d341a7..b6a6d29 100644
+--- a/misc/mc.menu.in
++++ b/misc/mc.menu.in
+@@ -204,7 +204,7 @@ U       Uudecode marked news articles (needs work)
+ 	fi
+ 	echo "Please test the output file before deleting anything."
+ 
+-=+ f \.tar\.gz$ | f \.tar\.z$ | f \.tgz$ | f \.tpz$ | f \.tar\.lz$ | f \.tar\.lzma$ | f \.tar\.7z$ | f \.tar\.xz$ | f \.tar\.Z$ | f \.tar\.bz2$ & t r
++=+ f \.tar\.gz$ | f \.tar\.z$ | f \.tgz$ | f \.tpz$ | f \.tar\.lz$ | f \.tar\.lz4$ | f \.tar\.lzma$ | f \.tar\.7z$ | f \.tar\.xz$ | f \.tar\.Z$ | f \.tar\.bz2$ & t r
+ x       Extract the contents of a compressed tar file
+ 	unset PRG
+ 	case %f in
+@@ -220,6 +220,9 @@ x       Extract the contents of a compressed tar file
+ 	    *.tar.lz)
+ 		PRG="lzip -dc"
+ 		;;
++	    *.tar.lz4)
++		PRG="lz4 -dc"
++		;;
+ 	    *.tar.xz)
+ 		PRG="xz -dc"
+ 		;;
+diff --git a/misc/mc.menu.sr.in b/misc/mc.menu.sr.in
+index a0bb57a..5810aef 100644
+--- a/misc/mc.menu.sr.in
++++ b/misc/mc.menu.sr.in
+@@ -184,7 +184,7 @@ U       Уудекодирај означени чланак вести (тре
+ 	fi
+ 	echo "Молим да проверите излазну датотеку пре било каквог брисања."
+ 
+-=+ f \.tar\.gz$ | f \.tar\.z$ | f \.tgz$ | f \.tpz$ | f \.tar\.lz$ | f \.tar\.lzma$ | f \.tar\.7z$ | f \.tar\.xz$ | f \.tar\.Z$ | f \.tar\.bz2$ & t r
++=+ f \.tar\.gz$ | f \.tar\.z$ | f \.tgz$ | f \.tpz$ | f \.tar\.lz$ | f \.tar\.lz4$ | f \.tar\.lzma$ | f \.tar\.7z$ | f \.tar\.xz$ | f \.tar\.Z$ | f \.tar\.bz2$ & t r
+ x       Издвој садржај компримоване датотеке врсте `tar'
+ 	unset PRG
+ 	case %f in
+@@ -200,6 +200,9 @@ x       Издвој садржај компримоване датотеке в
+ 	    *.tar.lz)
+ 		PRG="lzip -dc"
+ 		;;
++	    *.tar.lz4)
++		PRG="lz4 -dc"
++		;;
+ 	    *.tar.xz)
+ 		PRG="xz -dc"
+ 		;;
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 808239b..733e12e 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -129,6 +129,7 @@ static const struct edit_filters
+ {
+     /* *INDENT-OFF* */
+     { "xz -cd %s 2>&1", "xz > %s", ".xz"},
++    { "lz4 -cd %s 2>&1", "lz4 > %s", ".lz4" },
+     { "lzma -cd %s 2>&1", "lzma > %s", ".lzma" },
+     { "bzip2 -cd %s 2>&1", "bzip2 > %s", ".bz2" },
+     { "gzip -cd %s 2>&1", "gzip > %s", ".gz" },
+diff --git a/src/vfs/extfs/helpers/iso9660.in b/src/vfs/extfs/helpers/iso9660.in
+index fd652b8..ffac9b2 100644
+--- a/src/vfs/extfs/helpers/iso9660.in
++++ b/src/vfs/extfs/helpers/iso9660.in
+@@ -121,6 +121,7 @@ test_iso () {
+ mcisofs_list () {
+     # left as a reminder to implement compressed image support =)
+     case "$1" in
++      *.lz4) MYCAT="lz4 -dc";;
+       *.lzma) MYCAT="lzma -dc";;
+       *.xz)  MYCAT="xz -dc";;
+       *.bz2) MYCAT="bzip2 -dc";;
+diff --git a/src/vfs/extfs/helpers/lslR.in b/src/vfs/extfs/helpers/lslR.in
+index 8b6833a..b4a3637 100644
+--- a/src/vfs/extfs/helpers/lslR.in
++++ b/src/vfs/extfs/helpers/lslR.in
+@@ -12,6 +12,7 @@ AWK=@AWK@
+ 
+ mclslRfs_list () {
+ case "$1" in
++  *.lz4) MYCAT="lz4 -dc";;
+   *.lzma) MYCAT="lzma -dc";;
+   *.xz)  MYCAT="xz -dc";;
+   *.bz2) MYCAT="bzip2 -dc";;
+diff --git a/src/vfs/extfs/helpers/mailfs.in b/src/vfs/extfs/helpers/mailfs.in
+index bb372e3..7f566da 100644
+--- a/src/vfs/extfs/helpers/mailfs.in
++++ b/src/vfs/extfs/helpers/mailfs.in
+@@ -7,6 +7,7 @@ use bytes;
+ 
+ $zcat="zcat";                 # gunzip to stdout
+ $bzcat="bzip2 -dc";           # bunzip2 to stdout
++$lz4cat="lz4 -dc";            # unlz4 to stdout
+ $lzcat="lzma -dc";            # unlzma to stdout
+ $xzcat="xz -dc";              # unxz to stdout
+ $file="file";                 # "file" command
+@@ -184,6 +185,8 @@ if (/gzip/) {
+     exit 1 unless (open IN, "$zcat $mbox_qname|");
+ } elsif (/bzip/) {
+     exit 1 unless (open IN, "$bzcat $mbox_qname|");
++} elsif (/lz4/) {
++    exit 1 unless (open IN, "$lz4cat $mbox_qname|");
+ } elsif (/lzma/) {
+     exit 1 unless (open IN, "$lzcat $mbox_qname|");
+ } elsif (/xz/) {
+diff --git a/src/vfs/extfs/helpers/patchfs.in b/src/vfs/extfs/helpers/patchfs.in
+index c1c4f99..c1ff6b2 100644
+--- a/src/vfs/extfs/helpers/patchfs.in
++++ b/src/vfs/extfs/helpers/patchfs.in
+@@ -13,6 +13,7 @@ use POSIX;
+ use File::Temp 'tempfile';
+ 
+ # standard binaries
++my $lz4  = 'lz4';
+ my $lzma = 'lzma';
+ my $xz   = 'xz';
+ my $bzip = 'bzip2';
+@@ -78,7 +79,9 @@ sub myin
+     my ($qfname)=(quotemeta $_[0]);
+ 
+     $_=`$fileutil $qfname`;
+-    if (/^'*lzma/) {
++    if (/^'*lz4/) {
++	return "$lz4 -dc $qfname";
++    } elsif (/^'*lzma/) {
+ 	return "$lzma -dc $qfname";
+     } elsif (/^'*xz/) {
+ 	return "$xz -dc $qfname";
+@@ -98,7 +101,9 @@ sub myout
+     my ($sep) = $append ? '>>' : '>';
+ 
+     $_=`$fileutil $qfname`;
+-    if (/^'*lzma/) {
++    if (/^'*lz4/) {
++	return "$lz4 -c $sep $qfname";
++    } elsif (/^'*lzma/) {
+ 	return "$lzma -c $sep $qfname";
+     } elsif (/^'*xz/) {
+ 	return "$xz -c $sep $qfname";
+diff --git a/src/vfs/extfs/helpers/sfs.ini b/src/vfs/extfs/helpers/sfs.ini
+index 522cca1..b1f51c8 100644
+--- a/src/vfs/extfs/helpers/sfs.ini
++++ b/src/vfs/extfs/helpers/sfs.ini
+@@ -10,6 +10,8 @@ bz/1	bzip < %1 > %3
+ ubz/1	bzip -d < %1 > %3
+ bz2/1	bzip2 < %1 > %3
+ ubz2/1	bzip2 -d < %1 > %3
++lz4/1	lz4 < %1 > %3
++ulz4/1	lz4 -d < %1 > %3
+ lzma/1	lzma < %1 > %3
+ ulzma/1	lzma -d < %1 > %3
+ xz/1	xz < %1 > %3

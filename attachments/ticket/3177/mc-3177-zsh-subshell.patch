@@ -1,0 +1,13 @@
+diff --git a/src/subshell.c b/src/subshell.c
+index 99c9e1f..3d908be 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -879,7 +879,7 @@ init_subshell (void)
+ 
+     case ZSH:
+         g_snprintf (precmd, sizeof (precmd),
+-                    " _mc_precmd(){ pwd>&%d;kill -STOP $$ }; precmd_functions+=_mc_precmd\n",
++                    " _mc_precmd(){ pwd>&%d;kill -STOP $$ }; precmd_functions+=(_mc_precmd)\n",
+                     subshell_pipe[WRITE]);
+         break;
+ 

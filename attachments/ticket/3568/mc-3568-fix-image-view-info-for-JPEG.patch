@@ -1,0 +1,26 @@
+From a512225b8942a8eba06ec7d6937e92ce470a3459 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 31 Dec 2015 15:15:12 +0000
+Subject: [PATCH] fix image view info for JPEG
+
+---
+ misc/ext.d/image.sh | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/misc/ext.d/image.sh b/misc/ext.d/image.sh
+index 6535554..03c4faf 100755
+--- a/misc/ext.d/image.sh
++++ b/misc/ext.d/image.sh
+@@ -13,10 +13,8 @@ do_view_action() {
+ 
+     case "${filetype}" in
+     jpeg)
+-        which exif >/dev/null 2>&1 && \
+-        {
+-            identify "${MC_EXT_FILENAME}"; exif "${MC_EXT_FILENAME}" 2>/dev/null
+-        }
++        identify "${MC_EXT_FILENAME}"
++        which exif >/dev/null 2>&1 && exif "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+     xpm)
+         sxpm "${MC_EXT_FILENAME}"

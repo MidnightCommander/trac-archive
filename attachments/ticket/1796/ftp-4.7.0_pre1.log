@@ -1,0 +1,22 @@
+220 (vsFTPd 2.1.0)
+MC -- remote_is_amiga =  0
+USER anonymous
+331 Please specify the password.
+PASS <Password not logged>
+230 Login successful.
+PWD
+257 "/"
+CWD /
+250 Directory successfully changed.
+PORT 192,168,81,166,222,38
+200 PORT command successful. Consider using PASV.
+TYPE A
+200 Switching to ASCII mode.
+LIST -la
+150 Here comes the directory listing.
+drwxr-xr-x    4 0        21           4096 Oct 04 17:43 .
+drwxr-xr-x    4 0        21           4096 Oct 04 17:43 ..
+drwxrwxrwx   19 21       21           4096 Oct 28 08:37 share
+drwxr-xr-x   28 1001     1003         4096 Nov 05 13:00 vscan
+226 Directory send OK.
+QUIT

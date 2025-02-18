@@ -1,0 +1,24 @@
+--- /usr/share/mc/skins/gotar.ini	2010-05-06 10:10:52.000000000 +0200
++++ ./gotar.ini	2010-05-06 12:01:24.000000000 +0200
+@@ -88,13 +88,14 @@
+ 	viewunderline=brightgreen;black
+ 
+ [diffviewer]
+-	added=white;green
+-	changedline=blue;cyan
+-	changednew=red;cyan
+-	changed=white;cyan
+-	removed=white;red
+-	folder=blue;black
+-	error=red;white
++	_default_=lightgray;black
++	added=brightgreen;
++	changedline=cyan;
++	changednew=yellow;
++	changed=;brown
++	removed=;blue
++	folder=brightblue;
++	error=white;red
+ 
+ [buttonbar]
+ 	hotkey=lightgray;black

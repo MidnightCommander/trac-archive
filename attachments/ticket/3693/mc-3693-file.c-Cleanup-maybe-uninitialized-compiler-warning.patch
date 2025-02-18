@@ -1,0 +1,28 @@
+From 2dc1f8530573a7c5d6a819cf0582b28291a4d078 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 10:46:00 +0000
+Subject: [PATCH] (file.c) Cleanup maybe-uninitialized compiler warning
+
+Found by GCC 6.2.0.
+
+file.c:159:13: error: 'file_info.st_size' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+file.c:156:21: note: 'file_info.st_size' was declared here
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/file.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/sftpfs/file.c b/src/vfs/sftpfs/file.c
+index d95de9b..a5834f9 100644
+--- a/src/vfs/sftpfs/file.c
++++ b/src/vfs/sftpfs/file.c
+@@ -153,7 +153,7 @@ sftpfs_open_file (vfs_file_handler_t * file_handler, int flags, mode_t mode, GEr
+ 
+     if (do_append)
+     {
+-        struct stat file_info;
++        struct stat file_info = {};
+ 
+         if (sftpfs_fstat (file_handler, &file_info, mcerror) == 0)
+             libssh2_sftp_seek64 (file_handler_data->handle, file_info.st_size);

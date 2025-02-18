@@ -1,0 +1,401 @@
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 2413b1e..3c8f4a9 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -3708,6 +3708,10 @@ Color pair definitions
+ .\"Skins colors"
+ .br
+ .\"LINK2"
++Color and attribute aliases
++.\"Skins aliases"
++.br
++.\"LINK2"
+ Draw lines
+ .\"Skins lines"
+ .br
+@@ -3915,6 +3919,24 @@ Colors\&.
+ .\"Colors"
+ section.
+ 
++.\"NODE "  Skins aliases"
++.SH "  Color and attribute aliases"
++This optional section might define aliases for single colors (not color pairs)
++as well as combination of attributes; in other words, for semicolon-separated
++fragments of parameters. Aliases are not recursive, they might not refer to
++other aliases.
++.PP
++Example:
++.br
++.nf
++[aliases]
++    myfavfg=green
++    myfavbg=black
++    myfavattr=bold+italic
++[core]
++    _default_=myfavfg;myfavbg;myfavattr
++.fi
++
+ .\"NODE "  Skins lines"
+ .SH "  Draw lines"
+ Lines sets in section
+diff --git a/lib/skin/colors.c b/lib/skin/colors.c
+index 7f55684..ccbfb76 100644
+--- a/lib/skin/colors.c
++++ b/lib/skin/colors.c
+@@ -120,6 +120,27 @@ mc_skin_color_get_with_defaults (const gchar * group, const gchar * name)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/* If an alias is found, alloc a new string for the resolved value and free the input parameter.
++   Otherwise it's a no-op returning the original string. */
++static gchar *
++mc_skin_color_look_up_alias (mc_skin_t * mc_skin, gchar * str)
++{
++    gsize items_count;
++    gchar **values;
++    gchar *ret = str;
++
++    values = mc_config_get_string_list (mc_skin->config, "aliases", str, &items_count);
++    if (items_count == 1)
++    {
++        g_free (str);
++        ret = g_strdup (values[0]);
++    }
++    g_strfreev (values);
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static mc_skin_color_t *
+ mc_skin_color_get_from_ini_file (mc_skin_t * mc_skin, const gchar * group, const gchar * key)
+ {
+@@ -142,11 +163,14 @@ mc_skin_color_get_from_ini_file (mc_skin_t * mc_skin, const gchar * group, const
+     }
+ 
+     tmp = mc_skin_color_get_with_defaults (group, "_default_");
+-    mc_skin_color->fgcolor = (items_count > 0 && values[0][0]) ? g_strstrip (g_strdup (values[0])) :
++    mc_skin_color->fgcolor = (items_count > 0 && values[0][0]) ?
++        mc_skin_color_look_up_alias (mc_skin, g_strstrip (g_strdup (values[0]))) :
+         (tmp != NULL) ? g_strdup (tmp->fgcolor) : NULL;
+-    mc_skin_color->bgcolor = (items_count > 1 && values[1][0]) ? g_strstrip (g_strdup (values[1])) :
++    mc_skin_color->bgcolor = (items_count > 1 && values[1][0]) ?
++        mc_skin_color_look_up_alias (mc_skin, g_strstrip (g_strdup (values[1]))) :
+         (tmp != NULL) ? g_strdup (tmp->bgcolor) : NULL;
+-    mc_skin_color->attrs = (items_count > 2 && values[2][0]) ? g_strstrip (g_strdup (values[2])) :
++    mc_skin_color->attrs = (items_count > 2 && values[2][0]) ?
++        mc_skin_color_look_up_alias (mc_skin, g_strstrip (g_strdup (values[2]))) :
+         (tmp != NULL) ? g_strdup (tmp->attrs) : NULL;
+ 
+     g_strfreev (values);
+@@ -265,7 +289,7 @@ mc_skin_color_cache_init (void)
+ static gboolean
+ mc_skin_color_check_inisection (const gchar * group)
+ {
+-    return !((strcasecmp ("skin", group) == 0)
++    return !((strcasecmp ("skin", group) == 0) || (strcasecmp ("aliases", group) == 0)
+              || (strcasecmp ("lines", group) == 0) || (strncasecmp ("widget-", group, 7) == 0));
+ }
+ 
+diff --git a/misc/skins/gray-green-purple256.ini b/misc/skins/gray-green-purple256.ini
+index 964b26f..f6ea39a 100644
+--- a/misc/skins/gray-green-purple256.ini
++++ b/misc/skins/gray-green-purple256.ini
+@@ -25,34 +25,41 @@
+     dleftmiddle = ╟
+     drightmiddle = ╢
+ 
++[aliases]
++    bgmain = gray22
++    bgbitdarker = gray21
++    bgdarker = gray20
++    main1 = rgb141
++    main2 = rgb303
++
+ [core]
+-    _default_ = black;gray22
+-    selected = ;rgb141
+-    marked = rgb303;;bold
+-    markselect = rgb303;rgb141;bold
+-    gauge = ;rgb141
++    _default_ = black;bgmain
++    selected = ;main1
++    marked = main2;;bold
++    markselect = main2;main1;bold
++    gauge = ;main1
+     input =
+     inputunchanged = gray
+-    inputmark = ;rgb141
+-    disabled = gray8;gray20
++    inputmark = ;main1
++    disabled = gray8;bgdarker
+     reverse =
+-    commandlinemark = ;rgb141
+-    header = rgb303
++    commandlinemark = ;main1
++    header = main2
+ 
+ [dialog]
+-    _default_ = black;gray20
+-    dfocus = ;rgb141
+-    dhotnormal = rgb303
+-    dhotfocus = rgb303;rgb141
+-    dtitle = rgb303
++    _default_ = black;bgdarker
++    dfocus = ;main1
++    dhotnormal = main2
++    dhotfocus = main2;main1
++    dtitle = main2
+ 
+ [error]
+     # "white" might change color when going bold, so use "rgb555" instead
+     _default_ = rgb555;rgb400;bold
+-    errdfocus = ;rgb303
+-    errdhotnormal = rgb141
+-    errdhotfocus = rgb141;rgb303
+-    errdtitle = rgb141
++    errdfocus = ;main2
++    errdhotnormal = main1
++    errdhotfocus = main1;main2
++    errdtitle = main1
+ 
+ [filehighlight]
+     directory =
+@@ -72,60 +79,60 @@
+     database = rgb421
+ 
+ [menu]
+-    _default_ = black;gray20
+-    menusel = ;rgb141
+-    menuhot = rgb303
+-    menuhotsel = rgb303;rgb141
++    _default_ = black;bgdarker
++    menusel = ;main1
++    menuhot = main2
++    menuhotsel = main2;main1
+     menuinactive =
+ 
+ [popupmenu]
+-    _default_ = black;gray20
+-    menusel = ;rgb141
+-    menutitle = rgb303
++    _default_ = black;bgdarker
++    menusel = ;main1
++    menutitle = main2
+ 
+ [buttonbar]
+-    hotkey = black;gray22
+-    button = black;gray20
++    hotkey = black;bgmain
++    button = black;bgdarker
+ 
+ [statusbar]
+-    _default_ = black;gray20
++    _default_ = black;bgdarker
+ 
+ [help]
+-    _default_ = black;gray20
++    _default_ = black;bgdarker
+     helpitalic = rgb020
+     helpbold = rgb300
+-    helplink = rgb303;;underline
+-    helpslink = gray20;rgb303
+-    helptitle = rgb303
++    helplink = main2;;underline
++    helpslink = bgdarker;main2
++    helptitle = main2
+ 
+ [editor]
+-    _default_ = black;gray22
++    _default_ = black;bgmain
+     editbold = rgb400
+-    editmarked = ;rgb141
+-    editwhitespace = rgb400;gray20
+-    editlinestate = ;gray20
++    editmarked = ;main1
++    editwhitespace = rgb400;bgdarker
++    editlinestate = ;bgdarker
+     bookmark = ;rgb531
+-    bookmarkfound = ;rgb303
+-    editrightmargin = rgb400;gray20
++    bookmarkfound = ;main2
++    editrightmargin = rgb400;bgdarker
+ #    editbg =
+-    editframe = rgb303;
++    editframe = main2;
+     editframeactive = black;
+     editframedrag = rgb400;
+     window-state-char = ↕
+     window-close-char = ✕
+ 
+ [viewer]
+-    _default_ = black;gray22
++    _default_ = black;bgmain
+     # "black" might change color when going bold, so use "rgb000" instead
+     viewbold = rgb000;;bold
+     viewunderline = ;;underline
+-    viewselected = rgb303;rgb141;bold
++    viewselected = main2;main1;bold
+ 
+ [diffviewer]
+     added = ;rgb340
+-    changedline = ;gray20
+-    changednew = rgb303;gray20
+-    changed = ;gray21
++    changedline = ;bgdarker
++    changednew = main2;bgdarker
++    changed = ;bgbitdarker
+     removed = ;rgb511
+     # "white" might change color when going bold, so use "rgb555" instead
+     error = rgb555;rgb400;bold
+diff --git a/misc/skins/gray-orange-blue256.ini b/misc/skins/gray-orange-blue256.ini
+index f8426f1..027b679 100644
+--- a/misc/skins/gray-orange-blue256.ini
++++ b/misc/skins/gray-orange-blue256.ini
+@@ -25,34 +25,41 @@
+     dleftmiddle = ╟
+     drightmiddle = ╢
+ 
++[aliases]
++    bgmain = gray22
++    bgbitdarker = gray21
++    bgdarker = gray20
++    main1 = rgb530
++    main2 = rgb004
++
+ [core]
+-    _default_ = black;gray22
+-    selected = ;rgb530
+-    marked = rgb004;;bold
+-    markselect = rgb004;rgb530;bold
+-    gauge = ;rgb530
++    _default_ = black;bgmain
++    selected = ;main1
++    marked = main2;;bold
++    markselect = main2;main1;bold
++    gauge = ;main1
+     input =
+     inputunchanged = gray
+-    inputmark = ;rgb530
+-    disabled = gray8;gray20
++    inputmark = ;main1
++    disabled = gray8;bgdarker
+     reverse =
+-    commandlinemark = ;rgb530
+-    header = rgb004
++    commandlinemark = ;main1
++    header = main2
+ 
+ [dialog]
+-    _default_ = black;gray20
+-    dfocus = ;rgb530
+-    dhotnormal = rgb004
+-    dhotfocus = rgb004;rgb530
+-    dtitle = rgb004
++    _default_ = black;bgdarker
++    dfocus = ;main1
++    dhotnormal = main2
++    dhotfocus = main2;main1
++    dtitle = main2
+ 
+ [error]
+     # "white" might change color when going bold, so use "rgb555" instead
+     _default_ = rgb555;rgb400;bold
+-    errdfocus = ;rgb004
+-    errdhotnormal = rgb530
+-    errdhotfocus = rgb530;rgb004
+-    errdtitle = rgb530
++    errdfocus = ;main2
++    errdhotnormal = main1
++    errdhotfocus = main1;main2
++    errdtitle = main1
+ 
+ [filehighlight]
+     directory =
+@@ -72,60 +79,60 @@
+     database = rgb421
+ 
+ [menu]
+-    _default_ = black;gray20
+-    menusel = ;rgb530
+-    menuhot = rgb004
+-    menuhotsel = rgb004;rgb530
++    _default_ = black;bgdarker
++    menusel = ;main1
++    menuhot = main2
++    menuhotsel = main2;main1
+     menuinactive =
+ 
+ [popupmenu]
+-    _default_ = black;gray20
+-    menusel = ;rgb530
+-    menutitle = rgb004
++    _default_ = black;bgdarker
++    menusel = ;main1
++    menutitle = main2
+ 
+ [buttonbar]
+-    hotkey = black;gray22
+-    button = black;gray20
++    hotkey = black;bgmain
++    button = black;bgdarker
+ 
+ [statusbar]
+-    _default_ = black;gray20
++    _default_ = black;bgdarker
+ 
+ [help]
+-    _default_ = black;gray20
++    _default_ = black;bgdarker
+     helpitalic = rgb020
+     helpbold = rgb300
+-    helplink = rgb004;;underline
+-    helpslink = gray20;rgb004
+-    helptitle = rgb004
++    helplink = main2;;underline
++    helpslink = bgdarker;main2
++    helptitle = main2
+ 
+ [editor]
+-    _default_ = black;gray22
++    _default_ = black;bgmain
+     editbold = rgb400
+-    editmarked = ;rgb530
+-    editwhitespace = rgb400;gray20
+-    editlinestate = ;gray20
++    editmarked = ;main1
++    editwhitespace = rgb400;bgdarker
++    editlinestate = ;bgdarker
+     bookmark = ;rgb531
+-    bookmarkfound = ;rgb004
+-    editrightmargin = rgb400;gray20
++    bookmarkfound = ;main2
++    editrightmargin = rgb400;bgdarker
+ #    editbg =
+-    editframe = rgb004;
++    editframe = main2;
+     editframeactive = black;
+     editframedrag = rgb400;
+     window-state-char = ↕
+     window-close-char = ✕
+ 
+ [viewer]
+-    _default_ = black;gray22
++    _default_ = black;bgmain
+     # "black" might change color when going bold, so use "rgb000" instead
+     viewbold = rgb000;;bold
+     viewunderline = ;;underline
+-    viewselected = rgb004;rgb530;bold
++    viewselected = main2;main1;bold
+ 
+ [diffviewer]
+     added = ;rgb340
+-    changedline = ;gray20
+-    changednew = rgb004;gray20
+-    changed = ;gray21
++    changedline = ;bgdarker
++    changednew = main2;bgdarker
++    changed = ;bgbitdarker
+     removed = ;rgb511
+     # "white" might change color when going bold, so use "rgb555" instead
+     error = rgb555;rgb400;bold

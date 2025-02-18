@@ -1,0 +1,19 @@
+ lib/vfs/xdirentry.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/lib/vfs/xdirentry.h b/lib/vfs/xdirentry.h
+index 87252e0..8ee2d96 100644
+--- a/lib/vfs/xdirentry.h
++++ b/lib/vfs/xdirentry.h
+@@ -57,10 +57,10 @@ struct vfs_s_super
+     struct vfs_class *me;
+     struct vfs_s_inode *root;
+     char *name;                 /* My name, whatever it means */
++    void *data;                 /* This is for filesystem-specific use */
+     int fd_usage;               /* Number of open files */
+     int ino_usage;              /* Usage count of this superblock */
+     int want_stale;             /* If set, we do not flush cache properly */
+-    void *data;                 /* This is for filesystem-specific use */
+ };
+ 
+ /*

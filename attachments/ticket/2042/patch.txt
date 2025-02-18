@@ -1,0 +1,106 @@
+diff -aur src/cmd.c newsrc/cmd.c
+--- src/cmd.c	2010-02-01 10:17:32.000000000 +0100
++++ newsrc/cmd.c	2010-02-20 11:05:00.000000000 +0100
+@@ -931,7 +931,8 @@
+ 	char *s;
+ 	char *d;
+ 
+-	/* suggest the full path for symlink */
++	/* suggest the full path for symlink, and either the full or 
++	   relative path to the file it points to */
+ 	s = concat_dir_and_file (current_panel->cwd, fname);
+ 
+ 	if (get_other_type () == view_listing) {
+@@ -940,6 +941,10 @@
+ 	    d = g_strdup (fname);
+ 	}
+ 
++	if ( 2 == symbolic_link) {
++	    s = diff_two_paths ((other_panel->cwd),s);
++	}
++	
+ 	symlink_dialog (s, d, &dest, &src);
+ 	g_free (d);
+ 	g_free (s);
+@@ -974,6 +979,19 @@
+     }
+ }
+ 
++
++void relative_symlink_cmd (void)
++{
++    char *filename = NULL;
++    filename = selection (current_panel)->fname;
++
++    if (filename) {
++	do_link (2, filename);
++    }
++}
++
++
++
+ void edit_symlink_cmd (void)
+ {
+     if (S_ISLNK (selection (current_panel)->st.st_mode)) {
+diff -aur src/cmddef.h newsrc/cmddef.h
+--- src/cmddef.h	2010-02-02 10:07:24.000000000 +0100
++++ newsrc/cmddef.h	2010-02-20 11:01:34.000000000 +0100
+@@ -365,6 +365,7 @@
+ #define CK_ViewFileCmd                  7071
+ #define CK_HelpCmd                      7072
+ #define CK_MenuCmd                      7073
++#define CK_RSymlinkCmd                  7074
+ 
+ /* panels */
+ #define CK_PanelChdirOtherPanel         8001
+diff -aur src/cmd.h newsrc/cmd.h
+--- src/cmd.h	2010-01-29 09:09:28.000000000 +0100
++++ newsrc/cmd.h	2010-02-20 10:56:18.000000000 +0100
+@@ -47,6 +47,7 @@
+ void tree_cmd (void);
+ void link_cmd (void);
+ void symlink_cmd (void);
++void relative_symlink_cmd (void);
+ void edit_symlink_cmd (void);
+ void reverse_selection_cmd (void);
+ void unselect_cmd (void);
+diff -aur src/keybind.c newsrc/keybind.c
+--- src/keybind.c	2010-02-02 15:22:26.000000000 +0100
++++ newsrc/keybind.c	2010-02-20 11:23:39.154257870 +0100
+@@ -348,6 +348,7 @@
+ #endif /* USE_NETCODE || ENABLE_VFS_SMB */
+     { "CmdSwapPanel",                    CK_SwapCmd },
+     { "CmdSymlink",                      CK_SymlinkCmd },
++    { "CmdRSymlink",                     CK_RSymlinkCmd },
+     { "CmdTree",                         CK_TreeCmd },
+     { "CmdTreeBox",                      CK_TreeBoxCmd },
+ #ifdef USE_EXT2FSLIB
+@@ -852,6 +853,7 @@
+     { XCTRL ('r'), CK_CopyOtherReadlink,   "C-r" },
+     { 'l',         CK_LinkCmd,             "l" },
+     { 's',         CK_SymlinkCmd,          "s" },
++    { 'v',         CK_RSymlinkCmd,         "v" },
+     { XCTRL ('s'), CK_EditSymlinkCmd,      "C-s" },
+     { 'i',         CK_InfoCmd,             "i" },
+     { 'q',         CK_QuickViewCmd,        "q" },
+diff -aur src/main.c newsrc/main.c
+--- src/main.c	2010-02-02 15:22:26.000000000 +0100
++++ newsrc/main.c	2010-02-20 11:00:46.000000000 +0100
+@@ -719,6 +719,7 @@
+     entries = g_list_append (entries, menu_entry_create (_("C&hmod"),             CK_ChmodCmd));
+     entries = g_list_append (entries, menu_entry_create (_("&Link"),              CK_LinkCmd));
+     entries = g_list_append (entries, menu_entry_create (_("&SymLink"),           CK_SymlinkCmd));
++    entries = g_list_append (entries, menu_entry_create (_("Relative symLin&k"),  CK_RSymlinkCmd));
+     entries = g_list_append (entries, menu_entry_create (_("Edit s&ymlink"),      CK_EditSymlinkCmd));
+     entries = g_list_append (entries, menu_entry_create (_("Ch&own"),             CK_ChownCmd));
+     entries = g_list_append (entries, menu_entry_create (_("&Advanced chown"),    CK_ChownAdvancedCmd));
+@@ -1342,6 +1343,9 @@
+     case CK_SymlinkCmd:
+         symlink_cmd ();
+         break;
++    case CK_RSymlinkCmd:
++        relative_symlink_cmd ();
++        break;
+     case CK_ToggleListingCmd:
+         toggle_listing_cmd ();
+         break;

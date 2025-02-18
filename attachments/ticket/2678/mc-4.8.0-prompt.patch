@@ -1,0 +1,53 @@
+http://www.midnight-commander.org/ticket/2678
+
+diff -ur mc-4.8.0.orig/src/main.c mc-4.8.0/src/main.c
+--- mc-4.8.0.orig/src/main.c	2011-10-18 13:39:19.000000000 +0200
++++ mc-4.8.0/src/main.c	2011-11-28 20:30:50.506570454 +0100
+@@ -288,31 +288,31 @@
+ int
+ load_prompt (int fd, void *unused)
+ {
++    char *tmp_prompt;
++    int prompt_len;
++
+     (void) fd;
+     (void) unused;
+ 
+     if (!read_subshell_prompt ())
+         return 0;
+ 
++    tmp_prompt = strip_ctrl_codes (subshell_prompt);
++    prompt_len = str_term_width1 (tmp_prompt);
++
++    /* Check for prompts too big */
++    if (COLS > 8 && prompt_len > COLS - 8)
++    {
++        prompt_len = COLS - 8;
++        tmp_prompt[prompt_len] = '\0';
++    }
++    mc_prompt = tmp_prompt;
++    label_set_text (the_prompt, mc_prompt);
++    input_set_origin ((WInput *) cmdline, prompt_len, COLS - prompt_len);
++
+     /* Don't actually change the prompt if it's invisible */
+     if (((Dlg_head *) top_dlg->data == midnight_dlg) && command_prompt)
+     {
+-        char *tmp_prompt;
+-        int prompt_len;
+-
+-        tmp_prompt = strip_ctrl_codes (subshell_prompt);
+-        prompt_len = str_term_width1 (tmp_prompt);
+-
+-        /* Check for prompts too big */
+-        if (COLS > 8 && prompt_len > COLS - 8)
+-        {
+-            prompt_len = COLS - 8;
+-            tmp_prompt[prompt_len] = '\0';
+-        }
+-        mc_prompt = tmp_prompt;
+-        label_set_text (the_prompt, mc_prompt);
+-        input_set_origin ((WInput *) cmdline, prompt_len, COLS - prompt_len);
+-
+         /* since the prompt has changed, and we are called from one of the
+          * tty_get_event channels, the prompt updating does not take place
+          * automatically: force a cursor update and a screen refresh

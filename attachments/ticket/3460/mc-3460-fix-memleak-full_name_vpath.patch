@@ -1,0 +1,35 @@
+
+fix memleak at filemanager/panel.c:do_enter_on_file_entry()
+
+found by LeakSanitizer
+
+Direct leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x4d5edb in calloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d5edb)
+    #1 0x7f9bc7bfe85c in g_malloc0 (/usr/lib64/libglib-2.0.so.0+0x6785c)
+    #2 0x5e5a68 in vfs_path_new /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:781:13
+    #3 0x5e4799 in vfs_path_from_str_uri_parser /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:444:13
+    #4 0x5e383b in vfs_path_from_str_flags /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:746:17
+    #5 0x5e949c in vfs_path_build_filename /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:1245:13
+    #6 0x5e963b in vfs_path_append_new /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:1277:17
+    #7 0x5c7d4b in do_enter_on_file_entry /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:2745:23
+    #8 0x5cda2a in panel_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3398:9
+    #9 0x52fc94 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:515:19
+    #10 0x530546 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #11 0x530165 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #12 0x5a1f4a in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1762:9
+    #13 0x4fa3e8 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #14 0x7f9bc6ccf133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #15 0x44ed96 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x44ed96)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -2750,6 +2750,7 @@
+         vfs_path_free (full_name_vpath);
+         return TRUE;
+     }
++    vfs_path_free (full_name_vpath);
+ 
+     /* Check if the file is executable */
+     full_name_vpath = vfs_path_append_new (current_panel->cwd_vpath, fe->fname, NULL);

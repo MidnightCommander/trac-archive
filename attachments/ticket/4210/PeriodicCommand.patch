@@ -1,0 +1,318 @@
+From 966909bac29c6092c8944e5f50b344dd9de210cb Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Fri, 19 Feb 2021 12:05:41 -0600
+Subject: Feature: support for periodic shell command run in background.
+
+---
+ lib/keybind.c                                 |   1 +
+ lib/keybind.h                                 |   1 +
+ src/editor/Makefile.am                        |   1 +
+ src/editor/editwidget.c                       |   3 +
+ src/editor/periodic_command.c                 | 167 ++++++++++++++++++
+ .../filenot.h => editor/periodic_command.h}   |  28 +--
+ src/history.h                                 |   1 +
+ src/keybind-defaults.c                        |   1 +
+ 8 files changed, 191 insertions(+), 12 deletions(-)
+ create mode 100644 src/editor/periodic_command.c
+ copy src/{filemanager/filenot.h => editor/periodic_command.h} (63%)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..c8dce295d 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -137,6 +137,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (MarkToEnd),
+     ADD_KEYMAP_NAME (ToggleNavigation),
+     ADD_KEYMAP_NAME (Sort),
++    ADD_KEYMAP_NAME (PeriodicCommand),
+     ADD_KEYMAP_NAME (Options),
+     ADD_KEYMAP_NAME (LearnKeys),
+     ADD_KEYMAP_NAME (Bookmark),
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..894c4b81e 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -125,6 +125,7 @@ enum
+     CK_MarkToEnd,
+     CK_ToggleNavigation,
+     CK_Sort,
++    CK_PeriodicCommand,
+     CK_Options,
+     CK_LearnKeys,
+     CK_Bookmark,
+diff --git a/src/editor/Makefile.am b/src/editor/Makefile.am
+index 235ed76af..6de160a1a 100644
+--- a/src/editor/Makefile.am
++++ b/src/editor/Makefile.am
+@@ -18,6 +18,7 @@ libedit_la_SOURCES = \
+ 	editmenu.c \
+ 	editoptions.c \
+ 	editwidget.c editwidget.h \
++	periodic_command.c periodic_command.h \
+ 	etags.c etags.h \
+ 	format.c \
+ 	syntax.c
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 18ac00e66..799c17379 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -465,6 +465,9 @@ edit_dialog_command_execute (WDialog * h, long command)
+     case CK_WindowPrev:
+         group_select_prev_widget (g);
+         break;
++    case CK_PeriodicCommand:
++        edit_periodic_command_cmd(h);
++        break;
+     case CK_Options:
+         edit_options_dialog (h);
+         break;
+diff --git a/src/editor/periodic_command.c b/src/editor/periodic_command.c
+new file mode 100644
+index 000000000..6a843fda5
+--- /dev/null
++++ b/src/editor/periodic_command.c
+@@ -0,0 +1,167 @@
++/*
++   Periodic background shell command support.
++
++   Copyright (C) 2021
++   Free Software Foundation, Inc.
++
++   Written by:
++   Sebastian Gniazdowski <sgniazdowski@gmail.com>, 2021
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file periodic_command.c
++ *  \brief Periodic background shell command support.
++ *  \author Sebastian Gniazdowski
++ *  \date 2021
++ *
++ *  Periodic running of a specified shell command, after either:
++ *  - specified interval passes,
++ *  - specified # of chars will be inserted.
++ *
++ *  The command is being run in background.
++ */
++
++#include <config.h>
++
++
++#include "lib/global.h"
++#include "lib/widget.h"
++#include "src/history.h"
++#include "periodic_command.h"
++
++/*** global variables ****************************************************************************/
++
++periodic_config_t periodic_config = {0};
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++periodic_idle_hook(void *data)
++{
++    periodic_config_t * config = (periodic_config_t *) data;
++    gboolean should_run = FALSE;
++    gint64 cur_time;
++
++    if (config == NULL || !config->periodic_enable)
++        return;
++
++    if (!hook_present(idle_hook, periodic_idle_hook))
++        add_hook(&idle_hook, periodic_idle_hook, data);
++
++    /* Events exceeded? */
++    config->cur_event_count ++;
++    if (config->event_lim <= config->cur_event_count)
++        should_run = TRUE;
++
++    /* Limit time passed? */
++    cur_time = g_get_real_time();
++    if (cur_time - config->last_run_time >= config->interval)
++        should_run = TRUE;
++
++    /* Should run? */
++    if (should_run)
++    {
++        gboolean ret;
++        GError *error = NULL;
++        char *command_esc, *cline;
++
++        config->last_run_time = cur_time;
++        config->cur_event_count = 0;
++
++        command_esc = g_strescape(config->command_str, NULL);
++        cline = g_strdup_printf("sh -c \"%s >/dev/null 2>&1\"", command_esc);
++        ret = g_spawn_command_line_async(cline, &error);
++
++        if (!ret)
++        {
++            config->periodic_enable = FALSE;
++            message(D_ERROR, _("Periodic command warning"),
++                _("Error running periodic command: %s. Periodic command stopped."),
++                 error != NULL ? error->message : _("<no error message available>"));
++            g_error_free(error);
++        }
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++void
++edit_periodic_command_cmd(WDialog *h)
++{
++    char *interval = NULL, *event_lim = NULL;
++    const char *pwd_dirs[3] = {N_("&Run where .git is located"),
++                                N_("&Run where TAGS file is placed"),
++                                N_("&Run in mcedit start dir")};
++    gboolean was_enabled;
++
++    quick_widget_t quick_widgets[] = {
++        /* *INDENT-OFF* */
++        QUICK_LABELED_INPUT (_("Command"), input_label_above, INPUT_LAST_TEXT,
++                    MC_HISTORY_PERIODIC_COMMAND, &periodic_config.command_str,
++                     NULL, FALSE, FALSE, INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_COMMANDS),
++        QUICK_LABELED_INPUT (_("Interval [sec]"), input_label_above, INPUT_LAST_TEXT,
++                     "periodic-interval", &interval,
++                     NULL, FALSE, FALSE, INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_COMMANDS),
++        QUICK_LABELED_INPUT (_("Change limit trigger [number]"), input_label_above, INPUT_LAST_TEXT,
++                     "periodic-change-limit", &event_lim,
++                     NULL, FALSE, FALSE, INPUT_COMPLETE_FILENAMES | INPUT_COMPLETE_COMMANDS),
++        QUICK_SEPARATOR (TRUE),
++        QUICK_CHECKBOX (N_("&Enable periodic command"), &periodic_config.periodic_enable, NULL),
++        QUICK_SEPARATOR (TRUE),
++        QUICK_RADIO (3, pwd_dirs, &periodic_config.pwd_type_idx, NULL),
++        QUICK_BUTTONS_OK_CANCEL,
++        QUICK_END
++        /* *INDENT-ON* */
++    };
++
++    quick_dialog_t qdlg = {
++        -1, -1, 50,
++        N_("Periodic command"), "[Periodic command]",
++        quick_widgets, dlg_default_callback, NULL
++    };
++    was_enabled = periodic_config.periodic_enable;
++
++    if (quick_dialog (&qdlg) != B_CANCEL)
++    {
++        periodic_config.last_run_time = g_get_real_time();
++        periodic_config.cur_event_count = 0;
++
++        errno = 0;
++        periodic_config.interval = strtol(interval, NULL, 10) * 1000000;
++        periodic_config.event_lim = strtol(event_lim, NULL, 10);
++        if (errno != 0)
++        {
++            message(D_ERROR, _("Periodic command warning"),
++                     _("Provided values are not numeric (%s)"), g_strerror(errno));
++            periodic_config.periodic_enable = FALSE;
++        }
++        else if (periodic_config.periodic_enable && !hook_present(idle_hook, periodic_idle_hook))
++            add_hook(&idle_hook, periodic_idle_hook, &periodic_config);
++    } else
++    {
++        periodic_config.periodic_enable = was_enabled;
++    }
++}
+diff --git a/src/filemanager/filenot.h b/src/editor/periodic_command.h
+similarity index 63%
+copy from src/filemanager/filenot.h
+copy to src/editor/periodic_command.h
+index 33991e839..1cfbb4f9c 100644
+--- a/src/filemanager/filenot.h
++++ b/src/editor/periodic_command.h
+@@ -1,11 +1,5 @@
+-/** \file  file.h
+- *  \brief Header: File and directory operation routines
+- */
+-
+-#ifndef MC__FILENOT_H
+-#define MC__FILENOT_H
+-
+-#include "lib/global.h"
++#ifndef MC__PERIODIC_COMMAND_H
++#define MC__PERIODIC_COMMAND_H
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+@@ -13,14 +7,24 @@
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+ 
++typedef struct
++{
++    gboolean periodic_enable;
++    char *command_str;
++    gint64 interval;
++    int event_lim;
++    int pwd_type_idx;
++
++    int cur_event_count;
++    gint64 last_run_time;
++} periodic_config_t;
++
+ /*** global variables defined in .c file *********************************************************/
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-/* Misc Unix functions */
+-int my_mkdir (const vfs_path_t * vpath, mode_t mode);
+-int my_rmdir (const char *path);
++void edit_periodic_command_cmd(WDialog *h);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+-#endif /* MC__FILE_H */
++#endif /* MC__PERIODIC_COMMAND_H */
+diff --git a/src/history.h b/src/history.h
+index 7a8d73fa2..a1c1b6248 100644
+--- a/src/history.h
++++ b/src/history.h
+@@ -31,6 +31,7 @@
+ 
+ #define MC_HISTORY_ESC_TIMEOUT        "mc.esc.timeout"
+ 
++#define MC_HISTORY_PERIODIC_COMMAND   "mc.periodic.cmd"
+ #define MC_HISTORY_VIEW_GOTO          "mc.view.goto"
+ #define MC_HISTORY_VIEW_GOTO_LINE     "mc.view.goto-line"
+ #define MC_HISTORY_VIEW_GOTO_ADDR     "mc.view.goto-addr"
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7b87c2f5a..bcb6b32e1 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -469,6 +469,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"FilePrev", "alt-minus"},
+     {"FileNext", "alt-plus"},
+     {"Sort", "alt-t"},
++    {"PeriodicCommand", "alt-i"},
+     {"Mail", "alt-m"},
+     {"ExternalCommand", "alt-u"},
+ #ifdef HAVE_ASPELL
+-- 
+2.28.0
+

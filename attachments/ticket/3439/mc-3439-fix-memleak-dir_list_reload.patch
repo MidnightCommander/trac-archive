@@ -1,0 +1,39 @@
+
+fix memleak at filemanager/dir.c:dir_list_reload()
+
+when dir_copy filling with fentry objects, dir_list_clean() on dir_copy will never work
+because dir_copy->len is still zero
+
+testcase switch panels on/off
+
+(found by LeakSanitizer)
+
+==8156==ERROR: LeakSanitizer: detected memory leaks
+Direct leak of 164 byte(s) in 17 object(s) allocated from:
+    #0 0x4d6082 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d6082)
+    #1 0x7f83f50bb7d4 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x677d4)
+    #2 0x7f83f50e220e in g_strndup (/usr/lib64/libglib-2.0.so.0+0x8e20e)
+    #3 0x7b10fe in dir_list_append /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/dir.c:320:21
+    #4 0x7b8d06 in dir_list_load /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/dir.c:661:14
+    #5 0x5acd08 in panel_new_with_dir /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4311:5
+    #6 0x591de0 in set_display_type /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/layout.c:1003:22
+    #7 0x5a4db4 in create_panels /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:686:5
+    #8 0x5a42b6 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:944:5
+    #9 0x5a204a in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1763:9
+    #10 0x4fa708 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #11 0x7f83f3f32133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #12 0x44f0b6 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x44f0b6)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -737,6 +737,8 @@
+             marked_cnt++;
+         }
+     }
++    /* save len for later dir_list_clean() */
++    dir_copy.len = list->len;
+ 
+     /* Add ".." except to the root directory. The ".." entry
+        (if any) must be the first in the list. */

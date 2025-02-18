@@ -1,0 +1,1093 @@
+
+fix some -Wshorten-64-to-32 warnings
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+key.c:1291:39: warning: implicit conversion loses integer precision: 'const long' to 'int' [-Wshorten-64-to-32]
+input.c:301:28: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:301:32: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:743:36: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:743:40: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:756:36: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:756:40: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:787:30: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:788:43: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:1316:43: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:1322:21: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:1325:33: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input.c:1326:71: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+utilvfs.c:192:24: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+path.c:1112:49: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+input_complete.c:454:33: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input_complete.c:716:47: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+input_complete.c:780:30: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input_complete.c:1029:63: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input_complete.c:1040:67: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input_complete.c:1147:42: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input_complete.c:1402:19: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+input_complete.c:1410:19: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+lock.c:184:11: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+charsets.c:256:20: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+achown.c:478:10: warning: implicit conversion loses integer precision: 'unsigned long' to 'unsigned int' [-Wshorten-64-to-32]
+cmd.c:250:30: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+cmd.c:251:30: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+cmd.c:567:52: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+cmd.c:590:56: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+cmd.c:1262:13: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+cmd.c:1349:19: warning: implicit conversion loses integer precision: '__time_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+cmd.c:1356:15: warning: implicit conversion loses integer precision: '__time_t' (aka 'long') to 'unsigned int' [-Wshorten-64-to-32]
+cmd.c:1357:11: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+command.c:387:29: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+dir.c:479:46: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+ext.c:1000:46: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+file.c:892:48: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+file.c:1803:34: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+file.c:1831:37: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+file.c:1869:39: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+file.c:1870:46: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+filegui.c:1264:21: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+find.c:995:30: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+treestore.c:356:44: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+treestore.c:463:30: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+vfs_class.c:442:10: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+vfs_class.c:464:10: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+hex.c:229:56: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+edit.c:1691:11: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+edit.c:2363:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+edit.c:2373:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+edit.c:2442:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+edit.c:2452:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+edit.c:2972:27: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+etags.c:213:19: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+format.c:307:16: warning: implicit conversion loses integer precision: 'off_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+format.c:319:20: warning: implicit conversion loses integer precision: 'off_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+syntax.c:294:25: warning: implicit conversion loses integer precision: 'off_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+syntax.c:452:27: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+syntax.c:553:23: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+syntax.c:1296:26: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+syntax.c:1311:22: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+syntax.c:1348:39: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+setup.c:695:22: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+subshell.c:519:21: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+subshell.c:539:21: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+subshell.c:563:21: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+background.c:379:19: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+parse_ls_vga.c:88:11: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+parse_ls_vga.c:852:18: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutil8bit.c:276:38: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutil8bit.c:279:27: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutil8bit.c:322:38: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutil8bit.c:325:28: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutilascii.c:228:38: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutilascii.c:231:27: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutilascii.c:289:38: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+strutilascii.c:292:28: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+menu.c:123:73: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:181:73: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:250:75: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:332:73: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:351:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:372:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:396:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:425:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:470:68: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:511:45: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'unsigned int' [-Wshorten-64-to-32]
+menu.c:517:71: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:721:59: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+tar.c:357:9: warning: implicit conversion loses integer precision: 'ssize_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+tar.c:382:19: warning: implicit conversion loses integer precision: 'long' to '__mode_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+tar.c:412:15: warning: implicit conversion loses integer precision: 'long' to '__uid_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+tar.c:415:15: warning: implicit conversion loses integer precision: 'long' to '__gid_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+tar.c:429:22: warning: implicit conversion loses integer precision: 'long' to '__uid_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+tar.c:430:22: warning: implicit conversion loses integer precision: 'long' to '__gid_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+tty-ncurses.c:132:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:133:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:134:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:135:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:136:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:137:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:138:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:139:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:140:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:141:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:142:26: warning: implicit conversion loses integer precision: 'chtype' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:144:39: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:145:39: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:146:39: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:147:39: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:148:35: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:149:35: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:150:35: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:151:35: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:152:36: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+tty-ncurses.c:153:36: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+setup.c:654:38: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+setup.c:664:34: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+fish.c:399:31: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+undelfs.c:252:14: warning: implicit conversion loses integer precision: 'errcode_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+undelfs.c:258:14: warning: implicit conversion loses integer precision: 'errcode_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+undelfs.c:280:18: warning: implicit conversion loses integer precision: 'errcode_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+undelfs.c:314:18: warning: implicit conversion loses integer precision: 'errcode_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+undelfs.c:456:13: warning: implicit conversion loses integer precision: 'long' to 'ext2_ino_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+undelfs.c:518:25: warning: implicit conversion loses integer precision: 'errcode_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+undelfs.c:544:29: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+undelfs.c:550:46: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+undelfs.c:559:46: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+undelfs.c:594:14: warning: implicit conversion loses integer precision: 'errcode_t' (aka 'long') to 'int' [-Wshorten-64-to-32]
+undelfs.c:611:24: warning: implicit conversion loses integer precision: 'long' to 'ext2_ino_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+undelfs.c:675:19: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+usermenu.c:670:18: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+usermenu.c:725:22: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+usermenu.c:729:18: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+vfs.c:135:19: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+vfs.c:149:38: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+vfs.c:153:30: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1284,7 +1284,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static gboolean
+-lookup_keycode (const long code, int *idx)
++lookup_keycode (const int code, int *idx)
+ {
+     if (code != 0)
+     {
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -135,7 +135,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static gboolean
+-input_eval_marks (WInput * in, long *start_mark, long *end_mark)
++input_eval_marks (WInput * in, int *start_mark, int *end_mark)
+ {
+     if (in->mark >= 0)
+     {
+@@ -294,8 +294,7 @@
+ static cb_ret_t
+ insert_char (WInput * in, int c_code)
+ {
+-    int res;
+-    long m1, m2;
++    int res, m1, m2;
+ 
+     if (input_eval_marks (in, &m1, &m2))
+         delete_region (in, m1, m2);
+@@ -737,7 +736,7 @@
+         break;
+     case CK_BackSpace:
+         {
+-            long m1, m2;
++            int m1, m2;
+ 
+             if (input_eval_marks (in, &m1, &m2))
+                 delete_region (in, m1, m2);
+@@ -750,7 +749,7 @@
+             port_region_marked_for_delete (in);
+         else
+         {
+-            long m1, m2;
++            int m1, m2;
+ 
+             if (input_eval_marks (in, &m1, &m2))
+                 delete_region (in, m1, m2);
+@@ -781,7 +780,7 @@
+         break;
+     case CK_Cut:
+         {
+-            long m;
++            int m;
+ 
+             m = max (in->mark, 0);
+             copy_region (in, m, in->point);
+@@ -1300,7 +1299,7 @@
+                                                   w->cols - has_history));
+         else
+         {
+-            long m1, m2;
++            int m1, m2;
+ 
+             if (input_eval_marks (in, &m1, &m2))
+             {
+--- a/lib/vfs/utilvfs.c
++++ b/lib/vfs/utilvfs.c
+@@ -178,7 +178,7 @@
+ {
+     const char *p;
+     char *suffix, *q;
+-    int shift;
++    size_t shift;
+     int fd;
+ 
+     /* Strip directories */
+--- a/lib/vfs/path.c
++++ b/lib/vfs/path.c
+@@ -1089,7 +1089,7 @@
+ vfs_path_serialize (const vfs_path_t * vpath, GError ** mcerror)
+ {
+     mc_config_t *cpath;
+-    ssize_t element_index;
++    int element_index;
+     char *ret_value;
+ 
+     mc_return_val_if_error (mcerror, FALSE);
+@@ -1108,7 +1108,7 @@
+         char *groupname;
+         const vfs_path_element_t *element;
+ 
+-        groupname = g_strdup_printf ("path-element-%zd", element_index);
++        groupname = g_strdup_printf ("path-element-%d", element_index);
+         element = vfs_path_get_by_index (vpath, element_index);
+         /* convert one element to config group */
+ 
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -99,14 +99,14 @@
+ 
+ static int query_height, query_width;
+ static WInput *input;
+-static int min_end;
+-static int start = 0;
+-static int end = 0;
++static long min_end;
++static long start = 0;
++static long end = 0;
+ 
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-char **try_complete (char *text, int *lc_start, int *lc_end, input_complete_t flags);
++char **try_complete (char *text, long *lc_start, long *lc_end, input_complete_t flags);
+ void complete_engine_fill_completions (WInput * in);
+ 
+ #ifdef DO_COMPLETION_DEBUG
+@@ -449,7 +449,7 @@
+ 
+                 if (hosts_p - hosts >= hosts_alloclen)
+                 {
+-                    int j;
++                    long j;
+ 
+                     j = hosts_p - hosts;
+                     hosts_alloclen += 30;
+@@ -701,11 +701,11 @@
+ completion_matches (const char *text, CompletionFunction entry_function, input_complete_t flags)
+ {
+     /* Number of slots in match_list. */
+-    size_t match_list_size = 30;
++    int match_list_size = 30;
+     /* The list of matches. */
+     char **match_list;
+     /* Number of matches actually found. */
+-    size_t matches = 0;
++    int matches = 0;
+ 
+     /* Temporary string binder. */
+     char *string;
+@@ -737,9 +737,9 @@
+         }
+         else
+         {
+-            size_t i = 1;
+-            int low = 4096;     /* Count of max-matched characters. */
+-            size_t j;
++            int i = 1;
++            long low = 4096;     /* Count of max-matched characters. */
++            int j;
+ 
+             qsort (match_list + 1, matches, sizeof (char *), match_compare);
+ 
+@@ -797,7 +797,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ /** Check if directory completion is needed */
+ static gboolean
+-check_is_cd (const char *text, int lc_start, input_complete_t flags)
++check_is_cd (const char *text, long lc_start, input_complete_t flags)
+ {
+     char *p, *q;
+ 
+@@ -819,7 +819,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-try_complete_commands_prepare (try_complete_automation_state_t * state, char *text, int *lc_start)
++try_complete_commands_prepare (try_complete_automation_state_t * state, char *text, long *lc_start)
+ {
+     const char *command_separator_chars = ";|&{(`";
+     char *ti;
+@@ -893,7 +893,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static char **
+-try_complete_all_possible (try_complete_automation_state_t * state, char *text, int *lc_start)
++try_complete_all_possible (try_complete_automation_state_t * state, char *text, long *lc_start)
+ {
+     char **matches = NULL;
+ 
+@@ -1033,7 +1033,7 @@
+             }
+             else
+             {
+-                int new_end;
++                long new_end;
+                 int i;
+                 GList *e;
+ 
+@@ -1076,7 +1076,7 @@
+                 GList *e;
+                 int i;
+                 int need_redraw = 0;
+-                int low = 4096;
++                long low = 4096;
+                 char *last_text = NULL;
+ 
+                 buff[bl++] = (char) parm;
+@@ -1233,7 +1233,7 @@
+                     h = LINES - start_y - 1;
+                 }
+             }
+-            x = start - in->term_first_shown - 2 + start_x;
++            x = (int) start - in->term_first_shown - 2 + start_x;
+             w = maxlen + 4;
+             if (x + w > COLS)
+                 x = COLS - w;
+@@ -1279,7 +1279,7 @@
+ 
+ /** Returns an array of matches, or NULL if none. */
+ char **
+-try_complete (char *text, int *lc_start, int *lc_end, input_complete_t flags)
++try_complete (char *text, long *lc_start, long *lc_end, input_complete_t flags)
+ {
+     try_complete_automation_state_t state;
+     char **matches = NULL;
+--- a/lib/lock.c
++++ b/lib/lock.c
+@@ -178,7 +178,7 @@
+ static char *
+ lock_get_info (const char *lockfname)
+ {
+-    int cnt;
++    ssize_t cnt;
+     static char buf[BUF_SIZE];
+ 
+     cnt = readlink (lockfname, buf, BUF_SIZE - 1);
+--- a/lib/charsets.c
++++ b/lib/charsets.c
+@@ -246,7 +246,7 @@
+ int
+ get_codepage_index (const char *id)
+ {
+-    size_t i;
++    guint i;
+     if (strcmp (id, OTHER_8BIT) == 0)
+         return -1;
+     if (codepages == NULL)
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -473,7 +473,7 @@
+     WDialog *h = DIALOG (w);
+     int i;
+     int f_pos;
+-    unsigned int id;
++    unsigned long id;
+ 
+     id = dlg_get_current_widget_id (h);
+ 
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -243,7 +243,7 @@
+ #else
+             /* Don't have mmap() :( Even more ugly :) */
+             char buf1[BUFSIZ], buf2[BUFSIZ];
+-            int n1, n2;
++            ssize_t n1, n2;
+             rotate_dash (TRUE);
+             do
+             {
+@@ -541,7 +541,7 @@
+ 
+ gboolean
+ view_file_at_line (const vfs_path_t * filename_vpath, gboolean plain_view, gboolean internal,
+-                   long start_line)
++                   int start_line)
+ {
+     gboolean ret = TRUE;
+ 
+@@ -580,7 +580,7 @@
+         char view_entry[BUF_TINY];
+ 
+         if (start_line > 0)
+-            g_snprintf (view_entry, sizeof (view_entry), "View:%ld", start_line);
++            g_snprintf (view_entry, sizeof (view_entry), "View:%d", start_line);
+         else
+             strcpy (view_entry, "View");
+ 
+@@ -1250,7 +1250,7 @@
+     {
+         char buffer[MC_MAXPATHLEN];
+         char *p = NULL;
+-        int i;
++        ssize_t i;
+         char *q;
+         vfs_path_t *p_vpath;
+ 
+@@ -1336,9 +1336,9 @@
+ get_random_hint (int force)
+ {
+     char *data, *result = NULL, *eop;
+-    int len;
++    size_t len;
+     int start;
+-    static int last_sec;
++    static long last_sec;
+     static struct timeval tv;
+     GIConv conv;
+ 
+@@ -1353,7 +1353,7 @@
+         return NULL;
+ 
+     /* get a random entry */
+-    srand (tv.tv_sec);
++    srand ((int)tv.tv_sec);
+     len = strlen (data);
+     start = rand () % (len - 1);
+ 
+--- a/src/filemanager/cmd.h
++++ b/src/filemanager/cmd.h
+@@ -44,7 +44,7 @@
+ void single_dirsize_cmd (void);
+ void dirsizes_cmd (void);
+ gboolean view_file_at_line (const vfs_path_t * filename_vpath, gboolean plain_view,
+-                            gboolean internal, long start_line);
++                            gboolean internal, int start_line);
+ gboolean view_file (const vfs_path_t * filename_vpath, gboolean normal, gboolean internal);
+ void view_cmd (void);
+ void view_file_cmd (void);
+--- a/src/filemanager/command.c
++++ b/src/filemanager/command.c
+@@ -374,7 +374,7 @@
+ void
+ do_cd_command (char *orig_cmd)
+ {
+-    int len;
++    ssize_t len;
+     int operand_pos = CD_OPERAND_OFFSET;
+     const char *cmd;
+ 
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -476,7 +476,7 @@
+     int bd = MY_ISDIR (b);
+ 
+     if (ad == bd || panels_options.mix_all_files)
+-        return (a->st.st_ino - b->st.st_ino) * reverse;
++        return (int)(a->st.st_ino - b->st.st_ino) * reverse;
+     else
+         return bd - ad;
+ }
+--- a/src/filemanager/ext.c
++++ b/src/filemanager/ext.c
+@@ -273,7 +273,7 @@
+                 parameter_found = TRUE;
+             else
+             {
+-                int i;
++                long i;
+                 char *v;
+ 
+                 i = check_format_view (lc_data);
+@@ -777,7 +777,7 @@
+     struct stat mystat;
+     int view_at_line_number;
+     char *include_target;
+-    int include_target_len;
++    size_t include_target_len;
+     gboolean have_type = FALSE; /* Flag used by regex_check_type() */
+ 
+     if (filename_vpath == NULL)
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -890,7 +889,7 @@
+         remain_bytes = ctx->progress_bytes - tctx->copied_bytes;
+ #if 1
+         {
+-            int total_secs = tv_current.tv_sec - tctx->transfer_start.tv_sec;
++            long total_secs = tv_current.tv_sec - tctx->transfer_start.tv_sec;
+ 
+             if (total_secs < 1)
+                 total_secs = 1;
+@@ -1484,7 +1483,7 @@
+     gid_t src_gid = (gid_t) (-1);
+ 
+     int src_desc, dest_desc = -1;
+-    int n_read, n_written;
++    ssize_t n_read, n_written;
+     mode_t src_mode = 0;        /* The mode of the source file */
+     struct stat sb, sb2;
+     struct utimbuf utb;
+@@ -1788,7 +1787,7 @@
+     {
+         off_t n_read_total = 0;
+         struct timeval tv_current, tv_last_update, tv_last_input;
+-        int secs, update_secs;
++        long secs, update_secs;
+         const char *stalled_msg = "";
+ 
+         tv_last_update = tv_transfer_start;
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -1170,7 +1170,7 @@
+                   gboolean only_one,
+                   const char *format, const void *text, const char *def_text, gboolean * do_bg)
+ {
+-    size_t fmd_xlen;
++    int fmd_xlen;
+     vfs_path_t *vpath;
+     int source_easy_patterns = easy_patterns;
+     char fmd_buf[BUF_MEDIUM];
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -966,7 +966,7 @@
+     {
+         int line = 1;
+         int pos = 0;
+-        int n_read = 0;
++        ssize_t n_read = 0;
+         gboolean found = FALSE;
+         gsize found_len;
+         char result[BUF_MEDIUM];
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -350,14 +350,15 @@
+     {
+         if (vfs_file_is_local (current->name))
+         {
+-            int i, common;
++            int i;
++            size_t common;
+ 
+             /* Clear-text compression */
+             if (current->prev && (common = str_common (current->prev->name, current->name)) > 2)
+             {
+                 char *encoded = encode (current->name, common);
+ 
+-                i = fprintf (file, "%d:%d %s\n", current->scanned, common, encoded);
++                i = fprintf (file, "%d:%ld %s\n", current->scanned, common, encoded);
+                 g_free (encoded);
+             }
+             else
+@@ -392,7 +393,7 @@
+     tree_entry *current = ts.tree_first;
+     tree_entry *old = NULL;
+     tree_entry *new;
+-    int submask = 0;
++    long submask = 0;
+ 
+     if (ts.tree_last && ts.tree_last->next)
+         abort ();
+--- a/src/vfs/sftpfs/vfs_class.c
++++ b/src/vfs/sftpfs/vfs_class.c
+@@ -429,7 +429,7 @@
+ static ssize_t
+ sftpfs_cb_read (void *data, char *buffer, size_t count)
+ {
+-    int rc;
++    ssize_t rc;
+     GError *mcerror = NULL;
+     vfs_file_handler_t *fh = (vfs_file_handler_t *) data;
+ 
+@@ -457,7 +457,7 @@
+ static ssize_t
+ sftpfs_cb_write (void *data, const char *buf, size_t nbyte)
+ {
+-    int rc;
++    ssize_t rc;
+     GError *mcerror = NULL;
+     vfs_file_handler_t *fh = (vfs_file_handler_t *) data;
+ 
+--- a/src/viewer/hex.c
++++ b/src/viewer/hex.c
+@@ -116,7 +116,7 @@
+     mark_t boldflag_char = MARK_NORMAL;
+     struct hexedit_change_node *curr = view->change_list;
+ #ifdef HAVE_CHARSET
+-    int cont_bytes = 0;         /* number of continuation bytes remanining from current UTF-8 */
++    long cont_bytes = 0;         /* number of continuation bytes remanining from current UTF-8 */
+     gboolean cjk_right = FALSE; /* whether the second byte of a CJK is to be processed */
+ #endif /* HAVE_CHARSET */
+     gboolean utf8_changed = FALSE;      /* whether any of the bytes in the UTF-8 were changed */
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -1683,7 +1683,7 @@
+                               long *col1, long *col2)
+ {
+     off_t cursor;
+-    int col;
++    long col;
+     off_t blocklen = -1, width = 0;
+     unsigned char *data;
+ 
+@@ -2357,7 +2357,7 @@
+         && spm1 != edit->undo_stack_bottom
+         && ((sp - 2) & edit->undo_stack_size_mask) != edit->undo_stack_bottom)
+     {
+-        int d;
++        long d;
+         if (edit->undo_stack[spm1] < 0)
+         {
+             d = edit->undo_stack[(sp - 2) & edit->undo_stack_size_mask];
+@@ -2436,7 +2436,7 @@
+         && spm1 != edit->redo_stack_bottom
+         && ((sp - 2) & edit->redo_stack_size_mask) != edit->redo_stack_bottom)
+     {
+-        int d;
++        long d;
+         if (edit->redo_stack[spm1] < 0)
+         {
+             d = edit->redo_stack[(sp - 2) & edit->redo_stack_size_mask];
+@@ -2967,7 +2967,7 @@
+             fake_half_tabs = HALF_TAB_SIZE * space_width;
+             if (fake_half_tabs != 0 && edit->curs_col % fake_half_tabs != 0)
+             {
+-                int q;
++                long q;
+ 
+                 q = edit->curs_col;
+                 edit->curs_col -= (edit->curs_col % fake_half_tabs);
+--- a/src/editor/etags.c
++++ b/src/editor/etags.c
+@@ -188,7 +188,7 @@
+     char *chekedstr = NULL;
+ 
+     int num = 0;                /* returned value */
+-    int pos;
++    size_t pos;
+     char *filename = NULL;
+ 
+     if (!match_func || !tagfile)
+--- a/src/editor/format.c
++++ b/src/editor/format.c
+@@ -298,7 +298,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ /** find the start of a word */
+ 
+-static inline int
++static inline off_t
+ word_start (unsigned char *t, off_t q, off_t size)
+ {
+     off_t i;
+--- a/src/editor/syntax.c
++++ b/src/editor/syntax.c
+@@ -254,7 +254,8 @@
+                        const char *whole_left, const char *whole_right, long line_start)
+ {
+     const unsigned char *p, *q;
+-    int c, d, j;
++    off_t j;
++    int c, d;
+ 
+     if (*text == '\0')
+         return -1;
+@@ -446,7 +447,7 @@
+             while (*(p = xx_strchr (edit, (unsigned char *) p + 1, c)) != '\0')
+             {
+                 syntax_keyword_t *k;
+-                int count;
++                long count;
+                 off_t e;
+ 
+                 count = p - r->keyword_first_chars;
+@@ -547,7 +548,7 @@
+         while (*(p = xx_strchr (edit, (unsigned char *) p + 1, c)) != '\0')
+         {
+             syntax_keyword_t *k;
+-            int count;
++            long count;
+             off_t e;
+ 
+             count = p - r->keyword_first_chars;
+@@ -1260,7 +1261,7 @@
+     FILE *f, *g = NULL;
+     char *args[1024], *l = NULL;
+     long line = 0;
+-    int result = 0;
++    long result = 0;
+     char *lib_file;
+     gboolean found = FALSE;
+ 
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -690,9 +690,7 @@
+         values = mc_config_get_string_list (cfg, section_name, *profile_keys, NULL);
+         if (values != NULL)
+         {
+-            int action;
+-
+-            action = keybind_lookup_action (*profile_keys);
++            long action = keybind_lookup_action (*profile_keys);
+             if (action > 0)
+             {
+                 gchar **curr_values;
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -462,7 +462,7 @@
+ feed_subshell (int how, int fail_on_error)
+ {
+     fd_set read_set;            /* For 'select' */
+-    int bytes;                  /* For the return value from 'read' */
++    ssize_t bytes;                  /* For the return value from 'read' */
+     int i;                      /* Loop counter */
+ 
+     struct timeval wtime;       /* Maximum time we wait for the subshell */
+--- a/src/background.c
++++ b/src/background.c
+@@ -348,7 +348,7 @@
+     }
+     else if (type == Return_String)
+     {
+-        int len;
++        size_t len;
+         char *resstr = NULL;
+ 
+         /* FIXME: string routines should also use the Foreground/Background
+--- a/lib/vfs/parse_ls_vga.c
++++ b/lib/vfs/parse_ls_vga.c
+@@ -80,7 +80,7 @@
+ static int
+ is_dos_date (const char *str)
+ {
+-    int len;
++    size_t len;
+ 
+     if (!str)
+         return 0;
+@@ -849,7 +849,7 @@
+ 
+     if (t)
+     {
+-        int p2 = strlen (t);
++        size_t p2 = strlen (t);
+         if ((--p2 > 0) && (t[p2] == '\r' || t[p2] == '\n'))
+             t[p2] = 0;
+         if ((--p2 > 0) && (t[p2] == '\r' || t[p2] == '\n'))
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -259,7 +259,7 @@
+     static char result[BUF_MEDIUM];
+     char *actual;
+     size_t remain;
+-    int ident = 0;
++    size_t ident = 0;
+     size_t length;
+     size_t pos = 0;
+ 
+@@ -282,7 +282,7 @@
+             break;
+         }
+ 
+-        if ((int) remain <= ident)
++        if (remain <= ident)
+             goto finally;
+         memset (actual, ' ', ident);
+         actual += ident;
+--- a/lib/strutil/strutilascii.c
++++ b/lib/strutil/strutilascii.c
+@@ -211,7 +211,7 @@
+     static char result[BUF_MEDIUM];
+     char *actual;
+     size_t remain;
+-    int ident = 0;
++    size_t ident = 0;
+     size_t length;
+     size_t pos = 0;
+ 
+@@ -235,7 +235,7 @@
+         }
+ 
+         /* add space before text */
+-        if ((int) remain <= ident)
++        if (remain <= ident)
+             goto finally;
+         memset (actual, ' ', ident);
+         actual += ident;
+--- a/lib/widget/menu.h
++++ b/lib/widget/menu.h
+@@ -34,7 +34,7 @@
+     gboolean is_active;         /* If the menubar is in use */
+     gboolean is_dropped;        /* If the menubar has dropped */
+     GList *menu;                /* The actual menus */
+-    size_t selected;            /* Selected menu on the top bar */
++    guint selected;            /* Selected menu on the top bar */
+     unsigned long previous_widget;      /* Selected widget ID before activating menu */
+ } WMenuBar;
+ 
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -235,10 +235,10 @@
+  *
+  * Result is -1 if the field is invalid (all blank, or nonoctal).
+  */
+-static long
++static int
+ tar_from_oct (int digs, char *where)
+ {
+-    long value;
++    int value;
+ 
+     while (isspace ((unsigned char) *where))
+     {                           /* Skip spaces */
+@@ -350,7 +350,7 @@
+ static union record *
+ tar_get_next_record (struct vfs_s_super *archive, int tard)
+ {
+-    int n;
++    ssize_t n;
+ 
+     (void) archive;
+ 
+--- a/lib/tty/tty-ncurses.c
++++ b/lib/tty/tty-ncurses.c
+@@ -127,7 +127,7 @@
+     struct mc_tty_lines_struct
+     {
+         const char *line;
+-        int line_code;
++        chtype line_code;
+     } const lines_codes[] = {
+         {"\342\224\230", ACS_LRCORNER}, /* ┌ */
+         {"\342\224\224", ACS_LLCORNER}, /* └ */
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -416,7 +416,7 @@
+ keybind_cmd_bind (GArray * keymap, const char *keybind, unsigned long action)
+ {
+     char *caption = NULL;
+-    long key;
++    int key;
+ 
+     key = lookup_key (keybind, &caption);
+     keymap_add (keymap, key, action, caption);
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1458,7 +1458,7 @@
+  * Return the code associated with the symbolic name keyname
+  */
+ 
+-long
++int
+ lookup_key (const char *name, char **label)
+ {
+     char **lc_keys, **p;
+@@ -1567,7 +1567,7 @@
+     if (use_meta != -1)
+         k = ALT (k);
+ 
+-    return (long) k;
++    return k;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+--- a/lib/tty/key.h
++++ b/lib/tty/key.h
+@@ -75,7 +75,7 @@
+ void init_key_input_fd (void);
+ void done_key (void);
+ 
+-long lookup_key (const char *name, char **label);
++int lookup_key (const char *name, char **label);
+ char *lookup_key_by_code (const int keycode);
+ /* mouse support */
+ int tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block);
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -619,7 +619,7 @@
+     char *section_name;
+     gchar **profile_keys, **keys;
+     char *valcopy, *value;
+-    long key_code;
++    int key_code;
+ 
+     if (terminal == NULL)
+         return;
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -395,7 +395,7 @@
+                 ERRNOR (ECONNRESET, FALSE);
+             if (strncmp (buffer, "### ", 4) == 0)
+                 break;
+-            SUP->host_flags = atol (buffer);
++            SUP->host_flags = atoi (buffer);
+         }
+         return TRUE;
+     }
+--- a/src/vfs/undelfs/undelfs.c
++++ b/src/vfs/undelfs/undelfs.c
+@@ -104,7 +104,7 @@
+ {
+     int f_index;                /* file index into delarray */
+     char *buf;
+-    int error_code;             /*  */
++    errcode_t error_code;             /*  */
+     off_t pos;                  /* file position */
+     off_t current;              /* used to determine current position in itereate */
+     gboolean finished;
+@@ -230,7 +230,8 @@
+ static int
+ undelfs_loaddel (void)
+ {
+-    int retval, count;
++    int count;
++    errcode_t retval;
+     ext2_ino_t ino;
+     struct ext2_inode inode;
+     ext2_inode_scan scan;
+@@ -252,13 +253,13 @@
+     retval = ext2fs_open_inode_scan (fs, 0, &scan);
+     if (retval != 0)
+     {
+-        message (D_ERROR, undelfserr, _("open_inode_scan: %d"), retval);
++        message (D_ERROR, undelfserr, _("open_inode_scan: %ld"), retval);
+         goto free_block_buf;
+     }
+     retval = ext2fs_get_next_inode (scan, &ino, &inode);
+     if (retval != 0)
+     {
+-        message (D_ERROR, undelfserr, _("while starting inode scan %d"), retval);
++        message (D_ERROR, undelfserr, _("while starting inode scan %ld"), retval);
+         goto error_out;
+     }
+     count = 0;
+@@ -280,7 +281,7 @@
+         retval = ext2fs_block_iterate (fs, ino, 0, block_buf, undelfs_lsdel_proc, &lsd);
+         if (retval)
+         {
+-            message (D_ERROR, undelfserr, _("while calling ext2_block_iterate %d"), retval);
++            message (D_ERROR, undelfserr, _("while calling ext2_block_iterate %ld"), retval);
+             goto next;
+         }
+         if (lsd.free_blocks && !lsd.bad_blocks)
+@@ -314,7 +315,7 @@
+         retval = ext2fs_get_next_inode (scan, &ino, &inode);
+         if (retval)
+         {
+-            message (D_ERROR, undelfserr, _("while doing inode scan %d"), retval);
++            message (D_ERROR, undelfserr, _("while doing inode scan %ld"), retval);
+             goto error_out;
+         }
+     }
+@@ -453,7 +454,7 @@
+         g_free (f);
+         return 0;
+     }
+-    inode = atol (f);
++    inode = atoi (f);
+ 
+     /* Search the file into delarray */
+     for (i = 0; i < (ext2_ino_t) num_delarray; i++)
+@@ -507,7 +508,7 @@
+ static int
+ undelfs_dump_read (ext2_filsys param_fs, blk_t * blocknr, int blockcnt, void *private)
+ {
+-    int copy_count;
++    size_t copy_count;
+     undelfs_file *p = (undelfs_file *) private;
+ 
+     if (blockcnt < 0)
+@@ -580,7 +581,7 @@
+ undelfs_read (void *vfs_info, char *buffer, size_t count)
+ {
+     undelfs_file *p = vfs_info;
+-    int retval;
++    errcode_t retval;
+ 
+     p->dest_buffer = buffer;
+     p->current = 0;
+@@ -605,10 +606,10 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static long
++static int
+ undelfs_getindex (char *path)
+ {
+-    ext2_ino_t inode = atol (path);
++    ext2_ino_t inode = atoi (path);
+     int i;
+ 
+     for (i = 0; i < num_delarray; i++)
+--- a/src/filemanager/usermenu.c
++++ b/src/filemanager/usermenu.c
+@@ -530,7 +530,7 @@
+         {
+             if (*commands == '%')
+             {
+-                int i = check_format_view (commands + 1);
++                long i = check_format_view (commands + 1);
+                 if (i)
+                 {
+                     commands += i;
+@@ -632,7 +632,7 @@
+  */
+ 
+ /* Returns how many characters we should advance if %view was found */
+-int
++long
+ check_format_view (const char *p)
+ {
+     const char *q = p;
+@@ -674,7 +674,7 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-int
++long
+ check_format_cd (const char *p)
+ {
+     return (strncmp (p, "cd", 2)) ? 0 : 3;
+@@ -685,7 +685,7 @@
+ /* Returns the number of skipped characters (zero on not found) */
+ /* V will be set to the expanded variable name */
+ 
+-int
++long
+ check_format_var (const char *p, char **v)
+ {
+     const char *q = p;
+diff -ruN a/src/filemanager/usermenu.h b/src/filemanager/usermenu.h
+--- a/src/filemanager/usermenu.h
++++ b/src/filemanager/usermenu.h
+@@ -21,9 +21,9 @@
+ 
+ gboolean user_menu_cmd (struct WEdit *edit_widget, const char *menu_file, int selected_entry);
+ char *expand_format (struct WEdit *edit_widget, char c, gboolean do_quote);
+-int check_format_view (const char *);
+-int check_format_var (const char *, char **);
+-int check_format_cd (const char *);
++long check_format_view (const char *);
++long check_format_var (const char *, char **);
++long check_format_cd (const char *);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+--- a/lib/vfs/vfs.c
++++ b/lib/vfs/vfs.c
+@@ -111,7 +111,7 @@
+  */
+ 
+ static estr_t
+-_vfs_translate_path (const char *path, int size, GIConv defcnv, GString * buffer)
++_vfs_translate_path (const char *path, long size, GIConv defcnv, GString * buffer)
+ {
+     estr_t state = ESTR_SUCCESS;
+ #ifdef HAVE_CHARSET
+@@ -129,7 +129,7 @@
+         char encoding[16];
+         const char *slash;
+         GIConv coder = INVALID_CONV;
+-        int ms;
++        long ms;
+ 
+         /* first must be translated part before #enc: */
+         ms = semi - path;

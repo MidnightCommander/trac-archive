@@ -1,0 +1,115 @@
+From 2eb4657106adaf6ba3dddb4950022c275e8dc2b8 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Fri, 15 Jan 2021 12:49:25 -0600
+Subject: [PATCH] Add CenterView action to mcedit.
+
+---
+ lib/keybind.c          |  1 +
+ lib/keybind.h          |  1 +
+ misc/mc.default.keymap |  1 +
+ src/editor/edit-impl.h |  1 +
+ src/editor/edit.c      | 20 ++++++++++++++++++++
+ src/keybind-defaults.c |  1 +
+ 6 files changed, 25 insertions(+)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index df3cbf110..8eafcabb1 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -64,6 +64,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (PageDown),
+     ADD_KEYMAP_NAME (HalfPageUp),
+     ADD_KEYMAP_NAME (HalfPageDown),
++    ADD_KEYMAP_NAME (CenterView),
+     ADD_KEYMAP_NAME (Top),
+     ADD_KEYMAP_NAME (Bottom),
+     ADD_KEYMAP_NAME (TopOnScreen),
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 817158412..453c6671b 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -55,6 +55,7 @@ enum
+     CK_PageDown,
+     CK_HalfPageUp,
+     CK_HalfPageDown,
++    CK_CenterView,
+     CK_Top,
+     CK_Bottom,
+     CK_TopOnScreen,
+diff --git a/misc/mc.default.keymap b/misc/mc.default.keymap
+index 2931ddd0a..4423424d0 100644
+--- a/misc/mc.default.keymap
++++ b/misc/mc.default.keymap
+@@ -118,6 +118,7 @@ MiddleOnScreen = alt-r
+ TopOnScreen = alt-g
+ PanelOtherSync = alt-i
+ SelectCodepage = alt-e
++CenterView = alt-shift-c
+ Top = alt-lt; home; a1
+ Bottom = alt-gt; end; c1
+ # Sort =
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 3ad04dbea..69f8c1683 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -233,6 +233,7 @@ void edit_save_size (WEdit * edit);
+ gboolean edit_handle_move_resize (WEdit * edit, long command);
+ void edit_toggle_fullscreen (WEdit * edit);
+ void edit_move_to_line (WEdit * e, long line);
++void edit_center_display (WEdit * e, long diff);
+ void edit_move_display (WEdit * e, long line);
+ void edit_word_wrap (WEdit * edit);
+ int edit_sort_cmd (WEdit * edit);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index edda1f832..b5bc81918 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3022,6 +3022,21 @@ edit_move_to_line (WEdit * e, long line)
+     edit_scroll_screen_over_cursor (e);
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++/** scroll window so that current line is in center; the diff is a relative offset from that
++  * position */
++
++void
++edit_center_display (WEdit * e, long diff)
++{
++    int center_line_diff = WIDGET(e)->lines/2 + diff, current_line = e->curs_row;
++
++    if (current_line < center_line_diff)
++        edit_scroll_upward (e, center_line_diff - current_line);
++    else
++        edit_scroll_downward (e, current_line - center_line_diff);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /** scroll window so that first visible line is 'line' */
+ 
+@@ -3765,6 +3780,11 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         }
+         break;
+ 
++    case CK_CenterView:
++        /* Center view at cursor line. */
++        edit_center_display(edit, 0);
++        break;
++
+     case CK_Top:
+     case CK_MarkToFileBegin:
+         edit_move_to_top (edit);
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 2972e5bbf..c3a8d2280 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -421,6 +421,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"Goto", "alt-l; alt-shift-l"},
+     {"Refresh", "ctrl-l"},
+     {"Shell", "ctrl-o"},
++    {"CenterView", "alt-shift-c"},
+     {"Top", "ctrl-home; ctrl-pgup; alt-lt"},
+     {"Bottom", "ctrl-end; ctrl-pgdn; alt-gt"},
+     {"TopOnScreen", "ctrl-pgup"},
+-- 
+2.28.0
+

@@ -1,0 +1,27 @@
+From 6a6c081d1490e8469ea10617a639b6cac2291e8d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 19 Feb 2016 21:12:55 +0000
+Subject: [PATCH] clipboard.c: cleanup Wcast-qual warning
+
+clipboard.c:200:31: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+         ret = mc_write (file, (char *) text, str_len);
+                               ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/clipboard.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/clipboard.c b/src/clipboard.c
+index 6c31492..ddc1ff7 100644
+--- a/src/clipboard.c
++++ b/src/clipboard.c
+@@ -197,7 +197,7 @@ clipboard_text_to_file (const gchar * event_group_name, const gchar * event_name
+     {
+         ssize_t ret;
+ 
+-        ret = mc_write (file, (char *) text, str_len);
++        ret = mc_write (file, text, str_len);
+         (void) ret;
+     }
+     mc_close (file);

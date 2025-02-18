@@ -1,0 +1,31 @@
+From 53246bf0bef70f6de39402fdcbd09755d6441b14 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 15:29:44 +0000
+Subject: [PATCH] viewer/dialogs.c: cleanup -Wcast-qual warning
+
+dialogs.c: In function 'mcview_dialog_search':
+dialogs.c:94:44: warning: to be safe all intermediate pointers in cast from 'gchar ** {aka char **}' to 'const char **' must be 'const' qualified [-Wcast-qual]
+                 QUICK_RADIO (num_of_types, (const char **) list_of_types,
+                                            ^
+../../lib/widget/quick.h:106:22: note: in definition of macro 'QUICK_RADIO'
+             .items = items_,                                                    \
+                      ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/dialogs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/viewer/dialogs.c b/src/viewer/dialogs.c
+index 844b9ae..b6933d6 100644
+--- a/src/viewer/dialogs.c
++++ b/src/viewer/dialogs.c
+@@ -91,7 +91,7 @@ mcview_dialog_search (WView * view)
+                                  NULL, FALSE, FALSE, INPUT_COMPLETE_NONE),
+             QUICK_SEPARATOR (TRUE),
+             QUICK_START_COLUMNS,
+-                QUICK_RADIO (num_of_types, (const char **) list_of_types,
++                QUICK_RADIO (num_of_types, (const char **)(void *) list_of_types,
+                              (int *) &mcview_search_options.type, NULL),
+             QUICK_NEXT_COLUMN,
+                 QUICK_CHECKBOX (N_("Cas&e sensitive"), &mcview_search_options.case_sens, NULL),

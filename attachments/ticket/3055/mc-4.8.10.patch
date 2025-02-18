@@ -1,0 +1,60 @@
+diff -crB mc-4.8.10/src/filemanager/midnight.c mc-4.8.10-b/src/filemanager/midnight.c
+*** mc-4.8.10/src/filemanager/midnight.c	Fri Aug  2 20:02:40 2013
+--- mc-4.8.10-b/src/filemanager/midnight.c	Tue Aug 13 15:30:43 2013
+***************
+*** 591,598 ****
+       *                                 right panel uses mc_run_param1
+       *
+       * 'mc dir1' (single argument):    mc_run_param0 != NULL, mc_run_param1 == NULL
+!      *                                 active panel uses current directory
+!      *                                 passive panel uses mc_run_param0
+       */
+  
+      /* Set up panel directories */
+--- 591,598 ----
+       *                                 right panel uses mc_run_param1
+       *
+       * 'mc dir1' (single argument):    mc_run_param0 != NULL, mc_run_param1 == NULL
+!      *                                 active panel uses mc_run_param0
+!      *                                 passive panel uses "other_dir" from ini
+       */
+  
+      /* Set up panel directories */
+***************
+*** 619,626 ****
+          else                    /* mc_run_param0 != NULL && mc_run_param1 == NULL */
+          {
+              /* one argument */
+!             current_dir = NULL; /* assume current dir */
+!             other_dir = (char *) mc_run_param0;
+          }
+      }
+      else
+--- 619,626 ----
+          else                    /* mc_run_param0 != NULL && mc_run_param1 == NULL */
+          {
+              /* one argument */
+!             current_dir = (char *) mc_run_param0;
+!             other_dir = saved_other_dir;        /* from ini */
+          }
+      }
+      else
+***************
+*** 646,653 ****
+          else                    /* mc_run_param0 != NULL && mc_run_param1 == NULL */
+          {
+              /* one argument */
+!             current_dir = NULL; /* assume current dir */ ;
+!             other_dir = (char *) mc_run_param0;
+          }
+      }
+  
+--- 646,653 ----
+          else                    /* mc_run_param0 != NULL && mc_run_param1 == NULL */
+          {
+              /* one argument */
+!             current_dir = (char *) mc_run_param0;
+!             other_dir = saved_other_dir;        /* from ini */
+          }
+      }
+  

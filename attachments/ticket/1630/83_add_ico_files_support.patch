@@ -1,0 +1,17 @@
+Description: Add ico files support
+Bug-Debian: http://bugs.debian.org/546737
+Author: Denis Briand <denis@narcan.fr>
+Index: mc-4.7.0-pre2~git20090919/misc/mc.ext.in
+===================================================================
+--- mc-4.7.0-pre2~git20090919.orig/misc/mc.ext.in	2009-09-20 13:33:17.000000000 +0200
++++ mc-4.7.0-pre2~git20090919/misc/mc.ext.in	2009-09-20 13:34:13.000000000 +0200
+@@ -378,6 +378,9 @@
+ 	Include=image
+ 	View=sxpm %f
+ 
++shell/.ico
++	Include=image
++
+ include/image
+ 	Open=(see %f &)
+ 	View=%view{ascii} identify %f

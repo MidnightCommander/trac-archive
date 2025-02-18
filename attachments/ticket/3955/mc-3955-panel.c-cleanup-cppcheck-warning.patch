@@ -1,0 +1,27 @@
+From 2304916204245af6616f37a9734d02cb1038f8b7 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 8 Jan 2019 06:47:59 +0000
+Subject: [PATCH] panel.c: Cleanup cppcheck style warning
+
+Found by cppcheck 1.81
+
+[src/filemanager/panel.c:4361]: (style) Variable 'err' is assigned a value that is never used.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/panel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 1662d9e3a..5d8a52ebe 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -4358,7 +4358,7 @@ panel_new_with_dir (const char *panel_name, const vfs_path_t * vpath)
+         vfs_path_t *tmp_vpath;
+ 
+         tmp_vpath = vfs_path_from_str (curdir);
+-        err = mc_chdir (tmp_vpath);
++        mc_chdir (tmp_vpath);
+         vfs_path_free (tmp_vpath);
+     }
+     g_free (curdir);

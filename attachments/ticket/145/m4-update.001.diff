@@ -1,0 +1,1148 @@
+diff --git a/ChangeLog b/ChangeLog
+index 291791f..e1fd9ba 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,9 @@
++
++2009-01-10  Enrico Weigelt, metux ITS <weigelt@metux.de>
++
++	* m4/*: updated several .m4 files to what gets changed by
++	  autogen.sh
++
+ 2008-12-18  Roland Illig  <roland.illig@gmx.de>
+ 
+ 	* doc/mcedit.1: Documented the newly added filename:lineno
+diff --git a/m4/codeset.m4 b/m4/codeset.m4
+index 223955b..a6e67ec 100644
+--- a/m4/codeset.m4
++++ b/m4/codeset.m4
+@@ -1,5 +1,5 @@
+-# codeset.m4 serial 2 (gettext-0.16)
+-dnl Copyright (C) 2000-2002, 2006 Free Software Foundation, Inc.
++# codeset.m4 serial AM1 (gettext-0.10.40)
++dnl Copyright (C) 2000-2002 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -10,7 +10,7 @@ AC_DEFUN([AM_LANGINFO_CODESET],
+ [
+   AC_CACHE_CHECK([for nl_langinfo and CODESET], am_cv_langinfo_codeset,
+     [AC_TRY_LINK([#include <langinfo.h>],
+-      [char* cs = nl_langinfo(CODESET); return !cs;],
++      [char* cs = nl_langinfo(CODESET);],
+       am_cv_langinfo_codeset=yes,
+       am_cv_langinfo_codeset=no)
+     ])
+diff --git a/m4/iconv.m4 b/m4/iconv.m4
+index 8e36b52..654c415 100644
+--- a/m4/iconv.m4
++++ b/m4/iconv.m4
+@@ -1,5 +1,5 @@
+-# iconv.m4 serial AM6 (gettext-0.16.2)
+-dnl Copyright (C) 2000-2002, 2007 Free Software Foundation, Inc.
++# iconv.m4 serial AM4 (gettext-0.11.3)
++dnl Copyright (C) 2000-2002 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -21,7 +21,6 @@ AC_DEFUN([AM_ICONV_LINK],
+ [
+   dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
+   dnl those with the standalone portable GNU libiconv installed).
+-  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+ 
+   dnl Search for libiconv and define LIBICONV, LTLIBICONV and INCICONV
+   dnl accordingly.
+@@ -34,7 +33,7 @@ AC_DEFUN([AM_ICONV_LINK],
+   am_save_CPPFLAGS="$CPPFLAGS"
+   AC_LIB_APPENDTOVAR([CPPFLAGS], [$INCICONV])
+ 
+-  AC_CACHE_CHECK([for iconv], am_cv_func_iconv, [
++  AC_CACHE_CHECK(for iconv, am_cv_func_iconv, [
+     am_cv_func_iconv="no, consider installing GNU libiconv"
+     am_cv_lib_iconv=no
+     AC_TRY_LINK([#include <stdlib.h>
+@@ -57,85 +56,7 @@ AC_DEFUN([AM_ICONV_LINK],
+     fi
+   ])
+   if test "$am_cv_func_iconv" = yes; then
+-    AC_CACHE_CHECK([for working iconv], am_cv_func_iconv_works, [
+-      dnl This tests against bugs in AIX 5.1 and HP-UX 11.11.
+-      am_save_LIBS="$LIBS"
+-      if test $am_cv_lib_iconv = yes; then
+-        LIBS="$LIBS $LIBICONV"
+-      fi
+-      AC_TRY_RUN([
+-#include <iconv.h>
+-#include <string.h>
+-int main ()
+-{
+-  /* Test against AIX 5.1 bug: Failures are not distinguishable from successful
+-     returns.  */
+-  {
+-    iconv_t cd_utf8_to_88591 = iconv_open ("ISO8859-1", "UTF-8");
+-    if (cd_utf8_to_88591 != (iconv_t)(-1))
+-      {
+-        static const char input[] = "\342\202\254"; /* EURO SIGN */
+-        char buf[10];
+-        const char *inptr = input;
+-        size_t inbytesleft = strlen (input);
+-        char *outptr = buf;
+-        size_t outbytesleft = sizeof (buf);
+-        size_t res = iconv (cd_utf8_to_88591,
+-                            (char **) &inptr, &inbytesleft,
+-                            &outptr, &outbytesleft);
+-        if (res == 0)
+-          return 1;
+-      }
+-  }
+-#if 0 /* This bug could be worked around by the caller.  */
+-  /* Test against HP-UX 11.11 bug: Positive return value instead of 0.  */
+-  {
+-    iconv_t cd_88591_to_utf8 = iconv_open ("utf8", "iso88591");
+-    if (cd_88591_to_utf8 != (iconv_t)(-1))
+-      {
+-        static const char input[] = "\304rger mit b\366sen B\374bchen ohne Augenma\337";
+-        char buf[50];
+-        const char *inptr = input;
+-        size_t inbytesleft = strlen (input);
+-        char *outptr = buf;
+-        size_t outbytesleft = sizeof (buf);
+-        size_t res = iconv (cd_88591_to_utf8,
+-                            (char **) &inptr, &inbytesleft,
+-                            &outptr, &outbytesleft);
+-        if ((int)res > 0)
+-          return 1;
+-      }
+-  }
+-#endif
+-  /* Test against HP-UX 11.11 bug: No converter from EUC-JP to UTF-8 is
+-     provided.  */
+-  if (/* Try standardized names.  */
+-      iconv_open ("UTF-8", "EUC-JP") == (iconv_t)(-1)
+-      /* Try IRIX, OSF/1 names.  */
+-      && iconv_open ("UTF-8", "eucJP") == (iconv_t)(-1)
+-      /* Try AIX names.  */
+-      && iconv_open ("UTF-8", "IBM-eucJP") == (iconv_t)(-1)
+-      /* Try HP-UX names.  */
+-      && iconv_open ("utf8", "eucJP") == (iconv_t)(-1))
+-    return 1;
+-  return 0;
+-}], [am_cv_func_iconv_works=yes], [am_cv_func_iconv_works=no],
+-        [case "$host_os" in
+-           aix* | hpux*) am_cv_func_iconv_works="guessing no" ;;
+-           *)            am_cv_func_iconv_works="guessing yes" ;;
+-         esac])
+-      LIBS="$am_save_LIBS"
+-    ])
+-    case "$am_cv_func_iconv_works" in
+-      *no) am_func_iconv=no am_cv_lib_iconv=no ;;
+-      *)   am_func_iconv=yes ;;
+-    esac
+-  else
+-    am_func_iconv=no am_cv_lib_iconv=no
+-  fi
+-  if test "$am_func_iconv" = yes; then
+-    AC_DEFINE(HAVE_ICONV, 1,
+-      [Define if you have the iconv() function and it works.])
++    AC_DEFINE(HAVE_ICONV, 1, [Define if you have the iconv() function.])
+   fi
+   if test "$am_cv_lib_iconv" = yes; then
+     AC_MSG_CHECKING([how to link with libiconv])
+diff --git a/m4/intdiv0.m4 b/m4/intdiv0.m4
+index 534134a..b8d7817 100644
+--- a/m4/intdiv0.m4
++++ b/m4/intdiv0.m4
+@@ -1,5 +1,5 @@
+-# intdiv0.m4 serial 2 (gettext-0.16.2)
+-dnl Copyright (C) 2002, 2007 Free Software Foundation, Inc.
++# intdiv0.m4 serial 1 (gettext-0.11.3)
++dnl Copyright (C) 2002 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -14,27 +14,16 @@ AC_DEFUN([gt_INTDIV0],
+   AC_CACHE_CHECK([whether integer division by zero raises SIGFPE],
+     gt_cv_int_divbyzero_sigfpe,
+     [
+-      gt_cv_int_divbyzero_sigfpe=
+-changequote(,)dnl
+-      case "$host_os" in
+-        macos* | darwin[6-9]* | darwin[1-9][0-9]*)
+-          # On MacOS X 10.2 or newer, just assume the same as when cross-
+-          # compiling. If we were to perform the real test, 1 Crash Report
+-          # dialog window would pop up.
+-          case "$host_cpu" in
+-            i[34567]86 | x86_64)
+-              gt_cv_int_divbyzero_sigfpe="guessing yes" ;;
+-          esac
+-          ;;
+-      esac
+-changequote([,])dnl
+-      if test -z "$gt_cv_int_divbyzero_sigfpe"; then
+-        AC_TRY_RUN([
++      AC_TRY_RUN([
+ #include <stdlib.h>
+ #include <signal.h>
+ 
+ static void
++#ifdef __cplusplus
+ sigfpe_handler (int sig)
++#else
++sigfpe_handler (sig) int sig;
++#endif
+ {
+   /* Exit with code 0 if SIGFPE, with code 1 if any other signal.  */
+   exit (sig != SIGFPE);
+@@ -62,18 +51,15 @@ int main ()
+   exit (1);
+ }
+ ], gt_cv_int_divbyzero_sigfpe=yes, gt_cv_int_divbyzero_sigfpe=no,
+-          [
+-            # Guess based on the CPU.
+-changequote(,)dnl
+-            case "$host_cpu" in
+-              alpha* | i[34567]86 | x86_64 | m68k | s390*)
+-                gt_cv_int_divbyzero_sigfpe="guessing yes";;
+-              *)
+-                gt_cv_int_divbyzero_sigfpe="guessing no";;
+-            esac
+-changequote([,])dnl
+-          ])
+-      fi
++        [
++          # Guess based on the CPU.
++          case "$host_cpu" in
++            alpha* | i[34567]86 | m68k | s390*)
++              gt_cv_int_divbyzero_sigfpe="guessing yes";;
++            *)
++              gt_cv_int_divbyzero_sigfpe="guessing no";;
++          esac
++        ])
+     ])
+   case "$gt_cv_int_divbyzero_sigfpe" in
+     *yes) value=1;;
+diff --git a/m4/intmax.m4 b/m4/intmax.m4
+index ce7a8a4..d99c999 100644
+--- a/m4/intmax.m4
++++ b/m4/intmax.m4
+@@ -1,4 +1,4 @@
+-# intmax.m4 serial 3 (gettext-0.16)
++# intmax.m4 serial 2 (gettext-0.14.2)
+ dnl Copyright (C) 2002-2005 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+@@ -22,10 +22,7 @@ AC_DEFUN([gt_TYPE_INTMAX_T],
+ #if HAVE_INTTYPES_H_WITH_UINTMAX
+ #include <inttypes.h>
+ #endif
+-],     [intmax_t x = -1;
+-        return !x;],
+-       gt_cv_c_intmax_t=yes,
+-       gt_cv_c_intmax_t=no)])
++], [intmax_t x = -1;], gt_cv_c_intmax_t=yes, gt_cv_c_intmax_t=no)])
+   if test $gt_cv_c_intmax_t = yes; then
+     AC_DEFINE(HAVE_INTMAX_T, 1,
+       [Define if you have the 'intmax_t' type in <stdint.h> or <inttypes.h>.])
+diff --git a/m4/inttypes-pri.m4 b/m4/inttypes-pri.m4
+index 7c7f894..4d56a9a 100644
+--- a/m4/inttypes-pri.m4
++++ b/m4/inttypes-pri.m4
+@@ -1,20 +1,18 @@
+-# inttypes-pri.m4 serial 4 (gettext-0.16)
+-dnl Copyright (C) 1997-2002, 2006 Free Software Foundation, Inc.
++# inttypes-pri.m4 serial 1 (gettext-0.11.4)
++dnl Copyright (C) 1997-2002 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+ 
+ dnl From Bruno Haible.
+ 
+-AC_PREREQ(2.52)
+-
+ # Define PRI_MACROS_BROKEN if <inttypes.h> exists and defines the PRI*
+ # macros to non-string values.  This is the case on AIX 4.3.3.
+ 
+ AC_DEFUN([gt_INTTYPES_PRI],
+ [
+-  AC_CHECK_HEADERS([inttypes.h])
+-  if test $ac_cv_header_inttypes_h = yes; then
++  AC_REQUIRE([gt_HEADER_INTTYPES_H])
++  if test $gt_cv_header_inttypes_h = yes; then
+     AC_CACHE_CHECK([whether the inttypes.h PRIxNN macros are broken],
+       gt_cv_inttypes_pri_broken,
+       [
+@@ -28,9 +26,5 @@ char *p = PRId32;
+   if test "$gt_cv_inttypes_pri_broken" = yes; then
+     AC_DEFINE_UNQUOTED(PRI_MACROS_BROKEN, 1,
+       [Define if <inttypes.h> exists and defines unusable PRI* macros.])
+-    PRI_MACROS_BROKEN=1
+-  else
+-    PRI_MACROS_BROKEN=0
+   fi
+-  AC_SUBST([PRI_MACROS_BROKEN])
+ ])
+diff --git a/m4/inttypes_h.m4 b/m4/inttypes_h.m4
+index edc8ecb..a5d075d 100644
+--- a/m4/inttypes_h.m4
++++ b/m4/inttypes_h.m4
+@@ -1,5 +1,5 @@
+-# inttypes_h.m4 serial 7
+-dnl Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
++# inttypes_h.m4 serial 6
++dnl Copyright (C) 1997-2004 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -15,7 +15,7 @@ AC_DEFUN([gl_AC_HEADER_INTTYPES_H],
+   [AC_TRY_COMPILE(
+     [#include <sys/types.h>
+ #include <inttypes.h>],
+-    [uintmax_t i = (uintmax_t) -1; return !i;],
++    [uintmax_t i = (uintmax_t) -1;],
+     gl_cv_header_inttypes_h=yes,
+     gl_cv_header_inttypes_h=no)])
+   if test $gl_cv_header_inttypes_h = yes; then
+diff --git a/m4/lib-link.m4 b/m4/lib-link.m4
+index f157d98..ea0b0c4 100644
+--- a/m4/lib-link.m4
++++ b/m4/lib-link.m4
+@@ -1,19 +1,17 @@
+-# lib-link.m4 serial 13 (gettext-0.16.2)
+-dnl Copyright (C) 2001-2007 Free Software Foundation, Inc.
++# lib-link.m4 serial 6 (gettext-0.14.3)
++dnl Copyright (C) 2001-2005 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+ 
+ dnl From Bruno Haible.
+ 
+-AC_PREREQ(2.54)
++AC_PREREQ(2.50)
+ 
+ dnl AC_LIB_LINKFLAGS(name [, dependencies]) searches for libname and
+ dnl the libraries corresponding to explicit and implicit dependencies.
+ dnl Sets and AC_SUBSTs the LIB${NAME} and LTLIB${NAME} variables and
+ dnl augments the CPPFLAGS variable.
+-dnl Sets and AC_SUBSTs the LIB${NAME}_PREFIX variable to nonempty if libname
+-dnl was found in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
+ AC_DEFUN([AC_LIB_LINKFLAGS],
+ [
+   AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
+@@ -26,16 +24,13 @@ AC_DEFUN([AC_LIB_LINKFLAGS],
+     ac_cv_lib[]Name[]_libs="$LIB[]NAME"
+     ac_cv_lib[]Name[]_ltlibs="$LTLIB[]NAME"
+     ac_cv_lib[]Name[]_cppflags="$INC[]NAME"
+-    ac_cv_lib[]Name[]_prefix="$LIB[]NAME[]_PREFIX"
+   ])
+   LIB[]NAME="$ac_cv_lib[]Name[]_libs"
+   LTLIB[]NAME="$ac_cv_lib[]Name[]_ltlibs"
+   INC[]NAME="$ac_cv_lib[]Name[]_cppflags"
+-  LIB[]NAME[]_PREFIX="$ac_cv_lib[]Name[]_prefix"
+   AC_LIB_APPENDTOVAR([CPPFLAGS], [$INC]NAME)
+   AC_SUBST([LIB]NAME)
+   AC_SUBST([LTLIB]NAME)
+-  AC_SUBST([LIB]NAME[_PREFIX])
+   dnl Also set HAVE_LIB[]NAME so that AC_LIB_HAVE_LINKFLAGS can reuse the
+   dnl results of this search when this library appears as a dependency.
+   HAVE_LIB[]NAME=yes
+@@ -51,8 +46,6 @@ dnl sets and AC_SUBSTs HAVE_LIB${NAME}=yes and the LIB${NAME} and
+ dnl LTLIB${NAME} variables and augments the CPPFLAGS variable, and
+ dnl #defines HAVE_LIB${NAME} to 1. Otherwise, it sets and AC_SUBSTs
+ dnl HAVE_LIB${NAME}=no and LIB${NAME} and LTLIB${NAME} to empty.
+-dnl Sets and AC_SUBSTs the LIB${NAME}_PREFIX variable to nonempty if libname
+-dnl was found in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
+ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
+ [
+   AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
+@@ -89,23 +82,17 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
+     CPPFLAGS="$ac_save_CPPFLAGS"
+     LIB[]NAME=
+     LTLIB[]NAME=
+-    LIB[]NAME[]_PREFIX=
+   fi
+   AC_SUBST([HAVE_LIB]NAME)
+   AC_SUBST([LIB]NAME)
+   AC_SUBST([LTLIB]NAME)
+-  AC_SUBST([LIB]NAME[_PREFIX])
+   undefine([Name])
+   undefine([NAME])
+ ])
+ 
+ dnl Determine the platform dependent parameters needed to use rpath:
+-dnl   acl_libext,
+-dnl   acl_shlibext,
+-dnl   acl_hardcode_libdir_flag_spec,
+-dnl   acl_hardcode_libdir_separator,
+-dnl   acl_hardcode_direct,
+-dnl   acl_hardcode_minus_L.
++dnl libext, shlibext, hardcode_libdir_flag_spec, hardcode_libdir_separator,
++dnl hardcode_direct, hardcode_minus_L.
+ AC_DEFUN([AC_LIB_RPATH],
+ [
+   dnl Tell automake >= 1.10 to complain if config.rpath is missing.
+@@ -122,14 +109,12 @@ AC_DEFUN([AC_LIB_RPATH],
+     acl_cv_rpath=done
+   ])
+   wl="$acl_cv_wl"
+-  acl_libext="$acl_cv_libext"
+-  acl_shlibext="$acl_cv_shlibext"
+-  acl_libname_spec="$acl_cv_libname_spec"
+-  acl_library_names_spec="$acl_cv_library_names_spec"
+-  acl_hardcode_libdir_flag_spec="$acl_cv_hardcode_libdir_flag_spec"
+-  acl_hardcode_libdir_separator="$acl_cv_hardcode_libdir_separator"
+-  acl_hardcode_direct="$acl_cv_hardcode_direct"
+-  acl_hardcode_minus_L="$acl_cv_hardcode_minus_L"
++  libext="$acl_cv_libext"
++  shlibext="$acl_cv_shlibext"
++  hardcode_libdir_flag_spec="$acl_cv_hardcode_libdir_flag_spec"
++  hardcode_libdir_separator="$acl_cv_hardcode_libdir_separator"
++  hardcode_direct="$acl_cv_hardcode_direct"
++  hardcode_minus_L="$acl_cv_hardcode_minus_L"
+   dnl Determine whether the user wants rpath handling at all.
+   AC_ARG_ENABLE(rpath,
+     [  --disable-rpath         do not hardcode runtime library paths],
+@@ -139,24 +124,19 @@ AC_DEFUN([AC_LIB_RPATH],
+ dnl AC_LIB_LINKFLAGS_BODY(name [, dependencies]) searches for libname and
+ dnl the libraries corresponding to explicit and implicit dependencies.
+ dnl Sets the LIB${NAME}, LTLIB${NAME} and INC${NAME} variables.
+-dnl Also, sets the LIB${NAME}_PREFIX variable to nonempty if libname was found
+-dnl in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
+ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+ [
+-  AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
+   define([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
+                                [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
+-  dnl Autoconf >= 2.61 supports dots in --with options.
+-  define([N_A_M_E],[m4_if(m4_version_compare(m4_defn([m4_PACKAGE_VERSION]),[2.61]),[-1],[translit([$1],[.],[_])],[$1])])
+   dnl By default, look in $includedir and $libdir.
+   use_additional=yes
+   AC_LIB_WITH_FINAL_PREFIX([
+     eval additional_includedir=\"$includedir\"
+     eval additional_libdir=\"$libdir\"
+   ])
+-  AC_LIB_ARG_WITH([lib]N_A_M_E[-prefix],
+-[  --with-lib]N_A_M_E[-prefix[=DIR]  search for lib$1 in DIR/include and DIR/lib
+-  --without-lib]N_A_M_E[-prefix     don't search for lib$1 in includedir and libdir],
++  AC_LIB_ARG_WITH([lib$1-prefix],
++[  --with-lib$1-prefix[=DIR]  search for lib$1 in DIR/include and DIR/lib
++  --without-lib$1-prefix     don't search for lib$1 in includedir and libdir],
+ [
+     if test "X$withval" = "Xno"; then
+       use_additional=no
+@@ -168,7 +148,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+         ])
+       else
+         additional_includedir="$withval/include"
+-        additional_libdir="$withval/$acl_libdirstem"
++        additional_libdir="$withval/lib"
+       fi
+     fi
+ ])
+@@ -177,7 +157,6 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+   LIB[]NAME=
+   LTLIB[]NAME=
+   INC[]NAME=
+-  LIB[]NAME[]_PREFIX=
+   rpathdirs=
+   ltrpathdirs=
+   names_already_handled=
+@@ -217,53 +196,20 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+           found_la=
+           found_so=
+           found_a=
+-          eval libname=\"$acl_libname_spec\"    # typically: libname=lib$name
+-          if test -n "$acl_shlibext"; then
+-            shrext=".$acl_shlibext"             # typically: shrext=.so
+-          else
+-            shrext=
+-          fi
+           if test $use_additional = yes; then
+-            dir="$additional_libdir"
+-            dnl The same code as in the loop below:
+-            dnl First look for a shared library.
+-            if test -n "$acl_shlibext"; then
+-              if test -f "$dir/$libname$shrext"; then
+-                found_dir="$dir"
+-                found_so="$dir/$libname$shrext"
+-              else
+-                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
+-                  ver=`(cd "$dir" && \
+-                        for f in "$libname$shrext".*; do echo "$f"; done \
+-                        | sed -e "s,^$libname$shrext\\\\.,," \
+-                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
+-                        | sed 1q ) 2>/dev/null`
+-                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
+-                    found_dir="$dir"
+-                    found_so="$dir/$libname$shrext.$ver"
+-                  fi
+-                else
+-                  eval library_names=\"$acl_library_names_spec\"
+-                  for f in $library_names; do
+-                    if test -f "$dir/$f"; then
+-                      found_dir="$dir"
+-                      found_so="$dir/$f"
+-                      break
+-                    fi
+-                  done
+-                fi
++            if test -n "$shlibext" && test -f "$additional_libdir/lib$name.$shlibext"; then
++              found_dir="$additional_libdir"
++              found_so="$additional_libdir/lib$name.$shlibext"
++              if test -f "$additional_libdir/lib$name.la"; then
++                found_la="$additional_libdir/lib$name.la"
+               fi
+-            fi
+-            dnl Then look for a static library.
+-            if test "X$found_dir" = "X"; then
+-              if test -f "$dir/$libname.$acl_libext"; then
+-                found_dir="$dir"
+-                found_a="$dir/$libname.$acl_libext"
+-              fi
+-            fi
+-            if test "X$found_dir" != "X"; then
+-              if test -f "$dir/$libname.la"; then
+-                found_la="$dir/$libname.la"
++            else
++              if test -f "$additional_libdir/lib$name.$libext"; then
++                found_dir="$additional_libdir"
++                found_a="$additional_libdir/lib$name.$libext"
++                if test -f "$additional_libdir/lib$name.la"; then
++                  found_la="$additional_libdir/lib$name.la"
++                fi
+               fi
+             fi
+           fi
+@@ -273,44 +219,19 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+               case "$x" in
+                 -L*)
+                   dir=`echo "X$x" | sed -e 's/^X-L//'`
+-                  dnl First look for a shared library.
+-                  if test -n "$acl_shlibext"; then
+-                    if test -f "$dir/$libname$shrext"; then
+-                      found_dir="$dir"
+-                      found_so="$dir/$libname$shrext"
+-                    else
+-                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
+-                        ver=`(cd "$dir" && \
+-                              for f in "$libname$shrext".*; do echo "$f"; done \
+-                              | sed -e "s,^$libname$shrext\\\\.,," \
+-                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
+-                              | sed 1q ) 2>/dev/null`
+-                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
+-                          found_dir="$dir"
+-                          found_so="$dir/$libname$shrext.$ver"
+-                        fi
+-                      else
+-                        eval library_names=\"$acl_library_names_spec\"
+-                        for f in $library_names; do
+-                          if test -f "$dir/$f"; then
+-                            found_dir="$dir"
+-                            found_so="$dir/$f"
+-                            break
+-                          fi
+-                        done
+-                      fi
++                  if test -n "$shlibext" && test -f "$dir/lib$name.$shlibext"; then
++                    found_dir="$dir"
++                    found_so="$dir/lib$name.$shlibext"
++                    if test -f "$dir/lib$name.la"; then
++                      found_la="$dir/lib$name.la"
+                     fi
+-                  fi
+-                  dnl Then look for a static library.
+-                  if test "X$found_dir" = "X"; then
+-                    if test -f "$dir/$libname.$acl_libext"; then
++                  else
++                    if test -f "$dir/lib$name.$libext"; then
+                       found_dir="$dir"
+-                      found_a="$dir/$libname.$acl_libext"
+-                    fi
+-                  fi
+-                  if test "X$found_dir" != "X"; then
+-                    if test -f "$dir/$libname.la"; then
+-                      found_la="$dir/$libname.la"
++                      found_a="$dir/lib$name.$libext"
++                      if test -f "$dir/lib$name.la"; then
++                        found_la="$dir/lib$name.la"
++                      fi
+                     fi
+                   fi
+                   ;;
+@@ -327,7 +248,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+               dnl Linking with a shared library. We attempt to hardcode its
+               dnl directory into the executable's runpath, unless it's the
+               dnl standard /usr/lib.
+-              if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
++              if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/lib"; then
+                 dnl No hardcoding is needed.
+                 LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+               else
+@@ -346,12 +267,12 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+                   ltrpathdirs="$ltrpathdirs $found_dir"
+                 fi
+                 dnl The hardcoding into $LIBNAME is system dependent.
+-                if test "$acl_hardcode_direct" = yes; then
++                if test "$hardcode_direct" = yes; then
+                   dnl Using DIR/libNAME.so during linking hardcodes DIR into the
+                   dnl resulting binary.
+                   LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+                 else
+-                  if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
++                  if test -n "$hardcode_libdir_flag_spec" && test "$hardcode_minus_L" = no; then
+                     dnl Use an explicit option to hardcode DIR into the resulting
+                     dnl binary.
+                     LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+@@ -382,13 +303,13 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+                     if test -z "$haveit"; then
+                       LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }-L$found_dir"
+                     fi
+-                    if test "$acl_hardcode_minus_L" != no; then
++                    if test "$hardcode_minus_L" != no; then
+                       dnl FIXME: Not sure whether we should use
+                       dnl "-L$found_dir -l$name" or "-L$found_dir $found_so"
+                       dnl here.
+                       LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+                     else
+-                      dnl We cannot use $acl_hardcode_runpath_var and LD_RUN_PATH
++                      dnl We cannot use $hardcode_runpath_var and LD_RUN_PATH
+                       dnl here, because this doesn't fit in flags passed to the
+                       dnl compiler. So give up. No hardcoding. This affects only
+                       dnl very old systems.
+@@ -413,9 +334,8 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+             dnl Assume the include files are nearby.
+             additional_includedir=
+             case "$found_dir" in
+-              */$acl_libdirstem | */$acl_libdirstem/)
+-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
+-                LIB[]NAME[]_PREFIX="$basedir"
++              */lib | */lib/)
++                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e 's,/lib/*$,,'`
+                 additional_includedir="$basedir/include"
+                 ;;
+             esac
+@@ -476,9 +396,9 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+                     dnl   3. if it's already present in $LDFLAGS or the already
+                     dnl      constructed $LIBNAME,
+                     dnl   4. if it doesn't exist as a directory.
+-                    if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
++                    if test "X$additional_libdir" != "X/usr/lib"; then
+                       haveit=
+-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
++                      if test "X$additional_libdir" = "X/usr/local/lib"; then
+                         if test -n "$GCC"; then
+                           case $host_os in
+                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
+@@ -577,18 +497,18 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+     done
+   done
+   if test "X$rpathdirs" != "X"; then
+-    if test -n "$acl_hardcode_libdir_separator"; then
++    if test -n "$hardcode_libdir_separator"; then
+       dnl Weird platform: only the last -rpath option counts, the user must
+       dnl pass all path elements in one option. We can arrange that for a
+       dnl single library, but not when more than one $LIBNAMEs are used.
+       alldirs=
+       for found_dir in $rpathdirs; do
+-        alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$found_dir"
++        alldirs="${alldirs}${alldirs:+$hardcode_libdir_separator}$found_dir"
+       done
+-      dnl Note: acl_hardcode_libdir_flag_spec uses $libdir and $wl.
++      dnl Note: hardcode_libdir_flag_spec uses $libdir and $wl.
+       acl_save_libdir="$libdir"
+       libdir="$alldirs"
+-      eval flag=\"$acl_hardcode_libdir_flag_spec\"
++      eval flag=\"$hardcode_libdir_flag_spec\"
+       libdir="$acl_save_libdir"
+       LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$flag"
+     else
+@@ -596,7 +516,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+       for found_dir in $rpathdirs; do
+         acl_save_libdir="$libdir"
+         libdir="$found_dir"
+-        eval flag=\"$acl_hardcode_libdir_flag_spec\"
++        eval flag=\"$hardcode_libdir_flag_spec\"
+         libdir="$acl_save_libdir"
+         LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$flag"
+       done
+@@ -631,79 +551,3 @@ AC_DEFUN([AC_LIB_APPENDTOVAR],
+     fi
+   done
+ ])
+-
+-dnl For those cases where a variable contains several -L and -l options
+-dnl referring to unknown libraries and directories, this macro determines the
+-dnl necessary additional linker options for the runtime path.
+-dnl AC_LIB_LINKFLAGS_FROM_LIBS([LDADDVAR], [LIBSVALUE], [USE-LIBTOOL])
+-dnl sets LDADDVAR to linker options needed together with LIBSVALUE.
+-dnl If USE-LIBTOOL evaluates to non-empty, linking with libtool is assumed,
+-dnl otherwise linking without libtool is assumed.
+-AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
+-[
+-  AC_REQUIRE([AC_LIB_RPATH])
+-  AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
+-  $1=
+-  if test "$enable_rpath" != no; then
+-    if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
+-      dnl Use an explicit option to hardcode directories into the resulting
+-      dnl binary.
+-      rpathdirs=
+-      next=
+-      for opt in $2; do
+-        if test -n "$next"; then
+-          dir="$next"
+-          dnl No need to hardcode the standard /usr/lib.
+-          if test "X$dir" != "X/usr/$acl_libdirstem"; then
+-            rpathdirs="$rpathdirs $dir"
+-          fi
+-          next=
+-        else
+-          case $opt in
+-            -L) next=yes ;;
+-            -L*) dir=`echo "X$opt" | sed -e 's,^X-L,,'`
+-                 dnl No need to hardcode the standard /usr/lib.
+-                 if test "X$dir" != "X/usr/$acl_libdirstem"; then
+-                   rpathdirs="$rpathdirs $dir"
+-                 fi
+-                 next= ;;
+-            *) next= ;;
+-          esac
+-        fi
+-      done
+-      if test "X$rpathdirs" != "X"; then
+-        if test -n ""$3""; then
+-          dnl libtool is used for linking. Use -R options.
+-          for dir in $rpathdirs; do
+-            $1="${$1}${$1:+ }-R$dir"
+-          done
+-        else
+-          dnl The linker is used for linking directly.
+-          if test -n "$acl_hardcode_libdir_separator"; then
+-            dnl Weird platform: only the last -rpath option counts, the user
+-            dnl must pass all path elements in one option.
+-            alldirs=
+-            for dir in $rpathdirs; do
+-              alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$dir"
+-            done
+-            acl_save_libdir="$libdir"
+-            libdir="$alldirs"
+-            eval flag=\"$acl_hardcode_libdir_flag_spec\"
+-            libdir="$acl_save_libdir"
+-            $1="$flag"
+-          else
+-            dnl The -rpath options are cumulative.
+-            for dir in $rpathdirs; do
+-              acl_save_libdir="$libdir"
+-              libdir="$dir"
+-              eval flag=\"$acl_hardcode_libdir_flag_spec\"
+-              libdir="$acl_save_libdir"
+-              $1="${$1}${$1:+ }$flag"
+-            done
+-          fi
+-        fi
+-      fi
+-    fi
+-  fi
+-  AC_SUBST([$1])
+-])
+diff --git a/m4/lib-prefix.m4 b/m4/lib-prefix.m4
+index a8684e1..0d895ca 100644
+--- a/m4/lib-prefix.m4
++++ b/m4/lib-prefix.m4
+@@ -1,4 +1,4 @@
+-# lib-prefix.m4 serial 5 (gettext-0.15)
++# lib-prefix.m4 serial 4 (gettext-0.14.2)
+ dnl Copyright (C) 2001-2005 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+@@ -24,7 +24,6 @@ AC_DEFUN([AC_LIB_PREFIX],
+   AC_BEFORE([$0], [AC_LIB_LINKFLAGS])
+   AC_REQUIRE([AC_PROG_CC])
+   AC_REQUIRE([AC_CANONICAL_HOST])
+-  AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
+   AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
+   dnl By default, look in $includedir and $libdir.
+   use_additional=yes
+@@ -46,7 +45,7 @@ AC_DEFUN([AC_LIB_PREFIX],
+         ])
+       else
+         additional_includedir="$withval/include"
+-        additional_libdir="$withval/$acl_libdirstem"
++        additional_libdir="$withval/lib"
+       fi
+     fi
+ ])
+@@ -88,7 +87,7 @@ AC_DEFUN([AC_LIB_PREFIX],
+     dnl   2. if it's already present in $LDFLAGS,
+     dnl   3. if it's /usr/local/lib and we are using GCC on Linux,
+     dnl   4. if it doesn't exist as a directory.
+-    if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
++    if test "X$additional_libdir" != "X/usr/lib"; then
+       haveit=
+       for x in $LDFLAGS; do
+         AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+@@ -98,7 +97,7 @@ AC_DEFUN([AC_LIB_PREFIX],
+         fi
+       done
+       if test -z "$haveit"; then
+-        if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
++        if test "X$additional_libdir" = "X/usr/local/lib"; then
+           if test -n "$GCC"; then
+             case $host_os in
+               linux*) haveit=yes;;
+@@ -152,34 +151,3 @@ AC_DEFUN([AC_LIB_WITH_FINAL_PREFIX],
+   exec_prefix="$acl_save_exec_prefix"
+   prefix="$acl_save_prefix"
+ ])
+-
+-dnl AC_LIB_PREPARE_MULTILIB creates a variable acl_libdirstem, containing
+-dnl the basename of the libdir, either "lib" or "lib64".
+-AC_DEFUN([AC_LIB_PREPARE_MULTILIB],
+-[
+-  dnl There is no formal standard regarding lib and lib64. The current
+-  dnl practice is that on a system supporting 32-bit and 64-bit instruction
+-  dnl sets or ABIs, 64-bit libraries go under $prefix/lib64 and 32-bit
+-  dnl libraries go under $prefix/lib. We determine the compiler's default
+-  dnl mode by looking at the compiler's library search path. If at least
+-  dnl of its elements ends in /lib64 or points to a directory whose absolute
+-  dnl pathname ends in /lib64, we assume a 64-bit ABI. Otherwise we use the
+-  dnl default, namely "lib".
+-  acl_libdirstem=lib
+-  searchpath=`(LC_ALL=C $CC -print-search-dirs) 2>/dev/null | sed -n -e 's,^libraries: ,,p' | sed -e 's,^=,,'`
+-  if test -n "$searchpath"; then
+-    acl_save_IFS="${IFS= 	}"; IFS=":"
+-    for searchdir in $searchpath; do
+-      if test -d "$searchdir"; then
+-        case "$searchdir" in
+-          */lib64/ | */lib64 ) acl_libdirstem=lib64 ;;
+-          *) searchdir=`cd "$searchdir" && pwd`
+-             case "$searchdir" in
+-               */lib64 ) acl_libdirstem=lib64 ;;
+-             esac ;;
+-        esac
+-      fi
+-    done
+-    IFS="$acl_save_IFS"
+-  fi
+-])
+diff --git a/m4/longlong.m4 b/m4/longlong.m4
+index 1f9e862..7b399e0 100644
+--- a/m4/longlong.m4
++++ b/m4/longlong.m4
+@@ -1,70 +1,21 @@
+-# longlong.m4 serial 10
+-dnl Copyright (C) 1999-2006 Free Software Foundation, Inc.
++# longlong.m4 serial 5
++dnl Copyright (C) 1999-2004 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+ 
+ dnl From Paul Eggert.
+ 
+-# Define HAVE_LONG_LONG_INT if 'long long int' works.
+-# This fixes a bug in Autoconf 2.60, but can be removed once we
+-# assume 2.61 everywhere.
++# Define HAVE_LONG_LONG if 'long long' works.
+ 
+-# Note: If the type 'long long int' exists but is only 32 bits large
+-# (as on some very old compilers), HAVE_LONG_LONG_INT will not be
+-# defined. In this case you can treat 'long long int' like 'long int'.
+-
+-AC_DEFUN([AC_TYPE_LONG_LONG_INT],
+-[
+-  AC_CACHE_CHECK([for long long int], [ac_cv_type_long_long_int],
+-    [AC_LINK_IFELSE(
+-       [AC_LANG_PROGRAM(
+-	  [[long long int ll = 9223372036854775807ll;
+-	    long long int nll = -9223372036854775807LL;
+-	    typedef int a[((-9223372036854775807LL < 0
+-			    && 0 < 9223372036854775807ll)
+-			   ? 1 : -1)];
+-	    int i = 63;]],
+-	  [[long long int llmax = 9223372036854775807ll;
+-	    return ((ll << 63) | (ll >> 63) | (ll < i) | (ll > i)
+-		    | (llmax / ll) | (llmax % ll));]])],
+-       [dnl This catches a bug in Tandem NonStop Kernel (OSS) cc -O circa 2004.
+-	dnl If cross compiling, assume the bug isn't important, since
+-	dnl nobody cross compiles for this platform as far as we know.
+-        AC_RUN_IFELSE(
+-	  [AC_LANG_PROGRAM(
+-	     [[@%:@include <limits.h>
+-	       @%:@ifndef LLONG_MAX
+-	       @%:@ define HALF \
+-			(1LL << (sizeof (long long int) * CHAR_BIT - 2))
+-	       @%:@ define LLONG_MAX (HALF - 1 + HALF)
+-	       @%:@endif]],
+-	     [[long long int n = 1;
+-	       int i;
+-	       for (i = 0; ; i++)
+-		 {
+-		   long long int m = n << i;
+-		   if (m >> i != n)
+-		     return 1;
+-		   if (LLONG_MAX / 2 < m)
+-		     break;
+-		 }
+-	       return 0;]])],
+-	  [ac_cv_type_long_long_int=yes],
+-	  [ac_cv_type_long_long_int=no],
+-	  [ac_cv_type_long_long_int=yes])],
+-       [ac_cv_type_long_long_int=no])])
+-  if test $ac_cv_type_long_long_int = yes; then
+-    AC_DEFINE([HAVE_LONG_LONG_INT], 1,
+-      [Define to 1 if the system has the type `long long int'.])
+-  fi
+-])
+-
+-# This macro is obsolescent and should go away soon.
+ AC_DEFUN([gl_AC_TYPE_LONG_LONG],
+ [
+-  AC_REQUIRE([AC_TYPE_LONG_LONG_INT])
+-  ac_cv_type_long_long=$ac_cv_type_long_long_int
++  AC_CACHE_CHECK([for long long], ac_cv_type_long_long,
++  [AC_TRY_LINK([long long ll = 1LL; int i = 63;],
++    [long long llmax = (long long) -1;
++     return ll << i | ll >> i | llmax / ll | llmax % ll;],
++    ac_cv_type_long_long=yes,
++    ac_cv_type_long_long=no)])
+   if test $ac_cv_type_long_long = yes; then
+     AC_DEFINE(HAVE_LONG_LONG, 1,
+       [Define if you have the 'long long' type.])
+diff --git a/m4/printf-posix.m4 b/m4/printf-posix.m4
+index 33e387c..af10170 100644
+--- a/m4/printf-posix.m4
++++ b/m4/printf-posix.m4
+@@ -1,5 +1,5 @@
+-# printf-posix.m4 serial 3 (gettext-0.16.2)
+-dnl Copyright (C) 2003, 2007 Free Software Foundation, Inc.
++# printf-posix.m4 serial 2 (gettext-0.13.1)
++dnl Copyright (C) 2003 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -28,7 +28,7 @@ int main ()
+ }], gt_cv_func_printf_posix=yes, gt_cv_func_printf_posix=no,
+       [
+         AC_EGREP_CPP(notposix, [
+-#if defined __NetBSD__ || defined __BEOS__ || defined _MSC_VER || defined __MINGW32__ || defined __CYGWIN__
++#if defined __NetBSD__ || defined _MSC_VER || defined __MINGW32__ || defined __CYGWIN__
+   notposix
+ #endif
+         ], gt_cv_func_printf_posix="guessing no",
+diff --git a/m4/size_max.m4 b/m4/size_max.m4
+index 6cb4868..4fe81c7 100644
+--- a/m4/size_max.m4
++++ b/m4/size_max.m4
+@@ -1,5 +1,5 @@
+-# size_max.m4 serial 6
+-dnl Copyright (C) 2003, 2005-2006 Free Software Foundation, Inc.
++# size_max.m4 serial 2
++dnl Copyright (C) 2003 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -11,9 +11,8 @@ AC_DEFUN([gl_SIZE_MAX],
+   AC_CHECK_HEADERS(stdint.h)
+   dnl First test whether the system already has SIZE_MAX.
+   AC_MSG_CHECKING([for SIZE_MAX])
+-  AC_CACHE_VAL([gl_cv_size_max], [
+-    gl_cv_size_max=
+-    AC_EGREP_CPP([Found it], [
++  result=
++  AC_EGREP_CPP([Found it], [
+ #include <limits.h>
+ #if HAVE_STDINT_H
+ #include <stdint.h>
+@@ -21,48 +20,40 @@ AC_DEFUN([gl_SIZE_MAX],
+ #ifdef SIZE_MAX
+ Found it
+ #endif
+-], gl_cv_size_max=yes)
+-    if test -z "$gl_cv_size_max"; then
+-      dnl Define it ourselves. Here we assume that the type 'size_t' is not wider
+-      dnl than the type 'unsigned long'. Try hard to find a definition that can
+-      dnl be used in a preprocessor #if, i.e. doesn't contain a cast.
+-      AC_COMPUTE_INT([size_t_bits_minus_1], [sizeof (size_t) * CHAR_BIT - 1],
+-        [#include <stddef.h>
+-#include <limits.h>], size_t_bits_minus_1=)
+-      AC_COMPUTE_INT([fits_in_uint], [sizeof (size_t) <= sizeof (unsigned int)],
+-        [#include <stddef.h>], fits_in_uint=)
+-      if test -n "$size_t_bits_minus_1" && test -n "$fits_in_uint"; then
+-        if test $fits_in_uint = 1; then
+-          dnl Even though SIZE_MAX fits in an unsigned int, it must be of type
+-          dnl 'unsigned long' if the type 'size_t' is the same as 'unsigned long'.
+-          AC_TRY_COMPILE([#include <stddef.h>
+-            extern size_t foo;
+-            extern unsigned long foo;
+-            ], [], fits_in_uint=0)
+-        fi
+-        dnl We cannot use 'expr' to simplify this expression, because 'expr'
+-        dnl works only with 'long' integers in the host environment, while we
+-        dnl might be cross-compiling from a 32-bit platform to a 64-bit platform.
+-        if test $fits_in_uint = 1; then
+-          gl_cv_size_max="(((1U << $size_t_bits_minus_1) - 1) * 2 + 1)"
+-        else
+-          gl_cv_size_max="(((1UL << $size_t_bits_minus_1) - 1) * 2 + 1)"
+-        fi
++], result=yes)
++  if test -z "$result"; then
++    dnl Define it ourselves. Here we assume that the type 'size_t' is not wider
++    dnl than the type 'unsigned long'.
++    dnl The _AC_COMPUTE_INT macro works up to LONG_MAX, since it uses 'expr',
++    dnl which is guaranteed to work from LONG_MIN to LONG_MAX.
++    _AC_COMPUTE_INT([~(size_t)0 / 10], res_hi,
++      [#include <stddef.h>], result=?)
++    _AC_COMPUTE_INT([~(size_t)0 % 10], res_lo,
++      [#include <stddef.h>], result=?)
++    _AC_COMPUTE_INT([sizeof (size_t) <= sizeof (unsigned int)], fits_in_uint,
++      [#include <stddef.h>], result=?)
++    if test "$fits_in_uint" = 1; then
++      dnl Even though SIZE_MAX fits in an unsigned int, it must be of type
++      dnl 'unsigned long' if the type 'size_t' is the same as 'unsigned long'.
++      AC_TRY_COMPILE([#include <stddef.h>
++        extern size_t foo;
++        extern unsigned long foo;
++        ], [], fits_in_uint=0)
++    fi
++    if test -z "$result"; then
++      if test "$fits_in_uint" = 1; then
++        result="$res_hi$res_lo"U
+       else
+-        dnl Shouldn't happen, but who knows...
+-        gl_cv_size_max='((size_t)~(size_t)0)'
++        result="$res_hi$res_lo"UL
+       fi
++    else
++      dnl Shouldn't happen, but who knows...
++      result='~(size_t)0'
+     fi
+-  ])
+-  AC_MSG_RESULT([$gl_cv_size_max])
+-  if test "$gl_cv_size_max" != yes; then
+-    AC_DEFINE_UNQUOTED([SIZE_MAX], [$gl_cv_size_max],
++  fi
++  AC_MSG_RESULT([$result])
++  if test "$result" != yes; then
++    AC_DEFINE_UNQUOTED([SIZE_MAX], [$result],
+       [Define as the maximum value of type 'size_t', if the system doesn't define it.])
+   fi
+ ])
+-
+-dnl Autoconf >= 2.61 has AC_COMPUTE_INT built-in.
+-dnl Remove this when we can assume autoconf >= 2.61.
+-m4_ifdef([AC_COMPUTE_INT], [], [
+-  AC_DEFUN([AC_COMPUTE_INT], [_AC_COMPUTE_INT([$2],[$1],[$3],[$4])])
+-])
+diff --git a/m4/stdint_h.m4 b/m4/stdint_h.m4
+index db9a8ac..3355f35 100644
+--- a/m4/stdint_h.m4
++++ b/m4/stdint_h.m4
+@@ -1,5 +1,5 @@
+-# stdint_h.m4 serial 6
+-dnl Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
++# stdint_h.m4 serial 5
++dnl Copyright (C) 1997-2004 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -15,7 +15,7 @@ AC_DEFUN([gl_AC_HEADER_STDINT_H],
+   [AC_TRY_COMPILE(
+     [#include <sys/types.h>
+ #include <stdint.h>],
+-    [uintmax_t i = (uintmax_t) -1; return !i;],
++    [uintmax_t i = (uintmax_t) -1;],
+     gl_cv_header_stdint_h=yes,
+     gl_cv_header_stdint_h=no)])
+   if test $gl_cv_header_stdint_h = yes; then
+diff --git a/m4/ulonglong.m4 b/m4/ulonglong.m4
+index 9fae98e..dee10cc 100644
+--- a/m4/ulonglong.m4
++++ b/m4/ulonglong.m4
+@@ -1,46 +1,21 @@
+-# ulonglong.m4 serial 6
+-dnl Copyright (C) 1999-2006 Free Software Foundation, Inc.
++# ulonglong.m4 serial 4
++dnl Copyright (C) 1999-2004 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+ 
+ dnl From Paul Eggert.
+ 
+-# Define HAVE_UNSIGNED_LONG_LONG_INT if 'unsigned long long int' works.
+-# This fixes a bug in Autoconf 2.60, but can be removed once we
+-# assume 2.61 everywhere.
++# Define HAVE_UNSIGNED_LONG_LONG if 'unsigned long long' works.
+ 
+-# Note: If the type 'unsigned long long int' exists but is only 32 bits
+-# large (as on some very old compilers), AC_TYPE_UNSIGNED_LONG_LONG_INT
+-# will not be defined. In this case you can treat 'unsigned long long int'
+-# like 'unsigned long int'.
+-
+-AC_DEFUN([AC_TYPE_UNSIGNED_LONG_LONG_INT],
+-[
+-  AC_CACHE_CHECK([for unsigned long long int],
+-    [ac_cv_type_unsigned_long_long_int],
+-    [AC_LINK_IFELSE(
+-       [AC_LANG_PROGRAM(
+-	  [[unsigned long long int ull = 18446744073709551615ULL;
+-	    typedef int a[(18446744073709551615ULL <= (unsigned long long int) -1
+-			   ? 1 : -1)];
+-	   int i = 63;]],
+-	  [[unsigned long long int ullmax = 18446744073709551615ull;
+-	    return (ull << 63 | ull >> 63 | ull << i | ull >> i
+-		    | ullmax / ull | ullmax % ull);]])],
+-       [ac_cv_type_unsigned_long_long_int=yes],
+-       [ac_cv_type_unsigned_long_long_int=no])])
+-  if test $ac_cv_type_unsigned_long_long_int = yes; then
+-    AC_DEFINE([HAVE_UNSIGNED_LONG_LONG_INT], 1,
+-      [Define to 1 if the system has the type `unsigned long long int'.])
+-  fi
+-])
+-
+-# This macro is obsolescent and should go away soon.
+ AC_DEFUN([gl_AC_TYPE_UNSIGNED_LONG_LONG],
+ [
+-  AC_REQUIRE([AC_TYPE_UNSIGNED_LONG_LONG_INT])
+-  ac_cv_type_unsigned_long_long=$ac_cv_type_unsigned_long_long_int
++  AC_CACHE_CHECK([for unsigned long long], ac_cv_type_unsigned_long_long,
++  [AC_TRY_LINK([unsigned long long ull = 1ULL; int i = 63;],
++    [unsigned long long ullmax = (unsigned long long) -1;
++     return ull << i | ull >> i | ullmax / ull | ullmax % ull;],
++    ac_cv_type_unsigned_long_long=yes,
++    ac_cv_type_unsigned_long_long=no)])
+   if test $ac_cv_type_unsigned_long_long = yes; then
+     AC_DEFINE(HAVE_UNSIGNED_LONG_LONG, 1,
+       [Define if you have the 'unsigned long long' type.])
+diff --git a/m4/wint_t.m4 b/m4/wint_t.m4
+index 2cac1a7..b8fff9c 100644
+--- a/m4/wint_t.m4
++++ b/m4/wint_t.m4
+@@ -1,5 +1,5 @@
+-# wint_t.m4 serial 2 (gettext-0.16.2)
+-dnl Copyright (C) 2003, 2007 Free Software Foundation, Inc.
++# wint_t.m4 serial 1 (gettext-0.12)
++dnl Copyright (C) 2003 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+@@ -11,15 +11,7 @@ dnl Prerequisite: AC_PROG_CC
+ AC_DEFUN([gt_TYPE_WINT_T],
+ [
+   AC_CACHE_CHECK([for wint_t], gt_cv_c_wint_t,
+-    [AC_TRY_COMPILE([
+-/* Tru64 with Desktop Toolkit C has a bug: <stdio.h> must be included before
+-   <wchar.h>.
+-   BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be included
+-   before <wchar.h>.  */
+-#include <stddef.h>
+-#include <stdio.h>
+-#include <time.h>
+-#include <wchar.h>
++    [AC_TRY_COMPILE([#include <wchar.h>
+        wint_t foo = (wchar_t)'\0';], ,
+        gt_cv_c_wint_t=yes, gt_cv_c_wint_t=no)])
+   if test $gt_cv_c_wint_t = yes; then

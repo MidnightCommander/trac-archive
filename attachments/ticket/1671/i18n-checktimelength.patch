@@ -1,0 +1,39 @@
+diff --git a/src/util.c b/src/util.c
+index 12b7ef7..fbe5359 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -635,11 +635,11 @@ load_mc_home_file (const char *filename, char **allocated_filename)
+ }
+ 
+ /* Check strftime() results. Some systems (i.e. Solaris) have different
+-   short-month-name sizes for different locales */
++   short-month-name sizes for different locales and months */
+ size_t
+ i18n_checktimelength (void)
+ {
+-    size_t length;
++    size_t length = 0;
+     time_t testtime = time (NULL);
+     struct tm* lt = localtime(&testtime);
+ 
+@@ -648,14 +648,14 @@ i18n_checktimelength (void)
+ 	length = str_term_width1 (_(INVALID_TIME_TEXT));
+     } else {
+ 	char buf [MB_LEN_MAX * MAX_I18NTIMELENGTH + 1];
+-	size_t a, b;
+ 
+-	strftime (buf, sizeof(buf) - 1, FMTTIME, lt);
+-	a = str_term_width1 (buf);
+-	strftime (buf, sizeof(buf) - 1, FMTYEAR, lt);
+-	b = str_term_width1 (buf);
++	for (lt->tm_mon = 0, lt->tm_mday = 1; lt->tm_mon < 12; lt->tm_mon++) {
++	    strftime (buf, sizeof(buf) - 1, FMTTIME, lt);
++	    length = max ((size_t)str_term_width1 (buf), length);
++	    strftime (buf, sizeof(buf) - 1, FMTYEAR, lt);
++	    length = max ((size_t)str_term_width1 (buf), length);
++	}
+ 
+-	length = max (a, b);
+ 	length = max ((size_t)str_term_width1 (_(INVALID_TIME_TEXT)), length);
+     }
+ 

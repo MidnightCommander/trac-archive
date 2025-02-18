@@ -1,0 +1,256 @@
+From 67d4f002a9575b1d1a45a18062720167d1edd412 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Thu, 12 Nov 2009 22:51:48 +0000
+Subject: [PATCH] While__pressingPrtScr-comment__pressingDelete-uncomment
+
+---
+ edit/edit.c     |  135 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ edit/edit.h     |   12 ++++-
+ edit/editkeys.c |    7 +++
+ src/cmddef.h    |   16 ++++---
+ 4 files changed, 161 insertions(+), 9 deletions(-)
+
+diff --git a/edit/edit.c b/edit/edit.c
+index 9a51b79..70ab398 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -2732,7 +2732,7 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+ 		break;
+ 	    }
+ 	}
+-	edit_delete (edit, 0);
++        case_CK_Delete (edit);
+ 	break;
+     case CK_Delete_Word_Left:
+         edit->over_col = 0;
+@@ -3177,6 +3177,9 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+     case CK_Ext_Mode:
+ 	edit->extmod = 1;
+ 	break;
++    case CK_PrtScr:
++        case_CK_PrtScr (edit);
++        break;
+     default:
+ 	break;
+     }
+@@ -3336,3 +3339,133 @@ edit_stack_free (void)
+ 	    edit_stack_iterator++)
+ 	g_free (edit_history_moveto[edit_stack_iterator].filename);
+ }
++
++void edit_show_bottom (WEdit * edit)
++{
++    edit_cursor_to_bol (edit);
++    if (edit->curs_line >= (edit->total_lines - 1)) {
++        edit->force |= REDRAW_PAGE;
++        return;
++    }
++    edit_move_down (edit, 1, 0);
++    edit_cursor_to_bol (edit);
++    edit->force |= REDRAW_PAGE;
++    if (edit->curs_line > (edit->start_line + edit->num_widget_lines - 3)) {
++        edit_update_screen (edit);
++        edit_move_display (edit, edit->start_line + 1);
++        edit->force |= REDRAW_PAGE;
++    }
++}
++
++int it_is_ELF (WEdit * edit)
++{
++    if ('E' == edit_get_byte (edit, 1)) {
++        if ('L' == edit_get_byte (edit, 2)) {
++            if ('F' == edit_get_byte (edit, 3)) {
++                return 1;
++            }
++        }
++    }
++    return 0;
++}
++
++/* for "*.[s,S]" filenames */
++int it_is_ASM (WEdit * edit)
++{
++    int fn_len = (int) strlen ((char *) edit->filename);
++    if (fn_len > 2 && '.' == edit->filename[fn_len - 2]) {
++        if ('s' == edit->filename[fn_len - 1]
++                || 'S' == edit->filename[fn_len - 1]) {
++            edit_cursor_to_bol (edit);
++            return 1;
++        }
++    }
++    return 0;
++}
++
++/* for "*.[h,H,c,C]" | "*.[c,C]??" filenames */
++int it_is_C (WEdit * edit)
++{
++    int fn_len = (int) strlen ((char *) edit->filename);
++
++    if (fn_len < 3) 
++        return 0;
++
++    if ('.' == edit->filename[fn_len - 2]) {
++        if ('h' == edit->filename[fn_len - 1]
++                || 'H' == edit->filename[fn_len - 1]
++                || 'c' == edit->filename[fn_len - 1]
++                || 'C' == edit->filename[fn_len - 1]) {
++            edit_cursor_to_bol (edit);
++            return 1;
++        }
++    }
++
++    if ((fn_len = (fn_len - 2)) < 3)
++        return 0;
++
++    if ('.' == edit->filename[fn_len - 2]) {
++        if ('h' == edit->filename[fn_len - 1]
++                || 'H' == edit->filename[fn_len - 1]
++                || 'c' == edit->filename[fn_len - 1]
++                || 'C' == edit->filename[fn_len - 1]) {
++            edit_cursor_to_bol (edit);
++            return 1;
++        }
++    }
++    return 0;
++}
++
++void case_CK_Delete (WEdit * edit)
++{
++    int c1;
++
++    if (edit->curs_col) {
++        edit_delete (edit, 0);
++        return;
++    }
++    c1 = edit_get_byte (edit, edit->curs1);
++    edit_delete (edit, 0);
++
++    if ('/' == c1) {
++        if (it_is_C (edit)) {
++            if ('/' == edit_get_byte (edit, edit->curs1)) 
++                edit_delete (edit, 1);
++            else
++                return;
++        }
++    } else if (!( '#' == c1 || ';' == c1 )) {
++        return;
++    }
++    edit_show_bottom (edit);
++}
++
++void case_CK_PrtScr (WEdit * edit)
++{
++    if (edit->curs_line >= edit->total_lines) {
++        return;
++    } else if (it_is_ELF (edit)) {
++        return;
++    } else if (it_is_ASM (edit)) { /* for "*.[s,S]" filenames */
++        if ((edit->total_lines - 1) == edit->curs_line) {
++            if (';' == edit_get_byte (edit, edit->curs1))
++                return;
++        }
++        edit_insert (edit, ';');
++    } else if (it_is_C (edit)) { /* for "*.[h,H,c,C]" | "*.[c,C]??" filenames */
++        if ((edit->total_lines - 1) == edit->curs_line) {
++            if ('/' == edit_get_byte (edit, edit->curs1))
++                return;
++        }
++        edit_insert (edit, '/');
++        edit_insert (edit, '/');
++    } else {
++        edit_cursor_to_bol (edit);
++        if ((edit->total_lines - 1) == edit->curs_line) {
++            if ('#' == edit_get_byte (edit, edit->curs1))
++                return;
++        }
++        edit_insert (edit, '#');
++    }
++    edit_show_bottom (edit);
++}
+diff --git a/edit/edit.h b/edit/edit.h
+index 0891801..31b2180 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -55,10 +55,8 @@ extern int option_syntax_highlighting;
+ extern char *option_backup_ext;
+ 
+ extern int edit_confirm_save;
+-
+ extern int visible_tabs;
+ extern int visible_tws;
+-
+ extern int simple_statusbar;
+ extern int option_check_nl_at_eof;
+ 
+@@ -72,4 +70,14 @@ const char *edit_get_file_name (const WEdit *edit);
+ int edit_get_curs_col (const WEdit *edit);
+ const char *edit_get_syntax_type (const WEdit *edit);
+ 
++/* While pressing:
++      PrtScr comments lines
++      Delete uncomments lines */
++int it_is_ELF (WEdit * edit);
++int it_is_ASM (WEdit * edit);
++int it_is_C (WEdit * edit);
++void edit_show_bottom (WEdit * edit);
++void case_CK_PrtScr (WEdit * edit);
++void case_CK_Delete (WEdit * edit);
++
+ #endif				/* MC_EDIT_H */
+diff --git a/edit/editkeys.c b/edit/editkeys.c
+index 6804e17..68103d6 100644
+--- a/edit/editkeys.c
++++ b/edit/editkeys.c
+@@ -160,9 +160,16 @@ edit_translate_key (WEdit *edit, long x_key, int *cmd, int *ch)
+             }
+         }
+     }
++
+   fin:
+     *cmd = command;
+     *ch = char_for_insertion;
+ 
++    if (16412 == x_key) {
++	*ch = -1;
++        *cmd = CK_PrtScr;
++        return 1;
++    }
++
+     return (command == CK_Insert_Char && char_for_insertion == -1) ? 0 : 1;
+ }
+diff --git a/src/cmddef.h b/src/cmddef.h
+index 2644130..fef6d8b 100644
+--- a/src/cmddef.h
++++ b/src/cmddef.h
+@@ -364,6 +364,11 @@
+ #define CK_PanelSortOrderBySize         8038
+ #define CK_PanelSortOrderByMTime        8039
+ 
++/* While pressing:
++      PrtScr comments lines
++      Delete uncomments lines */
++#define CK_PrtScr                      16412
++
+ /*
+    Process a block through a shell command: CK_Pipe_Block(i) executes shell_cmd[i].
+    shell_cmd[i] must process the file ~/cooledit.block and output ~/cooledit.block
+@@ -377,11 +382,10 @@
+ #define SHELL_COMMANDS_i {"/edit.indent.rc", "/edit.spell.rc", /* and so on */ 0 }
+ #define CK_Macro(i)		(2000+(i))
+ #define CK_Last_Macro		CK_Macro(0x7FFF)
+-#else
+-
+-#define CK_User_Command(i)	((i) | (1 << 16))
+-#define IS_USER_COMMAND(i)	((i) & (1 << 16))
+-#define CK_Macro(i)		((i) | (1 << 17))
+-#define IS_MACRO_COMMAND(i)	((i) & (1 << 17))
+ 
++#else
++    #define CK_User_Command(i)	((i) | (1 << 16))
++    #define IS_USER_COMMAND(i)	((i) & (1 << 16))
++    #define CK_Macro(i)		((i) | (1 << 17))
++    #define IS_MACRO_COMMAND(i)	((i) & (1 << 17))
+ #endif					/* MC_CMD_DEF_H */
+-- 
+1.6.4
+

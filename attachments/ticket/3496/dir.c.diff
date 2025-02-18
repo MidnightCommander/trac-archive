@@ -1,0 +1,7 @@
+523c523,526
+<     qsort (&(list->list)[dot_dot_found], list->len - dot_dot_found, sizeof (file_entry_t), sort);
+---
+>     if (sort != (GCompareFunc)unsorted)
+>     {
+> 	qsort (&(list->list)[dot_dot_found], list->len - dot_dot_found, sizeof (file_entry_t), sort);
+>     }

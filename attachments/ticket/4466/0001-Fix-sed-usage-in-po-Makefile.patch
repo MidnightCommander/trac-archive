@@ -1,0 +1,26 @@
+From eb688ea27818ddb1c2e32a1e3f3d4611738eda6f Mon Sep 17 00:00:00 2001
+From: Evgeny Grin <k2k@narod.ru>
+Date: Sun, 21 May 2023 16:21:49 +0300
+Subject: [PATCH] Fix sed usage in po/Makefile
+
+'po' directory does not use automake assignment
+---
+ po/Rules-pot-defaults | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/po/Rules-pot-defaults b/po/Rules-pot-defaults
+index 1c51b56e2..d90e39c84 100644
+--- a/po/Rules-pot-defaults
++++ b/po/Rules-pot-defaults
+@@ -1,7 +1,7 @@
+ 
+ update-po: Makefile
+ 	$(MAKE) $(DOMAIN).pot-update && \
+-	$(SED) \
++	$${SED-sed} \
+ 	    -e '/#, fuzzy/d' \
+ 	    -e 's/Project-Id-Version: PACKAGE VERSION/Project-Id-Version: $(PACKAGE) $(VERSION)/' \
+ 	    -e 's/^"Plural-Forms: nplurals=INTEGER;/# "Plural-Forms: nplurals=INTEGER;/' \
+-- 
+2.40.1.windows.1
+

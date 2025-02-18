@@ -1,0 +1,54 @@
+diff --git a/Makefile.am b/Makefile.am
+index 73c15d5..f1ac021 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -7,19 +7,4 @@ EXTRA_DIST =
+ 
+ dist_noinst_SCRIPTS = build-glib2.sh
+ 
+-dist_noinst_HEADERS = $(top_srcdir)/version.h
+-
+ ACLOCAL_AMFLAGS = -I m4
+-
+-CONFIG_STATUS_DEPENDENCIES = $(top_srcdir)/version.h
+-
+-.PHONY: update-version
+-
+-update-version:
+-	@if test -x $(top_srcdir)/maint/version.sh; then \
+-	    $(top_srcdir)/maint/version.sh "$(top_srcdir)" 2>&1 >/dev/null; \
+-	else \
+-	    echo "File not found: $(top_srcdir)/maint/version.sh"; \
+-	fi
+-
+-$(top_srcdir)/version.h: update-version
+diff --git a/autogen.sh b/autogen.sh
+index ffb01cf..b9174ba 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -85,5 +85,7 @@ test -f configure || \
+ ) || exit 1
+ 
+ if test -x $srcdir/configure.mc; then
+-  $srcdir/configure.mc "$@"
++  $srcdir/configure.mc "$@" || exit 1
+ fi
++
++maint/version.sh
+diff --git a/maint/version.sh b/maint/version.sh
+index 4df9489..97bd976 100755
+--- a/maint/version.sh
++++ b/maint/version.sh
+@@ -23,10 +23,10 @@ VERSION_FILE=${src_top_dir}/version.h
+ 
+ pushd ${src_top_dir} &>/dev/null
+ git_head=$(git rev-parse --verify HEAD 2>/dev/null)
+-[ -z "${git_head}" ] && exit
++[ -z "${git_head}" ] && echo "Must be run in the git tree" && exit 1
+ 
+ new_version="$(git describe 2>/dev/null)"
+-[ -z "${new_version}" ] && exit
++[ -z "${new_version}" ] && echo "Must be run in the git tree" && exit 1
+ popd &>/dev/null
+ 
+ 

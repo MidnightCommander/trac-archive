@@ -1,0 +1,81 @@
+From e6f42527113a688e6d52bfc23e767beb01734fbe Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 28 Feb 2016 19:54:42 +0000
+Subject: [PATCH] src/editor/edit.c: Cleanup some compiler warnings
+
+edit.c:909:12: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+    return r;
+    ~~~~~~ ^
+edit.c:1689:11: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+    col = edit_get_col (edit);
+        ~ ^~~~~~~~~~~~~~~~~~~
+edit.c:2361:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+            d = edit->undo_stack[(sp - 2) & edit->undo_stack_size_mask];
+              ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+edit.c:2371:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+            d = edit->undo_stack[spm1];
+              ~ ^~~~~~~~~~~~~~~~~~~~~~
+edit.c:2440:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+            d = edit->redo_stack[(sp - 2) & edit->redo_stack_size_mask];
+              ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+edit.c:2450:17: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+            d = edit->redo_stack[spm1];
+              ~ ^~~~~~~~~~~~~~~~~~~~~~
+edit.c:2970:27: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+                q = edit->curs_col;
+                  ~ ~~~~~~^~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/edit.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 4b4d1db..ee9afec 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -872,7 +872,7 @@ edit_cursor_to_eol (WEdit * edit)
+ static unsigned long
+ my_type_of (int c)
+ {
+-    int x, r = 0;
++    unsigned long x, r = 0;
+     const char *p, *q;
+     const char option_chars_move_whole_word[] =
+         "!=&|<>^~ !:;, !'!`!.?!\"!( !) !{ !} !Aa0 !+-*/= |<> ![ !] !\\#! ";
+@@ -1681,7 +1681,7 @@ edit_insert_column_from_file (WEdit * edit, int file, off_t * start_pos, off_t *
+                               long *col1, long *col2)
+ {
+     off_t cursor;
+-    int col;
++    long col;
+     off_t blocklen = -1, width = 0;
+     unsigned char *data;
+ 
+@@ -2355,7 +2355,7 @@ edit_push_undo_action (WEdit * edit, long c)
+         && spm1 != edit->undo_stack_bottom
+         && ((sp - 2) & edit->undo_stack_size_mask) != edit->undo_stack_bottom)
+     {
+-        int d;
++        long d;
+         if (edit->undo_stack[spm1] < 0)
+         {
+             d = edit->undo_stack[(sp - 2) & edit->undo_stack_size_mask];
+@@ -2434,7 +2434,7 @@ edit_push_redo_action (WEdit * edit, long c)
+         && spm1 != edit->redo_stack_bottom
+         && ((sp - 2) & edit->redo_stack_size_mask) != edit->redo_stack_bottom)
+     {
+-        int d;
++        long d;
+         if (edit->redo_stack[spm1] < 0)
+         {
+             d = edit->redo_stack[(sp - 2) & edit->redo_stack_size_mask];
+@@ -2965,7 +2965,7 @@ edit_move_to_prev_col (WEdit * edit, off_t p)
+             fake_half_tabs = HALF_TAB_SIZE * space_width;
+             if (fake_half_tabs != 0 && edit->curs_col % fake_half_tabs != 0)
+             {
+-                int q;
++                long q;
+ 
+                 q = edit->curs_col;
+                 edit->curs_col -= (edit->curs_col % fake_half_tabs);

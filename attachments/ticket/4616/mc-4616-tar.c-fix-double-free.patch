@@ -1,0 +1,56 @@
+From b778ff28109db4bb9f76b6dd24d60e2c59a245ea Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 16 Dec 2024 23:00:00 +0000
+Subject: [PATCH] (tar.c) fix double free
+
+When tar data block unexpected end then header_copy get freed but goto ret: freed header_copy again.
+Save header_copy pointer AFTER successful tar data block handling.
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/tar/tar.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index 185c9f4b8..96275faf0 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -658,17 +658,6 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive)
+ 
+             header_copy = g_malloc (size + 1);
+ 
+-            if (header->header.typeflag == GNUTYPE_LONGNAME)
+-            {
+-                g_free (next_long_name);
+-                next_long_name = header_copy;
+-            }
+-            else
+-            {
+-                g_free (next_long_link);
+-                next_long_link = header_copy;
+-            }
+-
+             tar_set_next_block_after (header);
+             *header_copy = *header;
+             bp = header_copy->buffer + BLOCKSIZE;
+@@ -696,6 +685,18 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive)
+             }
+ 
+             *bp = '\0';
++
++            if (header->header.typeflag == GNUTYPE_LONGNAME)
++            {
++                g_free (next_long_name);
++                next_long_name = header_copy;
++            }
++            else
++            {
++                g_free (next_long_link);
++                next_long_link = header_copy;
++            }
++
+         }
+         else if (header->header.typeflag == XHDTYPE || header->header.typeflag == SOLARIS_XHDTYPE)
+         {

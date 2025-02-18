@@ -1,0 +1,11 @@
+220 (vsFTPd 2.1.0)
+MC -- remote_is_amiga =  0
+USER anonymous
+331 Please specify the password.
+PASS <Password not logged>
+230 Login successful.
+PWD
+257 "/"
+CWD /
+250 Directory successfully changed.
+QUIT

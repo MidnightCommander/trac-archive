@@ -1,0 +1,2865 @@
+From 25445612b3fe895cb5b64a3d45ebce415d1b3128 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Thu, 17 Aug 2023 11:14:33 -0500
+Subject: [PATCH] =?UTF-8?q?Implementation=20of=20soft=20wraps=20=E2=80=93?=
+ =?UTF-8?q?=C2=A0screen=20only=20division=20of=20too=20long=20lines?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ lib/keybind.h            |   1 +
+ lib/util.h               |   7 +
+ src/editor/edit-impl.h   |  13 +-
+ src/editor/edit.c        | 501 ++++++++++++++++++++++++++-------
+ src/editor/edit.h        |   5 +
+ src/editor/editbuffer.c  | 151 ++++++++--
+ src/editor/editbuffer.h  |  22 +-
+ src/editor/editcmd.c     |  42 +--
+ src/editor/editdraw.c    | 579 ++++++++++++++++++++++++++-------------
+ src/editor/editoptions.c |  16 +-
+ src/editor/editsearch.c  |   2 +-
+ src/editor/editwidget.c  |  32 ++-
+ src/editor/editwidget.h  |  11 +-
+ src/editor/format.c      |  12 +-
+ src/setup.c              |   1 +
+ 15 files changed, 1020 insertions(+), 375 deletions(-)
+
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 9c0fe98a1..8ec763523 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -39,6 +39,7 @@ enum
+ 
+     /* common */
+     CK_Enter = 1L,
++    CK_SoftFolds,
+     CK_ChangePanel,
+     CK_Up,
+     CK_Down,
+diff --git a/lib/util.h b/lib/util.h
+index ec8b25ec5..d72d252a4 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -38,6 +38,13 @@
+ #define MC_PIPE_ERROR_CREATE_PIPE_STREAM -4
+ #define MC_PIPE_ERROR_READ -5
+ 
++#define GET_MACRO(_1,_2,_3,_4,NAME,...) NAME
++#define WMSG2(x,y) send_message(WIDGET(x), NULL, y, -1, NULL)
++#define WMSG3(x,y,p) send_message(WIDGET(x), NULL, y, p, NULL)
++#define WMSG4(x,y,p,q) send_message(WIDGET(x), NULL, y, p, q)
++#define WMSG(...) GET_MACRO(__VA_ARGS__, WMSG4, WMSG3, WMSG2)(__VA_ARGS__)
++
++
+ /* gnulib efa15594e17fc20827dba66414fb391e99905394
+ 
+  *_GL_CMP (n1, n2) performs a three-valued comparison on n1 vs. n2.
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 3d0054537..4beab55df 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -128,13 +128,14 @@ extern edit_stack_type edit_history_moveto[MAX_HISTORY_MOVETO];
+ 
+ extern int max_undo;
+ extern gboolean auto_syntax;
+-
+ extern gboolean search_create_bookmark;
+ 
+ extern char *edit_window_state_char;
+ extern char *edit_window_close_char;
+ 
+ /*** declarations of public functions ************************************************************/
++#define sum_plines_to_row(x,y) sum_plines_to_row_full(x,y,1)
++int sum_plines_to_row_full(GPtrArray *page_line_data, int row, gboolean count_only_second_etc_lines);
+ 
+ gboolean edit_add_window (WDialog * h, const WRect * r, const vfs_path_t * f, long fline);
+ WEdit *edit_find_editor (const WDialog * h);
+@@ -144,15 +145,15 @@ void edit_menu_cmd (WDialog * h);
+ void user_menu (WEdit * edit, const char *menu_file, int selected_entry);
+ void edit_init_menu (WMenuBar * menubar);
+ void edit_save_mode_cmd (void);
+-off_t edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto);
++off_t edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto, gboolean as_btes, off_t len_limit);
+ void edit_scroll_screen_over_cursor (WEdit * edit);
+ void edit_render_keypress (WEdit * edit);
+ void edit_scroll_upward (WEdit * edit, long i);
+ void edit_scroll_downward (WEdit * edit, long i);
+ void edit_scroll_right (WEdit * edit, long i);
+ void edit_scroll_left (WEdit * edit, long i);
+-void edit_move_up (WEdit * edit, long i, gboolean do_scroll);
+-void edit_move_down (WEdit * edit, long i, gboolean do_scroll);
++void edit_move_up (WEdit * edit, long i, gboolean do_scroll, gboolean screen_lines);
++void edit_move_down (WEdit * edit, long i, gboolean do_scroll, gboolean screen_lines);
+ void edit_move_to_prev_col (WEdit * edit, off_t p);
+ long edit_get_col (const WEdit * edit);
+ void edit_update_curs_row (WEdit * edit);
+@@ -168,6 +169,10 @@ void edit_delete_line (WEdit * edit);
+ 
+ int edit_delete (WEdit * edit, gboolean byte_delete);
+ int edit_backspace (WEdit * edit, gboolean byte_delete);
++void edit_move_to_top (WEdit * edit);
++void edit_move_to_bottom (WEdit * edit);
++void edit_cursor_to_bol (WEdit * edit, gboolean screen_lines);
++void edit_cursor_to_eol (WEdit * edit, gboolean screen_lines);
+ void edit_insert (WEdit * edit, int c);
+ void edit_insert_over (WEdit * edit);
+ void edit_cursor_move (WEdit * edit, off_t increment);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index dc3b3228b..0e3ef47c2 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -107,6 +107,7 @@ edit_options_t edit_options = {
+ };
+ 
+ int max_undo = 32768;
++int soft_last_row;
+ 
+ gboolean enable_show_tabs_tws = TRUE;
+ 
+@@ -256,6 +257,44 @@ edit_find_filter (const vfs_path_t * filename_vpath)
+     return -1;
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++gboolean edit_set_end_column(WEdit *edit)
++{
++    gboolean ret = FALSE;
++    Widget *w = WIDGET(edit);
++    Widget *wh = WIDGET(WIDGET(edit)->owner);
++    int x1, x2, last_column, start_column = 0, end_column;
++
++    int wh_cols = wh ? wh->rect.cols : COLS;
++    int wh_x = 0;
++
++    x1 = w->rect.x;
++    x2 = w->rect.x + w->rect.cols - 1;
++    if (x2 < x1 || x2 < wh_x)
++    {
++        /* Still, set a good, not overcomplicated, value */
++        edit->end_col = edit->buffer.end_col = w->rect.cols-1;
++        return ret; /* false */
++    }
++
++    last_column = wh_x + wh_cols-1;
++    if (x2 <= last_column)
++        end_column = w->rect.cols-1;
++    else if (x1 >= wh_x)
++        end_column = wh_cols-1-x1;
++    else
++        end_column = start_column+wh_cols-1;
++
++    ret = (end_column<=COLS-1) && (end_column>0);
++    if (!ret)
++        end_column = 80;
++
++    edit->end_col = end_column;
++    edit->buffer.end_col = end_column;
++
++    return ret;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static char *
+@@ -437,7 +476,7 @@ edit_load_file (WEdit * edit)
+ 
+     if (fast_load)
+     {
+-        edit_buffer_init (&edit->buffer, edit->stat1.st_size);
++        edit_buffer_init (edit, &edit->buffer, edit->stat1.st_size);
+ 
+         if (!edit_load_file_fast (&edit->buffer, edit->filename_vpath))
+         {
+@@ -447,7 +486,7 @@ edit_load_file (WEdit * edit)
+     }
+     else
+     {
+-        edit_buffer_init (&edit->buffer, 0);
++        edit_buffer_init (edit, &edit->buffer, 0);
+ 
+         if (edit->filename_vpath != NULL
+             && *(vfs_path_get_by_index (edit->filename_vpath, 0)->path) != '\0')
+@@ -678,8 +717,8 @@ is_blank (const edit_buffer_t * buf, off_t offset)
+ {
+     off_t s, f;
+ 
+-    s = edit_buffer_get_bol (buf, offset);
+-    f = edit_buffer_get_eol (buf, offset) - 1;
++    s = edit_buffer_get_bol (buf, offset, FALSE);
++    f = edit_buffer_get_eol (buf, offset, FALSE) - 1;
+     while (s <= f)
+     {
+         int c;
+@@ -708,7 +747,7 @@ edit_find_line (WEdit * edit, long line)
+         edit->line_numbers[1] = edit->buffer.curs_line;
+         edit->line_offsets[1] = edit_buffer_get_current_bol (&edit->buffer);
+         edit->line_numbers[2] = edit->buffer.lines;
+-        edit->line_offsets[2] = edit_buffer_get_bol (&edit->buffer, edit->buffer.size);
++        edit->line_offsets[2] = edit_buffer_get_bol (&edit->buffer, edit->buffer.size, FALSE);
+         edit->caches_valid = TRUE;
+     }
+     if (line >= edit->buffer.lines)
+@@ -736,11 +775,11 @@ edit_find_line (WEdit * edit, long line)
+     if (line > edit->line_numbers[j])
+         edit->line_offsets[i] =
+             edit_buffer_get_forward_offset (&edit->buffer, edit->line_offsets[j],
+-                                            line - edit->line_numbers[j], 0);
++                                            line - edit->line_numbers[j], 0, FALSE);
+     else
+         edit->line_offsets[i] =
+             edit_buffer_get_backward_offset (&edit->buffer, edit->line_offsets[j],
+-                                             edit->line_numbers[j] - line);
++                                             edit->line_numbers[j] - line, FALSE);
+     edit->line_numbers[i] = line;
+     return edit->line_offsets[i];
+ }
+@@ -779,7 +818,7 @@ edit_move_up_paragraph (WEdit * edit, gboolean do_scroll)
+         }
+     }
+ 
+-    edit_move_up (edit, edit->buffer.curs_line - i, do_scroll);
++    edit_move_up (edit, edit->buffer.curs_line - i, do_scroll, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -814,7 +853,7 @@ edit_move_down_paragraph (WEdit * edit, gboolean do_scroll)
+             if (edit_line_is_blank (edit, i) || i >= edit->buffer.lines)
+                 break;
+     }
+-    edit_move_down (edit, i - edit->buffer.curs_line, do_scroll);
++    edit_move_down (edit, i - edit->buffer.curs_line, do_scroll, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -823,7 +862,7 @@ static void
+ edit_begin_page (WEdit * edit)
+ {
+     edit_update_curs_row (edit);
+-    edit_move_up (edit, edit->curs_row, FALSE);
++    edit_move_up (edit, edit->curs_row, FALSE, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -832,14 +871,14 @@ static void
+ edit_end_page (WEdit * edit)
+ {
+     edit_update_curs_row (edit);
+-    edit_move_down (edit, WIDGET (edit)->rect.lines - edit->curs_row - 1, FALSE);
++    edit_move_down (edit, WIDGET (edit)->rect.lines - edit->curs_row - 1, FALSE, FALSE);
+ }
+ 
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /** goto beginning of text */
+ 
+-static void
++void
+ edit_move_to_top (WEdit * edit)
+ {
+     if (edit->buffer.curs_line != 0)
+@@ -855,12 +894,12 @@ edit_move_to_top (WEdit * edit)
+ /* --------------------------------------------------------------------------------------------- */
+ /** goto end of text */
+ 
+-static void
++void
+ edit_move_to_bottom (WEdit * edit)
+ {
+     if (edit->buffer.curs_line < edit->buffer.lines)
+     {
+-        edit_move_down (edit, edit->buffer.lines - edit->curs_row, FALSE);
++        edit_move_down (edit, edit->buffer.lines - edit->curs_row, FALSE, FALSE);
+         edit->start_display = edit->buffer.size;
+         edit->start_line = edit->buffer.lines;
+         edit_scroll_upward (edit, WIDGET (edit)->rect.lines - 1);
+@@ -871,10 +910,14 @@ edit_move_to_bottom (WEdit * edit)
+ /* --------------------------------------------------------------------------------------------- */
+ /** goto beginning of line */
+ 
+-static void
+-edit_cursor_to_bol (WEdit * edit)
++void
++edit_cursor_to_bol (WEdit * edit, gboolean screen_lines)
+ {
+-    edit_cursor_move (edit, edit_buffer_get_current_bol (&edit->buffer) - edit->buffer.curs1);
++    off_t bol = edit_buffer_get_bol(&edit->buffer, edit->buffer.curs1 - edit->flag, screen_lines);
++    screen_lines &= edit_options.soft_wrap;
++    edit->flag2 = TRUE;
++    edit->flag = FALSE;
++    edit_cursor_move (edit, bol - edit->buffer.curs1);
+     edit->search_start = edit->buffer.curs1;
+     edit->prev_col = edit_get_col (edit);
+     edit->over_col = 0;
+@@ -883,10 +926,16 @@ edit_cursor_to_bol (WEdit * edit)
+ /* --------------------------------------------------------------------------------------------- */
+ /** goto end of line */
+ 
+-static void
+-edit_cursor_to_eol (WEdit * edit)
++void
++edit_cursor_to_eol (WEdit * edit, gboolean screen_lines)
+ {
+-    edit_cursor_move (edit, edit_buffer_get_current_eol (&edit->buffer) - edit->buffer.curs1);
++    screen_lines &= edit_options.soft_wrap;
++    if (edit->flag)
++        return;
++    edit->flag2 = 0;
++    off_t eol = edit_buffer_get_eol(&edit->buffer, edit->buffer.curs1, screen_lines);
++
++    edit_cursor_move (edit, eol - edit->buffer.curs1);
+     edit->search_start = edit->buffer.curs1;
+     edit->prev_col = edit_get_col (edit);
+     edit->over_col = 0;
+@@ -1068,11 +1117,45 @@ edit_left_char_move_cmd (WEdit * edit)
+ */
+ 
+ static void
+-edit_move_updown (WEdit * edit, long lines, gboolean do_scroll, gboolean direction)
++edit_move_updown (WEdit * edit, long lines, gboolean do_scroll, gboolean direction, gboolean screen_lines)
+ {
+     long p;
+-    long l = direction ? edit->buffer.curs_line : edit->buffer.lines - edit->buffer.curs_line;
++    long l, cnt_;
++    off_t curs1 = edit->buffer.curs1;
++    off_t boln = edit_buffer_get_bol (&edit->buffer, curs1, FALSE);
++    int col, real_col, end_col;
+ 
++    screen_lines &= edit_options.soft_wrap;
++    if (do_scroll)
++        screen_lines = FALSE;
++    if (direction)
++    {
++        l = edit_buffer_count_lines(&edit->buffer, 0, curs1, screen_lines);
++        if (l==0)
++            l++;
++        p = edit_move_forward3 (edit, boln, 0, curs1, FALSE, 0);
++        /* Count possible only "touched"/started screen line */
++        cnt_ = (p%edit->end_col==0) ? 1:0;
++        l+=cnt_-1;
++    }
++    else
++    {
++        l = edit->buffer.lines - edit->buffer.curs_line;
++        if (screen_lines && l < lines)
++        {
++            GPtrArray *page_line_data = edit->page_line_data;
++            if (edit->page_line_data == NULL)
++                page_line_data = edit->page_line_data = g_ptr_array_new_full(LINES, g_free);
++            g_ptr_array_set_size(edit->page_line_data, LINES);
++            cnt_ = sum_plines_to_row_full(page_line_data, soft_last_row+1, FALSE);
++            l += cnt_;
++            cnt_ = sum_plines_to_row_full(page_line_data, edit->array_row, FALSE);
++            l -= 1 + cnt_;
++            p = edit_move_forward3 (edit, boln, 0, curs1, FALSE, 0);
++            cnt_ = p/edit->end_col - ((p%edit->end_col==0)?1:0);
++            l -= cnt_;
++        }
++    }
+     if (lines > l)
+         lines = l;
+ 
+@@ -1088,15 +1171,37 @@ edit_move_updown (WEdit * edit, long lines, gboolean do_scroll, gboolean directi
+         else
+             edit_scroll_downward (edit, lines);
+     }
+-    p = edit_buffer_get_current_bol (&edit->buffer);
+-    p = direction ? edit_buffer_get_backward_offset (&edit->buffer, p, lines) :
+-        edit_buffer_get_forward_offset (&edit->buffer, p, lines, 0);
+-    edit_cursor_move (edit, p - edit->buffer.curs1);
+-    edit_move_to_prev_col (edit, p);
++    p = edit_get_cursor_offset (edit);
++    edit_update_curs_col(edit);
++    col=edit->curs_col; 
++    end_col=edit->end_col;
++
++    if (/*m.right*/curs1==edit->prev_curs1+1 && col == 0 && curs1 != boln &&
++      /*not flagged */ !edit->flag)
++        real_col=end_col;
++    else if (/*m.left*/curs1==edit->prev_curs1-1 && 
++           col == end_col-1 && 
++           !edit->flag)
++        real_col=end_col;
++    else if (ABS(curs1-edit->prev_curs1) != 1 && col == 0 && curs1 != boln && !edit->flag2)     
++        real_col=end_col;
++    else
++        real_col=col;
++
++    if (direction)
++        p=edit_buffer_get_backward_offset (&edit->buffer, p, lines, screen_lines);
++    else
++        p=edit_buffer_get_forward_offset (&edit->buffer, p, lines, 0, screen_lines);
++
++    int offset=edit_move_forward3(edit, p, col, 0, FALSE, 0);
++    int offset2=edit_move_forward3(edit, p, real_col % end_col, 0, FALSE, 0);
++    if (real_col == end_col && offset-1 > 0 && edit_buffer_get_byte_ex(&edit->buffer, offset-1) == '\n' && edit_buffer_get_byte_ex(&edit->buffer, offset) != '\n')
++        offset2=offset-1;
++    edit_cursor_move(edit, offset2 - curs1);
+ 
+ #ifdef HAVE_CHARSET
+     /* search start of current multibyte char (like CJK) */
+-    if (edit->buffer.curs1 > 0 && edit->buffer.curs1 + 1 < edit->buffer.size
++    if (0 && edit->buffer.curs1 > 0 && edit->buffer.curs1 + 1 < edit->buffer.size
+         && edit_buffer_get_current_byte (&edit->buffer) >= 256)
+     {
+         edit_right_char_move_cmd (edit);
+@@ -1158,7 +1263,6 @@ static void
+ edit_do_undo (WEdit * edit)
+ {
+     long ac;
+-    long count = 0;
+ 
+     edit->undo_stack_disable = 1;       /* don't record undo's onto undo stack! */
+     edit->over_col = 0;
+@@ -1200,34 +1304,33 @@ edit_do_undo (WEdit * edit)
+         {
+             edit->mark1 = ac - MARK_1;
+             edit->column1 =
+-                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark1),
+-                                           0, edit->mark1);
++                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark1, TRUE),
++                                           0, edit->mark1, FALSE, 0);
+         }
+         if (ac >= MARK_2 - 2 && ac < MARK_CURS - 2)
+         {
+             edit->mark2 = ac - MARK_2;
+             edit->column2 =
+-                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark2),
+-                                           0, edit->mark2);
++                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark2, TRUE),
++                                           0, edit->mark2, FALSE, 0);
+         }
+         else if (ac >= MARK_CURS - 2 && ac < KEY_PRESS)
+         {
+             edit->end_mark_curs = ac - MARK_CURS;
+         }
+-        if (count++)
+-            edit->force |= REDRAW_PAGE; /* more than one pop usually means something big */
++        edit->force |= REDRAW_PAGE;
+     }
+ 
+     if (edit->start_display > ac - KEY_PRESS)
+     {
+-        edit->start_line -=
+-            edit_buffer_count_lines (&edit->buffer, ac - KEY_PRESS, edit->start_display);
++        edit->start_line -= 
++            edit_buffer_count_lines(&edit->buffer, ac - KEY_PRESS, edit->start_display, FALSE) - 1;
+         edit->force |= REDRAW_PAGE;
+     }
+     else if (edit->start_display < ac - KEY_PRESS)
+     {
+         edit->start_line +=
+-            edit_buffer_count_lines (&edit->buffer, edit->start_display, ac - KEY_PRESS);
++            edit_buffer_count_lines (&edit->buffer, edit->start_display, ac - KEY_PRESS, FALSE) - 1;
+         edit->force |= REDRAW_PAGE;
+     }
+     edit->start_display = ac - KEY_PRESS;       /* see push and pop above */
+@@ -1243,7 +1346,6 @@ static void
+ edit_do_redo (WEdit * edit)
+ {
+     long ac;
+-    long count = 0;
+ 
+     if (edit->redo_stack_reset)
+         return;
+@@ -1285,31 +1387,29 @@ edit_do_redo (WEdit * edit)
+         {
+             edit->mark1 = ac - MARK_1;
+             edit->column1 =
+-                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark1),
+-                                           0, edit->mark1);
++                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark1, TRUE),
++                                           0, edit->mark1, FALSE, 0);
+         }
+         else if (ac >= MARK_2 - 2 && ac < KEY_PRESS)
+         {
+             edit->mark2 = ac - MARK_2;
+             edit->column2 =
+-                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark2),
+-                                           0, edit->mark2);
++                (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->mark2, TRUE),
++                                           0, edit->mark2, FALSE, 0);
+         }
+-        /* more than one pop usually means something big */
+-        if (count++)
+-            edit->force |= REDRAW_PAGE;
++        edit->force |= REDRAW_PAGE;
+     }
+ 
+     if (edit->start_display > ac - KEY_PRESS)
+     {
+         edit->start_line -=
+-            edit_buffer_count_lines (&edit->buffer, ac - KEY_PRESS, edit->start_display);
++            edit_buffer_count_lines (&edit->buffer, ac - KEY_PRESS, edit->start_display, FALSE) -1;
+         edit->force |= REDRAW_PAGE;
+     }
+     else if (edit->start_display < ac - KEY_PRESS)
+     {
+         edit->start_line +=
+-            edit_buffer_count_lines (&edit->buffer, edit->start_display, ac - KEY_PRESS);
++            edit_buffer_count_lines (&edit->buffer, edit->start_display, ac - KEY_PRESS, FALSE) -1;
+         edit->force |= REDRAW_PAGE;
+     }
+     edit->start_display = ac - KEY_PRESS;       /* see push and pop above */
+@@ -1404,7 +1504,7 @@ edit_auto_indent (WEdit * edit)
+ 
+     p = edit->buffer.curs1;
+     /* use the previous line as a template */
+-    p = edit_buffer_get_backward_offset (&edit->buffer, p, 1);
++    p = edit_buffer_get_backward_offset (&edit->buffer, p, 1, FALSE);
+     /* copy the leading whitespace of the line */
+     while (TRUE)
+     {                           /* no range check - the line _is_ \n-terminated */
+@@ -1604,8 +1704,8 @@ edit_move_block_to_right (WEdit * edit)
+     if (!eval_marks (edit, &start_mark, &end_mark))
+         return;
+ 
+-    start_bol = edit_buffer_get_bol (&edit->buffer, start_mark);
+-    cur_bol = edit_buffer_get_bol (&edit->buffer, end_mark - 1);
++    start_bol = edit_buffer_get_bol (&edit->buffer, start_mark, FALSE);
++    cur_bol = edit_buffer_get_bol (&edit->buffer, end_mark - 1, FALSE);
+ 
+     do
+     {
+@@ -1617,13 +1717,13 @@ edit_move_block_to_right (WEdit * edit)
+             else
+                 edit_insert (edit, '\t');
+             edit_cursor_move (edit,
+-                              edit_buffer_get_bol (&edit->buffer, cur_bol) - edit->buffer.curs1);
++                              edit_buffer_get_bol (&edit->buffer, cur_bol, FALSE) - edit->buffer.curs1);
+         }
+ 
+         if (cur_bol == 0)
+             break;
+ 
+-        cur_bol = edit_buffer_get_bol (&edit->buffer, cur_bol - 1);
++        cur_bol = edit_buffer_get_bol (&edit->buffer, cur_bol - 1, FALSE);
+     }
+     while (cur_bol >= start_bol);
+ 
+@@ -1641,8 +1741,8 @@ edit_move_block_to_left (WEdit * edit)
+     if (!eval_marks (edit, &start_mark, &end_mark))
+         return;
+ 
+-    start_bol = edit_buffer_get_bol (&edit->buffer, start_mark);
+-    cur_bol = edit_buffer_get_bol (&edit->buffer, end_mark - 1);
++    start_bol = edit_buffer_get_bol (&edit->buffer, start_mark, FALSE);
++    cur_bol = edit_buffer_get_bol (&edit->buffer, end_mark - 1, FALSE);
+ 
+     do
+     {
+@@ -1671,7 +1771,7 @@ edit_move_block_to_left (WEdit * edit)
+         if (cur_bol == 0)
+             break;
+ 
+-        cur_bol = edit_buffer_get_bol (&edit->buffer, cur_bol - 1);
++        cur_bol = edit_buffer_get_bol (&edit->buffer, cur_bol - 1, FALSE);
+     }
+     while (cur_bol >= start_bol);
+ 
+@@ -1748,7 +1848,7 @@ edit_insert_column_from_file (WEdit * edit, int file, off_t * start_pos, off_t *
+                     }
+                 }
+ 
+-                edit_cursor_move (edit, edit_move_forward3 (edit, p, col, 0) - edit->buffer.curs1);
++                edit_cursor_move (edit, edit_move_forward3 (edit, p, col, 0, FALSE, 0) - edit->buffer.curs1);
+ 
+                 for (l = col - edit_get_col (edit); l >= space_width; l -= space_width)
+                     edit_insert (edit, ' ');
+@@ -1769,6 +1869,87 @@ edit_insert_column_from_file (WEdit * edit, int file, off_t * start_pos, off_t *
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
++
++void 
++edit_apply_curs_exceptions(WEdit *e)
++{
++    off_t bol_m2 = edit_buffer_get_bol (&e->buffer, e->buffer.curs1 +(e->buffer.curs1-2>=0 ? -2:0), TRUE);
++    off_t bol = edit_buffer_get_bol (&e->buffer, e->buffer.curs1, TRUE);
++    off_t boln = edit_buffer_get_bol (&e->buffer, e->buffer.curs1, FALSE);
++    off_t eol = edit_buffer_get_eol(&e->buffer, e->buffer.curs1, TRUE);
++    off_t curs1 = e->buffer.curs1, prev_curs1 = e->prev_curs1;
++    long size=e->buffer.size, psize=e->prev_size;
++    long cnt_m2=edit_move_forward3(e, bol_m2, 0, eol, FALSE, 0);
++    long col=edit_move_forward3(e, bol, 0, curs1, FALSE, 0);
++    long end_col=e->end_col;
++    edit_update_curs_row(e);
++
++    /* First one exception is turned on – the one
++     * that increases cursor y position when at
++     * first column and not at bol */
++    if (curs1 != boln && curs1 == bol && col == 0)
++    {
++        e->curs_row ++;
++        if (cnt_m2 <= end_col-2)
++            e->flag2=1;
++    }
++
++    if (curs1 == bol && /*m.left*/curs1<prev_curs1)
++        e->flag2 = TRUE;
++
++    /* Remaining apply only for screen-long lines */
++    if (cnt_m2 <= end_col-2)
++        return;
++
++    /* The second exception – when moving at
++     * col == 0 from a lower curs1 position (right),
++     * meaning that it should be an end_col position
++     */
++    if (/*m.right*/curs1==prev_curs1+1 && col == 0 && curs1 != boln &&  /*not flagged */ !e->flag)
++    {
++        if (psize + 1 != size)
++        {
++            e->flag=TRUE;
++            e->curs_col=e->end_col;
++            e->curs_row --;
++        }
++        e->flag2=0;
++    }
++    else if (/*m.right*/curs1==prev_curs1+1 && col == 1 && curs1 >= boln+1 &&
++      /* flagged */ e->flag)
++    {
++        if (psize + 1 != size)
++        {
++            edit_cursor_move(e, -1);
++            e->flag=FALSE;
++            e->curs_col=0;
++        }
++        e->flag2=1;
++    }
++    else if (/*m.left*/curs1==prev_curs1-1 && 
++           col == end_col-1 && 
++           !e->flag)
++    {
++        if (psize != size + 1)
++        {
++            edit_cursor_move (e, 1);
++            e->flag=TRUE;
++            e->curs_col=end_col;
++        }
++        e->flag2=0;
++    }
++    else if (ABS(curs1-prev_curs1) != 1 && col == 0 && curs1 != boln && !e->flag2)
++    {
++        e->curs_col=end_col;
++        e->curs_row --;
++        e->flag=TRUE;
++    }
++    else 
++    {
++        e->flag=0;
++    }
++}
++
+ /** User edit menu, like user menu (F2) but only in editor. */
+ 
+ void
+@@ -2085,8 +2266,7 @@ edit_insert_file (WEdit * edit, const vfs_path_t * filename_vpath)
+  * cursor on that line and show it in the middle of the screen.
+  */
+ 
+-WEdit *
+-edit_init (WEdit * edit, const WRect * r, const vfs_path_t * filename_vpath, long line)
++WEdit *edit_init (WEdit * edit, const WRect * r, const vfs_path_t * filename_vpath, long line)
+ {
+     gboolean to_free = FALSE;
+ 
+@@ -2124,6 +2304,10 @@ edit_init (WEdit * edit, const WRect * r, const vfs_path_t * filename_vpath, lon
+         edit_save_size (edit);
+     }
+ 
++    if (edit->page_line_data == NULL)
++            edit->page_line_data = g_ptr_array_new_full(LINES, g_free);
++    g_ptr_array_set_size(edit->page_line_data, LINES);
++
+     edit->drag_state = MCEDIT_DRAG_NONE;
+ 
+     edit->stat1.st_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+@@ -2153,6 +2337,7 @@ edit_init (WEdit * edit, const WRect * r, const vfs_path_t * filename_vpath, lon
+     edit_set_codeset (edit);
+ #endif
+ 
++    edit_set_end_column (edit);
+     if (!edit_load_file (edit))
+     {
+         /* edit_load_file already gives an error message */
+@@ -2179,6 +2364,7 @@ edit_init (WEdit * edit, const WRect * r, const vfs_path_t * filename_vpath, lon
+         edit_move_to_line (edit, line - 1);
+     }
+ 
++
+     edit_load_macro_cmd (edit);
+ 
+     return edit;
+@@ -2508,6 +2694,9 @@ edit_push_redo_action (WEdit * edit, long c)
+         edit->redo_stack_bottom = edit->redo_stack_pointer = 0;
+ }
+ 
++
++/* --------------------------------------------------------------------------------------------- */
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+    Basic low level single character buffer alterations and movements at the cursor.
+@@ -2531,6 +2720,7 @@ edit_insert (WEdit * edit, int c)
+     /* now we must update some info on the file and check if a redraw is required */
+     if (c == '\n')
+     {
++        edit->buffer.line_begin_offset = edit->buffer.curs1;
+         book_mark_inc (edit, edit->buffer.curs_line);
+         edit->buffer.curs_line++;
+         edit->buffer.lines++;
+@@ -2724,9 +2914,11 @@ edit_backspace (WEdit * edit, gboolean byte_delete)
+ void
+ edit_cursor_move (WEdit * edit, off_t increment)
+ {
++    gboolean scroll = FALSE;
++    off_t idx;
+     if (increment < 0)
+     {
+-        for (; increment < 0 && edit->buffer.curs1 != 0; increment++)
++        for (idx = 0; idx > increment && edit->buffer.curs1 != 0; idx--)
+         {
+             int c;
+ 
+@@ -2737,14 +2929,30 @@ edit_cursor_move (WEdit * edit, off_t increment)
+             c = edit_buffer_backspace (&edit->buffer);
+             if (c == '\n')
+             {
++                edit->buffer.line_begin_offset = 0;
++                for (int i=edit->buffer.curs1-1; i>0; i --)
++                {
++                    unsigned char ch = edit_buffer_get_byte(&edit->buffer, i);
++                    if (ch == '\n')
++                    {
++                        edit->buffer.line_begin_offset = i + 1;
++                        break;
++                    }
++                }
+                 edit->buffer.curs_line--;
+                 edit->force |= REDRAW_LINE_BELOW;
++                if (edit->buffer.curs_line < edit->start_line)
++                    scroll = TRUE;
+             }
+         }
++        if (scroll)
++        {
++            edit_scroll_upward (edit, edit->start_line - edit->buffer.curs_line);
++        }
+     }
+     else
+     {
+-        for (; increment > 0 && edit->buffer.curs2 != 0; increment--)
++        for (idx = 0; idx < increment && edit->buffer.curs2 != 0; idx ++)
+         {
+             int c;
+ 
+@@ -2755,10 +2963,18 @@ edit_cursor_move (WEdit * edit, off_t increment)
+             c = edit_buffer_delete (&edit->buffer);
+             if (c == '\n')
+             {
++                edit->buffer.line_begin_offset = edit->buffer.curs1;
+                 edit->buffer.curs_line++;
++                if (edit->buffer.curs_line - edit->start_line >= soft_last_row)
++                    scroll = TRUE;
+                 edit->force |= REDRAW_LINE_ABOVE;
+             }
+         }
++        if (scroll)
++        {
++            edit_scroll_downward(edit, (edit->buffer.curs_line - edit->start_line) - soft_last_row);
++            edit->force |= REDRAW_PAGE;
++        }
+     }
+ }
+ 
+@@ -2767,10 +2983,12 @@ edit_cursor_move (WEdit * edit, off_t increment)
+ /* If upto is zero returns index of cols across from current. */
+ 
+ off_t
+-edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto)
++edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto, gboolean as_bytes, off_t col_limit)
+ {
+     off_t p, q;
+-    long col;
++    long col, col_acc = 0, btes = 0, prev_len = 0;
++    int char_length = 1;
++    int utf_ch;
+ 
+     if (upto != 0)
+     {
+@@ -2778,7 +2996,7 @@ edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto)
+         cols = -10;
+     }
+     else
+-        q = edit->buffer.size + 2;
++        q = edit->buffer.size + 1;
+ 
+     for (col = 0, p = current; p < q; p++)
+     {
+@@ -2797,10 +3015,9 @@ edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto)
+ #ifdef HAVE_CHARSET
+         if (edit->utf8)
+         {
+-            int utf_ch;
+-            int char_length = 1;
+-
++            char_length = 1;
+             utf_ch = edit_buffer_get_utf (&edit->buffer, p, &char_length);
++
+             if (mc_global.utf8_display)
+             {
+                 if (char_length > 1)
+@@ -2814,11 +3031,41 @@ edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto)
+ 
+         c = convert_to_display_c (c);
+ #endif
++        
++        if (c == '\n') {
++            return (upto != 0 ? (off_t) (as_bytes ? btes : col-col_acc) : p);
++        }
+ 
+-        if (c == '\n')
+-            return (upto != 0 ? (off_t) col : p);
+-        if (c == '\t')
+-            col += TAB_SIZE - col % TAB_SIZE;
++#ifdef HAVE_CHARSET
++        if (edit->utf8)
++        {
++            btes += prev_len <= 1 ? char_length : 0;
++            prev_len = prev_len <= 1 ? char_length : prev_len - 1;
++        } else
++            btes += 1;
++#else
++        btes += 1;
++#endif
++
++        /* Treat tab specially, as it needs to use
++         * whole line, not only screen line */
++        if (c == '\t' || utf_ch == '\t') {
++            off_t boln = edit_buffer_get_bol(&edit->buffer, p, FALSE);
++            off_t qq = boln, ncols = 0, acc = 0;
++            int len = -1, ch;
++            for(; len && qq <= p;
++        (ch=edit_buffer_get_utf(&edit->buffer,qq,&len)), 
++          qq+=len, ncols+=(g_unichar_iswide (ch)>0)+(ch=='\t'?(TAB_SIZE-(ncols%TAB_SIZE)):len>0))
++            {
++                /* Still modulo the line length */
++                if ((ncols-acc) >= edit->end_col)
++                    acc += edit->end_col;
++            }
++            /* Apply precisely calculated cols */
++            col = ncols;
++            if (boln != current)
++                col -= acc;
++        }
+         else if ((c < 32 || c == 127) && (orig_c == c
+ #ifdef HAVE_CHARSET
+                                           || (!mc_global.utf8_display && !edit->utf8)
+@@ -2829,8 +3076,15 @@ edit_move_forward3 (const WEdit * edit, off_t current, long cols, off_t upto)
+             col += 2;
+         else
+             col++;
++
++        if (col_limit > 0)
++        {
++            btes = ((col - col_acc) >= col_limit) ? 0 : btes;
++            col_acc += ((col - col_acc) >= col_limit) ? col_limit : 0;
++        }
+     }
+-    return (off_t) col;
++    
++    return (off_t) (as_bytes ? btes : col-col_acc);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -2843,13 +3097,18 @@ edit_get_cursor_offset (const WEdit * edit)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++
+ /** returns the current column position of the cursor */
+ 
+ long
+ edit_get_col (const WEdit * edit)
+ {
+-    return (long) edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer), 0,
+-                                      edit->buffer.curs1);
++    gboolean screen = edit_options.soft_wrap?1:0;
++    off_t bol = edit_buffer_get_bol (&edit->buffer, edit->buffer.curs1, screen);
++
++    off_t col = (long) edit_move_forward3 (edit, bol, 0, edit->buffer.curs1, FALSE, 0);
++    col -= -2*edit->start_col;
++    return col;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -2857,9 +3116,20 @@ edit_get_col (const WEdit * edit)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-edit_update_curs_row (WEdit * edit)
++edit_update_curs_row (WEdit * e)
+ {
+-    edit->curs_row = edit->buffer.curs_line - edit->start_line;
++    /* Helper variables */
++    edit_buffer_t *buf = &e->buffer;
++    off_t curs1 = edit_get_cursor_offset(e);
++
++    /* The screen-line count ↔ the cursor row */
++    int lines = edit_buffer_count_lines(buf, e->start_display, curs1, TRUE);
++    /* Screen-line count should be 0-based */
++    e->curs_row = lines > 0 ? lines-1 : 0;
++    /* Non screen-lines line count */
++    e->array_row = edit_buffer_count_lines (buf, e->start_display, curs1, FALSE);
++    /* Make the line count 0-based */
++    e->array_row>0 ? e->array_row-- : 0;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -2867,8 +3137,7 @@ edit_update_curs_row (WEdit * edit)
+ void
+ edit_update_curs_col (WEdit * edit)
+ {
+-    edit->curs_col = (long) edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer),
+-                                                0, edit->buffer.curs1);
++    edit->curs_col = edit_get_col(edit);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -2893,7 +3162,7 @@ edit_scroll_upward (WEdit * edit, long i)
+     {
+         edit->start_line -= i;
+         edit->start_display =
+-            edit_buffer_get_backward_offset (&edit->buffer, edit->start_display, i);
++            edit_buffer_get_backward_offset (&edit->buffer, edit->start_display, i, FALSE);
+         edit->force |= REDRAW_PAGE;
+         edit->force &= (0xfff - REDRAW_CHAR_ONLY);
+     }
+@@ -2908,14 +3177,14 @@ edit_scroll_downward (WEdit * edit, long i)
+ {
+     long lines_below;
+ 
+-    lines_below = edit->buffer.lines - edit->start_line - (WIDGET (edit)->rect.lines - 1);
++    lines_below = edit->buffer.lines - edit->start_line - (soft_last_row - 1);
+     if (lines_below > 0)
+     {
+         if (i > lines_below)
+             i = lines_below;
+         edit->start_line += i;
+         edit->start_display =
+-            edit_buffer_get_forward_offset (&edit->buffer, edit->start_display, i, 0);
++            edit_buffer_get_forward_offset (&edit->buffer, edit->start_display, i, 0, FALSE);
+         edit->force |= REDRAW_PAGE;
+         edit->force &= (0xfff - REDRAW_CHAR_ONLY);
+     }
+@@ -2958,14 +3227,14 @@ edit_move_to_prev_col (WEdit * edit, off_t p)
+     long over = edit->over_col;
+ 
+     edit_cursor_move (edit,
+-                      edit_move_forward3 (edit, p, prev + edit->over_col, 0) - edit->buffer.curs1);
++                      edit_move_forward3 (edit, p, prev + edit->over_col, 0, FALSE, 0) - edit->buffer.curs1);
+ 
+     if (edit_options.cursor_beyond_eol)
+     {
+         long line_len;
+ 
+         line_len = (long) edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer), 0,
+-                                              edit_buffer_get_current_eol (&edit->buffer));
++                                              edit_buffer_get_current_eol (&edit->buffer), FALSE, FALSE);
+         if (line_len < prev + edit->over_col)
+         {
+             edit->over_col = prev + over - line_len;
+@@ -2998,10 +3267,10 @@ edit_move_to_prev_col (WEdit * edit, off_t p)
+                 p = edit_buffer_get_current_bol (&edit->buffer);
+                 edit_cursor_move (edit,
+                                   edit_move_forward3 (edit, p, edit->curs_col,
+-                                                      0) - edit->buffer.curs1);
++                                                      0, FALSE, FALSE) - edit->buffer.curs1);
+                 if (!left_of_four_spaces (edit))
+                     edit_cursor_move (edit,
+-                                      edit_move_forward3 (edit, p, q, 0) - edit->buffer.curs1);
++                                      edit_move_forward3 (edit, p, q, 0, FALSE, FALSE) - edit->buffer.curs1);
+             }
+         }
+     }
+@@ -3029,9 +3298,9 @@ void
+ edit_move_to_line (WEdit * e, long line)
+ {
+     if (line < e->buffer.curs_line)
+-        edit_move_up (e, e->buffer.curs_line - line, FALSE);
++        edit_move_up (e, e->buffer.curs_line - line, FALSE, FALSE);
+     else
+-        edit_move_down (e, line - e->buffer.curs_line, FALSE);
++        edit_move_down (e, line - e->buffer.curs_line, FALSE, FALSE);
+     edit_scroll_screen_over_cursor (e);
+ }
+ 
+@@ -3260,8 +3529,6 @@ edit_execute_key_command (WEdit * edit, long command, int char_for_insertion)
+ void
+ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+ {
+-    WRect *w = &WIDGET (edit)->rect;
+-
+     if (command == CK_WindowFullscreen)
+     {
+         edit_toggle_fullscreen (edit);
+@@ -3353,6 +3620,12 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+     /* An ordinary key press */
+     if (char_for_insertion >= 0)
+     {
++        off_t prev_curs_col, col;
++
++        if (edit->curs_col == 0)
++            edit->force |= REDRAW_AFTER_CURSOR;
++        prev_curs_col = edit->curs_col;
++
+         /* if non persistent selection and text selected */
+         if (!edit_options.persistent_selections && edit->mark1 != edit->mark2)
+             edit_block_delete_cmd (edit);
+@@ -3408,7 +3681,13 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+             edit->force |= REDRAW_PAGE;
+         }
+         else
++        {
+             check_and_wrap_line (edit);
++            edit->force |= REDRAW_AFTER_CURSOR;
++        }
++        col = edit_get_col(edit);
++        if (prev_curs_col == edit->buffer.end_col - 1 && col == 0)
++            edit->force |= REDRAW_AFTER_CURSOR;
+         edit->found_len = 0;
+         edit->prev_col = edit_get_col (edit);
+         edit->search_start = edit->buffer.curs1;
+@@ -3467,7 +3746,7 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+     case CK_Right:
+     case CK_MarkLeft:
+     case CK_MarkRight:
+-        edit->force |= REDRAW_CHAR_ONLY;
++        edit->force |= REDRAW_LINE;
+         break;
+     default:
+         break;
+@@ -3497,6 +3776,8 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         }
+         else
+             edit_backspace (edit, FALSE);
++        
++        edit->force |= REDRAW_AFTER_CURSOR;
+         break;
+     case CK_Delete:
+         /* if non persistent selection and text selected */
+@@ -3563,14 +3844,14 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         MC_FALLTHROUGH;
+     case CK_PageUp:
+     case CK_MarkPageUp:
+-        edit_move_up (edit, w->lines - 1, TRUE);
++        edit_move_up (edit, soft_last_row, TRUE, FALSE);
+         break;
+     case CK_MarkColumnPageDown:
+         edit->column_highlight = 1;
+         MC_FALLTHROUGH;
+     case CK_PageDown:
+     case CK_MarkPageDown:
+-        edit_move_down (edit, w->lines - 1, TRUE);
++        edit_move_down (edit, soft_last_row, TRUE, FALSE);
+         break;
+     case CK_MarkColumnLeft:
+         edit->column_highlight = 1;
+@@ -3626,14 +3907,14 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         MC_FALLTHROUGH;
+     case CK_Up:
+     case CK_MarkUp:
+-        edit_move_up (edit, 1, FALSE);
++        edit_move_up (edit, 1, FALSE, TRUE);
+         break;
+     case CK_MarkColumnDown:
+         edit->column_highlight = 1;
+         MC_FALLTHROUGH;
+     case CK_Down:
+     case CK_MarkDown:
+-        edit_move_down (edit, 1, FALSE);
++        edit_move_down (edit, 1, FALSE, TRUE);
+         break;
+     case CK_MarkColumnParagraphUp:
+         edit->column_highlight = 1;
+@@ -3654,22 +3935,22 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         MC_FALLTHROUGH;
+     case CK_ScrollUp:
+     case CK_MarkScrollUp:
+-        edit_move_up (edit, 1, TRUE);
++        edit_move_up (edit, 1, TRUE, TRUE);
+         break;
+     case CK_MarkColumnScrollDown:
+         edit->column_highlight = 1;
+         MC_FALLTHROUGH;
+     case CK_ScrollDown:
+     case CK_MarkScrollDown:
+-        edit_move_down (edit, 1, TRUE);
++        edit_move_down (edit, 1, TRUE, TRUE);
+         break;
+     case CK_Home:
+     case CK_MarkToHome:
+-        edit_cursor_to_bol (edit);
++        edit_cursor_to_bol (edit, TRUE);
+         break;
+     case CK_End:
+     case CK_MarkToEnd:
+-        edit_cursor_to_eol (edit);
++        edit_cursor_to_eol (edit, TRUE);
+         break;
+     case CK_Tab:
+         /* if text marked shift block */
+@@ -3757,8 +4038,8 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+             if (p->next != NULL)
+             {
+                 p = p->next;
+-                if (p->line >= edit->start_line + w->lines || p->line < edit->start_line)
+-                    edit_move_display (edit, p->line - w->lines / 2);
++                if (p->line >= edit->start_line + soft_last_row+1 || p->line < edit->start_line)
++                    edit_move_display (edit, p->line - (soft_last_row+1) / 2);
+                 edit_move_to_line (edit, p->line);
+             }
+         }
+@@ -3774,13 +4055,19 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+                     p = p->prev;
+             if (p->line >= 0)
+             {
+-                if (p->line >= edit->start_line + w->lines || p->line < edit->start_line)
+-                    edit_move_display (edit, p->line - w->lines / 2);
++                if (p->line >= edit->start_line + soft_last_row+1 || p->line < edit->start_line)
++                    edit_move_display (edit, p->line - (soft_last_row+1) / 2);
+                 edit_move_to_line (edit, p->line);
+             }
+         }
+         break;
+ 
++    case CK_SoftFolds:
++        edit_options.soft_wrap = !edit_options.soft_wrap;
++        edit->start_col *= !edit_options.soft_wrap;
++        edit->force |= REDRAW_COMPLETELY;
++        break;
++
+     case CK_Top:
+     case CK_MarkToFileBegin:
+         edit_move_to_top (edit);
+@@ -4050,18 +4337,20 @@ edit_stack_free (void)
+ /** move i lines */
+ 
+ void
+-edit_move_up (WEdit * edit, long i, gboolean do_scroll)
++edit_move_up (WEdit * edit, long i, gboolean do_scroll, gboolean screen_lines)
+ {
+-    edit_move_updown (edit, i, do_scroll, TRUE);
++    screen_lines &= edit_options.soft_wrap;
++    edit_move_updown (edit, i, do_scroll, TRUE, screen_lines);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /** move i lines */
+ 
+ void
+-edit_move_down (WEdit * edit, long i, gboolean do_scroll)
++edit_move_down (WEdit * edit, long i, gboolean do_scroll, gboolean screen_lines)
+ {
+-    edit_move_updown (edit, i, do_scroll, FALSE);
++    screen_lines &= edit_options.soft_wrap;
++    edit_move_updown (edit, i, do_scroll, FALSE, screen_lines);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/editor/edit.h b/src/editor/edit.h
+index 358aa3f14..ffdc0af97 100644
+--- a/src/editor/edit.h
++++ b/src/editor/edit.h
+@@ -60,13 +60,18 @@ typedef struct
+     gboolean show_right_margin;
+     gboolean simple_statusbar;  /* statusbar draw style */
+     gboolean check_nl_at_eof;
++    gboolean soft_wrap;
+ } edit_options_t;
+ 
+ /*** global variables defined in .c file *********************************************************/
+ 
+ extern edit_options_t edit_options;
++extern int soft_last_row;
+ 
+ /*** declarations of public functions ************************************************************/
++void edit_apply_curs_exceptions(WEdit *edit);
++long edit_count_returns(WEdit *edit, off_t from, off_t to, gboolean screen_lines);
++gboolean edit_set_end_column(WEdit *edit);
+ 
+ /* used in main() */
+ void edit_stack_init (void);
+diff --git a/src/editor/editbuffer.c b/src/editor/editbuffer.c
+index 24bc7eeab..3da13b6e6 100644
+--- a/src/editor/editbuffer.c
++++ b/src/editor/editbuffer.c
+@@ -40,6 +40,7 @@
+ 
+ #include "lib/vfs/vfs.h"
+ 
++#include "editwidget.h"
+ #include "edit-impl.h"
+ #include "editbuffer.h"
+ 
+@@ -136,6 +137,21 @@ edit_buffer_get_byte_ptr (const edit_buffer_t * buf, off_t byte_index)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
++/* Todo: query unicode chars (not bytes) */
++int edit_buffer_count_tabs(edit_buffer_t *buf, off_t first, off_t last, gboolean all_kinds)
++{
++    int cnt = 0;
++    last = last > buf->size ? buf->size : last;
++    while (first <= last)
++    {
++        int byte = edit_buffer_get_byte(buf, first);
++        if (byte == '\t' || (all_kinds && byte == '\v'))
++            cnt ++;
++        ++ first;
++    }
++    return cnt;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Initialize editor buffers.
+@@ -144,10 +160,12 @@ edit_buffer_get_byte_ptr (const edit_buffer_t * buf, off_t byte_index)
+  */
+ 
+ void
+-edit_buffer_init (edit_buffer_t * buf, off_t size)
++edit_buffer_init (WEdit *e, edit_buffer_t * buf, off_t size)
+ {
+     buf->b1 = g_ptr_array_new_full (32, g_free);
+     buf->b2 = g_ptr_array_new_full (32, g_free);
++    buf->edit_widget = e;
++    buf->end_col = 73;
+ 
+     buf->curs1 = 0;
+     buf->curs2 = 0;
+@@ -167,10 +185,14 @@ void
+ edit_buffer_clean (edit_buffer_t * buf)
+ {
+     if (buf->b1 != NULL)
++    {
+         g_ptr_array_free (buf->b1, TRUE);
++    }
+ 
+     if (buf->b2 != NULL)
++    {
+         g_ptr_array_free (buf->b2, TRUE);
++    }
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -182,6 +204,15 @@ edit_buffer_clean (edit_buffer_t * buf)
+   *
+   * @return '\n' if byte_index is negative or larger than file size; byte at byte_index otherwise.
+   */
++int
++edit_buffer_get_byte_ex (const edit_buffer_t * buf, off_t byte_index)
++{
++    char *p;
++
++    p = edit_buffer_get_byte_ptr (buf, byte_index);
++
++    return (p != NULL) ? *(unsigned char *) p : -1;
++}
+ 
+ int
+ edit_buffer_get_byte (const edit_buffer_t * buf, off_t byte_index)
+@@ -323,17 +354,29 @@ edit_buffer_get_prev_utf (const edit_buffer_t * buf, off_t byte_index, int *char
+  */
+ 
+ long
+-edit_buffer_count_lines (const edit_buffer_t * buf, off_t first, off_t last)
++edit_buffer_count_lines (const edit_buffer_t * buf, off_t first, off_t last, gboolean screen_lines)
+ {
+-    long lines = 0;
++    long lines = 0, prev_eol = 0, eol;
++    screen_lines &= edit_options.soft_wrap;
+ 
+     first = MAX (first, 0);
+     last = MIN (last, buf->size);
+ 
+-    while (first < last)
+-        if (edit_buffer_get_byte (buf, first++) == '\n')
+-            lines++;
++    if (first == last)
++        return 0;
+ 
++    while (first <= last)
++    {
++        eol = edit_buffer_get_eol(buf, first, screen_lines);
++        /* Advance in buffer */
++        if (edit_buffer_get_byte_ex(buf, eol) == '\n' || ~screen_lines || eol == prev_eol)
++            first = eol+1;
++        else
++            first = eol;
++        prev_eol = eol;
++        /* Count line */
++        lines++;
++    }
+     return lines;
+ }
+ 
+@@ -348,15 +391,29 @@ edit_buffer_count_lines (const edit_buffer_t * buf, off_t first, off_t last)
+  */
+ 
+ off_t
+-edit_buffer_get_bol (const edit_buffer_t * buf, off_t current)
++edit_buffer_get_bol (const edit_buffer_t * buf, off_t current_bol, gboolean screen_lines)
+ {
+-    if (current <= 0)
++    off_t current_save = current_bol;
++    off_t current_eol = current_bol;
++    screen_lines &= edit_options.soft_wrap;
++    if (current_bol <= 0)
++    {
+         return 0;
+-
+-    for (; edit_buffer_get_byte (buf, current - 1) != '\n'; current--)
++    }
++    for (; current_bol>0 && edit_buffer_get_byte (buf, current_bol-1)!='\n'; current_bol-=1)
+         ;
+ 
+-    return current;
++    for (; (edit_buffer_get_byte (buf, current_eol)!='\n' || current_save == current_eol) && current_eol < buf->size
++                            ; current_eol+=1);
++
++
++    if (screen_lines)
++    {
++        off_t pos = current_save - 
++    edit_move_forward3(buf->edit_widget, current_bol, 0, current_save, TRUE, buf->end_col);
++        return pos;
++    }
++    return current_bol;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -370,15 +427,39 @@ edit_buffer_get_bol (const edit_buffer_t * buf, off_t current)
+  */
+ 
+ off_t
+-edit_buffer_get_eol (const edit_buffer_t * buf, off_t current)
++edit_buffer_get_eol (const edit_buffer_t * buf, off_t current_eol, gboolean screen_lines)
+ {
+-    if (current >= buf->size)
++    off_t current_save = current_eol;
++    off_t current_bol = current_eol;
++    off_t q;
++    screen_lines &= edit_options.soft_wrap;
++    if (current_eol >= buf->size)
+         return buf->size;
+ 
+-    for (; edit_buffer_get_byte (buf, current) != '\n'; current++)
++    for (; current_bol > 0 && edit_buffer_get_byte (buf, current_bol - 1) != '\n';
++        current_bol--)
+         ;
+ 
+-    return current;
++    if (screen_lines)
++    {
++        off_t prev_eol=0;
++        for (; 
++           (edit_buffer_get_byte_ex (buf, current_eol) != '\n') && 
++            current_eol <= buf->size &&
++    (current_eol==current_save || ((q=edit_move_forward3(buf->edit_widget, current_bol, 0, current_eol, FALSE, 0)%buf->end_col) != 0)
++                ) ;
++                current_eol=edit_move_forward3(buf->edit_widget,current_eol,1,0,FALSE,0),
++                current_eol+=prev_eol==current_eol?1:0,prev_eol=current_eol)
++            ;
++        if (current_eol > buf->size && edit_buffer_get_byte_ex(buf, current_eol) != '\n')
++            current_eol=buf->size;
++    }
++    else
++        for (; (edit_buffer_get_byte (buf, current_eol) != '\n') && current_eol < buf->size; current_eol++)
++        ;
++
++    
++    return current_eol;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -638,23 +719,35 @@ edit_buffer_backspace (edit_buffer_t * buf)
+  */
+ 
+ off_t
+-edit_buffer_get_forward_offset (const edit_buffer_t * buf, off_t current, long lines, off_t upto)
++edit_buffer_get_forward_offset (const edit_buffer_t * buf, off_t current, long lines, off_t upto, gboolean screen_lines)
+ {
++    screen_lines &= edit_options.soft_wrap;
+     if (upto != 0)
+-        return (off_t) edit_buffer_count_lines (buf, current, upto);
++        return (off_t) edit_buffer_count_lines (buf, current, upto, screen_lines);
+ 
+     lines = MAX (lines, 0);
+ 
++    if (lines > 0)
++    {
++        edit_update_curs_col(buf->edit_widget);
++        if (buf->edit_widget->curs_col == buf->end_col)
++            lines--;
++    }
++
+     while (lines-- != 0)
+     {
+-        long next;
++        off_t next;
++        int byte;
+ 
+-        next = edit_buffer_get_eol (buf, current) + 1;
+-        if (next > buf->size)
++        next = edit_buffer_get_eol (buf, current, screen_lines);
++        byte = edit_buffer_get_byte_ex(buf, next);
++
++        if (byte == '\n' || !screen_lines)
++            next++;
++        if (next > buf->size+1)
+             break;
+         current = next;
+     }
+-
+     return current;
+ }
+ 
+@@ -670,14 +763,24 @@ edit_buffer_get_forward_offset (const edit_buffer_t * buf, off_t current, long l
+  */
+ 
+ off_t
+-edit_buffer_get_backward_offset (const edit_buffer_t * buf, off_t current, long lines)
++edit_buffer_get_backward_offset (const edit_buffer_t * buf, off_t current, long lines, gboolean screen_lines)
+ {
++    screen_lines &= edit_options.soft_wrap;
+     lines = MAX (lines, 0);
+-    current = edit_buffer_get_bol (buf, current);
++    current = edit_buffer_get_bol (buf, current, screen_lines);
+ 
+     while (lines-- != 0 && current != 0)
+-        current = edit_buffer_get_bol (buf, current - 1);
++    {
++        current = edit_buffer_get_bol (buf, current - 1, screen_lines);
++        if (screen_lines && current > 0 &&
++    edit_buffer_get_byte_ex(buf,current) == '\n' && 
++    edit_buffer_get_byte_ex(buf,current-1) != '\n')
++            lines++;
++    }
+ 
++    if (current > 0 && screen_lines && edit_buffer_get_byte_ex(buf,current-1) != '\n')
++        current = edit_buffer_get_eol (buf, current - 1, screen_lines);
++    
+     return current;
+ }
+ 
+diff --git a/src/editor/editbuffer.h b/src/editor/editbuffer.h
+index def17eec5..eb4486f42 100644
+--- a/src/editor/editbuffer.h
++++ b/src/editor/editbuffer.h
+@@ -13,6 +13,7 @@
+ 
+ typedef struct edit_buffer_struct
+ {
++    WEdit *edit_widget;
+     off_t curs1;                /* position of the cursor from the beginning of the file. */
+     off_t curs2;                /* position from the end of the file */
+     GPtrArray *b1;              /* all data up to curs1 */
+@@ -20,6 +21,8 @@ typedef struct edit_buffer_struct
+     off_t size;                 /* file size */
+     long lines;                 /* total lines in the file */
+     long curs_line;             /* line number of the cursor. */
++    long line_begin_offset;     /* offset of first char after last \n */
++    long end_col;               /* Maximum column in current view */
+ } edit_buffer_t;
+ 
+ typedef struct edit_buffer_read_file_status_msg_struct
+@@ -34,8 +37,10 @@ typedef struct edit_buffer_read_file_status_msg_struct
+ /*** global variables defined in .c file *********************************************************/
+ 
+ /*** declarations of public functions ************************************************************/
++int edit_buffer_get_byte_ex (const edit_buffer_t * buf, off_t byte_index);
+ 
+-void edit_buffer_init (edit_buffer_t * buf, off_t size);
++int edit_buffer_count_tabs(edit_buffer_t *buf, off_t first, off_t last, gboolean all_kinds);
++void edit_buffer_init (WEdit *e, edit_buffer_t * buf, off_t size);
+ void edit_buffer_clean (edit_buffer_t * buf);
+ 
+ int edit_buffer_get_byte (const edit_buffer_t * buf, off_t byte_index);
+@@ -43,9 +48,9 @@ int edit_buffer_get_byte (const edit_buffer_t * buf, off_t byte_index);
+ int edit_buffer_get_utf (const edit_buffer_t * buf, off_t byte_index, int *char_length);
+ int edit_buffer_get_prev_utf (const edit_buffer_t * buf, off_t byte_index, int *char_length);
+ #endif
+-long edit_buffer_count_lines (const edit_buffer_t * buf, off_t first, off_t last);
+-off_t edit_buffer_get_bol (const edit_buffer_t * buf, off_t current);
+-off_t edit_buffer_get_eol (const edit_buffer_t * buf, off_t current);
++long edit_buffer_count_lines (const edit_buffer_t * buf, off_t first, off_t last, gboolean screen_lines);
++off_t edit_buffer_get_bol (const edit_buffer_t * buf, off_t current, gboolean screen_lines);
++off_t edit_buffer_get_eol (const edit_buffer_t * buf, off_t current, gboolean screen_lines);
+ GString *edit_buffer_get_word_from_pos (const edit_buffer_t * buf, off_t start_pos, off_t * start,
+                                         gsize * cut);
+ gboolean edit_buffer_find_word_start (const edit_buffer_t * buf, off_t * word_start,
+@@ -57,8 +62,9 @@ int edit_buffer_delete (edit_buffer_t * buf);
+ int edit_buffer_backspace (edit_buffer_t * buf);
+ 
+ off_t edit_buffer_get_forward_offset (const edit_buffer_t * buf, off_t current, long lines,
+-                                      off_t upto);
+-off_t edit_buffer_get_backward_offset (const edit_buffer_t * buf, off_t current, long lines);
++                                      off_t upto, gboolean screen_lines);
++off_t edit_buffer_get_backward_offset (const edit_buffer_t *buf, off_t current, long lines,
++                                     gboolean screen_lines);
+ 
+ off_t edit_buffer_read_file (edit_buffer_t * buf, int fd, off_t size,
+                              edit_buffer_read_file_status_msg_t * sm, gboolean * aborted);
+@@ -94,7 +100,7 @@ edit_buffer_get_previous_byte (const edit_buffer_t * buf)
+ static inline off_t
+ edit_buffer_get_current_bol (const edit_buffer_t * buf)
+ {
+-    return edit_buffer_get_bol (buf, buf->curs1);
++    return edit_buffer_get_bol (buf, buf->curs1, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -109,7 +115,7 @@ edit_buffer_get_current_bol (const edit_buffer_t * buf)
+ static inline off_t
+ edit_buffer_get_current_eol (const edit_buffer_t * buf)
+ {
+-    return edit_buffer_get_eol (buf, buf->curs1);
++    return edit_buffer_get_eol (buf, buf->curs1, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index de624f249..a550b52da 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -467,9 +467,9 @@ edit_delete_column_of_text (WEdit * edit)
+     long b, c, d;
+ 
+     eval_marks (edit, &m1, &m2);
+-    n = edit_buffer_get_forward_offset (&edit->buffer, m1, 0, m2) + 1;
+-    c = (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, m1), 0, m1);
+-    d = (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, m2), 0, m2);
++    n = edit_buffer_get_forward_offset (&edit->buffer, m1, 0, m2, FALSE) + 1;
++    c = (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, m1, TRUE), 0, m1, FALSE, 0);
++    d = (long) edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, m2, TRUE), 0, m2, FALSE, 0);
+     b = MAX (MIN (c, d), MIN (edit->column1, edit->column2));
+     c = MAX (c, MAX (edit->column1, edit->column2));
+ 
+@@ -478,8 +478,8 @@ edit_delete_column_of_text (WEdit * edit)
+         off_t r, p, q;
+ 
+         r = edit_buffer_get_current_bol (&edit->buffer);
+-        p = edit_move_forward3 (edit, r, b, 0);
+-        q = edit_move_forward3 (edit, r, c, 0);
++        p = edit_move_forward3 (edit, r, b, 0, FALSE, 0);
++        q = edit_move_forward3 (edit, r, c, 0, FALSE, 0);
+         p = MAX (p, m1);
+         q = MIN (q, m2);
+         edit_cursor_move (edit, p - edit->buffer.curs1);
+@@ -492,7 +492,7 @@ edit_delete_column_of_text (WEdit * edit)
+         if (n != 0)
+             edit_cursor_move (edit,
+                               edit_buffer_get_forward_offset (&edit->buffer, edit->buffer.curs1, 1,
+-                                                              0) - edit->buffer.curs1);
++                                                              0, FALSE) - edit->buffer.curs1);
+     }
+ }
+ 
+@@ -547,7 +547,7 @@ edit_block_delete (WEdit * edit)
+             edit_move_to_line (edit, curs_line);
+             /* calculate line width and cursor position before cut */
+             line_width = edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer), 0,
+-                                             edit_buffer_get_current_eol (&edit->buffer));
++                                             edit_buffer_get_current_eol (&edit->buffer), FALSE, FALSE);
+             if (edit_options.cursor_beyond_eol && curs_pos > line_width)
+                 edit->over_col = curs_pos - line_width;
+         }
+@@ -586,7 +586,7 @@ edit_get_block (WEdit * edit, off_t start, off_t finish, off_t * l)
+             int c;
+             off_t x;
+ 
+-            x = edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, start), 0, start);
++            x = edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, start, TRUE), 0, start, FALSE, 0);
+             c = edit_buffer_get_byte (&edit->buffer, start);
+             if ((x >= edit->column1 && x < edit->column2)
+                 || (x >= edit->column2 && x < edit->column1) || c == '\n')
+@@ -699,7 +699,7 @@ edit_insert_column_of_text (WEdit * edit, unsigned char *data, off_t size, long
+                     break;
+                 }
+             }
+-            edit_cursor_move (edit, edit_move_forward3 (edit, p, col, 0) - edit->buffer.curs1);
++            edit_cursor_move (edit, edit_move_forward3 (edit, p, col, 0, FALSE, FALSE) - edit->buffer.curs1);
+ 
+             for (l = col - edit_get_col (edit); l >= space_width; l -= space_width)
+                 edit_insert (edit, ' ');
+@@ -1300,17 +1300,17 @@ eval_marks (WEdit * edit, off_t * start_mark, off_t * end_mark)
+         long col1, col2;
+         off_t diff1, diff2;
+ 
+-        start_bol = edit_buffer_get_bol (&edit->buffer, *start_mark);
+-        start_eol = edit_buffer_get_eol (&edit->buffer, start_bol - 1) + 1;
+-        end_bol = edit_buffer_get_bol (&edit->buffer, *end_mark);
+-        end_eol = edit_buffer_get_eol (&edit->buffer, *end_mark);
++        start_bol = edit_buffer_get_bol (&edit->buffer, *start_mark, FALSE);
++        start_eol = edit_buffer_get_eol (&edit->buffer, start_bol - 1, FALSE) + 1;
++        end_bol = edit_buffer_get_bol (&edit->buffer, *end_mark, FALSE);
++        end_eol = edit_buffer_get_eol (&edit->buffer, *end_mark, FALSE);
+         col1 = MIN (edit->column1, edit->column2);
+         col2 = MAX (edit->column1, edit->column2);
+ 
+-        diff1 = edit_move_forward3 (edit, start_bol, col2, 0) -
+-            edit_move_forward3 (edit, start_bol, col1, 0);
+-        diff2 = edit_move_forward3 (edit, end_bol, col2, 0) -
+-            edit_move_forward3 (edit, end_bol, col1, 0);
++        diff1 = edit_move_forward3 (edit, start_bol, col2, 0, FALSE, 0) -
++            edit_move_forward3 (edit, start_bol, col1, 0, FALSE, 0);
++        diff2 = edit_move_forward3 (edit, end_bol, col2, 0, FALSE, 0) -
++            edit_move_forward3 (edit, end_bol, col1, 0, FALSE, 0);
+ 
+         *start_mark -= diff1;
+         *end_mark += diff2;
+@@ -1409,12 +1409,12 @@ edit_block_move_cmd (WEdit * edit)
+         x2 = x + edit->over_col;
+ 
+         /* do nothing when cursor inside first line of selected area */
+-        if ((edit_buffer_get_eol (&edit->buffer, edit->buffer.curs1) ==
+-             edit_buffer_get_eol (&edit->buffer, start_mark)) && x2 > c1 && x2 <= c2)
++        if ((edit_buffer_get_eol (&edit->buffer, edit->buffer.curs1, FALSE) ==
++             edit_buffer_get_eol (&edit->buffer, start_mark, FALSE)) && x2 > c1 && x2 <= c2)
+             return;
+ 
+         if (edit->buffer.curs1 > start_mark
+-            && edit->buffer.curs1 < edit_buffer_get_eol (&edit->buffer, end_mark))
++            && edit->buffer.curs1 < edit_buffer_get_eol (&edit->buffer, end_mark, FALSE))
+         {
+             if (x > c2)
+                 x -= b_width;
+@@ -1429,7 +1429,7 @@ edit_block_move_cmd (WEdit * edit)
+ 
+         edit->over_col = MAX (0, edit->over_col - b_width);
+         /* calculate the cursor pos after delete block */
+-        current = edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer), x, 0);
++        current = edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer), x, 0, FALSE, 0);
+         edit_cursor_move (edit, current - edit->buffer.curs1);
+         edit_scroll_screen_over_cursor (edit);
+ 
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index fbd1e095f..d61347c96 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -76,18 +76,90 @@
+ 
+ /*** file scope type declarations ****************************************************************/
+ 
+-typedef struct
++typedef struct line
+ {
+     unsigned int ch;
+     unsigned int style;
+-} line_s;
++} line;
+ 
+ /*** forward declarations (file scope functions) *************************************************/
++typedef struct
++{
++    long soft_last_row;
++    long row;           /* Normal (not soft-wrapped) line number to print to */
++    int plines_count;   /* Will occupy that much screen lines */
++    int index;          /* Line number in doc (normal, no wraps, whole) */
++    int scr_index;      /* Line number (logical) on screen, i.e.: from 0 */
++    int size;           /* Length of line ↔ # elements in ldata[] */
++    long order_idx;     /* Should be same as row above */
++
++    /* In future versions it'll be possible to draw only part of
++     * the line – currently *_col fields are unused. */
++    int q, start_col_real;
++    long ec;
++    char status[LINE_STATE_WIDTH + 1];
++    int bookmarked;
++    gboolean visible;
++
++    line ldata[];     /* Flexible array for a single malloc */
++} MCELineData;
+ 
+ /*** file scope variables ************************************************************************/
+ 
+ /*** file scope functions ************************************************************************/
+ 
++static MCELineData *
++edit_prepare_this_line (WEdit * edit, off_t b, long order_idx, long row, long start_col, long end_col, long soft_last_row, gboolean draw, long base_line);
++
++gboolean refresh_line_data(WEdit *edit, GPtrArray *page_line_data, long start_column, long end_column, long end_row);
++
++gboolean refresh_line_data(WEdit *edit, GPtrArray *page_line_data, long start_column, long end_column, long end_row)
++{
++    MCELineData *prev_ldata, *line_data;
++    gboolean ret = FALSE;
++    long base_line,row,start_row = 0;
++    int prev_plines = 0;
++
++    base_line=edit_buffer_count_lines(&edit->buffer,0,edit->start_display,FALSE);
++    off_t b = edit_buffer_get_forward_offset (&edit->buffer, edit->start_display, start_row, 0, FALSE);
++    for (row = start_row; row < end_row; row++)
++    {
++        int pplines_add = 0;
++        if (!edit_options.soft_wrap)
++            pplines_add = -prev_plines;
++        line_data = edit_prepare_this_line (edit, b, row, row+prev_plines+pplines_add,
++            start_column, end_column, -1, FALSE,base_line);
++        line_data->plines_count += pplines_add;
++        prev_ldata = (MCELineData*)page_line_data->pdata[row];
++        if (prev_ldata == NULL || prev_ldata->plines_count != line_data->plines_count)
++            /* Return true if any plines changed */
++            ret = TRUE;
++        page_line_data->pdata[row] = line_data;
++        prev_plines += (line_data->plines_count > 0) ? line_data->plines_count-1 : 0;
++        b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0, FALSE);
++    }
++    return ret;
++}
++
++int 
++sum_plines_to_row_full(GPtrArray *page_line_data, int row, gboolean count_only_second_etc_lines)
++{
++    int prev_plines = 0;
++
++    if (!edit_options.soft_wrap)
++        return prev_plines;
++
++    for (int idx = 0; idx < row && idx < (long)page_line_data->len; idx ++)
++    {
++        MCELineData *line_data = page_line_data->pdata[idx];
++        if(line_data != NULL)
++            prev_plines += (line_data->plines_count>0) ? line_data->plines_count-(count_only_second_etc_lines?1:0) : 0;
++        else
++            prev_plines += count_only_second_etc_lines?0:1;
++    }
++    return prev_plines;
++}
++
+ static inline void
+ printwstr (const char *s, int len)
+ {
+@@ -136,14 +208,17 @@ status_string (WEdit * edit, char *s, int w)
+     }
+ 
+     /* The field lengths just prevent the status line from shortening too much */
++    off_t bol = edit_buffer_get_current_bol(&edit->buffer);
++    off_t col = edit_move_forward3(edit,bol,0,
++                    edit->buffer.curs1,FALSE,0);
+     if (edit_options.simple_statusbar)
+         g_snprintf (s, w,
+                     "%c%c%c%c %3ld %5ld/%ld %6ld/%ld %s %s",
+                     edit->mark1 != edit->mark2 ? (edit->column_highlight ? 'C' : 'B') : '-',
+                     edit->modified ? 'M' : '-',
+                     macro_index < 0 ? '-' : 'R',
+-                    edit->overwrite == 0 ? '-' : 'O',
+-                    edit->curs_col + edit->over_col,
++                    edit->overwrite == 0 ? '-':'O',
++                    col,
+                     edit->buffer.curs_line + 1,
+                     edit->buffer.lines + 1, (long) edit->buffer.curs1, (long) edit->buffer.size,
+                     byte_str,
+@@ -157,8 +232,8 @@ status_string (WEdit * edit, char *s, int w)
+                     edit->mark1 != edit->mark2 ? (edit->column_highlight ? 'C' : 'B') : '-',
+                     edit->modified ? 'M' : '-',
+                     macro_index < 0 ? '-' : 'R',
+-                    edit->overwrite == 0 ? '-' : 'O',
+-                    edit->curs_col + edit->over_col,
++                    edit->overwrite == 0 ? '-':'O',
++                    col,
+                     edit->start_line + 1,
+                     edit->curs_row,
+                     edit->buffer.curs_line + 1,
+@@ -185,7 +260,7 @@ edit_status_fullscreen (WEdit * edit, int color)
+     const int w = h->rect.cols;
+     const int gap = 3;          /* between the filename and the status */
+     const int right_gap = 5;    /* at the right end of the screen */
+-    const int preferred_fname_len = 16;
++    const int preferred_fname_len = 14;
+     char *status;
+     size_t status_size;
+     int status_len;
+@@ -377,20 +452,33 @@ edit_draw_window_icons (const WEdit * edit, int color)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static inline void
+-print_to_widget (WEdit * edit, long row, int start_col, int start_col_real,
+-                 long end_col, line_s line[], char *status, int bookmarked)
++print_to_widget (WEdit * edit, MCELineData *line_data)
++
+ {
++    int linesize = line_data->size;
++    long row = edit_options.soft_wrap ? line_data->row : line_data->scr_index;
++    int q = line_data->q;
++    int start_col_real = line_data->start_col_real;
++    long ec = line_data->ec, idx;
++    line *line_ = line_data->ldata;
++    char *status = line_data->status;
++    int bookmarked = line_data->bookmarked;
++
+     Widget *w = WIDGET (edit);
+-    line_s *p;
++    line *p;
+     int x, x1, y, cols_to_skip;
+-    int i;
+-    int wrap_start;
++    int i, yp;
++    int f_start;
+     int len;
+ 
++    if (row<line_data->row)
++    {
++        row = line_data->row;
++    }
+     x = start_col_real;
+-    x1 = start_col + EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width;
++    x1 = q + EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width;
+     y = row + EDIT_TEXT_VERTICAL_OFFSET;
+-    cols_to_skip = abs (x);
++    cols_to_skip = abs(x);
+ 
+     if (!edit->fullscreen)
+     {
+@@ -398,64 +486,85 @@ print_to_widget (WEdit * edit, long row, int start_col, int start_col_real,
+         y++;
+     }
+ 
+-    tty_setcolor (EDITOR_NORMAL_COLOR);
+-    if (bookmarked != 0)
+-        tty_setcolor (bookmarked);
++    len = ec + 1 - q;
++    f_start = edit_options.word_wrap_line_length + edit->start_col;
+ 
+-    len = end_col + 1 - start_col;
+-    wrap_start = edit_options.word_wrap_line_length + edit->start_col;
+-
+-    if (len > 0 && w->rect.y + y >= 0)
++    for (idx=0; idx < line_data->plines_count || idx == 0; idx++)
+     {
+-        if (!edit_options.show_right_margin || wrap_start > end_col)
+-            tty_draw_hline (w->rect.y + y, w->rect.x + x1, ' ', len);
+-        else if (wrap_start < 0)
++        if (len > 0 && w->rect.y + y >= 0)
+         {
+-            tty_setcolor (EDITOR_RIGHT_MARGIN_COLOR);
+-            tty_draw_hline (w->rect.y + y, w->rect.x + x1, ' ', len);
+-        }
+-        else
+-        {
+-            if (wrap_start > 0)
+-                tty_draw_hline (w->rect.y + y, w->rect.x + x1, ' ', wrap_start);
++            if (!edit_options.show_right_margin || f_start > ec)
++            {
++                tty_setcolor (EDITOR_NORMAL_COLOR);
++                if (bookmarked != 0)
++                    tty_setcolor (bookmarked);
+ 
+-            len -= wrap_start;
+-            if (len > 0)
++                tty_draw_hline (w->rect.y + y + idx, w->rect.x + x1, ' ', len);
++            }
++            else if (f_start < 0)
+             {
+                 tty_setcolor (EDITOR_RIGHT_MARGIN_COLOR);
+-                tty_draw_hline (w->rect.y + y, w->rect.x + x1 + wrap_start, ' ', len);
++                tty_draw_hline (w->rect.y + y + idx, w->rect.x + x1, ' ', len);
++            }
++            else
++            {
++                if (f_start > 0)
++                    tty_draw_hline (w->rect.y + y + idx, w->rect.x + x1, ' ', f_start);
++
++                len -= f_start;
++                if (len > 0)
++                {
++                    tty_setcolor (EDITOR_RIGHT_MARGIN_COLOR);
++                    tty_draw_hline (w->rect.y + y + idx, w->rect.x + x1 + f_start, ' ', len);
++                }
++            }
++        }
++    }
++    if (edit_options.line_state)
++    {
++        tty_setcolor (LINE_STATE_COLOR);
++        for (yp = 0; (edit_options.soft_wrap && yp <= linesize/ec + 
++                    (linesize%ec != 0 ? 0 : -1) +
++            (linesize == 0 ? 1 : 0)) || (!edit_options.soft_wrap && yp < 1); ++ yp) 
++        {
++            for (i = 0; i < LINE_STATE_WIDTH; i++)
++            {
++                edit_move (x1 + i - edit_options.line_state_width, y+yp);
++                if (yp == 0)
++                {
++                    if (status[i] == '\0')
++                        status[i] = ' ';
++                    tty_print_char (status[i]);
++                } else
++                    tty_print_char (' ');
+             }
+         }
+     }
+ 
+-    if (edit_options.line_state)
+-    {
+-        tty_setcolor (LINE_STATE_COLOR);
+-
+-        for (i = 0; i < LINE_STATE_WIDTH; i++)
+-        {
+-            edit_move (x1 + i - edit_options.line_state_width, y);
+-            if (status[i] == '\0')
+-                status[i] = ' ';
+-            tty_print_char (status[i]);
+-        }
+-    }
++    edit->end_col = ec;
++    edit->buffer.end_col = ec;
+ 
+     edit_move (x1, y);
+ 
+     i = 1;
+-    for (p = line; p->ch != 0; p++)
+-    {
++    for (idx = 0, p = &line_[-edit->start_col]; (edit_options.soft_wrap && linesize -- > 0) || (
++                                    !edit_options.soft_wrap && (linesize -- + edit->start_col > 0) && p->ch != 0 
++                                    ); p++, idx++)
++    {                       
++                                                                        
+         int style;
+         unsigned int textchar;
+         int color;
+-
+-        if (cols_to_skip != 0)
++        if (!edit_options.soft_wrap && cols_to_skip != 0)
+         {
+             cols_to_skip--;
+             continue;
+         }
+ 
++        /* Position each physical line */
++        if (edit_options.soft_wrap && idx%ec == 0)
++            edit_move (x1, y++);
++
+         style = p->style & 0xFF00;
+         textchar = p->ch;
+         /* If non-printable - use black background */
+@@ -482,8 +591,8 @@ print_to_widget (WEdit * edit, long row, int start_col, int start_col_real,
+         {
+             if (i > edit_options.word_wrap_line_length + edit->start_col)
+                 tty_setcolor (EDITOR_RIGHT_MARGIN_COLOR);
+-            i++;
+         }
++        i++;
+ 
+         tty_print_anychar (textchar);
+     }
+@@ -492,74 +601,126 @@ print_to_widget (WEdit * edit, long row, int start_col, int start_col_real,
+ /* --------------------------------------------------------------------------------------------- */
+ /** b is a pointer to the beginning of the line */
+ 
+-static void
+-edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_col)
++static MCELineData *
++edit_prepare_this_line (WEdit * edit, off_t b, long order_idx, long row, long start_col, long end_col, long soft_last_row_idx, gboolean draw, long base_line)
+ {
++    long line_count, cur_line, prev_line;
++    MCELineData *line_data;
+     Widget *w = WIDGET (edit);
+-    line_s line[MAX_LINE_LEN];
+-    line_s *p = line;
++    line *p;
+     off_t q;
+-    int col, start_col_real;
++    int wrap_line_len, line_size, start_col_real = 0;
++    int col;
++    int color;
+     int abn_style;
+     int book_mark = 0;
+-    char line_stat[LINE_STATE_WIDTH + 1] = "\0";
+ 
+-    if (row > w->rect.lines - 1 - EDIT_TEXT_VERTICAL_OFFSET - 2 * (edit->fullscreen ? 0 : 1))
+-        return;
++    q = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0, FALSE);
++    line_size = edit_move_forward3 (edit, b, 0, q, FALSE, 0);
++    line_data = (MCELineData *) g_malloc0(sizeof(MCELineData) + sizeof(line) * 
++                                        (line_size + /* sentinel —→ */ 1 + 
++                                       edit_buffer_count_tabs(&edit->buffer,b,q,
++                                                            FALSE)*8));
++    p = line_data->ldata;                                                       
+ 
+-    if (book_mark_query_color (edit, edit->start_line + row, BOOK_MARK_COLOR))
+-        book_mark = BOOK_MARK_COLOR;
+-    else if (book_mark_query_color (edit, edit->start_line + row, BOOK_MARK_FOUND_COLOR))
+-        book_mark = BOOK_MARK_FOUND_COLOR;
+-
+-    if (book_mark != 0)
+-        abn_style = book_mark << 16;
++    /* Helper var */
++    if (edit_options.soft_wrap)
++        end_col -= EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width;
+     else
+-        abn_style = MOD_ABNORMAL;
++        wrap_line_len = abs(edit_options.word_wrap_line_length);
+ 
+-    end_col -= EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width;
+     if (!edit->fullscreen)
+     {
+         end_col--;
+         if (w->rect.x + w->rect.cols <= WIDGET (w->owner)->rect.cols)
+             end_col--;
+     }
++    wrap_line_len = end_col;
+ 
+-    q = edit_move_forward3 (edit, b, start_col - edit->start_col, 0);
+-    col = (int) edit_move_forward3 (edit, b, 0, q);
+-    start_col_real = col + edit->start_col;
++    line_count = edit_buffer_count_lines(&edit->buffer, edit->start_display, q-1, FALSE);
++    line_count+=base_line+(line_count>0?-1:0);
++
++    line_data->soft_last_row = soft_last_row_idx;
++    line_data->row = row;
++    line_data->plines_count = line_size / wrap_line_len + ((line_size % wrap_line_len) ? 1 : 0);
++    if (!edit_options.soft_wrap)
++        line_data->plines_count = 0;
++    line_data->index = line_count+(line_count>0?-1:0);
++    line_data->scr_index = line_data->index - edit->start_line;
++    line_data->order_idx = order_idx; /* for investigation */
++    line_data->size = line_size;
++    line_data->q = !edit_options.soft_wrap ? edit->start_col : 0;
++    line_data->ec = end_col;
++    line_data->visible = (order_idx <= line_data->soft_last_row);
++
++    if (!edit_options.soft_wrap)
++        line_data->plines_count = 0;
++
++    if (book_mark_query_color (edit, line_data->index, BOOK_MARK_COLOR))
++        book_mark = BOOK_MARK_COLOR;
++    else if (book_mark_query_color (edit, line_data->index, BOOK_MARK_FOUND_COLOR))
++        book_mark = BOOK_MARK_FOUND_COLOR;
++
++    line_data->bookmarked = book_mark;
++
++    if (book_mark != 0)
++        abn_style = book_mark << 16;
++    else
++        abn_style = MOD_ABNORMAL;
++    if (!edit_options.soft_wrap)
++    {
++        end_col -= EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width;
++        if (!edit->fullscreen)
++        {
++            end_col--;
++            if (w->rect.x + w->rect.cols <= WIDGET (w->owner)->rect.cols)
++                end_col--;
++        }
++    }
++
++    color = edit_get_syntax_color (edit, b - 1);
++    if (edit_options.soft_wrap)
++    {
++        q = b;
++        col = (int) edit_move_forward3 (edit, b, 0, q, FALSE, 0);
++    } 
++    else
++    {
++        q = edit_move_forward3 (edit, b, start_col - edit->start_col, 0, FALSE, 0);
++        col = (int) edit_move_forward3 (edit, b, 0, q, FALSE, 0);
++        line_data->start_col_real = start_col_real = col + edit->start_col;
++    }
+ 
+     if (edit_options.line_state)
+     {
+-        long cur_line;
+-
+-        cur_line = edit->start_line + row;
+-        if (cur_line <= edit->buffer.lines)
+-            g_snprintf (line_stat, sizeof (line_stat), "%7ld ", cur_line + 1);
++        int line_cnt=0;
++        cur_line = line_data->index;
++        if (line_data->order_idx == line_data->scr_index || cur_line+1 < line_cnt)
++            g_snprintf (line_data->status, sizeof (line_data->status),
++                       "%7li ", cur_line + 1);
+         else
+         {
+-            memset (line_stat, ' ', LINE_STATE_WIDTH);
+-            line_stat[LINE_STATE_WIDTH] = '\0';
++            memset (line_data->status, ' ', LINE_STATE_WIDTH);
++            line_data->status[LINE_STATE_WIDTH] = '\0';
+         }
+-
++        prev_line = cur_line + 1;
+         if (book_mark_query_color (edit, cur_line, BOOK_MARK_COLOR))
+-            g_snprintf (line_stat, 2, "*");
++            g_snprintf (line_data->status, 2, "*");
+     }
+-
++ 
+     if (col <= -(edit->start_col + 16))
+-        start_col_real = start_col = 0;
++      start_col_real = start_col = 0;
+     else
+     {
+         off_t m1 = 0, m2 = 0;
+ 
+         eval_marks (edit, &m1, &m2);
+-
+-        if (row <= edit->buffer.lines - edit->start_line)
++        if (order_idx <= edit->buffer.lines - edit->start_line)
+         {
+             off_t tws = 0;
+ 
+-            if (edit_options.visible_tws && tty_use_colors ())
+-                for (tws = edit_buffer_get_eol (&edit->buffer, b); tws > b; tws--)
++            if (tty_use_colors () && edit_options.visible_tws)
++                for (tws = edit_buffer_get_eol (&edit->buffer, b, FALSE); tws > b; tws--)
+                 {
+                     unsigned int c;
+ 
+@@ -568,7 +729,8 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                         break;
+                 }
+ 
+-            while (col <= end_col - edit->start_col)
++            while ((edit_options.soft_wrap && col <= line_data->size) || 
++                 (!edit_options.soft_wrap && col <= line_data->size))
+             {
+                 int char_length = 1;
+                 unsigned int c;
+@@ -586,7 +748,7 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                     {
+                         long x, cl;
+ 
+-                        x = (long) edit_move_forward3 (edit, b, 0, q);
++                        x = (long) edit_move_forward3 (edit, b, 0, q, FALSE, 0);
+                         cl = MIN (edit->column1, edit->column2);
+                         if (x >= cl)
+                         {
+@@ -614,8 +776,6 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                     p->style |= book_mark << 16;
+                 else
+                 {
+-                    int color;
+-
+                     color = edit_get_syntax_color (edit, q);
+                     p->style |= color << 16;
+                 }
+@@ -623,21 +783,29 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                 switch (c)
+                 {
+                 case '\n':
+-                    col = end_col - edit->start_col + 1;        /* quit */
++                    if (edit_options.soft_wrap)
++                        col = line_data->size + 1;        /* quit */
++                    else
++                        col = line_data->size + 1;
+                     break;
+ 
+                 case '\t':
+                     {
+-                        int tab_over;
++                        int tab_over = 0;
+                         int i;
+ 
+                         i = TAB_SIZE - ((int) col % TAB_SIZE);
+-                        tab_over = (end_col - edit->start_col) - (col + i - 1);
+-                        if (tab_over < 0)
+-                            i += tab_over;
++
++                        /* Supress off-screen part only if not in Soft Wraps mode */
++                        if(!edit_options.soft_wrap || edit_options.soft_wrap)
++                        {
++                            tab_over = end_col - (col + i - 1);
++                            if (tab_over < 0)
++                                i += tab_over;
++                        }
+                         col += i;
+-                        if ((edit_options.visible_tabs || (edit_options.visible_tws && q >= tws))
+-                            && enable_show_tabs_tws && tty_use_colors ())
++                        if (tty_use_colors () && (edit_options.visible_tabs || (edit_options.visible_tws && q >= tws))
++                            && enable_show_tabs_tws)
+                         {
+                             if ((p->style & MOD_MARKED) != 0)
+                                 c = p->style;
+@@ -669,21 +837,21 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                                 p->style = c;
+                                 p++;
+                             }
+-                            else
++                            else if (i > 0)
+                             {
+                                 p->ch = '>';
+                                 p->style = c;
+                                 p++;
+                             }
+                         }
+-                        else if (edit_options.visible_tws && q >= tws && enable_show_tabs_tws
+-                                 && tty_use_colors ())
++                        else if (tty_use_colors () && edit_options.visible_tws && q >= tws
++                                 && enable_show_tabs_tws)
+                         {
+                             p->ch = '.';
+                             p->style |= MOD_WHITESPACE;
+                             c = p->style & ~MOD_CURSOR;
+                             p++;
+-                            while (--i != 0)
++                            while (--i > 0)
+                             {
+                                 p->ch = ' ';
+                                 p->style = c;
+@@ -695,7 +863,7 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                             p->ch |= ' ';
+                             c = p->style & ~MOD_CURSOR;
+                             p++;
+-                            while (--i != 0)
++                            while (--i > 0)
+                             {
+                                 p->ch = ' ';
+                                 p->style = c;
+@@ -706,8 +874,7 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                     break;
+ 
+                 case ' ':
+-                    if (edit_options.visible_tws && q >= tws && enable_show_tabs_tws
+-                        && tty_use_colors ())
++                    if (tty_use_colors () && edit_options.visible_tws && q >= tws && enable_show_tabs_tws)
+                     {
+                         p->ch = '.';
+                         p->style |= MOD_WHITESPACE;
+@@ -796,8 +963,9 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+                 if (char_length > 1)
+                     q += char_length - 1;
+ 
+-                if (col > (end_col - edit->start_col + 1))
+-                {
++                if ((edit_options.soft_wrap && col > (line_data->size + 1)) 
++                  || (!edit_options.soft_wrap && (col > line_data->size + 1)))
++                {                                                                       
+                     if (wide_width_char)
+                     {
+                         p--;
+@@ -814,19 +982,22 @@ edit_draw_this_line (WEdit * edit, off_t b, long row, long start_col, long end_c
+     }
+ 
+     p->ch = 0;
+-
+-    print_to_widget (edit, row, start_col, start_col_real, end_col, line, line_stat, book_mark);
++    if (draw)
++        print_to_widget (edit, line_data);
++    return line_data;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static inline void
+-edit_draw_this_char (WEdit * edit, off_t curs, long row, long start_column, long end_column)
++edit_draw_this_char (WEdit * edit, off_t curs, long order_idx, long row, long start_column, long end_column)
+ {
++    MCELineData *line_data;
+     off_t b;
+ 
+-    b = edit_buffer_get_bol (&edit->buffer, curs);
+-    edit_draw_this_line (edit, b, row, start_column, end_column);
++    b = edit_buffer_get_bol (&edit->buffer, curs, FALSE);
++	line_data = edit_prepare_this_line (edit, b, order_idx, row, start_column, end_column, 0, TRUE,0);
++    edit->page_line_data->pdata[order_idx] = line_data;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -835,36 +1006,43 @@ edit_draw_this_char (WEdit * edit, off_t curs, long row, long start_column, long
+ static inline void
+ render_edit_text (WEdit * edit, long start_row, long start_column, long end_row, long end_column)
+ {
+-    static long prev_curs_row = 0;
+-    static off_t prev_curs = 0;
++    long base_line,y = 0,y_pos;
++    MCELineData *line_data = NULL;
+ 
+-    Widget *we = WIDGET (edit);
+-    Widget *wh = WIDGET (we->owner);
+-    WRect *w = &we->rect;
++    Widget *w = WIDGET (edit);
++    Widget *wh = WIDGET(w->owner);
+ 
+-    int force = edit->force;
+-    int y1, x1, y2, x2;
+-    int last_line, last_column;
++    int force = edit->force,prev_plines = 0;
++    int y1,x1,y2,x2;
++    int last_line,last_column;
++    base_line = edit_buffer_count_lines(&edit->buffer,0,edit->start_display,FALSE);
++    base_line += edit->start_display == 0 ? 1 : 0;
++    GPtrArray *page_line_data = edit->page_line_data;
+ 
++    if (edit->page_line_data == NULL)
++            page_line_data = edit->page_line_data = g_ptr_array_new_full(LINES, g_free);
++    g_ptr_array_set_size(edit->page_line_data, LINES);
++
++    y_pos = edit->array_row;
+     /* draw only visible region */
+ 
+     last_line = wh->rect.y + wh->rect.lines - 1;
+ 
+-    y1 = w->y;
++    y1 = w->rect.y;
+     if (y1 > last_line - 1 /* buttonbar */ )
+         return;
+ 
+     last_column = wh->rect.x + wh->rect.cols - 1;
+ 
+-    x1 = w->x;
++    x1 = w->rect.x;
+     if (x1 > last_column)
+         return;
+ 
+-    y2 = w->y + w->lines - 1;
++    y2 = w->rect.y + w->rect.lines - 1;
+     if (y2 < wh->rect.y + 1 /* menubar */ )
+         return;
+ 
+-    x2 = w->x + w->cols - 1;
++    x2 = w->rect.x + w->rect.cols - 1;
+     if (x2 < wh->rect.x)
+         return;
+ 
+@@ -874,20 +1052,37 @@ render_edit_text (WEdit * edit, long start_row, long start_column, long end_row,
+         /* draw only visible region */
+ 
+         if (y2 <= last_line - 1 /* buttonbar */ )
+-            end_row = w->lines - 1;
++            end_row = w->rect.lines - 1;
+         else if (y1 >= wh->rect.y + 1 /* menubar */ )
+             end_row = wh->rect.lines - 1 - y1 - 1;
+         else
+             end_row = start_row + wh->rect.lines - 1 - 1;
++        soft_last_row = end_row;
+ 
+         if (x2 <= last_column)
+-            end_column = w->cols - 1;
++            end_column = w->rect.cols - 1;
+         else if (x1 >= wh->rect.x)
+             end_column = wh->rect.cols - 1 - x1;
+         else
+             end_column = start_column + wh->rect.cols - 1;
+     }
++    refresh_line_data(edit, page_line_data, start_column, end_column, end_row);
+ 
++    if (edit_options.soft_wrap)
++    {
++        int i, lines_occupied = 0;
++        for (i=1 /*skip 0*/; i<=end_row; ++i)
++        {
++            /* for i=1, it is line 0 that's
++            * summed up, and so on */
++            lines_occupied = i + sum_plines_to_row(page_line_data, i);
++            if (lines_occupied >= wh->rect.lines-1-1)
++                break;
++        }
++        soft_last_row = i-1;
++    }
++        else
++            soft_last_row = end_row;
+     /*
+      * If the position of the page has not moved then we can draw the cursor
+      * character only.  This will prevent line flicker when using arrow keys.
+@@ -899,99 +1094,97 @@ render_edit_text (WEdit * edit, long start_row, long start_column, long end_row,
+ 
+         if ((force & REDRAW_PAGE) != 0)
+         {
+-            b = edit_buffer_get_forward_offset (&edit->buffer, edit->start_display, start_row, 0);
++            b = edit_buffer_get_forward_offset (&edit->buffer, edit->start_display, start_row, 0, FALSE);
+             for (row = start_row; row <= end_row; row++)
+             {
+-                if (key_pending (edit))
+-                    return;
+-                edit_draw_this_line (edit, b, row, start_column, end_column);
+-                b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0);
++                line_data = edit_prepare_this_line (edit, b, row, row+prev_plines,
++                    start_column, end_column, soft_last_row, row <= soft_last_row,
++                    base_line);
++                page_line_data->pdata[row] = line_data;
++                prev_plines += (line_data->plines_count > 0) ? line_data->plines_count-1 : 0;
++                b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0, FALSE);
+             }
+         }
+         else
+         {
+-            long curs_row = edit->curs_row;
+ 
+-            if ((force & REDRAW_BEFORE_CURSOR) != 0 && start_row < curs_row)
++            if ((force & REDRAW_BEFORE_CURSOR) != 0 && start_row < y_pos)
+             {
+                 long upto;
+ 
++                row = start_row;
+                 b = edit->start_display;
+-                upto = MIN (curs_row - 1, end_row);
+-                for (row = start_row; row <= upto; row++)
++                upto = MIN (y_pos - 1, end_row);
++                while (row <= upto)
+                 {
+-                    if (key_pending (edit))
+-                        return;
+-                    edit_draw_this_line (edit, b, row, start_column, end_column);
+-                    b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0);
++                    line_data = edit_prepare_this_line (edit, b, row, row+prev_plines,
++                        start_column, end_column, soft_last_row, row <= soft_last_row,
++                        base_line);
++                    page_line_data->pdata[row] = line_data;
++                    prev_plines += (line_data->plines_count > 0) ? line_data->plines_count-1 : 0;
++                    b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0, FALSE);
++                    row++;
+                 }
+             }
+-
+             /*          if (force & REDRAW_LINE)          ---> default */
++            y = (y_pos-1 < 0) ? 0 : y_pos-1;
+             b = edit_buffer_get_current_bol (&edit->buffer);
+-            if (curs_row >= start_row && curs_row <= end_row)
++            if (y_pos-y == 1)
++                b = edit_buffer_get_backward_offset (&edit->buffer, b, 1, FALSE);
++            while (y <= y_pos && y >= start_row && y <= end_row)
+             {
+-                if (key_pending (edit))
+-                    return;
+-                edit_draw_this_line (edit, b, curs_row, start_column, end_column);
++                prev_plines = sum_plines_to_row(edit->page_line_data, y);
++                line_data = edit_prepare_this_line (edit, b, y, y+prev_plines,
++                start_column, end_column, soft_last_row, y <= soft_last_row,base_line);
++                page_line_data->pdata[y] = line_data;
++                y++;
++                if (y <= y_pos)
++                    b = edit_buffer_get_forward_offset(&edit->buffer, b, 1, 0, FALSE);
+             }
+ 
+-            if ((force & REDRAW_AFTER_CURSOR) != 0 && end_row > curs_row)
++            if ((force & REDRAW_AFTER_CURSOR) != 0 && end_row > y_pos)
+             {
+-                b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0);
+-                for (row = MAX (curs_row + 1, start_row); row <= end_row; row++)
++                row = MAX (y_pos+1, start_row);
++                prev_plines = sum_plines_to_row(page_line_data, row);
++                b = edit_buffer_get_forward_offset (&edit->buffer, edit->start_display, row, 0, FALSE);
++                for (; row <= end_row; row++)
+                 {
+-                    if (key_pending (edit))
+-                        return;
+-                    edit_draw_this_line (edit, b, row, start_column, end_column);
+-                    b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0);
++                    line_data = edit_prepare_this_line (edit, b, row, row+prev_plines, start_column, end_column, soft_last_row, row <= soft_last_row,base_line);
++                    page_line_data->pdata[row] = line_data;
++                    prev_plines += (line_data->plines_count > 0) ? line_data->plines_count-1 : 0;
++                    b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0, FALSE);
+                 }
+             }
+ 
+-            if ((force & REDRAW_LINE_ABOVE) != 0 && curs_row >= 1)
++            if ((force & REDRAW_LINE_ABOVE) != 0 && y_pos >= 1)
+             {
+-                row = curs_row - 1;
++                row = y_pos - 1;
+                 b = edit_buffer_get_backward_offset (&edit->buffer,
+                                                      edit_buffer_get_current_bol (&edit->buffer),
+-                                                     1);
++                                                     1, FALSE);
+                 if (row >= start_row && row <= end_row)
+                 {
+-                    if (key_pending (edit))
+-                        return;
+-                    edit_draw_this_line (edit, b, row, start_column, end_column);
++                    prev_plines = sum_plines_to_row(edit->page_line_data, row);
++                    line_data = edit_prepare_this_line (edit, b, row, row+prev_plines, start_column, end_column, soft_last_row, row <= soft_last_row,base_line);
++                    page_line_data->pdata[row] = line_data;
+                 }
+             }
+-
+-            if ((force & REDRAW_LINE_BELOW) != 0 && row < w->lines - 1)
++            if ((force & REDRAW_LINE_BELOW) != 0 && y_pos < w->rect.lines - 1)
+             {
+-                row = curs_row + 1;
++                row = y_pos + 1;
+                 b = edit_buffer_get_current_bol (&edit->buffer);
+-                b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0);
++                b = edit_buffer_get_forward_offset (&edit->buffer, b, 1, 0, FALSE);
+                 if (row >= start_row && row <= end_row)
+                 {
+-                    if (key_pending (edit))
+-                        return;
+-                    edit_draw_this_line (edit, b, row, start_column, end_column);
++                    prev_plines = sum_plines_to_row(edit->page_line_data, row);
++                    line_data = edit_prepare_this_line (edit, b, row, row+prev_plines, start_column, end_column, soft_last_row, row <= soft_last_row,base_line);
++                    page_line_data->pdata[row] = line_data;
+                 }
+             }
+         }
+     }
+-    else if (prev_curs_row < edit->curs_row)
+-    {
+-        /* with the new text highlighting, we must draw from the top down */
+-        edit_draw_this_char (edit, prev_curs, prev_curs_row, start_column, end_column);
+-        edit_draw_this_char (edit, edit->buffer.curs1, edit->curs_row, start_column, end_column);
+-    }
+-    else
+-    {
+-        edit_draw_this_char (edit, edit->buffer.curs1, edit->curs_row, start_column, end_column);
+-        edit_draw_this_char (edit, prev_curs, prev_curs_row, start_column, end_column);
+-    }
+ 
+     edit->force = 0;
+-
+-    prev_curs_row = edit->curs_row;
+-    prev_curs = edit->buffer.curs1;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1044,20 +1237,20 @@ edit_status (WEdit * edit, gboolean active)
+ void
+ edit_scroll_screen_over_cursor (WEdit * edit)
+ {
+-    WRect *w = &WIDGET (edit)->rect;
++    Widget *w = WIDGET (edit);
+ 
+     long p;
+     long outby;
+     int b_extreme, t_extreme, l_extreme, r_extreme;
+ 
+-    if (w->lines <= 0 || w->cols <= 0)
++    if (w->rect.lines <= 0 || w->rect.cols <= 0)
+         return;
+ 
+-    rect_resize (w, -EDIT_TEXT_VERTICAL_OFFSET,
++    rect_resize (&w->rect, -EDIT_TEXT_VERTICAL_OFFSET,
+                  -(EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width));
+ 
+     if (!edit->fullscreen)
+-        rect_grow (w, -1, -1);
++        rect_grow (&w->rect, -1, -1);
+ 
+     r_extreme = EDIT_RIGHT_EXTREME;
+     l_extreme = EDIT_LEFT_EXTREME;
+@@ -1065,39 +1258,39 @@ edit_scroll_screen_over_cursor (WEdit * edit)
+     t_extreme = EDIT_TOP_EXTREME;
+     if (edit->found_len != 0)
+     {
+-        b_extreme = MAX (w->lines / 4, b_extreme);
+-        t_extreme = MAX (w->lines / 4, t_extreme);
++        b_extreme = MAX (w->rect.lines / 4, b_extreme);
++        t_extreme = MAX (w->rect.lines / 4, t_extreme);
+     }
+-    if (b_extreme + t_extreme + 1 > w->lines)
++    if (b_extreme + t_extreme + 1 > w->rect.lines)
+     {
+         int n;
+ 
+         n = b_extreme + t_extreme;
+         if (n == 0)
+             n = 1;
+-        b_extreme = (b_extreme * (w->lines - 1)) / n;
+-        t_extreme = (t_extreme * (w->lines - 1)) / n;
++        b_extreme = (b_extreme * (w->rect.lines - 1)) / n;
++        t_extreme = (t_extreme * (w->rect.lines - 1)) / n;
+     }
+-    if (l_extreme + r_extreme + 1 > w->cols)
++    if (l_extreme + r_extreme + 1 > w->rect.cols)
+     {
+         int n;
+ 
+         n = l_extreme + r_extreme;
+         if (n == 0)
+             n = 1;
+-        l_extreme = (l_extreme * (w->cols - 1)) / n;
+-        r_extreme = (r_extreme * (w->cols - 1)) / n;
++        l_extreme = (l_extreme * (w->rect.cols - 1)) / n;
++        r_extreme = (r_extreme * (w->rect.cols - 1)) / n;
+     }
+     p = edit_get_col (edit) + edit->over_col;
+     edit_update_curs_row (edit);
+-    outby = p + edit->start_col - w->cols + 1 + (r_extreme + edit->found_len);
++    outby = p + edit->start_col - w->rect.cols + 1 + (r_extreme + edit->found_len);
+     if (outby > 0)
+         edit_scroll_right (edit, outby);
+     outby = l_extreme - p - edit->start_col;
+     if (outby > 0)
+         edit_scroll_left (edit, outby);
+     p = edit->curs_row;
+-    outby = p - w->lines + 1 + b_extreme;
++    outby = p - w->rect.lines + 1 + b_extreme;
+     if (outby > 0)
+         edit_scroll_downward (edit, outby);
+     outby = t_extreme - p;
+@@ -1105,10 +1298,10 @@ edit_scroll_screen_over_cursor (WEdit * edit)
+         edit_scroll_upward (edit, outby);
+     edit_update_curs_row (edit);
+ 
+-    rect_resize (w, EDIT_TEXT_VERTICAL_OFFSET,
++    rect_resize (&w->rect, EDIT_TEXT_VERTICAL_OFFSET,
+                  EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width);
+     if (!edit->fullscreen)
+-        rect_grow (w, 1, 1);
++        rect_grow (&w->rect, 1, 1);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/editor/editoptions.c b/src/editor/editoptions.c
+index 9e059f330..0cb57a0ff 100644
+--- a/src/editor/editoptions.c
++++ b/src/editor/editoptions.c
+@@ -54,6 +54,7 @@ static const char *wrap_str[] = {
+     N_("&None"),
+     N_("&Dynamic paragraphing"),
+     N_("Type &writer wrap"),
++    N_("Soft wr&aps"),
+     NULL
+ };
+ 
+@@ -138,7 +139,9 @@ edit_options_dialog (WDialog * h)
+     g_snprintf (wrap_length, sizeof (wrap_length), "%d", edit_options.word_wrap_line_length);
+     g_snprintf (tab_spacing, sizeof (tab_spacing), "%d", TAB_SIZE);
+ 
+-    if (edit_options.auto_para_formatting)
++    if (edit_options.soft_wrap)
++        wrap_mode = 3;
++    else if (edit_options.auto_para_formatting)
+         wrap_mode = 1;
+     else if (edit_options.typewriter_wrap)
+         wrap_mode = 2;
+@@ -150,7 +153,7 @@ edit_options_dialog (WDialog * h)
+             /* *INDENT-OFF* */
+             QUICK_START_COLUMNS,
+                 QUICK_START_GROUPBOX (N_("Wrap mode")),
+-                    QUICK_RADIO (3, wrap_str, &wrap_mode, NULL),
++                    QUICK_RADIO (4, wrap_str, &wrap_mode, NULL),
+                 QUICK_STOP_GROUPBOX,
+                 QUICK_SEPARATOR (FALSE),
+                 QUICK_SEPARATOR (FALSE),
+@@ -221,16 +224,25 @@ edit_options_dialog (WDialog * h)
+     {
+         edit_options.auto_para_formatting = TRUE;
+         edit_options.typewriter_wrap = FALSE;
++        edit_options.soft_wrap = FALSE;
+     }
+     else if (wrap_mode == 2)
+     {
+         edit_options.auto_para_formatting = FALSE;
+         edit_options.typewriter_wrap = TRUE;
++        edit_options.soft_wrap = FALSE;
++    }
++    else if (wrap_mode == 3)
++    {
++        edit_options.auto_para_formatting = FALSE;
++        edit_options.typewriter_wrap = FALSE;
++        edit_options.soft_wrap = TRUE;
+     }
+     else
+     {
+         edit_options.auto_para_formatting = FALSE;
+         edit_options.typewriter_wrap = FALSE;
++        edit_options.soft_wrap = FALSE;
+     }
+ 
+     /* Load or unload syntax rules if the option has changed */
+diff --git a/src/editor/editsearch.c b/src/editor/editsearch.c
+index 1bdf88350..1c2b33945 100644
+--- a/src/editor/editsearch.c
++++ b/src/editor/editsearch.c
+@@ -615,7 +615,7 @@ edit_do_search (WEdit * edit)
+                 edit->search_start = edit->search->normal_offset;
+             found = TRUE;
+ 
+-            l += edit_buffer_count_lines (&edit->buffer, q, edit->search->normal_offset);
++            l += edit_buffer_count_lines (&edit->buffer, q, edit->search->normal_offset, FALSE);
+             if (l != l_last)
+                 book_mark_insert (edit, l, BOOK_MARK_FOUND_COLOR);
+             l_last = l;
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 05f03e83f..267739332 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -89,6 +89,8 @@ static unsigned int edit_dlg_init_refcounter = 0;
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /*** file scope functions ************************************************************************/
++static cb_ret_t edit_dialog_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
++                                      void *data);
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Init the 'edit' subsystem
+@@ -721,8 +723,8 @@ edit_update_cursor (WEdit * edit, const mouse_event_t * event)
+         long line_len;
+ 
+         line_len =
+-            edit_move_forward3 (edit, edit_buffer_get_current_bol (&edit->buffer), 0,
+-                                edit_buffer_get_current_eol (&edit->buffer));
++            edit_move_forward3 (edit, edit_buffer_get_bol (&edit->buffer, edit->buffer.curs1, TRUE), 0,
++                                edit_buffer_get_eol (&edit->buffer, edit->buffer.curs1,TRUE), FALSE, 0);
+ 
+         if (x > line_len - 1)
+         {
+@@ -737,11 +739,11 @@ edit_update_cursor (WEdit * edit, const mouse_event_t * event)
+     }
+ 
+     if (y > edit->curs_row)
+-        edit_move_down (edit, y - edit->curs_row, FALSE);
++        edit_move_down (edit, y - edit->curs_row, FALSE, TRUE);
+     else if (y < edit->curs_row)
+-        edit_move_up (edit, edit->curs_row - y, FALSE);
++        edit_move_up (edit, edit->curs_row - y, FALSE, TRUE);
+     else
+-        edit_move_to_prev_col (edit, edit_buffer_get_current_bol (&edit->buffer));
++        edit_move_to_prev_col (edit, edit_buffer_get_bol (&edit->buffer, edit->buffer.curs1, TRUE));
+ 
+     if (event->msg == MSG_MOUSE_CLICK)
+     {
+@@ -951,6 +953,7 @@ edit_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *da
+ 
+     case MSG_DRAW:
+         e->force |= REDRAW_COMPLETELY;
++        WMSG(e,MSG_CURSOR,7);
+         edit_update_screen (e);
+         return MSG_HANDLED;
+ 
+@@ -985,9 +988,19 @@ edit_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *da
+         {
+             int y, x;
+ 
++            if (edit_options.soft_wrap)
++                edit_apply_curs_exceptions(e);
++
++            if (parm != 7)
++            {
++                e->prev_size = e->buffer.size;
++                e->prev_curs1 = e->buffer.curs1;
++                e->prev_curs_col = e->curs_col;
++                e->prev_curs_row = e->curs_row;
++            }
++            x = (e->fullscreen ? 0 : 1) + EDIT_TEXT_HORIZONTAL_OFFSET + edit_options.line_state_width +
++                e->curs_col + e->start_col + e->over_col;
+             y = (e->fullscreen ? 0 : 1) + EDIT_TEXT_VERTICAL_OFFSET + e->curs_row;
+-            x = (e->fullscreen ? 0 : 1) + EDIT_TEXT_HORIZONTAL_OFFSET +
+-                edit_options.line_state_width + e->curs_col + e->start_col + e->over_col;
+ 
+             widget_gotoyx (w, y, x);
+             return MSG_HANDLED;
+@@ -1171,12 +1184,12 @@ edit_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+         break;
+ 
+     case MSG_MOUSE_SCROLL_UP:
+-        edit_move_up (edit, 2, TRUE);
++        edit_move_up (edit, 2, TRUE, FALSE);
+         edit_total_update (edit);
+         break;
+ 
+     case MSG_MOUSE_SCROLL_DOWN:
+-        edit_move_down (edit, 2, TRUE);
++        edit_move_down (edit, 2, TRUE, FALSE);
+         edit_total_update (edit);
+         break;
+ 
+@@ -1387,6 +1400,7 @@ edit_add_window (WDialog * h, const WRect * r, const vfs_path_t * f, long fline)
+ 
+     group_add_widget_autopos (GROUP (h), w, WPOS_KEEP_ALL, NULL);
+     edit_set_buttonbar (edit, buttonbar_find (h));
++    edit_set_end_column(edit);
+     widget_draw (WIDGET (h));
+ 
+     return TRUE;
+diff --git a/src/editor/editwidget.h b/src/editor/editwidget.h
+index 769b91a1e..6fc0193e9 100644
+--- a/src/editor/editwidget.h
++++ b/src/editor/editwidget.h
+@@ -98,6 +98,11 @@ struct WEdit
+     off_t found_start;          /* the found word from a search - start position */
+ 
+     /* display information */
++    long prev_size;             /* size at previous key action */
++    gboolean flag, flag2;       /* flag – at eol, flag2 – at bol */
++    long prev_curs1;
++    long prev_curs_col;
++    long prev_curs_row;
+     long start_display;         /* First char displayed */
+     long start_col;             /* First displayed column, negative */
+     long max_column;            /* The maximum cursor position ever reached used to calc hori scroll bar */
+@@ -105,6 +110,7 @@ struct WEdit
+     long curs_col;              /* column position on screen */
+     long over_col;              /* pos after '\n' */
+     int force;                  /* how much of the screen do we redraw? */
++    long array_row;             /* Position of cursor in the rows array */
+     unsigned int overwrite:1;   /* Overwrite on type mode (as opposed to insert) */
+     unsigned int modified:1;    /* File has been modified and needs saving */
+     unsigned int loading_done:1;        /* File has been loaded into the editor */
+@@ -113,9 +119,12 @@ struct WEdit
+     unsigned int highlight:1;   /* There is a selected block */
+     unsigned int column_highlight:1;
+     unsigned int fullscreen:1;  /* Is window fullscreen or not */
+-    long prev_col;              /* recent column position of the cursor - used when moving
++    unsigned int soft_wrap:1;   /* Are lines being soft-wrapped when too long? */
++    long prev_col;              /* Recent column position of the cursor - used when moving
+                                    up or down past lines that are shorter than the current line */
+     long start_line;            /* line number of the top of the page */
++    GPtrArray *page_line_data;  /* A temporary set of LINES-count MCELineData objects */
++    long end_col;               /* Last column in current window */
+ 
+     /* file info */
+     off_t mark1;                /* position of highlight start */
+diff --git a/src/editor/format.c b/src/editor/format.c
+index 319306799..87a62546c 100644
+--- a/src/editor/format.c
++++ b/src/editor/format.c
+@@ -78,11 +78,11 @@ line_start (const edit_buffer_t * buf, long line)
+     p = buf->curs1;
+ 
+     if (line < l)
+-        p = edit_buffer_get_backward_offset (buf, p, l - line);
++        p = edit_buffer_get_backward_offset (buf, p, l - line, FALSE);
+     else if (line > l)
+-        p = edit_buffer_get_forward_offset (buf, p, line - l, 0);
++        p = edit_buffer_get_forward_offset (buf, p, line - l, 0, FALSE);
+ 
+-    p = edit_buffer_get_bol (buf, p);
++    p = edit_buffer_get_bol (buf, p, FALSE);
+     while (strchr ("\t ", edit_buffer_get_byte (buf, p)) != NULL)
+         p++;
+     return p;
+@@ -135,7 +135,7 @@ begin_paragraph (WEdit * edit, gboolean force, long *lines)
+     *lines = edit->buffer.curs_line - i;
+ 
+     return edit_buffer_get_backward_offset (&edit->buffer,
+-                                            edit_buffer_get_current_bol (&edit->buffer), *lines);
++                                            edit_buffer_get_current_bol (&edit->buffer), *lines, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -161,7 +161,7 @@ end_paragraph (WEdit * edit, gboolean force)
+                                 edit_buffer_get_forward_offset (&edit->buffer,
+                                                                 edit_buffer_get_current_bol
+                                                                 (&edit->buffer),
+-                                                                i - edit->buffer.curs_line, 0));
++                                                                i - edit->buffer.curs_line, 0, FALSE), FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -377,7 +377,7 @@ edit_indent_width (const WEdit * edit, off_t p)
+            && q < edit->buffer.size - 1)
+         q++;
+     /* count the number of columns of indentation */
+-    return (long) edit_move_forward3 (edit, p, 0, q);
++    return (long) edit_move_forward3 (edit, p, 0, q, FALSE, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/setup.c b/src/setup.c
+index 68e6f37c1..8e7e4cc3a 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -395,6 +395,7 @@ static const struct
+ #ifdef USE_INTERNAL_EDIT
+     { "editor_word_wrap_line_length", &edit_options.word_wrap_line_length },
+     { "editor_option_save_mode", &edit_options.save_mode },
++    { "editor_soft_wraps", &edit_options.soft_wrap },
+ #endif /* USE_INTERNAL_EDIT */
+     { NULL, NULL }
+ };
+-- 
+2.34.1
+

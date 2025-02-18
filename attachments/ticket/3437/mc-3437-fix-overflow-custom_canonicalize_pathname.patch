@@ -1,0 +1,43 @@
+
+fix heap-buffer-overflow in lib/utilunix.c:custom_canonicalize_pathname()
+only use strncmp when path has enough room (greater then url_delim_len size)
+
+overflow happen when path = './'
+
+(found by AddressSanitizer)
+
+==7448==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x602000079d6f at pc 0x000000458ebe bp 0x7fffc02b6580 sp 0x7fffc02b5d38
+READ of size 1 at 0x602000079d6f thread T0
+    #0 0x458ebd in __interceptor_strncmp (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x458ebd)
+    #1 0x644312 in custom_canonicalize_pathname /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/utilunix.c:897:20
+    #2 0x64594f in mc_build_filenamev /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/utilunix.c:1335:13
+    #3 0x645fc1 in mc_build_filename /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/utilunix.c:1373:11
+    #4 0x5e07a0 in vfs_canon /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:159:21
+    #5 0x5e064a in vfs_path_from_str_flags /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/path.c:736:16
+    #6 0x7c036b in panel_operate /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/file.c:2725:22
+    #7 0x79c4ce in rename_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:810:9
+    #8 0x5a43e2 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1312:9
+    #9 0x519607 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #10 0x5307d5 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:465:23
+    #11 0x52efba in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:510:19
+    #12 0x52f906 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:571:9
+    #13 0x52f525 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1268:5
+    #14 0x59fc1a in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1763:9
+    #15 0x4fa648 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #16 0x7f5d3f202133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #17 0x44eff6 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x44eff6)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -893,7 +893,7 @@
+         p = lpath + strlen (lpath) - 1;
+         while (p > lpath && IS_PATH_SEP (*p))
+         {
+-            if (p >= lpath - (url_delim_len + 1)
++            if (p >= lpath + url_delim_len - 1
+                 && strncmp (p - url_delim_len + 1, VFS_PATH_URL_DELIMITER, url_delim_len) == 0)
+                 break;
+             *p-- = 0;
+

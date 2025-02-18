@@ -1,0 +1,103 @@
+From 0cadef4c509ebb1c5425afae467f5a08a29466cb Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 11 Jan 2016 20:49:06 +0000
+Subject: [PATCH] sftpfs: fix bad pointer arithmetic in config parser
+
+when reading ssh_config with matching host entry mc do bad pointer arithmetic. fix it!
+(also move offsetof values into struct to reduce human mistakes)
+
+==18689==ERROR: AddressSanitizer: heap-use-after-free on address 0x604000004910 at pc 0x000000641a8b bp 0x7ffca4ab65e0 sp 0x7ffca4ab65d8
+WRITE of size 8 at 0x604000004910 thread T0
+    #0 0x641a8a in sftpfs_fill_config_entity_from_string /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/config_parser.c:169:30
+    #1 0x6413cf in sftpfs_fill_config_entity_from_config /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/config_parser.c:271:13
+    #2 0x640b73 in sftpfs_get_config_entity /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/config_parser.c:310:14
+    #3 0x64067d in sftpfs_fill_connection_data_from_config /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/config_parser.c:354:21
+    #4 0x61ef95 in sftpfs_cb_open_connection /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sftpfs/vfs_subclass.c:111:5
+    #5 0x7f1340c31beb in vfs_s_get_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:1139:18
+    #6 0x7f1340c3685c in vfs_s_inode_from_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:380:9
+    #7 0x7f1340c34807 in vfs_s_opendir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:409:11
+    #8 0x7f1340c34ce8 in vfs_s_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:476:12
+    #9 0x7f1340c3a29f in mc_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/interface.c:687:14
+    #10 0x530f64 in _do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3250:9
+    #11 0x530e4e in do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4627:9
+    #12 0x532d34 in do_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:5027:11
+    #13 0x50b64b in do_cd_command /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/command.c:445:14
+    #14 0x50c516 in enter /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/command.c:265:9
+    #15 0x52704c in midnight_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1473:17
+    #16 0x7f1340c4c761 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:505:15
+    #17 0x7f1340c4cc32 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #18 0x7f1340c4c935 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #19 0x52654d in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757:9
+    #20 0x4f7d8a in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:401:21
+    #21 0x7f133f1b8953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #22 0x427368 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427368)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/config_parser.c | 29 +++++++++--------------------
+ 1 file changed, 9 insertions(+), 20 deletions(-)
+
+diff --git a/src/vfs/sftpfs/config_parser.c b/src/vfs/sftpfs/config_parser.c
+index 0e46cc9..e32e901 100644
+--- a/src/vfs/sftpfs/config_parser.c
++++ b/src/vfs/sftpfs/config_parser.c
+@@ -79,15 +79,16 @@ static struct
+     size_t offset;
+ } config_variables[] =
+ {
+-    {"^\\s*User\\s+(.*)$", NULL, STRING, 0},
+-    {"^\\s*HostName\\s+(.*)$", NULL, STRING, 0},
+-    {"^\\s*IdentitiesOnly\\s+(.*)$", NULL, BOOLEAN, 0},
+-    {"^\\s*IdentityFile\\s+(.*)$", NULL, FILENAME, 0},
+-    {"^\\s*Port\\s+(.*)$", NULL, INTEGER, 0},
+-    {"^\\s*PasswordAuthentication\\s+(.*)$", NULL, BOOLEAN, 0},
+-    {"^\\s*PubkeyAuthentication\\s+(.*)$", NULL, STRING, 0},
++    {"^\\s*User\\s+(.*)$", NULL, STRING, offsetof (sftpfs_ssh_config_entity_t, user)},
++    {"^\\s*HostName\\s+(.*)$", NULL, STRING, offsetof (sftpfs_ssh_config_entity_t, real_host)},
++    {"^\\s*IdentitiesOnly\\s+(.*)$", NULL, BOOLEAN, offsetof (sftpfs_ssh_config_entity_t, identities_only)},
++    {"^\\s*IdentityFile\\s+(.*)$", NULL, FILENAME, offsetof (sftpfs_ssh_config_entity_t, identity_file)},
++    {"^\\s*Port\\s+(.*)$", NULL, INTEGER, offsetof (sftpfs_ssh_config_entity_t, port)},
++    {"^\\s*PasswordAuthentication\\s+(.*)$", NULL, BOOLEAN, offsetof (sftpfs_ssh_config_entity_t, password_auth)},
++    {"^\\s*PubkeyAuthentication\\s+(.*)$", NULL, STRING, offsetof (sftpfs_ssh_config_entity_t, pubkey_auth)},
+     {NULL, NULL, 0, 0}
+ };
++
+ /* *INDENT-ON* */
+ 
+ /*** file scope functions ************************************************************************/
+@@ -131,9 +132,8 @@ sftpfs_correct_file_name (const char *filename)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/* FIXME: is pointer arith correct here? */
+ #define POINTER_TO_STRUCTURE_MEMBER(type)  \
+-    ((type) (config_entity + (off_t) config_variables[i].offset))
++    ((type) ((char *) config_entity + (size_t) config_variables[i].offset))
+ 
+ /**
+  * Parse string and filling one config entity by parsed data.
+@@ -389,16 +389,6 @@ sftpfs_fill_connection_data_from_config (struct vfs_s_super *super, GError ** mc
+ void
+ sftpfs_init_config_variables_patterns (void)
+ {
+-    size_t structure_offsets[] = {
+-        offsetof (sftpfs_ssh_config_entity_t, user),
+-        offsetof (sftpfs_ssh_config_entity_t, real_host),
+-        offsetof (sftpfs_ssh_config_entity_t, identities_only),
+-        offsetof (sftpfs_ssh_config_entity_t, identity_file),
+-        offsetof (sftpfs_ssh_config_entity_t, port),
+-        offsetof (sftpfs_ssh_config_entity_t, password_auth),
+-        offsetof (sftpfs_ssh_config_entity_t, pubkey_auth)
+-    };
+-
+     int i;
+ 
+     for (i = 0; config_variables[i].pattern != NULL; i++)
+@@ -407,7 +397,6 @@ sftpfs_init_config_variables_patterns (void)
+             mc_search_new (config_variables[i].pattern, DEFAULT_CHARSET);
+         config_variables[i].pattern_regexp->search_type = MC_SEARCH_T_REGEX;
+         config_variables[i].pattern_regexp->is_case_sensitive = FALSE;
+-        config_variables[i].offset = structure_offsets[i];
+     }
+ }
+ 

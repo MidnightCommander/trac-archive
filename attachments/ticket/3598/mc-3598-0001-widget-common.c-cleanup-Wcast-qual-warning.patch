@@ -1,0 +1,33 @@
+From 59fdb5f94448680f88795da173ff9d18d3760bab Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 14:03:36 +0000
+Subject: [PATCH] widget-common.c: cleanup -Wcast-qual warning
+
+In file included from ../../lib/widget.h:18:0,
+                 from widget-common.c:46:
+widget-common.c: In function 'widget_is_active':
+../../lib/widget/widget-common.h:13:20: warning: cast discards 'const' qualifier from pointer target type [-Wcast-qual]
+ #define WIDGET(x) ((Widget *)(x))
+                    ^
+widget-common.c:280:18: note: in expansion of macro 'WIDGET'
+     return (w == WIDGET (w)->owner->current->data);
+                  ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/widget-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index 917f2d9..ed24168 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -277,7 +277,7 @@ widget_erase (Widget * w)
+ gboolean
+ widget_is_active (const void *w)
+ {
+-    return (w == WIDGET (w)->owner->current->data);
++    return (w == CWIDGET (w)->owner->current->data);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

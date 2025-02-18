@@ -1,0 +1,428 @@
+diff --git a/lib/tty/tty-slang.c b/lib/tty/tty-slang.c
+index a4ad33e..0b16614 100644
+--- a/lib/tty/tty-slang.c
++++ b/lib/tty/tty-slang.c
+@@ -647,6 +647,12 @@ tty_print_alt_char (int c, gboolean single)
+     case ACS_RTEE:
+         DRAW (c, mc_tty_frm[single ? MC_TTY_FRM_RIGHTMIDDLE : MC_TTY_FRM_DRIGHTMIDDLE]);
+         break;
++    case ACS_TTEE:
++        DRAW (c, mc_tty_frm[single ? MC_TTY_FRM_TOPMIDDLE : MC_TTY_FRM_DTOPMIDDLE]);
++        break;
++    case ACS_BTEE:
++        DRAW (c, mc_tty_frm[single ? MC_TTY_FRM_BOTTOMMIDDLE : MC_TTY_FRM_DBOTTOMMIDDLE]);
++        break;
+     case ACS_ULCORNER:
+         DRAW (c, mc_tty_frm[single ? MC_TTY_FRM_LEFTTOP : MC_TTY_FRM_DLEFTTOP]);
+         break;
+diff --git a/lib/tty/tty-slang.h b/lib/tty/tty-slang.h
+index 620fd6b..70aa0cc 100644
+--- a/lib/tty/tty-slang.h
++++ b/lib/tty/tty-slang.h
+@@ -16,6 +16,8 @@
+ #define ACS_HLINE    SLSMG_HLINE_CHAR
+ #define ACS_LTEE     SLSMG_LTEE_CHAR
+ #define ACS_RTEE     SLSMG_RTEE_CHAR
++#define ACS_TTEE     SLSMG_UTEE_CHAR
++#define ACS_BTEE     SLSMG_DTEE_CHAR
+ #define ACS_ULCORNER SLSMG_ULCORN_CHAR
+ #define ACS_LLCORNER SLSMG_LLCORN_CHAR
+ #define ACS_URCORNER SLSMG_URCORN_CHAR
+diff --git a/misc/skins/dark.ini b/misc/skins/dark.ini
+index 1550d1a..b7d52cf 100644
+--- a/misc/skins/dark.ini
++++ b/misc/skins/dark.ini
+@@ -8,8 +8,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+@@ -19,8 +19,8 @@
+     drighttop=┐
+     dleftbottom=└
+     drightbottom=┘
+-    dtopmiddle=─
+-    dbottommiddle=─
++    dtopmiddle=┬
++    dbottommiddle=┴
+     dleftmiddle=├
+     drightmiddle=┤
+ 
+diff --git a/misc/skins/darkfar.ini b/misc/skins/darkfar.ini
+index df2519d..260d23f 100644
+--- a/misc/skins/darkfar.ini
++++ b/misc/skins/darkfar.ini
+@@ -8,8 +8,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+diff --git a/misc/skins/default.ini b/misc/skins/default.ini
+index 1fdf6bf..72cdccf 100644
+--- a/misc/skins/default.ini
++++ b/misc/skins/default.ini
+@@ -8,8 +8,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+@@ -19,8 +19,8 @@
+     drighttop=┐
+     dleftbottom=└
+     drightbottom=┘
+-    dtopmiddle=─
+-    dbottommiddle=─
++    dtopmiddle=┬
++    dbottommiddle=┴
+     dleftmiddle=├
+     drightmiddle=┤
+ 
+diff --git a/misc/skins/double-lines.ini b/misc/skins/double-lines.ini
+index 63c7b60..389f461 100644
+--- a/misc/skins/double-lines.ini
++++ b/misc/skins/double-lines.ini
+@@ -8,8 +8,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+diff --git a/misc/skins/featured.ini b/misc/skins/featured.ini
+index 1ceaa9d..c42be51 100644
+--- a/misc/skins/featured.ini
++++ b/misc/skins/featured.ini
+@@ -10,8 +10,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+@@ -148,8 +148,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+diff --git a/misc/skins/gotar.ini b/misc/skins/gotar.ini
+index ec4b64d..994df30 100644
+--- a/misc/skins/gotar.ini
++++ b/misc/skins/gotar.ini
+@@ -8,8 +8,8 @@
+ 	righttop=┐
+ 	leftbottom=└
+ 	rightbottom=┘
+-	topmiddle=─
+-	bottommiddle=─
++	topmiddle=┬
++	bottommiddle=┴
+ 	leftmiddle=├
+ 	rightmiddle=┤
+ 	cross=┼
+@@ -19,8 +19,8 @@
+ 	drighttop=┐
+ 	dleftbottom=└
+ 	drightbottom=┘
+-	dtopmiddle=─
+-	dbottommiddle=─
++	dtopmiddle=┬
++	dbottommiddle=┴
+ 	dleftmiddle=├
+ 	drightmiddle=┤
+ 
+diff --git a/misc/skins/mc46.ini b/misc/skins/mc46.ini
+index 8c76f96..660b6a7 100644
+--- a/misc/skins/mc46.ini
++++ b/misc/skins/mc46.ini
+@@ -8,8 +8,8 @@
+ 	righttop=┐
+ 	leftbottom=└
+ 	rightbottom=┘
+-	topmiddle=─
+-	bottommiddle=─
++	topmiddle=┬
++	bottommiddle=┴
+ 	leftmiddle=├
+ 	rightmiddle=┤
+ 	cross=┼
+@@ -19,8 +19,8 @@
+ 	drighttop=┐
+ 	dleftbottom=└
+ 	drightbottom=┘
+-	dtopmiddle=─
+-	dbottommiddle=─
++	dtopmiddle=┬
++	dbottommiddle=┴
+ 	dleftmiddle=├
+ 	drightmiddle=┤
+ 
+diff --git a/misc/skins/modarcon16-defbg.ini b/misc/skins/modarcon16-defbg.ini
+index 6f92c08..fda4cf0 100644
+--- a/misc/skins/modarcon16-defbg.ini
++++ b/misc/skins/modarcon16-defbg.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/modarcon16.ini b/misc/skins/modarcon16.ini
+index b3b8609..07acfb5 100644
+--- a/misc/skins/modarcon16.ini
++++ b/misc/skins/modarcon16.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/modarcon16root-defbg.ini b/misc/skins/modarcon16root-defbg.ini
+index 0fb51a1..4ef90f2 100644
+--- a/misc/skins/modarcon16root-defbg.ini
++++ b/misc/skins/modarcon16root-defbg.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/modarcon16root.ini b/misc/skins/modarcon16root.ini
+index 51c83a1..16baac5 100644
+--- a/misc/skins/modarcon16root.ini
++++ b/misc/skins/modarcon16root.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/modarin256-defbg.ini b/misc/skins/modarin256-defbg.ini
+index 0c0e459..2dfb020 100644
+--- a/misc/skins/modarin256-defbg.ini
++++ b/misc/skins/modarin256-defbg.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/modarin256.ini b/misc/skins/modarin256.ini
+index 7a348ad..92279a6 100644
+--- a/misc/skins/modarin256.ini
++++ b/misc/skins/modarin256.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/modarin256root-defbg.ini b/misc/skins/modarin256root-defbg.ini
+index 07b55e1..3bc08d0 100644
+--- a/misc/skins/modarin256root-defbg.ini
++++ b/misc/skins/modarin256root-defbg.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/modarin256root.ini b/misc/skins/modarin256root.ini
+index c21f385..7cab9fa 100644
+--- a/misc/skins/modarin256root.ini
++++ b/misc/skins/modarin256root.ini
+@@ -50,8 +50,8 @@
+   righttop=┐
+   leftbottom=└
+   rightbottom=┘
+-  topmiddle=─
+-  bottommiddle=─
++  topmiddle=┬
++  bottommiddle=┴
+   leftmiddle=├
+   rightmiddle=┤
+   cross=┼
+diff --git a/misc/skins/nicedark.ini b/misc/skins/nicedark.ini
+index a86b025..518e575 100644
+--- a/misc/skins/nicedark.ini
++++ b/misc/skins/nicedark.ini
+@@ -8,8 +8,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+@@ -19,8 +19,8 @@
+     drighttop=┐
+     dleftbottom=└
+     drightbottom=┘
+-    dtopmiddle=─
+-    dbottommiddle=─
++    dtopmiddle=┬
++    dbottommiddle=┴
+     dleftmiddle=├
+     drightmiddle=┤
+ 
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index 13fdcd0..adb29e0 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -62,8 +62,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+@@ -73,8 +73,8 @@
+     drighttop=┐
+     dleftbottom=└
+     drightbottom=┘
+-    dtopmiddle=─
+-    dbottommiddle=─
++    dtopmiddle=┬
++    dbottommiddle=┴
+     dleftmiddle=├
+     drightmiddle=┤
+ 
+diff --git a/misc/skins/xoria256.ini b/misc/skins/xoria256.ini
+index 309833d..ffb2c05 100644
+--- a/misc/skins/xoria256.ini
++++ b/misc/skins/xoria256.ini
+@@ -23,8 +23,8 @@
+ #     righttop=┐
+ #     leftbottom=└
+ #     rightbottom=┘
+-#     topmiddle=─
+-#     bottommiddle=─
++#     topmiddle=┬
++#     bottommiddle=┴
+ #     leftmiddle=├
+ #     rightmiddle=┤
+ #     cross=┼
+@@ -34,8 +34,8 @@
+ #     drighttop=┐
+ #     dleftbottom=└
+ #     drightbottom=┘
+-#     dtopmiddle=─
+-#     dbottommiddle=─
++#     dtopmiddle=┬
++#     dbottommiddle=┴
+ #     dleftmiddle=├
+ #     drightmiddle=┤
+ 
+@@ -46,8 +46,8 @@
+     righttop=┐
+     leftbottom=└
+     rightbottom=┘
+-    topmiddle=─
+-    bottommiddle=─
++    topmiddle=┬
++    bottommiddle=┴
+     leftmiddle=├
+     rightmiddle=┤
+     cross=┼
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index 4c40627..54415bf 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -2830,18 +2830,18 @@ dview_update (WDiff * dview)
+             if (xwidth < width1 - 1)
+             {
+                 tty_gotoyx (1, xwidth);
+-                tty_print_alt_char (mc_tty_frm[MC_TTY_FRM_DTOPMIDDLE], FALSE);
++                tty_print_alt_char (ACS_TTEE, FALSE);
+                 tty_gotoyx (height, xwidth);
+-                tty_print_alt_char (mc_tty_frm[MC_TTY_FRM_DBOTTOMMIDDLE], FALSE);
+-                tty_draw_vline (2, xwidth, mc_tty_frm[MC_TTY_FRM_VERT], height - 2);
++                tty_print_alt_char (ACS_BTEE, FALSE);
++                tty_draw_vline (2, xwidth, ACS_VLINE, height - 2);
+             }
+             if (xwidth < width2 - 1)
+             {
+                 tty_gotoyx (1, width1 + xwidth);
+-                tty_print_alt_char (mc_tty_frm[MC_TTY_FRM_DTOPMIDDLE], FALSE);
++                tty_print_alt_char (ACS_TTEE, FALSE);
+                 tty_gotoyx (height, width1 + xwidth);
+-                tty_print_alt_char (mc_tty_frm[MC_TTY_FRM_DBOTTOMMIDDLE], FALSE);
+-                tty_draw_vline (2, width1 + xwidth, mc_tty_frm[MC_TTY_FRM_VERT], height - 2);
++                tty_print_alt_char (ACS_BTEE, FALSE);
++                tty_draw_vline (2, width1 + xwidth, ACS_VLINE, height - 2);
+             }
+         }
+         dview->new_frame = 0;

@@ -1,0 +1,29 @@
+
+fix for bug #3439 was not complete, further dir_copy list handling
+
+1. handling dir_copy list as full copy for avoid double free situations
+2. dir_list_init must always have a dir_list_clean() before
+
+found by LeakSanitizer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -721,7 +721,7 @@
+         dfentry = &dir_copy.list[i];
+ 
+         dfentry->fnamelen = fentry->fnamelen;
+-        dfentry->fname = fentry->fname;
++        dfentry->fname = g_strndup (fentry->fname, fentry->fnamelen);
+         dfentry->f.marked = fentry->f.marked;
+         dfentry->f.dir_size_computed = fentry->f.dir_size_computed;
+         dfentry->f.link_to_dir = fentry->f.link_to_dir;
+@@ -748,6 +748,7 @@
+     }
+     else
+     {
++        dir_list_clean (list);
+         if (!dir_list_init (list))
+         {
+             dir_list_clean (&dir_copy);

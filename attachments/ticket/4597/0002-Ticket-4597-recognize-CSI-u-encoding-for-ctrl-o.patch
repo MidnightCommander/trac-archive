@@ -1,0 +1,49 @@
+From 985e36cc5b9ff54313d89f6b75191cc6fa45728b Mon Sep 17 00:00:00 2001
+From: Johannes Altmanninger <aclopte@gmail.com>
+Date: Wed, 9 Oct 2024 08:03:26 +0200
+Subject: [PATCH 2/3] Ticket #4597: recognize CSI u encoding for ctrl-o
+
+If a subshell (like fish 4.0) wishes to use "Disambiguate control keys"
+from https://sw.kovidgoyal.net/kitty/keyboard-protocol/, ctrl-o sends
+a multi-byte sequence.  Let's make sure we can intercept that too so
+we can suspend the shell.
+
+Note that the shell already disables "Disambiguate control keys"
+while it's suspended, so no other changes should be necessary.
+
+Unfortunately there is one bug left: when I start "SHELL=$(which
+fish) mc" and type `ctrl-o`, fish does not recognize CSI u bindings
+(such as `bind ctrl-2 'echo hello'`) yet.  It only works after the
+second prompt.  I haven't had time to figure that out.
+---
+ src/subshell/common.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 72f001569..85eef1181 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -180,6 +180,7 @@ static int subshell_pty_slave = -1;
+ /* The key for switching back to MC from the subshell */
+ /* *INDENT-OFF* */
+ static const char subshell_switch_key = XCTRL ('o') & 255;
++static const char subshell_switch_key_csi_u[] = "\x1b[111;5u";
+ /* *INDENT-ON* */
+ 
+ /* For reading/writing on the subshell's pty */
+@@ -864,7 +865,11 @@ feed_subshell (int how, gboolean fail_on_error)
+             }
+ 
+             for (i = 0; i < bytes; ++i)
+-                if (pty_buffer[i] == subshell_switch_key)
++                if (pty_buffer[i] == subshell_switch_key ||
++                    (strlen(subshell_switch_key_csi_u) <= (size_t)bytes - i &&
++                     !memcmp(
++                         &pty_buffer[i], subshell_switch_key_csi_u,
++                         strlen(subshell_switch_key_csi_u))))
+                 {
+                     write_all (mc_global.tty.subshell_pty, pty_buffer, i);
+ 
+-- 
+2.47.0.rc0
+

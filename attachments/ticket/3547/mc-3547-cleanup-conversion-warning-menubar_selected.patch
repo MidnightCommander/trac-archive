@@ -1,0 +1,104 @@
+fix -Wconversion warning at WMenuBar selected value
+
+edit menubar key value use -1 as non-selected flag, shift logic to 0 as non-selected flag for edit menubar key
+
+patch will fix following warnings:
+menu.c:123:73: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:181:73: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:250:75: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:332:73: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:351:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:372:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:396:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:425:67: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:470:68: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:511:45: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'unsigned int' [-Wshorten-64-to-32]
+menu.c:517:71: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+menu.c:721:59: warning: implicit conversion loses integer precision: 'size_t' (aka 'unsigned long') to 'guint' (aka 'unsigned int') [-Wshorten-64-to-32]
+editmenu.c:277:33: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+
+patch against a5cd0093c5330ae6118cbf2830cf288dd4a68ed0
+compile test with gcc 4.6/4.9/5.2 and clang 3.7
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/widget/menu.h
++++ c/lib/widget/menu.h
+@@ -34,7 +34,7 @@
+     gboolean is_active;         /* If the menubar is in use */
+     gboolean is_dropped;        /* If the menubar has dropped */
+     GList *menu;                /* The actual menus */
+-    size_t selected;            /* Selected menu on the top bar */
++    guint selected;             /* Selected menu on the top bar */
+     unsigned long previous_widget;      /* Selected widget ID before activating menu */
+ } WMenuBar;
+ 
+--- a/src/editor/editmenu.c
++++ c/src/editor/editmenu.c
+@@ -263,7 +263,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-edit_drop_menu_cmd (WDialog * h, int which)
++edit_drop_menu_cmd (WDialog * h, guint which)
+ {
+     WMenuBar *menubar;
+ 
+@@ -273,8 +273,8 @@
+     {
+         menubar->is_active = TRUE;
+         menubar->is_dropped = (drop_menus != 0);
+-        if (which >= 0)
+-            menubar->selected = which;
++        if (which > 0)
++            menubar->selected = which - 1;
+ 
+         menubar->previous_widget = dlg_get_current_widget_id (h);
+         dlg_select_widget (menubar);
+@@ -312,7 +312,7 @@
+ void
+ edit_menu_cmd (WDialog * h)
+ {
+-    edit_drop_menu_cmd (h, -1);
++    edit_drop_menu_cmd (h, 0);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -320,29 +320,29 @@
+ gboolean
+ edit_drop_hotkey_menu (WDialog * h, int key)
+ {
+-    int m = 0;
++    guint m = 0;
+     switch (key)
+     {
+     case ALT ('f'):
+-        m = 0;
++        m = 1;
+         break;
+     case ALT ('e'):
+-        m = 1;
++        m = 2;
+         break;
+     case ALT ('s'):
+-        m = 2;
++        m = 3;
+         break;
+     case ALT ('c'):
+-        m = 3;
++        m = 4;
+         break;
+     case ALT ('m'):
+-        m = 4;
++        m = 5;
+         break;
+     case ALT ('w'):
+-        m = 5;
++        m = 6;
+         break;
+     case ALT ('o'):
+-        m = 6;
++        m = 7;
+         break;
+     default:
+         return FALSE;

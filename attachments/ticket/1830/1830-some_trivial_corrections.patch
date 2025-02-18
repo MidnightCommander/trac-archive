@@ -1,0 +1,211 @@
+From c01fc08d11e3495fa449e094045908285bf02120 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Mon, 16 Nov 2009 17:32:40 +0000
+Subject: [PATCH]  some_trivial_corrections
+
+---
+ edit/edit.c            |    4 ++--
+ edit/editmenu.c        |    4 ++--
+ misc/mc.keymap.default |   18 +++++++++---------
+ misc/mc.keymap.emacs   |    2 +-
+ src/cmddef.h           |   36 ++++++++++++++++++------------------
+ src/keybind.c          |   10 ++++------
+ 6 files changed, 36 insertions(+), 38 deletions(-)
+
+diff --git a/edit/edit.c b/edit/edit.c
+index 9a51b79..8874901 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -3115,10 +3115,10 @@ edit_execute_cmd (WEdit *edit, int command, int char_for_insertion)
+     case CK_LearnKeys:
+ 	learn_keys ();
+ 	break;
+-    case CK_Edit_Options:
++    case CK_Options:
+ 	edit_options_dialog ();
+ 	break;
+-    case CK_Edit_Save_Mode:
++    case CK_Save_Mode:
+ 	menu_save_mode_cmd ();
+ 	break;
+     case CK_Date:
+diff --git a/edit/editmenu.c b/edit/editmenu.c
+index 2117ba8..a46f3c1 100644
+--- a/edit/editmenu.c
++++ b/edit/editmenu.c
+@@ -177,8 +177,8 @@ create_options_menu (void)
+ {
+     GList *entries = NULL;
+ 
+-    entries = g_list_append (entries, menu_entry_create (_("&General...  "),           CK_Edit_Options));
+-    entries = g_list_append (entries, menu_entry_create (_("Save &mode..."),           CK_Edit_Save_Mode));
++    entries = g_list_append (entries, menu_entry_create (_("&General...  "),           CK_Options));
++    entries = g_list_append (entries, menu_entry_create (_("Save &mode..."),           CK_Save_Mode));
+     entries = g_list_append (entries, menu_entry_create (_("Learn &keys..."),          CK_LearnKeys));
+     entries = g_list_append (entries, menu_entry_create (_("Syntax &highlighting..."), CK_Choose_Syntax));
+     entries = g_list_append (entries, menu_separator_create ());
+diff --git a/misc/mc.keymap.default b/misc/mc.keymap.default
+index f571d0d..3198ad9 100644
+--- a/misc/mc.keymap.default
++++ b/misc/mc.keymap.default
+@@ -36,7 +36,7 @@ EditParagraphDown =
+ EditSave = f2
+ EditLoad =
+ EditNew = ctrl-n
+-EditSaveas = f12
++EditSaveAs = f12
+ EditMark = f3
+ EditCopy = f5
+ EditMove = f6
+@@ -270,14 +270,14 @@ PanelGotoTopFile = alt-g
+ PanelSetPanelEncoding = alt-e
+ PanelMoveHome = alt-lt; home
+ PanelMoveEnd = alt-gt; end
+-PanelSelectSortOrder=
+-PanelToggleSortOrderPrev=
+-PanelToggleSortOrderNext=
+-PanelReverseSort=
+-PanelSortOrderByName=
+-PanelSortOrderByExt=
+-PanelSortOrderBySize=
+-PanelSortOrderByMTime=
++PanelSelectSortOrder =
++PanelToggleSortOrderPrev =
++PanelToggleSortOrderNext =
++PanelReverseSort =
++PanelSortOrderByName =
++PanelSortOrderByExt =
++PanelSortOrderBySize =
++PanelSortOrderByMTime =
+ 
+ 
+ [panel:xmap]
+diff --git a/misc/mc.keymap.emacs b/misc/mc.keymap.emacs
+index 1acb5cd..f9eda58 100644
+--- a/misc/mc.keymap.emacs
++++ b/misc/mc.keymap.emacs
+@@ -35,7 +35,7 @@ EditParagraphUp =
+ EditParagraphDown =
+ EditSave = f2
+ EditLoad =
+-EditSaveas = f12
++EditSaveAs = f12
+ EditMark = f3
+ EditCopy = f5
+ EditMove = f6
+diff --git a/src/cmddef.h b/src/cmddef.h
+index 2644130..e6c6efa 100644
+--- a/src/cmddef.h
++++ b/src/cmddef.h
+@@ -109,21 +109,21 @@
+ #define CK_ExtCmd		424
+ #define CK_User_Menu		425
+ #define CK_Find_Definition	426
+-#define CK_Edit_Options     427
+-#define CK_Edit_Save_Mode   428
+-#define CK_Choose_Syntax    429
+-#define CK_About            430
++#define CK_Options              427
++#define CK_Save_Mode            428
++#define CK_Choose_Syntax        429
++#define CK_About                430
+ 
+ #if 0
+-/* application control */
+-#define CK_Save_Desktop		451
+-#define CK_New_Window		452
+-#define CK_Cycle		453
+-#define CK_Menu			454
+-#define CK_Save_And_Quit	455
+-#define CK_Run_Another		456
+-#define CK_Check_Save_And_Quit	457
+-#define CK_Maximize		458
++    /* application control */
++    #define CK_Save_Desktop         451
++    #define CK_New_Window           452
++    #define CK_Cycle                453
++    #define CK_Menu                 454
++    #define CK_Save_And_Quit        455
++    #define CK_Run_Another          456
++    #define CK_Check_Save_And_Quit  457
++    #define CK_Maximize             458
+ #endif
+ 
+ #define CK_Toggle_Tab_TWS	470
+@@ -229,7 +229,6 @@
+ #define CK_InputPaste                  4025
+ #define CK_InputClearLine              4026
+ 
+-
+ /* Viewer */
+ #define CK_ViewSearch                   5001
+ #define CK_ViewContinueSearch           5002
+@@ -377,11 +376,12 @@
+ #define SHELL_COMMANDS_i {"/edit.indent.rc", "/edit.spell.rc", /* and so on */ 0 }
+ #define CK_Macro(i)		(2000+(i))
+ #define CK_Last_Macro		CK_Macro(0x7FFF)
++
+ #else
+ 
+-#define CK_User_Command(i)	((i) | (1 << 16))
+-#define IS_USER_COMMAND(i)	((i) & (1 << 16))
+-#define CK_Macro(i)		((i) | (1 << 17))
+-#define IS_MACRO_COMMAND(i)	((i) & (1 << 17))
++    #define CK_User_Command(i)    ((i) | (1 << 16))
++    #define IS_USER_COMMAND(i)    ((i) & (1 << 16))
++    #define CK_Macro(i)           ((i) | (1 << 17))
++    #define IS_MACRO_COMMAND(i)   ((i) & (1 << 17))
+ 
+ #endif					/* MC_CMD_DEF_H */
+diff --git a/src/keybind.c b/src/keybind.c
+index c898e8c..338a8e1 100644
+--- a/src/keybind.c
++++ b/src/keybind.c
+@@ -23,7 +23,6 @@
+  */
+ 
+ #include <config.h>
+-
+ #include <ctype.h>
+ #include <errno.h>
+ #include <stdarg.h>
+@@ -42,7 +41,6 @@
+ #include "tty/tty.h"		/* keys */
+ #include "wtools.h"
+ #include "strutil.h"
+-
+ #include "keybind.h"
+ 
+ static const name_keymap_t command_names[] = {
+@@ -78,7 +76,7 @@ static const name_keymap_t command_names[] = {
+     { "EditSave",                          CK_Save },
+     { "EditLoad",                          CK_Load },
+     { "EditNew",                           CK_New },
+-    { "EditSaveas",                        CK_Save_As },
++    { "EditSaveAs",                        CK_Save_As },
+     { "EditMark",                          CK_Mark },
+     { "EditCopy",                          CK_Copy },
+     { "EditMove",                          CK_Move },
+@@ -189,8 +187,8 @@ static const name_keymap_t command_names[] = {
+     { "EditFindDefinition",                CK_Find_Definition },
+     { "EditLoadPrevFile",                  CK_Load_Prev_File },
+     { "EditLoadNextFile",                  CK_Load_Next_File },
+-    { "EditOptions",                       CK_Edit_Options },
+-    { "EditSaveMode",                      CK_Edit_Save_Mode },
++    { "EditOptions",                       CK_Options },
++    { "EditSaveMode",                      CK_Save_Mode },
+     { "EditChooseSyntax",                  CK_Choose_Syntax },
+     { "EditAbout",                         CK_About },
+ 
+@@ -547,7 +545,7 @@ const global_keymap_t default_editor_keymap[] = {
+     { KEY_F (13),                           CK_Column_Mark,         "S-F3" },
+     { KEY_F (14),                           CK_Replace_Again,       "S-F4" },
+     { KEY_F (15),                           CK_Insert_File,         "S-F5" },
+-    { KEY_F (17),                           CK_Find_Again,          "S-F6" },
++    { KEY_F (17),                           CK_Find_Again,          "S-F7" },
+     /* C formatter */
+     { KEY_F (19),                           CK_Pipe_Block (0),      "S-F9" },
+ 
+-- 
+1.6.4
+

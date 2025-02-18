@@ -1,0 +1,13 @@
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 32b713381..3c53e3e93 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -964,7 +964,7 @@ setup_cmdline (void)
+     int y;
+     char *tmp_prompt = (char *) mc_prompt;
+ 
+-    if (!command_prompt)
++    if (!command_prompt || subshell_prompt == NULL)
+         return;
+ 
+ #ifdef ENABLE_SUBSHELL

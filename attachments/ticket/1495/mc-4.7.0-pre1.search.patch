@@ -1,0 +1,41 @@
+diff -Naur mc-4.7.0-pre1~/src/search/normal.c mc-4.7.0-pre1/src/search/normal.c
+--- mc-4.7.0-pre1~/src/search/normal.c	2009-06-23 21:55:12.000000000 +0300
++++ mc-4.7.0-pre1/src/search/normal.c	2009-08-05 03:01:32.000000000 +0300
+@@ -91,6 +91,11 @@
+         mc_search__normal_translate_to_regex (mc_search_cond->str->str, &mc_search_cond->len);
+ 
+     g_string_free (mc_search_cond->str, TRUE);
++
++    if (mc_search->whole_words) {
++        g_string_prepend (tmp, "\\b");
++        g_string_append (tmp, "\\b");
++    }
+     mc_search_cond->str = tmp;
+ 
+     mc_search__cond_struct_new_init_regex (charset, mc_search, mc_search_cond);
+diff -Naur mc-4.7.0-pre1~/src/search/regex.c mc-4.7.0-pre1/src/search/regex.c
+--- mc-4.7.0-pre1~/src/search/regex.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/search/regex.c	2009-08-05 03:01:32.000000000 +0300
+@@ -63,7 +63,7 @@
+     const char *special_chars[] = {
+         "\\s", "\\S",
+         "\\d", "\\D",
+-        "\\B", "\\B",
++        "\\b", "\\B",
+         "\\w", "\\W",
+         "\\t", "\\n",
+         "\\r", "\\f",
+diff -Naur mc-4.7.0-pre1~/src/search/search.h mc-4.7.0-pre1/src/search/search.h
+--- mc-4.7.0-pre1~/src/search/search.h	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/search/search.h	2009-08-05 03:01:32.000000000 +0300
+@@ -63,6 +63,9 @@
+     /* search entire string (from begin to end). Used only with GLOB search type */
+     gboolean is_entire_line;
+ 
++    /* search entire string (from begin to end). Used only with NORMAL search type */
++    gboolean whole_words;
++
+     /* function, used for getting data. NULL if not used */
+     mc_search_fn search_fn;
+ 
+diff -Naur mc-4.7.0-pre1~/src/view.c mc-4.7.0-pre1/src/view.c

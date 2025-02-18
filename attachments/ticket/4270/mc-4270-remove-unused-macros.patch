@@ -1,0 +1,82 @@
+From a4f82cdc371261cbedefa6df320c64b61d6ad743 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 22 Dec 2021 21:46:58 +0000
+Subject: [PATCH] (key.c,utilunix.c,ftpfs_parse_ls.c) remove unused macros
+
+key.c:223: warning: macro "MC_MSEC_PER_SEC" is not used []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-macros-Wunused-macros]8;;]
+  223 | #define MC_MSEC_PER_SEC  1000
+
+utilunix.c:85: warning: macro "MAX_PIPE_SIZE" is not used []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-macros-Wunused-macros]8;;]
+   85 | #define MAX_PIPE_SIZE 4096
+
+ftpfs_parse_ls.c:66: warning: macro "NO_DATE_YET" is not used []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-macros-Wunused-macros]8;;]
+   66 | #define NO_DATE_YET ((time_t) (-2L))
+      | 
+ftpfs_parse_ls.c:64: warning: macro "NO_SIZE_YET" is not used []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-macros-Wunused-macros]8;;]
+   64 | #define NO_SIZE_YET ((off_t) (-2L))
+      | 
+ftpfs_parse_ls.c:60: warning: macro "HOUR" is not used []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-macros-Wunused-macros]8;;]
+   60 | #define HOUR   (60 * MINUTE)
+      | 
+ftpfs_parse_ls.c:59: warning: macro "MINUTE" is not used []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-macros-Wunused-macros]8;;]
+   59 | #define MINUTE (60)
+      | 
+ftpfs_parse_ls.c:61: warning: macro "DAY" is not used []8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-macros-Wunused-macros]8;;]
+   61 | #define DAY    (24 * HOUR)
+      | 
+
+Found by gcc 11
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/tty/key.c                  | 1 -
+ lib/utilunix.c                 | 4 ----
+ src/vfs/ftpfs/ftpfs_parse_ls.c | 6 ------
+ 3 files changed, 11 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index 7651da999..930e086df 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -220,7 +220,6 @@ const key_code_name_t key_name_conv_tab[] = {
+ 
+ /*** file scope macro definitions ****************************************************************/
+ 
+-#define MC_MSEC_PER_SEC  1000
+ #define MC_USEC_PER_MSEC 1000
+ 
+ /* The maximum sequence length (32 + null terminator) */
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index f8d4dc366..3f4e14781 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -80,10 +80,6 @@ struct sigaction startup_handler;
+ #define UID_CACHE_SIZE 200
+ #define GID_CACHE_SIZE 30
+ 
+-/* Pipes are guaranteed to be able to hold at least 4096 bytes */
+-/* More than that would be unportable */
+-#define MAX_PIPE_SIZE 4096
+-
+ /*** file scope type declarations ****************************************************************/
+ 
+ typedef struct
+diff --git a/src/vfs/ftpfs/ftpfs_parse_ls.c b/src/vfs/ftpfs/ftpfs_parse_ls.c
+index 595131600..f452f3e4b 100644
+--- a/src/vfs/ftpfs/ftpfs_parse_ls.c
++++ b/src/vfs/ftpfs/ftpfs_parse_ls.c
+@@ -56,14 +56,8 @@
+ 
+ #define number_of_parsers 7
+ 
+-#define MINUTE (60)
+-#define HOUR   (60 * MINUTE)
+-#define DAY    (24 * HOUR)
+-
+ #define NO_SIZE     ((off_t) (-1L))
+-#define NO_SIZE_YET ((off_t) (-2L))
+ #define NO_DATE     ((time_t) (-1L))
+-#define NO_DATE_YET ((time_t) (-2L))
+ 
+ #define FIRST_TOKEN strtok (line, " \t")
+ #define NEXT_TOKEN  strtok (NULL, " \t")

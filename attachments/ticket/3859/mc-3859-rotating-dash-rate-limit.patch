@@ -1,0 +1,145 @@
+diff --git a/src/filemanager/dir.c b/src/filemanager/dir.c
+index 2188d1983..cddd7f264 100644
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -661,8 +661,7 @@ dir_list_load (dir_list * list, const vfs_path_t * vpath, GCompareFunc sort,
+         if (!dir_list_append (list, dp->d_name, &st, link_to_dir != 0, stale_link != 0))
+             goto ret;
+ 
+-        if ((list->len & 31) == 0)
+-            rotate_dash (TRUE);
++        rotate_dash (TRUE);
+     }
+ 
+     dir_list_sort (list, sort, sort_op);
+@@ -803,8 +802,7 @@ dir_list_reload (dir_list * list, const vfs_path_t * vpath, GCompareFunc sort,
+             marked_cnt--;
+         }
+ 
+-        if ((list->len & 15) == 0)
+-            rotate_dash (TRUE);
++        rotate_dash (TRUE);
+     }
+     mc_closedir (dirp);
+     tree_store_end_check ();
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index 01b0a4bf7..8c27aa409 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -1240,20 +1240,42 @@ find_ignore_dir_search (const char *dir)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/* Keep in sync with layout.c rotate_dash(). TODO: refactor to avoid this duplication. */
+ static void
+ find_rotate_dash (const WDialog * h, gboolean show)
+ {
+-    static size_t pos = 0;
+-    static const char rotating_dash[4] = "|/-\\";
+     const Widget *w = CONST_WIDGET (h);
++    static guint64 last_timestamp = 0;
++    guint64 timestamp;
+ 
+     if (!verbose)
+         return;
+ 
+-    tty_setcolor (h->color[DLG_COLOR_NORMAL]);
++    if (!show)
++        last_timestamp = 0;
++    else
++    {
++        timestamp = g_get_monotonic_time ();
++        /* Save on screen updates, see ticket 3859. */
++        if (timestamp - last_timestamp < 125000)
++            return;
++        last_timestamp = timestamp;
++    }
++
+     widget_move (h, w->lines - 7, w->cols - 4);
+-    tty_print_char (show ? rotating_dash[pos] : ' ');
+-    pos = (pos + 1) % sizeof (rotating_dash);
++    tty_setcolor (h->color[DLG_COLOR_NORMAL]);
++
++    if (!show)
++        tty_print_char (' ');
++    else
++    {
++        static const char rotating_dash[4] = "|/-\\";
++        static size_t pos = 0;
++
++        tty_print_char (rotating_dash[pos]);
++        pos = (pos + 1) % sizeof (rotating_dash);
++    }
++
+     mc_refresh ();
+ }
+ 
+@@ -1399,9 +1421,9 @@ do_search (WDialog * h)
+         /* skip invalid filenames */
+         while ((dp = mc_readdir (dirp)) != NULL && !str_is_valid_string (dp->d_name))
+             ;
+-    }                           /* for */
+ 
+-    find_rotate_dash (h, TRUE);
++        find_rotate_dash (h, TRUE);
++    }                           /* for */
+ 
+     return 1;
+ }
+@@ -1815,8 +1837,7 @@ do_find (const char *start_dir, ssize_t start_dir_len, const char *ignore_dirs,
+             list->list[list->len].second_sort_key = NULL;
+             list->len++;
+             g_free (name);
+-            if ((list->len & 15) == 0)
+-                rotate_dash (TRUE);
++            rotate_dash (TRUE);
+         }
+ 
+         current_panel->is_panelized = TRUE;
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 10f06643c..62b15406c 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -914,14 +914,28 @@ set_hintbar (const char *str)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/* Keep in sync with find.c find_rotate_dash(). TODO: refactor to avoid this duplication. */
+ void
+ rotate_dash (gboolean show)
+ {
+     Widget *w = WIDGET (midnight_dlg);
++    static guint64 last_timestamp = 0;
++    guint64 timestamp;
+ 
+     if (!nice_rotating_dash || (ok_to_refresh <= 0))
+         return;
+ 
++    if (!show)
++        last_timestamp = 0;
++    else
++    {
++        timestamp = g_get_monotonic_time ();
++        /* Save on screen updates, see ticket 3859. */
++        if (timestamp - last_timestamp < 125000)
++            return;
++        last_timestamp = timestamp;
++    }
++
+     widget_move (w, (menubar_visible != 0) ? 1 : 0, w->cols - 1);
+     tty_setcolor (NORMAL_COLOR);
+ 
+diff --git a/src/filemanager/panelize.c b/src/filemanager/panelize.c
+index 4808840bc..a95fae9fb 100644
+--- a/src/filemanager/panelize.c
++++ b/src/filemanager/panelize.c
+@@ -350,8 +350,7 @@ do_external_panelize (char *command)
+ 
+         file_mark (current_panel, list->len - 1, 0);
+ 
+-        if ((list->len & 31) == 0)
+-            rotate_dash (TRUE);
++        rotate_dash (TRUE);
+     }
+ 
+     current_panel->is_panelized = TRUE;

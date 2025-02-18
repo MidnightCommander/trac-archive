@@ -1,0 +1,67 @@
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index b8cc901..ba2670b 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -123,7 +123,7 @@ listbox_drawscroll (WListbox * l)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-listbox_draw (WListbox * l, gboolean focused)
++listbox_draw (WListbox * l)
+ {
+     Widget *w = WIDGET (l);
+     const WDialog *h = w->owner;
+@@ -132,9 +132,7 @@ listbox_draw (WListbox * l, gboolean focused)
+     /* *INDENT-OFF* */
+     int selc = disabled
+         ? DISABLED_COLOR
+-        : focused
+-            ? h->color[DLG_COLOR_HOT_FOCUS] 
+-            : h->color[DLG_COLOR_FOCUS];
++        : h->color[DLG_COLOR_FOCUS];
+     /* *INDENT-ON* */
+ 
+     int length = 0;
+@@ -432,7 +430,7 @@ listbox_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         ret_code = listbox_key (l, parm);
+         if (ret_code != MSG_NOT_HANDLED)
+         {
+-            listbox_draw (l, TRUE);
++            listbox_draw (l);
+             send_message (h, w, MSG_ACTION, l->pos, NULL);
+         }
+         return ret_code;
+@@ -445,10 +443,8 @@ listbox_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         send_message (h, w, MSG_ACTION, l->pos, NULL);
+         return MSG_HANDLED;
+ 
+-    case MSG_FOCUS:
+-    case MSG_UNFOCUS:
+     case MSG_DRAW:
+-        listbox_draw (l, msg != MSG_UNFOCUS);
++        listbox_draw (l);
+         return MSG_HANDLED;
+ 
+     case MSG_DESTROY:
+@@ -509,7 +505,7 @@ listbox_event (Gpm_Event * event, void *data)
+ 
+         /* We need to refresh ourselves since the dialog manager doesn't */
+         /* know about this event */
+-        listbox_draw (l, TRUE);
++        listbox_draw (l);
+         return ret;
+     }
+ 
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index 456f7c8..873a138 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -133,7 +133,7 @@
+ 
+ [popupmenu]
+     _default_ = black;rgb553
+-    menusel = ;rgb452;underline
++    menusel = ;rgb452
+     menutitle = ;;underline
+ 
+ [buttonbar]

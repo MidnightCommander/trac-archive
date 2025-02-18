@@ -1,0 +1,14 @@
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index eaab3c4..6899171 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3356,7 +3356,8 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         if (option_cursor_beyond_eol && edit->over_col > 0)
+             edit_insert_over (edit);
+ #ifdef HAVE_CHARSET
+-        if (char_for_insertion > 255 && !mc_global.utf8_display)
++        if (char_for_insertion > 127 && str_isutf8 (get_codepage_id (mc_global.source_codepage))
++            && !mc_global.utf8_display)
+         {
+             unsigned char str[UTF8_CHAR_LEN + 1];
+             size_t i = 0;

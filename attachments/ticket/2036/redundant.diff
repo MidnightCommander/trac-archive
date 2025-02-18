@@ -1,0 +1,244 @@
+diff --git a/lib/vfs/mc-vfs/ftpfs.c b/lib/vfs/mc-vfs/ftpfs.c
+index fc6f3d5..1ccee01 100644
+--- a/lib/vfs/mc-vfs/ftpfs.c
++++ b/lib/vfs/mc-vfs/ftpfs.c
+@@ -597,7 +597,7 @@ ftpfs_load_no_proxy_list (void)
+ 	    np->domain = g_strdup (s);
+ 	    np->next   = NULL;
+ 	    if (no_proxy)
+-		current->next = np;
++		current->next = np; /* FIXME: potential null derefence */
+ 	    else
+ 		no_proxy = np;
+ 	    current = np;
+diff --git a/lib/vfs/mc-vfs/samba/lib/charset.c b/lib/vfs/mc-vfs/samba/lib/charset.c
+index 58be253..d021c69 100644
+--- a/lib/vfs/mc-vfs/samba/lib/charset.c
++++ b/lib/vfs/mc-vfs/samba/lib/charset.c
+@@ -315,8 +315,8 @@ clean_and_exit:
+
+   if(fp != NULL)
+     fclose(fp);
+-  if(cp_p)
+-    free((char *)cp_p);
++
++  free((char *)cp_p);
+   return NULL;
+ }
+
+diff --git a/lib/vfs/mc-vfs/samba/lib/util.c b/lib/vfs/mc-vfs/samba/lib/util.c
+index 98df37a..bec32ec 100644
+--- a/lib/vfs/mc-vfs/samba/lib/util.c
++++ b/lib/vfs/mc-vfs/samba/lib/util.c
+@@ -1642,12 +1642,12 @@ void *Realloc(void *p,size_t size)
+   void *ret=NULL;
+
+   if (size == 0) {
+-    if (p) free(p);
++    free(p);
+     DEBUG(5,("Realloc asked for 0 bytes\n"));
+     return NULL;
+   }
+
+-  if (!p)
++  if (!p)
+     ret = (void *)malloc(size);
+   else
+     ret = (void *)realloc(p,size);
+diff --git a/lib/vfs/mc-vfs/samba/lib/util_str.c b/lib/vfs/mc-vfs/samba/lib/util_str.c
+index 74b5303..64611e2 100644
+--- a/lib/vfs/mc-vfs/samba/lib/util_str.c
++++ b/lib/vfs/mc-vfs/samba/lib/util_str.c
+@@ -980,7 +980,7 @@ void string_free(char **s)
+   if (!s || !(*s)) return;
+   if (*s == null_string)
+     *s = NULL;
+-  if (*s) free(*s);
++  free(*s);
+   *s = NULL;
+ }
+ 
+diff --git a/lib/vfs/mc-vfs/samba/libsmb/clientgen.c b/lib/vfs/mc-vfs/samba/libsmb/clientgen.c
+index 0dd0710..0a16a14 100644
+--- a/lib/vfs/mc-vfs/samba/libsmb/clientgen.c
++++ b/lib/vfs/mc-vfs/samba/libsmb/clientgen.c
+@@ -591,10 +591,8 @@ int cli_RNetShareEnum(struct cli_state *cli, void (*fn)(const char *, uint32, co
+ 	      DEBUG(4,("NetShareEnum failed\n"));
+     }
+   
+-  if (rparam)
+-    free(rparam);
+-  if (rdata)
+-    free(rdata);
++  free(rparam);
++  free(rdata);
+ 
+   return count;
+ }
+@@ -664,9 +662,7 @@ BOOL cli_NetServerEnum(struct cli_state *cli, char *workgroup, uint32 stype,
+ 		}
+ 	}
+   
+-	if (rparam)
+       free(rparam);
+-	if (rdata)
+       free(rdata);
+ 	
+ 	return(count > 0);
+@@ -1884,8 +1880,8 @@ BOOL cli_qfileinfo(struct cli_state *cli, int fnum,
+ 		*ino = IVAL(rdata, 64);
+ 	}
+ 
+-	if (rdata) free(rdata);
+-	if (rparam) free(rparam);
++	free(rdata);
++	free(rparam);
+ 	return True;
+ }
+ 
+@@ -2141,8 +2137,8 @@ int cli_list(struct cli_state *cli,const char *Mask,uint16 attribute,
+ 
+ 		total_received += ff_searchcount;
+ 
+-		if (rdata) free(rdata); rdata = NULL;
+-		if (rparam) free(rparam); rparam = NULL;
++		free(rdata); rdata = NULL;
++		free(rparam); rparam = NULL;
+ 		
+ 		DEBUG(3,("received %d entries (eos=%d resume=%d)\n",
+ 			 ff_searchcount,ff_eos,ff_resume_key));
+@@ -2156,7 +2152,7 @@ int cli_list(struct cli_state *cli,const char *Mask,uint16 attribute,
+ 	}
+ 
+ 	/* free up the dirlist buffer */
+-	if (dirlist) free(dirlist);
++	free(dirlist);
+ 	return(total_received);
+ }
+ 
+@@ -2403,14 +2399,8 @@ shutdown a client structure
+ ****************************************************************************/
+ void cli_shutdown(struct cli_state *cli)
+ {
+-	if (cli->outbuf)
+-	{
+-		free(cli->outbuf);
+-	}
+-	if (cli->inbuf)
+-	{
+-		free(cli->inbuf);
+-	}
++	free(cli->outbuf);
++	free(cli->inbuf);
+ #ifdef WITH_SSL
+     if (cli->fd != -1)
+       sslutil_disconnect(cli->fd);
+diff --git a/lib/vfs/mc-vfs/samba/libsmb/nmblib.c b/lib/vfs/mc-vfs/samba/libsmb/nmblib.c
+index 85a01aa..e9d7265 100644
+--- a/lib/vfs/mc-vfs/samba/libsmb/nmblib.c
++++ b/lib/vfs/mc-vfs/samba/libsmb/nmblib.c
+@@ -620,9 +620,9 @@ struct packet_struct *copy_packet(struct packet_struct *packet)
+   ******************************************************************/
+ static void free_nmb_packet(struct nmb_packet *nmb)
+ {  
+-  if (nmb->answers) free(nmb->answers);
+-  if (nmb->nsrecs) free(nmb->nsrecs);
+-  if (nmb->additional) free(nmb->additional);
++  free(nmb->answers);
++  free(nmb->nsrecs);
++  free(nmb->additional);
+ }
+ 
+ /*******************************************************************
+diff --git a/lib/vfs/mc-vfs/samba/param/loadparm.c b/lib/vfs/mc-vfs/samba/param/loadparm.c
+index 7e4ad2e..bc955e5 100644
+--- a/lib/vfs/mc-vfs/samba/param/loadparm.c
++++ b/lib/vfs/mc-vfs/samba/param/loadparm.c
+@@ -1319,6 +1319,7 @@ free the dynamically allocated parts of a service struct
+ static void free_service(service *pservice)
+ {
+   int i;
++
+   if (!pservice)
+      return;
+ 
+@@ -1326,11 +1327,9 @@ static void free_service(service *pservice)
+     DEBUG(5,("free_service: Freeing service %s\n", pservice->szService));
+ 
+   string_free(&pservice->szService);
+-  if (pservice->copymap)
+-  {
+-    free(pservice->copymap);
+-    pservice->copymap = NULL;
+-  }
++
++  free(pservice->copymap);
++  pservice->copymap = NULL;
+  
+   for (i=0;parm_table[i].label;i++)
+     if ((parm_table[i].type == P_STRING ||
+@@ -1849,7 +1848,9 @@ initialise a copymap
+ static void init_copymap(service *pservice)
+ {
+   size_t i;
+-  if (pservice->copymap) free(pservice->copymap);
++
++  free(pservice->copymap);
++
+   pservice->copymap = (BOOL *)malloc(sizeof(BOOL)*NUMPARAMETERS);
+   if (!pservice->copymap)
+     DEBUG(0,("Couldn't allocate copymap!! (size %d)\n",(int)NUMPARAMETERS));
+diff --git a/lib/vfs/mc-vfs/tar.c b/lib/vfs/mc-vfs/tar.c
+index 817194c..6d22208 100644
+--- a/lib/vfs/mc-vfs/tar.c
++++ b/lib/vfs/mc-vfs/tar.c
+@@ -644,6 +644,7 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive,
+ 	    while (tar_get_next_record (archive, tard)->ext_hdr.
+ 		   isextended);
+ 	    inode->data_offset = current_tar_position;
++	    /* FIXME: potential null derefence 'inode' */
+ 	}
+ 	return STATUS_SUCCESS;
+     }
+diff --git a/src/man2hlp.c b/src/man2hlp.c
+index aa95df6..c578c9f 100644
+--- a/src/man2hlp.c
++++ b/src/man2hlp.c
+@@ -838,7 +838,6 @@ main (int argc, char **argv)
+ 	fprintf (f_out, "\n");
+ 
+ 	free (cnode->node);
+-	if (cnode->lname)
+ 	    free (cnode->lname);
+ 	if (cnode != &nodes)
+ 	    free (cnode);
+diff --git a/src/mountlist.c b/src/mountlist.c
+index 86dd361..1b48243 100644
+--- a/src/mountlist.c
++++ b/src/mountlist.c
+@@ -155,11 +155,9 @@ static void free_mount_entry (struct mount_entry *me)
+ {
+     if (!me)
+ 	return;
++
+-    if (me->me_devname)
+ 	free (me->me_devname);
+-    if (me->me_mountdir)
+ 	free (me->me_mountdir);
+-    if (me->me_type)
+ 	free (me->me_type);
+     free (me);
+ }
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index d027cc2..b6e06dd 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -129,7 +129,7 @@ mcview_display_status (mcview_t * view)
+     const screen_dimen width = view->status_area.width;
+     const screen_dimen height = view->status_area.height;
+     const char *file_label;
+-    screen_dimen file_label_width, i = 0;
++    screen_dimen file_label_width;
+
+     if (height < 1)
+         return;

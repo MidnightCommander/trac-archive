@@ -1,0 +1,322 @@
+From 27ab0a7b65e79fc64a65f947f115ba6f8c370bac Mon Sep 17 00:00:00 2001
+From: Michal Sojka <sojkam1@fel.cvut.cz>
+Date: Sun, 2 Feb 2014 22:44:57 +0100
+Subject: [PATCH] Display human readable sizes in panels
+
+When midnight commander displays the size of a file, it tries to
+display as much digits as fits into the size column (7 characters
+wide). The result is that for a 3 MB file it shows, for example,
+3010050. In many cases, it is not important to know the exact number
+of bytes in a file, but only an approximate size (3 MB). Short numbers
+are more "human friendly".
+
+This patch adds a configuration option that enables displaying such
+human readable sizes in panels. The "human readable" means that at
+most three digits are displayed for each file size. This is
+accomplished by modifying function size_trunc_len(). Since the comment
+of this function says that floating point should be avoided by any
+means, the implementation is not as trivial as it could be. It
+displays floating point numbers by displaying integer and fractional
+parts separately as integers.
+
+The effect of this patch is shown in the following table. "si" and
+"hr" denote the values use_si and human_readable parameters of the
+size_trunc_len() function. The table shows the results of the function
+for different sizes.
+
+                 CURRENT        THIS PATCH
+      size |  !si!hr   si!hr  !si hr   si hr
+-----------|--------------------------------
+       950 |     950     950     950     950
+      1001 |    1001    1001   0.97K   1.00k
+      1005 |    1005    1005   0.98K   1.01k
+      1023 |    1023    1023   0.99K   1.02k
+      1024 |    1024    1024   0.99K   1.02k
+      9849 |    9849    9849   9.61K   9.85k
+     12050 |   12050   12050   11.8K   12.1k
+     99940 |   99940   99940   97.5K   99.9k
+    100000 |  100000  100000   97.6K    100k
+    102399 |  102399  102399    100K    102k
+    102400 |  102400  102400    100K    102k
+    210050 |  210050  210050    205K    210k
+   3010050 | 3010050 3010050   2.87M   3.01m
+  43010050 |  42002K  43010k   41.0M   43.0m
+1072693248 |   1023M   1073m   0.99G   1.07g
+
+Currently, the decimal separator (".") is hardcoded and independent of
+user's locale.
+
+If anyone wants to test the patch, the table was created with the code
+below.
+
+void print(uintmax_t size)
+{
+	char buffer[50];
+	int units = 0;
+	gboolean use_si = TRUE;
+	gboolean human_readable = TRUE;
+	int len = 7;
+
+	printf("%10ld", size);
+	size_trunc_len (buffer, len, size, units, !use_si, !human_readable);
+	printf("%8s", buffer);
+	size_trunc_len (buffer, len, size, units,  use_si, !human_readable);
+	printf("%8s", buffer);
+	size_trunc_len (buffer, len, size, units, !use_si,  human_readable);
+	printf("%8s", buffer);
+	size_trunc_len (buffer, len, size, units,  use_si,  human_readable);
+	printf("%8s", buffer);
+	printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+	print(950);
+	print(1001);
+	// ...
+}
+---
+ lib/util.c                | 27 +++++++++++++++++++++++++--
+ lib/util.h                |  2 +-
+ src/filemanager/boxes.c   |  1 +
+ src/filemanager/chown.c   |  2 +-
+ src/filemanager/filegui.c |  8 ++++----
+ src/filemanager/info.c    |  6 +++---
+ src/filemanager/panel.c   |  6 +++---
+ src/setup.c               |  2 ++
+ src/setup.h               |  1 +
+ src/viewer/display.c      |  2 +-
+ 10 files changed, 42 insertions(+), 15 deletions(-)
+
+diff --git a/lib/util.c b/lib/util.c
+index a34d1b8..093d947 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -413,7 +413,8 @@ size_trunc_sep (uintmax_t size, gboolean use_si)
+  */
+ 
+ void
+-size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gboolean use_si)
++size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gboolean use_si,
++                gboolean human_readable)
+ {
+     /* Avoid taking power for every file.  */
+     /* *INDENT-OFF* */
+@@ -454,6 +455,8 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+     static const char *const suffix_lc[] = { "", "k", "m", "g", "t", "p", "e", "z", "y", NULL };
+ 
+     const char *const *sfx = use_si ? suffix_lc : suffix;
++    unsigned base = use_si ? 1000 : 1024;
++    unsigned human_digits;
+     int j = 0;
+ 
+     if (len == 0)
+@@ -484,6 +487,9 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+             size += size_remain;        /* Re-add remainder lost by division/multiplication */
+         }
+ 
++    if (human_readable && len < 5)
++        human_readable = FALSE; /* Human readable form needs 5 characters */
++
+     for (j = units; sfx[j] != NULL; j++)
+     {
+         if (size == 0)
+@@ -501,11 +507,28 @@ size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gbool
+             break;
+         }
+ 
+-        if (size < power10[len - (j > 0 ? 1 : 0)])
++#define DIV_ROUND(a, b) (((a) + ((b)/2))/(b))
++        if ((!human_readable && size < power10[len - (j > 0 ? 1 : 0)]) ||
++            (human_readable && size < 1000))
+         {
+             g_snprintf (buffer, len + 1, "%" PRIuMAX "%s", size, sfx[j]);
+             break;
+         }
++        else if (human_readable && DIV_ROUND (size, 10) < base && sfx[j + 1])
++        {
++            human_digits = DIV_ROUND (size, 10) * 1000 / base;  /* 0 - 999 */
++            g_snprintf (buffer, len + 1, "%u.%02u%s",
++                        human_digits / 100, human_digits % 100, sfx[j + 1]);
++            break;
++        }
++        else if (human_readable && DIV_ROUND (size, 100) < base && sfx[j + 1])
++        {
++            human_digits = DIV_ROUND (size, 100) * 1000 / base; /* 0 - 999 */
++            g_snprintf (buffer, len + 1, "%u.%01u%s",
++                        human_digits / 10, human_digits % 10, sfx[j + 1]);
++            break;
++        }
++#undef DIV_ROUND
+ 
+         /* Powers of 1000 or 1024, with rounding.  */
+         if (use_si)
+diff --git a/lib/util.h b/lib/util.h
+index 24f55c1..49e6530 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -106,7 +106,7 @@ const char *size_trunc_sep (uintmax_t size, gboolean use_si);
+  * not including trailing 0. BUFFER should be at least LEN+1 long.
+  *
+  * Units: size units (0=bytes, 1=Kbytes, 2=Mbytes, etc.) */
+-void size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gboolean use_si);
++void size_trunc_len (char *buffer, unsigned int len, uintmax_t size, int units, gboolean use_si, gboolean human_readable);
+ const char *string_perm (mode_t mode_bits);
+ 
+ const char *extension (const char *);
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index bd15ae9..7ae3fde 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -536,6 +536,7 @@ panel_options_box (void)
+                 QUICK_START_GROUPBOX (N_("Main options")),
+                     QUICK_CHECKBOX (N_("Show mi&ni-status"), &panels_options.show_mini_info, NULL),
+                     QUICK_CHECKBOX (N_("Use SI si&ze units"), &panels_options.kilobyte_si, NULL),
++                    QUICK_CHECKBOX (N_("Human readable &size"), &panels_options.human_readable, NULL),
+                     QUICK_CHECKBOX (N_("Mi&x all files"), &panels_options.mix_all_files, NULL),
+                     QUICK_CHECKBOX (N_("Show &backup files"), &panels_options.show_backups, NULL),
+                     QUICK_CHECKBOX (N_("Show &hidden files"), &panels_options.show_dot_files, NULL),
+diff --git a/src/filemanager/chown.c b/src/filemanager/chown.c
+index 5040b16..bd56c61 100644
+--- a/src/filemanager/chown.c
++++ b/src/filemanager/chown.c
+@@ -367,7 +367,7 @@ chown_cmd (void)
+         chown_label (0, str_trunc (fname, GW - 4));
+         chown_label (1, str_trunc (get_owner (sf_stat.st_uid), GW - 4));
+         chown_label (2, str_trunc (get_group (sf_stat.st_gid), GW - 4));
+-        size_trunc_len (buffer, GW - 4, sf_stat.st_size, 0, panels_options.kilobyte_si);
++        size_trunc_len (buffer, GW - 4, sf_stat.st_size, 0, panels_options.kilobyte_si, panels_options.human_readable);
+         chown_label (3, buffer);
+         chown_label (4, string_perm (sf_stat.st_mode));
+ 
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index b75fa24..82ed527 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -557,12 +557,12 @@ overwrite_query_dialog (file_op_context_t * ctx, enum OperationMode mode)
+ 
+     /* source date and size */
+     size_trunc_len (fsize_buffer, sizeof (fsize_buffer), ui->s_stat->st_size, 0,
+-                    panels_options.kilobyte_si);
++                    panels_options.kilobyte_si, panels_options.human_readable);
+     ADD_RD_LABEL (2, file_date (ui->s_stat->st_mtime), fsize_buffer, y++);
+     rd_xlen = max (rd_xlen, label2->cols + 8);
+     /* destination date and size */
+     size_trunc_len (fsize_buffer, sizeof (fsize_buffer), ui->d_stat->st_size, 0,
+-                    panels_options.kilobyte_si);
++                    panels_options.kilobyte_si, panels_options.human_readable);
+     ADD_RD_LABEL (3, file_date (ui->d_stat->st_mtime), fsize_buffer, y++);
+     rd_xlen = max (rd_xlen, label2->cols + 8);
+ 
+@@ -1009,12 +1009,12 @@ file_progress_show_total (FileOpTotalContext * tctx, file_op_context_t * ctx,
+ 
+     if (ui->total_bytes_label != NULL)
+     {
+-        size_trunc_len (buffer2, 5, tctx->copied_bytes, 0, panels_options.kilobyte_si);
++	    size_trunc_len (buffer2, 5, tctx->copied_bytes, 0, panels_options.kilobyte_si, panels_options.human_readable);
+         if (!ctx->progress_totals_computed)
+             g_snprintf (buffer, BUF_TINY, _(" Total: %s "), buffer2);
+         else
+         {
+-            size_trunc_len (buffer3, 5, ctx->progress_bytes, 0, panels_options.kilobyte_si);
++            size_trunc_len (buffer3, 5, ctx->progress_bytes, 0, panels_options.kilobyte_si, panels_options.human_readable);
+             g_snprintf (buffer, BUF_TINY, _(" Total: %s/%s "), buffer2, buffer3);
+         }
+ 
+diff --git a/src/filemanager/info.c b/src/filemanager/info.c
+index 6397723..335a984 100644
+--- a/src/filemanager/info.c
++++ b/src/filemanager/info.c
+@@ -167,8 +167,8 @@ info_show_info (WInfo * info)
+         {
+             char buffer1[6], buffer2[6];
+ 
+-            size_trunc_len (buffer1, 5, myfs_stats.avail, 1, panels_options.kilobyte_si);
+-            size_trunc_len (buffer2, 5, myfs_stats.total, 1, panels_options.kilobyte_si);
++            size_trunc_len (buffer1, 5, myfs_stats.avail, 1, panels_options.kilobyte_si, panels_options.human_readable);
++            size_trunc_len (buffer2, 5, myfs_stats.total, 1, panels_options.kilobyte_si, panels_options.human_readable);
+             tty_printf (_("Free space: %s/%s (%d%%)"), buffer1, buffer2,
+                         myfs_stats.total == 0 ? 0 :
+                         (int) (100 * (long double) myfs_stats.avail / myfs_stats.total));
+@@ -221,7 +221,7 @@ info_show_info (WInfo * info)
+ #endif
+         {
+             char buffer[10];
+-            size_trunc_len (buffer, 9, st.st_size, 0, panels_options.kilobyte_si);
++            size_trunc_len (buffer, 9, st.st_size, 0, panels_options.kilobyte_si, panels_options.human_readable);
+             tty_printf (_("Size:      %s"), buffer);
+ #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+             tty_printf (ngettext (" (%ld block)", " (%ld blocks)",
+diff --git a/src/filemanager/panel.c b/src/filemanager/panel.c
+index 45e4759..b21f14e 100644
+--- a/src/filemanager/panel.c
++++ b/src/filemanager/panel.c
+@@ -510,7 +510,7 @@ string_file_size (file_entry_t * fe, int len)
+     else
+ #endif
+     {
+-        size_trunc_len (buffer, (unsigned int) len, fe->st.st_size, 0, panels_options.kilobyte_si);
++        size_trunc_len (buffer, (unsigned int) len, fe->st.st_size, 0, panels_options.kilobyte_si, panels_options.human_readable);
+     }
+     return buffer;
+ }
+@@ -1141,9 +1141,9 @@ show_free_space (WPanel * panel)
+         char buffer1[6], buffer2[6], tmp[BUF_SMALL];
+ 
+         size_trunc_len (buffer1, sizeof (buffer1) - 1, myfs_stats.avail, 1,
+-                        panels_options.kilobyte_si);
++                        panels_options.kilobyte_si, panels_options.human_readable);
+         size_trunc_len (buffer2, sizeof (buffer2) - 1, myfs_stats.total, 1,
+-                        panels_options.kilobyte_si);
++                        panels_options.kilobyte_si, panels_options.human_readable);
+         g_snprintf (tmp, sizeof (tmp), " %s/%s (%d%%) ", buffer1, buffer2,
+                     myfs_stats.total == 0 ? 0 :
+                     (int) (100 * (long double) myfs_stats.avail / myfs_stats.total));
+diff --git a/src/setup.c b/src/setup.c
+index 20c7145..8c46278 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -130,6 +130,7 @@ int saving_setup;
+ panels_options_t panels_options = {
+     .show_mini_info = TRUE,
+     .kilobyte_si = FALSE,
++    .human_readable = FALSE,
+     .mix_all_files = FALSE,
+     .show_backups = TRUE,
+     .show_dot_files = TRUE,
+@@ -389,6 +390,7 @@ static const struct
+ } panels_ini_options[] = {
+     { "show_mini_info", &panels_options.show_mini_info },
+     { "kilobyte_si", &panels_options.kilobyte_si },
++    { "human_readable", &panels_options.human_readable },
+     { "mix_all_files", &panels_options.mix_all_files },
+     { "show_backups", &panels_options.show_backups },
+     { "show_dot_files", &panels_options.show_dot_files },
+diff --git a/src/setup.h b/src/setup.h
+index 4d43117..e7e9378 100644
+--- a/src/setup.h
++++ b/src/setup.h
+@@ -37,6 +37,7 @@ typedef struct
+     gboolean show_mini_info;    /* If true, show the mini-info on the panel */
+     gboolean kilobyte_si;       /* If TRUE, SI units (1000 based) will be used for larger units
+                                  * (kilobyte, megabyte, ...). If FALSE, binary units (1024 based) will be used */
++    gboolean human_readable;    /* If TRUE, at most three digits are used to display the size of the files. */
+     gboolean mix_all_files;     /* If FALSE then directories are shown separately from files */
+     gboolean show_backups;      /* If TRUE, show files ending in ~ */
+     gboolean show_dot_files;    /* If TRUE, show files starting with a dot */
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index ed3ed2a..9849a33 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -156,7 +156,7 @@ mcview_display_status (mcview_t * view)
+             char buffer[BUF_TRUNC_LEN + 1];
+ 
+             size_trunc_len (buffer, BUF_TRUNC_LEN, mcview_get_filesize (view), 0,
+-                            panels_options.kilobyte_si);
++                            panels_options.kilobyte_si, panels_options.human_readable);
+             tty_printf ("%9" PRIuMAX "/%s%s %s", (uintmax_t) view->dpy_end,
+                         buffer, mcview_may_still_grow (view) ? "+" : " ",
+ #ifdef HAVE_CHARSET
+-- 
+1.8.5.3
+

@@ -1,0 +1,27 @@
+From e8f5f7160f18a311a4210467b9487fee36d65255 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 12 Dec 2016 04:19:29 +0200
+Subject: [PATCH 02/13] extfs: uace: print the correct file size.
+
+As a comment in that file notes: 3'rd column is the compressed size, 4'th
+column is the actual size.
+---
+ src/vfs/extfs/helpers/uace.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/extfs/helpers/uace.in b/src/vfs/extfs/helpers/uace.in
+index 90e3f4b..525e571 100644
+--- a/src/vfs/extfs/helpers/uace.in
++++ b/src/vfs/extfs/helpers/uace.in
+@@ -35,7 +35,7 @@ mc_ace_fs_list()
+   else
+     date[3]=date[3] + 2000
+ 
+-  printf "-rw-r--r--   1 %-8d %-8d %8d %02d-%02d-%04d %s %s\n", uid, 0, $3, date[2], date[1], date[3], $2, $6
++  printf "-rw-r--r--   1 %-8d %-8d %8d %02d-%02d-%04d %s %s\n", uid, 0, $4, date[2], date[1], date[3], $2, $6
+ }' 2>/dev/null
+     exit 0
+ }
+-- 
+2.9.3
+

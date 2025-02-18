@@ -1,0 +1,18 @@
+x1:
+insgesamt 40K
+drwxr-xr-x 2 user  users 4,0K  3. Okt 00:32 .
+drwxr-xr-x 6 user  users 4,0K 11. Okt 18:46 ..
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Das_Leben_der_Bauern_im_Mittelalter-160118_folge_34_mdg_436k_p9v12.mp4
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Die_Schlacht_von_Tours_und_Poitiers-160118_folge_86_mdg_436k_p9v12.mp4
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Europaweiter_Handel_im_Mittelalter-160118_folge_12_mdg_436k_p9v12.mp4
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Frankreichs_Revolution_in_Deutschland-160118_folge_19_mdg_436k_p9v12.mp4
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Karl_der_Große__Vom_König_zum_Kaiser-160118_folge_3_mdg_436k_p9v12.mp4
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Martin_Luther_vor_dem_Reichstag_in_Worms-160118_folge_10_mdg_436k_pv12.mp4
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Römer_rechts_und_links_des_Rheins-160118_folge_24_mdg_436k_p9v12.mp4
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20160101-Momente_der_Geschichte-Unterdrückung_in_Südwest-Afrika-160118_folge_49_mdg_436k_p9v12.mp4
+
+x3:
+insgesamt 12K
+drwxr-xr-x 2 user  users 4,0K  3. Okt 00:32 .
+drwxr-xr-x 6 user  users 4,0K 11. Okt 18:46 ..
+-rw-r--r-- 1 user  users    1  3. Okt 00:32 20111006-Momente_der_Geschichte-Der_Weg_in_die_Diktatur-120926_wegindiediktatur20120926_mdg_536k_p9v9.mp4

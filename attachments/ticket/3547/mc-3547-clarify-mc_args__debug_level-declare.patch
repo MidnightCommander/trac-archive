@@ -1,0 +1,39 @@
+From 081bb9c7559b4cb2f61ea664026e1ee055fa96cf Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 14:42:49 +0000
+Subject: [PATCH] clarify mc_args__debug_level declare
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/args.c | 2 ++
+ src/args.h | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/src/args.c b/src/args.c
+index 466b0d1..0ee7de6 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -66,7 +66,9 @@ char *mc_args__netfs_logfile = NULL;
+ char *mc_args__keymap_file = NULL;
+ 
+ /* Debug level */
++#ifdef ENABLE_VFS_SMB
+ int mc_args__debug_level = 0;
++#endif
+ 
+ void *mc_run_param0 = NULL;
+ char *mc_run_param1 = NULL;
+diff --git a/src/args.h b/src/args.h
+index 7f8577e..f33c07c 100644
+--- a/src/args.h
++++ b/src/args.h
+@@ -25,7 +25,9 @@ extern gboolean mc_args__nokeymap;
+ extern char *mc_args__last_wd_file;
+ extern char *mc_args__netfs_logfile;
+ extern char *mc_args__keymap_file;
++#ifdef ENABLE_VFS_SMB
+ extern int mc_args__debug_level;
++#endif
+ 
+ /*
+  * MC_RUN_FULL: dir for left panel

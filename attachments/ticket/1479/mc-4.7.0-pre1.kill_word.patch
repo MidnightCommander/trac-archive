@@ -1,0 +1,13 @@
+diff -Naur mc-4.7.0-pre1~/edit/editkeys.c mc-4.7.0-pre1/edit/editkeys.c
+diff -Naur mc-4.7.0-pre1~/src/filegui.c mc-4.7.0-pre1/src/filegui.c
+--- mc-4.7.0-pre1~/src/filegui.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/src/filegui.c	2009-08-05 02:33:02.000000000 +0300
+@@ -822,7 +822,7 @@
+     {quick_button, 14, 64, 9, FMDY, N_("&OK"), 0, B_ENTER, 0, 0, NULL, NULL, NULL},
+     {quick_checkbox, 42, 64, 8, FMDY, N_("&Stable Symlinks"), 0, 0,
+      0 /* &file_mask_stable_symlinks */ , 0, NULL, NULL, NULL},
+-    {quick_checkbox, 31, 64, 7, FMDY, N_("&Dive into subdir if exists"), 0,
++    {quick_checkbox, 31, 64, 7, FMDY, N_("di&Ve into subdir if exists"), 0,
+      0, 0 /* &dive_into_subdirs */ , 0, NULL, NULL, NULL},
+     NULL_QuickWidget
+ };

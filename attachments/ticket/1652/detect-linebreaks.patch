@@ -1,0 +1,265 @@
+commit 15106b094279bf972ef7a64165fa9e5c0601214c
+Author: Paul Sokolovsky <pfalcon@users.sourceforge.net>
+Date:   Mon Jan 10 21:11:20 2011 +0200
+
+    Autodetect line break type in editor.
+    
+    On opening a file, sample what line break it uses, remember that, and load file
+    in such a way that no special characters are shown. File saved in with its original
+    line break type, unless overriden with Save As (which was tweaked to treat "don't
+    change" option as such).
+
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 55a5707..d4428c4 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -289,7 +289,7 @@ int edit_save_block_cmd (WEdit * edit);
+ int edit_insert_file_cmd (WEdit * edit);
+ void edit_insert_column_of_text (WEdit * edit, unsigned char *data, int size, int width);
+ int edit_insert_column_of_text_from_file (WEdit * edit, int file);
+-int edit_insert_file (WEdit * edit, const char *filename);
++int edit_insert_file (WEdit * edit, const char *filename, LineBreaks lb_type);
+ int edit_load_back_cmd (WEdit * edit);
+ int edit_load_forward_cmd (WEdit * edit);
+ void edit_block_process_cmd (WEdit * edit, const char *shell_cmd, int block);
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 8241e6d..8d6f529 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -421,6 +421,30 @@ check_file_access (WEdit * edit, const char *filename, struct stat *st)
+     return 0;
+ }
+ 
++static LineBreaks
++detect_lb_type (char *filename)
++{
++    char buf[256];
++    int file, sz;
++
++    file = mc_open (filename, O_RDONLY | O_BINARY);
++    if (file == -1)
++        return LB_ASIS;
++
++    memset(buf, 0, sizeof(buf));
++    sz = mc_read (file, buf, sizeof(buf) - 1);
++    if (sz < 0)
++        return LB_ASIS;
++    mc_close(file);
++
++    buf[sz] = 0;
++    if (strstr(buf, "\r\n"))
++        return LB_WIN;
++    if (strchr(buf, '\r'))
++        return LB_MAC;
++    return LB_ASIS;
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+  * Open the file and load it into the buffers, either directly or using
+@@ -436,6 +460,7 @@ static int
+ edit_load_file (WEdit * edit)
+ {
+     int fast_load = 1;
++    LineBreaks lb_type = LB_ASIS;
+ 
+     /* Cannot do fast load if a filter is used */
+     if (edit_find_filter (edit->filename) >= 0)
+@@ -458,6 +483,10 @@ edit_load_file (WEdit * edit)
+         /* If we are dealing with a real file, check that it exists */
+         if (check_file_access (edit, edit->filename, &edit->stat1))
+             return 1;
++        lb_type = detect_lb_type(edit->filename);
++
++        if (lb_type != LB_ASIS && lb_type != LB_UNIX)
++            fast_load = 0;
+     }
+     else
+     {
+@@ -480,7 +509,7 @@ edit_load_file (WEdit * edit)
+         if (*edit->filename)
+         {
+             edit->undo_stack_disable = 1;
+-            if (!edit_insert_file (edit, edit->filename))
++            if (!edit_insert_file (edit, edit->filename, lb_type))
+             {
+                 edit_clean (edit);
+                 return 1;
+@@ -488,7 +517,7 @@ edit_load_file (WEdit * edit)
+             edit->undo_stack_disable = 0;
+         }
+     }
+-    edit->lb = LB_ASIS;
++    edit->lb = lb_type;
+     return 0;
+ }
+ 
+@@ -1699,7 +1728,7 @@ user_menu (WEdit * edit)
+         }
+ 
+         if (rc == 0)
+-            edit_insert_file (edit, block_file);
++            edit_insert_file (edit, block_file, LB_ASIS);
+ 
+         /* truncate block file */
+         fd = fopen (block_file, "w");
+@@ -2014,7 +2043,7 @@ edit_write_stream (WEdit * edit, FILE * f)
+ /* --------------------------------------------------------------------------------------------- */
+ /** inserts a file at the cursor, returns 1 on success */
+ int
+-edit_insert_file (WEdit * edit, const char *filename)
++edit_insert_file (WEdit * edit, const char *filename, LineBreaks lb_type)
+ {
+     char *p;
+ 
+@@ -2073,7 +2102,19 @@ edit_insert_file (WEdit * edit, const char *filename)
+         else
+             while ((blocklen = mc_read (file, (char *) buf, TEMP_BUF_LEN)) > 0)
+                 for (i = 0; i < blocklen; i++)
+-                    edit_insert (edit, buf[i]);
++                {
++                    if (buf[i] == '\r')
++                    {
++                        if (lb_type == LB_MAC)
++                            edit_insert (edit, '\n');
++                        else if (lb_type == LB_WIN)
++                            /* just skip */;
++                        else
++                            edit_insert (edit, '\r');
++                    }
++                    else
++                        edit_insert (edit, buf[i]);
++                }
+         edit_cursor_move (edit, current - edit->curs1);
+         g_free (buf);
+         mc_close (file);
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index d916191..704384c 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -433,7 +433,9 @@ edit_get_save_file_as (WEdit * edit)
+     {
+         char *fname;
+ 
+-        edit->lb = cur_lb;
++        /* Don't change current LB type (possibly autodetected), unless user asked to. */
++        if (cur_lb != LB_ASIS)
++            edit->lb = cur_lb;
+         fname = tilde_expand (filename);
+         g_free (filename);
+         return fname;
+@@ -2501,7 +2503,7 @@ edit_paste_from_X_buf_cmd (WEdit * edit)
+     /* try use external clipboard utility */
+     paste_to_file_from_ext_clip ();
+     tmp = concat_dir_and_file (home_dir, EDIT_CLIP_FILE);
+-    edit_insert_file (edit, tmp);
++    edit_insert_file (edit, tmp, LB_ASIS);
+     g_free (tmp);
+ }
+ 
+@@ -2617,7 +2619,7 @@ edit_insert_file_cmd (WEdit * edit)
+         }
+         else
+         {
+-            if (edit_insert_file (edit, exp))
++            if (edit_insert_file (edit, exp, LB_ASIS))
+             {
+                 g_free (exp);
+                 edit->force |= REDRAW_COMPLETELY;
+@@ -2689,7 +2691,7 @@ edit_sort_cmd (WEdit * edit)
+     if (edit_block_delete_cmd (edit))
+         return 1;
+     tmp = concat_dir_and_file (home_dir, EDIT_TEMP_FILE);
+-    edit_insert_file (edit, tmp);
++    edit_insert_file (edit, tmp, LB_ASIS);
+     g_free (tmp);
+     return 0;
+ }
+@@ -2726,7 +2728,7 @@ edit_ext_cmd (WEdit * edit)
+ 
+     edit->force |= REDRAW_COMPLETELY;
+     tmp = concat_dir_and_file (home_dir, EDIT_TEMP_FILE);
+-    edit_insert_file (edit, tmp);
++    edit_insert_file (edit, tmp, LB_ASIS);
+     g_free (tmp);
+     return 0;
+ }
+@@ -2846,7 +2848,7 @@ edit_block_process_cmd (WEdit * edit, const char *shell_cmd, int block)
+         /* insert result block */
+         if (block && !edit_block_delete_cmd (edit))
+         {
+-            edit_insert_file (edit, b);
++            edit_insert_file (edit, b, LB_ASIS);
+             block_file = fopen (b, "w");
+             if (block_file != NULL)
+                 fclose (block_file);
+
+commit 37ad5c8472c857253ff03022383227ebf7a83622
+Author: Paul Sokolovsky <pfalcon@users.sourceforge.net>
+Date:   Sun Jan 16 01:16:02 2011 +0200
+
+    Show line breaks type in status line.
+    
+    Shown after all existing info, after codepage, only if explicit one is
+    set (!= LB_ASIS).
+
+diff --git a/src/editor/editdraw.c b/src/editor/editdraw.c
+index 06d7a0f..3f059f9 100644
+--- a/src/editor/editdraw.c
++++ b/src/editor/editdraw.c
+@@ -103,6 +103,13 @@ status_string (WEdit * edit, char *s, int w)
+     unsigned int cur_utf = 0;
+     int cw = 1;
+ 
++    static const char *lb_names[LB_NAMES] = {
++        "",
++        "LF",
++        "CRLF",
++        "CR"
++    };
++
+     /*
+      * If we are at the end of file, print <EOF>,
+      * otherwise print the current character as is (if printable),
+@@ -142,7 +149,7 @@ status_string (WEdit * edit, char *s, int w)
+     /* The field lengths just prevent the status line from shortening too much */
+     if (simple_statusbar)
+         g_snprintf (s, w,
+-                    "%c%c%c%c %3ld %5ld/%ld %6ld/%ld %s %s",
++                    "%c%c%c%c %3ld %5ld/%ld %6ld/%ld %s %s %s",
+                     edit->mark1 != edit->mark2 ? (edit->column_highlight ? 'C' : 'B') : '-',
+                     edit->modified ? 'M' : '-',
+                     edit->macro_i < 0 ? '-' : 'R',
+@@ -151,14 +158,15 @@ status_string (WEdit * edit, char *s, int w)
+                     edit->curs_line + 1,
+                     edit->total_lines + 1, edit->curs1, edit->last_byte, byte_str,
+ #ifdef HAVE_CHARSET
+-                    source_codepage >= 0 ? get_codepage_id (source_codepage) : ""
++                    source_codepage >= 0 ? get_codepage_id (source_codepage) : "",
+ #else
+-                    ""
++                    "",
+ #endif
++                    lb_names[edit->lb]
+             );
+     else
+         g_snprintf (s, w,
+-                    "[%c%c%c%c] %2ld L:[%3ld+%2ld %3ld/%3ld] *(%-4ld/%4ldb) %s  %s",
++                    "[%c%c%c%c] %2ld L:[%3ld+%2ld %3ld/%3ld] *(%-4ld/%4ldb) %s %s %s",
+                     edit->mark1 != edit->mark2 ? (edit->column_highlight ? 'C' : 'B') : '-',
+                     edit->modified ? 'M' : '-',
+                     edit->macro_i < 0 ? '-' : 'R',
+@@ -169,10 +177,11 @@ status_string (WEdit * edit, char *s, int w)
+                     edit->curs_line + 1,
+                     edit->total_lines + 1, edit->curs1, edit->last_byte, byte_str,
+ #ifdef HAVE_CHARSET
+-                    source_codepage >= 0 ? get_codepage_id (source_codepage) : ""
++                    source_codepage >= 0 ? get_codepage_id (source_codepage) : "",
+ #else
+-                    ""
++                    "",
+ #endif
++                    lb_names[edit->lb]
+             );
+ }
+ 

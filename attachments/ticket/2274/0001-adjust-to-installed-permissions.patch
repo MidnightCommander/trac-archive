@@ -1,0 +1,31 @@
+From 13934e7d2e16678bdea931d75fb257530ac00d3c Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Sat, 11 Apr 2009 16:09:38 +0200
+Subject: [PATCH] adjust to installed permissions
+
+---
+ 0 files changed, 0 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 lib/vfs/mc-vfs/extfs/bpp
+ mode change 100644 => 100755 lib/vfs/mc-vfs/extfs/rpm
+ mode change 100644 => 100755 lib/vfs/mc-vfs/extfs/trpm
+ mode change 100644 => 100755 lib/vfs/mc-vfs/extfs/u7z
+ mode change 100644 => 100755 lib/vfs/mc-vfs/extfs/ucab
+
+diff --git a/lib/vfs/mc-vfs/extfs/bpp b/lib/vfs/mc-vfs/extfs/bpp
+old mode 100644
+new mode 100755
+diff --git a/lib/vfs/mc-vfs/extfs/rpm b/lib/vfs/mc-vfs/extfs/rpm
+old mode 100644
+new mode 100755
+diff --git a/lib/vfs/mc-vfs/extfs/trpm b/lib/vfs/mc-vfs/extfs/trpm
+old mode 100644
+new mode 100755
+diff --git a/lib/vfs/mc-vfs/extfs/u7z b/lib/vfs/mc-vfs/extfs/u7z
+old mode 100644
+new mode 100755
+diff --git a/lib/vfs/mc-vfs/extfs/ucab b/lib/vfs/mc-vfs/extfs/ucab
+old mode 100644
+new mode 100755
+-- 
+1.7.1.15.g43acf
+

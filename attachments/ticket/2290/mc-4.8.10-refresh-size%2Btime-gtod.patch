@@ -1,0 +1,86 @@
+diff -uNr mc-4.8.10.configured/src/filemanager/find.c mc-4.8.10.refresh-size+time-gtod/src/filemanager/find.c
+--- mc-4.8.10.configured/src/filemanager/find.c	2013-10-04 22:20:04.094433365 +0400
++++ mc-4.8.10.refresh-size+time-gtod/src/filemanager/find.c	2013-11-24 20:51:21.974701207 +0400
+@@ -149,6 +149,10 @@
+ static gboolean is_start = FALSE;       /* Status of the start/stop toggle button */
+ static char *old_dir = NULL;
+ 
++#define MAX_REFRESH_INTERVAL  50000        /* 50 ms */
++#define MIN_REFRESH_FILE_SIZE (256 * 1024) /* 256 KB */
++static struct timeval last_refresh;
++
+ /* Where did we stop */
+ static gboolean resuming;
+ static int last_line;
+@@ -978,6 +982,10 @@
+     int file_fd;
+     gboolean ret_val = FALSE;
+     vfs_path_t *vpath;
++    struct timeval tv;
++    time_t seconds;
++    suseconds_t useconds;
++    gboolean status_updated = FALSE;
+ 
+     vpath = vfs_path_build_filename (directory, filename, (char *) NULL);
+ 
+@@ -993,10 +1001,30 @@
+     if (file_fd == -1)
+         return FALSE;
+ 
+-    g_snprintf (buffer, sizeof (buffer), _("Grepping in %s"), filename);
+-    status_update (str_trunc (buffer, WIDGET (h)->cols - 8));
++    /* get time elapsed from last refresh */
++    if (-1 == gettimeofday(&tv, NULL)) {
++        tv.tv_sec = 0;
++        tv.tv_usec = 0;
++        last_refresh = tv;
++    }
++    seconds = tv.tv_sec - last_refresh.tv_sec;
++    useconds = tv.tv_usec - last_refresh.tv_usec;
++    if (useconds < 0) {
++        seconds -= 1;
++        useconds += 1000000;
++    }
++
++    if (s.st_size >= MIN_REFRESH_FILE_SIZE ||
++        seconds > 0 ||
++        useconds > MAX_REFRESH_INTERVAL)
++    {
++        g_snprintf (buffer, sizeof (buffer), _("Grepping in %s"), filename);
++        status_update (str_trunc (buffer, WIDGET (h)->cols - 8));
+ 
+-    mc_refresh ();
++        mc_refresh ();
++        last_refresh = tv;
++        status_updated = TRUE;
++    }
+ 
+     tty_enable_interrupt_key ();
+     tty_got_interrupt ();
+@@ -1063,6 +1091,16 @@
+                 && mc_search_run (search_content_handle,
+                                   (const void *) strbuf, 0, i, &found_len))
+             {
++                if (status_updated == FALSE) {
++                    /* if we add results for a file, we have to ensure that
++                       name of this file is shown in status bar */
++                    g_snprintf (result, sizeof (result), _("Grepping in %s"), filename);
++                    status_update (str_trunc (result, WIDGET (h)->cols - 8));
++                    mc_refresh ();
++                    last_refresh = tv;
++                    status_updated = TRUE;
++                }
++
+                 g_snprintf (result, sizeof (result), "%d:%s", line, filename);
+                 find_add_match (directory, result);
+                 found = TRUE;
+@@ -1804,6 +1842,9 @@
+         if (pattern[0] == '\0')
+             break;              /* nothing search */
+ 
++        last_refresh.tv_sec = 0;
++        last_refresh.tv_usec = 0;
++
+         dirname = filename = NULL;
+         is_start = FALSE;
+         clock_gettime(CLOCK_MONOTONIC, &begin);

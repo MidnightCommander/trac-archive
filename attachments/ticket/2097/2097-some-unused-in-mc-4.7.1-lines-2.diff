@@ -1,0 +1,215 @@
+diff -urN mc-4.7.1-old/lib/skin/colors.c mc-4.7.1-new/lib/skin/colors.c
+--- mc-4.7.1-old/lib/skin/colors.c	2010-02-26 11:34:02.000000000 +0000
++++ mc-4.7.1-new/lib/skin/colors.c	2010-03-24 14:56:57.000000000 +0000
+@@ -308,11 +308,6 @@
+         if (keys == NULL)
+             continue;
+ 
+-        if(*keys == NULL) {
+-            g_strfreev (keys);
+-            continue;
+-        }
+-
+         for (; *keys; keys++) {
+             mc_skin_color = mc_skin_color_get_from_ini_file (mc_skin, *groups, *keys);
+             if (mc_skin_color != NULL)
+diff -urN mc-4.7.1-old/lib/skin/common.c mc-4.7.1-new/lib/skin/common.c
+--- mc-4.7.1-old/lib/skin/common.c	2010-02-25 10:51:39.000000000 +0000
++++ mc-4.7.1-new/lib/skin/common.c	2010-03-24 14:56:57.000000000 +0000
+@@ -42,8 +42,6 @@
+ 
+ /*** file scope variables ************************************************************************/
+ 
+-static gboolean mc_skin_is_init = FALSE;
+-
+ /* --------------------------------------------------------------------------------------------- */
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+@@ -109,7 +107,6 @@
+         mc_skin_reinit ();
+         mc_skin_set_hardcoded_skin (&mc_skin__default);
+     }
+-
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -148,7 +145,6 @@
+         (void) mc_skin_ini_file_parse (&mc_skin__default);
+         is_good_init = FALSE;
+     }
+-    mc_skin_is_init = TRUE;
+     return is_good_init;
+ }
+ 
+@@ -170,8 +166,6 @@
+         mc_config_deinit (mc_skin__default.config);
+         mc_skin__default.config = NULL;
+     }
+-
+-    mc_skin_is_init = FALSE;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff -urN mc-4.7.1-old/lib/vfs/mc-vfs/undelfs.c mc-4.7.1-new/lib/vfs/mc-vfs/undelfs.c
+--- mc-4.7.1-old/lib/vfs/mc-vfs/undelfs.c	2010-02-26 12:01:53.000000000 +0000
++++ mc-4.7.1-new/lib/vfs/mc-vfs/undelfs.c	2010-03-24 14:56:57.000000000 +0000
+@@ -289,25 +289,6 @@
+     return 0;
+ }
+ 
+-
+-/*
+- * This function overrides com_err() from libcom_err library.
+- * It is used in libext2fs to report errors.
+- */
+-void
+-com_err (const char *whoami, long err_code, const char *fmt, ...)
+-{
+-    va_list ap;
+-    char *str;
+-
+-    va_start (ap, fmt);
+-    str = g_strdup_vprintf (fmt, ap);
+-    va_end (ap);
+-
+-    message (D_ERROR, _(" Ext2lib error "), " %s (%s: %ld) ", str, whoami, err_code);
+-    g_free (str);
+-}
+-
+ static void *
+ undelfs_opendir (struct vfs_class *me, const char *dirname)
+ {
+@@ -362,7 +343,6 @@
+     return 0;
+ }
+ 
+-
+ static void *
+ undelfs_readdir (void *vfs_info)
+ {
+diff -urN mc-4.7.1-old/lib/vfs/mc-vfs/vfs.c mc-4.7.1-new/lib/vfs/mc-vfs/vfs.c
+--- mc-4.7.1-old/lib/vfs/mc-vfs/vfs.c	2010-02-26 09:29:51.000000000 +0000
++++ mc-4.7.1-new/lib/vfs/mc-vfs/vfs.c	2010-03-24 14:56:57.000000000 +0000
+@@ -470,11 +470,7 @@
+                     }
+                     str_close_conv (coder);
+                     return state;
+-                } else {
+-                    errno = EINVAL;
+-                    return ESTR_FAILURE;
+                 }
+-                break;
+             default:
+                 errno = EINVAL;
+                 return ESTR_FAILURE;
+diff -urN mc-4.7.1-old/src/listmode.c mc-4.7.1-new/src/listmode.c
+--- mc-4.7.1-old/src/listmode.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1-new/src/listmode.c	2010-03-24 14:56:57.000000000 +0000
+@@ -36,9 +36,6 @@
+ #include <unistd.h>
+ 
+ #include "lib/global.h"
+-#include "tty.h"
+-#include "key.h"
+-#include "color.h"
+ #include "dialog.h"
+ #include "widget.h"
+ #include "wtools.h"
+diff -urN mc-4.7.1-old/src/main.c mc-4.7.1-new/src/main.c
+--- mc-4.7.1-old/src/main.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1-new/src/main.c	2010-03-24 14:56:57.000000000 +0000
+@@ -1585,9 +1585,8 @@
+ 	if (parm == '\n') {
+ 	    size_t i;
+ 
+-	    for (i = 0; cmdline->buffer[i] && (cmdline->buffer[i] == ' ' ||
+-		cmdline->buffer[i] == '\t'); i++)
+-		;
++	    for (i = 0; (cmdline->buffer[i] == ' ') || (cmdline->buffer[i] == '\t'); i++);
++
+ 	    if (cmdline->buffer[i]) {
+ 	        send_message ((Widget *) cmdline, WIDGET_KEY, parm);
+ 		return MSG_HANDLED;
+@@ -2200,12 +2199,10 @@
+ 	application_keypad_mode ();
+ 
+ #ifdef HAVE_SUBSHELL_SUPPORT
+-    if (use_subshell) {
++    if (use_subshell)
+ 	mc_prompt = strip_ctrl_codes (subshell_prompt);
+-	if (mc_prompt == NULL)
+-	    mc_prompt = (geteuid () == 0) ? "# " : "$ ";
+-    } else
+ #endif				/* HAVE_SUBSHELL_SUPPORT */
++    if (mc_prompt == NULL)
+ 	mc_prompt = (geteuid () == 0) ? "# " : "$ ";
+ 
+     /* Program main loop */
+diff -urN mc-4.7.1-old/src/panelize.c mc-4.7.1-new/src/panelize.c
+--- mc-4.7.1-old/src/panelize.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1-new/src/panelize.c	2010-03-24 14:56:57.000000000 +0000
+@@ -398,11 +398,11 @@
+     dir_list *list = &current_panel->dir;
+     char line [MC_MAXPATHLEN];
+     char *name;
+-    FILE *external;
++    FILE *eksternal;
+ 
+     open_error_pipe ();
+-    external = popen (command, "r");
+-    if (!external){
++    eksternal = popen (command, "r");
++    if (eksternal == NULL) {
+ 	close_error_pipe (D_ERROR, _("Cannot invoke command."));
+ 	return;
+     }
+@@ -410,9 +410,9 @@
+     panel_clean_dir (current_panel);
+ 
+     while (1) {
+-	clearerr(external);
+-	if (fgets (line, MC_MAXPATHLEN, external) == NULL) {
+-	    if (ferror(external) && errno == EINTR)
++	clearerr(eksternal);
++	if (fgets (line, MC_MAXPATHLEN, eksternal) == NULL) {
++	    if (ferror(eksternal) && errno == EINTR)
+ 		continue;
+ 	    else
+ 		break;
+@@ -455,7 +455,7 @@
+     } else {
+ 	current_panel->count = set_zero_dir (list) ? 1 : 0;
+     }
+-    if (pclose (external) < 0)
++    if (pclose (eksternal) < 0)
+ 	message (D_NORMAL, _("External panelize"), _("Pipe close failed"));
+     close_error_pipe (D_NORMAL, NULL);
+     try_to_select (current_panel, NULL);
+diff -urN mc-4.7.1-old/src/widget.c mc-4.7.1-new/src/widget.c
+--- mc-4.7.1-old/src/widget.c	2010-02-26 11:34:04.000000000 +0000
++++ mc-4.7.1-new/src/widget.c	2010-03-24 14:56:57.000000000 +0000
+@@ -740,9 +740,13 @@
+ void
+ label_set_text (WLabel *label, const char *text)
+ {
+-    int newcols = label->widget.cols;
++    int newcols;
+     int newlines;
+ 
++    if (label == NULL) 
++        return; 
++
++    newcols = label->widget.cols;
+     if (label->text && text && !strcmp (label->text, text))
+         return; /* Flickering is not nice */
+ 
+@@ -753,7 +757,8 @@
+ 	if (label->auto_adjust_cols) {
+             str_msg_term_size (text, &newlines, &newcols);
+ 	    if (newcols > label->widget.cols)
+-	    label->widget.cols = newcols;
++                label->widget.cols = newcols;
++
+             if (newlines > label->widget.lines)
+                 label->widget.lines = newlines;
+ 	}

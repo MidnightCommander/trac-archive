@@ -1,0 +1,71 @@
+From c93fe773d8ca6420c4721cd988596601979186c9 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 25 Dec 2015 17:31:15 +0000
+Subject: [PATCH] fix #2244 infinite loop when stdin fd got deleted
+
+under slang mc check getch() for error condition but not under ncurses yet
+
+test case reported by ginggs:
+  compile mc --with-screen=ncurses (does not occur with slang)
+  subshell must be enabled and a suitable shell available (does not occur with busybox)
+  open a GUI terminal (gnome-terminal, xterminal, konsole is also mentioned)
+  start mc as root (sudo mc)
+  close GUI terminal
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/tty/tty-ncurses.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/lib/tty/tty-ncurses.c b/lib/tty/tty-ncurses.c
+index 83e6fe6..24eae0a 100644
+--- a/lib/tty/tty-ncurses.c
++++ b/lib/tty/tty-ncurses.c
+@@ -31,6 +31,7 @@
+ 
+ #include <config.h>
+ 
++#include <errno.h>
+ #include <stdlib.h>
+ #include <stdarg.h>
+ #include <signal.h>
+@@ -83,6 +84,9 @@
+ /* We use our own cursor coordibates to support partially visible widgets */
+ static int mc_curs_row, mc_curs_col;
+ 
++/* Controls error condition in tty_lowlevel_getch */
++static gboolean no_ncurses_delay;
++
+ /*** file scope functions ************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -326,6 +330,7 @@ tty_keypad (gboolean set)
+ void
+ tty_nodelay (gboolean set)
+ {
++    no_ncurses_delay = set;
+     nodelay (stdscr, (bool) set);
+ }
+ 
+@@ -342,7 +347,20 @@ tty_baudrate (void)
+ int
+ tty_lowlevel_getch (void)
+ {
+-    return getch ();
++    int c;
++    while ((c = getch()) == ERR)
++    {
++        /* in no-delay mode getch() returns ERR if no input waiting */
++        if (no_ncurses_delay && errno == 0)
++            return -1;
++        if (errno == EINTR)
++            continue;
++        fprintf (stderr,
++                 "ncurses getch() returned ERR\n"
++                 "Assuming EOF on stdin and exiting\n");
++       exit (EXIT_FAILURE);
++    }
++    return c;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

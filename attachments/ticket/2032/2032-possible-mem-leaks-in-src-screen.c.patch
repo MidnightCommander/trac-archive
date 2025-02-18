@@ -1,0 +1,38 @@
+From d83ecb5d7dd11a16f074a83975be3921ba75063d Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 16 Feb 2010 18:03:17 +0000
+Subject: [PATCH]  possible mem-leaks in src/screen.c
+
+---
+ src/screen.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/src/screen.c b/src/screen.c
+index 428fe88..3a6764a 100644
+--- a/src/screen.c
++++ b/src/screen.c
+@@ -1026,9 +1026,21 @@ remove_encoding_from_path (const char *path)
+     GIConv converter;
+ 
+     ret = g_string_new("");
++    if (ret == NULL)
++        return NULL;
++
+     tmp_conv = g_string_new("");
++    if (tmp_conv == NULL) {
++        g_string_free (ret,TRUE);
++        return NULL;
++    }
+ 
+     tmp_path = g_string_new(path);
++    if (tmp_path == NULL) {
++        g_string_free (ret,TRUE);
++        g_string_free (tmp_conv,TRUE);
++        return NULL;
++    }
+ 
+     while ((tmp = g_strrstr (tmp_path->str, "/#enc:")) != NULL){
+ 	enc = vfs_get_encoding ((const char *) tmp);
+-- 
+1.6.4
+

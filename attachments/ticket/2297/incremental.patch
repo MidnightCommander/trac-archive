@@ -1,0 +1,36 @@
+commit d445b8fa1785446b2374b23dafe1a6e69a784689
+Author: Witold Filipczyk <witold.filipczyk@cba.pl>
+Date:   Fri Jan 20 19:05:26 2017 +0100
+
+    Show directories from incremental backups
+
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index 04e393b5d..408bbb3e1 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -387,7 +387,7 @@ tar_fill_stat (struct vfs_s_super *archive, struct stat *st, union record *heade
+      * know about the other modes but I think I cause no new
+      * problem when I adjust them, too. -- Norbert.
+      */
+-    if (header->header.linkflag == LF_DIR)
++    if (header->header.linkflag == LF_DIR || header->header.linkflag == LF_DUMPDIR)
+         st->st_mode |= S_IFDIR;
+     else if (header->header.linkflag == LF_SYMLINK)
+         st->st_mode |= S_IFLNK;
+@@ -549,16 +549,6 @@ tar_read_header (struct vfs_class *me, struct vfs_s_super *archive, int tard, si
+     else
+         *h_size = tar_from_oct (1 + 12, header->header.size);
+ 
+-    /*
+-     * Skip over directory snapshot info records that
+-     * are stored in incremental tar archives.
+-     */
+-    if (header->header.linkflag == LF_DUMPDIR)
+-    {
+-        if (arch->type == TAR_UNKNOWN)
+-            arch->type = TAR_GNU;
+-        return STATUS_SUCCESS;
+-    }
+ 
+     /*
+      * Skip over pax extended header and global extended

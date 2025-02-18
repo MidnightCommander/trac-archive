@@ -1,0 +1,50 @@
+From a93e522c7202d9b25aefb8f8d8364a1dce678df3 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 15 Dec 2024 22:00:00 +0000
+Subject: [PATCH] (web.sh) select browser at runtime
+
+Current browser selection happen on compile time and should change to runtime selection.
+
+- add chromium browser to list
+- bonus: remove shellcheck warning
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac         | 3 ---
+ misc/ext.d/web.sh.in | 9 +++++++--
+ 2 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index a3761a4ee..237c9a982 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -213,9 +213,6 @@ if $HAVE_FILECMD; then
+     fi
+ fi
+ 
+-dnl Only list browsers here that can be run in background (i.e. with `&')
+-AC_CHECK_PROGS(X11_WWW, [gnome-moz-remote mozilla firefox konqueror opera])
+-
+ 
+ dnl ############################################################################
+ dnl Check for other tools
+diff --git a/misc/ext.d/web.sh.in b/misc/ext.d/web.sh.in
+index 17d7e6354..c86fc7d21 100644
+--- a/misc/ext.d/web.sh.in
++++ b/misc/ext.d/web.sh.in
+@@ -28,8 +28,13 @@ do_open_action() {
+ 
+     case "${filetype}" in
+     html)
+-        (if [ -n "@X11_WWW@" -a  -n "$DISPLAY" ]; then
+-            (@X11_WWW@ file://"${MC_EXT_CURRENTDIR}"/"${MC_EXT_BASENAME}" &) 1>&2
++        (if [ -n "$DISPLAY" ]; then
++            for browser in gnome-moz-remote mozilla firefox konqueror opera chromium ; do
++                if which "${browser}" 1>&2 ; then
++                    "${browser}" file://"${MC_EXT_CURRENTDIR}"/"${MC_EXT_BASENAME}" 1>&2 &
++                    break
++                fi
++            done
+         else
+             elinks "${MC_EXT_FILENAME}" || \
+                 links "${MC_EXT_FILENAME}" || \

@@ -1,0 +1,12 @@
+diff -ur mc-4.7.0-pre1/src/search/lib.c mc-4.7.0-pre1.fix/src/search/lib.c
+--- mc-4.7.0-pre1/src/search/lib.c	2009-07-31 18:36:26.000000000 +0200
++++ mc-4.7.0-pre1.fix/src/search/lib.c	2009-08-01 12:13:40.000000000 +0200
+@@ -253,7 +253,7 @@
+     while (type_str->str) {
+         if (tmp->len)
+             g_string_append (tmp, "__||__");
+-        g_string_append (tmp, type_str->str);
++        g_string_append (tmp, _(type_str->str));
+         type_str++;
+     }
+     ret = g_strsplit (tmp->str, "__||__", -1);

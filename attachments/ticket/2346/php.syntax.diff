@@ -1,0 +1,98 @@
+--- php.syntax.orig	2010-09-07 14:16:43.000000000 +0700
++++ php.syntax	2010-09-11 14:37:20.000000000 +0700
+@@ -11,10 +11,8 @@
+ 
+ ######################
+ # Control structures
+-
+     keyword whole break brightmagenta
+     keyword whole case brightmagenta
+-    keyword whole class brightmagenta
+     keyword whole continue brightmagenta
+     keyword whole declare brightmagenta
+     keyword whole default brightmagenta
+@@ -23,14 +21,18 @@
+     keyword whole echo brightmagenta
+     keyword whole else brightmagenta
+     keyword whole elseif brightmagenta
++    keyword whole enddeclare brightmagenta
+     keyword whole endif brightmagenta
++    keyword whole endfor brightmagenta
++    keyword whole endforeach brightmagenta
++    keyword whole endswitch brightmagenta
+     keyword whole endwhile brightmagenta
+-    keyword whole extends brightmagenta
+     keyword whole false brightmagenta
+     keyword whole for brightmagenta
+     keyword whole foreach brightmagenta
+     keyword whole function brightmagenta
+     keyword whole global brightmagenta
++    keyword whole goto brightmagenta
+     keyword whole if brightmagenta
+     keyword whole include brightmagenta
+     keyword whole include_once brightmagenta
+@@ -43,6 +45,35 @@
+     keyword whole true brightmagenta
+     keyword whole while brightmagenta
+ 
++# OOP related keywords
++    keyword whole abstract brightmagenta
++    keyword whole catch brightmagenta
++    keyword whole class brightmagenta
++    keyword whole clone brightmagenta
++    keyword whole const brightmagenta
++    keyword whole extends brightmagenta
++    keyword whole final brightmagenta
++    keyword whole implements brightmagenta
++    keyword whole interface brightmagenta
++    keyword whole instanceof brightmagenta
++    keyword whole namespace brightmagenta
++    keyword whole private brightmagenta
++    keyword whole protected brightmagenta
++    keyword whole public brightmagenta
++    keyword whole throw brightmagenta
++    keyword whole try brightmagenta
++    keyword whole use brightmagenta
++
++# Predefined exceptions
++    keyword whole Exception yellow
++    keyword whole ErrorException yellow
++
++# Predefined interfaces
++    keyword whole ArrayAccess yellow
++    keyword whole Iterator yellow
++    keyword whole IteratorAggregate yellow
++    keyword whole Serializable yellow
++    keyword whole Traversable yellow
+ 
+ # .NET Functions
+     keyword whole dotnet_load yellow
+@@ -1198,6 +1229,11 @@
+     keyword whole java_last_exception_clear yellow
+     keyword whole java_last_exception_get yellow
+ 
++# JSON Functions
++    keyword whole json_encode yellow
++    keyword whole json_decode yellow
++    keyword whole json_last_error yellow
++
+ # KADM5
+     keyword whole kadm5\_\[0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz\] yellow
+ 
+@@ -3065,13 +3101,16 @@
+     keyword whole as white
+     keyword whole and white
+     keyword whole or white
++    keyword whole xor white
+ 
+ # Magic constants
++    keyword whole __DIR__ brightred
+     keyword whole __FILE__ brightred
+     keyword whole __LINE__ brightred
+     keyword whole __FUNCTION__ brightred
+     keyword whole __CLASS__ brightred
+     keyword whole __METHOD__ brightred
++    keyword whole __NAMESPACE__ brightred
+ 
+     keyword whole parent brightmagenta
+     keyword whole $this brightmagenta

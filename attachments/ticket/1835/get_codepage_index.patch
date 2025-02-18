@@ -1,0 +1,13 @@
+diff --git a/src/charsets.c b/src/charsets.c
+index c7d5941..a92eb0d 100644
+--- a/src/charsets.c
++++ b/src/charsets.c
+@@ -149,7 +149,7 @@ get_codepage_index (const char *id)
+     int i;
+     if (strcmp (id, OTHER_8BIT) == 0)
+ 	return -1;
+-    for (i = 0; codepages[i].id; ++i)
++	  for (i = 0; i < n_codepages; i++) 
+ 	if (strcmp (id, codepages[i].id) == 0)
+ 	    return i;
+     return -1;

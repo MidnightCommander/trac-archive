@@ -1,0 +1,395 @@
+diff -Naur mc-4.7.0-pre1~/edit/edit-widget.h mc-4.7.0-pre1/edit/edit-widget.h
+--- mc-4.7.0-pre1~/edit/edit-widget.h	2009-07-20 21:03:45.000000000 +0300
++++ mc-4.7.0-pre1/edit/edit-widget.h	2009-08-05 03:01:31.000000000 +0300
+@@ -62,6 +62,7 @@
+     int replace_mode;
+     int replace_backwards;
+     int replace_case;
++    int whole_words;
+     int all_codepages;
+ 
+     long search_start;		/* First character to start searching from */
+diff -Naur mc-4.7.0-pre1~/edit/editcmd.c mc-4.7.0-pre1/edit/editcmd.c
+--- mc-4.7.0-pre1~/edit/editcmd.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd.c	2009-08-05 03:01:54.000000000 +0300
+@@ -1280,11 +1280,12 @@
+     gsize search_end;
+ 
+     if (edit->replace_backwards) {
+-	search_end = edit->curs1-1;
++	search_end = edit->last_byte;
+ 	while ((int) search_start >= 0) {
+-	    if (search_end - search_start > edit->search->original_len && mc_search_is_fixed_search_str(edit->search))
+-		search_end = search_start + edit->search->original_len +1;
+-	    if ( mc_search_run(edit->search, (void *) edit, search_start, search_end, len))
++	    if (search_end > search_start + edit->search->original_len && mc_search_is_fixed_search_str(edit->search))
++		search_end = search_start + edit->search->original_len;
++	    if ( mc_search_run(edit->search, (void *) edit, search_start, search_end, len)
++		&& edit->search->normal_offset == search_start )
+ 	    {
+ 		return TRUE;
+ 	    }
+@@ -1407,6 +1408,7 @@
+ 	edit->search->search_type = edit->search_type;
+ 	edit->search->is_all_charsets = edit->all_codepages;
+ 	edit->search->is_case_sentitive = edit->replace_case;
++	edit->search->whole_words = edit->whole_words;
+ 	edit->search->search_fn = edit_search_cmd_callback;
+     }
+ 
+@@ -1536,6 +1538,7 @@
+ 
+ void edit_search_cmd (WEdit * edit, int again)
+ {
++    static char *saved1 = NULL;	/* saved default[123] */
+     char *search_string = NULL, *search_string_dup = NULL;
+ 
+     gsize len = 0;
+@@ -1545,6 +1548,8 @@
+ 
+     if (edit->search != NULL)
+ 	search_string_dup = search_string = g_strndup(edit->search->original, edit->search->original_len);
++    else if (saved1 != NULL)
++	search_string_dup = search_string = g_strdup(saved1);
+ 
+     if (!again)
+     {
+@@ -1562,7 +1567,7 @@
+ 	    g_string_free (tmp, FALSE);
+ 	}
+ #endif /* HAVE_CHARSET */
+-	editcmd_dialog_search_show (edit, &search_string);
++	editcmd_dialog_search_show (edit, &search_string, &search_create_bookmark);
+ #ifdef HAVE_CHARSET
+ 	if (search_string && *search_string)
+ 	{
+@@ -1591,6 +1596,8 @@
+ 	    mc_search_free(edit->search);
+ 	    edit->search = NULL;
+ 	}
++
++	g_free (saved1), saved1 = g_strdup (search_string);
+     }
+ 
+     if (!edit->search)
+@@ -1604,6 +1611,7 @@
+ 	edit->search->search_type = edit->search_type;
+ 	edit->search->is_all_charsets = edit->all_codepages;
+ 	edit->search->is_case_sentitive = edit->replace_case;
++	edit->search->whole_words = edit->whole_words;
+ 	edit->search->search_fn = edit_search_cmd_callback;
+     }
+ 
+diff -Naur mc-4.7.0-pre1~/edit/editcmd_dialogs.c mc-4.7.0-pre1/edit/editcmd_dialogs.c
+--- mc-4.7.0-pre1~/edit/editcmd_dialogs.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd_dialogs.c	2009-08-05 03:01:32.000000000 +0300
+@@ -49,7 +49,7 @@
+ /*** file scope macro definitions **************************************/
+ 
+ #define SEARCH_DLG_WIDTH 58
+-#define SEARCH_DLG_MIN_HEIGHT 11
++#define SEARCH_DLG_MIN_HEIGHT 12
+ #define SEARCH_DLG_HEIGHT_SUPPLY 3
+ 
+ #define REPLACE_DLG_WIDTH 58
+@@ -84,6 +84,7 @@
+ {
+     int treplace_backwards = edit->replace_backwards;
+     int treplace_case = edit->replace_case;
++    int twhole_words = edit->whole_words;
+     int tall_codepages = edit->all_codepages;
+     mc_search_type_t ttype_of_search = edit->search_type;
+     int dialog_result;
+@@ -101,13 +102,16 @@
+          0, 0, NULL, NULL, NULL},
+ 
+ #ifdef HAVE_CHARSET
+-        {quick_checkbox, 33, REPLACE_DLG_WIDTH, 9, REPLACE_DLG_HEIGHT, N_("All charsets"), 0, 0,
++        {quick_checkbox, 33, REPLACE_DLG_WIDTH, 10, REPLACE_DLG_HEIGHT, N_("All charsets"), 0, 0,
+          &tall_codepages, 0, NULL, NULL, NULL},
+ #endif
+ 
+-        {quick_checkbox, 33, REPLACE_DLG_WIDTH, 8, REPLACE_DLG_HEIGHT, N_("&Backwards"), 0, 0,
++        {quick_checkbox, 33, REPLACE_DLG_WIDTH, 9, REPLACE_DLG_HEIGHT, N_("&Backwards"), 0, 0,
+          &treplace_backwards, 0, NULL, NULL, NULL},
+ 
++        {quick_checkbox, 33, REPLACE_DLG_WIDTH, 8, REPLACE_DLG_HEIGHT, N_("&Whole words"), 0, 0,
++         &twhole_words, 0, NULL, NULL, NULL},
++
+         {quick_checkbox, 33, REPLACE_DLG_WIDTH, 7, REPLACE_DLG_HEIGHT, N_("case &Sensitive"), 0, 0,
+          &treplace_case, 0, NULL, NULL, NULL},
+ 
+@@ -153,6 +157,7 @@
+         edit->all_codepages = tall_codepages;
+         edit->replace_backwards = treplace_backwards;
+         edit->replace_case = treplace_case;
++        edit->whole_words = twhole_words;
+         return;
+     } else {
+         *replace_text = NULL;
+@@ -164,9 +169,10 @@
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-editcmd_dialog_search_show (WEdit * edit, char **search_text)
++editcmd_dialog_search_show (WEdit * edit, char **search_text, int *psearch_bookmarks)
+ {
+     int tsearch_case = edit->replace_case;
++    int twhole_words = edit->whole_words;
+     int tsearch_backwards = edit->replace_backwards;
+     int tall_codepages = edit->all_codepages;
+     mc_search_type_t ttype_of_search = edit->search_type;
+@@ -175,18 +181,28 @@
+ 
+ 
+     QuickWidget quick_widgets[] = {
+-        {quick_button, 6, 10, 9, SEARCH_DLG_HEIGHT, N_("&Cancel"), 0, B_CANCEL, 0,
++        {quick_button, 6, 10, 10, SEARCH_DLG_HEIGHT, N_("&Cancel"), 0, B_CANCEL, 0,
+          0, NULL, NULL, NULL},
+-        {quick_button, 2, 10, 9, SEARCH_DLG_HEIGHT, N_("&OK"), 0, B_ENTER, 0,
++        {quick_button, 2, 10, 10, SEARCH_DLG_HEIGHT, N_("&OK"), 0, B_ENTER, 0,
+          0, NULL, NULL, NULL},
+ 
+ #ifdef HAVE_CHARSET
+-        {quick_checkbox, 33, SEARCH_DLG_WIDTH, 7, SEARCH_DLG_HEIGHT, N_("All charsets"), 0, 0,
++#define BOOKMARK_Y 9
++#else
++#define BOOKMARK_Y 8
++#endif
++        {quick_checkbox, 33, SEARCH_DLG_WIDTH, BOOKMARK_Y, SEARCH_DLG_HEIGHT, N_("set boo&kmarks"), 0, 0,
++         psearch_bookmarks, 0, NULL, NULL, NULL},
++
++#ifdef HAVE_CHARSET
++        {quick_checkbox, 33, SEARCH_DLG_WIDTH, 8, SEARCH_DLG_HEIGHT, N_("All charsets"), 0, 0,
+          &tall_codepages, 0, NULL, NULL, NULL},
+ #endif
+ 
+-        {quick_checkbox, 33, SEARCH_DLG_WIDTH, 6, SEARCH_DLG_HEIGHT, N_("&Backwards"), 0, 0,
++        {quick_checkbox, 33, SEARCH_DLG_WIDTH, 7, SEARCH_DLG_HEIGHT, N_("&Backwards"), 0, 0,
+          &tsearch_backwards, 0, NULL, NULL, NULL},
++        {quick_checkbox, 33, SEARCH_DLG_WIDTH, 6, SEARCH_DLG_HEIGHT, N_("&Whole words"), 0, 0,
++         &twhole_words, 0, NULL, NULL, NULL},
+         {quick_checkbox, 33, SEARCH_DLG_WIDTH, 5, SEARCH_DLG_HEIGHT, N_("case &Sensitive"), 0, 0,
+          &tsearch_case, 0, NULL, NULL, NULL},
+ 
+@@ -213,6 +229,7 @@
+         edit->replace_backwards = tsearch_backwards;
+         edit->all_codepages = tall_codepages;
+         edit->replace_case = tsearch_case;
++        edit->whole_words = twhole_words;
+     } else {
+         *search_text = NULL;
+     }
+diff -Naur mc-4.7.0-pre1~/edit/editcmd_dialogs.h mc-4.7.0-pre1/edit/editcmd_dialogs.h
+--- mc-4.7.0-pre1~/edit/editcmd_dialogs.h	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editcmd_dialogs.h	2009-08-05 03:01:32.000000000 +0300
+@@ -24,7 +24,7 @@
+ 
+ void editcmd_dialog_replace_show (WEdit *, const char *, const char *, char **, char **);
+ 
+-void editcmd_dialog_search_show (WEdit *, char **);
++void editcmd_dialog_search_show (WEdit *, char **, int *);
+ 
+ int editcmd_dialog_raw_key_query (const char *, const char *, int);
+ 
+diff -Naur mc-4.7.0-pre1~/src/find.c mc-4.7.0-pre1/src/find.c
+--- mc-4.7.0-pre1~/src/find.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/find.c	2009-08-05 03:01:32.000000000 +0300
+@@ -89,6 +89,8 @@
+ static WCheck *file_case_sens;		/* "case sensitive" checkbox */
+ static WCheck *find_regex_cbox;		/* [x] find regular expression */
+ static WCheck *content_case_sens;	/* "case sensitive" checkbox */
++static WCheck *content_whole_words_cbox;/* "whole words" checkbox */
++static WCheck *content_first_only_cbox;	/* "first only" checkbox */
+ 
+ static int running = 0;			/* nice flag */
+ static char *find_pattern = NULL;	/* Pattern to search */
+@@ -148,6 +150,8 @@
+ static gboolean content_regexp_flag = FALSE;
+ static gboolean content_all_charsets_flag = FALSE;
+ static gboolean content_case_sensitive = TRUE;
++static gboolean content_whole_words = FALSE;
++static gboolean content_first_only = FALSE;
+ 
+ static int find_recursively = 1;
+ 
+@@ -261,6 +265,8 @@
+ 
+     static const char *file_case_label = N_("Cas&e sensitive");
+     static const char *content_case_label = N_("Case sens&itive");
++    static const char *content_whole_words_label = N_("&Whole words");
++    static const char *content_first_only_label = N_("First &occurence only");
+     static const char *file_recurs_label = N_("&Find recursively");
+     static const char *file_skip_hidden_label = N_("S&kip hidden");
+     static const char *file_all_charsets_label = N_("&All charsets");
+@@ -327,14 +333,20 @@
+ 		button_new (FIND_Y - 3, FIND_X/4 - b0/2, B_ENTER, DEFPUSH_BUTTON, buts[0], 0));
+ 
+ #ifdef HAVE_CHARSET
+-    content_all_charsets_cbox = check_new (9, FIND_X / 2 + 1,
++    content_all_charsets_cbox = check_new (11, FIND_X / 2 + 1,
+ 		content_all_charsets_flag, content_all_charsets_label);
+     add_widget (find_dlg, content_all_charsets_cbox);
+ #endif
+ 
+-    find_regex_cbox = check_new (8, FIND_X / 2 + 1, content_regexp_flag, content_regexp_label);
++    content_first_only_cbox = check_new (10, FIND_X / 2 + 1, content_first_only, content_first_only_label);
++    add_widget (find_dlg, content_first_only_cbox);
++
++    find_regex_cbox = check_new (9, FIND_X / 2 + 1, content_regexp_flag, content_regexp_label);
+     add_widget (find_dlg, find_regex_cbox);
+ 
++    content_whole_words_cbox = check_new (8, FIND_X / 2 + 1, content_whole_words, content_whole_words_label);
++    add_widget (find_dlg, content_whole_words_cbox);
++
+     content_case_sens = check_new (7, FIND_X / 2 + 1, content_case_sensitive, content_case_label);
+     add_widget (find_dlg, content_case_sens);
+ 
+@@ -385,6 +397,8 @@
+ 	content_all_charsets_flag = content_all_charsets_cbox->state & C_BOOL;
+ #endif
+ 	content_case_sensitive = content_case_sens->state & C_BOOL;
++	content_whole_words = content_whole_words_cbox->state & C_BOOL;
++	content_first_only = content_first_only_cbox->state & C_BOOL;
+ 	content_regexp_flag = find_regex_cbox->state & C_BOOL;
+ 	file_pattern_flag = file_pattern_cbox->state & C_BOOL;
+ 	file_case_sensitive = file_case_sens->state & C_BOOL;
+@@ -418,6 +432,8 @@
+ 	content_all_charsets_flag = content_all_charsets_cbox->state & C_BOOL;
+ #endif
+ 	content_case_sensitive = content_case_sens->state & C_BOOL;
++	content_whole_words = content_whole_words_cbox->state & C_BOOL;
++	content_first_only = content_first_only_cbox->state & C_BOOL;
+ 	content_regexp_flag = find_regex_cbox->state & C_BOOL;
+ 	find_recursively = recursively_cbox->state & C_BOOL;
+ 	file_pattern_flag = file_pattern_cbox->state & C_BOOL;
+@@ -680,6 +696,11 @@
+ 		    find_add_match (directory, fnd_info);
+ 		    g_free (fnd_info);
+ 		    found = TRUE;
++		    if (content_first_only) {
++			g_free (p);
++			ret_val = 0;
++			break;
++		    }
+ 		}
+ 	    }
+ 	    if (has_newline){
+@@ -741,6 +762,7 @@
+     {
+         search_content_handle->search_type = (content_regexp_flag) ? MC_SEARCH_T_REGEX : MC_SEARCH_T_NORMAL;
+         search_content_handle->is_case_sentitive = content_case_sensitive;
++        search_content_handle->whole_words = content_whole_words;
+         search_content_handle->is_all_charsets = content_all_charsets_flag;
+     }
+     search_file_handle = mc_search_new(find_pattern, -1);
+diff -Naur mc-4.7.0-pre1~/src/search/normal.c mc-4.7.0-pre1/src/search/normal.c
+--- mc-4.7.0-pre1~/src/search/normal.c	2009-06-23 21:55:12.000000000 +0300
++++ mc-4.7.0-pre1/src/search/normal.c	2009-08-05 03:01:32.000000000 +0300
+@@ -91,6 +91,11 @@
+         mc_search__normal_translate_to_regex (mc_search_cond->str->str, &mc_search_cond->len);
+ 
+     g_string_free (mc_search_cond->str, TRUE);
++
++    if (mc_search->whole_words) {
++        g_string_prepend (tmp, "\\b");
++        g_string_append (tmp, "\\b");
++    }
+     mc_search_cond->str = tmp;
+ 
+     mc_search__cond_struct_new_init_regex (charset, mc_search, mc_search_cond);
+diff -Naur mc-4.7.0-pre1~/src/search/regex.c mc-4.7.0-pre1/src/search/regex.c
+--- mc-4.7.0-pre1~/src/search/regex.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/search/regex.c	2009-08-05 03:01:32.000000000 +0300
+@@ -63,7 +63,7 @@
+     const char *special_chars[] = {
+         "\\s", "\\S",
+         "\\d", "\\D",
+-        "\\B", "\\B",
++        "\\b", "\\B",
+         "\\w", "\\W",
+         "\\t", "\\n",
+         "\\r", "\\f",
+diff -Naur mc-4.7.0-pre1~/src/search/search.h mc-4.7.0-pre1/src/search/search.h
+--- mc-4.7.0-pre1~/src/search/search.h	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/search/search.h	2009-08-05 03:01:32.000000000 +0300
+@@ -63,6 +63,9 @@
+     /* search entire string (from begin to end). Used only with GLOB search type */
+     gboolean is_entire_line;
+ 
++    /* search entire string (from begin to end). Used only with NORMAL search type */
++    gboolean whole_words;
++
+     /* function, used for getting data. NULL if not used */
+     mc_search_fn search_fn;
+ 
+diff -Naur mc-4.7.0-pre1~/src/view.c mc-4.7.0-pre1/src/view.c
+--- mc-4.7.0-pre1~/src/view.c	2009-07-31 19:36:26.000000000 +0300
++++ mc-4.7.0-pre1/src/view.c	2009-08-05 03:01:46.000000000 +0300
+@@ -261,6 +261,7 @@
+     mc_search_type_t search_type;
+     gboolean search_all_codepages;
+     gboolean search_case;
++    gboolean whole_words;
+     gboolean search_backwards;
+ 
+     int search_numNeedSkipChar;
+@@ -3146,12 +3147,13 @@
+     if (view->search_backwards) {
+         search_end = view_get_filesize (view);
+         while ((int) search_start >= 0) {
+-            if (search_end - search_start > view->search->original_len && mc_search_is_fixed_search_str(view->search))
++            if (search_end > search_start + view->search->original_len && mc_search_is_fixed_search_str(view->search))
+                 search_end = search_start + view->search->original_len;
+ 
+             view_read_start (view, &view->search_onechar_info, search_start);
+ 
+-            if ( mc_search_run(view->search, (void *) view, search_start, search_end, len))
++            if ( mc_search_run(view->search, (void *) view, search_start, search_end, len)
++		&& view->search->normal_offset == search_start )
+                 return TRUE;
+ 
+             search_start--;
+@@ -3268,6 +3270,7 @@
+     int ttype_of_search = (int) view->search_type;
+     int tall_codepages = (int) view->search_all_codepages;
+     int tsearch_case = (int) view->search_case;
++    int twhole_words = (int) view->whole_words;
+     int tsearch_backwards = (int) view->search_backwards;
+ 
+     gchar **list_of_types = mc_search_get_types_strings_array();
+@@ -3282,13 +3285,16 @@
+ 	 0, 0, NULL, NULL, NULL},
+ 
+ #ifdef HAVE_CHARSET
+-        {quick_checkbox, SEARCH_DLG_WIDTH/2 + 3, SEARCH_DLG_WIDTH, 6, SEARCH_DLG_HEIGHT, N_("All charsets"), 0, 0,
++        {quick_checkbox, SEARCH_DLG_WIDTH/2 + 3, SEARCH_DLG_WIDTH, 7, SEARCH_DLG_HEIGHT, N_("All charsets"), 0, 0,
+          &tall_codepages, 0, NULL, NULL, NULL},
+ #endif
+ 
+-	{quick_checkbox, SEARCH_DLG_WIDTH/2 + 3, SEARCH_DLG_WIDTH, 5, SEARCH_DLG_HEIGHT,
++	{quick_checkbox, SEARCH_DLG_WIDTH/2 + 3, SEARCH_DLG_WIDTH, 6, SEARCH_DLG_HEIGHT,
+ 	 N_("&Backwards"), 0, 0, &tsearch_backwards, 0, NULL, NULL, NULL},
+ 
++        {quick_checkbox, SEARCH_DLG_WIDTH/2 + 3, SEARCH_DLG_WIDTH, 5, SEARCH_DLG_HEIGHT, N_("&Whole words"), 0, 0,
++         &twhole_words, 0, NULL, NULL, NULL},
++
+         {quick_checkbox, SEARCH_DLG_WIDTH/2 + 3, SEARCH_DLG_WIDTH, 4, SEARCH_DLG_HEIGHT, N_("case &Sensitive"), 0, 0,
+          &tsearch_case, 0, NULL, NULL, NULL},
+ 
+@@ -3321,6 +3327,7 @@
+ 
+     view->search_all_codepages = (gboolean) tall_codepages;
+     view->search_case = (gboolean) tsearch_case;
++    view->whole_words = (gboolean) twhole_words;
+ 
+     if (exp == NULL || exp[0] == '\0')
+ 	goto cleanup;
+@@ -3349,6 +3356,7 @@
+     view->search->search_type = view->search_type;
+     view->search->is_all_charsets = view->search_all_codepages;
+     view->search->is_case_sentitive = view->search_case;
++    view->search->whole_words = view->whole_words;
+     view->search->search_fn = view_search_cmd_callback;
+     view->search->update_fn = view_search_update_cmd_callback;
+ 

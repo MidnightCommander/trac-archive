@@ -1,0 +1,33 @@
+From 3378f759239afa2a94e71eee4640737e7c1442c5 Mon Sep 17 00:00:00 2001
+From: Sven Schnelle <svens@stackframe.org>
+Date: Fri, 12 Nov 2021 16:52:43 +0100
+Subject: [PATCH] fix endianess bug in handle_console_linux()
+
+handle_console_linux() passes the address of action to read() and intends
+to send one byte of data (the LSB). On LE this works, but one BE machines
+this sends the MSB which is always zero. Fix this by assigning the value
+first to a char type, and use that instead.
+
+Signed-off-by: Sven Schnelle <svens@stackframe.org>
+---
+ src/cons.handler.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/cons.handler.c b/src/cons.handler.c
+index 7ccb5d083..0a7da2fc6 100644
+--- a/src/cons.handler.c
++++ b/src/cons.handler.c
+@@ -134,8 +134,9 @@ show_console_contents_linux (int starty, unsigned char begin_line, unsigned char
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-handle_console_linux (console_action_t action)
++handle_console_linux (console_action_t _action)
+ {
++    char action = (char)_action;
+     int status;
+ 
+     switch (action)
+-- 
+2.33.1
+

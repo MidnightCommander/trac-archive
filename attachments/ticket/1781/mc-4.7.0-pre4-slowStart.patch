@@ -1,0 +1,166 @@
+diff -Naur mc-4.7.0-pre4/src/keybind.c mc-4.7.0-pre4-patched/src/keybind.c
+--- mc-4.7.0-pre4/src/keybind.c	2009-10-30 19:44:39.000000000 +0100
++++ mc-4.7.0-pre4-patched/src/keybind.c	2009-11-01 17:07:18.000000000 +0100
+@@ -45,7 +45,7 @@
+ 
+ #include "keybind.h"
+ 
+-static const name_keymap_t command_names[] = {
++static name_keymap_t command_names[] = {
+ #ifdef USE_INTERNAL_EDIT
+     { "EditNoCommand",                     CK_Ignore_Key },
+     { "EditIgnoreKey",                     CK_Ignore_Key },
+@@ -401,6 +401,8 @@
+     { NULL,                              0 }
+ };
+ 
++static const int num_command_names = sizeof(command_names)/sizeof(command_names[0]) - 1;
++
+ /*** global variables ****************************************************************************/
+ 
+ /* viewer/actions_cmd.c */
+@@ -770,16 +772,35 @@
+ };
+ 
+ 
++
++static int name_keymap_comparator(const void *p1, const void *p2)
++{
++    const name_keymap_t *m1 = (const name_keymap_t*)p1;
++    const name_keymap_t *m2 = (const name_keymap_t*)p2;
++
++    return str_casecmp(m1->name, m2->name);
++}
++
++static void sort_command_names()
++{
++    static int has_been_sorted = 0;
++
++    if(!has_been_sorted) {
++        qsort(command_names, num_command_names, sizeof(command_names[0]), &name_keymap_comparator);
++        has_been_sorted = 1;
++    }
++}
++
+ int
+ lookup_action (const char *keyname)
+ {
+-    int i;
++    const name_keymap_t key = {keyname, /*insignificant*/0};
++    name_keymap_t *res;
+ 
+-    for (i = 0; command_names [i].name; i++)
+-        if (!str_casecmp (command_names [i].name, keyname))
+-            return command_names [i].val;
++    sort_command_names();
++    res = bsearch(&key, command_names, num_command_names, sizeof(command_names[0]), name_keymap_comparator);
+ 
+-    return 0;
++    return (res != NULL) ? res->val : 0;
+ }
+ 
+ static void
+diff -Naur mc-4.7.0-pre4/src/tty/key.c mc-4.7.0-pre4-patched/src/tty/key.c
+--- mc-4.7.0-pre4/src/tty/key.c	2009-10-30 19:44:39.000000000 +0100
++++ mc-4.7.0-pre4-patched/src/tty/key.c	2009-11-01 17:07:26.000000000 +0100
+@@ -93,7 +93,7 @@
+  * We use this to allow users to define alternate definitions for
+  * certain keys that may be missing from the terminal database
+  */
+-key_code_name_t key_name_conv_tab[] = {
++const key_code_name_t key_name_conv_tab[] = {
+     /* KEY_F(0) is not here, since we are mapping it to f10, so there is no reason
+ 	to define f0 as well. Also, it makes Learn keys a bunch of problems :( */
+     { KEY_F (1),	"f1",		N_("Function key 1"),	"F1" },
+@@ -1229,22 +1229,68 @@
+     return MSG_HANDLED;
+ }
+ 
++
++static const int key_name_conv_tab__size = sizeof(key_name_conv_tab) / sizeof(key_name_conv_tab[0]) - 1;
++
++static key_code_name_t key_name_conv_tab__sorted[ sizeof(key_name_conv_tab) / sizeof(key_name_conv_tab[0]) - 1 ];
++
++static int key_code_name_comparator(const void *p1, const void *p2)
++{
++    const key_code_name_t *n1 = (const key_code_name_t*)p1;
++    const key_code_name_t *n2 = (const key_code_name_t*)p2;
++
++    return str_casecmp(n1->name, n2->name);
++}
++
++static void sort_key_name_conv_tab()
++{
++    static int has_been_sorted = 0;
++
++    if(!has_been_sorted) {
++        int i;
++	for (i = 0; key_name_conv_tab[i].code; i++)
++	    key_name_conv_tab__sorted[i] = key_name_conv_tab[i];
++
++        qsort(key_name_conv_tab__sorted, key_name_conv_tab__size,
++              sizeof(key_name_conv_tab__sorted[0]), &key_code_name_comparator);
++
++        has_been_sorted = 1;
++    }
++}
++
+ static int
+ lookup_keyname (const char *keyname, int *lc_index)
+ {
+     if (keyname[0] != '\0') {
+-	int i;
++//	int i;
+ 
+ 	if (keyname[1] == '\0') {
+ 	    *lc_index = -1;
+ 	    return (int) keyname[0];
+ 	}
++	else {
++            const key_code_name_t key = {
++	        .name = keyname
++	    };
++            key_code_name_t *res;
++
++            sort_key_name_conv_tab();
++            res = bsearch(&key,
++                          key_name_conv_tab__sorted,
++                          key_name_conv_tab__size, sizeof(key_name_conv_tab__sorted[0]),
++                          key_code_name_comparator);
++
++            if(res != NULL) {
++		*lc_index = (res - key_name_conv_tab__sorted);
++		return res->code;
++	    }
++	}
+ 
+-	for (i = 0; key_name_conv_tab[i].code; i++)
++/*	for (i = 0; key_name_conv_tab[i].code; i++)
+ 	    if (str_casecmp (key_name_conv_tab[i].name, keyname) == 0) {
+ 		*lc_index = i;
+ 		return key_name_conv_tab[i].code;
+-	    }
++	    }*/
+     }
+ 
+     *lc_index = -1;
+diff -Naur mc-4.7.0-pre4/src/tty/key.h mc-4.7.0-pre4-patched/src/tty/key.h
+--- mc-4.7.0-pre4/src/tty/key.h	2009-10-29 20:02:37.000000000 +0100
++++ mc-4.7.0-pre4-patched/src/tty/key.h	2009-11-01 16:51:58.000000000 +0100
+@@ -23,14 +23,14 @@
+                               move_fn backfn, move_fn forfn, move_fn topfn, move_fn bottomfn);
+ int lookup_key (const char *keyname, char **label);
+ 
+-typedef const struct {
++typedef struct {
+     int code;
+     const char *name;
+     const char *longname;
+     const char *shortcut;
+ } key_code_name_t;
+ 
+-extern key_code_name_t key_name_conv_tab[];
++extern const key_code_name_t key_name_conv_tab[];
+ 
+ /* mouse support */
+ struct Gpm_Event;

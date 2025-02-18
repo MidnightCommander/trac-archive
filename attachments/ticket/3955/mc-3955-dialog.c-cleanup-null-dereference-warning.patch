@@ -1,0 +1,50 @@
+From e4b64e4c07d5e87d6ee06f3b821860b6175d8655 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 11 Jan 2019 15:37:25 +0000
+Subject: [PATCH] dialog.c: cleanup -Wnull-dereference warning
+
+Found by GCC8
+
+dialog.c:136:17: error: 'w' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+         while ((widget_get_state (w, WST_DISABLED) || !widget_get_options (w, WOP_SELECTABLE))
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+dialog.c:134:15: error: null pointer dereference [-Werror=null-dereference]
+             w = WIDGET (l->data);
+
+dialog.c:139:25: error: potential null pointer dereference [-Werror=null-dereference]
+         widget_select (l->data);
+                        ~^~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/dialog.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index cddd27a0e..45b177c93 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -126,17 +126,18 @@ dlg_select_next_or_prev (WDialog * h, gboolean next)
+     if (h->widgets != NULL && h->current != NULL)
+     {
+         GList *l = h->current;
+-        Widget *w;
++        Widget *w = NULL;
+ 
+         do
+         {
+-            l = dlg_get_next_or_prev_of (l, next);
+-            w = WIDGET (l->data);
++            if ((l = dlg_get_next_or_prev_of (l, next)) != NULL)
++                w = WIDGET (l->data);
+         }
+         while ((widget_get_state (w, WST_DISABLED) || !widget_get_options (w, WOP_SELECTABLE))
+                && l != h->current);
+ 
+-        widget_select (l->data);
++        if (l != NULL)
++            widget_select (l->data);
+     }
+ }
+ 

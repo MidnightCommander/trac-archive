@@ -1,0 +1,15 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index a093f88..f4910de 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -539,6 +539,10 @@ regex/\.([dD][vV][iI])$
+ regex/\.([Tt][Ee][Xx])$
+ 	Open=%var{EDITOR:vi} %f
+ 
++# lyx
++regex/\.(lyx|LYX)$
++	Open=lyx %f
++	View=%view{ascii} lyxcat %f
+ 
+ ### Miscellaneous ###
+ 

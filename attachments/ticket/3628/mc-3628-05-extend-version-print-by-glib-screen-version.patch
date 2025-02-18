@@ -1,0 +1,87 @@
+From 1fbf83f7ad3da52eff1d5222d7de04f5e06e1fae Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 10 Apr 2016 16:05:52 +0000
+Subject: [PATCH] Extend version print by glib/screen version
+
+Extend version print by compiled and inuse lib version.
+
+Now version print looks like:
+
+Built with GLib 2.43.2 (using GLib 2.43.2)
+Built with NCursesw 5.9.20110404 (using ncurses 6.0.20150808)
+...
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/textconf.c | 44 +++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 33 insertions(+), 11 deletions(-)
+
+diff --git a/src/textconf.c b/src/textconf.c
+index d6ee671..9bc5681 100644
+--- a/src/textconf.c
++++ b/src/textconf.c
+@@ -36,6 +36,12 @@
+ 
+ #include "src/textconf.h"
+ 
++#ifdef HAVE_SLANG
++#include "lib/tty/tty-slang.h"
++#elif defined HAVE_NCURSES
++#include "lib/tty/tty-ncurses.h"
++#endif
++
+ /*** global variables ****************************************************************************/
+ 
+ /*** file scope macro definitions ****************************************************************/
+@@ -78,15 +84,6 @@ static const char *const vfs_supported[] = {
+ #endif /* ENABLE_VFS */
+ 
+ static const char *const features[] = {
+-#ifdef HAVE_SLANG
+-    N_("Using the S-Lang library with terminfo database\n"),
+-#elif defined(USE_NCURSES)
+-    N_("Using the ncurses library\n"),
+-#elif defined(USE_NCURSESW)
+-    N_("Using the ncursesw library\n"),
+-#else
+-#error "Cannot compile mc without S-Lang or ncurses"
+-#endif /* !HAVE_SLANG && !USE_NCURSES */
+ 
+ #ifdef USE_INTERNAL_EDIT
+     N_("With builtin Editor\n"),
+@@ -139,8 +136,33 @@ show_version (void)
+ 
+     printf (_("GNU Midnight Commander %s\n"), VERSION);
+ 
+-    printf (_("Built with GLib %d.%d.%d\n"),
+-            GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION);
++    printf (_("Built with GLib %d.%d.%d (using GLib %d.%d.%d)\n"),
++            GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION,
++            glib_major_version, glib_minor_version, glib_micro_version);
++
++#ifdef HAVE_SLANG
++    printf (_("Built with S-Lang"));
++#ifdef SLANG_VERSION_STRING
++    printf (" %s", SLANG_VERSION_STRING);
++#elif defined SLANG_VERSION
++    printf (" %d", SLANG_VERSION);
++#endif /* SLANG_VERSION_STRING || SLANG_VERSION */
++    printf (_(" and terminfo database (using S-Lang %s)\n"), SLang_Version_String);
++#elif defined HAVE_NCURSES
++    printf (_("Built with %s"), NCURSES_LIB_DISPLAYNAME);
++#ifdef NCURSES_VERSION_MAJOR
++    printf (" %d", NCURSES_VERSION_MAJOR);
++#ifdef NCURSES_VERSION_MINOR
++    printf (".%d", NCURSES_VERSION_MINOR);
++#endif
++#endif /* NCURSES_VERSION_MAJOR */
++#ifdef NCURSES_VERSION_PATCH
++    printf (".%d", NCURSES_VERSION_PATCH);
++#endif
++    printf (_(" (using %s)\n"), curses_version());
++#else /* !HAVE_SLANG && !HAVE_NCURSES */
++#error "Cannot compile mc without S-Lang or ncurses"
++#endif /* !HAVE_SLANG && !HAVE_NCURSES */
+ 
+     for (i = 0; features[i] != NULL; i++)
+         printf ("%s", _(features[i]));

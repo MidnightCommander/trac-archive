@@ -1,0 +1,38 @@
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 6662de9..c2f7e33 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -4224,6 +4224,9 @@ edit_execute_cmd (WEdit * edit, unsigned long command, int char_for_insertion)
+         edit_select_codepage_cmd (edit);
+         break;
+ #endif
++    case CK_ScreenList:
++        dialog_switch_list ();
++        break;
+     case CK_InsertLiteral:
+         edit_insert_literal_cmd (edit);
+         break;
+diff --git a/src/editor/editmenu.c b/src/editor/editmenu.c
+index b150c2a..6331ac4 100644
+--- a/src/editor/editmenu.c
++++ b/src/editor/editmenu.c
+@@ -165,6 +165,7 @@ create_command_menu (void)
+     entries = g_list_prepend (entries, menu_entry_create (_("Encod&ing..."), CK_SelectCodepage));
+ #endif
+     entries = g_list_prepend (entries, menu_separator_create ());
++    entries = g_list_prepend (entries, menu_entry_create (_("Screen &list..."), CK_ScreenList));
+     entries = g_list_prepend (entries, menu_entry_create (_("&Refresh screen"), CK_Refresh));
+     entries = g_list_prepend (entries, menu_separator_create ());
+     entries =
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 0a75108..7d0e488 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -362,6 +362,7 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"SelectCodepage", "alt-e"},
+ #endif
+     {"Goto", "alt-l; alt-shift-l"},
++    {"ScreenList", "alt-prime"},
+     {"Refresh", "ctrl-l"},
+     {"Shell", "ctrl-o"},
+     {"Top", "ctrl-home; ctrl-pgup; alt-lt"},

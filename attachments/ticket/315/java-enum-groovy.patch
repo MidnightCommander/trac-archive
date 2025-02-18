@@ -1,0 +1,26 @@
+--- /usr/share/mc/syntax/java.syntax
++++ /usr/share/mc/syntax/java.syntax
+@@ -17,10 +17,12 @@
+     keyword whole clone brightred
+     keyword whole const yellow
+     keyword whole continue yellow
++    keyword whole def yellow
+     keyword whole default yellow
+     keyword whole do yellow
+     keyword whole double yellow
+     keyword whole else yellow
++    keyword whole enum yellow
+     keyword whole equals brightred
+     keyword whole extends yellow
+     keyword whole false yellow
+--- /usr/share/mc/syntax/Syntax
++++ /usr/share/mc/syntax/Syntax
+@@ -91,7 +91,7 @@
+ file ..\*\\.(php|PHP)[0-9]?$ PHP\sProgram
+ include php.syntax
+
+-file ..\*\\.(java|JAVA|Java|jav)$ Java\sProgram
++file ..\*\\.(java|JAVA|Java|jav|groovy|GROOVY|Groovy)$ Java\sProgram
+ include java.syntax
+
+ file ..\*\\.(cs|CS)$ C\#\sProgram

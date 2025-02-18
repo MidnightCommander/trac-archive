@@ -1,0 +1,63 @@
+
+fix memleak at lib/utilunix.c:my_systemv_flags()
+
+array contents point to dynamically-allocated memory (e.g. g_strdup)
+must freed explicit, g_ptr_array_free() is not enough.
+
+call _all_ g_ptr_array_add() with g_strdup() so we can easily
+use g_ptr_array_foreach() with g_free() on each array element.
+
+found by LeakSanitizer
+
+Direct leak of 8 byte(s) in 1 object(s) allocated from:
+    #0 0x4d5d62 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d5d62)
+    #1 0x7ff2e7a967d4 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x677d4)
+    #2 0x7ff2e7abd111 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8e111)
+    #3 0x64514a in my_system_make_arg_array /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/utilunix.c:218:38
+    #4 0x644877 in my_systemv_flags /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/utilunix.c:485:18
+    #5 0x6446fb in my_systeml /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/utilunix.c:414:14
+    #6 0x67fbde in sfs_vfmake /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sfs/sfs.c:209:9
+    #7 0x67ee40 in sfs_redirect /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sfs/sfs.c:247:9
+    #8 0x67e6f4 in sfs_open /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/sfs/sfs.c:273:16
+    #9 0x57a4a0 in mc_open /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/interface.c:209:16
+    #10 0x681b33 in tar_open_archive_int /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/tar/tar.c:315:18
+    #11 0x6803f5 in tar_open_archive /tmp/portage/app-misc/mc-9999/work/mc-9999/src/vfs/tar/tar.c:761:12
+    #12 0x695eb3 in vfs_s_get_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:1150:18
+    #13 0x6a2dc7 in vfs_s_inode_from_path /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:380:9
+    #14 0x69e20d in vfs_s_opendir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:409:11
+    #15 0x69f178 in vfs_s_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/direntry.c:477:12
+    #16 0x5818ea in mc_chdir /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/vfs/interface.c:684:16
+    #17 0x5b8e4c in _do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3223:9
+    #18 0x5b8c81 in do_panel_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4588:9
+    #19 0x5bd055 in do_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4987:11
+    #20 0x5353f1 in exec_extension_cd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/ext.c:400:5
+    #21 0x534264 in exec_extension /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/ext.c:436:9
+    #22 0x533527 in regex_command_for /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/ext.c:1029:34
+    #23 0x5c7d5b in do_enter_on_file_entry /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:2748:9
+    #24 0x5cda2a in panel_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:3399:9
+    #25 0x52fc94 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:515:19
+    #26 0x530546 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #27 0x530165 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #28 0x5a1f4a in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1762:9
+    #29 0x4fa3e8 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -485,12 +485,14 @@
+     args_array = my_system_make_arg_array (flags, command, &execute_name);
+ 
+     for (; argv != NULL && *argv != NULL; argv++)
+-        g_ptr_array_add (args_array, *argv);
++        g_ptr_array_add (args_array, g_strdup(*argv));
+ 
+     g_ptr_array_add (args_array, NULL);
+     status = my_systemv (execute_name, (char *const *) args_array->pdata);
+ 
+     g_free (execute_name);
++    /* dynamically-allocated memory must freed explicit, e.g. g_strdup() */
++    g_ptr_array_foreach(args_array,(GFunc)g_free,NULL);
+     g_ptr_array_free (args_array, TRUE);
+ 
+     return status;

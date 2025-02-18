@@ -1,0 +1,49 @@
+diff --git a/lib/search/normal.c b/lib/search/normal.c
+index 49e4567..2ebe463 100644
+--- a/lib/search/normal.c
++++ b/lib/search/normal.c
+@@ -91,15 +91,6 @@ mc_search__cond_struct_new_init_normal (const char *charset, mc_search_t * lc_mc
+     tmp = mc_search__normal_translate_to_regex (mc_search_cond->str);
+     g_string_free (mc_search_cond->str, TRUE);
+ 
+-    if (lc_mc_search->whole_words)
+-    {
+-        /* NOTE: \b as word boundary doesn't allow search
+-         * whole words with non-ASCII symbols.
+-         * Update: Is it still true nowadays? Probably not. #2396, #3524 */
+-        g_string_prepend (tmp, "(?<![\\p{L}\\p{N}_])");
+-        g_string_append (tmp, "(?![\\p{L}\\p{N}_])");
+-    }
+-
+     mc_search_cond->str = tmp;
+     mc_search__cond_struct_new_init_regex (charset, lc_mc_search, mc_search_cond);
+ }
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index ba8b4df..da41df5 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -740,6 +740,16 @@ void
+ mc_search__cond_struct_new_init_regex (const char *charset, mc_search_t * lc_mc_search,
+                                        mc_search_cond_t * mc_search_cond)
+ {
++    if (lc_mc_search->whole_words && !lc_mc_search->is_entire_line)
++    {
++        /* NOTE: \b as word boundary doesn't allow search
++         * whole words with non-ASCII symbols.
++         * Update: Is it still true nowadays? Probably not. #2396, #3524 */
++        g_string_prepend (mc_search_cond->str, "(?<![\\p{L}\\p{N}_])");
++        g_string_append (mc_search_cond->str, "(?![\\p{L}\\p{N}_])");
++    }
++
++{
+ #ifdef SEARCH_TYPE_GLIB
+     GError *mcerror = NULL;
+ 
+@@ -799,6 +809,7 @@ mc_search__cond_struct_new_init_regex (const char *charset, mc_search_t * lc_mc_
+         }
+     }
+ #endif /* SEARCH_TYPE_GLIB */
++}
+     lc_mc_search->is_utf8 = str_isutf8 (charset);
+ }
+ 

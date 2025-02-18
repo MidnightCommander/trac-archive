@@ -1,0 +1,50 @@
+From ca5ffef6e28954951ff280bfb611f86af34275cc Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 1 Jan 2017 18:19:48 +0200
+Subject: [PATCH 2/4] Ticket #3751: extfs: rpm: make it testable.
+
+The way we make this helper testable is a bit different than with other
+helpers:
+
+While in other helpers we make it possible to override just one or two
+variables, here we make it possible to inject a code snippet into it. This is a
+more powerful approach which lets us override even functions, as will be shown
+in a following patch.
+
+(As for relocating the "AllTAGS=..." line: all non-declarative code needs to be
+moved past our new injection point, or else this code won't be affected by the
+injection. BTW, the "$1" on that line isn't used; a vestige from old days.)
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ src/vfs/extfs/helpers/rpm | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/rpm b/src/vfs/extfs/helpers/rpm
+index 454a9c0..30d6926 100755
+--- a/src/vfs/extfs/helpers/rpm
++++ b/src/vfs/extfs/helpers/rpm
+@@ -122,8 +122,6 @@ mcrpmfs_getOneTag()
+     echo $AllTAGS | $SED "s/.*|${1}=//" | cut -d '|' -f 1
+ }
+ 
+-AllTAGS=`mcrpmfs_getAllNeededTags "$1"`
+-
+ mcrpmfs_printOneMetaInfo()
+ {
+     if test "$3" = "raw"; then
+@@ -330,6 +328,11 @@ mcrpmfs_run ()
+     esac
+ }
+ 
++# Let the test framework override functions and variables.
++[ -n "$MC_TEST_RPM_REWRITE" ] && . "$MC_TEST_RPM_REWRITE"
++
++AllTAGS=`mcrpmfs_getAllNeededTags "$1"`
++
+ umask 077
+ case "${param}" in
+   list) mcrpmfs_list; exit 0;;
+-- 
+2.9.3
+

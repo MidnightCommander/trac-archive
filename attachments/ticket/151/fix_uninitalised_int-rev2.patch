@@ -1,0 +1,68 @@
+diff --git a/edit/edit.c b/edit/edit.c
+index ff2b2e7..4bce119 100644
+--- a/edit/edit.c
++++ b/edit/edit.c
+@@ -1096,7 +1096,7 @@ edit_move_backward_lots (WEdit *edit, long increment)
+ #endif		/* ! FAST_MOVE_CURSOR */
+ 
+ /* moves the cursor right or left: increment positive or negative respectively */
+-int edit_cursor_move (WEdit * edit, long increment)
++void edit_cursor_move (WEdit * edit, long increment)
+ {
+ /* this is the same as a combination of two of the above routines, with only one push onto the undo stack */
+     int c;
+@@ -1104,14 +1104,15 @@ int edit_cursor_move (WEdit * edit, long increment)
+ #ifdef FAST_MOVE_CURSOR
+     if (increment < -256) {
+ 	edit->force |= REDRAW_PAGE;
+-	return edit_move_backward_lots (edit, -increment);
++	edit_move_backward_lots (edit, -increment);
++	return;
+     }
+ #endif		/* ! FAST_MOVE_CURSOR */
+ 
+     if (increment < 0) {
+ 	for (; increment < 0; increment++) {
+ 	    if (!edit->curs1)
+-		return -1;
++		return;
+ 
+ 	    edit_push_action (edit, CURS_RIGHT);
+ 
+@@ -1132,11 +1133,10 @@ int edit_cursor_move (WEdit * edit, long increment)
+ 	    }
+ 	}
+ 
+-	return c;
+     } else if (increment > 0) {
+ 	for (; increment > 0; increment--) {
+ 	    if (!edit->curs2)
+-		return -2;
++		return;
+ 
+ 	    edit_push_action (edit, CURS_LEFT);
+ 
+@@ -1156,9 +1156,7 @@ int edit_cursor_move (WEdit * edit, long increment)
+ 		edit->force |= REDRAW_LINE_ABOVE;
+ 	    }
+ 	}
+-	return c;
+-    } else
+-	return -3;
++    }
+ }
+ 
+ /* These functions return positions relative to lines */
+diff --git a/edit/edit.h b/edit/edit.h
+index d7725b6..4a1c39b 100644
+--- a/edit/edit.h
++++ b/edit/edit.h
+@@ -149,7 +149,7 @@ void edit_delete_line (WEdit * edit);
+ 
+ int edit_delete (WEdit * edit);
+ void edit_insert (WEdit * edit, int c);
+-int edit_cursor_move (WEdit * edit, long increment);
++void edit_cursor_move (WEdit * edit, long increment);
+ void edit_push_action (WEdit * edit, long c, ...);
+ void edit_push_key_press (WEdit * edit);
+ void edit_insert_ahead (WEdit * edit, int c);

@@ -1,0 +1,25 @@
+From a84d1d02f2ae8d69e68189a6ae491519c89ed6ee Mon Sep 17 00:00:00 2001
+From: Kirill Rekhov <krekhov.dev@gmail.com>
+Date: Thu, 24 Oct 2024 17:10:26 +0300
+Subject: [PATCH] fix typo in mc.emacs.keymap
+
+---
+ misc/mc.emacs.keymap | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/mc.emacs.keymap b/misc/mc.emacs.keymap
+index 53c47494f..5aa6128c6 100644
+--- a/misc/mc.emacs.keymap
++++ b/misc/mc.emacs.keymap
+@@ -409,7 +409,7 @@ Home = ctrl-a
+ End = ctrl-e
+ Left = h; left
+ Right = l; right
+-LeftQuick= ctrl-left
++LeftQuick = ctrl-left
+ RightQuick = ctrl-right
+ Up = k; y; insert; up; ctrl-p
+ Down = j; e; delete; down; enter; ctrl-n
+-- 
+2.39.2
+

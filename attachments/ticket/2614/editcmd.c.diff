@@ -1,0 +1,43 @@
+--- editcmd.c	2011-09-12 11:34:44.000000000 +0200
++++ editcmd.c	2011-09-21 21:12:57.932753797 +0200
+@@ -1149,7 +1149,7 @@
+ /* --------------------------------------------------------------------------------------------- */
+ /** collect the possible completions */
+ static gsize
+-edit_collect_completions (WEdit * edit, long start, gsize word_len,
++edit_collect_completions (WEdit * edit, long word_start, gsize word_len,
+                           char *match_expr, struct selection *compl, gsize * num)
+ {
+     gsize len = 0;
+@@ -1158,6 +1158,7 @@
+     int skip;
+     GString *temp;
+     mc_search_t *srch;
++    long start;
+ 
+     long last_byte;
+ 
+@@ -1172,7 +1173,7 @@
+     }
+     else
+     {
+-        last_byte = start;
++        last_byte = word_start;
+     }
+ 
+     srch->search_type = MC_SEARCH_T_REGEX;
+@@ -1195,9 +1196,14 @@
+             skip = edit_get_byte (edit, start + i);
+             if (isspace (skip))
+                 continue;
++            if (start + (long)i == word_start)
++                break;
+             g_string_append_c (temp, skip);
+         }
+ 
++        if (temp->len == 0)
++            continue;
++
+         skip = 0;
+ 
+         for (i = 0; i < (gsize) * num; i++)

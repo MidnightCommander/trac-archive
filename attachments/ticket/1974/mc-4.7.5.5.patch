@@ -1,0 +1,28 @@
+diff --strip-trailing-cr -w -Naur mc-4.7.5.5/lib/tty/key.c mc-4.7.5.5.patched/lib/tty/key.c
+--- mc-4.7.5.5/lib/tty/key.c	2011-09-28 18:49:09.000000000 +0200
++++ mc-4.7.5.5.patched/lib/tty/key.c	2011-10-11 00:50:30.000000000 +0200
+@@ -1226,7 +1226,9 @@
+         || (term != NULL
+             && (strncmp (term, "iris-ansi", 9) == 0
+                 || strncmp (term, "xterm", 5) == 0
+-                || strncmp (term, "rxvt", 4) == 0 || strcmp (term, "screen") == 0)))
++                || strncmp (term, "putty", 5) == 0 // http://www.midnight-commander.org/ticket/1974
++                || strncmp (term, "rxvt", 4) == 0
++                || strcmp (term, "screen") == 0)))
+         define_sequences (xterm_key_defines);
+ 
+     /* load some additional keys (e.g. direct Alt-? support) */
+diff --strip-trailing-cr -w -Naur mc-4.7.5.5/lib/tty/tty.c mc-4.7.5.5.patched/lib/tty/tty.c
+--- mc-4.7.5.5/lib/tty/tty.c	2011-09-28 18:49:09.000000000 +0200
++++ mc-4.7.5.5.patched/lib/tty/tty.c	2011-10-11 00:54:25.000000000 +0200
+@@ -101,7 +101,9 @@
+         exit (EXIT_FAILURE);
+     }
+ 
+-    return force_xterm || strncmp (termvalue, "xterm", 5) == 0
++    return force_xterm
++       || strncmp (termvalue, "xterm", 5) == 0
++       || strncmp (termvalue, "putty", 5) == 0 // http://www.midnight-commander.org/ticket/1974
+         || strncmp (termvalue, "konsole", 7) == 0
+         || strncmp (termvalue, "rxvt", 4) == 0
+         || strcmp (termvalue, "Eterm") == 0 || strcmp (termvalue, "dtterm") == 0;

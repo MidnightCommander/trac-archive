@@ -1,0 +1,273 @@
+From 585d598d8ebfabd4831cca9967d47804a0f885df Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 3 Jan 2016 11:13:02 +0000
+Subject: [PATCH] fix #3269 use meaningful errno or 0
+
+use real errno or set it to 0
+when no meaningful error code exists
+for current user error message
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/event/event.c           |  6 +++---
+ lib/event/manage.c          |  6 +++---
+ lib/serialize.c             | 12 ++++++------
+ lib/vfs/path.c              |  6 +++---
+ src/filemanager/ext.c       |  6 +++---
+ src/vfs/sftpfs/connection.c | 14 +++++++-------
+ src/vfs/sftpfs/file.c       |  2 +-
+ 7 files changed, 26 insertions(+), 26 deletions(-)
+
+diff --git a/lib/event/event.c b/lib/event/event.c
+index 426dd30..4f4b830 100644
+--- a/lib/event/event.c
++++ b/lib/event/event.c
+@@ -54,7 +54,7 @@ mc_event_init (GError ** mcerror)
+ 
+     if (mc_event_grouplist != NULL)
+     {
+-        mc_propagate_error (mcerror, 1, "%s", _("Event system already initialized"));
++        mc_propagate_error (mcerror, 0, "%s", _("Event system already initialized"));
+         return FALSE;
+     }
+ 
+@@ -64,7 +64,7 @@ mc_event_init (GError ** mcerror)
+ 
+     if (mc_event_grouplist == NULL)
+     {
+-        mc_propagate_error (mcerror, 2, "%s", _("Failed to initialize event system"));
++        mc_propagate_error (mcerror, 0, "%s", _("Failed to initialize event system"));
+         return FALSE;
+     }
+ 
+@@ -80,7 +80,7 @@ mc_event_deinit (GError ** mcerror)
+ 
+     if (mc_event_grouplist == NULL)
+     {
+-        mc_propagate_error (mcerror, 3, "%s", _("Event system not initialized"));
++        mc_propagate_error (mcerror, 0, "%s", _("Event system not initialized"));
+         return FALSE;
+     }
+ 
+diff --git a/lib/event/manage.c b/lib/event/manage.c
+index 9d216b8..118a16e 100644
+--- a/lib/event/manage.c
++++ b/lib/event/manage.c
+@@ -74,7 +74,7 @@ mc_event_add (const gchar * event_group_name, const gchar * event_name,
+     if (mc_event_grouplist == NULL || event_group_name == NULL || event_name == NULL
+         || event_callback == NULL)
+     {
+-        mc_propagate_error (mcerror, 1, "%s", _("Check input data! Some of parameters are NULL!"));
++        mc_propagate_error (mcerror, 0, "%s", _("Check input data! Some of parameters are NULL!"));
+         return FALSE;
+     }
+ 
+@@ -172,7 +172,7 @@ mc_event_get_event_group_by_name (const gchar * event_group_name, gboolean creat
+                              (GDestroyNotify) mc_event_group_destroy_value);
+         if (event_group == NULL)
+         {
+-            mc_propagate_error (mcerror, 1, _("Unable to create group '%s' for events!"),
++            mc_propagate_error (mcerror, 0, _("Unable to create group '%s' for events!"),
+                                 event_group_name);
+             return NULL;
+         }
+@@ -197,7 +197,7 @@ mc_event_get_event_by_name (GTree * event_group, const gchar * event_name, gbool
+         callbacks = g_ptr_array_new ();
+         if (callbacks == NULL)
+         {
+-            mc_propagate_error (mcerror, 1, _("Unable to create event '%s'!"), event_name);
++            mc_propagate_error (mcerror, 0, _("Unable to create event '%s'!"), event_name);
+             return NULL;
+         }
+         g_tree_insert (event_group, g_strdup (event_name), (gpointer) callbacks);
+diff --git a/lib/serialize.c b/lib/serialize.c
+index 96b946f..27909eb 100644
+--- a/lib/serialize.c
++++ b/lib/serialize.c
+@@ -110,7 +110,7 @@ mc_serialize_str (const char prefix, const char *data, GError ** error)
+ {
+     if (data == NULL)
+     {
+-        g_set_error (error, MC_ERROR, -1, "mc_serialize_str(): Input data is NULL.");
++        g_set_error (error, MC_ERROR, 0, "mc_serialize_str(): Input data is NULL.");
+         return NULL;
+     }
+     return g_strdup_printf ("%c%zd" SRLZ_DELIM_S "%s", prefix, strlen (data), data);
+@@ -135,13 +135,13 @@ mc_deserialize_str (const char prefix, const char *data, GError ** error)
+ 
+     if ((data == NULL) || (strlen (data) == 0))
+     {
+-        g_set_error (error, MC_ERROR, -1, FUNC_NAME ": Input data is NULL or empty.");
++        g_set_error (error, MC_ERROR, 0, FUNC_NAME ": Input data is NULL or empty.");
+         return NULL;
+     }
+ 
+     if (*data != prefix)
+     {
+-        g_set_error (error, MC_ERROR, -2, FUNC_NAME ": String prefix doesn't equal to '%c'",
++        g_set_error (error, MC_ERROR, 0, FUNC_NAME ": String prefix doesn't equal to '%c'",
+                      prefix);
+         return NULL;
+     }
+@@ -154,14 +154,14 @@ mc_deserialize_str (const char prefix, const char *data, GError ** error)
+         semi_ptr = strchr (data + 1, SRLZ_DELIM_C);
+         if (semi_ptr == NULL)
+         {
+-            g_set_error (error, MC_ERROR, -3,
++            g_set_error (error, MC_ERROR, 0,
+                          FUNC_NAME ": Length delimiter '%c' doesn't exists", SRLZ_DELIM_C);
+             return NULL;
+         }
+         semi_offset = semi_ptr - (data + 1);
+         if (semi_offset >= BUF_TINY)
+         {
+-            g_set_error (error, MC_ERROR, -3, FUNC_NAME ": Too big string length");
++            g_set_error (error, MC_ERROR, 0, FUNC_NAME ": Too big string length");
+             return NULL;
+         }
+         strncpy (buffer, data + 1, semi_offset);
+@@ -172,7 +172,7 @@ mc_deserialize_str (const char prefix, const char *data, GError ** error)
+ 
+     if (data_len > strlen (data))
+     {
+-        g_set_error (error, MC_ERROR, -3,
++        g_set_error (error, MC_ERROR, 0,
+                      FUNC_NAME
+                      ": Specified data length (%zd) is greater than actual data length (%zd)",
+                      data_len, strlen (data));
+diff --git a/lib/vfs/path.c b/lib/vfs/path.c
+index 5f64850..7c90eb0 100644
+--- a/lib/vfs/path.c
++++ b/lib/vfs/path.c
+@@ -1094,7 +1094,7 @@ vfs_path_serialize (const vfs_path_t * vpath, GError ** mcerror)
+ 
+     if ((vpath == NULL) || (vfs_path_elements_count (vpath) == 0))
+     {
+-        mc_propagate_error (mcerror, -1, "%s", "vpath object is empty");
++        mc_propagate_error (mcerror, 0, "%s", "vpath object is empty");
+         return NULL;
+ 
+     }
+@@ -1177,7 +1177,7 @@ vfs_path_deserialize (const char *data, GError ** mcerror)
+         {
+             g_free (element);
+             vfs_path_free (vpath);
+-            g_set_error (mcerror, MC_ERROR, -1, "Unable to find VFS class by name '%s'", cfg_value);
++            g_set_error (mcerror, MC_ERROR, 0, "Unable to find VFS class by name '%s'", cfg_value);
+             g_free (cfg_value);
+             mc_config_deinit (cpath);
+             return NULL;
+@@ -1209,7 +1209,7 @@ vfs_path_deserialize (const char *data, GError ** mcerror)
+     if (vfs_path_elements_count (vpath) == 0)
+     {
+         vfs_path_free (vpath);
+-        g_set_error (mcerror, MC_ERROR, -1, "No any path elements found");
++        g_set_error (mcerror, MC_ERROR, 0, "No any path elements found");
+         return NULL;
+     }
+     vpath->str = vfs_path_to_str_flags (vpath, 0, VPF_NONE);
+diff --git a/src/filemanager/ext.c b/src/filemanager/ext.c
+index 44bc387..f7466c8 100644
+--- a/src/filemanager/ext.c
++++ b/src/filemanager/ext.c
+@@ -648,7 +648,7 @@ regex_check_type (const vfs_path_t * filename_vpath, const char *ptr, gboolean c
+         localfile_vpath = mc_getlocalcopy (filename_vpath);
+         if (localfile_vpath == NULL)
+         {
+-            mc_propagate_error (mcerror, -1, _("Cannot fetch a local copy of %s"),
++            mc_propagate_error (mcerror, 0, _("Cannot fetch a local copy of %s"),
+                                 vfs_path_as_str (filename_vpath));
+             return FALSE;
+         }
+@@ -715,7 +715,7 @@ regex_check_type (const vfs_path_t * filename_vpath, const char *ptr, gboolean c
+ 
+     if (got_data == -1)
+     {
+-        mc_propagate_error (mcerror, -1, "%s", _("Pipe failed"));
++        mc_propagate_error (mcerror, 0, "%s", _("Pipe failed"));
+         return FALSE;
+     }
+ 
+@@ -733,7 +733,7 @@ regex_check_type (const vfs_path_t * filename_vpath, const char *ptr, gboolean c
+         }
+         else
+         {
+-            mc_propagate_error (mcerror, -1, "%s", _("Regular expression error"));
++            mc_propagate_error (mcerror, 0, "%s", _("Regular expression error"));
+         }
+     }
+ 
+diff --git a/src/vfs/sftpfs/connection.c b/src/vfs/sftpfs/connection.c
+index fceb961..f573346 100644
+--- a/src/vfs/sftpfs/connection.c
++++ b/src/vfs/sftpfs/connection.c
+@@ -75,7 +75,7 @@ sftpfs_open_socket (struct vfs_s_super *super, GError ** mcerror)
+ 
+     if (super->path_element->host == NULL || *super->path_element->host == '\0')
+     {
+-        mc_propagate_error (mcerror, -1, "%s", _("sftp: Invalid host name."));
++        mc_propagate_error (mcerror, 0, "%s", _("sftp: Invalid host name."));
+         return -1;
+     }
+ 
+@@ -107,7 +107,7 @@ sftpfs_open_socket (struct vfs_s_super *super, GError ** mcerror)
+ 
+     if (e != 0)
+     {
+-        mc_propagate_error (mcerror, -1, _("sftp: %s"), gai_strerror (e));
++        mc_propagate_error (mcerror, 0, _("sftp: %s"), gai_strerror (e));
+         my_socket = -1;
+         goto ret;
+     }
+@@ -134,9 +134,9 @@ sftpfs_open_socket (struct vfs_s_super *super, GError ** mcerror)
+         close (my_socket);
+ 
+         if (errno == EINTR && tty_got_interrupt ())
+-            mc_propagate_error (mcerror, -1, "%s", _("sftp: connection interrupted by user"));
++            mc_propagate_error (mcerror, 0, "%s", _("sftp: connection interrupted by user"));
+         else if (res->ai_next == NULL)
+-            mc_propagate_error (mcerror, -1, _("sftp: connection to server failed: %s"),
++            mc_propagate_error (mcerror, 0, _("sftp: connection to server failed: %s"),
+                                 unix_error_string (errno));
+         else
+             continue;
+@@ -276,7 +276,7 @@ sftpfs_open_connection_ssh_key (struct vfs_s_super *super, GError ** mcerror)
+     g_free (p);
+ 
+     if (passwd == NULL)
+-        mc_propagate_error (mcerror, -1, "%s", _("sftp: Passphrase is empty."));
++        mc_propagate_error (mcerror, 0, "%s", _("sftp: Passphrase is empty."));
+     else
+     {
+         ret_value = (libssh2_userauth_publickey_fromfile (super_data->session,
+@@ -327,7 +327,7 @@ sftpfs_open_connection_ssh_password (struct vfs_s_super *super, GError ** mcerro
+     g_free (p);
+ 
+     if (passwd == NULL)
+-        mc_propagate_error (mcerror, -1, "%s", _("sftp: Password is empty."));
++        mc_propagate_error (mcerror, 0, "%s", _("sftp: Password is empty."));
+     else
+     {
+         while ((rc = libssh2_userauth_password (super_data->session, super->path_element->user,
+@@ -387,7 +387,7 @@ sftpfs_open_connection (struct vfs_s_super *super, GError ** mcerror)
+     rc = libssh2_session_startup (super_data->session, super_data->socket_handle);
+     if (rc != 0)
+     {
+-        mc_propagate_error (mcerror, -1, _("sftp: Failure establishing SSH session: (%d)"), rc);
++        mc_propagate_error (mcerror, 0, _("sftp: Failure establishing SSH session: (%d)"), rc);
+         return (-1);
+     }
+ 
+diff --git a/src/vfs/sftpfs/file.c b/src/vfs/sftpfs/file.c
+index 1af0a44..d95de9b 100644
+--- a/src/vfs/sftpfs/file.c
++++ b/src/vfs/sftpfs/file.c
+@@ -248,7 +248,7 @@ sftpfs_read_file (vfs_file_handler_t * file_handler, char *buffer, size_t count,
+ 
+     if (file_handler == NULL || file_handler->data == NULL)
+     {
+-        mc_propagate_error (mcerror, -1, "%s",
++        mc_propagate_error (mcerror, 0, "%s",
+                             _("sftp: No file handler data present for reading file"));
+         return -1;
+     }

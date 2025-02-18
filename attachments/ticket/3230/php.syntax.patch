@@ -1,0 +1,42 @@
+3117,3135d3116
+< context exclusive ?> <? cyan
+<     keyword whole &*; brightgreen
+< context exclusive <html <? cyan
+<     keyword whole &*; brightgreen
+< context exclusive <HTML <? cyan
+<     keyword whole &*; brightgreen
+< context exclusive <doctype <? cyan
+<     keyword whole &*; brightgreen
+< context exclusive <DOCTYPE <? cyan
+<     keyword whole &*; brightgreen
+< 
+< context exclusive /\* \*/ brown
+<     spellcheck
+< context exclusive // \n brown
+<     spellcheck
+< 
+< context linestart # \n brown
+<     spellcheck
+< 
+3154a3136,3156
+> 
+> context exclusive <? ?> cyan
+>     keyword whole &*; brightgreen
+> context <html > cyan
+>     keyword whole &*; brightgreen
+> context <HTML > cyan
+>     keyword whole &*; brightgreen
+> context <!doctype > cyan
+>     keyword whole &*; brightgreen
+> context <!DOCTYPE > cyan
+>     keyword whole &*; brightgreen
+> 
+> context exclusive /\* \*/ brown
+>     spellcheck
+> 
+> context exclusive // \n brown
+>     spellcheck
+> 
+> context linestart # \n brown
+>     spellcheck
+> 

@@ -1,0 +1,28 @@
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 9aa77234d..ae47e6fbd 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -334,9 +334,6 @@ shell/i/.f
+ regex/i/\.(s|asm)$
+ 	Include=editor
+ 
+-include/editor
+-	Open=%var{EDITOR:vi} %f
+-
+ # .so libraries
+ regex/\.(so|so\.[0-9\.]*)$
+ 	View=%view{ascii} @EXTHELPERSDIR@/misc.sh view so
+@@ -650,6 +647,13 @@ shell/i/.dvi
+ shell/i/.tex
+ 	Include=editor
+ 
++# Markdown
++shell/i/.md
++	Include=editor
++
++include/editor
++	Open=%var{EDITOR:vi} %f
++
+ # DjVu
+ regex/i/\.djvu?$
+ 	Open=@EXTHELPERSDIR@/doc.sh open djvu

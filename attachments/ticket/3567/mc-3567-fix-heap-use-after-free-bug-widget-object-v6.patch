@@ -1,0 +1,125 @@
+From 2718a737a52a5dcaca86324007d4b2e085ff6c20 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Wed, 25 Nov 2015 16:55:47 +0000
+Subject: [PATCH] fix heap-use-after-free bug when accessing already freed
+ widget object
+
+heap-use-after-free hits by accessing mc listing mode
+
+v6: comments tweaked
+v5: reverse incomplete fix for seconds memleak (separate patch), rename list name
+v4: address comments by mooffie and fix another memleak in this context
+v3: fix list object declaration
+v2: address comments by andrew_b
+
+accessing widget object (at g_array_index loop) which was freed
+already (item->quick_widget->u.input.label before at loop)
+
+found by Clang/AddressSanitizer
+
+ERROR: AddressSanitizer: heap-use-after-free on address 0x60800000aaa0 at pc 0x7fcaad33ef39 bp 0x7ffc752eabd0 sp 0x7ffc752eabc8
+READ of size 4 at 0x60800000aaa0 thread T0
+    #0 0x7fcaad33ef38 in quick_dialog_skip /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/quick.c:615:33
+    #1 0x5e3434 in panel_listing_box /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/boxes.c:831:13
+    #2 0x5f5630 in change_listing_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:1656:17
+    #3 0x52f55d in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1113:9
+    #4 0x7fcaad339319 in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341:9
+    #5 0x7fcaad337962 in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #6 0x7fcaad3359c0 in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #7 0x7fcaad31f5a3 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450:19
+    #8 0x7fcaad31e950 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #9 0x7fcaad31ee12 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #10 0x7fcaad31eb15 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #11 0x52d8dd in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757:9
+    #12 0x4fb287 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:463:21
+    #13 0x7fcaab72d9e3 in __libc_start_main (/lib64/libc.so.6+0x209e3)
+    #14 0x427248 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427248)
+
+0x60800000aaa0 is located 0 bytes inside of 88-byte region [0x60800000aaa0,0x60800000aaf8)
+freed by thread T0 here:
+    #0 0x4c9a58 in __interceptor_free (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c9a58)
+    #1 0x7fcaad33e3e7 in quick_dialog_skip /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/quick.c:616:13
+    #2 0x5e3434 in panel_listing_box /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/boxes.c:831:13
+    #3 0x5f5630 in change_listing_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:1656:17
+    #4 0x52f55d in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1113:9
+    #5 0x7fcaad339319 in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341:9
+    #6 0x7fcaad337962 in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #7 0x7fcaad3359c0 in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #8 0x7fcaad31f5a3 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450:19
+    #9 0x7fcaad31e950 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #10 0x7fcaad31ee12 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #11 0x7fcaad31eb15 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #12 0x52d8dd in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757:9
+    #13 0x4fb287 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:463:21
+    #14 0x7fcaab72d9e3 in __libc_start_main (/lib64/libc.so.6+0x209e3)
+    #15 0x427248 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427248)
+
+previously allocated by thread T0 here:
+    #0 0x4c9ef0 in calloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c9ef0)
+    #1 0x7fcaac65a51c in g_malloc0 (/usr/lib64/libglib-2.0.so.0+0x6651c)
+    #2 0x7fcaad33f02e in quick_create_labeled_input /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/quick.c:90:26
+    #3 0x7fcaad33b076 in quick_dialog_skip /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/quick.c:238:17
+    #4 0x5e3434 in panel_listing_box /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/boxes.c:831:13
+    #5 0x5f5630 in change_listing_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:1656:17
+    #6 0x52f55d in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1113:9
+    #7 0x7fcaad339319 in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341:9
+    #8 0x7fcaad337962 in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #9 0x7fcaad3359c0 in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #10 0x7fcaad31f5a3 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450:19
+    #11 0x7fcaad31e950 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #12 0x7fcaad31ee12 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #13 0x7fcaad31eb15 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #14 0x52d8dd in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757:9
+    #15 0x4fb287 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:463:21
+    #16 0x7fcaab72d9e3 in __libc_start_main (/lib64/libc.so.6+0x209e3)
+    #17 0x427248 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427248)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/quick.c:615:33 in quick_dialog_skip
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/quick.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
+
+diff --git a/lib/widget/quick.c b/lib/widget/quick.c
+index a47a59c..b80858a 100644
+--- a/lib/widget/quick.c
++++ b/lib/widget/quick.c
+@@ -181,6 +181,7 @@ quick_dialog_skip (quick_dialog_t * quick_dlg, int nskip)
+     quick_widget_t *quick_widget;
+     WGroupbox *g = NULL;
+     WDialog *dd;
++    GList *extra_quick_widgets = NULL;  /* Widgets not directly requested by the user. */
+     int return_val;
+ 
+     len = str_term_width1 (I18N (quick_dlg->title)) + 6;
+@@ -235,7 +236,11 @@ quick_dialog_skip (quick_dialog_t * quick_dlg, int nskip)
+             *quick_widget->u.input.result = NULL;
+             y++;
+             if (quick_widget->u.input.label_location != input_label_none)
++            {
+                 quick_create_labeled_input (widgets, &y, x, quick_widget, &width);
++                extra_quick_widgets =
++                    g_list_prepend (extra_quick_widgets, quick_widget->u.input.label);
++            }
+             else
+             {
+                 item.widget = WIDGET (quick_create_input (y, x, quick_widget));
+@@ -606,16 +611,7 @@ quick_dialog_skip (quick_dialog_t * quick_dlg, int nskip)
+ 
+     dlg_destroy (dd);
+ 
+-    /* destroy input labels created before */
+-    for (i = 0; i < widgets->len; i++)
+-    {
+-        quick_widget_item_t *item;
+-
+-        item = &g_array_index (widgets, quick_widget_item_t, i);
+-        if (item->quick_widget->widget_type == quick_input)
+-            g_free (item->quick_widget->u.input.label);
+-    }
+-
++    g_list_free_full (extra_quick_widgets, g_free);     /* destroy input labels created before */
+     g_array_free (widgets, TRUE);
+ 
+     return return_val;

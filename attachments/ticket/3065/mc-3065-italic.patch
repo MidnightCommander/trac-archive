@@ -1,0 +1,191 @@
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 79cad29..c5f8398 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -3609,7 +3609,7 @@ color16 to color255, or as rgb000 to rgb555 and gray0 to gray23. Example:
+ base_color=normal=white,default:marked=magenta,default
+ .fi
+ .PP
+-Attributes can be any of bold, underline, reverse and blink, appended by a
++Attributes can be any of bold, italic, underline, reverse and blink, appended by a
+ plus sign if more than one are desired.  The special word "none" means no
+ attributes, without attempting to fall back to base_color.  Example:
+ .PP
+diff --git a/doc/man/mcedit.1.in b/doc/man/mcedit.1.in
+index f92ffc8..0a3044a 100644
+--- a/doc/man/mcedit.1.in
++++ b/doc/man/mcedit.1.in
+@@ -439,7 +439,7 @@ uses the color before the slash.  See cooledit(1) for supported
+ .B cooledit
+ colors.
+ .PP
+-Attributes can be any of bold, underline, reverse and blink, appended by a
++Attributes can be any of bold, italic, underline, reverse and blink, appended by a
+ plus sign if more than one are desired.
+ .PP
+ Comments may be put on a separate line starting with the hash sign (#).
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index cb3c052..ebbec83 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -3999,7 +3999,7 @@ lightgray и white. Для прозрачного фона используют
+ base_color=normal=white,default:marked=magenta,default
+ .fi
+ .PP
+-Атрибуты обозначаются словами "bold", "underline", "reverse" и "blink".
++Атрибуты обозначаются словами "bold", "italic", "underline", "reverse" и "blink".
+ Чтобы использовать несколько атрибутов, их надо перечислить через символ "+".
+ The special word "none" menas no attributes, without attempting to fall back
+ to base_color. Пример:
+diff --git a/lib/tty/color-internal.c b/lib/tty/color-internal.c
+index 530313f..5ae389a 100644
+--- a/lib/tty/color-internal.c
++++ b/lib/tty/color-internal.c
+@@ -83,6 +83,9 @@ mc_tty_color_table_t const color_table[] = {
+ 
+ mc_tty_color_table_t const attributes_table[] = {
+     {"bold", A_BOLD},
++#ifdef A_ITALIC                 /* available since ncurses-5.9-20130831 / slang-pre2.3.0-107 */
++    {"italic", A_ITALIC},
++#endif /* A_ITALIC */
+     {"underline", A_UNDERLINE},
+     {"reverse", A_REVERSE},
+     {"blink", A_BLINK},
+diff --git a/lib/tty/color-slang.h b/lib/tty/color-slang.h
+index 86c79f0..a1a8d55 100644
+--- a/lib/tty/color-slang.h
++++ b/lib/tty/color-slang.h
+@@ -11,12 +11,17 @@
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+ /* When using Slang with color, we have all the indexes free but
+- * those defined here (A_BOLD, A_UNDERLINE, A_REVERSE, A_BLINK)
++ * those defined here (A_BOLD, A_ITALIC, A_UNDERLINE, A_REVERSE, A_BLINK)
+  */
+ 
+ #ifndef A_BOLD
+ #define A_BOLD SLTT_BOLD_MASK
+ #endif /* A_BOLD */
++#ifdef SLTT_ITALIC_MASK         /* available since slang-pre2.3.0-107 */
++#ifndef A_ITALIC
++#define A_ITALIC SLTT_ITALIC_MASK
++#endif /* A_ITALIC */
++#endif /* SLTT_ITALIC_MASK */
+ #ifndef A_UNDERLINE
+ #define A_UNDERLINE SLTT_ULINE_MASK
+ #endif /* A_UNDERLINE */
+diff --git a/misc/skins/sand256.ini b/misc/skins/sand256.ini
+index 5783e2d..83af5d1 100644
+--- a/misc/skins/sand256.ini
++++ b/misc/skins/sand256.ini
+@@ -47,9 +47,12 @@
+ #
+ # Following the foreground and background colors, the third (optional) value
+ # can specify special attributes to enable. Valid values are bold, underline,
+-# reverse and blink. Append more with a plus sign, e.g. "underline+bold".
++# italic, reverse and blink. Append more with a plus sign, e.g. "bold+italic".
+ # Leaving the field empty makes it fall back to the attributes of _default_.
+ # Use any other word (e.g. "none") to prevent fallback and disable all flags.
++#
++# Italic support requires a recent enough ncurses (>= 5.9.20130831) or slang
++# (>= 2.3). All attributes are subject to support by the terminal emulator.
+ 
+ [skin]
+     description = Sand skin using 256 colors
+@@ -81,8 +84,8 @@
+ [core]
+     _default_ = black;rgb554
+     selected = ;rgb452
+-    marked = rgb400
+-    markselect = rgb400;rgb452
++    marked = rgb400;;italic
++    markselect = rgb400;rgb452;italic
+     gauge = ;rgb452
+     input = ;rgb452
+     inputunchanged = gray;rgb452
+@@ -90,14 +93,14 @@
+     disabled = gray;rgb553
+     reverse = ;rgb452
+     commandlinemark = white;gray
+-    header = red
++    header = red;;italic
+ 
+ [dialog]
+     _default_ = black;rgb553
+     dfocus = ;rgb452
+     dhotnormal = ;;underline
+     dhotfocus = ;rgb452;underline
+-    dtitle = ;;underline
++    dtitle = ;;italic+underline
+ 
+ [error]
+     _default_ = rgb554;rgb320;bold
+@@ -105,7 +108,7 @@
+     errdfocus = rgb000;rgb452;bold
+     errdhotnormal = ;;bold+underline
+     errdhotfocus = rgb000;rgb452;bold+underline
+-    errdtitle = ;;bold+underline
++    errdtitle = ;;bold+italic+underline
+ 
+ [filehighlight]
+     directory =
+@@ -126,28 +129,28 @@
+     database = rgb421
+ 
+ [menu]
+-    _default_ = black;rgb452
++    _default_ = black;rgb452;italic
+     menusel = ;rgb551
+-    menuhot = ;;underline
+-    menuhotsel = ;rgb551;underline
++    menuhot = ;;italic+underline
++    menuhotsel = ;rgb551;italic+underline
+     menuinactive =
+ 
+ [popupmenu]
+     _default_ = black;rgb553
+     menusel = ;rgb452;underline
+-    menutitle = ;;underline
++    menutitle = ;;italic+underline
+ 
+ [buttonbar]
+-    hotkey = black;rgb554
+-    button = black;rgb452
++    hotkey = black;rgb554;italic
++    button = black;rgb452;italic
+ 
+ [statusbar]
+-    _default_ = black;rgb452
++    _default_ = black;rgb452;italic
+ 
+ [help]
+     _default_ = black;rgb553
+-    helpitalic = green
+-    helpbold = red
++    helpitalic = green;;italic
++    helpbold = red;;bold
+     helplink = blue;;underline
+     helpslink = blue;;reverse
+     helptitle = ;;underline
+@@ -155,7 +158,7 @@
+ [editor]
+     _default_ = black;rgb554
+     editbold = rgb400
+-    editmarked = ;rgb452
++    editmarked = ;rgb452;italic
+     editwhitespace = rgb400;rgb553
+     editlinestate = ;rgb553
+     bookmark = ;rgb551
+diff --git a/src/args.c b/src/args.c
+index 300a3b0..e77be21 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -369,7 +369,7 @@ mc_args_new_color_group (void)
+                                                     "Extended colors, when 256 colors are available:\n"
+                                                     "   color16 to color255, or rgb000 to rgb555 and gray0 to gray23\n\n"
+                                                     "Attributes:\n"
+-                                                    "   bold, underline, reverse, blink; append more with '+'\n")
++                                                    "   bold, italic, underline, reverse, blink; append more with '+'\n")
+                                                     );
+ /* *INDENT-ON* */
+ 

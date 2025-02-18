@@ -1,0 +1,116 @@
+From 04d7a5fcb45950be3e0b86c91c7852bc92e11c49 Mon Sep 17 00:00:00 2001
+From: Andrey Gursky <andrey.gursky@e-mail.ua>
+Date: Sat, 29 Oct 2016 02:31:40 +0200
+Subject: [PATCH] Ticket #3575: generate timestamps with nanosecond precision
+ for touch
+
+Sample fish/utime helper content:
+
+if TZ=UTC touch -m -d "$FISH_TOUCHMTIME_W_NSEC" "/${FISH_FILENAME}" 2>/dev/null &&
+   TZ=UTC touch -a -d "$FISH_TOUCHATIME_W_NSEC" "/${FISH_FILENAME}" 2>/dev/null; then
+  echo "### 000"
+else
+  echo "### 500"
+fi
+---
+ src/vfs/fish/fish.c | 44 ++++++++++++++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 18 deletions(-)
+
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index e04c877..dab1d90 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -1323,32 +1323,30 @@ fish_chown (const vfs_path_t * vpath, uid_t owner, gid_t group)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static time_t
+-fish_get_atime (mc_timesbuf_t * times)
++static void
++fish_get_atime (mc_timesbuf_t * times, time_t * sec, long * nsec)
+ {
+-    time_t ret;
+-
+ #ifdef HAVE_UTIMENSAT
+-    ret = (*times)[0].tv_sec;
++    *sec = (*times)[0].tv_sec;
++    *nsec = (*times)[0].tv_nsec;
+ #else
+-    ret = times->actime;
++    *sec = times->actime;
++    *nsec = 0;
+ #endif
+-    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-static time_t
+-fish_get_mtime (mc_timesbuf_t * times)
++static void
++fish_get_mtime (mc_timesbuf_t * times, time_t * sec, long * nsec)
+ {
+-    time_t ret;
+-
+ #ifdef HAVE_UTIMENSAT
+-    ret = (*times)[1].tv_sec;
++    *sec = (*times)[1].tv_sec;
++    *nsec = (*times)[1].tv_nsec;
+ #else
+-    ret = times->modtime;
++    *sec = times->modtime;
++    *nsec = 0;
+ #endif
+-    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1358,7 +1356,9 @@ fish_utime (const vfs_path_t * vpath, mc_timesbuf_t * times)
+ {
+     gchar *shell_commands = NULL;
+     char utcatime[16], utcmtime[16];
++    char utcatime_w_nsec[30], utcmtime_w_nsec[30];
+     time_t atime, mtime;
++    long atime_nsec, mtime_nsec;
+     struct tm *gmt;
+     char buf[BUF_LARGE];
+     const char *crpath;
+@@ -1373,23 +1373,31 @@ fish_utime (const vfs_path_t * vpath, mc_timesbuf_t * times)
+         return -1;
+     rpath = strutils_shell_escape (crpath);
+ 
+-    atime = fish_get_atime (times);
++    fish_get_atime (times, &atime, &atime_nsec);
+     gmt = gmtime (&atime);
+     g_snprintf (utcatime, sizeof (utcatime), "%04d%02d%02d%02d%02d.%02d",
+                 gmt->tm_year + 1900, gmt->tm_mon + 1, gmt->tm_mday,
+                 gmt->tm_hour, gmt->tm_min, gmt->tm_sec);
++    g_snprintf (utcatime_w_nsec, sizeof (utcatime_w_nsec), "%04d-%02d-%02d %02d:%02d:%02d.%09ld",
++                gmt->tm_year + 1900, gmt->tm_mon + 1, gmt->tm_mday,
++                gmt->tm_hour, gmt->tm_min, gmt->tm_sec, atime_nsec);
+ 
+-    mtime = fish_get_mtime (times);
++    fish_get_mtime (times, &mtime, &mtime_nsec);
+     gmt = gmtime (&mtime);
+     g_snprintf (utcmtime, sizeof (utcmtime), "%04d%02d%02d%02d%02d.%02d",
+                 gmt->tm_year + 1900, gmt->tm_mon + 1, gmt->tm_mday,
+                 gmt->tm_hour, gmt->tm_min, gmt->tm_sec);
++    g_snprintf (utcmtime_w_nsec, sizeof (utcmtime_w_nsec), "%04d-%02d-%02d %02d:%02d:%02d.%09ld",
++                gmt->tm_year + 1900, gmt->tm_mon + 1, gmt->tm_mday,
++                gmt->tm_hour, gmt->tm_min, gmt->tm_sec, mtime_nsec);
+ 
+     shell_commands =
+         g_strconcat (SUP->scr_env, "FISH_FILENAME=%s FISH_FILEATIME=%ld FISH_FILEMTIME=%ld ",
+-                     "FISH_TOUCHATIME=%s FISH_TOUCHMTIME=%s;\n", SUP->scr_utime, (char *) NULL);
++                     "FISH_TOUCHATIME=%s FISH_TOUCHMTIME=%s ",
++                     "FISH_TOUCHATIME_W_NSEC=\"%s\" FISH_TOUCHMTIME_W_NSEC=\"%s\";\n",
++                     SUP->scr_utime, (char *) NULL);
+     g_snprintf (buf, sizeof (buf), shell_commands, rpath, (long) atime, (long) mtime,
+-                utcatime, utcmtime);
++                utcatime, utcmtime, utcatime_w_nsec, utcmtime_w_nsec);
+     g_free (shell_commands);
+     g_free (rpath);
+     return fish_send_command (path_element->class, super, buf, OPT_FLUSH);
+-- 
+2.10.1
+

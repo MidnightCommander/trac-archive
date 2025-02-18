@@ -1,0 +1,14 @@
+Fix non FHS path
+Index: mc-4.6.2~git20090529/doc/man/it/mc.1.in
+===================================================================
+--- mc-4.6.2~git20090529.orig/doc/man/it/mc.1.in	2009-05-30 17:21:41.000000000 +0200
++++ mc-4.6.2~git20090529/doc/man/it/mc.1.in	2009-05-30 17:21:48.000000000 +0200
+@@ -1270,7 +1270,7 @@
+ estrarre il nome del file dal file di log del traferimento:
+ .PP
+ .nf
+-awk '$9 ~! /incoming/ { print $9 }' < /usr/adm/xferlog
++awk '$9 ~! /incoming/ { print $9 }' < /var/log/xferlog
+ .fi
+ .PP
+ Se si desidera si può salvare i comandi di pannellizzazione usati più 

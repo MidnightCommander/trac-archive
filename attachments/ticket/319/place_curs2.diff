@@ -1,0 +1,70 @@
+diff -urN edit_PREV/ChangeLog edit/ChangeLog
+--- edit_PREV/ChangeLog	2009-02-01 19:30:21.000000000 +0000
++++ edit/ChangeLog	2009-03-29 18:34:12.000000000 +0000
+@@ -1,3 +1,7 @@
++2009-03-29  Vit Rosin   <vit_r@list.ru>
++	* edit.c (edit_insert_file): When chars are inserted place cursor after
++         inserted chars. If next key press is <Down-arrow>,- move cursor to the insert-start clmn.
++         Its _NOT_ patch yet, - to try and discuss only.
+ 2007-11-02  Vladimir Nadvornik  <nadvornik@suse.cz>
+ 
+ 	* editlock.c (lock_build_name): Check the return value of getpwuid().
+diff -urN edit_PREV/edit.c edit/edit.c
+--- edit_PREV/edit.c	2009-02-01 19:30:21.000000000 +0000
++++ edit/edit.c	2009-03-29 18:34:12.000000000 +0000
+@@ -70,6 +70,8 @@
+ int option_edit_left_extreme = 0;
+ int option_edit_top_extreme = 0;
+ int option_edit_bottom_extreme = 0;
++static long flow_insert_col = -1;
++
+ 
+ const char *option_whole_chars_search = "0123456789abcdefghijklmnopqrstuvwxyz_";
+ char *option_backup_ext = NULL;
+@@ -267,11 +268,10 @@
+     char *p;
+     if ((p = edit_get_filter (filename))) {
+ 	FILE *f;
+-	long current = edit->curs1;
++        flow_insert_col = edit->curs_col;
+ 	f = (FILE *) popen (p, "r");
+ 	if (f) {
+ 	    edit_insert_stream (edit, f);
+-	    edit_cursor_move (edit, current - edit->curs1);
+ 	    if (pclose (f) > 0) {
+ 	        GString *errmsg = g_string_new (NULL);
+ 		g_string_sprintf (errmsg, _(" Error reading from pipe: %s "), p);
+@@ -291,7 +291,7 @@
+ 	g_free (p);
+     } else {
+ 	int i, file, blocklen;
+-	long current = edit->curs1;
++        flow_insert_col = edit->curs_col;
+ 	unsigned char *buf;
+ 	if ((file = mc_open (filename, O_RDONLY | O_BINARY)) == -1)
+ 	    return 0;
+@@ -300,7 +300,6 @@
+ 	    for (i = 0; i < blocklen; i++)
+ 		edit_insert (edit, buf[i]);
+ 	}
+-	edit_cursor_move (edit, current - edit->curs1);
+ 	g_free (buf);
+ 	mc_close (file);
+ 	if (blocklen)
+@@ -2125,6 +2124,16 @@
+ 	edit_push_key_press (edit);
+ 
+     edit_execute_cmd (edit, command, char_for_insertion);
++    if (CK_Down == command) {
++        if (flow_insert_col >= 0) {
++            edit->force |= REDRAW_COMPLETELY;
++            edit_update_screen (edit);
++            if (edit->curs_col > flow_insert_col) 
++                edit_cursor_move (edit, flow_insert_col - edit->curs_col);
++        }
++    } else if (CK_XPaste != command) {
++        flow_insert_col = -1;
++    }
+     if (column_highlighting)
+ 	edit->force |= REDRAW_PAGE;
+ }

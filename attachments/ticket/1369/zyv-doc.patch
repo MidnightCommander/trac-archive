@@ -1,0 +1,94 @@
+diff --git a/doc/INSTALL b/doc/INSTALL
+index be786b3..d709eb8 100644
+--- a/doc/INSTALL
++++ b/doc/INSTALL
+@@ -149,22 +149,28 @@ VFS options:
+      transparent access to archives and remote directories.
+ 
+ `--disable-vfs-cpio'
+-     Support for cpio filesystem [yes]
++     (on by default)
++     Support for cpio filesystem
+ 
+ `--disable-vfs-tar'
+-     Support for tar filesystem [yes]
++     (on by default)
++     Support for tar filesystem
+ 
+ `--disable-vfs-ftp'
+-     Support for FTP vfs [yes]
++     (on by default)
++     Support for FTP vfs
+ 
+ `--disable-vfs-fish'
+-     Support for FISH vfs [yes]
++     (on by default)
++     Support for FISH vfs
+ 
+ `--disable-vfs-extfs'
+-     Support for extfs [yes]
++     (on by default)
++     Support for extfs
+ 
+ `--disable-vfs-sfs`
+-     Support for sfs [yes]
++     (on by default)
++     Support for sfs
+ 
+ `--enable-vfs-undelfs'
+      Support for ext2 undelete filesystem.
+@@ -181,7 +187,8 @@ VFS options:
+      security issues with mcserv - don't run it if you don't need it.
+ 
+ `--enable-mcserver'
+-     Support mc-specific networking file system server [no]
++     (off by default)
++     Support mc-specific networking file system server
+ 
+ `--disable-netcode'
+      This option disables support for networked virtual filesystems.
+@@ -370,19 +377,22 @@ glib
+ The only "hard" dependency of GNU Midnight Commander is glib.  You can
+ get glib from
+ 
+-ftp://ftp.gtk.org/pub/gtk/
++ftp://ftp.gtk.org/pub/glib/
+ 
+ Minimal version of glib: 2.6.x
+ Recommended version: 2.14.x and higher.
+ 
+ Newer versions may work, but haven't been tested.
+ 
+-pcre
++PCRE
+ ----
+ 
+-If you have version of glib less than 2.14.x, then need to install pcre library.
++If the version of glib you have installed is older than 2.14.x, then you
++also need to install PCRE library.
+ 
+-You can get pcre from http://www.pcre.org/
++You can get PCRE from
++
++http://www.pcre.org/
+ 
+ Terminal database
+ -----------------
+diff --git a/doc/README b/doc/README
+index e514a12..6f0d0bc 100644
+--- a/doc/README
++++ b/doc/README
+@@ -28,9 +28,10 @@ included with this distribution package.
+ Dependencies
+ ------------
+ 
+-To compile the GNU Midnight Commander you need to have a copy of the
+-glib library version 2.6.x and newest, available at
+-ftp://ftp.gtk.org/pub/gtk/
++To compile the GNU Midnight Commander, you need to have a copy of the
++glib library version 2.6.x or newer, available at
++
++ftp://ftp.gtk.org/pub/glib/
+ 
+ 
+ Features

@@ -1,0 +1,51 @@
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 087d3cd..d1ca8c1 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -1772,7 +1772,7 @@ confirm.
+ The
+ .\"LINK2"
+ Appearance
+-.\"Skins"
++.\"Appearance"
+ command pops up a dialog from which you specify the skin.
+ .PP
+ The
+@@ -2129,6 +2129,15 @@ to the the panel sort order: case sensitive or not.
+ In this dialog you configure the confirmation options for file deletion,
+ overwriting files, execution by pressing enter, quitting the program,
+ directory hotlist entries deletion and history cleanup.
++.\"NODE "    Appearance"
++.SH "    Appearance"
++In this dialog you can select the skin to be used.
++.PP
++See the
++.\"LINK2"
++Skins
++.\"Skins"
++section for technical details about the skin definition files.
+ .\"NODE "    Display bits"
+ .SH "    Display bits"
+ This is used to configure the range of visible characters on the
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 5968095..1de6f7d 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -559,7 +559,7 @@ sel_skin_button (WButton * button, int action)
+     lxx = COLS / 2;
+     lyy = (LINES - 13) / 2;
+     skin_dlg =
+-        dlg_create (TRUE, lyy, lxx, 13, 24, dialog_colors, NULL, NULL, "[Skins]", _("Skins"),
++        dlg_create (TRUE, lyy, lxx, 13, 24, dialog_colors, NULL, NULL, "[Appearance]", _("Skins"),
+                     DLG_COMPACT);
+ 
+     skin_list = listbox_new (1, 1, 11, 22, FALSE, NULL);
+@@ -613,7 +613,7 @@ appearance_box (void)
+ 
+         quick_dialog_t qdlg = {
+             -1, -1, 54,
+-            N_("Appearance"), "[Skins]",
++            N_("Appearance"), "[Appearance]",
+             quick_widgets, dlg_default_callback, NULL
+         };
+ 

@@ -1,0 +1,11 @@
+--- mc-4.7.0.1/misc/skins/darkfar.ini	2009-12-29 12:32:49.000000000 -0200
++++ mc-4.7.0.1.patched/misc/skins/darkfar.ini	2010-07-17 15:20:53.000000000 -0300
+@@ -42,7 +42,7 @@
+     symlink=lightgray;
+     stalelink=brightred;
+     device=brightmagenta;
+-    special=black;
++    special=brightblue;
+     core=red;
+     temp=gray;
+     archive=brightgreen;

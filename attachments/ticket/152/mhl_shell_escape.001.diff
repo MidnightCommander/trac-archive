@@ -1,0 +1,56 @@
+diff --git a/mhl/shell_escape.h b/mhl/shell_escape.h
+new file mode 100644
+index 0000000..7b47e0a
+--- /dev/null
++++ b/mhl/shell_escape.h
+@@ -0,0 +1,50 @@
++#ifndef __MHL_SHELL_ESCAPE_H
++#define __MHL_SHELL_ESCAPE_H
++
++/* Micro helper library: shell escaping functions */
++
++#include <string.h>
++#include <stdlib.h>
++
++#define __char_to_escape(x)	\
++    (((x)==' ')||((x)=='!')||((x)=='#')||((x)=='$')||((x)=='%')||	\
++     ((x)=='(')||((x)==')')||((x)=='\'')||((x)=='&')||((x)=='~')||	\
++     ((x)=='{')||((x)=='}')||((x)=='[')||((x)==']')||((x)=='`')||	\
++     ((x)=='?')||((x)=='|')||((x)=='<')||((x)=='>')||((x)==';')||	\
++     ((x)=='*')||((x)=='\\')||((x)=='"'))
++
++#define __char_not_escape(x)	\
++    (((x)!=0) && (!__char_to_escape((x))))
++
++static inline char* mhl_shell_escape_dup(const char* src)
++{
++    if ((src==NULL)||(!(*src)))
++	return strdup("");
++
++    char* buffer = calloc(1, strlen(src)*2+2);
++    char* bufptr = buffer;
++
++    /* look for the first char to escape */
++    while (1)
++    {
++	char c;
++	/* copy over all chars not to escape */
++	while ((c=*src) && __char_not_escape(c))
++	{
++	    *bufptr = c;
++	    bufptr++;
++	    src++;
++	}
++
++	/* at this point we either have an \0 or an char to escape */
++	if (!c)
++	    return buffer;
++
++	*bufptr = '\\';
++	bufptr++;
++	*bufptr = c;
++	bufptr++;
++    }
++}
++
++#endif

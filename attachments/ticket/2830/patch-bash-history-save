@@ -1,0 +1,11 @@
+--- subshell.c.orig	2012-04-22 09:32:39.000000000 +0200
++++ subshell.c	2012-06-17 15:11:20.000000000 +0200
+@@ -1064,6 +1064,8 @@
+ 
+     if (subshell_quit)
+     {
++        write_all (mc_global.tty.subshell_pty, " exit\n", 6);
++
+         if (subshell_type == TCSH)
+         {
+             if (unlink (tcsh_fifo) == -1)

@@ -1,0 +1,843 @@
+diff -Naur mc-4.6.1-orig/config.h.in mc-4.6.1/config.h.in
+--- mc-4.6.1-orig/config.h.in	2005-07-23 19:53:08.000000000 +0300
++++ mc-4.6.1/config.h.in	2006-02-05 16:38:37.000000000 +0200
+@@ -472,6 +472,9 @@
+ /* Define to 1 if you have the <utime.h> header file. */
+ #undef HAVE_UTIME_H
+ 
++/* Define to 1 if you enable xclipboard support */
++#undef HAVE_XCLIP
++
+ /* Define to 1 if you have the `__argz_count' function. */
+ #undef HAVE___ARGZ_COUNT
+ 
+diff -Naur mc-4.6.1-orig/configure.ac mc-4.6.1/configure.ac
+--- mc-4.6.1-orig/configure.ac	2005-07-23 19:52:49.000000000 +0300
++++ mc-4.6.1/configure.ac	2006-02-05 16:49:06.000000000 +0200
+@@ -548,6 +548,21 @@
+   fi
+ fi
+ 
++dnl
++dnl Support xclipboard
++dnl
++AC_ARG_ENABLE([xclipboard],
++	      [  --with-xclip         Support xwindow clipboard [[no]]])
++have_xclip=
++xclip_msg="no"
++if test "x$with_xclip" = xyes; then
++    AC_DEFINE(HAVE_XCLIP, 1, [Define to enable xclipboard support])
++    have_xclip=yes
++    xclip_msg="yes"
++fi
++
++
++
+ if test "$GLIBC21" != yes; then
+     AC_DEFINE(USE_INCLUDED_REGEX, 1, [Use the regex included here])
+ fi
+diff -Naur mc-4.6.1-orig/edit/editcmd.c mc-4.6.1/edit/editcmd.c
+--- mc-4.6.1-orig/edit/editcmd.c	2005-05-27 17:19:18.000000000 +0300
++++ mc-4.6.1/edit/editcmd.c	2005-12-11 16:55:55.000000000 +0200
+@@ -41,6 +41,9 @@
+ #include "../src/dialog.h"	/* do_refresh() */
+ #include "../src/wtools.h"	/* message() */
+ #include "../src/charsets.h"
++#ifdef HAVE_XCLIP
++#include "../src/xclipb.h"
++#endif /* HAVE_XCLIP */
+ 
+ #define edit_get_load_file(f,h) input_expand_dialog (h, _(" Enter file name: "), f)
+ #define edit_get_save_file(f,h) input_expand_dialog (h, _(" Enter file name: "), f)
+@@ -252,7 +255,7 @@
+ 	if (!savename)
+ 	    return 0;
+ 	/* FIXME:
+-	 * Close for now because mc_mkstemps use pure open system call 
++	 * Close for now because mc_mkstemps use pure open system call
+ 	 * to create temporary file and it needs to be reopened by
+ 	 * VFS-aware mc_open().
+ 	 */
+@@ -404,7 +407,7 @@
+ 	/* OK/Cancel buttons */
+ 	l1 = strlen (_(widgets[0].text)) + strlen (_(widgets[1].text)) + 5;
+ 	maxlen = max (maxlen, l1);
+-        
++
+         for (i = 0; i < 3; i++ ) {
+             str[i] = _(str[i]);
+ 	    maxlen = max (maxlen, strlen (str[i]) + 7);
+@@ -494,7 +497,7 @@
+ 		if (!edit->locked && !edit->delete_file)
+ 		    save_lock = edit_lock_file (exp);
+ 	    }
+-		
++
+ 	    if (edit_save_file (edit, exp)) {
+ 		/* Succesful, so unlock both files */
+ 		if (strcmp (edit->filename, exp)) {
+@@ -506,7 +509,7 @@
+ 		    if (edit->locked || save_lock)
+ 			edit->locked = edit_unlock_file (edit->filename);
+ 		}
+-		
++
+ 		edit_set_filename (edit, exp);
+ 		g_free (exp);
+ 		edit->modified = 0;
+@@ -550,7 +553,7 @@
+ }
+ 
+ /* gets a raw key from the keyboard. Passing cancel = 1 draws
+-   a cancel button thus allowing c-c etc.  Alternatively, cancel = 0 
++   a cancel button thus allowing c-c etc.  Alternatively, cancel = 0
+    will return the next key pressed.  ctrl-a (=B_CANCEL), ctrl-g, ctrl-c,
+    and Esc are cannot returned */
+ int
+@@ -778,17 +781,17 @@
+ edit_save_cmd (WEdit *edit)
+ {
+     int res, save_lock = 0;
+-    
++
+     if (!edit->locked && !edit->delete_file)
+ 	save_lock = edit_lock_file (edit->filename);
+     res = edit_save_file (edit, edit->filename);
+-    
++
+     /* Maintain modify (not save) lock on failure */
+     if ((res && edit->locked) || save_lock)
+ 	edit->locked = edit_unlock_file (edit->filename);
+-    
++
+     /* On failure try 'save as', it does locking on its own */
+-    if (!res) 
++    if (!res)
+ 	return edit_save_as_cmd (edit);
+     edit->force |= REDRAW_COMPLETELY;
+     edit->delete_file = 0;
+@@ -820,7 +823,7 @@
+ {
+     int prev_locked = edit->locked;
+     char *prev_filename = g_strdup (edit->filename);
+-    
++
+     if (!edit_reload (edit, exp)) {
+ 	g_free (prev_filename);
+ 	return 1;
+@@ -1488,7 +1491,7 @@
+ 	    }
+ 	} else {	/* regexp matching */
+ 	    long offset = 0;
+-	    int found_start, match_bol, move_win = 0; 
++	    int found_start, match_bol, move_win = 0;
+ 
+ 	    while (start + offset < last_byte) {
+ 		match_bol = (offset == 0 || (*get_byte) (data, start + offset - 1) == '\n');
+@@ -2211,6 +2214,27 @@
+     return edit_save_block (edit, catstrs (home_dir, CLIP_FILE, (char *) NULL), start, finish);
+ }
+ 
++#ifdef HAVE_XCLIP
++#ifdef OTHER_VARIANT
++static int edit_save_block_to_X_buf (WEdit * edit, long start, long finish)
++{
++    unsigned char *buff;  //for first time
++    int len, retval;
++
++    if ( (finish - start) > 4096)
++	return 0;
++    //if ( start >= finish ) {
++	/* for ( ; i < finish ; i++ ) {
++	    buff[i - start] = edit_get_byte (edit, i);
++	}*/
++    buff = edit_get_block (edit, start, finish, &len);
++    //}
++    retval = set_xclipb(buff, 0);
++    g_free(buff);
++    return retval;
++}
++#endif /* OTHER_VARIANT */
++#endif /* HAVE_XCLIP */
+ 
+ void edit_paste_from_history (WEdit *edit)
+ {
+@@ -2221,10 +2245,25 @@
+     long start_mark, end_mark;
+     if (eval_marks (edit, &start_mark, &end_mark))
+ 	return 0;
++#ifdef HAVE_XCLIP
++#ifdef OTHER_VARIANT
++    if (!edit_save_block_to_X_buf (edit, start_mark, end_mark)) {
++	edit_error_dialog (_(" Copy to clipboard "), _(" Unable to save to X clipboard. "));
++	return 1;
++    }
++#else /* !OTHER_VARIANT */
+     if (!edit_save_block_to_clip_file (edit, start_mark, end_mark)) {
+ 	edit_error_dialog (_(" Copy to clipboard "), get_sys_error (_(" Unable to save to file. ")));
+ 	return 1;
+     }
++    set_xclipb(NULL, 1);
++#endif /* !OTHER_VARIANT */
++#else /* !HAVE_XCLIP */
++    if (!edit_save_block_to_clip_file (edit, start_mark, end_mark)) {
++	edit_error_dialog (_(" Copy to clipboard "), get_sys_error (_(" Unable to save to file. ")));
++	return 1;
++    }
++#endif /* !HAVE_XCLIP */
+     edit_mark_cmd (edit, 1);
+     return 0;
+ }
+@@ -2234,10 +2273,25 @@
+     long start_mark, end_mark;
+     if (eval_marks (edit, &start_mark, &end_mark))
+ 	return 0;
++#ifdef HAVE_XCLIP
++#ifdef OTHER_VARIANT
++    if (!edit_save_block_to_X_buf (edit, start_mark, end_mark)) {
++	edit_error_dialog (_(" Copy to clipboard "), _(" Unable to save to X clipboard. "));
++	return 1;
++    }
++#else /* !OTHER_VARIANT */
+     if (!edit_save_block_to_clip_file (edit, start_mark, end_mark)) {
+ 	edit_error_dialog (_(" Cut to clipboard "), _(" Unable to save to file. "));
+ 	return 1;
+     }
++    set_xclipb(NULL, 1);
++#endif /* !OTHER_VARIANT */
++#else /* !HAVE_XCLIP */
++    if (!edit_save_block_to_clip_file (edit, start_mark, end_mark)) {
++	edit_error_dialog (_(" Cut to clipboard "), _(" Unable to save to file. "));
++	return 1;
++    }
++#endif /* !HAVE_XCLIP */
+     edit_block_delete_cmd (edit);
+     edit_mark_cmd (edit, 1);
+     return 0;
+@@ -2245,7 +2299,25 @@
+ 
+ void edit_paste_from_X_buf_cmd (WEdit * edit)
+ {
++#ifdef HAVE_XCLIP
++#ifdef OTHER_VARIANT
++    int i = 0, len;
++    long current = edit->curs1;
++    unsigned char *buff = get_xclipb(0);
++
++    len = strlen(buff);
++    for ( ; i < len ; i++ ) {
++	edit_insert (edit, buff[i]);
++    }
++    edit_cursor_move (edit, current - edit->curs1);
++    g_free(buff);
++#else /* !OTHER_VARIANT */
++    get_xclipb(1);
++    edit_insert_file (edit, catstrs (home_dir, CLIP_FILE, (char *) NULL));
++#endif /* !OTHER_VARIANT */
++#else /* !HAVE_XCLIP */
+     edit_insert_file (edit, catstrs (home_dir, CLIP_FILE, (char *) NULL));
++#endif /* !HAVE_XCLIP */
+ }
+ 
+ 
+@@ -2366,7 +2438,7 @@
+ 
+     exp = old ? old : "";
+ 
+-    exp = input_dialog (_(" Run Sort "), 
++    exp = input_dialog (_(" Run Sort "),
+     _(" Enter sort options (see manpage) separated by whitespace: "), exp);
+ 
+     if (!exp)
+@@ -2377,12 +2449,12 @@
+     e = system (catstrs (" sort ", exp, " ", home_dir, BLOCK_FILE, " > ", home_dir, TEMP_FILE, (char *) NULL));
+     if (e) {
+ 	if (e == -1 || e == 127) {
+-	    edit_error_dialog (_(" Sort "), 
++	    edit_error_dialog (_(" Sort "),
+ 	    get_sys_error (_(" Cannot execute sort command ")));
+ 	} else {
+ 	    char q[8];
+ 	    sprintf (q, "%d ", e);
+-	    edit_error_dialog (_(" Sort "), 
++	    edit_error_dialog (_(" Sort "),
+ 	    catstrs (_(" Sort returned non-zero: "), q, (char *) NULL));
+ 	}
+ 	return -1;
+@@ -2636,7 +2708,7 @@
+ static int edit_find_word_start (WEdit *edit, long *word_start, int *word_len)
+ {
+     int i, c, last;
+-    
++
+ /* return if at begin of file */
+     if (edit->curs1 <= 0)
+ 	return 0;
+@@ -2644,14 +2716,14 @@
+     c = (unsigned char) edit_get_byte (edit, edit->curs1 - 1);
+ /* return if not at end or in word */
+     if (isspace (c) || !(isalnum (c) || c == '_'))
+-	return 0; 
++	return 0;
+ 
+ /* search start of word to be completed */
+     for (i = 2;; i++) {
+ /* return if at begin of file */
+-	if (edit->curs1 - i < 0) 
++	if (edit->curs1 - i < 0)
+ 	    return 0;
+-	    
++
+ 	last = c;
+ 	c = (unsigned char) edit_get_byte (edit, edit->curs1 - i);
+ 
+diff -Naur mc-4.6.1-orig/src/main.c mc-4.6.1/src/main.c
+--- mc-4.6.1-orig/src/main.c	2005-07-23 19:52:02.000000000 +0300
++++ mc-4.6.1/src/main.c	2005-12-11 16:19:42.000000000 +0200
+@@ -1,15 +1,15 @@
+ /* Main program for the Midnight Commander
+    Copyright (C) 1994, 1995, 1996, 1997 The Free Software Foundation
+-   
++
+    Written by: 1994, 1995, 1996, 1997 Miguel de Icaza
+                1994, 1995 Janne Kukonlehto
+ 	       1997 Norbert Warmuth
+-   
++
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+-   
++
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -92,6 +92,10 @@
+ #include "../vfs/gc.h"
+ #endif
+ 
++#ifdef HAVE_XCLIP
++#include "xclipb.h"
++#endif	/* HAVE_XCLIP */
++
+ #include "popt.h"
+ 
+ /* When the modes are active, left_panel, right_panel and tree_panel */
+@@ -134,7 +138,7 @@
+ /* If true, at startup the user-menu is invoked */
+ int auto_menu = 0;
+ 
+-/* If true, use + and \ keys normally and select/unselect do if M-+ / M-\ 
++/* If true, use + and \ keys normally and select/unselect do if M-+ / M-\
+    and M-- and keypad + / - */
+ int alternate_plus_minus = 0;
+ 
+@@ -174,8 +178,8 @@
+ /* If true use +, -, | for line drawing */
+ int force_ugly_line_drawing = 0;
+ 
+-/* If true program softkeys (HP terminals only) on startup and after every 
+-   command ran in the subshell to the description found in the termcap/terminfo 
++/* If true program softkeys (HP terminals only) on startup and after every
++   command ran in the subshell to the description found in the termcap/terminfo
+    database */
+ int reset_hp_softkeys = 0;
+ 
+@@ -710,7 +714,7 @@
+ 	winput_set_origin ((WInput *) cmdline, prompt_len,
+ 			   COLS - prompt_len);
+ 
+-	/* since the prompt has changed, and we are called from one of the 
++	/* since the prompt has changed, and we are called from one of the
+ 	 * get_event channels, the prompt updating does not take place
+ 	 * automatically: force a cursor update and a screen refresh
+ 	 */
+@@ -1526,7 +1530,7 @@
+ 		    return MSG_HANDLED;
+ 		}
+ 	    } else if (!command_prompt || !cmdline->buffer[0]) {
+-		/* Special treatement '+', '-', '\', '*' only when this is 
++		/* Special treatement '+', '-', '\', '*' only when this is
+ 		 * first char on input line
+ 		 */
+ 
+@@ -2212,6 +2216,9 @@
+     /* Removing this from the X code let's us type C-c */
+     load_key_defs ();
+ 
++#ifdef HAVE_XCLIP
++    init_xclipb();
++#endif
+     /* Also done after init_subshell, to save any shell init file messages */
+     if (console_flag)
+ 	handle_console (CONSOLE_SAVE);
+diff -Naur mc-4.6.1-orig/src/Makefile.am mc-4.6.1/src/Makefile.am
+--- mc-4.6.1-orig/src/Makefile.am	2005-06-08 15:27:19.000000000 +0300
++++ mc-4.6.1/src/Makefile.am	2006-02-05 16:50:20.000000000 +0200
+@@ -60,7 +60,7 @@
+ 	tree.c tree.h treestore.c treestore.h tty.h user.c user.h	\
+ 	util.c util.h utilunix.c view.c view.h vfsdummy.h widget.c	\
+ 	widget.h win.c win.h wtools.c wtools.h				\
+-	x11conn.h x11conn.c
++	x11conn.h x11conn.c xclip.h xclip.c
+ 
+ if CHARSET
+ mc_SOURCES = $(SRCS) $(CHARSET_SRC)
+diff -Naur mc-4.6.1-orig/src/xclipb.c mc-4.6.1/src/xclipb.c
+--- mc-4.6.1-orig/src/xclipb.c	1970-01-01 03:00:00.000000000 +0300
++++ mc-4.6.1/src/xclipb.c	2006-02-05 15:02:49.000000000 +0200
+@@ -0,0 +1,434 @@
++/* X11 clipboard module for the Midnight Commander
++   Copyright (C) 2005 Likhota Vadim <vadim-lvv[at]yandex.ru>
++
++   This program is free software; you can redistribute it and/or modify
++   it under the terms of the GNU General Public License as published by
++   the Free Software Foundation; either version 2 of the License, or
++   (at your option) any later version.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program; if not, write to the Free Software
++   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
++
++/* Based on gtk/gdk and qt source.
++
++   At all can use only "xclip" or analog, but it don't work with KDE
++   You will can find xclip on http://people.debian.org/~kims/xclip/
++   and qtclipb on http://www.klv.lg.ua/~vadim/
++
++   For optimization man write me, but use GTK or QT not propose.
++   Ideal - only external program or only internal realization.
++
++
++*/
++
++#include <config.h>
++
++#ifdef HAVE_XCLIP
++
++#ifdef HAVE_TEXTMODE_X11_SUPPORT
++#define WITH_X 1
++#endif
++
++#include <stdio.h>
++#include <errno.h>
++#include "global.h"
++
++#ifdef WITH_X
++
++#include <X11/Xlib.h>
++#include <X11/Xatom.h>
++#include <X11/Xmu/Atoms.h>
++
++#endif /* WITH_X */
++
++#include "execute.h"
++#include "wtools.h"
++#include "xclipb.h"
++
++#define XCLIP_BUFF 1024
++
++
++#ifdef WITH_X
++
++/* #define WAIT_1 */
++
++/* from key.c
++extern Display *x11_display;
++extern Window x11_window; */
++
++static Display *x11_display;
++static Window x11_window, w, retw;
++static Atom utf8str, clipboard, incr, multiple, compound, timestamp, gdk_timestamp_prop, targets, gdk_property, qt_property,
++	atom_pair, save_targets, text, plain_text_utf8, plain_text_curr, plain_text_iso, plain_text;
++static guint32 mc_time;
++
++static char *xclip_cach = NULL;
++
++#endif /* WITH_X */
++
++static char mc_cl_file [256];
++//static FILE *fl = NULL;
++static int en_xcl = 0; /* 1 -> enable xclipboard ,  -1 -> found kde */
++
++
++void
++init_xclipb (void)
++{
++    char *disp = getenv("DISPLAY");
++    char *dsess = getenv("DESKTOP_SESSION");
++
++    if (!disp || strlen(disp) == 0) {
++	en_xcl = 0;
++	return;
++    }
++    else {
++	en_xcl = 1;
++    }
++    sprintf(mc_cl_file, "%s/.mc/%s", home_dir, XCLIPB_FILE);
++#ifndef WITH_X
++    if ( dsess && !strcmp(dsess, "kde") ) {
++	en_xcl = -1;
++    }
++#else /* WITH_X */
++//    if ( dsess && !strcmp(dsess, "kde") ) {
++    Atom type;
++    int format;
++    unsigned long nbytes, nitems;
++    unsigned char *data = NULL;
++
++    x11_display = XOpenDisplay(NULL);
++
++    if (!x11_display) {
++        en_xcl = 0;
++        return;
++    }
++
++    mc_time = CurrentTime;
++
++    utf8str = XInternAtom(x11_display, "UTF8_STRING", False);
++    clipboard = XInternAtom(x11_display, "CLIPBOARD", False);
++    incr = XInternAtom(x11_display, "INCR", False);
++    multiple = XInternAtom(x11_display, "MULTIPLE", False);
++    compound = XInternAtom(x11_display, "COMPOUND_TEXT", False);
++    timestamp = XInternAtom(x11_display, "TIMESTAMP", False);
++    gdk_timestamp_prop = XInternAtom(x11_display, "GDK_TIMESTAMP_PROP", False);
++    targets = XInternAtom(x11_display, "TARGETS", False);
++    save_targets = XInternAtom(x11_display, "SAVE_TARGETS", False);
++    text = XInternAtom(x11_display, "TEXT", False);
++    plain_text_utf8 = XInternAtom(x11_display, "text/plain;charset=UTF-8", False);
++    plain_text_curr = XInternAtom(x11_display, "text/plain;charset=CP1251", False);
++    plain_text_iso = XInternAtom(x11_display, "text/plain;charset=ISO-8859-1", False);
++    plain_text = XInternAtom(x11_display, "text/plain", False);
++    gdk_property = XInternAtom(x11_display, "GDK_SELECTION", False);
++    qt_property = XInternAtom(x11_display, "_QT_SELECTION", False);
++    atom_pair = XInternAtom(x11_display, "ATOM_PAIR", False);
++
++    x11_window = DefaultRootWindow(x11_display);
++    w = XCreateSimpleWindow(x11_display, x11_window, 0, 0, 2, 2, 0, 0, 0);
++    XSelectInput(x11_display, w, PropertyChangeMask);
++    XFlush(x11_display);
++    retw = XGetSelectionOwner (x11_display, clipboard);
++    XConvertSelection (x11_display, clipboard, utf8str, None, retw, mc_time);
++    XFlush (x11_display);
++    XGetWindowProperty(x11_display, retw, utf8str, 0, 0x1FFFFFFF, False, AnyPropertyType, &type, &format, &nitems, &nbytes, &data);
++    if (data)
++        XFree(data);
++
++    /* TO DO: don't open/close display allways and check (retw = XGetSelectionOwner) with mc's window before insert to clipboard */
++    XCloseDisplay(x11_display);
++
++//    }
++#endif /* WITH_X */
++
++}
++
++/* #ifdef WAIT_1
++
++static Bool
++wait_for_event (int type, XEvent *event, int timeout) // qt_xclb_wait_for_event
++{
++    time_t started = time(NULL);
++    time_t now = started;
++
++    int flushed = False;
++    //int nn = 0;
++    do {
++
++        if ( XCheckTypedWindowEvent(x11_display, x11_window, type, event) )
++	    return True;
++
++	now = time(NULL);
++
++	if(!flushed) {
++	    XFlush( x11_display );
++	    flushed = True;
++	}
++
++	// sleep 50ms, so we don't use up CPU cycles all the time.
++	struct timeval usleep_tv;
++	usleep_tv.tv_sec = 0;
++	usleep_tv.tv_usec = 50000;
++	select(0, 0, 0, 0, &usleep_tv);
++	//nn++;
++    } while ( (now - started) < timeout );
++
++    return False;
++}
++
++#endif */
++
++
++char *
++get_xclipb (const int use_cl_file)
++{
++    char *get_str;
++    if ( !en_xcl )
++	return NULL;
++
++#ifdef WITH_X
++    Atom type;
++    int format, len = 0, ii = 0;
++    unsigned long nbytes, nitems;
++    unsigned char *data = NULL;
++
++
++    x11_display = XOpenDisplay(NULL);
++    if (!x11_display) 
++        return 0;
++
++    for ( ; ii < 64 ; ii++) {
++        retw = XGetSelectionOwner (x11_display, clipboard);
++        fprintf (fl, "%i, Selection owner %li, old window = %li\n", ii, retw, w);
++        /* if ( retw == w) {
++        	get_str = g_strdup(xclip_cach);
++        	return get_str;
++        } */
++        if ( retw != 0) {
++	    XConvertSelection (x11_display, clipboard, utf8str, None, retw, mc_time);
++	    XFlush (x11_display);
++	    XGetWindowProperty (x11_display, retw, utf8str, 0, 0, 0, AnyPropertyType, &type, &format, &nitems, &nbytes, &data);
++	    if ( nbytes > 0 ) {
++		if (data) 
++		    XFree(data);
++		    break;
++		}
++	    }
++	}
++
++	if ( nbytes > 0 )
++	    if ( XGetWindowProperty(x11_display, retw, utf8str, 0, 0x1FFFFFFF, False, AnyPropertyType, &type, &format, &nitems, &nbytes, &data) != Success)
++		return NULL;
++	    else {
++
++		if (type == XA_ATOM || type == atom_pair) {
++		    return NULL;
++		}
++		else if (type == incr) {
++		    return NULL;
++		}
++		else if (type == compound) {
++		    /* TO DO */
++		    return NULL;
++		}
++		else {
++		    /* Now I not have AMD64 for test with 64bit OS */
++		    if (data) {
++			switch (format) {
++		  	case 8:
++			    len = nitems;
++			    break;
++			case 16:
++			    len = sizeof(short) * nitems;
++			    break;
++			case 32:
++			    len = sizeof(long) * nitems;
++			    break;
++			}
++			get_str = g_strdup(data);
++		    }
++		}
++	    }
++
++    if (data)
++	XFree(data);
++
++    XFlush(x11_display);
++    XCloseDisplay(x11_display);
++#else /* !WITH_X */
++    char cmd[256], buf[1024];
++    FILE *f;
++
++    if ( use_cl_file ) {
++	if ( en_xcl > 0 )
++    	    sprintf(cmd, "xclip -sel cl -o > %s/.mc/cedit/%s", home_dir, "cooledit.clip"); // need use CLIP_FILE from edit/edit.h
++	else
++	    sprintf(cmd, "qtclipb > %s/.mc/cedit/%s", home_dir, "cooledit.clip");
++    }
++    else {
++	if ( en_xcl > 0 )
++    	    sprintf(cmd, "xclip -sel cl -o > %s", mc_cl_file);
++	else
++	    sprintf(cmd, "qtclipb > %s", mc_cl_file);
++    }
++    shell_execute(cmd, 0);
++    if ( !use_cl_file ) {
++    f = fopen(mc_cl_file, "r");
++	if ( f == NULL ) {
++	    message (1, MSG_ERROR, _(" Cannot open clipboard file \n %s "), unix_error_string (errno));
++	    return NULL;
++	}
++	if /*while*/ ( fgets(buf, 1023, f) )
++	    get_str = g_strdup(buf);
++	fclose(f);
++    }
++#endif /* WITH_X */
++    return get_str;
++};
++
++
++#ifdef WITH_X
++static int
++sizeof_format(int format)
++{
++    int sz;
++    switch (format) {
++	default:
++	case  8: sz = sizeof( char); break;
++	case 16: sz = sizeof(short); break;
++	case 32: sz = sizeof( long); break;
++    }
++    return sz;
++}
++#endif
++
++/* return 1 if OK */
++int
++set_xclipb (const char *clip_str, const int use_cl_file)
++{
++    if ( !en_xcl )
++	return 0;
++#ifdef WITH_X
++    unsigned long len = strlen(clip_str);
++    Atom type, property;
++    XSelectionRequestEvent *req;
++    XEvent e, respond;;
++    int ii = 0, retval, format, result;
++    Atom xatoms[11];
++
++    x11_display = XOpenDisplay(NULL);
++    if (!x11_display) 
++        return 0;
++    w = XCreateSimpleWindow(x11_display, DefaultRootWindow(x11_display), 0, 0, 2, 2, 0, 0, 0);
++    XSelectInput(x11_display, w, PropertyChangeMask);
++    XFlush(x11_display);
++
++    for ( ; ii < 64; ii++) {
++	retval = XSetSelectionOwner (x11_display, clipboard, w, mc_time);
++        XFlush (x11_display);
++        XNextEvent (x11_display, &e);
++        if (e.type == SelectionRequest && (req->property == qt_property || req->property == None) ) {
++	    property = req->property;
++	    req=&(e.xselectionrequest);
++	    if (req->target == None || property == None) {
++	        ;
++	    }
++	    else if (req->target == targets) {
++	        Atom xatoms[11];
++
++		xatoms[0] = timestamp;
++		xatoms[1] = targets;
++		xatoms[2] = multiple;
++		xatoms[3] = save_targets;
++		xatoms[4] = utf8str;
++		xatoms[5] = XA_STRING;
++		xatoms[6] = text;
++		xatoms[7] = plain_text;
++		xatoms[8] = plain_text_utf8;
++		xatoms[9] = plain_text_curr;
++		xatoms[10] = compound;
++
++		retval = XChangeProperty(x11_display, req->requestor, property, XA_ATOM, 32, PropModeReplace, (unsigned char *) xatoms, 11);
++	    }
++	    else if (req->target == text || req->target == compound) {
++		XTextProperty textprop;
++		char *list[] = { clip_str, NULL };
++		XICCEncodingStyle style = (req->target == compound) ? XCompoundTextStyle : XStdICCTextStyle;
++
++		if ( list[0] != NULL && XmbTextListToTextProperty(x11_display, list, 1, style, &textprop) == Success ) {
++		    char ssss[strlen(textprop.value)+1];
++
++		    strcpy(ssss, textprop.value);
++		    if (textprop.value) 
++			XFree(textprop.value);
++		    XChangeProperty(x11_display, req->requestor, property, textprop.encoding, textprop.format, PropModeReplace,
++					    (unsigned char *) ssss, strlen(ssss) / sizeof_format(textprop.format));
++		}
++		else
++		    property = None;
++		    //ii = 64;
++	    }
++	    else if (req->target == XA_STRING || req->target == utf8str) {
++		XChangeProperty(x11_display, req->requestor, property, req->target, 8, PropModeReplace, (unsigned char *) clip_str, len);
++		ii = 64;
++	    }
++	    else {
++		property = None;
++	    }
++	    respond.xselection.type = SelectionNotify;
++	    respond.xselection.display = req->display;
++	    respond.xselection.requestor = req->requestor;
++	    respond.xselection.selection = req->selection;
++	    respond.xselection.target = req->target;
++	    respond.xselection.property = property;
++	    respond.xselection.time = req->time;
++
++	    XSendEvent (x11_display, req->requestor, 0, NoEventMask, &respond);
++	    XFlush (x11_display);
++	}
++    }
++    XFlush (x11_display);
++    XCloseDisplay(x11_display);
++    if ( xclip_cach )
++        g_free(xclip_cach);
++    xclip_cach = g_strdup(clip_str);
++
++#else /* ! WITH_X */
++    char cmd[256]; 
++	
++    if ( !use_cl_file ) {
++        FILE *xclip_file = fopen(mc_cl_file, "w"); /* to do: use mc_open */
++
++        if ( xclip_file == NULL ) {
++		message (1, MSG_ERROR, _(" Cannot open clipboard file \n %s "), unix_error_string (errno));
++	    return 0;
++	}
++	fprintf(xclip_file, "%s", clip_str);
++	fclose(xclip_file);
++        if ( en_xcl > 0 )
++	    sprintf(cmd, "xclip -sel cl %s", mc_cl_file);
++	else
++	    sprintf(cmd, "qtclipb -i %s", mc_cl_file);
++    }
++    else {
++	if ( en_xcl > 0 )
++	    sprintf(cmd, "xclip -sel cl %s/.mc/cedit/%s", home_dir, "cooledit.clip"); // need use CLIP_FILE from edit/edit.h
++	else
++	    sprintf(cmd, "qtclipb -i %s/.mc/cedit/%s", home_dir, "cooledit.clip");
++    }
++    shell_execute(cmd, 0);
++
++#endif /* WITH_X */
++    return 1;
++};
++
++
++#endif  /* HAVE_XCLIP */
++
++
+diff -Naur mc-4.6.1-orig/src/xclipb.h mc-4.6.1/src/xclipb.h
+--- mc-4.6.1-orig/src/xclipb.h	1970-01-01 03:00:00.000000000 +0300
++++ mc-4.6.1/src/xclipb.h	2005-12-11 16:19:02.000000000 +0200
+@@ -0,0 +1,15 @@
++#ifndef __MC_XCLIPB_H
++#define __MC_XCLIPB_H
++
++#ifdef HAVE_XCLIP
++
++// void init_xclipb (const char *home_dir);
++void init_xclipb (void);
++char *get_xclipb (const int use_cl_file);
++int set_xclipb (const char *text, const int use_cl_file);
++
++#define XCLIPB_FILE "xclip.txt"
++
++#endif /* HAVE_XCLIP */
++
++#endif /* __MC_CLIPB_H */

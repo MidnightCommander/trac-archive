@@ -1,0 +1,92 @@
+From 10c2fb0fe14972828fcdf740ff159c8668315ccf Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 6 Jan 2019 10:29:47 +0000
+Subject: [PATCH] direntry.c: cleanup -Wnull-dereference warning
+
+Found by GCC8
+
+direntry.c:918:21: error: potential null pointer dereference [-Werror=null-dereference]
+     entry->ino->ent = entry;
+     ~~~~~~~~~~~~~~~~^~~~~~~
+direntry.c:1276:36: error: potential null pointer dereference [-Werror=null-dereference]
+         if ((VFSDATA (path_element)->flags & VFS_S_USETMP) != 0)
+direntry.c:1334:32: error: potential null pointer dereference [-Werror=null-dereference]
+     if ((VFSDATA (path_element)->flags & VFS_S_USETMP) != 0 && fh->ino->localname != NULL)
+direntry.c:1314:35: error: potential null pointer dereference [-Werror=null-dereference]
+         if (VFSDATA (path_element)->linear_start != NULL)
+direntry.c:1325:14: error: potential null pointer dereference [-Werror=null-dereference]
+         if (s->fh_open != NULL && s->fh_open (path_element->class, fh, flags, mode) != 0)
+             ~^~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/vfs/direntry.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/lib/vfs/direntry.c b/lib/vfs/direntry.c
+index 48a5b760c..bfcfa7354 100644
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -914,8 +914,10 @@ vfs_s_new_entry (struct vfs_class *me, const char *name, struct vfs_s_inode *ino
+     entry = g_new0 (struct vfs_s_entry, 1);
+ 
+     entry->name = g_strdup (name);
++
+     entry->ino = inode;
+-    entry->ino->ent = entry;
++    if (entry->ino != NULL)
++        entry->ino->ent = entry;
+     CALL (init_entry) (me, entry);
+ 
+     return entry;
+@@ -1237,6 +1239,7 @@ vfs_s_open (const vfs_path_t * vpath, int flags, mode_t mode)
+     const char *q;
+     struct vfs_s_inode *ino;
+     const vfs_path_element_t *path_element;
++    struct vfs_s_subclass *s;
+ 
+     path_element = vfs_path_get_by_index (vpath, -1);
+ 
+@@ -1273,7 +1276,8 @@ vfs_s_open (const vfs_path_t * vpath, int flags, mode_t mode)
+         ent = vfs_s_generate_entry (path_element->class, name, dir, 0755);
+         ino = ent->ino;
+         vfs_s_insert_entry (path_element->class, dir, ent);
+-        if ((VFSDATA (path_element)->flags & VFS_S_USETMP) != 0)
++        s = VFSDATA (path_element);
++        if (s != NULL && (s->flags & VFS_S_USETMP) != 0)
+         {
+             int tmp_handle;
+             vfs_path_t *tmp_vpath;
+@@ -1309,9 +1313,10 @@ vfs_s_open (const vfs_path_t * vpath, int flags, mode_t mode)
+     fh->linear = LS_NOT_LINEAR;
+     fh->data = NULL;
+ 
++    s = VFSDATA (path_element);
+     if (IS_LINEAR (flags))
+     {
+-        if (VFSDATA (path_element)->linear_start != NULL)
++        if (s != NULL && s->linear_start != NULL)
+         {
+             vfs_print_message ("%s", _("Starting linear transfer..."));
+             fh->linear = LS_LINEAR_PREOPEN;
+@@ -1319,10 +1324,7 @@ vfs_s_open (const vfs_path_t * vpath, int flags, mode_t mode)
+     }
+     else
+     {
+-        struct vfs_s_subclass *s;
+-
+-        s = VFSDATA (path_element);
+-        if (s->fh_open != NULL && s->fh_open (path_element->class, fh, flags, mode) != 0)
++        if (s != NULL && s->fh_open != NULL && s->fh_open (path_element->class, fh, flags, mode) != 0)
+         {
+             if (s->fh_free_data != NULL)
+                 s->fh_free_data (fh);
+@@ -1331,7 +1333,7 @@ vfs_s_open (const vfs_path_t * vpath, int flags, mode_t mode)
+         }
+     }
+ 
+-    if ((VFSDATA (path_element)->flags & VFS_S_USETMP) != 0 && fh->ino->localname != NULL)
++    if (s != NULL && (s->flags & VFS_S_USETMP) != 0 && fh->ino->localname != NULL)
+     {
+         fh->handle = open (fh->ino->localname, NO_LINEAR (flags), mode);
+         if (fh->handle == -1)

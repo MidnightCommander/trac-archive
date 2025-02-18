@@ -1,0 +1,47 @@
+From 7ece4e2f3f113f5bd2b1ba900959d43bc36e5b77 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 6 Nov 2016 05:07:49 +0200
+Subject: [PATCH] Ticket #3718: Options/Layout/Equal split gets reverted.
+
+---
+ lib/widget/radio.c       | 1 +
+ src/filemanager/layout.c | 4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/widget/radio.c b/lib/widget/radio.c
+index 4568968..350f8be 100644
+--- a/lib/widget/radio.c
++++ b/lib/widget/radio.c
+@@ -85,6 +85,7 @@ radio_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         case ' ':
+             r->sel = r->pos;
+             widget_set_state (w, WST_FOCUSED, TRUE);
++            send_message (w->owner, w, MSG_NOTIFY, (int) MSG_KEY, NULL);
+             return MSG_HANDLED;
+ 
+         case KEY_UP:
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index 9c810e8..c70cb0b 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -370,7 +370,7 @@ layout_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *
+         return MSG_HANDLED;
+ 
+     case MSG_NOTIFY:
+-        if (sender == WIDGET (radio_widget) && parm == (int) MSG_FOCUS)
++        if (sender == WIDGET (radio_widget) && parm == (int) MSG_KEY)
+         {
+             if (panels_layout.horizontal_split != radio_widget->sel)
+             {
+@@ -404,7 +404,7 @@ layout_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *
+             return MSG_HANDLED;
+         }
+ 
+-        if (sender == WIDGET (check_options[0].widget) && parm == (int) MSG_FOCUS)
++        if (sender == WIDGET (check_options[0].widget) && parm == (int) MSG_KEY)
+         {
+             int eq;
+ 
+-- 
+2.9.3
+

@@ -1,0 +1,58 @@
+diff --git a/misc/mc.menu b/misc/mc.menu
+index cf35412..061e69d 100644
+--- a/misc/mc.menu
++++ b/misc/mc.menu
+@@ -28,7 +28,7 @@ shell_patterns=0
+ 
+ = t d
+ 3       Compress the current subdirectory (tar.gz)
+-	Pwd=`basename %d /`
++	Pwd=`basename "$PWD"`
+ 	echo -n "Name of the compressed file (without extension) [$Pwd]: "
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi
+@@ -37,7 +37,7 @@ shell_patterns=0
+ 	echo "../$tar.tar.gz created."
+ 
+ 4       Compress the current subdirectory (tar.bz2)
+-	Pwd=`basename %d /`
++	Pwd=`basename "$PWD"`
+ 	echo -n "Name of the compressed file (without extension) [$Pwd]: "
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi
+@@ -46,7 +46,7 @@ shell_patterns=0
+ 	echo "../$tar.tar.bz2 created."
+ 
+ 5       Compress the current subdirectory (tar.p7)
+-	Pwd=`basename %d /`
++	Pwd=`basename "$PWD"`
+ 	echo -n "Name of the compressed file (without extension) [$Pwd]: "
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi
+@@ -55,7 +55,7 @@ shell_patterns=0
+ 	echo "../$tar.tar.7z created."
+ 
+ 6       Compress the current subdirectory (tar.lzma)
+-	Pwd=`basename %d /`
++	Pwd=`basename "$PWD"`
+ 	echo -n "Name of the compressed file (without extension) [$Pwd]: "
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi
+@@ -64,7 +64,7 @@ shell_patterns=0
+ 	echo "../$tar.tar.lzma created."
+ 
+ 7       Compress the current subdirectory (tar.lz)
+-	Pwd=`basename %d /`
++	Pwd=`basename "$PWD"`
+ 	echo -n "Name of the compressed file (without extension) [$Pwd]: "
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi
+@@ -73,7 +73,7 @@ shell_patterns=0
+ 	echo "../$tar.tar.lz created."
+ 
+ 8       Compress the current subdirectory (tar.xz)
+-	Pwd=`basename %d /`
++	Pwd=`basename "$PWD"`
+ 	echo -n "Name of the compressed file (without extension) [$Pwd]: "
+ 	read tar
+         if [ "$tar"x = x ]; then tar="$Pwd"; fi

@@ -1,0 +1,30 @@
+From d42cd4eb3f16fb8d76ab6d32329f33df0e039f9e Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 19 Dec 2024 16:00:00 +0000
+Subject: [PATCH] (listbox.c) fix division by zero warning
+
+Make Static Analyzer happy.
+
+lib/widget/listbox.c:119:51: warning: Division by zero [clang-analyzer-core.DivideZero]
+  119 |         line = 1 + ((l->current * (w->lines - 2)) / length);
+
+Found by Clang-19 Static Analyzer
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/listbox.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index 9234812bb..ef82baf43 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -115,7 +115,7 @@ listbox_drawscroll (const WListbox *l)
+         tty_print_char ('v');
+ 
+     /* Now draw the nice relative pointer */
+-    if (!g_queue_is_empty (l->list))
++    if (!g_queue_is_empty (l->list) && length > 0)
+         line = 1 + ((l->current * (w->lines - 2)) / length);
+ 
+     for (i = 1; i < max_line; i++)

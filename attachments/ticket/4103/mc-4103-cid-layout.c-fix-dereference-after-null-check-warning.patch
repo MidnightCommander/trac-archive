@@ -1,0 +1,26 @@
+From db267664ac5ee6f91278db490d46fe0d413e7fcb Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 22 Dec 2020 08:49:16 +0000
+Subject: [PATCH] (layout.c) fix dereference after null check
+
+Found by Coverity
+Coverity id #313666
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/layout.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/layout.c b/src/filemanager/layout.c
+index f3086b043..ef28ac023 100644
+--- a/src/filemanager/layout.c
++++ b/src/filemanager/layout.c
+@@ -1210,7 +1210,7 @@ create_panel (int num, panel_view_mode_t type)
+         WPanel *panel = PANEL (new_widget);
+ 
+         /* if existing panel changed type to view_listing, then load history */
+-        if (old_widget != NULL)
++        if ((midnight_dlg != NULL) && (old_widget != NULL))
+         {
+             ev_history_load_save_t event_data = { NULL, new_widget };
+ 

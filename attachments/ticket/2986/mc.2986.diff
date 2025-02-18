@@ -1,0 +1,48 @@
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 0cf7e52..bca7e25 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -132,6 +132,7 @@ typedef struct edit_search_options_t
+     gboolean only_in_selection;
+     gboolean whole_words;
+     gboolean all_codepages;
++    gboolean flush_bookmarks;
+ } edit_search_options_t;
+ 
+ typedef struct edit_stack_type
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 61e141c..08e903a 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -966,7 +966,8 @@ edit_do_search (WEdit * edit)
+         long q = 0;
+ 
+         search_create_bookmark = FALSE;
+-        book_mark_flush (edit, -1);
++        if (edit_search_options.flush_bookmarks)
++            book_mark_flush (edit, BOOK_MARK_FOUND_COLOR);
+ 
+         while (mc_search_run (edit->search, (void *) edit, q, edit->last_byte, &len))
+         {
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index 1443c07..d61e228 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -55,7 +55,8 @@ edit_search_options_t edit_search_options = {
+     .backwards = FALSE,
+     .only_in_selection = FALSE,
+     .whole_words = FALSE,
+-    .all_codepages = FALSE
++    .all_codepages = FALSE,
++    .flush_bookmarks = TRUE,
+ };
+ 
+ /*** file scope macro definitions ****************************************************************/
+@@ -117,6 +118,7 @@ editcmd_dialog_search_show (WEdit * edit)
+                 QUICK_CHECKBOX (N_("&All charsets"), &edit_search_options.all_codepages, NULL),
+ #endif
+             QUICK_STOP_COLUMNS,
++            QUICK_CHECKBOX (N_("Fl&ush bookmarks before find all"), &edit_search_options.flush_bookmarks, NULL),
+             QUICK_START_BUTTONS (TRUE, TRUE),
+                 QUICK_BUTTON (N_("&OK"), B_ENTER, NULL, NULL),
+                 QUICK_BUTTON (N_("&Find all"), B_USER, NULL, NULL),

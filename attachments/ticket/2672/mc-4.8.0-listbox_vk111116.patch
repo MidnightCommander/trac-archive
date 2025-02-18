@@ -1,0 +1,96 @@
+diff -ruB mc-4.8.0/lib/widget/listbox.c mc-4.8.0-listbox_vk111116/lib/widget/listbox.c
+--- mc-4.8.0/lib/widget/listbox.c	2011-10-18 15:39:19.000000000 +0400
++++ mc-4.8.0-listbox_vk111116/lib/widget/listbox.c	2011-11-16 16:57:27.613893679 +0400
+@@ -156,7 +156,19 @@
+         else
+         {
+             WLEntry *e = (WLEntry *) le->data;
+-            text = e->text;
++            if (l->num_type == LISTBOX_NUMBERED)                   
++            {                   /* for the numbered list: display entry numbers in 3 characters */
++                text = g_strdup_printf ("%-3i%s", pos, e->text);
++            } 
++            else if (l->num_type == LISTBOX_NUMBERED_HOTKEYS)
++            {                   /* display the numbers 0..9 */
++                if (pos <= 9)
++                    text = g_strdup_printf ("%-2i%s", pos, e->text);
++                else
++                    text = g_strdup_printf ("  %s", e->text);
++            }
++            else
++                text = e->text;
+             le = g_list_next (le);
+             pos++;
+         }
+diff -ruB mc-4.8.0/lib/widget/listbox.h mc-4.8.0-listbox_vk111116/lib/widget/listbox.h
+--- mc-4.8.0/lib/widget/listbox.h	2011-10-17 13:33:45.000000000 +0400
++++ mc-4.8.0-listbox_vk111116/lib/widget/listbox.h	2011-11-16 16:49:07.588180564 +0400
+@@ -39,6 +39,13 @@
+     void *data;                 /* Client information */
+ } WLEntry;
+ 
++typedef enum
++{
++    LISTBOX_UNNUMBERED = 0,     /* unnumbered (default) listbox */
++    LISTBOX_NUMBERED,           /* all items in the listbox are numbered */
++    LISTBOX_NUMBERED_HOTKEYS    /* only the first ten items are numbered 0-9 (to show the hotkeys) */
++} listbox_numbered_t;
++
+ typedef struct WListbox
+ {
+     Widget widget;
+@@ -51,6 +58,7 @@
+     gboolean deletable;         /* Can list entries be deleted? */
+     lcback_fn callback;         /* The callback function */
+     int cursor_x, cursor_y;     /* Cache the values */
++    listbox_numbered_t num_type; /* Numbered or unnumbered list */
+ } WListbox;
+ 
+ /*** global variables defined in .c file *********************************************************/
+diff -ruB mc-4.8.0/src/filemanager/hotlist.c mc-4.8.0-listbox_vk111116/src/filemanager/hotlist.c
+--- mc-4.8.0/src/filemanager/hotlist.c	2011-10-18 15:39:19.000000000 +0400
++++ mc-4.8.0-listbox_vk111116/src/filemanager/hotlist.c	2011-11-16 17:00:10.031851977 +0400
+@@ -326,11 +326,16 @@
+             break;
+         case HL_TYPE_DOTDOT:
+         case HL_TYPE_ENTRY:
+-            if (hotlist_state.moving)
+-                listbox_add_item (l_movelist, LISTBOX_APPEND_AT_END, 0, current->label, current);
+-            else
+-                listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, current->label, current);
+-            break;
++            {
++                char *lbl = g_strdup_printf (" %s", current->label);      /* add a leading space to separate
++                                                                           ordinary entries from groups */
++                if (hotlist_state.moving)
++                    listbox_add_item (l_movelist, LISTBOX_APPEND_AT_END, 0, lbl, current);
++                else
++                    listbox_add_item (l_hotlist, LISTBOX_APPEND_AT_END, 0, lbl, current);
++                g_free (lbl);
++                break;
++            }
+         default:
+             break;
+         }
+@@ -812,6 +817,8 @@
+     }
+     /* get new listbox */
+     l_hotlist = listbox_new (UY + 1, UX + 1, LINES - 14, COLS - 2 * UX - 8, FALSE, l_call);
++    /* display hotkey numbers 0..9 in the listbox */
++    l_hotlist->num_type = LISTBOX_NUMBERED_HOTKEYS;
+ 
+     /* Fill the hotlist with the active VFS or the hotlist */
+ #ifdef ENABLE_VFS
+@@ -976,7 +983,11 @@
+             g_free (lbl);
+         }
+         else
+-            listbox_add_item (l_hotlist, pos, 0, new->label, new);
++        {
++            /* add a leading space to separate ordinary entries from groups */
++            char *lbl = g_strdup_printf(" %s", new->label);
++            listbox_add_item (l_hotlist, pos, 0, lbl, new);
++        }
+         listbox_select_entry (l_hotlist, l_hotlist->pos);
+     }
+     return new;

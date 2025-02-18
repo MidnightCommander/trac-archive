@@ -1,0 +1,24 @@
+From 6574dba3ee76d18bf558ae77e3cea1c43110b56e Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Fri, 3 Apr 2009 00:09:22 +0200
+Subject: [PATCH] install cons.saver setuid root
+
+---
+ src/consaver/Makefile.am | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/consaver/Makefile.am b/src/consaver/Makefile.am
+index ba446c13b..919a5517c 100644
+--- a/src/consaver/Makefile.am
++++ b/src/consaver/Makefile.am
+@@ -5,3 +5,7 @@ pkglibexec_PROGRAMS = cons.saver
+ cons_saver_SOURCES = cons.saver.c
+ 
+ AM_CPPFLAGS = -I$(top_srcdir)
++
++install-exec-hook:
++	chown root:root $(DESTDIR)$(pkglibexecdir)/cons.saver
++	chmod u+s $(DESTDIR)$(pkglibexecdir)/cons.saver
+-- 
+2.28.0.1.g7ba5ae0684
+

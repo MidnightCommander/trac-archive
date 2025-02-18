@@ -1,0 +1,65 @@
+diff -Naur mc-4.7.0-pre1~/edit/editdraw.c mc-4.7.0-pre1/edit/editdraw.c
+--- mc-4.7.0-pre1~/edit/editdraw.c	2009-07-31 19:36:25.000000000 +0300
++++ mc-4.7.0-pre1/edit/editdraw.c	2009-08-07 00:59:43.000000000 +0300
+@@ -375,6 +375,13 @@
+     int utf8lag = 0;
+     unsigned int cur_line = 0;
+     char line_stat[LINE_STATE_WIDTH + 1];
++    int book_mark = 0;
++
++    if (book_mark_query_color(edit, edit->start_line + row, BOOK_MARK_COLOR)) {
++	book_mark = BOOK_MARK_COLOR;
++    } else if (book_mark_query_color(edit, edit->start_line + row, BOOK_MARK_FOUND_COLOR)) {
++	book_mark = BOOK_MARK_FOUND_COLOR;
++    }
+ 
+     edit_get_syntax_color (edit, b - 1, &color);
+     q = edit_move_forward3 (edit, b, start_col - edit->start_col, 0);
+@@ -432,8 +439,12 @@
+ 		    c = edit_get_utf (edit, q, &cw);
+ 		}
+                 /* we don't use bg for mc - fg contains both */
+-		edit_get_syntax_color (edit, q, &color);
+-		p->style |= color << 16;
++		if (book_mark) {
++		    p->style |= book_mark << 16;
++		} else {
++		    edit_get_syntax_color (edit, q, &color);
++		    p->style |= color << 16;
++		}
+ 		switch (c) {
+ 		case '\n':
+ 		    col = (end_col + utf8lag) - edit->start_col + 1;	/* quit */
+diff -Naur mc-4.7.0-pre1~/edit/editkeys.c mc-4.7.0-pre1/edit/editkeys.c
+--- mc-4.7.0-pre1~/edit/editkeys.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/edit/editkeys.c	2009-08-07 00:59:43.000000000 +0300
+@@ -120,6 +120,11 @@
+     { ALT ('n'), CK_Toggle_Line_State },
+     { ALT ('_'), CK_Toggle_Tab_TWS },
+ 
++    { ALT ('k'), CK_Toggle_Bookmark },
++    { ALT ('i'), CK_Prev_Bookmark },
++    { ALT ('j'), CK_Next_Bookmark },
++    { ALT ('o'), CK_Flush_Bookmarks },
++
+     { XCTRL ('k'), CK_Delete_To_Line_End },
+     { XCTRL ('l'), CK_Refresh },
+     { XCTRL ('o'), CK_Shell },
+diff -Naur mc-4.7.0-pre1~/edit/editmenu.c mc-4.7.0-pre1/edit/editmenu.c
+--- mc-4.7.0-pre1~/edit/editmenu.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/edit/editmenu.c	2009-08-07 00:59:43.000000000 +0300
+@@ -422,10 +422,10 @@
+     {' ', N_("C&ut to clipfile          S-Del"), NULL_HOTKEY, menu_xcut_cmd},
+     {' ', N_("&Paste from clipfile      S-Ins"), NULL_HOTKEY, menu_xpaste_cmd},
+     {' ', "", NULL_HOTKEY, 0},
+-    {' ', N_("Toggle bookmar&k               "), NULL_HOTKEY, menu_toggle_bookmark_cmd},
+-    {' ', N_("&Next bookmark                 "), NULL_HOTKEY, menu_next_bookmark_cmd},
+-    {' ', N_("Pre&v bookmark                 "), NULL_HOTKEY, menu_prev_bookmark_cmd},
+-    {' ', N_("&Flush bookmark                "), NULL_HOTKEY, menu_flush_bookmark_cmd},
++    {' ', N_("Toggle bookmar&k            M-k"), NULL_HOTKEY, menu_toggle_bookmark_cmd},
++    {' ', N_("&Next bookmark              M-j"), NULL_HOTKEY, menu_next_bookmark_cmd},
++    {' ', N_("Pre&v bookmark              M-i"), NULL_HOTKEY, menu_prev_bookmark_cmd},
++    {' ', N_("&Flush bookmark             M-o"), NULL_HOTKEY, menu_flush_bookmark_cmd},
+     {' ', "", NULL_HOTKEY, 0},
+     {' ', N_("&Undo                       C-u"), NULL_HOTKEY, menu_undo_cmd},
+     {' ', "", NULL_HOTKEY, 0},

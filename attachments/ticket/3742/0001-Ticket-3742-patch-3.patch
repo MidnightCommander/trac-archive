@@ -1,0 +1,26 @@
+From 740e1577988ec0a3b8becc86cc48632162cdef2c Mon Sep 17 00:00:00 2001
+From: Brian Lowe <mc-hobbit@groupbcl.ca>
+Date: Sun, 22 Jan 2017 18:52:02 -0600
+Subject: [PATCH] Ticket #3742: Remove '#' from text "KEYWORD is one of the #
+ following"
+
+---
+ misc/mc.ext.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 87c6ced..9c6a462 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -53,7 +53,7 @@
+ #
+ #       KEYWORD=COMMAND<NL> (with no spaces around =)
+ #
+-# KEYWORD is one of the # following:
++# KEYWORD is one of the following:
+ #
+ #    Open
+ #       COMMAND is run if the user presses Enter or double-clicks the file
+-- 
+2.5.5
+

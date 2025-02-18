@@ -1,0 +1,37 @@
+From f29af95a6d3cea2d9bf930b7f5c1fe99026475c6 Mon Sep 17 00:00:00 2001
+From: Francesco Cosoleto <cosoleto@gmail.com>
+Date: Tue, 9 Feb 2010 03:49:20 +0100
+Subject: [PATCH 1/2] Don't try to make directory NULL named in mkdir_cmd().
+
+As input_expand_dialog() may return a pointer to an empty string,
+the function was trying to create a directory so named and thus
+print a false "File exists" error message.
+
+Signed-off-by: Francesco Cosoleto <cosoleto@gmail.com>
+---
+ src/cmd.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/src/cmd.c b/src/cmd.c
+index ba7b792..2c4f2d7 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -400,6 +400,7 @@ mkdir_cmd (void)
+     if (!dir)
+ 	return;
+ 
++    if (*dir) {
+     if (dir[0] == '/' || dir[0] == '~')
+ 	absdir = g_strdup (dir);
+     else
+@@ -415,6 +416,7 @@ mkdir_cmd (void)
+     }
+ 
+     g_free (absdir);
++    }
+     g_free (dir);
+ }
+ 
+-- 
+1.6.6.1
+

@@ -1,0 +1,21 @@
+$ LC_MESSAGES=C mc -F
+Home directory: /home/user
+Profile root directory: /home/user
+
+[System data]
+    Config directory: /usr/local/etc/mc/
+    Data directory:   /usr/local/share/mc/
+    File extension handlers: /usr/local/libexec/mc/ext.d/
+    VFS plugins and scripts: /usr/local/libexec/mc/
+	extfs.d:        /usr/local/libexec/mc/extfs.d/
+	shell:          /usr/local/libexec/mc/shell/
+
+[User data]
+    Config directory: /home/user/.config/mc/
+    Data directory:   /home/user/.local/share/mc/
+	skins:          /home/user/.local/share/mc/skins/
+	extfs.d:        /home/user/.local/share/mc/extfs.d/
+	shell:          /home/user/.local/share/mc/shell/
+	mcedit macros:  /home/user/.local/share/mc/mc.macros
+	mcedit external macros: /home/user/.local/share/mc/mcedit/macros.d/macro.*
+    Cache directory:  /home/user/.cache/mc/

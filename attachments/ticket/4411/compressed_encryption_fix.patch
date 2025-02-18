@@ -1,0 +1,48 @@
+diff --git a/src/vfs/extfs/helpers/urar.in b/src/vfs/extfs/helpers/urar.in
+index 5453d31..b35cd03 100644
+--- a/src/vfs/extfs/helpers/urar.in
++++ b/src/vfs/extfs/helpers/urar.in
+@@ -35,7 +35,7 @@ fi
+ 
+ mcrar4fs_list ()
+ {
+-     $UNRAR v -c- -cfg- "$1" | @AWK@ -v uid=`id -u` -v gid=`id -g` '
++     $UNRAR v -c- -p- -cfg- "$1" | @AWK@ -v uid=`id -u` -v gid=`id -g` '
+ BEGIN { flag=0 }
+ /^-------/ { flag++; if (flag > 1) exit 0; next }
+ flag==1 {
+@@ -53,7 +53,7 @@ flag==1 {
+ 
+ mcrar5fs_list ()
+ {
+-    $UNRAR vt -c- -cfg- "$1" | @AWK@ -F ':' -v uid=`id -u` -v gid=`id -g` '
++    $UNRAR vt -c- -p- -cfg- "$1" | @AWK@ -F ':' -v uid=`id -u` -v gid=`id -g` '
+     {
+         ### remove space after the ":" of the field name
+         sub ("^ ", "", $2);
+diff --git a/src/vfs/extfs/helpers/uzip.in b/src/vfs/extfs/helpers/uzip.in
+index 22466db..60a1158 100644
+--- a/src/vfs/extfs/helpers/uzip.in
++++ b/src/vfs/extfs/helpers/uzip.in
+@@ -32,7 +32,7 @@ my $cmd_addlink = "$app_zip -g -y";
+ # Command used to delete a file from the archive
+ my $cmd_delete = "$app_zip -d";
+ # Command used to extract a file to standard out
+-my $cmd_extract = "$app_unzip -p";
++my $cmd_extract = "$app_unzip -p -P \"\"";
+ 
+ # -rw-r--r--  2.2 unx     2891 tx     1435 defN 20000330.211927 ./edit.html
+ # (perm) (?) (?) (size) (?) (zippedsize) (method) (yyyy)(mm)(dd).(HH)(MM)(SS) (fname)
+diff --git a/src/vfs/extfs/helpers/u7z b/src/vfs/extfs/helpers/u7z
+index 91301c3d9..603c976d3 100755
+--- a/src/vfs/extfs/helpers/u7z
++++ b/src/vfs/extfs/helpers/u7z
+@@ -74,7 +74,7 @@ mcu7zip_copyout ()
+         #first we check if we have old p7zip archive with prefix ./ in filename
+         $P7ZIP l "$1" "$2" | grep -q "0 files, 0 folders" && \
+         EXFNAME='*./'"$2" || EXFNAME="$2"
+-        $P7ZIP e -so "$1" "$EXFNAME" > "$3" 2>/dev/null
++        $P7ZIP e -so -p- "$1" "$EXFNAME" > "$3" 2>/dev/null
+ }
+ 
+ mcu7zip_copyin ()

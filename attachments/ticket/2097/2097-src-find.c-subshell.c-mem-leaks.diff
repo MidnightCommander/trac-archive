@@ -1,0 +1,65 @@
+diff -urN mc-4.7.1-old/src/file.c mc-4.7.1-new/src/file.c
+--- mc-4.7.1-old/src/file.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1-new/src/file.c	2010-03-31 18:07:10.000000000 +0100
+@@ -351,7 +351,7 @@
+ progress_update_one (FileOpTotalContext *tctx, FileOpContext *ctx, off_t add, gboolean is_toplevel_file)
+ {
+     struct timeval tv_current;
+-    static struct timeval tv_start = {};
++    static struct timeval tv_start = { 0 };
+ 
+     if (is_toplevel_file || ctx->progress_totals_computed) {
+ 	tctx->progress_count++;
+diff -urN mc-4.7.1-old/src/find.c mc-4.7.1-new/src/find.c
+--- mc-4.7.1-old/src/find.c	2010-02-26 11:34:03.000000000 +0000
++++ mc-4.7.1-new/src/find.c	2010-04-04 15:58:25.000000000 +0100
+@@ -1328,12 +1328,16 @@
+     gboolean dir_and_file_set;
+ 
+     while (find_parameters (&start_dir, &pattern, &content)){
++	if (pattern == NULL)
++	    break;
++
+ 	if (pattern [0] == '\0')
+-	    break; /* nothing search*/
++	    break; /* nothing search */
+ 
+ 	dirname = filename = NULL;
+ 	is_start = FALSE;
+ 	v = find_file (start_dir, pattern, content, &dirname, &filename);
++	g_free (start_dir);
+ 	g_free (pattern);
+ 
+ 	if (v == B_ENTER){
+@@ -1343,10 +1347,12 @@
+ 		    if (filename)
+ 			try_to_select (current_panel, filename + (content ? 
+ 			   (strchr (filename + 4, ':') - filename + 1) : 4) );
+-		} else if (filename)
++		} else if (filename) {
+ 		    do_cd (filename, cd_exact);
++		}
+ 		select_item (current_panel);
+ 	    }
++	    g_free (content);
+ 	    g_free (dirname);
+ 	    g_free (filename);
+ 	    break;
+diff -urN mc-4.7.1-old/src/subshell.c mc-4.7.1-new/src/subshell.c
+--- mc-4.7.1-old/src/subshell.c	2010-02-25 10:51:40.000000000 +0000
++++ mc-4.7.1-new/src/subshell.c	2010-03-31 18:45:53.000000000 +0100
+@@ -233,9 +233,13 @@
+     mc_sid = getsid (0);
+     if (mc_sid != -1) {
+ 	char sid_str[BUF_SMALL];
++	char *tmp;
++
+ 	g_snprintf (sid_str, sizeof (sid_str), "MC_SID=%ld",
+ 		    (long) mc_sid);
+-	putenv (g_strdup (sid_str));
++	tmp = g_strdup (sid_str);
++	putenv (tmp);
++	g_free (tmp);
+     }
+ 
+     switch (subshell_type) {

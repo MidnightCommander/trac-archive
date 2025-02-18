@@ -1,0 +1,108 @@
+From 6b18b06ecf07a9f9b0500f5b72ff449b8723e7ba Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Wed, 16 Mar 2016 17:10:48 +0200
+Subject: [PATCH] Ticket #3617: (mc_open): handle varargs mode_t promotion
+ issue.
+
+On systems where 'mode_t' is smaller than 'int', doing 'va_arg (ap, mode_t)' is
+wrong because of C's "default argument promotions". GCC 4 creates crashing code
+in this case.
+
+The "va_arg" page of Gnulib's manual describes the problem and a simple solution:
+
+    https://www.gnu.org/software/gnulib/manual/html_node/va_005farg.html
+
+However, since that solution reportedly (see thread at next link) still causes
+GCC to print warnings (for no good reason; perhaps this was fixed in newer
+GCCs), we pick a solution that defines a PROMOTED_MODE_T at the configuration
+stage:
+
+    https://lists.gnu.org/archive/html/bug-gnulib/2009-05/msg00231.html
+
+(We take our 'mode_t.m4' from the most recent Gnulib source.)
+
+(If any of the URLs above no longer works, simply search the web for the
+mentioned words.)
+---
+ acinclude.m4         |  1 +
+ configure.ac         |  1 +
+ lib/vfs/interface.c  |  5 ++++-
+ m4.include/mode_t.m4 | 26 ++++++++++++++++++++++++++
+ 4 files changed, 32 insertions(+), 1 deletion(-)
+ create mode 100644 m4.include/mode_t.m4
+
+diff --git a/acinclude.m4 b/acinclude.m4
+index f228cd7..861ca22 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -3,6 +3,7 @@ m4_include([m4.include/ax_path_lib_pcre.m4])
+ m4_include([m4.include/dx_doxygen.m4])
+ m4_include([m4.include/mc-cflags.m4])
+ m4_include([m4.include/mc-check-search-type.m4])
++m4_include([m4.include/mode_t.m4])
+ m4_include([m4.include/ls-mntd-fs.m4])
+ m4_include([m4.include/fstypename.m4])
+ m4_include([m4.include/fsusage.m4])
+diff --git a/configure.ac b/configure.ac
+index 4962f03..d0d8358 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -177,6 +177,7 @@ AC_CHECK_SIZEOF(uintmax_t)
+ AC_TYPE_OFF_T
+ AC_CHECK_SIZEOF(off_t)
+ AC_TYPE_MODE_T
++gl_PROMOTED_TYPE_MODE_T
+ AC_TYPE_PID_T
+ AC_TYPE_UID_T
+ 
+diff --git a/lib/vfs/interface.c b/lib/vfs/interface.c
+index 64acb96..53934c0 100644
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -200,7 +200,10 @@ mc_open (const vfs_path_t * vpath, int flags, ...)
+     {
+         va_list ap;
+         va_start (ap, flags);
+-        mode = va_arg (ap, mode_t);
++        /* We have to use PROMOTED_MODE_T instead of mode_t. Doing 'va_arg (ap, mode_t)'
++         * fails on systems where 'mode_t' is smaller than 'int' because of C's "default
++         * argument promotions". */
++        mode = va_arg (ap, PROMOTED_MODE_T);
+         va_end (ap);
+     }
+ 
+diff --git a/m4.include/mode_t.m4 b/m4.include/mode_t.m4
+new file mode 100644
+index 0000000..0cd40db
+--- /dev/null
++++ b/m4.include/mode_t.m4
+@@ -0,0 +1,26 @@
++# mode_t.m4 serial 2
++dnl Copyright (C) 2009-2016 Free Software Foundation, Inc.
++dnl This file is free software; the Free Software Foundation
++dnl gives unlimited permission to copy and/or distribute it,
++dnl with or without modifications, as long as this notice is preserved.
++
++# For using mode_t, it's sufficient to use AC_TYPE_MODE_T and
++# include <sys/types.h>.
++
++# Define PROMOTED_MODE_T to the type that is the result of "default argument
++# promotion" (ISO C 6.5.2.2.(6)) of the type mode_t.
++AC_DEFUN([gl_PROMOTED_TYPE_MODE_T],
++[
++  AC_REQUIRE([AC_TYPE_MODE_T])
++  AC_CACHE_CHECK([for promoted mode_t type], [gl_cv_promoted_mode_t], [
++    dnl Assume mode_t promotes to 'int' if and only if it is smaller than 'int',
++    dnl and to itself otherwise. This assumption is not guaranteed by the ISO C
++    dnl standard, but we don't know of any real-world counterexamples.
++    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>]],
++      [[typedef int array[2 * (sizeof (mode_t) < sizeof (int)) - 1];]])],
++      [gl_cv_promoted_mode_t='int'],
++      [gl_cv_promoted_mode_t='mode_t'])
++  ])
++  AC_DEFINE_UNQUOTED([PROMOTED_MODE_T], [$gl_cv_promoted_mode_t],
++    [Define to the type that is the result of default argument promotions of type mode_t.])
++])
+-- 
+2.5.0
+

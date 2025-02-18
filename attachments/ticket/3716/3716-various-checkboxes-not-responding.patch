@@ -1,0 +1,52 @@
+From 02ec47e3732c4b00d6f1e225d0e0036675f1b3d8 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 6 Nov 2016 05:21:23 +0200
+Subject: [PATCH] Ticket #3716: various checkboxes not responding.
+
+---
+ src/filemanager/boxes.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/filemanager/boxes.c b/src/filemanager/boxes.c
+index 62d8012..39e43de 100644
+--- a/src/filemanager/boxes.c
++++ b/src/filemanager/boxes.c
+@@ -130,7 +130,7 @@ configure_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, voi
+     {
+     case MSG_NOTIFY:
+         /* message from "Single press" checkbutton */
+-        if (sender != NULL && sender->id == configure_old_esc_mode_id && parm == (int) MSG_FOCUS)
++        if (sender != NULL && sender->id == configure_old_esc_mode_id && parm == (int) MSG_KEY)
+         {
+             const gboolean not_single = !(CHECK (sender)->state & C_BOOL);
+             Widget *ww;
+@@ -251,7 +251,7 @@ panel_listing_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
+     switch (msg)
+     {
+     case MSG_NOTIFY:
+-        if (sender != NULL && sender->id == panel_listing_types_id && parm == (int) MSG_FOCUS)
++        if (sender != NULL && sender->id == panel_listing_types_id && parm == (int) MSG_KEY)
+         {
+             WCheck *ch;
+             WInput *in1, *in2, *in3;
+@@ -271,7 +271,7 @@ panel_listing_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
+             return MSG_HANDLED;
+         }
+ 
+-        if (sender != NULL && sender->id == mini_user_status_id && parm == (int) MSG_FOCUS)
++        if (sender != NULL && sender->id == mini_user_status_id && parm == (int) MSG_KEY)
+         {
+             WInput *in;
+ 
+@@ -373,7 +373,7 @@ confvfs_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+     {
+     case MSG_NOTIFY:
+         /* message from "Always use ftp proxy" checkbutton */
+-        if (sender != NULL && sender->id == ftpfs_always_use_proxy_id && parm == (int) MSG_FOCUS)
++        if (sender != NULL && sender->id == ftpfs_always_use_proxy_id && parm == (int) MSG_KEY)
+         {
+             const gboolean not_use = !(CHECK (sender)->state & C_BOOL);
+             Widget *wi;
+-- 
+2.9.3
+

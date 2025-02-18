@@ -1,0 +1,28 @@
+From b26a59e50e88167312fdf8891eb99e8bcc47ef15 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 18 Feb 2017 22:18:16 +0200
+Subject: [PATCH 3/4] Rename "Panelize" menu command to "Restore panelization".
+
+Because "Panelize" doesn't explain what the command do.
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ src/filemanager/midnight.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index 50bebfd..61c7a3e 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -219,7 +219,7 @@ create_panel_menu (void)
+ #ifdef ENABLE_VFS_SMB
+     entries = g_list_prepend (entries, menu_entry_create (_("SM&B link..."), CK_ConnectSmb));
+ #endif
+-    entries = g_list_prepend (entries, menu_entry_create (_("Paneli&ze"), CK_Panelize));
++    entries = g_list_prepend (entries, menu_entry_create (_("Restore paneli&zation"), CK_Panelize));
+     entries = g_list_prepend (entries, menu_separator_create ());
+     entries = g_list_prepend (entries, menu_entry_create (_("&Rescan"), CK_Reread));
+ 
+-- 
+2.9.3
+

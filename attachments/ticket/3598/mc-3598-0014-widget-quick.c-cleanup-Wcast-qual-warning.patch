@@ -1,0 +1,27 @@
+From f043e3ef158f52a57e25e31a69d3749769c9346b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 20 Feb 2016 11:07:28 +0000
+Subject: [PATCH] widget&quick.c: cleanup -Wcast-qual warning
+
+quick.c:281:69: warning: to be safe all intermediate pointers in cast from 'char **' to 'const char **' must be 'const' qualified [-Wcast-qual]
+                 r = radio_new (++y, x, quick_widget->u.radio.count, (const char **) items);
+                                                                     ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/quick.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/quick.c b/lib/widget/quick.c
+index 09172ac..4933442 100644
+--- a/lib/widget/quick.c
++++ b/lib/widget/quick.c
+@@ -278,7 +278,7 @@ quick_dialog_skip (quick_dialog_t * quick_dlg, int nskip)
+                     items[i] = g_strdup (_(quick_widget->u.radio.items[i]));
+                 items[i] = NULL;
+ 
+-                r = radio_new (++y, x, quick_widget->u.radio.count, (const char **) items);
++                r = radio_new (++y, x, quick_widget->u.radio.count, (const char **)(void *) items);
+                 r->pos = r->sel = *quick_widget->u.radio.value;
+                 g_strfreev (items);
+                 item.widget = WIDGET (r);

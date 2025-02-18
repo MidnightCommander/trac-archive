@@ -1,0 +1,63 @@
+From 9742fbd07767ed2ea1ccec853b8b057e0ff42b64 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Thu, 7 Jan 2016 16:59:06 +0000
+Subject: [PATCH] sftp: extend error message with sftp session error
+
+when LIBSSH2_ERROR_SFTP_PROTOCOL (-31) occurs
+extend error message with sftp last error for better failure tracking
+
+with #3269 patch further sftp protocol error message now looks like
+SFTP Protocol Error 3 (-31)
+
+Currently I have no nice solution for print relevant called libssh2 function too
+I don't want pollute _to_gliberror() with contant strings all over
+
+sftp session error 3 means (file) permission denied
+
+from libssh2-1.5.0/include/libssh2_sftp.h
+#define LIBSSH2_FX_OK                       0
+#define LIBSSH2_FX_EOF                      1
+#define LIBSSH2_FX_NO_SUCH_FILE             2
+#define LIBSSH2_FX_PERMISSION_DENIED        3
+#define LIBSSH2_FX_FAILURE                  4
+#define LIBSSH2_FX_BAD_MESSAGE              5
+#define LIBSSH2_FX_NO_CONNECTION            6
+#define LIBSSH2_FX_CONNECTION_LOST          7
+#define LIBSSH2_FX_OP_UNSUPPORTED           8
+#define LIBSSH2_FX_INVALID_HANDLE           9
+#define LIBSSH2_FX_NO_SUCH_PATH             10
+#define LIBSSH2_FX_FILE_ALREADY_EXISTS      11
+#define LIBSSH2_FX_WRITE_PROTECT            12
+#define LIBSSH2_FX_NO_MEDIA                 13
+#define LIBSSH2_FX_NO_SPACE_ON_FILESYSTEM   14
+#define LIBSSH2_FX_QUOTA_EXCEEDED           15
+#define LIBSSH2_FX_UNKNOWN_PRINCIPLE        16 /* Initial mis-spelling */
+#define LIBSSH2_FX_UNKNOWN_PRINCIPAL        16
+#define LIBSSH2_FX_LOCK_CONFlICT            17 /* Initial mis-spelling */
+#define LIBSSH2_FX_LOCK_CONFLICT            17
+#define LIBSSH2_FX_DIR_NOT_EMPTY            18
+#define LIBSSH2_FX_NOT_A_DIRECTORY          19
+#define LIBSSH2_FX_INVALID_FILENAME         20
+#define LIBSSH2_FX_LINK_LOOP                21
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/sftpfs/internal.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/vfs/sftpfs/internal.c b/src/vfs/sftpfs/internal.c
+index 5377b66..fa7dcc2 100644
+--- a/src/vfs/sftpfs/internal.c
++++ b/src/vfs/sftpfs/internal.c
+@@ -65,7 +65,10 @@ sftpfs_ssherror_to_gliberror (sftpfs_super_data_t * super_data, int libssh_errno
+     mc_return_if_error (mcerror);
+ 
+     libssh2_session_last_error (super_data->session, &err, &err_len, 1);
+-    mc_propagate_error (mcerror, libssh_errno, "%s", err);
++    if (libssh_errno == LIBSSH2_ERROR_SFTP_PROTOCOL && super_data->sftp_session != NULL)
++        mc_propagate_error (mcerror, libssh_errno, "%s %lu", err, libssh2_sftp_last_error(super_data->sftp_session));
++    else
++        mc_propagate_error (mcerror, libssh_errno, "%s", err);
+     g_free (err);
+ }
+ 

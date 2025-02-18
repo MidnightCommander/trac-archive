@@ -1,0 +1,130 @@
+From 5b0e7f0ae3f5295021ddcb04e8f04afa255bc759 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <ossi@kde.org>
+Date: Fri, 3 Apr 2009 00:30:50 +0200
+Subject: [PATCH] call 'file' with -z switch to enable getting type of compressed files
+
+---
+ src/ext.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/ext.c b/src/ext.c
+index 510b50e..27d5eee 100644
+--- a/src/ext.c
++++ b/src/ext.c
+@@ -302,9 +302,9 @@ exec_extension (const char *filename, const char *lc_data, int *move_dir,
+ }
+ 
+ #ifdef FILE_L
+-#   define FILE_CMD "file -L "
++#   define FILE_CMD "file -L -z "
+ #else
+-#   define FILE_CMD "file "
++#   define FILE_CMD "file -z "
+ #endif
+ 
+ /*
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 4860c95..58a89bc 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -293,20 +293,6 @@ type/^Info\ text
+ shell/.info
+ 	Open=info -f %f
+ 
+-# Manual page
+-# Exception - .so libraries are not manual pages
+-regex/\.(so|so\.[0-9\.]*)$
+-	View=%view{ascii} file %f && nm %f
+-
+-regex/(([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])|\.man)$
+-	Open=case %d/%f in */log/*|*/logs/*) cat %f ;; *) { zsoelim %f 2>/dev/null || cat %f; } | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
+-	View=%view{ascii,nroff} case %d/%f in */log/*|*/logs/*) cat %f ;; *) { zsoelim %f 2>/dev/null || cat %f; } | nroff @MAN_FLAGS@ @MANDOC@ ;; esac
+-
+-# Perl pod page
+-shell/.pod
+-	Open=pod2man %f | nroff @MAN_FLAGS@ @MANDOC@ | %var{PAGER:more}
+-	View=%view{ascii,nroff} pod2man %f | nroff @MAN_FLAGS@ @MANDOC@
+-
+ # Troff with me macros.
+ # Exception - "read.me" is not a nroff file.
+ shell/read.me
+@@ -314,16 +300,26 @@ shell/read.me
+ 
+ # Manual page - compressed
+-regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.g?[Zz]$
+-	Open=case %d/%f in */log/*|*/logs/*) gzip -dc %f ;; *) gzip -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
+-	View=%view{ascii,nroff} case %d/%f in */log/*|*/logs/*) gzip -dc %f ;; *) gzip -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac
++type/^(ASCII )?troff.*gzip compressed
++	Open=gzip -dc %f | nroff  -Tlatin1 -mandoc | sensible-pager
++	View=%view{ascii,nroff} gzip -dc %f | nroff  -Tlatin1 -mandoc
+ 
+-regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.bz$
+-	Open=case %d/%f in */log/*|*/logs/*) bzip -dc %f ;; *) bzip -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
+-	View=%view{ascii,nroff} case %d/%f in */log/*|*/logs/*) bzip -dc %f ;; *) bzip -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac
++type/^(ASCII )?troff.*bzip compressed
++	Open=bzip -dc %f | nroff  -Tlatin1 -mandoc | sensible-pager
++	View=%view{ascii,nroff} bzip -dc %f | nroff  -Tlatin1 -mandoc
+ 
+-regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.bz2$
+-	Open=case %d/%f in */log/*|*/logs/*) bzip2 -dc %f ;; *) bzip2 -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
+-	View=%view{ascii,nroff} case %d/%f in */log/*|*/logs/*) bzip2 -dc %f ;; *) bzip2 -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac
++type/^(ASCII )?troff.*bzip2 compressed
++	Open=bzip2 -dc %f | nroff  -Tlatin1 -mandoc | sensible-pager
++	View=%view{ascii,nroff} bzip2 -dc %f | nroff  -Tlatin1 -mandoc
++
++# Manual page
++type/^(ASCII )?troff
++	Open=nroff  -Tlatin1 -mandoc %f | sensible-pager
++	View=%view{ascii,nroff} nroff  -Tlatin1 -mandoc %f
++
++# Perl pod page
++shell/.pod
++	Open=pod2man %f | nroff @MAN_FLAGS@ @MANDOC@ | %var{PAGER:more}
++	View=%view{ascii,nroff} pod2man %f | nroff @MAN_FLAGS@ @MANDOC@
+ 
+ regex/([^0-9]|^[^\.]*)\.([1-9][A-Za-z]*|[ln])\.lzma$
+ 	Open=case %d/%f in */log/*|*/logs/*) lzma -dc %f ;; *) lzma -dc %f | nroff @MAN_FLAGS@ @MANDOC@ ;; esac | %var{PAGER:more}
+@@ -618,35 +614,27 @@ regex/\.([Zz][Oo][Oo])$
+ 	View=%view{ascii} zoo l %f
+ 
+ # gzip
+-type/^gzip
+-	Open=gzip -dc %f | %var{PAGER:more}
+-	View=%view{ascii} gzip -dc %f 2>/dev/null
+-
+-regex/\.(gz|Z)?$
++type/\(gzip compressed
+ 	Open=gzip -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} gzip -dc %f 2>/dev/null
+ 
+ # bzip2
+-type/^bzip2
+-	Open=bzip2 -dc %f | %var{PAGER:more}
+-	View=%view{ascii} bzip2 -dc %f 2>/dev/null
+-
+-regex/\.bz2?$
++type/\(bzip2 compressed
+ 	Open=bzip2 -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} bzip2 -dc %f 2>/dev/null
+ 
+ # bzip
+-type/^bzip
++type/\(bzip compressed
+ 	Open=bzip -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} bzip -dc %f 2>/dev/null
+ 
+ # compress
+-type/^compress
++type/\(compress'd
+ 	Open=gzip -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} gzip -dc %f 2>/dev/null
+ 
+ # lzma
+-regex/\.lzma$
++type/\(lzma
+ 	Open=lzma -dc %f | %var{PAGER:more}
+ 	View=%view{ascii} lzma -dc %f 2>/dev/null
+ 
+-- 
+1.6.6.20.g9bfff
+

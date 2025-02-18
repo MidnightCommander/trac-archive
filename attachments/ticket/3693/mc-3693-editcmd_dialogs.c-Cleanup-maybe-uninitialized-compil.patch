@@ -1,0 +1,42 @@
+From a11223c5ced0de7ce1e05ce06741496ea68fece1 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 10:05:47 +0000
+Subject: [PATCH] (editcmd_dialogs.c) Cleanup maybe-uninitialized compiler warning
+
+Found by GCC 6.2.0.
+
+editcmd_dialogs.c: In function 'editcmd_dialog_replace_show':
+editcmd_dialogs.c:200:24: error: 'num_of_types' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+editcmd_dialogs.c:191:12: note: 'num_of_types' was declared here
+
+editcmd_dialogs.c: In function 'editcmd_dialog_search_show':
+editcmd_dialogs.c:102:24: error: 'num_of_types' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+editcmd_dialogs.c:95:12: note: 'num_of_types' was declared here
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd_dialogs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index 007e69a..6eefb72 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -92,7 +92,7 @@ gboolean
+ editcmd_dialog_search_show (WEdit * edit)
+ {
+     char *search_text;
+-    size_t num_of_types;
++    size_t num_of_types = 0;
+     gchar **list_of_types;
+     int dialog_result;
+ 
+@@ -188,7 +188,7 @@ void
+ editcmd_dialog_replace_show (WEdit * edit, const char *search_default, const char *replace_default,
+                              /*@out@ */ char **search_text, /*@out@ */ char **replace_text)
+ {
+-    size_t num_of_types;
++    size_t num_of_types = 0;
+     gchar **list_of_types;
+ 
+     if ((search_default == NULL) || (*search_default == '\0'))

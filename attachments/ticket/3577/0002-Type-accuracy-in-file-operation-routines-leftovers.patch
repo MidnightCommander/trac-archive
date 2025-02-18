@@ -1,0 +1,35 @@
+From e0b0f140a520ba192642b8508fa272ebd01cbcaf Mon Sep 17 00:00:00 2001
+From: Andrey Gursky <andrey.gursky@e-mail.ua>
+Date: Sat, 19 Dec 2015 04:03:10 +0100
+Subject: [PATCH 2/2] Type accuracy in file operation routines (leftovers)
+
+These are leftovers of 159f5fdff12b31a815617cdbf869267ead6073bc
+---
+ src/filemanager/file.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 3aa84aa..10d1d00 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -1648,7 +1648,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+             ctx->skip_all = TRUE;
+         if (return_status == FILE_SKIP)
+             break;
+-        ctx->do_append = 0;
++        ctx->do_append = FALSE;
+         goto ret_fast;
+     }
+ 
+@@ -1688,7 +1688,7 @@ copy_file_file (file_op_total_context_t * tctx, file_op_context_t * ctx,
+     open_flags = O_WRONLY;
+     if (dst_exists)
+     {
+-        if (ctx->do_append != 0)
++        if (ctx->do_append)
+             open_flags |= O_APPEND;
+         else
+             open_flags |= O_CREAT | O_TRUNC;
+-- 
+2.6.2
+

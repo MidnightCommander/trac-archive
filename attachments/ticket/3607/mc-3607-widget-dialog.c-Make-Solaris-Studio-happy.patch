@@ -1,0 +1,29 @@
+From 24a3f6f3a6a02a2d6eb68f54c88769e97170ae26 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 15 Mar 2016 19:03:19 +0000
+Subject: [PATCH] widget/dialog.c: Make Solaris Studio happy
+
+Make Solaris Studio 12.4 happy.
+
+"dialog.c", line 1029: warning: argument #2 is incompatible with prototype:
+        prototype: pointer to const void : "/opt/glib-2.43.2/include/glib-2.0/glib/glist.h", line 116
+        argument : pointer to function(pointer to struct Widget {int x, int y, int cols, int lines, enum  {W_DISABLED(32), W_IS_INPUT(16), W_WANT_IDLE(8), W_WANT_CURSOR(4), W_WANT_HOTKEY(2), W_DEFAULT(0)} options, enum  {WPOS_KEEP_DEFAULT(20), WPOS_KEEP_ALL(60), WPOS_KEEP_VERT(48), WPOS_KEEP_HORZ(12), WPOS_KEEP_BOTTOM(32), WPOS_KEEP_TOP(16), WPOS_KEEP_RIGHT(8), WPOS_KEEP_LEFT(4), WPOS_CENTER_VERT(2), WPOS_CENTER_HORZ(1)} pos_flags, unsigned int id, pointer to function(..) returning enum  {MSG_HANDLED(1), MSG_NOT_HANDLED(0)} callback, pointer to function(..) returning int mouse, pointer to function(..) returning void set_options, pointer to struct WDialog {..} owner}, pointer to struct Widget {int x, int y, int cols, int lines, enum  {W_DISABLED(32), W_IS_INPUT(16), W_WANT_IDLE(8), W_WANT_CURSOR(4), W_WANT_HOTKEY(2), W_DEFAULT(0)} options, enum  {WPOS_KEEP_DEFAULT(20), WPOS_KEEP_ALL(60), WPOS_KEEP_VERT(48), WPOS_KEEP_HORZ(12), WPOS_KEEP_BOTTOM(32), WPOS_KEEP_TOP(16), WPOS_KEEP_RIGHT(8), WPOS_KEEP_LEFT(4), WPOS_CENTER_VERT(2), WPOS_CENTER_HORZ(1)} pos_flags, unsigned int id, pointer to function(..) returning enum  {MSG_HANDLED(1), MSG_NOT_HANDLED(0)} callback, pointer to function(..) returning int mouse, pointer to function(..) returning void set_options, pointer to struct WDialog {..} owner}, enum  {MSG_DESTROY(16), MSG_END(15), MSG_VALIDATE(14), MSG_RESIZE(13), MSG_IDLE(12), MSG_CURSOR(11), MSG_NOTIFY(10), MSG_ACTION(9), MSG_POST_KEY(8), MSG_UNHANDLED_KEY(7), MSG_HOTKEY_HANDLED(6), MSG_HOTKEY(5), MSG_KEY(4), MSG_DRAW(3), MSG_UNFOCUS(2), MSG_FOCUS(1), MSG_INIT(0)}, int, pointer to void) returning enum  {MSG_HANDLED(1), MSG_NOT_HANDLED(0)}
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/dialog.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index a53c046..b680f9c 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -1026,7 +1026,7 @@ find_widget_type (const WDialog * h, widget_cb_fn callback)
+ {
+     GList *w;
+ 
+-    w = g_list_find_custom (h->widgets, callback, dlg_find_widget_callback);
++    w = g_list_find_custom (h->widgets, (gconstpointer) callback, dlg_find_widget_callback);
+ 
+     return (w == NULL) ? NULL : WIDGET (w->data);
+ }

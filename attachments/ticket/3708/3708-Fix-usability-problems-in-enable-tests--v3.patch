@@ -1,0 +1,127 @@
+From 572fdceec67fa68e2173c11851ea4436202315e1 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Mon, 31 Oct 2016 18:03:41 +0200
+Subject: [PATCH 1/2] Fix usability problems with --enable-tests.
+
+---
+ configure.ac           |  5 ++---
+ m4.include/mc-tests.m4 | 25 +++++++++++++++++++++----
+ tests/Makefile.am      |  2 +-
+ tests/README           | 25 +++++++++++++++++++++++++
+ 4 files changed, 49 insertions(+), 8 deletions(-)
+ create mode 100644 tests/README
+
+diff --git a/configure.ac b/configure.ac
+index 38776bf..87576f0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -628,8 +628,7 @@ intl/Makefile
+ po/Makefile.in
+ ])
+ 
+-if test x$enable_tests != xno; then
+-    AC_CONFIG_FILES([
++AC_CONFIG_FILES([
+ tests/Makefile
+ tests/lib/Makefile
+ tests/lib/mcconfig/Makefile
+@@ -645,7 +644,6 @@ tests/src/vfs/Makefile
+ tests/src/vfs/extfs/Makefile
+ tests/src/vfs/extfs/helpers-list/Makefile
+ ])
+-fi
+ 
+ AC_OUTPUT
+ 
+@@ -657,6 +655,7 @@ Configuration:
+   Compiler:                   ${CC}
+   Compiler flags:             ${CFLAGS}
+   Assertions:                 ${enable_assert}
++  Unit tests:                 ${tests_msg}
+   File system:                ${vfs_type}
+                               ${vfs_flags}
+   Screen library:             ${screen_msg}
+diff --git a/m4.include/mc-tests.m4 b/m4.include/mc-tests.m4
+index c991fbb..742ecb0 100644
+--- a/m4.include/mc-tests.m4
++++ b/m4.include/mc-tests.m4
+@@ -11,15 +11,32 @@ AC_DEFUN([mc_UNIT_TESTS],[
+ 
+     AC_ARG_ENABLE(
+         [tests],
+-        AS_HELP_STRING([--enable-tests], [Enable unit tests (see http://check.sourceforge.net/)])
++        AS_HELP_STRING([--enable-tests], [Enable unit tests (see http://libcheck.github.io/check/) @<:@auto@:>@])
+     )
+ 
+-    if test x$enable_tests != xno; then
++    dnl 'tests_msg' holds the human-readable message to show in configure's summary text.
++
++    if test x$enable_tests == xno; then
++        dnl The user explicitly specified '--disable-tests'.
++        tests_msg="no"
++    else
+         PKG_CHECK_MODULES(
+             CHECK,
+             [check >= 0.9.8],
+-            [have_check=yes],
+-            [AC_MSG_WARN(['Check' utility not found. Check your environment])])
++            [
++                have_check=yes
++                tests_msg="yes"
++            ],
++            [
++                AC_MSG_WARN(['Check' testing framework not found. Check your environment])
++                tests_msg="no ('Check' testing framework not found)"
++
++                dnl The following behavior, of "exit if feature requested but not found", is just a
++                dnl preference and can be safely removed.
++                if test x$enable_tests == xyes; then
++                    AC_MSG_ERROR([You explicitly specified '--enable-tests', but this requirement cannot be met.])
++                fi
++            ])
+         AC_SUBST(CHECK_CFLAGS)
+         AC_SUBST(CHECK_LIBS)
+     fi
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index fc16371..de3ff6c 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -1,3 +1,3 @@
+ SUBDIRS = lib src
+ 
+-EXTRA_DIST = mctest.h
++EXTRA_DIST = mctest.h README
+diff --git a/tests/README b/tests/README
+new file mode 100644
+index 0000000..f606d1d
+--- /dev/null
++++ b/tests/README
+@@ -0,0 +1,25 @@
++Overview
++--------
++
++This tree contains unit tests.
++
++To compile and run the tests, do 'make check' (either in the top folder,
++or just in the folder containing the tests you're interested in).
++
++IMPORTANT: To compile the tests, you need to have the "Check" unit
++testing framework[1] installed.[2] If you have it installed, you will see
++"Unit tests: yes" in configure's summary message; if you don't see this
++message, you won't be able to compile the tests.[3]
++
++Tips and tricks
++---------------
++
++* To be able to step with the debugger into test code, see [4]. E.g., do:
++
++    $ export CK_FORK=no
++
++[1]: http://libcheck.github.io/check/
++[2]: Your package manager likely has it.
++[3]: Actually, some tests (like src/vfs/extfs/helpers-list) don't use
++     this framework and will compile just fine. But that's the exception.
++[4]: http://stackoverflow.com/questions/1649814/debugging-unit-test-in-c-using-check
+-- 
+2.9.3
+

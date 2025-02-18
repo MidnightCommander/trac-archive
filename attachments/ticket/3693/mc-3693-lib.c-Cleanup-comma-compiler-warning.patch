@@ -1,0 +1,33 @@
+From 6ce764ef040f4d64ac3f690fb3cd0cba34df86b6 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Tue, 6 Dec 2016 11:01:49 +0000
+Subject: [PATCH] (lib.c) Cleanup comma compiler warning
+
+Found by Clang 3.9.0.
+
+lib.c:237:41: error: possible misuse of comma operator here [-Werror,-Wcomma]
+    coord_cache_free (view->coord_cache), view->coord_cache = NULL;
+                                        ^
+lib.c:237:5: note: cast expression to void to silence warning
+    coord_cache_free (view->coord_cache), view->coord_cache = NULL;
+    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/viewer/lib.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index c7d8084..4a12273 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -234,7 +234,8 @@ mcview_done (WView * view)
+     mcview_close_datasource (view);
+     /* the growing buffer is freed with the datasource */
+ 
+-    coord_cache_free (view->coord_cache), view->coord_cache = NULL;
++    coord_cache_free (view->coord_cache);
++    view->coord_cache = NULL;
+ 
+     if (view->converter == INVALID_CONV)
+         view->converter = str_cnv_from_term;

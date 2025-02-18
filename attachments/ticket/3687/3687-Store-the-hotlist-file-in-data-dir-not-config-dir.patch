@@ -1,0 +1,55 @@
+From c79f3e9fb527df07f955ac8315c62b110df5a42d Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Thu, 8 Sep 2016 14:22:39 +0300
+Subject: [PATCH] Store the 'hotlist' file in data dir, not config dir.
+
+---
+ lib/mcconfig/paths.c                   | 4 +++-
+ tests/lib/mcconfig/user_configs_path.c | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/mcconfig/paths.c b/lib/mcconfig/paths.c
+index 4e2f2c5..13f1da3 100644
+--- a/lib/mcconfig/paths.c
++++ b/lib/mcconfig/paths.c
+@@ -69,7 +69,6 @@ static const struct
+     /* config */
+     { "ini",                                   &mc_config_str, MC_CONFIG_FILE},
+     { "filehighlight.ini",                     &mc_config_str, MC_FHL_INI_FILE},
+-    { "hotlist",                               &mc_config_str, MC_HOTLIST_FILE},
+     { "mc.keymap",                             &mc_config_str, GLOBAL_KEYMAP_FILE},
+     { "menu",                                  &mc_config_str, MC_USERMENU_FILE},
+     { "cedit" PATH_SEP_STR "Syntax",           &mc_config_str, EDIT_SYNTAX_FILE},
+@@ -90,6 +89,7 @@ static const struct
+     { "extfs.d",                               &mc_data_str, MC_EXTFS_DIR},
+     { "history",                               &mc_data_str, MC_HISTORY_FILE},
+     { "filepos",                               &mc_data_str, MC_FILEPOS_FILE},
++    { "hotlist",                               &mc_data_str, MC_HOTLIST_FILE},
+     { "cedit" PATH_SEP_STR "cooledit.clip",    &mc_data_str, EDIT_CLIP_FILE},
+     { "",                                      &mc_data_str, MC_MACRO_FILE},
+ 
+@@ -113,6 +113,8 @@ static const struct
+ } mc_config_migrate_rules_fix[] =
+ {
+     /* *INDENT-OFF* */
++    { &mc_config_str, MC_HOTLIST_FILE,                      &mc_data_str},
++
+     { &mc_data_str, MC_USERMENU_FILE,                       &mc_config_str},
+     { &mc_data_str, EDIT_SYNTAX_FILE,                       &mc_config_str},
+     { &mc_data_str, EDIT_HOME_MENU,                         &mc_config_str},
+diff --git a/tests/lib/mcconfig/user_configs_path.c b/tests/lib/mcconfig/user_configs_path.c
+index c56a7d8..b0a59e5 100644
+--- a/tests/lib/mcconfig/user_configs_path.c
++++ b/tests/lib/mcconfig/user_configs_path.c
+@@ -93,7 +93,7 @@ static const struct test_user_config_paths_ds
+         MC_FHL_INI_FILE
+     },
+     { /* 2. */
+-        CONF_MAIN,
++        CONF_DATA,
+         MC_HOTLIST_FILE
+     },
+     { /* 3. */
+-- 
+2.5.0
+

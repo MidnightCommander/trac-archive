@@ -1,0 +1,32 @@
+From 0fc457933952d417c626798489afc14d06a8cc28 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 4 Dec 2020 12:05:15 +0000
+Subject: [PATCH] (input.c) preserve input state after history dropdown abort
+
+By default input value is marked to replace at whole until first input
+but history dropdown abort will alter this state
+
+fix #4152
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/widget/input.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index b5cec7e6b..9293390f6 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -1153,11 +1153,9 @@ input_handle_char (WInput * in, int key)
+             input_complete_free (in);
+         input_execute_cmd (in, command);
+         v = MSG_HANDLED;
+-        if (in->first)
+-            input_update (in, TRUE);    /* needed to clear in->first */
+     }
+ 
+-    input_update (in, TRUE);
++    input_update (in, FALSE);
+     return v;
+ }
+ 

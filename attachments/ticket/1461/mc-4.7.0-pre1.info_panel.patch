@@ -1,0 +1,29 @@
+diff -Naur mc-4.7.0-pre1~/src/info.c mc-4.7.0-pre1/src/info.c
+--- mc-4.7.0-pre1~/src/info.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/src/info.c	2009-08-07 04:54:11.000000000 +0300
+@@ -145,14 +145,17 @@
+         str_printf (buff, _("Filesystem: %s"),
+ 		str_trunc (myfs_stats.mpoint, info->widget.cols - i18n_adjust));
+         addstr (str_term_form (buff->str));
++        g_string_set_size(buff,0);
+     case 11:
+ 	widget_move (&info->widget, 11, 3);
+         str_printf (buff, _("Accessed:  %s"), file_date (st.st_atime));
+         addstr (str_term_form (buff->str));
++        g_string_set_size(buff,0);
+     case 10:
+ 	widget_move (&info->widget, 10, 3);
+         str_printf (buff, _("Modified:  %s"), file_date (st.st_mtime));
+         addstr (str_term_form (buff->str));
++        g_string_set_size(buff,0);
+     case 9:
+ 	widget_move (&info->widget, 9, 3);
+ 	/* TRANSLATORS: "Status changed", like in the stat(2) man page */
+@@ -205,6 +208,7 @@
+             str_trunc (current_panel->dir.list [current_panel->selected].fname,
+ 				    info->widget.cols - i18n_adjust));
+             addstr (str_term_form (buff->str));
++            g_string_set_size(buff,0);
+ 	} else
+ 		addstr (_("File:       None"));
+      

@@ -1,0 +1,48 @@
+From 858023dc075842b87206f508f06d744db489d73c Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Thu, 30 May 2024 21:09:12 +0200
+Subject: [PATCH] clang: fix `-Wconstant-conversion` warning
+
+../../../src/filemanager/filegui.c:1413:35: warning: implicit conversion from 'int' to 'mode_t' (aka 'unsigned short') changes value from 262143 to 65535 [-Wconstant-conversion]
+                ctx->umask_kill = 0777777;
+                                ~ ^~~~~~~
+
+../../../src/filemanager/fileopctx.c:81:23: warning: implicit conversion from 'int' to 'mode_t' (aka 'unsigned short') changes value from 262143 to 65535 [-Wconstant-conversion]
+    ctx->umask_kill = 0777777;
+                    ~ ^~~~~~~
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ src/filemanager/filegui.c   | 2 +-
+ src/filemanager/fileopctx.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/filemanager/filegui.c b/src/filemanager/filegui.c
+index a74806e0f..ff8651bee 100644
+--- a/src/filemanager/filegui.c
++++ b/src/filemanager/filegui.c
+@@ -1410,7 +1410,7 @@ file_mask_dialog (file_op_context_t * ctx, gboolean only_one, const char *format
+             if (preserve)
+             {
+                 ctx->preserve = TRUE;
+-                ctx->umask_kill = 0777777;
++                ctx->umask_kill = ~umask (0);
+                 ctx->preserve_uidgid = (geteuid () == 0);
+             }
+             else
+diff --git a/src/filemanager/fileopctx.c b/src/filemanager/fileopctx.c
+index 72a51bafe..12f7f619e 100644
+--- a/src/filemanager/fileopctx.c
++++ b/src/filemanager/fileopctx.c
+@@ -78,7 +78,7 @@ file_op_context_new (FileOperation op)
+     ctx->stat_func = mc_lstat;
+     ctx->preserve = TRUE;
+     ctx->preserve_uidgid = (geteuid () == 0);
+-    ctx->umask_kill = 0777777;
++    ctx->umask_kill = ~umask (0);
+     ctx->erase_at_end = TRUE;
+     ctx->skip_all = FALSE;
+ 
+-- 
+2.39.3 (Apple Git-146)
+

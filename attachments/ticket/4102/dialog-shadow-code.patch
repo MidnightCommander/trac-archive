@@ -1,0 +1,449 @@
+Index: lib/tty/tty-ncurses.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/tty/tty-ncurses.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/tty/tty-ncurses.c	(date 1593962400976)
+@@ -48,6 +48,7 @@
+ 
+ #include "tty-internal.h"       /* mc_tty_normalize_from_utf8() */
+ #include "tty.h"
++#include "color.h"              /* tty_setcolor */
+ #include "color-internal.h"
+ #include "key.h"
+ #include "mouse.h"
+@@ -531,6 +532,38 @@
+     mc_curs_col = x;
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++
++void
++tty_colorize_area (int y, int x, int rows, int cols, int color)
++{
++    cchar_t *ctext;
++    wchar_t wch[10];   /* TODO not sure if the length is correct */
++    attr_t attrs;
++    short color_pair;
++
++    if (!use_colors || x < 0 || x >= COLS || y >= LINES)
++        return;
++
++    tty_setcolor (color);
++    ctext = malloc (sizeof(cchar_t) * (cols + 1));
++
++    for (int row = 0; row < rows; row++)
++    {
++        mvin_wchnstr (y + row, x, ctext, cols);
++
++        for (int col = 0; col < cols; col++)
++        {
++            getcchar (&ctext[col], wch, &attrs, &color_pair, NULL);
++            setcchar (&ctext[col], wch, attrs, color, NULL);
++        }
++
++        mvadd_wchnstr (y + row, x, ctext, cols);
++    }
++
++    free(ctext);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+Index: lib/tty/tty.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/tty/tty.h	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/tty/tty.h	(date 1593873069031)
+@@ -126,7 +126,9 @@
+ extern void tty_draw_hline (int y, int x, int ch, int len);
+ extern void tty_draw_vline (int y, int x, int ch, int len);
+ extern void tty_draw_box (int y, int x, int rows, int cols, gboolean single);
++extern void tty_draw_box_shadow (int y, int x, int rows, int cols, int shadow_color);
+ extern void tty_fill_region (int y, int x, int rows, int cols, unsigned char ch);
++extern void tty_colorize_area (int y, int x, int rows, int cols, int color);
+ 
+ extern int tty_resize (int fd);
+ extern void tty_refresh (void);
+Index: lib/tty/tty-slang.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/tty/tty-slang.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/tty/tty-slang.c	(date 1593956946141)
+@@ -622,6 +622,17 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++void
++tty_colorize_area (int y, int x, int rows, int cols, int color)
++{
++    if (!use_colors || x < 0 || x >= COLS || y >= LINES)
++        return;
++
++    SLsmg_set_color_in_region (color, y, x, rows, cols);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ void
+ tty_set_alt_charset (gboolean alt_charset)
+ {
+Index: lib/widget/frame.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/widget/frame.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/widget/frame.c	(date 1593961588862)
+@@ -39,6 +39,8 @@
+ #include "lib/util.h"           /* MC_PTR_FREE */
+ #include "lib/widget.h"
+ 
++#include "src/setup.h"          /* dialog_shadows */
++
+ /*** global variables ****************************************************************************/
+ 
+ /*** file scope macro definitions ****************************************************************/
+@@ -76,6 +78,9 @@
+ 
+     colors = widget_get_colors (w);
+ 
++    if (dialog_shadows)
++        tty_draw_box_shadow (w->y, w->x, w->lines, w->cols, SHADOW_COLOR);
++
+     tty_setcolor (colors[FRAME_COLOR_NORMAL]);
+     tty_fill_region (w->y, w->x, w->lines, w->cols, ' ');
+     tty_draw_box (w->y + d, w->x + d, w->lines - 2 * d, w->cols - 2 * d, f->single);
+Index: po/cs.po
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- po/cs.po	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ po/cs.po	(date 1593961588902)
+@@ -1967,6 +1967,9 @@
+ msgid "Rotating d&ash"
+ msgstr "&Točící se dopředné lomítko"
+ 
++msgid "Dialog shadows"
++msgstr "Okna vrhají stíny"
++
+ msgid "Cd follows lin&ks"
+ msgstr "cd následuje od&kazy"
+ 
+Index: lib/widget/menu.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/widget/menu.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/widget/menu.c	(date 1593961588934)
+@@ -43,6 +43,8 @@
+ #include "lib/widget.h"
+ #include "lib/event.h"          /* mc_event_raise() */
+ 
++#include "src/setup.h"          /* dialog_shadows */
++
+ /*** global variables ****************************************************************************/
+ 
+ const global_keymap_t *menu_map = NULL;
+@@ -187,6 +189,9 @@
+     if (column + menu->max_entry_len + 5 > (gsize) w->cols)
+         column = w->cols - menu->max_entry_len - 5;
+ 
++    if (dialog_shadows)
++        tty_draw_box_shadow (w->y + 1, w->x + column, count + 2, menu->max_entry_len + 5, SHADOW_COLOR);
++
+     tty_setcolor (MENU_ENTRY_COLOR);
+     tty_draw_box (w->y + 1, w->x + column, count + 2, menu->max_entry_len + 5, FALSE);
+ 
+Index: src/setup.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/setup.h	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ src/setup.h	(date 1593961318558)
+@@ -73,7 +73,7 @@
+ 
+ /*** global variables defined in .c file *********************************************************/
+ 
+-/* global paremeters */
++/* global parameters */
+ extern char *global_profile_name;
+ extern gboolean confirm_delete;
+ extern gboolean confirm_directory_hotlist_delete;
+@@ -86,6 +86,7 @@
+ extern gboolean clear_before_exec;
+ extern gboolean auto_menu;
+ extern gboolean drop_menus;
++extern gboolean dialog_shadows;
+ extern gboolean verbose;
+ extern gboolean copymove_persistent_attr;
+ extern gboolean classic_progressbar;
+Index: doc/man/mc.1.in
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- doc/man/mc.1.in	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ doc/man/mc.1.in	(date 1593961588886)
+@@ -1907,6 +1907,11 @@
+ Midnight Commander shows a rotating dash in the upper right corner
+ as a work in progress indicator.
+ .PP
++.I Dialog shadows.
++If this option is enabled, all dialogs and menus will have a "shadow"
++on the right and bottom side. If disabled, dialogs and menus will be
++just flat.
++.PP
+ .I Cd follows links.
+ This option, if set, causes Midnight Commander to follow the
+ logical chain of directories when changing current directory
+Index: lib/tty/tty.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/tty/tty.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/tty/tty.c	(date 1593962400956)
+@@ -264,6 +264,20 @@
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++void
++tty_draw_box_shadow (int y, int x, int rows, int cols, int shadow_color)
++{
++    if (rows <= 0 || cols <= 0)
++        return;
++
++    /* draw right shadow */
++    tty_colorize_area (y + 1, x + cols, rows - 1, 2, shadow_color);
++    /* draw bottom shadow */
++    tty_colorize_area (y + rows, x + 2, 1, cols, shadow_color);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ char *
+ mc_tty_normalize_from_utf8 (const char *str)
+ {
+Index: src/setup.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/setup.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ src/setup.c	(date 1593961318554)
+@@ -108,6 +108,8 @@
+ gboolean auto_menu = FALSE;
+ /* This flag indicates if the pull down menus by default drop down */
+ gboolean drop_menus = FALSE;
++/* If true, dialog and menu window will have a shadow (on the right and bottom side) */
++gboolean dialog_shadows = FALSE;
+ 
+ /* Asks for confirmation when using F3 to view a directory and there
+    are tagged files */
+@@ -360,6 +362,7 @@
+ #endif /* USE_INTERNAL_EDIT */
+     { "editor_ask_filename_before_edit", &editor_ask_filename_before_edit },
+     { "nice_rotating_dash", &nice_rotating_dash },
++    { "dialog_shadows", &dialog_shadows },
+     { "mcview_remember_file_position", &mcview_remember_file_position },
+     { "auto_fill_mkdir_name", &auto_fill_mkdir_name },
+     { "copymove_persistent_attr", &copymove_persistent_attr },
+Index: lib/skin.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/skin.h	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/skin.h	(date 1593891954560)
+@@ -22,92 +22,93 @@
+ #define REVERSE_COLOR             mc_skin_color__cache[6]
+ #define COMMAND_MARK_COLOR        mc_skin_color__cache[7]
+ #define HEADER_COLOR              mc_skin_color__cache[8]
++#define SHADOW_COLOR              mc_skin_color__cache[9]
+ 
+ /* Dialog colors */
+-#define COLOR_NORMAL              mc_skin_color__cache[9]
+-#define COLOR_FOCUS               mc_skin_color__cache[10]
+-#define COLOR_HOT_NORMAL          mc_skin_color__cache[11]
+-#define COLOR_HOT_FOCUS           mc_skin_color__cache[12]
+-#define COLOR_TITLE               mc_skin_color__cache[13]
++#define COLOR_NORMAL              mc_skin_color__cache[10]
++#define COLOR_FOCUS               mc_skin_color__cache[11]
++#define COLOR_HOT_NORMAL          mc_skin_color__cache[12]
++#define COLOR_HOT_FOCUS           mc_skin_color__cache[13]
++#define COLOR_TITLE               mc_skin_color__cache[14]
+ 
+ /* Error dialog colors */
+-#define ERROR_COLOR               mc_skin_color__cache[14]
+-#define ERROR_FOCUS               mc_skin_color__cache[15]
+-#define ERROR_HOT_NORMAL          mc_skin_color__cache[16]
+-#define ERROR_HOT_FOCUS           mc_skin_color__cache[17]
+-#define ERROR_TITLE               mc_skin_color__cache[18]
++#define ERROR_COLOR               mc_skin_color__cache[15]
++#define ERROR_FOCUS               mc_skin_color__cache[16]
++#define ERROR_HOT_NORMAL          mc_skin_color__cache[17]
++#define ERROR_HOT_FOCUS           mc_skin_color__cache[18]
++#define ERROR_TITLE               mc_skin_color__cache[19]
+ 
+ /* Menu colors */
+-#define MENU_ENTRY_COLOR          mc_skin_color__cache[19]
+-#define MENU_SELECTED_COLOR       mc_skin_color__cache[20]
+-#define MENU_HOT_COLOR            mc_skin_color__cache[21]
+-#define MENU_HOTSEL_COLOR         mc_skin_color__cache[22]
+-#define MENU_INACTIVE_COLOR       mc_skin_color__cache[23]
++#define MENU_ENTRY_COLOR          mc_skin_color__cache[20]
++#define MENU_SELECTED_COLOR       mc_skin_color__cache[21]
++#define MENU_HOT_COLOR            mc_skin_color__cache[22]
++#define MENU_HOTSEL_COLOR         mc_skin_color__cache[23]
++#define MENU_INACTIVE_COLOR       mc_skin_color__cache[24]
+ 
+ /* Popup menu colors */
+-#define PMENU_ENTRY_COLOR         mc_skin_color__cache[24]
+-#define PMENU_SELECTED_COLOR      mc_skin_color__cache[25]
+-#define PMENU_HOT_COLOR           mc_skin_color__cache[26]      /* unused: not implemented yet */
+-#define PMENU_HOTSEL_COLOR        mc_skin_color__cache[27]      /* unused: not implemented yet */
+-#define PMENU_TITLE_COLOR         mc_skin_color__cache[28]
++#define PMENU_ENTRY_COLOR         mc_skin_color__cache[25]
++#define PMENU_SELECTED_COLOR      mc_skin_color__cache[26]
++#define PMENU_HOT_COLOR           mc_skin_color__cache[27]      /* unused: not implemented yet */
++#define PMENU_HOTSEL_COLOR        mc_skin_color__cache[28]      /* unused: not implemented yet */
++#define PMENU_TITLE_COLOR         mc_skin_color__cache[29]
+ 
+-#define BUTTONBAR_HOTKEY_COLOR    mc_skin_color__cache[29]
+-#define BUTTONBAR_BUTTON_COLOR    mc_skin_color__cache[30]
++#define BUTTONBAR_HOTKEY_COLOR    mc_skin_color__cache[30]
++#define BUTTONBAR_BUTTON_COLOR    mc_skin_color__cache[31]
+ 
+-#define STATUSBAR_COLOR           mc_skin_color__cache[31]
++#define STATUSBAR_COLOR           mc_skin_color__cache[32]
+ 
+ /*
+  * This should be selectable independently. Default has to be black background
+  * foreground does not matter at all.
+  */
+-#define GAUGE_COLOR               mc_skin_color__cache[32]
+-#define INPUT_COLOR               mc_skin_color__cache[33]
+-#define INPUT_UNCHANGED_COLOR     mc_skin_color__cache[34]
+-#define INPUT_MARK_COLOR          mc_skin_color__cache[35]
+-#define INPUT_HISTORY_COLOR       mc_skin_color__cache[36]
+-#define COMMAND_HISTORY_COLOR     mc_skin_color__cache[37]
++#define GAUGE_COLOR               mc_skin_color__cache[33]
++#define INPUT_COLOR               mc_skin_color__cache[34]
++#define INPUT_UNCHANGED_COLOR     mc_skin_color__cache[35]
++#define INPUT_MARK_COLOR          mc_skin_color__cache[36]
++#define INPUT_HISTORY_COLOR       mc_skin_color__cache[37]
++#define COMMAND_HISTORY_COLOR     mc_skin_color__cache[38]
+ 
+-#define HELP_NORMAL_COLOR         mc_skin_color__cache[38]
+-#define HELP_ITALIC_COLOR         mc_skin_color__cache[39]
+-#define HELP_BOLD_COLOR           mc_skin_color__cache[40]
+-#define HELP_LINK_COLOR           mc_skin_color__cache[41]
+-#define HELP_SLINK_COLOR          mc_skin_color__cache[42]
+-#define HELP_TITLE_COLOR          mc_skin_color__cache[43]
++#define HELP_NORMAL_COLOR         mc_skin_color__cache[39]
++#define HELP_ITALIC_COLOR         mc_skin_color__cache[40]
++#define HELP_BOLD_COLOR           mc_skin_color__cache[41]
++#define HELP_LINK_COLOR           mc_skin_color__cache[42]
++#define HELP_SLINK_COLOR          mc_skin_color__cache[43]
++#define HELP_TITLE_COLOR          mc_skin_color__cache[44]
+ 
+ 
+-#define VIEW_NORMAL_COLOR         mc_skin_color__cache[44]
+-#define VIEW_BOLD_COLOR           mc_skin_color__cache[45]
+-#define VIEW_UNDERLINED_COLOR     mc_skin_color__cache[46]
+-#define VIEW_SELECTED_COLOR       mc_skin_color__cache[47]
++#define VIEW_NORMAL_COLOR         mc_skin_color__cache[45]
++#define VIEW_BOLD_COLOR           mc_skin_color__cache[46]
++#define VIEW_UNDERLINED_COLOR     mc_skin_color__cache[47]
++#define VIEW_SELECTED_COLOR       mc_skin_color__cache[48]
+ 
+ /*
+  * editor colors - only 4 for normal, search->found, select, and whitespace
+  * respectively
+  * Last is defined to view color.
+  */
+-#define EDITOR_NORMAL_COLOR       mc_skin_color__cache[48]
+-#define EDITOR_BOLD_COLOR         mc_skin_color__cache[49]
+-#define EDITOR_MARKED_COLOR       mc_skin_color__cache[50]
+-#define EDITOR_WHITESPACE_COLOR   mc_skin_color__cache[51]
+-#define EDITOR_RIGHT_MARGIN_COLOR mc_skin_color__cache[52]
+-#define EDITOR_BACKGROUND         mc_skin_color__cache[53]
+-#define EDITOR_FRAME              mc_skin_color__cache[54]
+-#define EDITOR_FRAME_ACTIVE       mc_skin_color__cache[55]
+-#define EDITOR_FRAME_DRAG         mc_skin_color__cache[56]
++#define EDITOR_NORMAL_COLOR       mc_skin_color__cache[49]
++#define EDITOR_BOLD_COLOR         mc_skin_color__cache[50]
++#define EDITOR_MARKED_COLOR       mc_skin_color__cache[51]
++#define EDITOR_WHITESPACE_COLOR   mc_skin_color__cache[52]
++#define EDITOR_RIGHT_MARGIN_COLOR mc_skin_color__cache[53]
++#define EDITOR_BACKGROUND         mc_skin_color__cache[54]
++#define EDITOR_FRAME              mc_skin_color__cache[55]
++#define EDITOR_FRAME_ACTIVE       mc_skin_color__cache[56]
++#define EDITOR_FRAME_DRAG         mc_skin_color__cache[57]
+ /* color of left 8 char status per line */
+-#define LINE_STATE_COLOR          mc_skin_color__cache[57]
+-#define BOOK_MARK_COLOR           mc_skin_color__cache[58]
+-#define BOOK_MARK_FOUND_COLOR     mc_skin_color__cache[59]
++#define LINE_STATE_COLOR          mc_skin_color__cache[58]
++#define BOOK_MARK_COLOR           mc_skin_color__cache[59]
++#define BOOK_MARK_FOUND_COLOR     mc_skin_color__cache[60]
+ 
+ /* Diff colors */
+-#define DFF_ADD_COLOR             mc_skin_color__cache[60]
+-#define DFF_CHG_COLOR             mc_skin_color__cache[61]
+-#define DFF_CHH_COLOR             mc_skin_color__cache[62]
+-#define DFF_CHD_COLOR             mc_skin_color__cache[63]
+-#define DFF_DEL_COLOR             mc_skin_color__cache[64]
+-#define DFF_ERROR_COLOR           mc_skin_color__cache[65]
++#define DFF_ADD_COLOR             mc_skin_color__cache[61]
++#define DFF_CHG_COLOR             mc_skin_color__cache[62]
++#define DFF_CHH_COLOR             mc_skin_color__cache[63]
++#define DFF_CHD_COLOR             mc_skin_color__cache[64]
++#define DFF_DEL_COLOR             mc_skin_color__cache[65]
++#define DFF_ERROR_COLOR           mc_skin_color__cache[66]
+ 
+-#define MC_SKIN_COLOR_CACHE_COUNT 66
++#define MC_SKIN_COLOR_CACHE_COUNT 67
+ 
+ /*** enums ***************************************************************************************/
+ 
+Index: lib/skin/colors.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/skin/colors.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ lib/skin/colors.c	(date 1593803753501)
+@@ -249,6 +249,7 @@
+     REVERSE_COLOR = mc_skin_color_get ("core", "reverse");
+     HEADER_COLOR = mc_skin_color_get ("core", "header");
+     COMMAND_MARK_COLOR = mc_skin_color_get ("core", "commandlinemark");
++    SHADOW_COLOR = mc_skin_color_get ("core", "shadow");
+ 
+     COLOR_NORMAL = mc_skin_color_get ("dialog", "_default_");
+     COLOR_FOCUS = mc_skin_color_get ("dialog", "dfocus");
+Index: src/filemanager/boxes.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/filemanager/boxes.c	(revision bdeaed5b78002aa6a63beed82736793a4d9d8d35)
++++ src/filemanager/boxes.c	(date 1593961318534)
+@@ -545,6 +545,7 @@
+                     QUICK_CHECKBOX (N_("Co&mplete: show all"),
+                                     &mc_global.widget.show_all_if_ambiguous, NULL),
+                     QUICK_CHECKBOX (N_("Rotating d&ash"), &nice_rotating_dash, NULL),
++                    QUICK_CHECKBOX (N_("Dialog shadows"), &dialog_shadows, NULL),
+                     QUICK_CHECKBOX (N_("Cd follows lin&ks"), &mc_global.vfs.cd_symlinks, NULL),
+                     QUICK_CHECKBOX (N_("Sa&fe delete"), &safe_delete, NULL),
+                     QUICK_CHECKBOX (N_("Safe overwrite"), &safe_overwrite, NULL),       /* w/o hotkey */

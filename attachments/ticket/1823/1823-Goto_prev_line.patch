@@ -1,0 +1,24 @@
+From ecd422d5a2b3f4a321d9887f1523531dd9b9e56c Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Fri, 13 Nov 2009 18:52:58 +0000
+Subject: [PATCH] Goto_prev_line
+
+---
+ edit/editcmd.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/edit/editcmd.c b/edit/editcmd.c
+index 48f1db6..c7d24a1 100644
+--- a/edit/editcmd.c
++++ b/edit/editcmd.c
+@@ -1969,7 +1969,7 @@ edit_goto_cmd (WEdit *edit)
+ 	return;
+     }
+ 
+-    line = l;
++    line = edit->curs_line + 1;
+     if (l < 0)
+ 	l = edit->total_lines + l + 2;
+     edit_move_display (edit, l - edit->num_widget_lines / 2 - 1);
+-- 
+1.6.4

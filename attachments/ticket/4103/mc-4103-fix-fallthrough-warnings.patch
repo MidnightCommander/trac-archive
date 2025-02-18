@@ -1,0 +1,128 @@
+From 3e950664aa8297e56983bbf1b94d765dc5ce3bc0 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 5 Dec 2020 11:51:30 +0000
+Subject: [PATCH] fix missing fallthrough label warnings
+
+Clang 11 is more ruthless against missing fallthrough label
+
+xstrtol.c:179:9: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+util.c:786:21: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+achown.c:495:9: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+hotlist.c:291:9: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+fish.c:942:9: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+datasource.c:357:5: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+edit.c:3429:5: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+edit.c:3457:5: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+edit.c:4001:9: error: unannotated fall-through between switch labels [-Werror,-Wimplicit-fallthrough]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/strutil/xstrtol.c     | 1 +
+ lib/util.c                | 1 +
+ src/editor/edit.c         | 3 +++
+ src/filemanager/achown.c  | 1 +
+ src/filemanager/hotlist.c | 1 +
+ src/vfs/fish/fish.c       | 1 +
+ src/viewer/datasource.c   | 1 +
+ 7 files changed, 9 insertions(+)
+
+diff --git a/lib/strutil/xstrtol.c b/lib/strutil/xstrtol.c
+index 070b3e6bb..4772c9a97 100644
+--- a/lib/strutil/xstrtol.c
++++ b/lib/strutil/xstrtol.c
+@@ -176,6 +176,7 @@ xstrtoumax (const char *s, char **ptr, int base, uintmax_t * val, const char *va
+                     break;
+                 }
+             }
++            MC_FALLTHROUGH;
+         default:
+             break;
+         }
+diff --git a/lib/util.c b/lib/util.c
+index 9f71d9a20..64963a7fe 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -783,6 +783,7 @@ strip_ctrl_codes (char *s)
+                             r = new_r + 1;
+                             goto osc_out;
+                         }
++                        MC_FALLTHROUGH;
+                     default:
+                         break;
+                     }
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e13be389a..7d6c29424 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3426,6 +3426,7 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+             edit->column_highlight = 0;
+             edit_mark_cmd (edit, TRUE);
+         }
++        MC_FALLTHROUGH;
+     default:
+         break;
+     }
+@@ -3454,6 +3455,7 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+     case CK_MarkLeft:
+     case CK_MarkRight:
+         edit->force |= REDRAW_CHAR_ONLY;
++        MC_FALLTHROUGH;
+     default:
+         break;
+     }
+@@ -3998,6 +4000,7 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+         case CK_DeleteToEnd:
+             format_paragraph (edit, FALSE);
+             edit->force |= REDRAW_PAGE;
++        MC_FALLTHROUGH;
+         default:
+             break;
+         }
+diff --git a/src/filemanager/achown.c b/src/filemanager/achown.c
+index 315d4103f..9fa82d737 100644
+--- a/src/filemanager/achown.c
++++ b/src/filemanager/achown.c
+@@ -492,6 +492,7 @@ chl_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *dat
+                 h->ret_value = parm;
+                 dlg_stop (h);
+             }
++            MC_FALLTHROUGH;
+         default:
+             break;
+         }
+diff --git a/src/filemanager/hotlist.c b/src/filemanager/hotlist.c
+index f0fe44486..e5d4d63fb 100644
+--- a/src/filemanager/hotlist.c
++++ b/src/filemanager/hotlist.c
+@@ -288,6 +288,7 @@ fill_listbox (WListbox * list)
+         case HL_TYPE_DOTDOT:
+         case HL_TYPE_ENTRY:
+             listbox_add_item (list, LISTBOX_APPEND_AT_END, 0, current->label, current, FALSE);
++            MC_FALLTHROUGH;
+         default:
+             break;
+         }
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index 5cd279f95..ad0ad85ef 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -939,6 +939,7 @@ fish_dir_load (struct vfs_class *me, struct vfs_s_inode *dir, char *remote_path)
+                 ST.st_rdev = makedev (maj, min);
+ #endif
+             }
++            MC_FALLTHROUGH;
+         default:
+             break;
+         }
+diff --git a/src/viewer/datasource.c b/src/viewer/datasource.c
+index 1f97e8dd1..b88b07b01 100644
+--- a/src/viewer/datasource.c
++++ b/src/viewer/datasource.c
+@@ -354,6 +354,7 @@ mcview_close_datasource (WView * view)
+         break;
+     case DS_STRING:
+         MC_PTR_FREE (view->ds_string_data);
++        MC_FALLTHROUGH;
+     default:
+         break;
+     }

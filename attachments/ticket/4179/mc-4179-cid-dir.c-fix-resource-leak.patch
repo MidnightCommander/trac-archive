@@ -1,0 +1,27 @@
+From 2cbecafae56983f7421ad6475de940c2ff2582b5 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Mon, 24 May 2021 17:41:08 +0000
+Subject: [PATCH] (dir.c) fix resource leak
+
+Fix Resource leak
+
+Found by Coverity
+Coverity id #331809
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/dir.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/filemanager/dir.c b/src/filemanager/dir.c
+index ffc6b656b..4795a6d92 100644
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -756,6 +756,7 @@ dir_list_reload (dir_list * list, const vfs_path_t * vpath, GCompareFunc sort,
+         if (!dir_list_init (list))
+         {
+             dir_list_free_list (&dir_copy);
++            mc_closedir (dirp);
+             return FALSE;
+         }
+ 

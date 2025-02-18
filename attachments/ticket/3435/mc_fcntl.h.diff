@@ -1,0 +1,411 @@
+diff --git a/lib/global.h b/lib/global.h
+index 0e7b8b6..3eaabaf 100644
+--- a/lib/global.h
++++ b/lib/global.h
+@@ -21,6 +21,11 @@
+ #include <sys/param.h>
+ #endif
+ 
++/* O_* macros */
++#ifdef HAVE_FCNTL_H
++#include <fcntl.h>
++#endif
++
+ /* for sig_atomic_t */
+ #include <signal.h>
+ 
+diff --git a/lib/mcconfig/common.c b/lib/mcconfig/common.c
+index 1d1944d..515fa29 100644
+--- a/lib/mcconfig/common.c
++++ b/lib/mcconfig/common.c
+@@ -25,7 +25,6 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
+-#include <fcntl.h>
+ #include <errno.h>              /* extern int errno */
+ 
+ #include "lib/global.h"
+diff --git a/lib/util.c b/lib/util.c
+index 37d5fba..db0557d 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -40,7 +40,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <fcntl.h>
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+diff --git a/lib/util.h b/lib/util.h
+index 3187451..dd2e697 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -5,13 +5,13 @@
+ #ifndef MC_UTIL_H
+ #define MC_UTIL_H
+ 
+-#include "lib/global.h"         /* include <glib.h> */
+-
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <inttypes.h>           /* uintmax_t */
+ #include <unistd.h>
+ 
++#include "lib/global.h"         /* include <glib.h> */
++
+ #include "lib/vfs/vfs.h"
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index 5764c8b..07093f7 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -44,7 +44,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <fcntl.h>
+ #ifdef HAVE_SYS_PARAM_H
+ #include <sys/param.h>
+ #endif
+diff --git a/lib/vfs/direntry.c b/lib/vfs/direntry.c
+index 1305c8e..afb4746 100644
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -58,8 +58,6 @@
+ #include <config.h>
+ 
+ #include <errno.h>
+-#include <fcntl.h>              /* include fcntl.h -> sys/fcntl.h only       */
+-                                /* includes fcntl.h see IEEE Std 1003.1-2008 */
+ #include <time.h>
+ #include <sys/time.h>           /* gettimeofday() */
+ #include <inttypes.h>           /* uintmax_t */
+diff --git a/lib/vfs/interface.c b/lib/vfs/interface.c
+index ca966c1..8c54a93 100644
+--- a/lib/vfs/interface.c
++++ b/lib/vfs/interface.c
+@@ -41,7 +41,6 @@
+ #include <sys/types.h>
+ #include <signal.h>
+ #include <ctype.h>              /* is_digit() */
+-#include <fcntl.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
+ #include <dirent.h>
+diff --git a/lib/vfs/vfs.h b/lib/vfs/vfs.h
+index 309072d..037f889 100644
+--- a/lib/vfs/vfs.h
++++ b/lib/vfs/vfs.h
+@@ -14,7 +14,6 @@
+ #include <utime.h>
+ #endif
+ #include <stdio.h>
+-#include <fcntl.h>
+ #include <unistd.h>
+ #include <stddef.h>
+ 
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index 917c818..5531aad 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -33,7 +33,6 @@
+ #include <string.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+-#include <fcntl.h>              /* open() */
+ 
+ #include "lib/global.h"
+ 
+diff --git a/lib/widget/history.c b/lib/widget/history.c
+index b1fb5eb..8b1e724 100644
+--- a/lib/widget/history.c
++++ b/lib/widget/history.c
+@@ -40,7 +40,6 @@
+ #include <string.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ 
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index 070c6dc..9c0d0c0 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -37,7 +37,6 @@
+ #include <stdlib.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ 
+diff --git a/src/background.c b/src/background.c
+index 580aef7..31bd752 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -42,7 +42,6 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/wait.h>           /* waitpid() */
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ 
+diff --git a/src/clipboard.c b/src/clipboard.c
+index 7395ea0..26745f6 100644
+--- a/src/clipboard.c
++++ b/src/clipboard.c
+@@ -29,7 +29,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <sys/types.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ #include "lib/fileloc.h"
+diff --git a/src/cons.handler.c b/src/cons.handler.c
+index a52bd07..365b2e8 100644
+--- a/src/cons.handler.c
++++ b/src/cons.handler.c
+@@ -30,7 +30,6 @@
+ #include <sys/wait.h>
+ #include <signal.h>
+ #include <stdio.h>
+-#include <fcntl.h>
+ #include <sys/types.h>
+ #ifdef __FreeBSD__
+ #include <sys/consio.h>
+diff --git a/src/consaver/cons.saver.c b/src/consaver/cons.saver.c
+index 78ae632..5068994 100644
+--- a/src/consaver/cons.saver.c
++++ b/src/consaver/cons.saver.c
+@@ -64,7 +64,9 @@
+ #ifdef HAVE_SYS_IOCTL_H
+ #include <sys/ioctl.h>
+ #endif
++#ifdef HAVE_FCNTL_H
+ #include <fcntl.h>
++#endif
+ #include <termios.h>
+ 
+ #include "lib/unixcompat.h"     /* STDERR_FILENO */
+diff --git a/src/diffviewer/ydiff.c b/src/diffviewer/ydiff.c
+index c39cc30..ab6388c 100644
+--- a/src/diffviewer/ydiff.c
++++ b/src/diffviewer/ydiff.c
+@@ -28,7 +28,6 @@
+ #include <config.h>
+ #include <ctype.h>
+ #include <errno.h>
+-#include <fcntl.h>
+ #include <stdlib.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index 3fae74b..877621a 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -42,7 +42,6 @@
+ #include <sys/stat.h>
+ #include <stdint.h>             /* UINTMAX_MAX */
+ #include <stdlib.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ 
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 534a272..246e84d 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -48,7 +48,6 @@
+ #include <errno.h>
+ #include <sys/stat.h>
+ #include <stdlib.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ #include "lib/tty/tty.h"
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 031fb10..e23ac01 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -46,7 +46,6 @@
+ #endif
+ #include <unistd.h>
+ #include <stdlib.h>
+-#include <fcntl.h>
+ #include <pwd.h>
+ #include <grp.h>
+ #include <sys/time.h>
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index 0967ac6..acaa194 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -59,7 +59,6 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ #include "lib/tty/tty.h"
+diff --git a/src/filemanager/find.c b/src/filemanager/find.c
+index 98604fd..06b6dc4 100644
+--- a/src/filemanager/find.c
++++ b/src/filemanager/find.c
+@@ -35,7 +35,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <fcntl.h>
+ #include <sys/stat.h>
+ #include <sys/time.h>
+ 
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index 2a17ec9..b515ea8 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -39,7 +39,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/wait.h>
+diff --git a/src/subshell.c b/src/subshell.c
+index c91635c..49a32cd 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -39,7 +39,6 @@
+ #include <errno.h>
+ #include <string.h>
+ #include <signal.h>
+-#include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/wait.h>
+ #ifdef HAVE_SYS_IOCTL_H
+diff --git a/src/vfs/cpio/cpio.c b/src/vfs/cpio/cpio.c
+index e53e203..d30c1a5 100644
+--- a/src/vfs/cpio/cpio.c
++++ b/src/vfs/cpio/cpio.c
+@@ -33,7 +33,6 @@
+ #include <config.h>
+ 
+ #include <errno.h>
+-#include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ 
+diff --git a/src/vfs/extfs/extfs.c b/src/vfs/extfs/extfs.c
+index 7aaf3b7..2147a2e 100644
+--- a/src/vfs/extfs/extfs.c
++++ b/src/vfs/extfs/extfs.c
+@@ -47,7 +47,6 @@
+ #include <sys/stat.h>
+ #include <unistd.h>
+ #include <signal.h>
+-#include <fcntl.h>
+ #include <errno.h>
+ #include <sys/wait.h>
+ 
+diff --git a/src/vfs/fish/fish.c b/src/vfs/fish/fish.c
+index af5c190..5be222c 100644
+--- a/src/vfs/fish/fish.c
++++ b/src/vfs/fish/fish.c
+@@ -52,7 +52,6 @@
+ 
+ #include <config.h>
+ #include <errno.h>
+-#include <fcntl.h>
+ #include <pwd.h>
+ #include <grp.h>
+ #include <sys/time.h>           /* gettimeofday() */
+diff --git a/src/vfs/ftpfs/ftpfs.c b/src/vfs/ftpfs/ftpfs.c
+index 3acc602..c84abf0 100644
+--- a/src/vfs/ftpfs/ftpfs.c
++++ b/src/vfs/ftpfs/ftpfs.c
+@@ -91,7 +91,6 @@ What to do with this?
+ #endif
+ #include <errno.h>
+ #include <ctype.h>
+-#include <fcntl.h>
+ #include <sys/time.h>           /* gettimeofday() */
+ #include <inttypes.h>           /* uintmax_t */
+ 
+diff --git a/src/vfs/local/local.c b/src/vfs/local/local.c
+index ededc25..7ea70f2 100644
+--- a/src/vfs/local/local.c
++++ b/src/vfs/local/local.c
+@@ -31,7 +31,6 @@
+ #include <unistd.h>
+ #include <stdio.h>
+ #include <string.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ 
+diff --git a/src/vfs/sfs/sfs.c b/src/vfs/sfs/sfs.c
+index cf97a0f..d864c46 100644
+--- a/src/vfs/sfs/sfs.c
++++ b/src/vfs/sfs/sfs.c
+@@ -43,7 +43,6 @@
+ #include <unistd.h>
+ #include <stdio.h>
+ #include <string.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ #include "lib/util.h"
+diff --git a/src/vfs/tar/tar.c b/src/vfs/tar/tar.c
+index ade464c..74e1232 100644
+--- a/src/vfs/tar/tar.c
++++ b/src/vfs/tar/tar.c
+@@ -39,7 +39,6 @@
+ #include <sys/types.h>
+ #include <errno.h>
+ #include <ctype.h>
+-#include <fcntl.h>
+ 
+ #ifdef hpux
+ /* major() and minor() macros (among other things) defined here for hpux */
+diff --git a/src/vfs/undelfs/undelfs.c b/src/vfs/undelfs/undelfs.c
+index a8e4dd4..2ad8be2 100644
+--- a/src/vfs/undelfs/undelfs.c
++++ b/src/vfs/undelfs/undelfs.c
+@@ -48,7 +48,6 @@
+ #include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+-#include <fcntl.h>
+ 
+ #ifdef HAVE_EXT2FS_EXT2_FS_H
+ #include <ext2fs/ext2_fs.h>
+diff --git a/src/viewer/hex.c b/src/viewer/hex.c
+index c12bebe..e17b9ae 100644
+--- a/src/viewer/hex.c
++++ b/src/viewer/hex.c
+@@ -36,7 +36,6 @@
+ #include <config.h>
+ 
+ #include <errno.h>
+-#include <fcntl.h>
+ #include <inttypes.h>           /* uintmax_t */
+ 
+ #include "lib/global.h"
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index 52ecd01..a34099b 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -35,7 +35,6 @@
+ 
+ #include <config.h>
+ #include <errno.h>
+-#include <fcntl.h>
+ 
+ #include "lib/global.h"
+ #include "lib/tty/tty.h"

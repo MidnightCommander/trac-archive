@@ -1,0 +1,11 @@
+--- mc/lib/tty/tty-slang.c.orig	2011-02-09 08:39:00.000000000 +0300
++++ mc/lib/tty/tty-slang.c	2011-02-09 08:39:15.000000000 +0300
+@@ -247,7 +247,7 @@
+ 
+     SLtt_Ignore_Beep = 1;
+     SLtt_get_terminfo ();
+-    SLutf8_enable (-1);
++    SLutf8_enable (1);
+     /*
+      * If the terminal in not in terminfo but begins with a well-known
+      * string such as "linux" or "xterm" S-Lang will go on, but the

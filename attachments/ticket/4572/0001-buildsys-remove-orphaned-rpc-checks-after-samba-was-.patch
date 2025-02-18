@@ -1,0 +1,51 @@
+From dadd359a74be665dae30788b7952f7b8c41e2e80 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Mon, 23 Sep 2024 18:01:15 +0200
+Subject: [PATCH] buildsys: remove orphaned rpc checks after samba was deleted
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ m4.include/mc-vfs.m4  |  2 --
+ m4.include/vfs/rpc.m4 | 17 -----------------
+ 2 files changed, 19 deletions(-)
+ delete mode 100644 m4.include/vfs/rpc.m4
+
+diff --git a/m4.include/mc-vfs.m4 b/m4.include/mc-vfs.m4
+index 82567bda3..63a5dbfd0 100644
+--- a/m4.include/mc-vfs.m4
++++ b/m4.include/mc-vfs.m4
+@@ -41,8 +41,6 @@ AC_DEFUN([mc_ENABLE_VFS_NET],
+ #include <sys/socket.h>
+ 	    ])
+ 
+-	AC_CHECK_RPC
+-
+ 	enable_vfs_net=yes
+ 	AC_DEFINE(ENABLE_VFS_NET, [1], [Define to enable network VFSes support])
+     fi
+diff --git a/m4.include/vfs/rpc.m4 b/m4.include/vfs/rpc.m4
+deleted file mode 100644
+index 43490d9db..000000000
+--- a/m4.include/vfs/rpc.m4
++++ /dev/null
+@@ -1,17 +0,0 @@
+-AC_DEFUN([AC_CHECK_RPC],
+-[
+-      AC_CHECK_FUNCS(pmap_set, , [
+-	 AC_CHECK_LIB(rpc, pmap_set, [
+-	   LIBS="-lrpc $LIBS"
+-	  AC_DEFINE(HAVE_PMAP_SET)
+-	  ])])
+-      AC_CHECK_FUNCS(pmap_getport pmap_getmaps rresvport)
+-      dnl add for source routing support setsockopt
+-      AC_CHECK_HEADERS(rpc/pmap_clnt.h, , , [
+-#include <sys/types.h>
+-#include <sys/socket.h>
+-#include <netinet/in.h>
+-#include <rpc/rpc.h>
+-#include <rpc/pmap_prot.h>
+-					    ])
+-])
+-- 
+2.39.5 (Apple Git-154)
+

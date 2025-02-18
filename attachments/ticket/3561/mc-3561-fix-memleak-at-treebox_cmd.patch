@@ -1,0 +1,56 @@
+From 11cddf5ca5889725e2cea0b0ad6826272faa792b Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 20 Nov 2015 19:51:10 +0000
+Subject: [PATCH] fix memleak at treebox_cmd()
+
+found by Clang/LeakSanitizer
+
+Direct leak of 64 byte(s) in 4 object(s) allocated from:
+    #0 0x4ca0d8 in realloc (/usr/bin/mc+0x4ca0d8)
+    #1 0x7fe81488c5cd in g_realloc (/usr/lib64/libglib-2.0.so.0+0x665cd)
+    #2 0x7fe8148b6840 in g_string_insert_len (/usr/lib64/libglib-2.0.so.0+0x90840)
+    #3 0x7fe815542c63 in vfs_path_to_str_flags /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/vfs/path.c:689:13
+    #4 0x7fe815543506 in vfs_path_from_str_flags /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/vfs/path.c:746:18
+    #5 0x7fe815546189 in vfs_path_build_filename /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/vfs/path.c:1243:13
+    #6 0x7fe815546340 in vfs_path_append_new /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/vfs/path.c:1275:17
+    #7 0x552c73 in tree_store_mark_checked /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/treestore.c:764:16
+    #8 0x5f93e4 in handle_dirent /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/dir.c:173:9
+    #9 0x5f8e64 in dir_list_load /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/dir.c:658:14
+    #10 0x5389df in _do_panel_cd /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/panel.c:3269:5
+    #11 0x53877e in do_panel_cd /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/panel.c:4627:9
+    #12 0x53a644 in do_cd /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/panel.c:5027:11
+    #13 0x52fd9a in treebox_cmd /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/midnight.c:159:9
+    #14 0x52f3cc in midnight_execute_cmd /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/midnight.c:1367:9
+    #15 0x7fe81556b229 in menubar_execute /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/widget/menu.c:341:9
+    #16 0x7fe815569872 in menubar_handle_key /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/widget/menu.c:539:13
+    #17 0x7fe8155678d0 in menubar_callback /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/widget/menu.c:597:13
+    #18 0x7fe8155514b3 in dlg_try_hotkey /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/widget/dialog.c:450:19
+    #19 0x7fe815550860 in dlg_key_event /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/widget/dialog.c:509:19
+    #20 0x7fe815550d22 in frontend_dlg_run /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/widget/dialog.c:570:9
+    #21 0x7fe815550a25 in dlg_run /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/lib/widget/dialog.c:1267:5
+    #22 0x52d5fd in do_nc /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/filemanager/midnight.c:1757:9
+    #23 0x4fb287 in main /tmp/portage/app-misc/mc-4.8.15/work/mc-4.8.15/src/main.c:418:21
+    #24 0x7fe81395f9e3 in __libc_start_main (/lib64/libc.so.6+0x209e3)
+    #25 0x427248 in _start (/usr/bin/mc+0x427248)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/treestore.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/treestore.c b/src/filemanager/treestore.c
+index 52d1f84..ed6ee35 100644
+--- a/src/filemanager/treestore.c
++++ b/src/filemanager/treestore.c
+@@ -774,7 +774,7 @@ tree_store_mark_checked (const char *subname)
+         current = tree_store_add_entry (name);
+         ts.add_queue_vpath = g_list_prepend (ts.add_queue_vpath, vfs_path_clone (name));
+     }
+-    g_free (name);
++    vfs_path_free (name);
+ 
+     /* Clear the deletion mark from the subdirectory and its children */
+     base = current;
+-- 
+2.4.10
+

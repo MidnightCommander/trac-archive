@@ -1,0 +1,634 @@
+diff --git a/lib/util.c b/lib/util.c
+index 4c4aeb0..e6cfa56 100644
+--- a/lib/util.c
++++ b/lib/util.c
+@@ -846,6 +846,15 @@ get_compression_type (int fd, const char *name)
+         }
+     }
+ 
++    /* JPEG files GIF8 */
++    if (((magic[0] == 'G') && (magic[1] == 'I') && (magic[2] == 'F') && (magic[3] == '8')) || /* GIF */
++        ((magic[0] == 0x89) && (magic[1] == 'P') && (magic[2] == 'N') && (magic[3] == 'G')) || /* PNG */
++        ((magic[0] == 0xff) && (magic[1] == 0xd8) && (magic[2] == 0xff) && ((magic[3]&0xfe) == 0xe0)) /* JFIF or EXIF ff d8 ff e{0,1} */
++    )
++    {
++        return COMPRESSION_IMG;
++    }
++
+     /* Support for LZMA (only utils format with magic in header).
+      * This is the default format of LZMA utils 4.32.1 and later. */
+ 
+@@ -890,6 +899,8 @@ decompress_extension (int type)
+         return "/ulzma" VFS_PATH_URL_DELIMITER;
+     case COMPRESSION_XZ:
+         return "/uxz" VFS_PATH_URL_DELIMITER;
++    case COMPRESSION_IMG:
++        return "/img" VFS_PATH_URL_DELIMITER;
+     }
+     /* Should never reach this place */
+     fprintf (stderr, "Fatal: decompress_extension called with an unknown argument\n");
+diff --git a/lib/util.h b/lib/util.h
+index f0c0ee2..d4a3c0f 100644
+--- a/lib/util.h
++++ b/lib/util.h
+@@ -44,7 +44,9 @@ enum compression_type
+     COMPRESSION_BZIP,
+     COMPRESSION_BZIP2,
+     COMPRESSION_LZMA,
+-    COMPRESSION_XZ
++    COMPRESSION_XZ,
++
++    COMPRESSION_IMG,
+ };
+ 
+ /*** structures declarations (and typedefs of structures)*****************************************/
+diff --git a/misc/ext.d/image.sh b/misc/ext.d/image.sh
+index 61e3bc2..747b6b4 100644
+--- a/misc/ext.d/image.sh
++++ b/misc/ext.d/image.sh
+@@ -6,6 +6,8 @@
+ action=$1
+ filetype=$2
+ 
++IMG2TXT=img2txt
++command -v img2txt -h 1>/dev/null 2>&1 || IMG2TXT='echo -n ""'
+ [ -n "${MC_XDG_OPEN}" ] || MC_XDG_OPEN="xdg-open"
+ 
+ do_view_action() {
+@@ -13,13 +15,15 @@ do_view_action() {
+ 
+     case "${filetype}" in
+     jpeg)
+-        identify "${MC_EXT_FILENAME}"; test -x /usr/bin/exif && echo && exif "${MC_EXT_FILENAME}" 2>/dev/null
++        identify "${MC_EXT_FILENAME}"
++        $IMG2TXT "${MC_EXT_FILENAME}"; test -x /usr/bin/exif && echo "[9999m" && exif "${MC_EXT_FILENAME}" 2>/dev/null
+         ;;
+     xpm)
+         sxpm "${MC_EXT_FILENAME}"
+         ;;
+     *)
+         identify "${MC_EXT_FILENAME}"
++        $IMG2TXT "${MC_EXT_FILENAME}"
+         ;;
+     esac
+ }
+diff --git a/src/vfs/extfs/helpers/sfs.ini b/src/vfs/extfs/helpers/sfs.ini
+index 522cca1..cc564c6 100644
+--- a/src/vfs/extfs/helpers/sfs.ini
++++ b/src/vfs/extfs/helpers/sfs.ini
+@@ -26,3 +26,5 @@ cr/1	fromdos < %1 > %3
+ url:2	lynx -source `echo "%2" | sed 's-|-/-g'` > %3
+ nop/1	cat %1 > %3
+ strings/1	strings %1 > %3
++
++img/1	img2txt > %3 %1
+diff --git a/src/viewer/Makefile.am b/src/viewer/Makefile.am
+index 53bc7a4..d92d1f4 100644
+--- a/src/viewer/Makefile.am
++++ b/src/viewer/Makefile.am
+@@ -17,6 +17,7 @@ libmcviewer_la_SOURCES = \
+ 	move.c \
+ 	nroff.c \
+ 	plain.c \
++	ansi.c \
+ 	search.c
+ 
+ AM_CPPFLAGS = -I$(top_srcdir) $(GLIB_CFLAGS) $(PCRE_CPPFLAGS)
+diff --git a/src/viewer/ansi.c b/src/viewer/ansi.c
+new file mode 100644
+index 0000000..e30b504
+--- /dev/null
++++ b/src/viewer/ansi.c
+@@ -0,0 +1,331 @@
++/*
++   Internal file viewer for the Midnight Commander
++   Function for raw (ansi) view
++
++   Copyright (C) 1994, 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003,
++   2004, 2005, 2006, 2007, 2009, 2011
++   The Free Software Foundation, Inc.
++
++   Written by:
++   Gergely Szasz 2013
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <config.h>
++
++#include "lib/global.h"
++#include "lib/tty/tty.h"
++#include "lib/skin.h"
++#include "lib/util.h"           /* is_printable() */
++#ifdef HAVE_CHARSET
++#include "lib/charsets.h"
++#endif
++
++#include "src/setup.h"          /* option_tab_spacing */
++
++#include "internal.h"
++#include "mcviewer.h"           /* mcview_show_eof */
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++/* we play maximum 1M files */
++#define MAX_ANSI_SIZE (1024*1024)
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++static const char *color_names[] = {
++    "black", "red", "green", "brown", "blue", "magenta", "cyan", "lightgray",
++    "gray", "brightred", "brightgreen", "yellow", "brightblue", "brightmagenta", "brightcyan", "white",
++};
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++static const char *get_color (int color, int bright) {
++    return bright ? color_names[0 + color] : color_names[8 + color];
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++/* --------------------------------------------------------------------------------------------- */
++
++enum nroff_high_type
++get_nroff_high_type (mcview_t * view)
++{
++    int c, state = 0;
++    off_t i = 0;
++
++    if (mcview_get_filesize(view) > MAX_ANSI_SIZE)
++      return NROFF_HIGH_NROFF;
++
++    while (i < 256)
++    {
++        if (!mcview_get_byte (view, i++, &c))
++          break;
++        if (state == 0 && c == 033)
++        {
++            state = 1;
++        }
++        else if (state == 1 && c == '[')
++        {
++            state = 2;
++        }
++        else if (state == 2 && c >= '0' && c <= '9')
++        {
++            return NROFF_HIGH_ANSI;
++        }
++        else
++        {
++            state = 0;
++        }
++    }
++    return NROFF_HIGH_NROFF;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++#define ANSI_NONE 0
++#define ANSI_ESC 1
++#define ANSI_SQUARE 2
++#define ANSI_ANSI 3
++
++void
++mcview_display_ansi (mcview_t * view)
++{
++    const screen_dimen left = view->data_area.left;
++    const screen_dimen top = view->data_area.top;
++    const screen_dimen width = view->data_area.width;
++    const screen_dimen height = view->data_area.height;
++    screen_dimen row = 0, col = 0;
++    off_t from, chk_from = 0;
++    int cw = 1;
++    int c, prev_ch = 0;
++    gboolean last_row = TRUE;
++/*    struct hexedit_change_node *curr = view->change_list; */
++    int ansi_state = ANSI_NONE, ansi_check = 0, fg = 0, bg = 0, br = 0, bl = 0;
++    int ansi_puffer_idx = -1, ansi_puffer_i = 0;
++    char ansi_puffer[128];
++
++    mcview_display_clean (view);
++    mcview_display_ruler (view);
++
++    /* Find the first displayable changed byte */
++    from = view->dpy_start;
++    if (from > 0)
++    {
++         c = 'x';
++         chk_from = from;
++         while (from > 0)
++         {
++             mcview_get_byte (view, --from, &c);
++             if (c == '\r' || c == '\n') {
++               from++;
++               break;
++             }
++         }
++         ansi_check = 1; /* now from == start of line; chck_from = real from*/
++     }
++/*    while ((curr != NULL) && (curr->offset < from))
++        curr = curr->next; */
++
++    tty_setcolor (NORMAL_COLOR);
++    while (TRUE)
++    {
++
++        if (row >= height)
++            break;
++
++        if (ansi_state != ANSI_NONE && ansi_puffer_idx >= 127) {
++            ansi_puffer_idx = -1;
++            ansi_state = ANSI_NONE;
++        }
++        if (ansi_state == ANSI_NONE && ansi_puffer_idx >= 0) {
++          c = ansi_puffer[ansi_puffer_i++];
++          ansi_puffer_idx--;
++        } else {
++#ifdef HAVE_CHARSET
++            if (view->utf8)
++            {
++                gboolean read_res = TRUE;
++
++                c = mcview_get_utf (view, from, &cw, &read_res);
++                if (!read_res)
++                    break;
++            }
++            else
++#endif
++            if (!mcview_get_byte (view, from, &c))
++                break;
++            from++;
++            if (cw > 1)
++                from += cw - 1;
++        }
++
++        last_row = FALSE;
++
++        if (ansi_state == ANSI_NONE && c == '\033') { /* ESC? */
++          ansi_state = ANSI_ESC;
++          ansi_puffer[(ansi_puffer_i = ansi_puffer_idx = 0)] = c;
++          continue;
++        } else if (ansi_state == ANSI_ESC) { /* ^[ ? */
++            ansi_puffer[++ansi_puffer_idx] = c;
++            if (c == '[') {
++                ansi_state = ANSI_SQUARE;
++                continue;
++             } else {
++                ansi_puffer_idx = -1;
++                ansi_state = ANSI_NONE;
++            }
++        } else if (ansi_state == ANSI_SQUARE) { /* ^[ ? */
++            ansi_puffer[++ansi_puffer_idx] = c;
++            if (c == ';' || (c >= '0' && c <= '9')) {
++                ansi_state = ANSI_SQUARE;
++                continue;
++            } else if (c == 'm') {    /* ^[#;#;#m */
++                int color;
++                int num = 0, n = 0, i = 2;
++
++                ansi_puffer[ansi_puffer_idx++] = ';'; /* ^[#;#;#; */
++                ansi_puffer[ansi_puffer_idx] = '\0';
++                while (sscanf(ansi_puffer+i, "%d;%n", &num, &n) == 1) {
++                    if (num == 0 )
++                      br = bl = 0;
++                    else if (num == 1)
++                      br = 1;
++                    else if (num == 5)
++                      bl = 1;
++                    else if (num >= 30 && num <= 37)
++                      fg = num - 30;
++                    else if (num >= 40 && num <= 47)
++                      bg = num - 40;
++                    else if (num == 9999)
++                      fg = -1;
++                    i += n;
++                }
++                if (fg == -1)
++                {
++                    tty_setcolor (NORMAL_COLOR);
++                }
++                else
++                {
++                    color = tty_try_alloc_color_pair(get_color(fg, br), get_color(bg, bl), NULL);
++                    tty_setcolor(color);
++                }
++                ansi_puffer_idx = -1;
++                ansi_state = ANSI_NONE;
++                continue;
++             } else {
++                ansi_puffer_idx = -1;
++                ansi_state = ANSI_NONE;
++                continue;
++            }
++        }
++        if (ansi_check && from < chk_from)
++        {
++            continue;
++        }
++        else if (ansi_check && from >= chk_from)
++        {
++            ansi_check = 0;
++        }
++
++        if (c != '\n' && prev_ch == '\r')
++        {
++            if (++row >= height)
++                break;
++
++            col = 0;
++        }
++
++        prev_ch = c;
++        if (c == '\r')
++            continue;
++
++        if (c == '\n')
++        {
++            col = 0;
++            row++;
++            continue;
++        }
++
++
++        if (c == '\t')
++        {
++            col += (option_tab_spacing - col % option_tab_spacing);
++            continue;
++        }
++
++        if (0 && view->search_start <= from && from < view->search_end) /****INFO no search highlite */
++            tty_setcolor (SELECTED_COLOR);
++
++        if (((off_t) col >= view->dpy_text_column)
++            && ((off_t) col - view->dpy_text_column < (off_t) width))
++        {
++            widget_move (view, top + row, left + ((off_t) col - view->dpy_text_column));
++#ifdef HAVE_CHARSET
++            if (mc_global.utf8_display)
++            {
++                if (!view->utf8)
++                    c = convert_from_8bit_to_utf_c ((unsigned char) c, view->converter);
++                if (!g_unichar_isprint (c))
++                    c = '.';
++            }
++            else if (view->utf8)
++                c = convert_from_utf_to_current_c (c, view->converter);
++            else
++#endif
++            {
++#ifdef HAVE_CHARSET
++                c = convert_to_display_c (c);
++#endif
++                if (!is_printable (c))
++                    c = '.';
++            }
++
++            tty_print_anychar (c);
++        }
++
++        col++;
++
++#ifdef HAVE_CHARSET
++        if (view->utf8)
++        {
++            if (g_unichar_iswide (c))
++                col++;
++            else if (g_unichar_iszerowidth (c))
++                col--;
++        }
++#endif
++    }
++
++    view->dpy_end = from;
++    if (mcview_show_eof != NULL && mcview_show_eof[0] != '\0')
++    {
++        if (last_row && mcview_get_byte (view, from - 1, &c))
++            if (c != '\n')
++                row--;
++        while (++row < height)
++        {
++            widget_move (view, top + row, left);
++            tty_print_string (mcview_show_eof);
++        }
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/src/viewer/display.c b/src/viewer/display.c
+index 41606c5..9780cf6 100644
+--- a/src/viewer/display.c
++++ b/src/viewer/display.c
+@@ -235,7 +235,10 @@ mcview_display (mcview_t * view)
+     }
+     else if (view->text_nroff_mode)
+     {
+-        mcview_display_nroff (view);
++        if (view->nroff_high_type ==  NROFF_HIGH_ANSI)
++            mcview_display_ansi (view);
++        else
++            mcview_display_nroff (view);
+     }
+     else
+     {
+diff --git a/src/viewer/internal.h b/src/viewer/internal.h
+index 79728d2..0dc6033 100644
+--- a/src/viewer/internal.h
++++ b/src/viewer/internal.h
+@@ -26,6 +26,9 @@ extern const off_t OFFSETTYPE_MAX;
+ 
+ /*** enums ***************************************************************************************/
+ 
++#define WRAP_MODE_DISABLED(view) (view->text_nroff_mode && view->nroff_high_type == NROFF_HIGH_ANSI)
++#define TEXT_WRAP_MODE(view) (view->text_wrap_mode && !WRAP_MODE_DISABLED(view))
++
+ /* data sources of the view */
+ enum view_ds
+ {
+@@ -42,6 +45,13 @@ enum ccache_type
+     CCACHE_LINECOL
+ };
+ 
++enum nroff_high_type
++{
++    NROFF_HIGH_UNCHECKED = -1,
++    NROFF_HIGH_NROFF = 0,
++    NROFF_HIGH_ANSI = 1,
++};
++
+ typedef enum
+ {
+     NROFF_TYPE_NONE = 0,
+@@ -131,6 +141,7 @@ typedef struct mcview_struct
+     gboolean magic_mode;        /* Preprocess the file using external programs */
+     gboolean hexedit_lownibble; /* Are we editing the last significant nibble? */
+     gboolean locked;            /* We hold lock on current file */
++    enum nroff_high_type nroff_high_type;  /* Instead of nroff style highliting, do other (e.g. ANSI) */
+ 
+     gboolean utf8;              /* It's multibyte file codeset */
+ 
+@@ -322,6 +333,10 @@ int mcview_nroff_seq_prev (mcview_nroff_t *);
+ /* plain.c: */
+ void mcview_display_text (mcview_t *);
+ 
++/* ansi.c: */
++enum nroff_high_type get_nroff_high_type (mcview_t * view);
++void mcview_display_ansi (mcview_t *);
++
+ /* search.c: */
+ mc_search_cbret_t mcview_search_cmd_callback (const void *user_data, gsize char_offset,
+                                               int *current_char);
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index c99197f..f467d91 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -93,6 +93,7 @@ mcview_toggle_magic_mode (mcview_t * view)
+     view->dir = NULL;
+     view->dir_count = NULL;
+     view->dir_idx = NULL;
++    view->nroff_high_type = NROFF_HIGH_UNCHECKED;
+     mcview_done (view);
+     mcview_init (view);
+     mcview_load (view, command, filename, 0);
+@@ -111,7 +112,7 @@ mcview_toggle_magic_mode (mcview_t * view)
+ void
+ mcview_toggle_wrap_mode (mcview_t * view)
+ {
+-    if (view->text_wrap_mode)
++    if (TEXT_WRAP_MODE(view))
+         view->dpy_start = mcview_bol (view, view->dpy_start, 0);
+     view->text_wrap_mode = !view->text_wrap_mode;
+     view->dpy_bbar_dirty = TRUE;
+diff --git a/src/viewer/mcviewer.c b/src/viewer/mcviewer.c
+index 93908f3..4e002fd 100644
+--- a/src/viewer/mcviewer.c
++++ b/src/viewer/mcviewer.c
+@@ -124,7 +124,7 @@ do_mcview_event (mcview_t * view, Gpm_Event * event, int *result)
+     y = local.y;
+ 
+     /* Scrolling left and right */
+-    if (!view->text_wrap_mode)
++    if (!TEXT_WRAP_MODE(view))
+     {
+         if (x < view->data_area.width * 1 / 4)
+         {
+@@ -208,6 +208,7 @@ mcview_new (int y, int x, int lines, int cols, gboolean is_panel)
+     view->text_nroff_mode = FALSE;
+     view->text_wrap_mode = FALSE;
+     view->magic_mode = FALSE;
++    view->nroff_high_type = NROFF_HIGH_UNCHECKED;
+ 
+     view->dpy_frame_size = is_panel ? 1 : 0;
+     view->converter = str_cnv_from_term;
+@@ -375,10 +376,25 @@ mcview_load (mcview_t * view, const char *command, const char *file, int start_l
+             if (view->magic_mode && (type != COMPRESSION_NONE))
+             {
+                 char *tmp_filename;
++                vfs_path_t *vpath1 = NULL;
++                int fd1;
+ 
+-                vfs_path_free (view->filename_vpath);
+                 tmp_filename = g_strconcat (file, decompress_extension (type), (char *) NULL);
+-                view->filename_vpath = vfs_path_from_str (tmp_filename);
++                vpath1 = vfs_path_from_str (tmp_filename);
++                fd1 = mc_open (vpath1, O_RDONLY | O_NONBLOCK);
++                if (fd1 == -1)
++                {
++                    g_snprintf (tmp, sizeof (tmp), _("Cannot open \"%s\" in magic mode\n%s"),
++                                file, unix_error_string (errno));
++                    mcview_show_error (view, tmp);
++                }
++                else
++                {
++                    mc_close (fd);
++                    fd = fd1;
++                    mc_fstat (fd, &st);
++                }
++                vfs_path_free (vpath1);
+                 g_free (tmp_filename);
+             }
+             mcview_set_datasource_file (view, fd, &st);
+diff --git a/src/viewer/move.c b/src/viewer/move.c
+index 23ab022..8550ad4 100644
+--- a/src/viewer/move.c
++++ b/src/viewer/move.c
+@@ -110,7 +110,7 @@ mcview_move_up (mcview_t * view, off_t lines)
+         {
+             if (view->dpy_start == 0)
+                 break;
+-            if (view->text_wrap_mode)
++            if (TEXT_WRAP_MODE(view))
+             {
+                 new_offset = mcview_bol (view, view->dpy_start, view->dpy_start - (off_t) 1);
+                 /* check if dpy_start == BOL or not (then new_offset = dpy_start - 1,
+@@ -178,14 +178,14 @@ mcview_move_down (mcview_t * view, off_t lines)
+         {
+             while (lines-- > 0)
+             {
+-                if (view->text_wrap_mode)
++                if (TEXT_WRAP_MODE(view))
+                     view->dpy_end =
+                         mcview_eol (view, view->dpy_end,
+                                     view->dpy_end + (off_t) view->data_area.width);
+                 else
+                     view->dpy_end = mcview_eol (view, view->dpy_end, last_byte);
+ 
+-                if (view->text_wrap_mode)
++                if (TEXT_WRAP_MODE(view))
+                     new_offset =
+                         mcview_eol (view, view->dpy_start,
+                                     view->dpy_start + (off_t) view->data_area.width);
+@@ -202,7 +202,7 @@ mcview_move_down (mcview_t * view, off_t lines)
+             off_t i;
+             for (i = 0; i < lines && new_offset < last_byte; i++)
+             {
+-                if (view->text_wrap_mode)
++                if (TEXT_WRAP_MODE(view))
+                     new_offset =
+                         mcview_eol (view, view->dpy_start,
+                                     view->dpy_start + (off_t) view->data_area.width);
+@@ -343,7 +343,7 @@ mcview_moveto_bol (mcview_t * view)
+     {
+         view->hex_cursor -= view->hex_cursor % view->bytes_per_line;
+     }
+-    else if (!view->text_wrap_mode)
++    else if (!TEXT_WRAP_MODE(view))
+     {
+         view->dpy_start = mcview_bol (view, view->dpy_start, 0);
+     }
+diff --git a/src/viewer/nroff.c b/src/viewer/nroff.c
+index a8a77af..b79f033 100644
+--- a/src/viewer/nroff.c
++++ b/src/viewer/nroff.c
+@@ -107,6 +107,15 @@ mcview_display_nroff (mcview_t * view)
+     int c_next = 0;
+     struct hexedit_change_node *curr = view->change_list;
+ 
++    if (view->nroff_high_type == NROFF_HIGH_UNCHECKED) {
++        view->nroff_high_type = get_nroff_high_type (view);
++        if (view->nroff_high_type == NROFF_HIGH_ANSI)
++        {
++            mcview_display_ansi (view);
++            return;
++        }
++    }
++
+     mcview_display_clean (view);
+     mcview_display_ruler (view);
+ 

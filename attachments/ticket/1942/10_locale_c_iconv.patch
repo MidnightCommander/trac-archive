@@ -1,0 +1,13 @@
+diff -Naur mc-4.7.0.1/src/strutil.c mc-build/src/strutil.c
+--- mc-4.7.0.1/src/strutil.c	2009-12-29 15:32:49.000000000 +0100
++++ mc-build/src/strutil.c	2010-01-06 15:02:01.721256630 +0100
+@@ -404,7 +404,8 @@
+ void
+ str_uninit_strings (void)
+ {
+-    g_iconv_close (str_cnv_not_convert);
++    if (str_cnv_not_convert != INVALID_CONV)
++	g_iconv_close (str_cnv_not_convert);
+     g_free (codeset);
+ }
+ 

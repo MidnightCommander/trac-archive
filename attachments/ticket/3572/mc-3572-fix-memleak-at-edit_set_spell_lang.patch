@@ -1,0 +1,61 @@
+From 1c979a48570ea71378aaccde3a09f9550f308959 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 27 Nov 2015 22:01:28 +0000
+Subject: [PATCH] fix memleak at edit_set_spell_lang()
+
+when changing spelling language lang variable not freed
+
+found by Clang/AddressSanitizer
+
+Direct leak of 13 byte(s) in 1 object(s) allocated from:
+    #0 0x4c7c30 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4c7c30)
+    #1 0x7fdc5aac0d38 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x66d38)
+    #2 0x7fdc5aae9011 in g_strdup (/usr/lib64/libglib-2.0.so.0+0x8f011)
+    #3 0x5b004d in edit_set_spell_lang /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editcmd.c:3689:16
+    #4 0x593d2a in edit_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3848:9
+    #5 0x591e3a in edit_execute_key_command /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/edit.c:3224:5
+    #6 0x5c12b2 in edit_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1146:9
+    #7 0x7fdc5b795ea9 in menubar_execute /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:341:9
+    #8 0x7fdc5b7944f2 in menubar_handle_key /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:539:13
+    #9 0x7fdc5b792550 in menubar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/menu.c:597:13
+    #10 0x7fdc5b77c113 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:450:19
+    #11 0x7fdc5b77b4c0 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #12 0x7fdc5b77b982 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #13 0x7fdc5b77b685 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #14 0x5c0171 in edit_files /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1255:9
+    #15 0x5bfcaf in edit_file /tmp/portage/app-misc/mc-9999/work/mc-9999/src/editor/editwidget.c:1194:10
+    #16 0x5ef09b in edit_file_at_line /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:704:9
+    #17 0x5ef20b in edit_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:742:9
+    #18 0x52d687 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1175:9
+    #19 0x7fdc5b776059 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #20 0x7fdc5b77c1cc in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464:23
+    #21 0x7fdc5b77b4c0 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509:19
+    #22 0x7fdc5b77b982 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #23 0x7fdc5b77b685 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #24 0x52bb1d in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757:9
+    #25 0x4f94b7 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:463:21
+    #26 0x7fdc59b96953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #27 0x427408 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x427408)
+
+SUMMARY: AddressSanitizer: 13 byte(s) leaked in 1 allocation(s).
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/editor/editcmd.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/editor/editcmd.c b/src/editor/editcmd.c
+index 7970a9b..680bc54 100644
+--- a/src/editor/editcmd.c
++++ b/src/editor/editcmd.c
+@@ -3688,7 +3688,10 @@ edit_set_spell_lang (void)
+ 
+         lang = spell_dialog_lang_list_show (lang_list);
+         if (lang != NULL)
++        {
+             (void) aspell_set_lang (lang);
++            g_free (lang);
++        }
+     }
+     aspell_array_clean (lang_list);
+ }

@@ -1,0 +1,151 @@
+diff --git a/ChangeLog b/ChangeLog
+index b001a2c..d25c091 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -0,0 +1,5 @@
++2009-02-07  Martin Petricek  <tux@centrum.cz> 
++
++	* doc/mc.1.in: Added help about config file option to use SI or binary
++	byte size prefixes (powers of 1000 or 1024)
++
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 9e908e6..f65ba14 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -3125,6 +3125,13 @@ This value is the number of seconds the Midnight Commander will wait
+ before attempting to reconnect to an FTP server that has denied the
+ login.  If the value is zero, the login will no be retried.
+ .TP
++.I kilobyte_si
++If this option is set (kilobyte_si=1), Midnight Commander will use SI units
++(powers of 1000) when displaying any byte sizes. The suffixes (k, m ...)
++are shown in lowercase.
++If unset (default), Midnight Commander will use binary units (powers of 1024)
++and the suffixes are shown in upper case (K, M ...)
++.TP
+ .I max_dirt_limit
+ Specifies how many screen updates can be skipped at most in the internal
+ file viewer.  Normally this value is not significant, because the code
+diff --git a/src/ChangeLog b/src/ChangeLog
+index d17dd69..1a48495 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -0,0 +1,7 @@
++2009-02-07  Martin Petricek  <tux@centrum.cz>
++
++	* setup.c: added option to modify size format used to display
++	byte sizes - in adition to current binary size prefixes, SI
++	(1000 based) size prefixes are now also possible.
++	* util.c: modified size_trunc() and size_trunc_len() to
++	allow using SI size prefixes.
+diff --git a/src/setup.c b/src/setup.c
+index 6359281..0b5207c 100644
+--- a/src/setup.c
++++ b/src/setup.c
+@@ -68,6 +68,8 @@
+ 
+ extern char *find_ignore_dirs;
+ 
++extern int kilobyte_si; /* util.c */
++
+ extern int num_history_items_recorded;
+ 
+ char *profile_name;		/* .mc/ini */
+@@ -574,6 +576,7 @@ load_setup (void)
+     load_string ("Colors", "color_terminals", "",
+ 			     color_terminal_string, sizeof (color_terminal_string));
+ 
++    kilobyte_si = load_int ("Misc", "kilobyte_si", 0);
+     /* Load the directory history */
+ /*    directory_history_load (); */
+     /* Remove the temporal entries */
+diff --git a/src/util.c b/src/util.c
+index 5195a24..b2d3d89 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -252,6 +252,13 @@ path_trunc (const char *path, size_t trunc_len) {
+     return ret;
+ }
+ 
++/*
++ * If true, SI units (1000 based) will be used for
++ * larger units (kilobyte, megabyte, ...).
++ * If false binary units (1024 based) will be used.
++ */
++int kilobyte_si = 0;
++
+ const char *
+ size_trunc (double size)
+ {
+@@ -260,11 +267,11 @@ size_trunc (double size)
+     const char *xtra = "";
+     
+     if (size > 999999999L){
+-	divisor = 1024;
+-	xtra = "K";
++	divisor = kilobyte_si?1000:1024;
++	xtra = kilobyte_si?"k":"K";
+ 	if (size/divisor > 999999999L){
+-	    divisor = 1024*1024;
+-	    xtra = "M";
++	    divisor = kilobyte_si?(1000*1000):(1024*1024);
++	    xtra = kilobyte_si?"m":"M";
+ 	}
+     }
+     g_snprintf (x, sizeof (x), "%.0f%s", (size/divisor), xtra);
+@@ -316,12 +323,29 @@ size_trunc_len (char *buffer, int len, off_t size, int units)
+ 	 1000000000};
+     static const char * const suffix [] =
+ 	{"", "K", "M", "G", "T", "P", "E", "Z", "Y", NULL};
++    static const char * const suffix_lc [] =
++	{"", "k", "m", "g", "t", "p", "e", "z", "y", NULL};
+     int j = 0;
++    int size_remain;
+ 
+     /* Don't print more than 9 digits - use suffix.  */
+     if (len == 0 || len > 9)
+ 	len = 9;
+ 
++    /*
++     * recalculate from 1024 base to 1000 base if units>0
++     * We can't just multiply by 1024 - that might cause overflow
++     * if off_t type is too small
++     */
++    if (units && kilobyte_si) {
++     for (j = 0; j < units; j++) {
++      size_remain=((size % 125)*1024)/1000; /* size mod 125, recalculated */
++      size = size / 125; /* 128/125 = 1024/1000 */
++      size = size * 128; /* This will convert size from multiple of 1024 to multiple of 1000 */
++      size += size_remain; /* Re-add remainder lost by division/multiplication */
++     }
++    }
++
+     for (j = units; suffix [j] != NULL; j++) {
+ 	if (size == 0) {
+ 	    if (j == units) {
+@@ -332,17 +356,21 @@ size_trunc_len (char *buffer, int len, off_t size, int units)
+ 
+ 	    /* Use "~K" or just "K" if len is 1.  Use "B" for bytes.  */
+ 	    g_snprintf (buffer, len + 1, (len > 1) ? "~%s" : "%s",
+-			(j > 1) ? suffix[j - 1] : "B");
++			(j > 1) ? (kilobyte_si ? suffix_lc[j - 1] : suffix[j - 1]) : "B");
+ 	    break;
+ 	}
+ 
+ 	if (size < power10 [len - (j > 0)]) {
+-	    g_snprintf (buffer, len + 1, "%lu%s", (unsigned long) size, suffix[j]);
++	    g_snprintf (buffer, len + 1, "%lu%s", (unsigned long) size, kilobyte_si ? suffix_lc[j] : suffix[j]);
+ 	    break;
+ 	}
+ 
+-	/* Powers of 1024, with rounding.  */
+-	size = (size + 512) >> 10;
++	/* Powers of 1000 or 1024, with rounding.  */
++	if (kilobyte_si) {
++	    size = (size + 500) / 1000;
++	} else {
++	    size = (size + 512) >> 10;
++	}
+     }
+ }
+ 

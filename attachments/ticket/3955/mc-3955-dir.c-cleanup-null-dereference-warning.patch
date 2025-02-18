@@ -1,0 +1,31 @@
+From fc6fc774e1b65299c2303feebb0cbd6fb948346a Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 11 Jan 2019 16:25:29 +0000
+Subject: [PATCH] dir.c: cleanup -Wnull-dereference warning
+
+Found by GCC8
+
+dir.c:655:31: error: potential null pointer dereference [-Werror=null-dereference]
+     if (IS_PATH_SEP (vpath_str[0]) && vpath_str[1] == '\0')
+../../lib/global.h:132:26: note: in definition of macro 'IS_PATH_SEP'
+ #define IS_PATH_SEP(c) ((c) == PATH_SEP)
+                          ^
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/dir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/filemanager/dir.c b/src/filemanager/dir.c
+index 925942fc9..5750868bd 100644
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -652,7 +652,7 @@ dir_list_load (dir_list * list, const vfs_path_t * vpath, GCompareFunc sort,
+ 
+     vpath_str = vfs_path_as_str (vpath);
+     /* Do not add a ".." entry to the root directory */
+-    if (IS_PATH_SEP (vpath_str[0]) && vpath_str[1] == '\0')
++    if (vpath_str != NULL && IS_PATH_SEP (vpath_str[0]) && vpath_str[1] == '\0')
+         dir_list_clean (list);
+ 
+     while ((dp = mc_readdir (dirp)) != NULL)

@@ -1,0 +1,47 @@
+From 824a8941ed6b9581a0fc5c95f1e85e753c2e76ec Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 9 Jan 2016 13:13:53 +0000
+Subject: [PATCH] fix infopanel overflow
+
+testcase: hit C-x i on a file and delete this file
+
+==13429==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x607000031c48 at pc 0x0000005fd41b bp 0x7ffca3f466c0 sp 0x7ffca3f466b8
+WRITE of size 4 at 0x607000031c48 thread T0
+    #0 0x5fd41a in dirsize_status_deinit_cb /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/file.c:2557:24
+    #1 0x7f333f2bda2f in status_msg_deinit /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/wtools.c:619:9
+    #2 0x602fe3 in panel_operate_init_totals /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/file.c:1352:9
+    #3 0x5fe784 in panel_operate /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/file.c:2840:13
+    #4 0x528328 in copy_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/cmd.c:797:9
+    #5 0x528328 in midnight_execute_cmd /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1139
+    #6 0x7f333f291949 in buttonbar_callback /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/buttonbar.c:172:42
+    #7 0x7f333f296245 in send_message /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/../../lib/widget/widget-common.h:167:15
+    #8 0x7f333f296245 in dlg_try_hotkey /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:464
+    #9 0x7f333f296245 in dlg_key_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:509
+    #10 0x7f333f296245 in dlg_process_event /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1236
+    #11 0x7f333f2979c7 in frontend_dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:570:9
+    #12 0x7f333f296565 in dlg_run /tmp/portage/app-misc/mc-9999/work/mc-9999/lib/widget/dialog.c:1267:5
+    #13 0x4fc7b8 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:954:5
+    #14 0x4fc7b8 in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1757
+    #15 0x4fc7b8 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:401
+    #16 0x7f333d7fc953 in __libc_start_main (/lib64/libc.so.6+0x20953)
+    #17 0x4270e8 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/.libs/mc+0x4270e8)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/filemanager/file.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/filemanager/file.c b/src/filemanager/file.c
+index e6af32b..c607d2e 100644
+--- a/src/filemanager/file.c
++++ b/src/filemanager/file.c
+@@ -2554,7 +2554,8 @@ dirsize_status_deinit_cb (status_msg_t * sm)
+     (void) sm;
+ 
+     /* schedule to update passive panel */
+-    other_panel->dirty = 1;
++    if (get_other_type () == view_listing)
++        other_panel->dirty = 1;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */

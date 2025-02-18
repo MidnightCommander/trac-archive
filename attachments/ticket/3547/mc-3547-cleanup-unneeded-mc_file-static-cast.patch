@@ -1,0 +1,23 @@
+From b92971a417a1c66b213726ab62eb569ee004516d Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Fri, 1 Jan 2016 16:58:56 +0000
+Subject: [PATCH] cleanup unneeded mc_file static cast
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/vfs/ftpfs/ftpfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vfs/ftpfs/ftpfs.c b/src/vfs/ftpfs/ftpfs.c
+index 2a149b3..67a5cc2 100644
+--- a/src/vfs/ftpfs/ftpfs.c
++++ b/src/vfs/ftpfs/ftpfs.c
+@@ -694,7 +694,7 @@ static void
+ ftpfs_load_no_proxy_list (void)
+ {
+     /* FixMe: shouldn't be hardcoded!!! */
+-    static char *mc_file = NULL;
++    char *mc_file = NULL;
+ 
+     mc_file = g_build_filename (mc_global.sysconfig_dir, "mc.no_proxy", (char *) NULL);
+     if (exist_file (mc_file))

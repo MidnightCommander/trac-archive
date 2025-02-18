@@ -1,0 +1,27 @@
+From 389adae85a619ebc4830a60dd24e3fb10e4e771c Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 20 Nov 2016 05:59:57 +0200
+Subject: [PATCH 08/11] extfs: urar: make it testable.
+
+---
+ src/vfs/extfs/helpers/urar.in | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/vfs/extfs/helpers/urar.in b/src/vfs/extfs/helpers/urar.in
+index fa36a23..35d0fca 100644
+--- a/src/vfs/extfs/helpers/urar.in
++++ b/src/vfs/extfs/helpers/urar.in
+@@ -24,6 +24,10 @@ UNRAR=`which unrar 2>/dev/null`
+ # Define $UNRAR version
+ UNRAR_VERSION=`$UNRAR -cfg- -? | grep "Copyright" | sed -e 's/.*\([0-9]\)\..*/\1/'`
+ 
++# Let the test framework hook in:
++UNRAR=${MC_TEST_EXTFS_LIST_CMD:-$UNRAR}
++UNRAR_VERSION=${MC_TEST_EXTFS_UNRAR_VERSION:-$UNRAR_VERSION}
++
+ mcrar4fs_list ()
+ {
+      $UNRAR v -c- -cfg- "$1" | @AWK@ -v uid=`id -u` -v gid=`id -g` '
+-- 
+2.9.3
+

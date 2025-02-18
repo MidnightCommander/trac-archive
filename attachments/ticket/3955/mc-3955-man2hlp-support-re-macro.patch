@@ -1,0 +1,34 @@
+From 8fa41a130c9472b268a12d4079a89b24d88b15e3 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 13 Jan 2019 15:57:30 +0000
+Subject: [PATCH] man2hlp.c: support partly .RE macro
+
+To get rid of following warning
+
+    man2hlp: Warning: unsupported command .RE in file "../../doc/man/mc.1" on line 4317
+
+support at least 'break' feature for .RE macro
+
+See https://www.gnu.org/software/groff/manual/html_node/Man-usage.html
+    The macros RS and RE also cause a break but do not insert vertical space.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/man2hlp/man2hlp.in | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/man2hlp/man2hlp.in b/src/man2hlp/man2hlp.in
+index f0958304b..83a470729 100644
+--- a/src/man2hlp/man2hlp.in
++++ b/src/man2hlp/man2hlp.in
+@@ -578,6 +578,10 @@ sub handle_command($)
+     {
+         return;
+     }
++    elsif ($buffer eq ".RE")
++    {
++        newline;
++    }
+     else
+     {
+         # Other commands are ignored

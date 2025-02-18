@@ -1,0 +1,70 @@
+fix reported -Wshadow warning with gcc 4.6.x (this not occur with gcc 4.7 or higher)
+
+../../../src/filemanager/dir.c: In function ‘dir_list_grow’:
+../../../src/filemanager/dir.c:263:14: warning: declaration of ‘clear’ shadows a global declaration [-Wshadow]
+
+../../../src/viewer/datasource.c: In function ‘mcview_load_command_output’:
+../../../src/viewer/datasource.c:398:16: warning: declaration of ‘pipe’ shadows a global declaration [-Wshadow]
+
+patch against 52fd328042a426e885da891c8ce8218cda3a1cf7
+compile test with GCC 4.6.4
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -260,7 +260,7 @@
+ dir_list_grow (dir_list * list, int delta)
+ {
+     int size;
+-    gboolean clear = FALSE;
++    gboolean clear_flag = FALSE;
+ 
+     if (list == NULL)
+         return FALSE;
+@@ -272,7 +272,7 @@
+     if (size <= 0)
+     {
+         size = DIR_LIST_MIN_SIZE;
+-        clear = TRUE;
++        clear_flag = TRUE;
+     }
+ 
+     if (size != list->size)
+@@ -287,7 +287,7 @@
+         list->size = size;
+     }
+ 
+-    list->len = clear ? 0 : min (list->len, size);
++    list->len = clear_flag ? 0 : min (list->len, size);
+ 
+     return TRUE;
+ }
+--- a/src/viewer/datasource.c
++++ b/src/viewer/datasource.c
+@@ -395,13 +395,13 @@
+ gboolean
+ mcview_load_command_output (mcview_t * view, const char *command)
+ {
+-    mc_pipe_t *pipe;
++    mc_pipe_t *pipe_flag;
+     GError *error = NULL;
+ 
+     mcview_close_datasource (view);
+ 
+-    pipe = mc_popen (command, &error);
+-    if (pipe == NULL)
++    pipe_flag = mc_popen (command, &error);
++    if (pipe_flag == NULL)
+     {
+         mcview_display (view);
+         mcview_show_error (view, error->message);
+@@ -410,7 +410,7 @@
+     }
+ 
+     /* Check if filter produced any output */
+-    mcview_set_datasource_stdio_pipe (view, pipe);
++    mcview_set_datasource_stdio_pipe (view, pipe_flag);
+     if (!mcview_get_byte (view, 0, NULL))
+     {
+         mcview_close_datasource (view);

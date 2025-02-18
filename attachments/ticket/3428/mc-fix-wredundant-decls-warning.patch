@@ -1,0 +1,49 @@
+
+fix -Wredundant-decls compiler warnings
+and use compiler option for future compile checks
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/m4.include/mc-cflags.m4
++++ b/m4.include/mc-cflags.m4
+@@ -62,6 +62,7 @@
+     MC_CHECK_ONE_CFLAG([-Wno-unreachable-code])
+     MC_CHECK_ONE_CFLAG([-Wparentheses])
+     MC_CHECK_ONE_CFLAG([-Wpointer-sign])
++    MC_CHECK_ONE_CFLAG([-Wredundant-decls])
+     MC_CHECK_ONE_CFLAG([-Wreturn-type])
+     MC_CHECK_ONE_CFLAG([-Wsequence-point])
+     MC_CHECK_ONE_CFLAG([-Wshadow])
+--- a/lib/filehighlight/ini-file-read.c
++++ b/lib/filehighlight/ini-file-read.c
+@@ -38,8 +38,6 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
+-extern mc_skin_t mc_skin__default;
+-
+ /*** file scope macro definitions ****************************************************************/
+ 
+ /*** file scope type declarations ****************************************************************/
+--- a/lib/skin/internal.h
++++ b/lib/skin/internal.h
+@@ -20,8 +20,6 @@
+ 
+ /*** global variables defined in .c file *********************************************************/
+ 
+-extern mc_skin_t mc_skin__default;
+-
+ /*** declarations of public functions ************************************************************/
+ 
+ gboolean mc_skin_ini_file_load (mc_skin_t *);
+--- a/lib/tty/tty-slang.c
++++ b/lib/tty/tty-slang.c
+@@ -57,8 +57,6 @@
+ 
+ /*** global variables ****************************************************************************/
+ 
+-extern int reset_hp_softkeys;
+-
+ /*** file scope macro definitions ****************************************************************/
+ 
+ #ifndef SLTT_MAX_SCREEN_COLS

@@ -1,0 +1,48 @@
+From 789326544fdc4a4fad5b711d55d5fdb4b49c7ed6 Mon Sep 17 00:00:00 2001
+From: "Yury V. Zaytsev" <yury@shurup.com>
+Date: Mon, 3 Jun 2024 17:51:02 +0200
+Subject: [PATCH] buildsys: fix broken detection for termcap libraries when
+ using slang
+
+Signed-off-by: Yury V. Zaytsev <yury@shurup.com>
+---
+ m4.include/mc-use-termcap.m4       | 8 +++++++-
+ m4.include/mc-with-screen-slang.m4 | 3 ---
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/m4.include/mc-use-termcap.m4 b/m4.include/mc-use-termcap.m4
+index 4ae695780..6781815fd 100644
+--- a/m4.include/mc-use-termcap.m4
++++ b/m4.include/mc-use-termcap.m4
+@@ -5,7 +5,13 @@ AC_DEFUN([mc_USE_TERMCAP], [
+ 	screen_msg="$screen_msg with termcap database"
+ 	AC_MSG_NOTICE([using S-Lang screen library with termcap])
+ 	AC_DEFINE(USE_TERMCAP, 1, [Define to use termcap database])
+-	AC_CHECK_LIB(termcap, tgoto, [MCLIBS="$MCLIBS -ltermcap"], , [$LIBS])
++
++	ac_save_LIBS="$LIBS"
++	AC_SEARCH_LIBS([tgoto], [termcap xcurses curses],
++	    [MCLIBS="$MCLIBS $ac_cv_search_tgoto"],
++	    [AC_MSG_ERROR([Could not find a library providing tgoto])]
++	)
++	LIBS="$ac_save_LIBS"
+ ])
+ 
+ dnl
+diff --git a/m4.include/mc-with-screen-slang.m4 b/m4.include/mc-with-screen-slang.m4
+index c76de6e6f..1a74f3012 100644
+--- a/m4.include/mc-with-screen-slang.m4
++++ b/m4.include/mc-with-screen-slang.m4
+@@ -16,9 +16,6 @@ AC_DEFUN([mc_WITH_SLANG], [
+     dnl Check if termcap is needed.
+     if test x"$found_slang" = x"yes"; then
+         mc_SLANG_TERMCAP
+-        if test x"$mc_cv_slang_termcap"  = x"yes"; then
+-            MCLIBS="$MCLIBS -ltermcap"
+-        fi
+     fi
+ 
+     screen_type=slang
+-- 
+2.39.3 (Apple Git-146)
+

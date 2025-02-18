@@ -1,0 +1,2418 @@
+From cbcbcc1b679a51c7a2eb712e66eca1c85c13f334 Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Thu, 14 Jan 2021 16:39:08 -0600
+Subject: [PATCH] =?UTF-8?q?MultiSearch=20=E2=80=93=20an=20AND-chained=20fi?=
+ =?UTF-8?q?ltering=20of=20any=20listbox?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ lib/keybind.c                  |   1 +
+ lib/keybind.h                  |   1 +
+ lib/strutil.h                  |  30 ++-
+ lib/strutil/strutil.c          |  32 +--
+ lib/strutil/strutil8bit.c      |   4 +-
+ lib/strutil/strutilascii.c     |   4 +-
+ lib/strutil/strutilutf8.c      |  35 ++-
+ lib/widget.h                   |   2 +
+ lib/widget/Makefile.am         |   2 +
+ lib/widget/dialog-switch.c     |   3 +-
+ lib/widget/filtering_listbox.c | 429 +++++++++++++++++++++++++++++++++
+ lib/widget/filtering_listbox.h |  49 ++++
+ lib/widget/forwarding_input.c  | 166 +++++++++++++
+ lib/widget/forwarding_input.h  |  37 +++
+ lib/widget/group.c             |  11 +-
+ lib/widget/history.c           |  97 +++++---
+ lib/widget/history.h           |   4 +-
+ lib/widget/input.c             |  64 +++--
+ lib/widget/input.h             |   1 +
+ lib/widget/input_complete.c    | 138 +++++++----
+ lib/widget/listbox-window.c    |  24 +-
+ lib/widget/listbox-window.h    |   4 +-
+ lib/widget/listbox.c           |  51 +++-
+ lib/widget/listbox.h           |   5 +
+ lib/widget/widget-common.c     |   2 +
+ lib/widget/widget-common.h     |  10 +-
+ maint/utils/version.sh         |   1 +
+ src/editor/choosesyntax.c      |   2 +-
+ src/editor/editcmd_dialogs.c   |  14 +-
+ src/editor/editwidget.c        |   8 +-
+ src/file_history.c             |   3 +-
+ src/help.c                     |   5 +-
+ src/keybind-defaults.c         |   5 +-
+ src/selcodepage.c              |   2 +-
+ src/usermenu.c                 |  48 ++--
+ 35 files changed, 1096 insertions(+), 198 deletions(-)
+ create mode 100644 lib/widget/filtering_listbox.c
+ create mode 100644 lib/widget/filtering_listbox.h
+ create mode 100644 lib/widget/forwarding_input.c
+ create mode 100644 lib/widget/forwarding_input.h
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..df3cbf110 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -93,6 +93,7 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (SearchContinue),
+     ADD_KEYMAP_NAME (Replace),
+     ADD_KEYMAP_NAME (ReplaceContinue),
++    ADD_KEYMAP_NAME (MultiSearch),
+     ADD_KEYMAP_NAME (Help),
+     ADD_KEYMAP_NAME (Shell),
+     ADD_KEYMAP_NAME (Edit),
+diff --git a/lib/keybind.h b/lib/keybind.h
+index af019df09..817158412 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -82,6 +82,7 @@ enum
+     CK_SearchContinue,
+     CK_Replace,
+     CK_ReplaceContinue,
++    CK_MultiSearch,
+     CK_SearchStop,
+     CK_Help,
+     CK_Edit,
+diff --git a/lib/strutil.h b/lib/strutil.h
+index a091c25aa..667f7df2e 100644
+--- a/lib/strutil.h
++++ b/lib/strutil.h
+@@ -110,9 +110,9 @@ struct str_class
+     gboolean (*is_valid_string) (const char *);
+       /*I*/ int (*is_valid_char) (const char *, size_t);
+       /*I*/ void (*cnext_char) (const char **);
+-    void (*cprev_char) (const char **);
++    void (*cprev_char) (const char **, const char *begin);
+     void (*cnext_char_safe) (const char **);
+-      /*I*/ void (*cprev_char_safe) (const char **);
++      /*I*/ void (*cprev_char_safe) (const char **, const char *begin);
+       /*I*/ int (*cnext_noncomb_char) (const char **text);
+       /*I*/ int (*cprev_noncomb_char) (const char **text, const char *begin);
+       /*I*/ gboolean (*char_isspace) (const char *);
+@@ -262,20 +262,20 @@ int str_is_valid_char (const char *ch, size_t size);
+ char *str_get_next_char (char *text);
+ const char *str_cget_next_char (const char *text);
+ 
+-/* return previous characters before text, do not call on the start of strings
++/* return previous characters before text
+  */
+-char *str_get_prev_char (char *text);
+-const char *str_cget_prev_char (const char *text);
++char *str_get_prev_char (char *text, const char *begin);
++const char *str_cget_prev_char (const char *text, const char *begin);
+ 
+ /* set text to next characters, do not call on the end of string
+  */
+ void str_next_char (char **text);
+ void str_cnext_char (const char **text);
+ 
+-/* set text to previous characters, do not call on the start of strings
++/* set text to previous characters
+  */
+-void str_prev_char (char **text);
+-void str_cprev_char (const char **text);
++void str_prev_char (char **text, const char *begin);
++void str_cprev_char (const char **text, const char *begin);
+ 
+ /* return next characters after text, do not call on the end of string
+  * works with invalid string 
+@@ -284,12 +284,11 @@ void str_cprev_char (const char **text);
+ char *str_get_next_char_safe (char *text);
+ const char *str_cget_next_char_safe (const char *text);
+ 
+-/* return previous characters before text, do not call on the start of strings
+- * works with invalid string 
++/* return previous characters before text, works with invalid string
+  * I
+  */
+-char *str_get_prev_char_safe (char *text);
+-const char *str_cget_prev_char_safe (const char *text);
++char *str_get_prev_char_safe (char *text, const char *begin);
++const char *str_cget_prev_char_safe (const char *text, const char *begin);
+ 
+ /* set text to next characters, do not call on the end of string
+  * works with invalid string 
+@@ -298,12 +297,11 @@ const char *str_cget_prev_char_safe (const char *text);
+ void str_next_char_safe (char **text);
+ void str_cnext_char_safe (const char **text);
+ 
+-/* set text to previous characters, do not call on the start of strings
+- * works with invalid string 
++/* set text to previous characters, works with invalid string
+  * I
+  */
+-void str_prev_char_safe (char **text);
+-void str_cprev_char_safe (const char **text);
++void str_prev_char_safe (char **text, const char *begin);
++void str_cprev_char_safe (const char **text, const char *begin);
+ 
+ /* set text to next noncombining characters, check the end of text
+  * return how many characters was skipped
+diff --git a/lib/strutil/strutil.c b/lib/strutil/strutil.c
+index cf11d00d8..937256260 100644
+--- a/lib/strutil/strutil.c
++++ b/lib/strutil/strutil.c
+@@ -507,35 +507,35 @@ str_cnext_char (const char **text)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ char *
+-str_get_prev_char (char *text)
++str_get_prev_char (char *text, const char *begin)
+ {
+-    used_class.cprev_char ((const char **) &text);
++    used_class.cprev_char ((const char **) &text, begin);
+     return text;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ const char *
+-str_cget_prev_char (const char *text)
++str_cget_prev_char (const char *text, const char *begin)
+ {
+-    used_class.cprev_char (&text);
++    used_class.cprev_char (&text, begin);
+     return text;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-str_prev_char (char **text)
++str_prev_char (char **text, const char *begin)
+ {
+-    used_class.cprev_char ((const char **) text);
++    used_class.cprev_char ((const char **) text, begin);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-str_cprev_char (const char **text)
++str_cprev_char (const char **text, const char *begin)
+ {
+-    used_class.cprev_char (text);
++    used_class.cprev_char (text, begin);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -575,35 +575,35 @@ str_cnext_char_safe (const char **text)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ char *
+-str_get_prev_char_safe (char *text)
++str_get_prev_char_safe (char *text, const char *begin)
+ {
+-    used_class.cprev_char_safe ((const char **) &text);
++    used_class.cprev_char_safe ((const char **) &text, begin);
+     return text;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ const char *
+-str_cget_prev_char_safe (const char *text)
++str_cget_prev_char_safe (const char *text, const char *begin)
+ {
+-    used_class.cprev_char_safe (&text);
++    used_class.cprev_char_safe (&text, begin);
+     return text;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-str_prev_char_safe (char **text)
++str_prev_char_safe (char **text, const char *begin)
+ {
+-    used_class.cprev_char_safe ((const char **) text);
++    used_class.cprev_char_safe ((const char **) text, begin);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-str_cprev_char_safe (const char **text)
++str_cprev_char_safe (const char **text, const char *begin)
+ {
+-    used_class.cprev_char_safe (text);
++    used_class.cprev_char_safe (text, begin);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/strutil/strutil8bit.c b/lib/strutil/strutil8bit.c
+index fa7bbf6a4..755a66ddb 100644
+--- a/lib/strutil/strutil8bit.c
++++ b/lib/strutil/strutil8bit.c
+@@ -112,9 +112,11 @@ str_8bit_cnext_char (const char **text)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-str_8bit_cprev_char (const char **text)
++str_8bit_cprev_char (const char **text, const char *begin)
+ {
+     (*text)--;
++    if (*text < begin)
++        *text = NULL;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/strutil/strutilascii.c b/lib/strutil/strutilascii.c
+index 7a585303e..a18d34bd7 100644
+--- a/lib/strutil/strutilascii.c
++++ b/lib/strutil/strutilascii.c
+@@ -85,9 +85,11 @@ str_ascii_cnext_char (const char **text)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-str_ascii_cprev_char (const char **text)
++str_ascii_cprev_char (const char **text, const char *begin)
+ {
+     (*text)--;
++    if (*text < begin)
++        *text = NULL;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/strutil/strutilutf8.c b/lib/strutil/strutilutf8.c
+index 5ac0015e6..5c76c7d33 100644
+--- a/lib/strutil/strutilutf8.c
++++ b/lib/strutil/strutilutf8.c
+@@ -117,9 +117,9 @@ str_utf8_cnext_char (const char **text)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-str_utf8_cprev_char (const char **text)
++str_utf8_cprev_char (const char **text, const char *begin)
+ {
+-    (*text) = g_utf8_prev_char (*text);
++    (*text) = g_utf8_find_prev_char (begin, *text);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -136,17 +136,27 @@ str_utf8_cnext_char_safe (const char **text)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static void
+-str_utf8_cprev_char_safe (const char **text)
++str_utf8_cprev_char_safe (const char **text, const char *begin)
+ {
+     const char *result, *t;
+ 
+-    result = g_utf8_prev_char (*text);
++    result = g_utf8_find_prev_char (begin, *text);
++    /* Beginning of the string reached (if NULL)? */
++    if (result == NULL)
++    {
++        *text = NULL;
++        return;
++    }
++
+     t = result;
+     str_utf8_cnext_char_safe (&t);
+     if (t == *text)
+         (*text) = result;
+-    else
++    else if (*text > begin)
+         (*text)--;
++    else
++        /* Buffer underrun. */
++        *text = NULL;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -262,7 +272,7 @@ str_utf8_cprev_noncomb_char (const char **text, const char *begin)
+ 
+     while ((*text) != begin)
+     {
+-        str_utf8_cprev_char_safe (text);
++        str_utf8_cprev_char_safe (text, begin);
+         count++;
+         if (!str_utf8_iscombiningmark (*text))
+             break;
+@@ -889,12 +899,21 @@ str_utf8_trunc (const char *text, int width)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++/* Converts a character index into a byte offset. */
+ 
+ static int
+ str_utf8_offset_to_pos (const char *text, size_t length)
+ {
++    glong size;
++
+     if (str_utf8_is_valid_string (text))
++    {
++        /* Limit index by string size. */
++        size = g_utf8_strlen (text, -1);
++        if (size < (glong) length)
++            length = (size_t) size;
+         return g_utf8_offset_to_pointer (text, length) - text;
++    }
+     else
+     {
+         int result;
+@@ -902,6 +921,10 @@ str_utf8_offset_to_pos (const char *text, size_t length)
+ 
+         buffer = g_string_new (text);
+         str_utf8_fix_string (buffer->str);
++        /* Limit index by string size. */
++        size = g_utf8_strlen (buffer->str, -1);
++        if (size < (glong) length)
++            length = (size_t) size;
+         result = g_utf8_offset_to_pointer (buffer->str, length) - buffer->str;
+         g_string_free (buffer, TRUE);
+         return result;
+diff --git a/lib/widget.h b/lib/widget.h
+index e3bb5cac2..cfe556891 100644
+--- a/lib/widget.h
++++ b/lib/widget.h
+@@ -30,9 +30,11 @@ typedef struct WGroup WGroup;
+ #include "lib/widget/groupbox.h"
+ #include "lib/widget/label.h"
+ #include "lib/widget/listbox.h"
++#include "lib/widget/filtering_listbox.h"
+ #include "lib/widget/menu.h"
+ #include "lib/widget/radio.h"
+ #include "lib/widget/input.h"
++#include "lib/widget/forwarding_input.h"
+ #include "lib/widget/listbox-window.h"
+ #include "lib/widget/quick.h"
+ #include "lib/widget/wtools.h"
+diff --git a/lib/widget/Makefile.am b/lib/widget/Makefile.am
+index 90f023bbc..9a4616c38 100644
+--- a/lib/widget/Makefile.am
++++ b/lib/widget/Makefile.am
+@@ -16,8 +16,10 @@ libmcwidget_la_SOURCES = \
+ 	history.c history.h \
+ 	input.c input.h \
+ 	input_complete.c \
++	forwarding_input.c forwarding_input.h \
+ 	listbox-window.c listbox-window.h \
+ 	listbox.c listbox.h \
++	filtering_listbox.c filtering_listbox.h \
+ 	label.c label.h \
+ 	menu.c menu.h \
+ 	mouse.c mouse.h \
+diff --git a/lib/widget/dialog-switch.c b/lib/widget/dialog-switch.c
+index 93868b19d..a9a51ce0d 100644
+--- a/lib/widget/dialog-switch.c
++++ b/lib/widget/dialog-switch.c
+@@ -241,7 +241,8 @@ dialog_switch_list (void)
+         else
+             title = g_strdup ("");
+ 
+-        listbox_add_item (listbox->list, LISTBOX_APPEND_BEFORE, get_hotkey (i++), title, h, FALSE);
++        listbox_add_item (LISTBOX (listbox->list), LISTBOX_APPEND_BEFORE, get_hotkey (i++), title,
++                          h, FALSE);
+ 
+         g_free (title);
+     }
+diff --git a/lib/widget/filtering_listbox.c b/lib/widget/filtering_listbox.c
+new file mode 100644
+index 000000000..37aadc414
+--- /dev/null
++++ b/lib/widget/filtering_listbox.c
+@@ -0,0 +1,429 @@
++/*
++   A class extending WListbox with dynamic filtering (i.e.: removal) of entries.
++
++   Copyright (C) <2021>
++   Free Software Foundation, Inc.
++
++   Written by:
++   Sebastian Gniazdowski <sgniazdowski@gmail.com>, 2021.
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file filtering_listbox.c
++ *  \brief A WListbox inheriting class that adds dynamic filtering of entries.
++ *  \author Sebastian Gniazdowski
++ *  \date 2021
++ */
++
++#include <config.h>
++
++#include "lib/global.h"
++#include "lib/widget.h"
++#include "lib/tty/tty.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++static WLEntry *
++filt_listbox_shallow_copy_entry (WLEntry * src, gboolean take_ownership)
++{
++    WLEntry *copy;
++    copy = g_new (WLEntry, 1);
++    *copy = *src;
++
++    /* Who has the ownership of the data? */
++    src->free_text = src->free_text && !take_ownership;
++    src->free_data = src->free_data && !take_ownership;
++    copy->free_text = copy->free_text && take_ownership;
++    copy->free_data = copy->free_data && take_ownership;
++
++    return copy;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++filt_listbox_make_one_line_room (WFilteringListbox * sl, int should_add_free_room)
++{
++    WListbox *l = LISTBOX (sl);
++    Widget *w = WIDGET (l), *owner = WIDGET (WIDGET (w)->owner);
++    WRect r_dialog, r_listbox;
++    int new_dialog_height, new_dialog_ypos, new_listbox_height, take_give_from_to_owner = 1;
++
++    /* IF the enlarged dialog won't fit the screen, don't resize it but the listbox instead. */
++    if ((sl->resize_strategy == FILT_LIST_DIALOG_AUTO_RESIZE && LINES <= owner->lines + 2) ||
++        sl->resize_strategy == FILT_LIST_KEEP_DIALOG_SIZE)
++        take_give_from_to_owner = 0;
++
++    // Increase the height of the dialog by 1, so that the new input fits.
++    if (should_add_free_room)
++    {
++        new_dialog_height = owner->lines + take_give_from_to_owner;
++        new_listbox_height = w->lines + (-1 + take_give_from_to_owner);
++        new_dialog_ypos = owner->y - take_give_from_to_owner;
++    }
++    else
++    {
++        new_dialog_height = owner->lines - take_give_from_to_owner;
++        new_listbox_height = w->lines - (-1 + take_give_from_to_owner);
++        new_dialog_ypos = owner->y + take_give_from_to_owner;
++    }
++    rect_init (&r_dialog, new_dialog_ypos, owner->x, new_dialog_height, owner->cols);
++    rect_init (&r_listbox, w->y, w->x, new_listbox_height, w->cols);
++    send_message (w, NULL, MSG_RESIZE, 0, &r_listbox);
++    send_message (owner, NULL, MSG_RESIZE, 0, &r_dialog);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++filt_listbox_show_multi_search_widget (WFilteringListbox * sl)
++{
++    WListbox *l = LISTBOX (sl);
++    Widget *w = WIDGET (l), *owner = WIDGET (WIDGET (l)->owner);
++    WForwardingInput *multi_search_in;
++    int distance_y = owner->y + owner->lines - (w->y + w->lines) + 1;
++    int distance_x = w->cols > 40 ? 5 : 1, small = w->cols <= 15 ? 1 : 0;
++
++    filt_listbox_make_one_line_room (sl, 1);
++    multi_search_in = forwarding_input_new (owner->lines - distance_y, distance_x,
++                                            input_colors, w->cols - 2 - distance_x + small, "",
++                                            "multi_search", INPUT_COMPLETE_NONE, w);
++    group_add_widget_autopos (GROUP (owner), multi_search_in, WPOS_KEEP_TOP | WPOS_CENTER_HORZ,
++                              NULL);
++
++    repaint_screen ();
++    widget_draw (w);
++    widget_draw (WIDGET (multi_search_in));
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++filt_listbox_hide_multi_search_widget (WFilteringListbox * sl)
++{
++    WListbox *l = LISTBOX (sl);
++    Widget *in;
++    in = WIDGET (WIDGET (l)->owner)->find_by_type (WIDGET (WIDGET (l)->owner), forw_input_callback);
++    if (in)
++    {
++        group_remove_widget (in);
++        filt_listbox_make_one_line_room (sl, 0);
++        group_select_next_widget (WIDGET (l)->owner);
++        widget_draw (WIDGET (l));
++        widget_destroy (in);
++    }
++    repaint_screen ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/* Return TRUE if given listbox is in WST_FILTER state. */
++static gboolean
++filt_listbox_is_filter_state (WFilteringListbox * sl)
++{
++    return ((WIDGET (sl)->state & WST_FILTER) != 0);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++filt_listbox_filter_list (WFilteringListbox * sl, const char *text)
++{
++    WListbox *l = LISTBOX (sl);
++    int i, size;
++    GList *le;
++    g_auto (GStrv) query_terms = NULL;
++
++    /* Remove the list and allocate a new one. */
++    if (l->list)
++        g_queue_free_full (l->list, g_free);
++    l->list = g_queue_new ();
++
++    /* Split the query into space delimeted strings. */
++    query_terms = g_strsplit (text, " ", 10);
++
++    /*
++     * Get the size of the listbox and iterate over it testing each element against ·all· words in 
++     * query_terms.
++     */
++    size = g_queue_get_length (sl->list_keep);
++    le = g_queue_peek_head_link (sl->list_keep);
++    for (i = 0; i < size; i++, le = g_list_next (le))
++    {
++        WLEntry *e = LENTRY (le->data);
++        gboolean match = TRUE;
++
++        /* Test the query against the list entry. */
++        for (gchar ** p = query_terms; *p; p++)
++        {
++            if (**p && !strcasestr (e->text, *p))
++            {
++                match = FALSE;
++                break;
++            }
++        }
++
++        /* If all the terms matched, then add the element to the list. */
++        if (match)
++            g_queue_push_tail (l->list, filt_listbox_shallow_copy_entry (e, FALSE));
++    }
++    if (listbox_is_empty (l))
++    {
++        listbox_add_item (l, LISTBOX_APPEND_AT_END, 0, "<no search results>", NULL, FALSE);
++        LENTRY (g_queue_peek_head_link (l->list)->data)->index = -2;
++    }
++    size = g_queue_get_length (l->list);
++    if (l->pos >= size)
++        listbox_select_entry (l, size - 1);
++    else
++        listbox_select_entry (l, l->pos);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/* Restores original elements of the list (from sl->list_keep) and turns off the WST_FILTER state. */
++static gboolean
++filt_listbox_set_to_normal_state (WFilteringListbox * sl)
++{
++    WListbox *l = LISTBOX (sl);
++    /* The listbox is already in non-filter state? */
++    if ((WIDGET (l)->state & WST_FILTER) == 0)
++    {
++        /* Return doing no change, just signal the error. */
++        return FALSE;
++    }
++
++    /* The keep-list must be allocated (even if it's empty). */
++    g_assert (sl->list_keep);
++
++    /* Mark the new state. */
++    WIDGET (l)->set_state (WIDGET (l), WST_FILTER, 0);
++
++    /* Release the filtered list and replace it with the original, complete list. */
++    g_queue_free_full (l->list, g_free);
++    l->list = sl->list_keep;
++    sl->list_keep = NULL;
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * Sets the listbox into ·filter· state. In this state, there's a separate copy of all list
++ * entries, while the original (and displayed) field ->list is being a filtered version of the
++ * full copy.
++ */
++static gboolean
++filt_listbox_set_to_filter_state (WFilteringListbox * sl)
++{
++    WListbox *l = LISTBOX (sl);
++    GList *le;
++
++    /* The listbox is already in filter state? */
++    if (WIDGET (l)->state & WST_FILTER)
++    {
++        /* Return doing no change, just signal the error. */
++        return FALSE;
++    }
++
++    /* Mark the new state. */
++    WIDGET (l)->set_state (WIDGET (l), WST_FILTER, 1);
++
++    /* No list copy when entering filter mode. */
++    g_assert (sl->list_keep == NULL);
++    sl->list_keep = g_queue_new ();
++
++    /* Skip empty lists. */
++    if (listbox_is_empty (l))
++        return TRUE;
++
++    /*
++     * Remember the original position in the list in the field. It'll be used to determine the
++     * virtual_pos field.
++     */
++    listbox_init_indices (l);
++
++    /* Perform a shallow copy of the original list. */
++    for (le = g_queue_peek_head_link (l->list); le != NULL; le = g_list_next (le))
++    {
++        WLEntry *copy = filt_listbox_shallow_copy_entry (LENTRY (le->data), TRUE);
++        g_queue_push_tail (sl->list_keep, copy);
++    }
++
++    return TRUE;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/*
++ * If the list is filtered it replaces from the back list (list_keep). It returns whether such 
++ * change occurred – FALSE means that the list was already unfiltered.
++ */
++gboolean
++filt_listbox_ensure_unfiltered_state (WFilteringListbox * sl)
++{
++    gboolean ret = FALSE;
++    if (filt_listbox_is_filter_state (sl))
++        ret = filt_listbox_set_to_normal_state (sl);
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++gboolean
++filt_listbox_conditionally_enable_multi_search_init (WFilteringListbox * sl)
++{
++    int start_with_multi_search_active;
++
++    /* Option of starting the listbox with MultiSearch pre-activated. */
++    start_with_multi_search_active =
++        mc_config_get_bool (mc_global.main_config, CONFIG_APP_SECTION,
++                            "multi_search_active_by_default", 1);
++
++    /* CK_MultiSearch toggles the state. */
++    if (start_with_multi_search_active)
++        send_message (WIDGET (sl), NULL, MSG_ACTION, CK_MultiSearch, NULL);
++    else
++        /* Only init embedded position indices. */
++        listbox_init_indices (LISTBOX (sl));
++
++    return start_with_multi_search_active;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++WFilteringListbox *
++filtering_listbox_new (int y, int x, int height, int width,
++                       gboolean deletable, lcback_fn callback,
++                       filt_listbox_resize_strategy_t resize)
++{
++    WListbox *base;
++    WFilteringListbox *object;
++    Widget *w;
++
++    /* Allocate memory for the object body. */
++    object = g_new (WFilteringListbox, 1);
++
++    /* Forward the call to construct the inherited object. */
++    base = listbox_new (y, x, height, width, deletable, callback);
++
++    /* Shallow copy and shallow release. */
++    object->base = *base;
++    g_free (base);
++
++    /* Alter fields of base class. */
++    w = WIDGET (object);
++    object->base_callback = w->callback;        /* Save original callback function */
++    w->callback = filt_listbox_callback;        /* Set custom callback handler */
++
++    /* Set extending fields of this class. */
++    object->list_keep = NULL;   /* No back buffer at startup */
++    object->resize_strategy = resize;   /* Save resize strategy */
++    object->initialized = FALSE;
++
++    return object;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++cb_ret_t
++filt_listbox_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    WFilteringListbox *sl = FILT_LISTBOX (w);   /* s* – from `screen`, a "screened" listbox */
++    cb_ret_t ret = MSG_NOT_HANDLED;
++    long activity;
++
++    switch (msg)
++    {
++    case MSG_INIT:
++        if (sl->initialized == FALSE)
++        {
++            filt_listbox_conditionally_enable_multi_search_init (sl);
++            sl->initialized = TRUE;
++        }
++        /* WListbox doesn't have MSG_INIT, so don't forward. */
++        ret = MSG_HANDLED;
++        break;
++    case MSG_ACTION:
++        if (parm == CK_MultiSearch)
++        {
++            gboolean retval;
++            /* Toggle the multi term searching of any listbox. */
++            if (filt_listbox_is_filter_state (sl))
++            {
++                /* Remove the input widget from the dialog. */
++                filt_listbox_hide_multi_search_widget (sl);
++                /* Restore original (unfiltered) listbox contents. */
++                retval = filt_listbox_set_to_normal_state (sl);
++            }
++            else
++            {
++                /* Add input widget for the filter query at the bottom of the dialog window. */
++                filt_listbox_show_multi_search_widget (sl);
++                /* … and then turn on the filter state. */
++                retval = filt_listbox_set_to_filter_state (sl);
++            }
++            if (!retval)
++                message (D_ERROR | D_CENTER, MSG_ERROR,
++                         "An internal error #3 occurred (filtered listbox support).");
++
++            ret = MSG_HANDLED;
++        }
++        break;
++
++    case MSG_KEY:
++        activity = widget_lookup_key (WIDGET (sl), parm);
++        if (activity == CK_MultiSearch)
++            ret = send_message (w, NULL, MSG_ACTION, CK_MultiSearch, NULL);
++        break;
++
++    case MSG_UPDATE_LIST:
++        if (widget_get_state (w, WST_FILTER))
++        {
++            filt_listbox_filter_list (sl, (char *) data);
++            ret = MSG_HANDLED;
++        }
++        widget_draw (w);
++        break;
++
++    case MSG_DESTROY:
++        filt_listbox_ensure_unfiltered_state (sl);
++        /* ret is unhandled → the message will be forwarded to base class. */
++        break;
++    default:
++        break;
++    }
++
++    /* Forward action to base class in case it's not yet handled. */
++    if (ret == MSG_NOT_HANDLED)
++        ret = sl->base_callback (w, sender, msg, parm, data);
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/filtering_listbox.h b/lib/widget/filtering_listbox.h
+new file mode 100644
+index 000000000..f51f1ec56
+--- /dev/null
++++ b/lib/widget/filtering_listbox.h
+@@ -0,0 +1,49 @@
++#ifndef MC__FILTERING_LISTBOX_H
++#define MC__FILTERING_LISTBOX_H
++
++#include <glib-2.0/glib.h>      /* GQueue */
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++/* Casting macros. */
++#define FILT_LISTBOX(x) ((WFilteringListbox *)(x))
++#define CONST_FILT_LISTBOX(x) ((const WFilteringListbox *)(x))
++
++/*** enums ***************************************************************************************/
++
++typedef enum filt_listbox_resize_strategy_e
++{
++    FILT_LIST_EXTEND_DIALOG = 0,
++    FILT_LIST_KEEP_DIALOG_SIZE,
++    FILT_LIST_DIALOG_AUTO_RESIZE
++} filt_listbox_resize_strategy_t;
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++typedef struct WFilteringListbox_s
++{
++    WListbox base;
++    widget_cb_fn base_callback; /* Saved callback of base class */
++    gboolean initialized;       /* Whether MSG_INIT has been received. */
++
++    /* Fields for new logic. */
++    GQueue *list_keep;          /* Unfiltered list (used in  WST_FILTER state). */
++    filt_listbox_resize_strategy_t resize_strategy;
++} WFilteringListbox;
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++WFilteringListbox *filtering_listbox_new (int y, int x, int height, int width,
++                                          gboolean deletable, lcback_fn callback,
++                                          filt_listbox_resize_strategy_t resize);
++gboolean filt_listbox_ensure_unfiltered_state (WFilteringListbox * l);
++gboolean filt_listbox_conditionally_enable_multi_search_init (WFilteringListbox * l);
++void filt_listbox_select_entry (WFilteringListbox * sl, int dest);
++cb_ret_t filt_listbox_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm,
++                                void *data);
++
++/*** inline functions ****************************************************************************/
++
++#endif /* MC__FILTERING_LISTBOX_H */
+diff --git a/lib/widget/forwarding_input.c b/lib/widget/forwarding_input.c
+new file mode 100644
+index 000000000..be401227f
+--- /dev/null
++++ b/lib/widget/forwarding_input.c
+@@ -0,0 +1,166 @@
++/*
++   A key forwarding extended input class.
++
++   Copyright (C) 2021
++   Free Software Foundation, Inc.
++
++   Written by:
++   Sebastian Gniazdowski <sgniazdowski@gmail.com>, 2021.
++
++   This file is part of the Midnight Commander.
++
++   The Midnight Commander is free software: you can redistribute it
++   and/or modify it under the terms of the GNU General Public License as
++   published by the Free Software Foundation, either version 3 of the License,
++   or (at your option) any later version.
++
++   The Midnight Commander is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/** \file forwarding-input.c
++ *  \brief This input class has a feature of forwarding unrecognized keys to a widget passed at 
++ *         creation.
++ *  \author Sebastian Gniazdowski
++ *  \date 2021
++ *
++ *  It's being used by MultiSearch to allow moving across listbox while typing to the input.
++ */
++
++#include <config.h>
++
++#include "lib/global.h"
++#include "lib/widget.h"
++
++/*** global variables ****************************************************************************/
++
++/*** file scope macro definitions ****************************************************************/
++
++/*** file scope type declarations ****************************************************************/
++
++/*** file scope variables ************************************************************************/
++
++/*** file scope functions ************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++/* --------------------------------------------------------------------------------------------- */
++/*** public functions ****************************************************************************/
++/* --------------------------------------------------------------------------------------------- */
++
++WForwardingInput *
++forwarding_input_new (int y, int x, const int *colors,
++                      int len, const char *text, const char *histname,
++                      input_complete_t completion_flags, Widget * forward_to_widget)
++{
++    WInput *base;
++    WForwardingInput *object;
++    Widget *w;
++
++    /* Allocate memory for the object body. */
++    object = g_new (WForwardingInput, 1);
++
++    /* Forward the call to construct the inherited object. */
++    base = input_new (y, x, colors, len, text, histname, completion_flags);
++
++    /* Shallow copy and shallow release. */
++    object->base = *base;
++    g_free (base);
++
++    /* Alter fields of base class. */
++    w = WIDGET (object);
++    object->base_callback = w->callback;        /* Save original callback function */
++    w->callback = forw_input_callback;  /* Set custom callback handler */
++
++    /* Set  extending fields of this class. */
++    object->forward_to_widget = forward_to_widget;
++    return object;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++cb_ret_t
++forw_input_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data)
++{
++    WForwardingInput *in = FORW_INPUT (w);
++    gboolean key_message = FALSE;
++    cb_ret_t ret;
++
++    switch (msg)
++    {
++    case MSG_KEY:
++        ret = forw_input_handle_char (in, parm);
++        key_message = TRUE;
++        break;
++    default:
++        break;
++    }
++
++    /*
++     * Simply pass on all messages to the base class (except for MSG_KEY, which might have
++     * been possibly already sent from forw_input_handle_char() function).
++     */
++
++    if (!key_message)
++        ret = in->base_callback (WIDGET (in), sender, msg, parm, data);
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++cb_ret_t
++forw_input_handle_char (WForwardingInput * in, int key)
++{
++    cb_ret_t ret = MSG_NOT_HANDLED;
++    gboolean sent_to_base = FALSE;
++    long activity;
++    char *str_cp;
++
++    /* Save to detect if a change happened. */
++    str_cp = g_strdup (in->base.buffer);
++
++    /* Is this key recognized by the base object? */
++    activity = widget_lookup_key (WIDGET (in), key);
++    if (activity != CK_IgnoreKey && activity != CK_Complete)
++    {
++        /* Yes → send the key to the upper class. */
++        ret = in->base_callback (WIDGET (in), WIDGET (in), MSG_KEY, key, NULL);
++        sent_to_base = TRUE;
++    }
++    /* Should we try to forward the key to any paired widget? */
++    if (in->forward_to_widget && ret == MSG_NOT_HANDLED)
++    {
++        /* Is it maybe recognized by forward_to_widget paired object? */
++        activity = widget_lookup_key (WIDGET (in->forward_to_widget), key);
++        if (activity != CK_IgnoreKey)
++        {
++            /* Yes → forward the key to the paired widget (most probably WListbox). */
++            ret = send_message (WIDGET (in->forward_to_widget), NULL, MSG_KEY, key, NULL);
++        }
++    }
++
++    /*
++     * If not handled yet, then send the key to the base object for general recognition (if
++     * not already done that).
++     */
++
++    if (!sent_to_base && ret == MSG_NOT_HANDLED)
++    {
++        ret = in->base_callback (WIDGET (in), WIDGET (in), MSG_KEY, key, NULL);
++        sent_to_base = TRUE;    /* unused */
++    }
++
++    /* Send update signal to paired widget ·if· input's text has changed. */
++    if (in->forward_to_widget && g_strcmp0 (str_cp, in->base.buffer))
++        send_message (WIDGET (in->forward_to_widget), NULL, MSG_UPDATE_LIST, key, in->base.buffer);
++    g_free (str_cp);
++
++    return ret;
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/forwarding_input.h b/lib/widget/forwarding_input.h
+new file mode 100644
+index 000000000..5b4e5961a
+--- /dev/null
++++ b/lib/widget/forwarding_input.h
+@@ -0,0 +1,37 @@
++#ifndef MC__FORWARDING_INPUT_H
++#define MC__FORWARDING_INPUT_H
++
++/*** typedefs(not structures) and defined constants **********************************************/
++
++/* Casting macros. */
++#define FORW_INPUT(x) ((WForwardingInput *)(x))
++#define CONST_FORW_INPUT(x) ((const WForwardingInput *)(x))
++
++typedef struct
++{
++    WInput base;
++    widget_cb_fn base_callback; /* Saved callback of  base class */
++
++    /* Fields for new logic. */
++    Widget *forward_to_widget;  /* The paired widget to receive unhandled keys */
++} WForwardingInput;
++
++/*** enums ***************************************************************************************/
++
++/*** structures declarations (and typedefs of structures)*****************************************/
++
++/*** global variables defined in .c file *********************************************************/
++
++/*** declarations of public functions ************************************************************/
++
++WForwardingInput *forwarding_input_new (int y, int x, const int *colors,
++                                        int len, const char *text, const char *histname,
++                                        input_complete_t completion_flags,
++                                        Widget * forward_to_widget);
++
++cb_ret_t forw_input_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *data);
++cb_ret_t forw_input_handle_char (WForwardingInput * in, int key);
++
++/*** inline functions ****************************************************************************/
++
++#endif /* MC__FORWARDING_INPUT_H */
+diff --git a/lib/widget/group.c b/lib/widget/group.c
+index f8e318bd9..238f7ab1b 100644
+--- a/lib/widget/group.c
++++ b/lib/widget/group.c
+@@ -749,15 +749,20 @@ group_add_widget_autopos (WGroup * g, void *w, widget_pos_flags_t pos_flags, con
+  * @param w Widget object
+  */
+ void
+-group_remove_widget (void *w)
++group_remove_widget (void *wid)
+ {
++    Widget *w = WIDGET (wid);
+     WGroup *g;
+     GList *d;
+ 
+     /* Don't accept NULL widget. This shouldn't happen */
+     assert (w != NULL);
+ 
+-    g = WIDGET (w)->owner;
++    /* Invoke widget's pre unlink callback. */
++    if (w->pre_unlink_func)
++        w->pre_unlink_func (w);
++
++    g = w->owner;
+ 
+     d = g_list_find (g->widgets, w);
+     if (d == g->current)
+@@ -774,7 +779,7 @@ group_remove_widget (void *w)
+         group_select_current_widget (g);
+     }
+ 
+-    WIDGET (w)->owner = NULL;
++    w->owner = NULL;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/history.c b/lib/widget/history.c
+index 775d02b1b..dfc6f4275 100644
+--- a/lib/widget/history.c
++++ b/lib/widget/history.c
+@@ -66,44 +66,53 @@ typedef struct
+ /*** file scope functions ************************************************************************/
+ 
+ static cb_ret_t
+-history_dlg_reposition (WDialog * dlg_head)
++history_dlg_reposition (WDialog * dlg_head, WRect * resize)
+ {
+-    history_dlg_data *data;
+-    int x = 0, y, he, wi;
+     WRect r;
+ 
+-    /* guard checks */
+-    if ((dlg_head == NULL) || (dlg_head->data == NULL))
+-        return MSG_NOT_HANDLED;
+-
+-    data = (history_dlg_data *) dlg_head->data;
+-
+-    y = data->y;
+-    he = data->count + 2;
+-
+-    if (he <= y || y > (LINES - 6))
++    if (resize == NULL)
+     {
+-        he = MIN (he, y - 1);
+-        y -= he;
++        history_dlg_data *data;
++        int x = 0, y, he, wi;
++
++        /* guard checks */
++        if ((dlg_head == NULL) || (dlg_head->data == NULL))
++            return MSG_NOT_HANDLED;
++
++        data = (history_dlg_data *) dlg_head->data;
++
++        y = data->y;
++        he = data->count + 2;
++
++        if (he <= y || y > (LINES - 6))
++        {
++            he = MIN (he, y - 1);
++            y -= he;
++        }
++        else
++        {
++            y++;
++            he = MIN (he, LINES - y);
++        }
++
++        if (data->x > 2)
++            x = data->x - 2;
++
++        wi = data->max_width + 4;
++
++        if ((wi + x) > COLS)
++        {
++            wi = MIN (wi, COLS);
++            x = COLS - wi;
++        }
++        rect_init (&r, y, x, he, wi);
+     }
+     else
+     {
+-        y++;
+-        he = MIN (he, LINES - y);
++        /* A resize from some other code (currently from the listbox filter). */
++        r = *resize;
+     }
+ 
+-    if (data->x > 2)
+-        x = data->x - 2;
+-
+-    wi = data->max_width + 4;
+-
+-    if ((wi + x) > COLS)
+-    {
+-        wi = MIN (wi, COLS);
+-        x = COLS - wi;
+-    }
+-
+-    rect_init (&r, y, x, he, wi);
+ 
+     return dlg_default_callback (WIDGET (dlg_head), NULL, MSG_RESIZE, 0, &r);
+ }
+@@ -116,7 +125,7 @@ history_dlg_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, v
+     switch (msg)
+     {
+     case MSG_RESIZE:
+-        return history_dlg_reposition (DIALOG (w));
++        return history_dlg_reposition (DIALOG (w), data);
+ 
+     case MSG_NOTIFY:
+         {
+@@ -158,7 +167,7 @@ history_create_item (history_descriptor_t * hd, void *data)
+     width = str_term_width1 (text);
+     hd->max_width = MAX (width, hd->max_width);
+ 
+-    listbox_add_item (hd->listbox, LISTBOX_APPEND_AT_END, 0, text, NULL, TRUE);
++    listbox_add_item (LISTBOX (hd->listbox), LISTBOX_APPEND_AT_END, 0, text, NULL, TRUE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -190,7 +199,7 @@ history_descriptor_init (history_descriptor_t * hd, int y, int x, GList * histor
+     hd->action = CK_IgnoreKey;
+     hd->text = NULL;
+     hd->max_width = 0;
+-    hd->listbox = listbox_new (1, 1, 2, 2, TRUE, NULL);
++    hd->listbox = filtering_listbox_new (1, 1, 2, 2, TRUE, NULL, FILT_LIST_KEEP_DIALOG_SIZE);
+     /* in most cases history list contains string only and no any other data */
+     hd->create = history_create_item;
+     hd->release = history_release_item;
+@@ -205,6 +214,7 @@ history_show (history_descriptor_t * hd)
+     GList *z, *hi;
+     size_t count;
+     WDialog *query_dlg;
++    WListbox *lw;
+     history_dlg_data hist_data;
+     int dlg_ret;
+ 
+@@ -217,7 +227,9 @@ history_show (history_descriptor_t * hd)
+         hd->create (hd, z->data);
+     /* after this, the order of history items is following: recent at begin, oldest at end */
+ 
+-    count = listbox_get_length (hd->listbox);
++    /* Get the WListbox pointer for convenience. */
++    lw = LISTBOX (hd->listbox);
++    count = listbox_get_length (lw);
+ 
+     hist_data.y = hd->y;
+     hist_data.x = hd->x;
+@@ -244,17 +256,17 @@ history_show (history_descriptor_t * hd)
+     {
+         /* history is above base widget -- revert order to place recent item at bottom */
+         /* revert history direction */
+-        g_queue_reverse (hd->listbox->list);
++        g_queue_reverse (lw->list);
+         if (hd->current < 0 || (size_t) hd->current >= count)
+-            listbox_select_last (hd->listbox);
++            listbox_select_last (lw);
+         else
+-            listbox_select_entry (hd->listbox, count - 1 - (size_t) hd->current);
++            listbox_select_entry (lw, count - 1 - (size_t) hd->current);
+     }
+     else
+     {
+         /* history is below base widget -- keep order to place recent item on top  */
+         if (hd->current > 0)
+-            listbox_select_entry (hd->listbox, hd->current);
++            listbox_select_entry (lw, hd->current);
+     }
+ 
+     dlg_ret = dlg_run (query_dlg);
+@@ -274,13 +286,18 @@ history_show (history_descriptor_t * hd)
+             hd->action = CK_Enter;
+         }
+ 
+-        listbox_get_current (hd->listbox, &q, NULL);
+-        hd->text = g_strdup (q);
++        listbox_get_current (lw, &q, NULL);
++        /* Can still be 0 if special entry "<no search results>" will be selected. */
++        if (q)
++            hd->text = g_strdup (q);
+     }
+ 
++    /* If needed, restore normal listbox state, with no backlist (list_keep). */
++    filt_listbox_ensure_unfiltered_state (hd->listbox);
++
+     /* get modified history from dialog */
+     z = NULL;
+-    for (hi = listbox_get_first_link (hd->listbox); hi != NULL; hi = g_list_next (hi))
++    for (hi = listbox_get_first_link (lw); hi != NULL; hi = g_list_next (hi))
+         /* history is being reverted here again */
+         z = g_list_prepend (z, hd->release (hd, LENTRY (hi->data)));
+ 
+diff --git a/lib/widget/history.h b/lib/widget/history.h
+index 9c4b403d1..23f4d403d 100644
+--- a/lib/widget/history.h
++++ b/lib/widget/history.h
+@@ -11,7 +11,7 @@
+ /* forward declarations */
+ struct history_descriptor_t;
+ struct WLEntry;
+-struct WListbox;
++typedef struct WFilteringListbox_s WFilteringListbox;
+ 
+ typedef void (*history_create_item_func) (struct history_descriptor_t * hd, void *data);
+ typedef void *(*history_release_item_func) (struct history_descriptor_t * hd, struct WLEntry * le);
+@@ -30,7 +30,7 @@ typedef struct history_descriptor_t
+     char *text;                 /**< return text of selected item */
+ 
+     size_t max_width;           /**< maximum width of sring in history */
+-    struct WListbox *listbox;   /**< listbox widget to draw history */
++    WFilteringListbox *listbox;   /**< listbox widget to draw history */
+ 
+     history_create_item_func create;    /**< function to create item of @list */
+     history_release_item_func release;  /**< function to release item of @list */
+diff --git a/lib/widget/input.c b/lib/widget/input.c
+index 471715c25..999c17559 100644
+--- a/lib/widget/input.c
++++ b/lib/widget/input.c
+@@ -425,25 +425,37 @@ backward_word (WInput * in)
+ {
+     const char *p;
+ 
++    /* p is limited by strlen. */
+     p = in->buffer + str_offset_to_pos (in->buffer, in->point);
+ 
+-    while (p != in->buffer)
++    while (p != NULL && p != in->buffer)
+     {
+         const char *p_tmp;
+ 
+         p_tmp = p;
+-        str_cprev_char (&p);
+-        if (!str_isspace (p) && !str_ispunct (p))
++        str_cprev_char (&p, in->buffer);
++        if (p != NULL)
+         {
+-            p = p_tmp;
+-            break;
++            /*
++             * If preceding char isn't a word boundary (↔ we're ·in· a word), then undo last move and
++             * break from loop.
++             */
++
++            if (!str_isspace (p) && !str_ispunct (p))
++            {
++                p = p_tmp;
++                break;
++            }
++            in->point--;
+         }
+-        in->point--;
+     }
+-    while (p != in->buffer)
++
++    /* Further skip the ·word· chars, if not outside the string. */
++    while (p != NULL && p != in->buffer)
+     {
+-        str_cprev_char (&p);
+-        if (str_isspace (p) || str_ispunct (p))
++        str_cprev_char (&p, in->buffer);
++        /* Stop when a word boundary char is detected or when the string ends. */
++        if (p == NULL || str_isspace (p) || str_ispunct (p))
+             break;
+ 
+         in->point--;
+@@ -871,7 +883,8 @@ input_save_history (const gchar * event_group_name, const gchar * event_name,
+     (void) event_group_name;
+     (void) event_name;
+ 
+-    if (!in->is_password && (DIALOG (WIDGET (in)->owner)->ret_value != B_CANCEL))
++    if (!in->is_password && WIDGET (in)->owner
++        && (DIALOG (WIDGET (in)->owner)->ret_value != B_CANCEL))
+     {
+         ev_history_load_save_t *ev = (ev_history_load_save_t *) data;
+ 
+@@ -970,6 +983,20 @@ input_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+     }
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++
++static void
++listbox_unregister_history_events_cb (gpointer wid_ptr)
++{
++    Widget *w = WIDGET (wid_ptr);
++    WDialog *h = DIALOG (w->owner);
++
++    /* unsubscribe from "history_load" event */
++    mc_event_del (h->event_group, MCEVENT_HISTORY_LOAD, input_load_history, w);
++    /* unsubscribe from "history_save" event */
++    mc_event_del (h->event_group, MCEVENT_HISTORY_SAVE, input_save_history, w);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1028,7 +1055,6 @@ input_new (int y, int x, const int *colors, int width, const char *def_text,
+     if ((histname != NULL) && (*histname != '\0'))
+         in->history.name = g_strdup (histname);
+     /* history will be loaded later */
+-
+     in->label = NULL;
+ 
+     return in;
+@@ -1050,6 +1076,8 @@ input_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         mc_event_add (h->event_group, MCEVENT_HISTORY_LOAD, input_load_history, w, NULL);
+         /* subscribe to "history_save" event */
+         mc_event_add (h->event_group, MCEVENT_HISTORY_SAVE, input_save_history, w, NULL);
++        /* unregister (via the func) the events in case of removal from dialog */
++        w->pre_unlink_func = listbox_unregister_history_events_cb;
+         if (in->label != NULL)
+             widget_set_state (WIDGET (in->label), WST_DISABLED, widget_get_state (w, WST_DISABLED));
+         return MSG_HANDLED;
+@@ -1063,7 +1091,7 @@ input_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+             return v;
+         }
+ 
+-        /* Keys we want others to handle */
++        /* Keys we want others to handle. */
+         if (parm == KEY_UP || parm == KEY_DOWN || parm == ESC_CHAR
+             || parm == KEY_F (10) || parm == '\n')
+             return MSG_NOT_HANDLED;
+@@ -1097,10 +1125,14 @@ input_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void *d
+         return MSG_HANDLED;
+ 
+     case MSG_DESTROY:
+-        /* unsubscribe from "history_load" event */
+-        mc_event_del (h->event_group, MCEVENT_HISTORY_LOAD, input_load_history, w);
+-        /* unsubscribe from "history_save" event */
+-        mc_event_del (h->event_group, MCEVENT_HISTORY_SAVE, input_save_history, w);
++        /* …only, if there is an owner WGroup. */
++        if (h)
++        {
++            /* unsubscribe from "history_load" event */
++            mc_event_del (h->event_group, MCEVENT_HISTORY_LOAD, input_load_history, w);
++            /* unsubscribe from "history_save" event */
++            mc_event_del (h->event_group, MCEVENT_HISTORY_SAVE, input_save_history, w);
++        }
+         input_destroy (in);
+         return MSG_HANDLED;
+ 
+diff --git a/lib/widget/input.h b/lib/widget/input.h
+index a753e6160..aca26d43d 100644
+--- a/lib/widget/input.h
++++ b/lib/widget/input.h
+@@ -70,6 +70,7 @@ typedef struct
+         GList *current;         /* current history item */
+         gboolean changed;       /* the history has changed */
+     } history;
++
+ } WInput;
+ 
+ /*** global variables defined in .c file *********************************************************/
+diff --git a/lib/widget/input_complete.c b/lib/widget/input_complete.c
+index c23fe6063..53772a66a 100644
+--- a/lib/widget/input_complete.c
++++ b/lib/widget/input_complete.c
+@@ -843,31 +843,37 @@ try_complete_commands_prepare (try_complete_automation_state_t * state, char *te
+         ti = text;
+     else
+     {
+-        ti = str_get_prev_char (&text[*lc_start]);
++        ti = str_get_prev_char (&text[*lc_start], text);
+         while (ti > text && whitespace (ti[0]))
+-            str_prev_char (&ti);
++            str_prev_char (&ti, text);
+     }
+ 
+-    if (ti == text)
+-        state->in_command_position++;
+-    else if (strchr (command_separator_chars, ti[0]) != NULL)
++    if (!ti)
+     {
+         state->in_command_position++;
+-        if (ti != text)
+-        {
+-            int this_char, prev_char;
++        ti = text;
++    }
+ 
+-            /* Handle the two character tokens '>&', '<&', and '>|'.
+-               We are not in a command position after one of these. */
+-            this_char = ti[0];
+-            prev_char = str_get_prev_char (ti)[0];
++    /* Is there any more preceding text, and there's a command separator? */
++    if (ti != text && strchr (command_separator_chars, ti[0]) != NULL)
++    {
++        int this_char, prev_char = '\0';
++        char *prev_char_p;
++        state->in_command_position++;
+ 
+-            /* Quoted */
+-            if ((this_char == '&' && (prev_char == '<' || prev_char == '>'))
+-                || (this_char == '|' && prev_char == '>') || (ti != text
+-                                                              && str_get_prev_char (ti)[0] == '\\'))
+-                state->in_command_position = 0;
+-        }
++        /* Initial assumption that we're at command. */
++        state->in_command_position++;
++
++        /* Handle the two character tokens '>&', '<&', and '>|'.
++           We are not in a command position after one of these. */
++        this_char = ti[0];
++        prev_char_p = str_get_prev_char (ti, text);
++        if (prev_char_p != NULL)
++            prev_char = prev_char_p[0];
++
++        if ((this_char == '&' && (strchr ("<>", prev_char)))
++            || (this_char == '|' && prev_char == '>') || prev_char == '\\')
++            state->in_command_position = 0;
+     }
+ }
+ 
+@@ -1017,8 +1023,12 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+ {
+     static int bl = 0;
+ 
+-    WGroup *g = GROUP (w);
+     WDialog *h = DIALOG (w);
++    WFilteringListbox *slw;
++    cb_ret_t ret = MSG_NOT_HANDLED;
++
++    /* Find the listbox in dialog's group. */
++    slw = FILT_LISTBOX (WIDGET (h)->find_by_type (WIDGET (h), filt_listbox_callback));
+ 
+     switch (msg)
+     {
+@@ -1027,12 +1037,19 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         {
+         case KEY_LEFT:
+         case KEY_RIGHT:
++            /* MultiSearch (list filtering) is allowing for left/right movement in query input. */
++            if (widget_get_state (WIDGET (slw), WST_FILTER))
++                break;
+             bl = 0;
+             h->ret_value = 0;
+             dlg_stop (h);
+-            return MSG_HANDLED;
++            ret = MSG_HANDLED;
++            break;
+ 
+         case KEY_BACKSPACE:
++            /* MultiSearch is exclusive with completion widening. */
++            if (widget_get_state (WIDGET (slw), WST_FILTER))
++                break;
+             bl = 0;
+             /* exit from completion list if input line is empty */
+             if (end == 0)
+@@ -1043,7 +1060,9 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+             /* Refill the list box and start again */
+             else if (end == min_end)
+             {
+-                end = str_get_prev_char (&input->buffer[end]) - input->buffer;
++                end = str_get_prev_char (&input->buffer[end], input->buffer) - input->buffer;
++                if (end < 0)
++                    end = 0;
+                 input_handle_char (input, parm);
+                 h->ret_value = B_USER;
+                 dlg_stop (h);
+@@ -1054,40 +1073,51 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+                 int i;
+                 GList *e;
+ 
+-                new_end = str_get_prev_char (&input->buffer[end]) - input->buffer;
++                new_end = str_get_prev_char (&input->buffer[end], input->buffer) - input->buffer;
++                /* The buffer is empty (no previous char available)? */
++                if (new_end < 0)
++                    new_end = 0;
+ 
+-                for (i = 0, e = listbox_get_first_link (LISTBOX (g->current->data));
++                for (i = 0, e = listbox_get_first_link (LISTBOX (slw));
+                      e != NULL; i++, e = g_list_next (e))
+                 {
+                     WLEntry *le = LENTRY (e->data);
+ 
+                     if (strncmp (input->buffer + start, le->text, new_end - start) == 0)
+                     {
+-                        listbox_select_entry (LISTBOX (g->current->data), i);
++                        listbox_select_entry (LISTBOX (slw), i);
+                         end = new_end;
+                         input_handle_char (input, parm);
+-                        widget_draw (WIDGET (g->current->data));
++                        widget_draw (WIDGET (slw));
+                         break;
+                     }
+                 }
+             }
+-            return MSG_HANDLED;
++            ret = MSG_HANDLED;
++            break;
+ 
+         default:
+             if (parm < 32 || parm > 255)
+             {
+                 bl = 0;
+-                if (widget_lookup_key (WIDGET (input), parm) != CK_Complete)
+-                    return MSG_NOT_HANDLED;
+-
+-                if (end == min_end)
+-                    return MSG_HANDLED;
+-
+-                /* This means we want to refill the list box and start again */
+-                h->ret_value = B_USER;
+-                dlg_stop (h);
++                /* CK_Complete → Is completion up to date? */
++                if ((widget_lookup_key (WIDGET (input), parm) == CK_Complete) && (end != min_end))
++                {
++                    /* This means we want to refill the list box and start again. */
++                    h->ret_value = B_USER;
++                    dlg_stop (h);
++                }
++                /*
++                 * else – key will be ignored by this function, so leave ret unchanged – allow other
++                 * widgets to process it.
++                 */
+             }
+-            else
++            /*
++             * Do standard live entry lookup only when not filtering list via MultiSearch – it is
++             * a feature that to a great extent replaces old engine. It can be still used as MultiSearch 
++             * can be dynamically enabled and disabled (default by alt-space and ctrl-space).
++             */
++            else if (!widget_get_state (WIDGET (slw), WST_FILTER))
+             {
+                 static char buff[MB_LEN_MAX] = "";
+                 GList *e;
+@@ -1110,7 +1140,7 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+                     break;
+                 }
+ 
+-                for (i = 0, e = listbox_get_first_link (LISTBOX (g->current->data));
++                for (i = 0, e = listbox_get_first_link (LISTBOX (slw));
+                      e != NULL; i++, e = g_list_next (e))
+                 {
+                     WLEntry *le = LENTRY (e->data);
+@@ -1121,7 +1151,7 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+                         if (need_redraw == 0)
+                         {
+                             need_redraw = 1;
+-                            listbox_select_entry (LISTBOX (g->current->data), i);
++                            listbox_select_entry (LISTBOX (slw), i);
+                             last_text = le->text;
+                         }
+                         else
+@@ -1172,7 +1202,7 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+                 if (need_redraw == 2)
+                 {
+                     insert_text (input, last_text, low);
+-                    widget_draw (WIDGET (g->current->data));
++                    widget_draw (WIDGET (slw));
+                 }
+                 else if (need_redraw == 1)
+                 {
+@@ -1180,13 +1210,15 @@ complete_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+                     dlg_stop (h);
+                 }
+                 bl = 0;
++                ret = MSG_HANDLED;
+             }
+         }
+-        return MSG_HANDLED;
++        break;
+ 
+     default:
+         return dlg_default_callback (w, sender, msg, parm, data);
+     }
++    return ret;
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -1223,7 +1255,7 @@ complete_engine (WInput * in, int what_to_do)
+             int start_x, start_y;
+             char **p, *q;
+             WDialog *complete_dlg;
+-            WListbox *complete_list;
++            WFilteringListbox *complete_list;
+ 
+             for (p = in->completions + 1; *p != NULL; count++, p++)
+             {
+@@ -1266,22 +1298,25 @@ complete_engine (WInput * in, int what_to_do)
+             complete_dlg =
+                 dlg_create (TRUE, y, x, complete_height, complete_width, WPOS_KEEP_DEFAULT, TRUE,
+                             dialog_colors, complete_callback, NULL, "[Completion]", NULL);
+-            complete_list = listbox_new (1, 1, h - 2, w - 2, FALSE, NULL);
++            complete_list = filtering_listbox_new (1, 1, h - 2, w - 2, FALSE, NULL,
++                                                   FILT_LIST_KEEP_DIALOG_SIZE);
+             group_add_widget (GROUP (complete_dlg), complete_list);
+ 
+             for (p = in->completions + 1; *p != NULL; p++)
+-                listbox_add_item (complete_list, LISTBOX_APPEND_AT_END, 0, *p, NULL, FALSE);
++                listbox_add_item (LISTBOX (complete_list), LISTBOX_APPEND_AT_END, 0, *p, NULL,
++                                  FALSE);
+ 
+             i = dlg_run (complete_dlg);
+             q = NULL;
+             if (i == B_ENTER)
+             {
+-                listbox_get_current (complete_list, &q, NULL);
++                listbox_get_current (LISTBOX (complete_list), &q, NULL);
+                 if (q != NULL)
+                     insert_text (in, q, strlen (q));
+             }
+             if (q != NULL || end != min_end)
+                 input_complete_free (in);
++
+             dlg_destroy (complete_dlg);
+ 
+             /* B_USER if user wants to start over again */
+@@ -1401,6 +1436,7 @@ complete_engine_fill_completions (WInput * in)
+ {
+     char *s;
+     const char *word_separators;
++    gboolean separator_found = FALSE;
+ 
+     word_separators = (in->completion_flags & INPUT_COMPLETE_SHELL_ESC) ? " \t;|<>" : "\t;|<>";
+ 
+@@ -1416,16 +1452,26 @@ complete_engine_fill_completions (WInput * in)
+             str_next_char (&s);
+     }
+ 
+-    for (; s >= in->buffer; str_prev_char (&s))
++    for (; s; str_prev_char (&s, in->buffer))
+     {
+         start = s - in->buffer;
+         if (strchr (word_separators, *s) != NULL && !strutils_is_char_escaped (in->buffer, s))
++        {
++            separator_found = TRUE;
+             break;
++        }
+     }
+ 
++    /* Note: str_prev_char() returns NULL if no preceding character fitting within string found. */
++    if (s < in->buffer)
++        s = in->buffer;
++
+     if (start < end)
+     {
+-        str_next_char (&s);
++        if (separator_found)
++            str_next_char (&s);
++        if (s > in->buffer + end)
++            s = in->buffer + end;
+         start = s - in->buffer;
+     }
+ 
+diff --git a/lib/widget/listbox-window.c b/lib/widget/listbox-window.c
+index 44548b485..eb0796a1e 100644
+--- a/lib/widget/listbox-window.c
++++ b/lib/widget/listbox-window.c
+@@ -108,8 +108,9 @@ create_listbox_window_centered (int center_y, int center_x, int lines, int cols,
+         dlg_create (TRUE, ypos, xpos, lines + space, cols + space, pos_flags, FALSE, listbox_colors,
+                     NULL, NULL, help, title);
+ 
+-    listbox->list = listbox_new (2, 2, lines, cols, FALSE, NULL);
+-    group_add_widget (GROUP (listbox->dlg), listbox->list);
++    listbox->list =
++        filtering_listbox_new (2, 2, lines, cols, FALSE, NULL, FILT_LIST_DIALOG_AUTO_RESIZE);
++    group_add_widget (GROUP (listbox->dlg), WIDGET (listbox->list));
+ 
+     return listbox;
+ }
+@@ -128,10 +129,19 @@ create_listbox_window (int lines, int cols, const char *title, const char *help)
+ int
+ run_listbox (Listbox * l)
+ {
++    WListbox *lw = LISTBOX (l->list);
+     int val = -1;
+ 
+     if (dlg_run (l->dlg) != B_CANCEL)
+-        val = l->list->pos;
++    {
++        /* Get the virtual index first, to support filtered listboxes. */
++        val = lw->virtual_pos;
++
++        /* No virtual position → get pos. */
++        if (val == -1)
++            val = lw->pos;
++    }
++
+     dlg_destroy (l->dlg);
+     g_free (l);
+     return val;
+@@ -149,16 +159,18 @@ run_listbox (Listbox * l)
+ void *
+ run_listbox_with_data (Listbox * l, const void *select)
+ {
++    WListbox *lw = LISTBOX (l->list);
+     void *val = NULL;
+ 
+     if (select != NULL)
+-        listbox_select_entry (l->list, listbox_search_data (l->list, select));
++        listbox_select_entry (lw, listbox_search_data (lw, select));
+ 
+     if (dlg_run (l->dlg) != B_CANCEL)
+     {
+         WLEntry *e;
+-        e = listbox_get_nth_item (l->list, l->list->pos);
+-        if (e != NULL)
++        e = listbox_get_nth_item (lw, lw->pos);
++        /* -2 means that "<no search results>" has been selected. */
++        if (e != NULL && e->index != -2)
+         {
+             /* The assert guards against returning a soon-to-be deallocated
+              * pointer (as in listbox_add_item(..., TRUE)). */
+diff --git a/lib/widget/listbox-window.h b/lib/widget/listbox-window.h
+index 5a6082956..dc20cee13 100644
+--- a/lib/widget/listbox-window.h
++++ b/lib/widget/listbox-window.h
+@@ -8,7 +8,7 @@
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+ #define LISTBOX_APPEND_TEXT(l,h,t,d,f) \
+-    listbox_add_item (l->list, LISTBOX_APPEND_AT_END, h, t, d, f)
++    listbox_add_item (LISTBOX(l->list), LISTBOX_APPEND_AT_END, h, t, d, f)
+ 
+ /*** enums ***************************************************************************************/
+ 
+@@ -17,7 +17,7 @@
+ typedef struct
+ {
+     WDialog *dlg;
+-    WListbox *list;
++    WFilteringListbox *list;
+ } Listbox;
+ 
+ /*** global variables defined in .c file *********************************************************/
+diff --git a/lib/widget/listbox.c b/lib/widget/listbox.c
+index e20c1a82d..4c33e89b2 100644
+--- a/lib/widget/listbox.c
++++ b/lib/widget/listbox.c
+@@ -77,7 +77,8 @@ listbox_entry_free (void *data)
+ {
+     WLEntry *e = data;
+ 
+-    g_free (e->text);
++    if (e->free_text)
++        g_free (e->text);
+     if (e->free_data)
+         g_free (e->data);
+     g_free (e);
+@@ -358,6 +359,18 @@ listbox_key (WListbox * l, int key)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/* When called via g_queue_foreach it assigns the index field with an incremented int. */
++static void
++listbox_foreach_apply_index (gpointer data, gpointer user_data)
++{
++    WLEntry *e = data;
++    int *cur_idx = user_data;
++    e->index = *cur_idx;
++    *cur_idx = *cur_idx + 1;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ /* Listbox item adding function */
+ static inline void
+ listbox_append_item (WListbox * l, WLEntry * e, listbox_append_t pos)
+@@ -556,11 +569,11 @@ listbox_new (int y, int x, int height, int width, gboolean deletable, lcback_fn
+     l = g_new (WListbox, 1);
+     w = WIDGET (l);
+     widget_init (w, y, x, height, width, listbox_callback, listbox_mouse_callback);
+-    w->options |= WOP_SELECTABLE | WOP_WANT_HOTKEY;
++    w->options |= WOP_SELECTABLE;
+     w->keymap = listbox_map;
+ 
+     l->list = NULL;
+-    l->top = l->pos = 0;
++    l->top = l->pos = l->virtual_pos = 0;
+     l->deletable = deletable;
+     l->callback = callback;
+     l->allow_duplicates = TRUE;
+@@ -648,12 +661,18 @@ listbox_select_last (WListbox * l)
+ void
+ listbox_select_entry (WListbox * l, int dest)
+ {
++    WLEntry *e;
+     GList *le;
+     int pos;
+     gboolean top_seen = FALSE;
+ 
+     if (listbox_is_empty (l) || dest < 0)
++    {
++        /* Reset position to a minimal one. */
++        l->pos = 0;
++        l->virtual_pos = 0;
+         return;
++    }
+ 
+     /* Special case */
+     for (pos = 0, le = g_queue_peek_head_link (l->list); le != NULL; pos++, le = g_list_next (le))
+@@ -673,6 +692,12 @@ listbox_select_entry (WListbox * l, int dest)
+                 if (l->pos - l->top >= lines)
+                     l->top = l->pos - lines + 1;
+             }
++            /*
++             * Set the virtual position, i.e.: a position in the initial, unfiltered list if the
++             * same element would be selected.
++             */
++            e = LENTRY (le->data);
++            l->virtual_pos = e->index;
+             return;
+         }
+     }
+@@ -701,7 +726,7 @@ listbox_get_current (WListbox * l, char **string, void **extra)
+     if (l != NULL)
+         e = listbox_get_nth_item (l, l->pos);
+ 
+-    ok = (e != NULL);
++    ok = (e != NULL && e->index != -2);
+ 
+     if (string != NULL)
+         *string = ok ? e->text : NULL;
+@@ -720,7 +745,7 @@ listbox_get_nth_item (const WListbox * l, int pos)
+         GList *item;
+ 
+         item = g_queue_peek_nth_link (l->list, (guint) pos);
+-        if (item != NULL)
++        if (item != NULL && LENTRY (item->data)->index != -2)
+             return LENTRY (item->data);
+     }
+ 
+@@ -802,6 +827,20 @@ listbox_remove_list (WListbox * l)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/*
++ * Initializes the listbox elements with their position index. This allows to alter (filter, in
++ * particular) the listbox elements order and still get the original index (when selecting an
++ * element).
++ */
++void
++listbox_init_indices (WListbox * l)
++{
++    int index = 0;
++    g_queue_foreach (l->list, listbox_foreach_apply_index, &index);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ char *
+ listbox_add_item (WListbox * l, listbox_append_t pos, int hotkey, const char *text, void *data,
+                   gboolean free_data)
+@@ -815,7 +854,9 @@ listbox_add_item (WListbox * l, listbox_append_t pos, int hotkey, const char *te
+         return NULL;
+ 
+     entry = g_new (WLEntry, 1);
++    entry->index = -1;          /* Will be initialized when switching to the filter state */
+     entry->text = g_strdup (text);
++    entry->free_text = 1;
+     entry->data = data;
+     entry->free_data = free_data;
+     entry->hotkey = hotkey;
+diff --git a/lib/widget/listbox.h b/lib/widget/listbox.h
+index 8b2236eff..461564f29 100644
+--- a/lib/widget/listbox.h
++++ b/lib/widget/listbox.h
+@@ -35,7 +35,9 @@ typedef lcback_ret_t (*lcback_fn) (struct WListbox * l);
+ 
+ typedef struct WLEntry
+ {
++    int index;                  /* The location in the list (useful when it's filtered) */
+     char *text;                 /* Text to display */
++    gboolean free_text;         /* Whether to free the text on entry's removal */
+     int hotkey;
+     void *data;                 /* Client information */
+     gboolean free_data;         /* Whether to free the data on entry's removal */
+@@ -46,6 +48,7 @@ typedef struct WListbox
+     Widget widget;
+     GQueue *list;               /* Pointer to the list of WLEntry */
+     int pos;                    /* The current element displayed */
++    int virtual_pos;            /* The initial index of the current element, works also for filtered listbox */
+     int top;                    /* The first element displayed */
+     gboolean allow_duplicates;  /* Do we allow duplicates on the list? */
+     gboolean scrollbar;         /* Draw a scrollbar? */
+@@ -61,6 +64,7 @@ extern const global_keymap_t *listbox_map;
+ /*** declarations of public functions ************************************************************/
+ 
+ WListbox *listbox_new (int y, int x, int height, int width, gboolean deletable, lcback_fn callback);
++
+ int listbox_search_text (WListbox * l, const char *text);
+ int listbox_search_data (WListbox * l, const void *data);
+ void listbox_select_first (WListbox * l);
+@@ -74,6 +78,7 @@ void listbox_remove_current (WListbox * l);
+ gboolean listbox_is_empty (const WListbox * l);
+ void listbox_set_list (WListbox * l, GQueue * list);
+ void listbox_remove_list (WListbox * l);
++void listbox_init_indices (WListbox * l);
+ char *listbox_add_item (WListbox * l, listbox_append_t pos, int hotkey, const char *text,
+                         void *data, gboolean free_data);
+ 
+diff --git a/lib/widget/widget-common.c b/lib/widget/widget-common.c
+index e2fcd1222..8dd4a0d30 100644
+--- a/lib/widget/widget-common.c
++++ b/lib/widget/widget-common.c
+@@ -338,6 +338,8 @@ widget_init (Widget * w, int y, int x, int lines, int cols,
+     w->find_by_type = widget_default_find_by_type;
+     w->find_by_id = widget_default_find_by_id;
+ 
++    w->pre_unlink_func = NULL;
++
+     w->set_state = widget_default_set_state;
+     w->get_colors = widget_default_get_colors;
+ }
+diff --git a/lib/widget/widget-common.h b/lib/widget/widget-common.h
+index a20bcd671..c58bddeae 100644
+--- a/lib/widget/widget-common.h
++++ b/lib/widget/widget-common.h
+@@ -43,6 +43,8 @@ typedef enum
+     MSG_ACTION,                 /* Send to widget to handle command */
+     MSG_NOTIFY,                 /* Typically sent to dialog to inform it of state-change
+                                  * of listboxes, check- and radiobuttons. */
++    MSG_UPDATE_LIST,            /* Sent to listboxes to request the list regeneration (filtering)
++                                 * in the MultiSearch mode. */
+     MSG_CURSOR,                 /* Sent to widget to position the cursor */
+     MSG_IDLE,                   /* The idle state is active */
+     MSG_RESIZE,                 /* Screen size has changed */
+@@ -88,7 +90,9 @@ typedef enum
+     WST_CONSTRUCT = (1 << 15),  /* Widget has been constructed but not run yet */
+     WST_ACTIVE = (1 << 16),     /* Dialog is visible and active */
+     WST_SUSPENDED = (1 << 17),  /* Dialog is suspended */
+-    WST_CLOSED = (1 << 18)      /* Dialog is closed */
++    WST_CLOSED = (1 << 18),     /* Dialog is closed */
++
++    WST_FILTER = (1 << 19)      /* Listbox is filtering its contents */
+ } widget_state_t;
+ 
+ /* Flags for widget repositioning on dialog resize */
+@@ -165,6 +169,10 @@ struct Widget
+     cb_ret_t (*set_state) (Widget * w, widget_state_t state, gboolean enable);
+     /* *INDENT-ON* */
+ 
++    GDestroyNotify pre_unlink_func;     /* a function invoked right before removing from a WGroup by
++                                         * group_remove_widget; it can unregister any events, what depends
++                                         * on the `event_group` field of the group; */
++
+     const int *(*get_colors) (const Widget * w);
+ };
+ 
+diff --git a/maint/utils/version.sh b/maint/utils/version.sh
+index 64405191f..1a10de0cd 100755
+--- a/maint/utils/version.sh
++++ b/maint/utils/version.sh
+@@ -31,6 +31,7 @@
+ #*** file scope functions **********************************************
+ 
+ mc_print_version(){
++    exit
+ 
+     if [ ! -f "${VERSION_FILE}" \
+          -o "${PREV_MC_VERSION}" != "${CURR_MC_VERSION}" ]
+diff --git a/src/editor/choosesyntax.c b/src/editor/choosesyntax.c
+index 09b6d75d5..71ec44e12 100644
+--- a/src/editor/choosesyntax.c
++++ b/src/editor/choosesyntax.c
+@@ -84,7 +84,7 @@ exec_edit_syntax_dialog (const GPtrArray * names, const char *current_syntax)
+         name = g_ptr_array_index (names, i);
+         LISTBOX_APPEND_TEXT (syntaxlist, 0, name, NULL, FALSE);
+         if (current_syntax != NULL && strcmp (name, current_syntax) == 0)
+-            listbox_select_entry (syntaxlist->list, i + N_DFLT_ENTRIES);
++            listbox_select_entry (LISTBOX (syntaxlist->list), i + N_DFLT_ENTRIES);
+     }
+ 
+     return run_listbox (syntaxlist);
+diff --git a/src/editor/editcmd_dialogs.c b/src/editor/editcmd_dialogs.c
+index 8b3634f23..02d06cdcb 100644
+--- a/src/editor/editcmd_dialogs.c
++++ b/src/editor/editcmd_dialogs.c
+@@ -351,7 +351,8 @@ editcmd_dialog_completion_show (const WEdit * edit, int max_len, GString ** comp
+     int start_x, start_y, offset, i;
+     char *curr = NULL;
+     WDialog *compl_dlg;
+-    WListbox *compl_list;
++    WFilteringListbox *compl_list;
++    WListbox *lw;
+     int compl_dlg_h;            /* completion dialog height */
+     int compl_dlg_w;            /* completion dialog width */
+ 
+@@ -384,20 +385,23 @@ editcmd_dialog_completion_show (const WEdit * edit, int max_len, GString ** comp
+                     dialog_colors, NULL, NULL, "[Completion]", NULL);
+ 
+     /* create the listbox */
+-    compl_list = listbox_new (1, 1, compl_dlg_h - 2, compl_dlg_w - 2, FALSE, NULL);
++    compl_list = filtering_listbox_new (1, 1, compl_dlg_h - 2, compl_dlg_w - 2, FALSE, NULL,
++                                        FILT_LIST_KEEP_DIALOG_SIZE);
++
++    /* Save WListbox pointer for convenience. */
++    lw = LISTBOX (compl_list);
+ 
+     /* add the dialog */
+     group_add_widget (GROUP (compl_dlg), compl_list);
+ 
+     /* fill the listbox with the completions */
+     for (i = num_compl - 1; i >= 0; i--)        /* reverse order */
+-        listbox_add_item (compl_list, LISTBOX_APPEND_AT_END, 0, (char *) compl[i]->str, NULL,
+-                          FALSE);
++        listbox_add_item (lw, LISTBOX_APPEND_AT_END, 0, (char *) compl[i]->str, NULL, FALSE);
+ 
+     /* pop up the dialog and apply the chosen completion */
+     if (dlg_run (compl_dlg) == B_ENTER)
+     {
+-        listbox_get_current (compl_list, &curr, NULL);
++        listbox_get_current (lw, &curr, NULL);
+         curr = g_strdup (curr);
+     }
+ 
+diff --git a/src/editor/editwidget.c b/src/editor/editwidget.c
+index 18ac00e66..f1989114a 100644
+--- a/src/editor/editwidget.c
++++ b/src/editor/editwidget.c
+@@ -302,6 +302,7 @@ edit_window_list (const WDialog * h)
+     Listbox *listbox;
+     GList *w;
+     WEdit *selected;
++    WListbox *lw;
+     int i = 0;
+ 
+     lines = MIN ((size_t) (LINES * 2 / 3), dlg_num);
+@@ -309,6 +310,9 @@ edit_window_list (const WDialog * h)
+ 
+     listbox = create_listbox_window (lines, cols, _("Open files"), "[Open files]");
+ 
++    /* Convenience variable. */
++    lw = LISTBOX (listbox->list);
++
+     for (w = g->widgets; w != NULL; w = g_list_next (w))
+         if (edit_widget_is_editor (CONST_WIDGET (w->data)))
+         {
+@@ -322,8 +326,8 @@ edit_window_list (const WDialog * h)
+                     g_strdup_printf ("%c%s", e->modified ? '*' : ' ',
+                                      vfs_path_as_str (e->filename_vpath));
+ 
+-            listbox_add_item (listbox->list, LISTBOX_APPEND_AT_END, get_hotkey (i++),
+-                              str_term_trim (fname, WIDGET (listbox->list)->cols - 2), e, FALSE);
++            listbox_add_item (lw, LISTBOX_APPEND_AT_END, get_hotkey (i++),
++                              str_term_trim (fname, WIDGET (lw)->cols - 2), e, FALSE);
+             g_free (fname);
+         }
+ 
+diff --git a/src/file_history.c b/src/file_history.c
+index 4304655aa..e5751ab8a 100644
+--- a/src/file_history.c
++++ b/src/file_history.c
+@@ -155,7 +155,8 @@ file_history_create_item (history_descriptor_t * hd, void *data)
+     width = str_term_width1 (fhd->file_name);
+     hd->max_width = MAX (width, hd->max_width);
+ 
+-    listbox_add_item (hd->listbox, LISTBOX_APPEND_AT_END, 0, fhd->file_name, fhd->file_pos, TRUE);
++    listbox_add_item (LISTBOX (hd->listbox), LISTBOX_APPEND_AT_END, 0, fhd->file_name,
++                      fhd->file_pos, TRUE);
+     /* fhd->file_pos is not copied, NULLize it to prevent double free */
+     fhd->file_pos = NULL;
+ }
+diff --git a/src/help.c b/src/help.c
+index f5922f086..9c5aabec3 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -229,7 +229,8 @@ move_backward2 (const char *c, int lines)
+     int line;
+ 
+     currentpoint = c;
+-    for (line = 0, p = currentpoint; (*p != '\0') && ((int) (p - fdata) >= 0); str_cprev_char (&p))
++    for (line = 0, p = currentpoint; p != NULL && (*p != '\0') && ((int) (p - fdata) >= 0);
++         str_cprev_char (&p, fdata))
+     {
+         if (*p == CHAR_NODE_END)
+         {
+@@ -240,7 +241,7 @@ move_backward2 (const char *c, int lines)
+             return currentpoint = p + 2;        /* Skip the newline following the start of the node */
+         }
+ 
+-        if (*(p - 1) == '\n')
++        if (p > fdata && *(p - 1) == '\n')
+             line++;
+         if (line == lines)
+             return currentpoint = p;
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index 7b87c2f5a..2972e5bbf 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -293,10 +293,11 @@ static const global_keymap_ini_t default_listbox_keymap[] = {
+     {"Bottom", "end; alt-gt; c1"},
+     {"PageUp", "pgup; alt-v"},
+     {"PageDown", "pgdn; ctrl-v"},
+-    {"Delete", "delete; d"},
+-    {"Clear", "shift-delete; shift-d"},
++    {"Delete", "delete"},
++    {"Clear", "shift-delete"},
+     {"View", "f3"},
+     {"Edit", "f4"},
++    {"MultiSearch", "alt-space; ctrl-space"},
+     {"Enter", "enter"},
+     {NULL, NULL}
+ };
+diff --git a/src/selcodepage.c b/src/selcodepage.c
+index eba9d25bb..9ce48325b 100644
+--- a/src/selcodepage.c
++++ b/src/selcodepage.c
+@@ -107,7 +107,7 @@ select_charset (int center_y, int center_x, int current_charset, gboolean seldis
+         ? ((current_charset < 0) ? codepages->len : (size_t) current_charset)
+         : ((size_t) current_charset + 1);
+ 
+-    listbox_select_entry (listbox->list, i);
++    listbox_select_entry (LISTBOX (listbox->list), i);
+ 
+     listbox_result = run_listbox (listbox);
+ 
+diff --git a/src/usermenu.c b/src/usermenu.c
+index 1fecbeaac..13b97e0f3 100644
+--- a/src/usermenu.c
++++ b/src/usermenu.c
+@@ -133,7 +133,7 @@ check_patterns (char *p)
+    point after argument. */
+ 
+ static char *
+-extract_arg (char *p, char *arg, int size)
++extract_arg (char *p, char *arg, const char *begin, int size)
+ {
+     while (*p != '\0' && whiteness (*p))
+         p++;
+@@ -152,8 +152,10 @@ extract_arg (char *p, char *arg, int size)
+         p = np;
+     }
+     *arg = '\0';
+-    if (*p == '\0' || *p == '\n')
+-        str_prev_char (&p);
++    if (p != NULL && (*p == '\0' || *p == '\n'))
++        str_prev_char (&p, begin);
++    if (p == NULL)
++        p = (char *) begin;
+     return p;
+ }
+ 
+@@ -215,13 +217,13 @@ test_type (WPanel * panel, char *arg)
+    p. Returns the point after condition. */
+ 
+ static char *
+-test_condition (const WEdit * edit_widget, char *p, gboolean * condition)
++test_condition (const WEdit * edit_widget, char *p, const char *begin, gboolean * condition)
+ {
+     char arg[256];
+     const mc_search_type_t search_type = easy_patterns ? MC_SEARCH_T_GLOB : MC_SEARCH_T_REGEX;
+ 
+     /* Handle one condition */
+-    for (; *p != '\n' && *p != '&' && *p != '|'; p++)
++    for (; p && *p != '\n' && *p != '&' && *p != '|'; p++)
+     {
+         WPanel *panel = NULL;
+ 
+@@ -238,12 +240,12 @@ test_condition (const WEdit * edit_widget, char *p, gboolean * condition)
+         switch (*p++)
+         {
+         case '!':
+-            p = test_condition (edit_widget, p, condition);
++            p = test_condition (edit_widget, p, begin, condition);
+             *condition = !*condition;
+-            str_prev_char (&p);
++            str_prev_char (&p, begin);
+             break;
+         case 'f':              /* file name pattern */
+-            p = extract_arg (p, arg, sizeof (arg));
++            p = extract_arg (p, arg, begin, sizeof (arg));
+ #ifdef USE_INTERNAL_EDIT
+             if (edit_widget != NULL)
+             {
+@@ -267,27 +269,27 @@ test_condition (const WEdit * edit_widget, char *p, gboolean * condition)
+                 syntax_type = edit_get_syntax_type (edit_widget);
+                 if (syntax_type != NULL)
+                 {
+-                    p = extract_arg (p, arg, sizeof (arg));
++                    p = extract_arg (p, arg, begin, sizeof (arg));
+                     *condition = mc_search (arg, DEFAULT_CHARSET, syntax_type, MC_SEARCH_T_NORMAL);
+                 }
+             }
+ #endif
+             break;
+         case 'd':
+-            p = extract_arg (p, arg, sizeof (arg));
++            p = extract_arg (p, arg, begin, sizeof (arg));
+             *condition = panel != NULL
+                 && mc_search (arg, DEFAULT_CHARSET, vfs_path_as_str (panel->cwd_vpath),
+                               search_type);
+             break;
+         case 't':
+-            p = extract_arg (p, arg, sizeof (arg));
++            p = extract_arg (p, arg, begin, sizeof (arg));
+             *condition = panel != NULL && test_type (panel, arg);
+             break;
+         case 'x':              /* executable */
+             {
+                 struct stat status;
+ 
+-                p = extract_arg (p, arg, sizeof (arg));
++                p = extract_arg (p, arg, begin, sizeof (arg));
+                 *condition = stat (arg, &status) == 0 && is_exe (status.st_mode);
+                 break;
+             }
+@@ -356,12 +358,12 @@ debug_out (char *start, char *end, gboolean condition)
+    the point just before the end of line. */
+ 
+ static char *
+-test_line (const WEdit * edit_widget, char *p, gboolean * result)
++test_line (const WEdit * edit_widget, char *p, const char *begin, gboolean * result)
+ {
+     char operator;
+ 
+     /* Repeat till end of line */
+-    while (*p != '\0' && *p != '\n')
++    while (p != NULL && *p != '\0' && *p != '\n')
+     {
+         char *debug_start, *debug_end;
+         gboolean condition = TRUE;
+@@ -384,7 +386,7 @@ test_line (const WEdit * edit_widget, char *p, gboolean * result)
+             break;
+ 
+         debug_start = p;
+-        p = test_condition (edit_widget, p, &condition);
++        p = test_condition (edit_widget, p, begin, &condition);
+         debug_end = p;
+         /* Add one debug statement */
+         debug_out (debug_start, debug_end, condition);
+@@ -413,8 +415,10 @@ test_line (const WEdit * edit_widget, char *p, gboolean * result)
+     /* Report debug message */
+     debug_out (NULL, NULL, TRUE);
+ 
+-    if (*p == '\0' || *p == '\n')
+-        str_prev_char (&p);
++    if (p != NULL && (*p == '\0' || *p == '\n'))
++        str_prev_char (&p, begin);
++    if (p == NULL)
++        p = (char *) begin;
+     return p;
+ }
+ 
+@@ -1037,14 +1041,14 @@ user_menu_cmd (const WEdit * edit_widget, const char *menu_file, int selected_en
+                 if (*(p + 1) == '=')
+                 {
+                     /* Combined adding and default */
+-                    p = test_line (edit_widget, p + 1, &accept_entry);
++                    p = test_line (edit_widget, p + 1, data, &accept_entry);
+                     if (selected == 0 && accept_entry)
+                         selected = menu_lines;
+                 }
+                 else
+                 {
+                     /* A condition for adding the entry */
+-                    p = test_line (edit_widget, p, &accept_entry);
++                    p = test_line (edit_widget, p, data, &accept_entry);
+                 }
+                 break;
+ 
+@@ -1052,7 +1056,7 @@ user_menu_cmd (const WEdit * edit_widget, const char *menu_file, int selected_en
+                 if (*(p + 1) == '+')
+                 {
+                     /* Combined adding and default */
+-                    p = test_line (edit_widget, p + 1, &accept_entry);
++                    p = test_line (edit_widget, p + 1, data, &accept_entry);
+                     if (selected == 0 && accept_entry)
+                         selected = menu_lines;
+                 }
+@@ -1060,7 +1064,7 @@ user_menu_cmd (const WEdit * edit_widget, const char *menu_file, int selected_en
+                 {
+                     /* A condition for making the entry default */
+                     i = 1;
+-                    p = test_line (edit_widget, p, &i);
++                    p = test_line (edit_widget, p, data, &i);
+                     if (selected == 0 && i != 0)
+                         selected = menu_lines;
+                 }
+@@ -1122,7 +1126,7 @@ user_menu_cmd (const WEdit * edit_widget, const char *menu_file, int selected_en
+                                      extract_line (p, p + MAX_ENTRY_LEN), p, FALSE);
+             }
+             /* Select the default entry */
+-            listbox_select_entry (listbox->list, selected);
++            listbox_select_entry (LISTBOX (listbox->list), selected);
+ 
+             selected = run_listbox (listbox);
+         }
+-- 
+2.28.0
+

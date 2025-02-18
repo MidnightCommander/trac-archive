@@ -1,0 +1,54 @@
+From d9f06ca585d7dd59811e59b8d783d756501ed32e Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 29 Nov 2020 13:28:58 +0000
+Subject: [PATCH] generic detection of __attribute__((fallthrough))
+
+__has_attribute is supported on gcc >= 5, clang >= 2.9
+__attribute__((fallthrough)) is supported on gcc => 7, clang >= 12
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ configure.ac | 8 --------
+ lib/global.h | 6 +++++-
+ 2 files changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 98717e682..5b48a1e95 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -45,14 +45,6 @@ if test "x$enable_werror" = xyes; then
+     mc_CHECK_ONE_CFLAG([-Werror])
+ fi
+ 
+-dnl Compiler can generate warnings for unrecognized flags added to CFLAGS
+-dnl which causes attribute checks to fail
+-ax_gcc_func_attribute_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
+-_AC_LANG_PREFIX[]FLAGS=
+-AX_GCC_FUNC_ATTRIBUTE([fallthrough])
+-_AC_LANG_PREFIX[]FLAGS=$ax_gcc_func_attribute_save_flags
+-unset ax_gcc_func_attribute_save_flags
+-
+ LT_INIT
+ 
+ 
+diff --git a/lib/global.h b/lib/global.h
+index 6bf55952c..cdc2c8e27 100644
+--- a/lib/global.h
++++ b/lib/global.h
+@@ -27,11 +27,15 @@
+ /* for sig_atomic_t */
+ #include <signal.h>
+ 
+-#ifdef HAVE_FUNC_ATTRIBUTE_FALLTHROUGH
++#if defined __has_attribute
++#if __has_attribute (fallthrough)
+ #define MC_FALLTHROUGH __attribute__((fallthrough))
+ #else
+ #define MC_FALLTHROUGH
+ #endif
++#else
++#define MC_FALLTHROUGH
++#endif
+ 
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 

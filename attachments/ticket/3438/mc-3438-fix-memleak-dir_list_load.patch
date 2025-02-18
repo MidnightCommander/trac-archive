@@ -1,0 +1,56 @@
+
+fix memleak at filemanager/dir.c:dir_list_load()
+
+when root directory found list->len is decrease but listobj->fname object will never be freed
+clear list instead of resetting list len only
+
+(found by LeakSanitizer)
+
+==26995==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 3 byte(s) in 1 object(s) allocated from:
+    #0 0x4d5fc2 in malloc (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x4d5fc2)
+    #1 0x7f09043c47d4 in g_malloc (/usr/lib64/libglib-2.0.so.0+0x677d4)
+    #2 0x7f09043eb20e in g_strndup (/usr/lib64/libglib-2.0.so.0+0x8e20e)
+    #3 0x7ace80 in dir_list_init /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/dir.c:568:21
+    #4 0x7ad9d0 in dir_list_load /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/dir.c:636:10
+    #5 0x5aa858 in panel_new_with_dir /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/panel.c:4311:5
+    #6 0x58fac2 in set_display_type /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/layout.c:1003:22
+    #7 0x5a2944 in create_panels /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:686:5
+    #8 0x5a1e66 in create_panels_and_run_mc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:944:5
+    #9 0x59fc1a in do_nc /tmp/portage/app-misc/mc-9999/work/mc-9999/src/filemanager/midnight.c:1763:9
+    #10 0x4fa648 in main /tmp/portage/app-misc/mc-9999/work/mc-9999/src/main.c:418:21
+    #11 0x7f090323b133 in __libc_start_main (/lib64/libc.so.6+0x20133)
+    #12 0x44eff6 in _start (/tmp/portage/app-misc/mc-9999/work/mc-9999/src/mc+0x44eff6)
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/src/filemanager/dir.c
++++ b/src/filemanager/dir.c
+@@ -629,6 +629,7 @@
+     int link_to_dir, stale_link;
+     struct stat st;
+     file_entry_t *fentry;
++    const char *vpath_str;
+ 
+     /* ".." (if any) must be the first entry in the list */
+     if (!dir_list_init (list))
+@@ -647,14 +648,10 @@
+ 
+     tree_store_start_check (vpath);
+ 
+-    {
+-        const char *vpath_str;
+-
+-        vpath_str = vfs_path_as_str (vpath);
+-        /* Do not add a ".." entry to the root directory */
+-        if (IS_PATH_SEP (vpath_str[0]) && vpath_str[1] == '\0')
+-            list->len--;
+-    }
++    vpath_str = vfs_path_as_str (vpath);
++    /* Do not add a ".." entry to the root directory */
++    if (IS_PATH_SEP (vpath_str[0]) && vpath_str[1] == '\0')
++        dir_list_clean (list);
+ 
+     while ((dp = mc_readdir (dirp)) != NULL)
+     {

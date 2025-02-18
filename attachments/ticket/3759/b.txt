@@ -1,0 +1,10 @@
+The first line is the same in both files.
+Second hunk follows: Replace one word
+Colour
+Third hunk follows: Replace two more words
+Grey
+Pavement
+Fourth hunk follows:
+These are the two lines ...
+... that are only present in this file.
+The End.

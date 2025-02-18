@@ -1,0 +1,180 @@
+From 3cd09c318abce9c9e6979f1a7ff2e3c0117af258 Mon Sep 17 00:00:00 2001
+From: Evgeny Grin <k2k@narod.ru>
+Date: Fri, 19 May 2023 18:06:02 +0300
+Subject: [PATCH 2/3] Use configure detected or user specified sed in build
+ system
+
+Sometimes system default sed is not the best option.
+With this modification user may easily override sed used by build system
+without editing any file.
+
+Signed-off-by: Karlson2k (Evgeny Grin) <k2k@narod.ru>
+---
+ autogen.sh                             | 2 +-
+ configure.ac                           | 2 +-
+ contrib/Makefile.am                    | 8 ++++----
+ doc/man/date-of-man-include.am         | 6 +++---
+ m4.include/mc-glib.m4                  | 2 +-
+ m4.include/mc-version.m4               | 2 +-
+ maint/utils/find-dup-includes/runme.sh | 2 +-
+ maint/utils/update-years.sh            | 4 ++--
+ po/Rules-pot-defaults                  | 2 +-
+ version.sh                             | 2 +-
+ 10 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/autogen.sh b/autogen.sh
+index ca46179af..ee76efc22 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -13,7 +13,7 @@ rm -f INSTALL && ln -s doc/INSTALL
+ 
+ # Generate po/POTFILES.in
+ ${XGETTEXT:-xgettext} --keyword=_ --keyword=N_ --keyword=Q_ --output=- \
+-	`find . -name '*.[ch]'` | sed -ne '/^#:/{s/#://;s/:[0-9]*/\
++	`find . -name '*.[ch]'` | ${SED-sed} -ne '/^#:/{s/#://;s/:[0-9]*/\
+ /g;s/ //g;p;}' | \
+ 	grep -v '^$' | sort | uniq >po/POTFILES.in
+ 
+diff --git a/configure.ac b/configure.ac
+index 07c987e00..90934491c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -708,7 +708,7 @@ po/Makefile.in
+ 
+ dnl https://stackoverflow.com/questions/30897170/ac-subst-does-not-expand-variable/30932102#30932102
+ AC_CONFIG_FILES(
+-[misc/syntax/Syntax], [sed -i -e "s%\${prefix}%$PREFIX%" misc/syntax/Syntax], [export PREFIX=$prefix]
++[misc/syntax/Syntax], [${SED-sed} -i -e "s%\${prefix}%$PREFIX%" misc/syntax/Syntax], [export PREFIX=$prefix]
+ )
+ 
+ AC_CONFIG_FILES([
+diff --git a/contrib/Makefile.am b/contrib/Makefile.am
+index 4a97905d9..7065279b1 100644
+--- a/contrib/Makefile.am
++++ b/contrib/Makefile.am
+@@ -19,14 +19,14 @@ EXTRA_DIST = \
+ 	$(noinst_DATA)
+ 
+ mc.csh: $(top_builddir)/config.status $(srcdir)/mc.csh.in
+-	sed "s%@""pkglibexecdir@%$(pkglibexecdir)%" $(srcdir)/mc.csh.in > mc.csh
++	$(SED) "s%@""pkglibexecdir@%$(pkglibexecdir)%" $(srcdir)/mc.csh.in > mc.csh
+ 
+ mc.sh: $(top_builddir)/config.status $(srcdir)/mc.sh.in
+-	sed "s%@""pkglibexecdir@%$(pkglibexecdir)%" $(srcdir)/mc.sh.in > mc.sh
++	$(SED) "s%@""pkglibexecdir@%$(pkglibexecdir)%" $(srcdir)/mc.sh.in > mc.sh
+ 
+ mc-wrapper.csh: $(top_builddir)/config.status $(srcdir)/mc-wrapper.csh.in
+-	sed "s%@""bindir@%$(bindir)%" $(srcdir)/mc-wrapper.csh.in > mc-wrapper.csh
++	$(SED) "s%@""bindir@%$(bindir)%" $(srcdir)/mc-wrapper.csh.in > mc-wrapper.csh
+ 
+ mc-wrapper.sh: $(top_builddir)/config.status $(srcdir)/mc-wrapper.sh.in
+-	sed "s%@""bindir@%$(bindir)%" $(srcdir)/mc-wrapper.sh.in > mc-wrapper.sh
++	$(SED) "s%@""bindir@%$(bindir)%" $(srcdir)/mc-wrapper.sh.in > mc-wrapper.sh
+ 
+diff --git a/doc/man/date-of-man-include.am b/doc/man/date-of-man-include.am
+index c6b1e692c..2770b5368 100644
+--- a/doc/man/date-of-man-include.am
++++ b/doc/man/date-of-man-include.am
+@@ -13,12 +13,12 @@ MAN_DATE_CMD = \
+ 
+ mc.1: $(srcdir)/mc.1.in
+ 	MAN_FILE=$<; MAN_DATE=$$($(MAN_DATE_CMD)); \
+-	sed $(SED_PARAMETERS) $< > $@
++	$(SED) $(SED_PARAMETERS) $< > $@
+ 
+ mcedit.1: $(srcdir)/mcedit.1.in
+ 	MAN_FILE=$<; MAN_DATE=$$($(MAN_DATE_CMD)); \
+-	sed $(SED_PARAMETERS) $< > $@
++	$(SED) $(SED_PARAMETERS) $< > $@
+ 
+ mcview.1: $(srcdir)/mcview.1.in
+ 	MAN_FILE=$<; MAN_DATE=$$($(MAN_DATE_CMD)); \
+-	sed $(SED_PARAMETERS) $< > $@
++	$(SED) $(SED_PARAMETERS) $< > $@
+diff --git a/m4.include/mc-glib.m4 b/m4.include/mc-glib.m4
+index ba4901f79..400820729 100644
+--- a/m4.include/mc-glib.m4
++++ b/m4.include/mc-glib.m4
+@@ -49,7 +49,7 @@ AC_DEFUN([mc_G_MODULE_SUPPORTED], [
+             esac
+ 
+             if test -n "$lib"; then
+-                lib1=`echo $i | sed 's/^-l//'`
++                lib1=`echo $i | ${SED-sed} 's/^-l//'`
+                 if test -f "$GLIB_LIBDIR/lib${lib1}.a"; then
+                     add="$GLIB_LIBDIR/lib${lib1}.a"
+                 else
+diff --git a/m4.include/mc-version.m4 b/m4.include/mc-version.m4
+index 51b6b77c4..ba89b5f99 100644
+--- a/m4.include/mc-version.m4
++++ b/m4.include/mc-version.m4
+@@ -10,7 +10,7 @@ dnl @modified Andrew Borodin <aborodin@vmail.ru>
+ 
+ AC_DEFUN([mc_VERSION],[
+     if test -f ${srcdir}/mc-version.h; then
+-        VERSION=$(grep '^#define MC_CURRENT_VERSION' ${srcdir}/mc-version.h | sed 's/.*"\(.*\)"$/\1/')
++        VERSION=$(grep '^#define MC_CURRENT_VERSION' ${srcdir}/mc-version.h | ${SED-sed} 's/.*"\(.*\)"$/\1/')
+     else
+         VERSION="unknown"
+     fi
+diff --git a/maint/utils/find-dup-includes/runme.sh b/maint/utils/find-dup-includes/runme.sh
+index 9e7c5802d..040e8586d 100755
+--- a/maint/utils/find-dup-includes/runme.sh
++++ b/maint/utils/find-dup-includes/runme.sh
+@@ -37,7 +37,7 @@ findIncludeDupsInDir() {
+     dir_name=$1; shift
+ 
+     for i in $(find "${dir_name}" -name '*.[ch]'); do
+-        file_name=$(echo $i | sed 's@'"${MC_SOURCE_ROOT_DIR}/"'@@g')
++        file_name=$(echo $i | ${SED-sed} 's@'"${MC_SOURCE_ROOT_DIR}/"'@@g')
+         [ $(grep "^\s*${file_name}$" -c "${MC_SOURCE_ROOT_DIR}/maint/utils/find-dup-includes/exclude-list.cfg") -ne 0 ] && continue
+         "${MC_SOURCE_ROOT_DIR}/maint/utils/find-dup-includes/find-in-one-file.pl" "${i}"
+     done
+diff --git a/maint/utils/update-years.sh b/maint/utils/update-years.sh
+index 1188fb1c8..7370d2559 100755
+--- a/maint/utils/update-years.sh
++++ b/maint/utils/update-years.sh
+@@ -9,7 +9,7 @@ LINE="Copyright (C)"
+ for i in "$SOURCES"; do
+     # replace year: XXXX-YYYY -> XXXX-ZZZZ
+     # add year: XXXX -> XXXX-ZZZZ
+-    sed -i -e "
++    ${SED-sed} -i -e "
+         1,20 {
+                 /$LINE/s/-[0-9]\{4\}$/-$YEAR/
+         };
+@@ -19,4 +19,4 @@ for i in "$SOURCES"; do
+ done
+ 
+ # special case
+-sed -i -e "/$LINE/s/-[0-9]\{4\} the/-$YEAR the/" src/editor/editwidget.c
++${SED-sed} -i -e "/$LINE/s/-[0-9]\{4\} the/-$YEAR the/" src/editor/editwidget.c
+diff --git a/po/Rules-pot-defaults b/po/Rules-pot-defaults
+index 2cf834ede..1c51b56e2 100644
+--- a/po/Rules-pot-defaults
++++ b/po/Rules-pot-defaults
+@@ -1,7 +1,7 @@
+ 
+ update-po: Makefile
+ 	$(MAKE) $(DOMAIN).pot-update && \
+-	sed \
++	$(SED) \
+ 	    -e '/#, fuzzy/d' \
+ 	    -e 's/Project-Id-Version: PACKAGE VERSION/Project-Id-Version: $(PACKAGE) $(VERSION)/' \
+ 	    -e 's/^"Plural-Forms: nplurals=INTEGER;/# "Plural-Forms: nplurals=INTEGER;/' \
+diff --git a/version.sh b/version.sh
+index 0565b7448..970ecb5a6 100755
+--- a/version.sh
++++ b/version.sh
+@@ -63,7 +63,7 @@ SHOR_MC_VERSION="${PREV_MC_VERSION}"
+ 
+ if [ -r "${VERSION_FILE}" ]
+   then
+-    PREV_MC_VERSION=`sed -n 's/^#define MC_CURRENT_VERSION "\(.*\)"$/\1/p' "${VERSION_FILE}"`
++    PREV_MC_VERSION=`${SED-sed} -n 's/^#define MC_CURRENT_VERSION "\(.*\)"$/\1/p' "${VERSION_FILE}"`
+     CURR_MC_VERSION="${PREV_MC_VERSION}"
+     SHOR_MC_VERSION="${PREV_MC_VERSION}"
+ fi
+-- 
+2.40.1.windows.1
+

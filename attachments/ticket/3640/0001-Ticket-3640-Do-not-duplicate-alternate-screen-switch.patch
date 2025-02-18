@@ -1,0 +1,263 @@
+From 2fd15afb0b3b00caf0090650043645e085e01444 Mon Sep 17 00:00:00 2001
+From: Yuri Khan <yurivkhan@gmail.com>
+Date: Tue, 3 May 2016 16:08:01 +0600
+Subject: [PATCH] Ticket #3640: Do not duplicate alternate screen switching
+
+S-Lang already handles that in `SLsmg_init_smg` and `SLsmg_reset_smg`.
+---
+ lib/tty/tty-ncurses.c      | 30 +++++++++++++++++++++++++++---
+ lib/tty/tty-slang.c        | 22 +++++++++++++++++++---
+ lib/tty/tty.h              |  3 +++
+ lib/tty/win.c              | 24 ------------------------
+ lib/tty/win.h              |  3 ---
+ lib/widget/dialog-switch.c |  2 --
+ src/execute.c              |  8 ++++----
+ src/filemanager/cmd.c      |  1 -
+ src/main.c                 |  2 +-
+ 9 files changed, 54 insertions(+), 41 deletions(-)
+
+diff --git a/lib/tty/tty-ncurses.c b/lib/tty/tty-ncurses.c
+index 74da01b..110d26c 100644
+--- a/lib/tty/tty-ncurses.c
++++ b/lib/tty/tty-ncurses.c
+@@ -204,8 +204,8 @@ tty_init (gboolean mouse_enable, gboolean is_xterm)
+ 
+     if (!mouse_enable)
+         use_mouse_p = MOUSE_DISABLED;
+-    tty_init_xterm_support (is_xterm);  /* do it before do_enter_ca_mode() call */
+-    do_enter_ca_mode ();
++    tty_init_xterm_support (is_xterm);  /* do it before tty_enter_ca_mode() call */
++    tty_enter_ca_mode ();
+     tty_raw_mode ();
+     noecho ();
+     keypad (stdscr, TRUE);
+@@ -225,7 +225,31 @@ tty_shutdown (void)
+     tty_noraw_mode ();
+     tty_keypad (FALSE);
+     tty_reset_screen ();
+-    do_exit_ca_mode ();
++    tty_exit_ca_mode ();
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++tty_enter_ca_mode (void)
++{
++    if (mc_global.tty.xterm_flag && smcup != NULL)
++    {
++        fprintf (stdout, /* ESC_STR ")0" */ ESC_STR "7" ESC_STR "[?47h");
++        fflush (stdout);
++    }
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++tty_exit_ca_mode (void)
++{
++    if (mc_global.tty.xterm_flag && rmcup != NULL)
++    {
++        fprintf (stdout, ESC_STR "[?47l" ESC_STR "8" ESC_STR "[m");
++        fflush (stdout);
++    }
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/tty/tty-slang.c b/lib/tty/tty-slang.c
+index 51b014f..b296119 100644
+--- a/lib/tty/tty-slang.c
++++ b/lib/tty/tty-slang.c
+@@ -326,8 +326,8 @@ tty_init (gboolean mouse_enable, gboolean is_xterm)
+     SLsmg_init_smg ();
+     if (!mouse_enable)
+         use_mouse_p = MOUSE_DISABLED;
+-    tty_init_xterm_support (is_xterm);  /* do it before do_enter_ca_mode() call */
+-    do_enter_ca_mode ();
++    tty_init_xterm_support (is_xterm);  /* do it before tty_enter_ca_mode() call */
++    tty_enter_ca_mode ();
+     tty_keypad (TRUE);
+     tty_nodelay (FALSE);
+ 
+@@ -347,7 +347,7 @@ tty_shutdown (void)
+     tty_noraw_mode ();
+     tty_keypad (FALSE);
+     tty_reset_screen ();
+-    do_exit_ca_mode ();
++    tty_exit_ca_mode ();
+     SLang_reset_tty ();
+ 
+     /* Load the op capability to reset the colors to those that were 
+@@ -364,6 +364,22 @@ tty_shutdown (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
++tty_enter_ca_mode (void)
++{
++    /* S-Lang handles alternate screen switching and cursor position saving */
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
++tty_exit_ca_mode (void)
++{
++    /* S-Lang handles alternate screen switching and cursor position restoring */
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++void
+ tty_change_screen_size (void)
+ {
+     SLtt_get_screen_size ();
+diff --git a/lib/tty/tty.h b/lib/tty/tty.h
+index 7a40553..4b162de 100644
+--- a/lib/tty/tty.h
++++ b/lib/tty/tty.h
+@@ -137,5 +137,8 @@ extern void tty_change_screen_size (void);
+ 
+ extern int mc_tty_normalize_lines_char (const char *);
+ 
++extern void tty_enter_ca_mode (void);
++extern void tty_exit_ca_mode (void);
++
+ /*** inline functions ****************************************************************************/
+ #endif /* MC_TTY_H */
+diff --git a/lib/tty/win.c b/lib/tty/win.c
+index e7cf59c..86150d1 100644
+--- a/lib/tty/win.c
++++ b/lib/tty/win.c
+@@ -93,30 +93,6 @@ anything_ready (void)
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ void
+-do_enter_ca_mode (void)
+-{
+-    if (mc_global.tty.xterm_flag && smcup != NULL)
+-    {
+-        fprintf (stdout, /* ESC_STR ")0" */ ESC_STR "7" ESC_STR "[?47h");
+-        fflush (stdout);
+-    }
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-void
+-do_exit_ca_mode (void)
+-{
+-    if (mc_global.tty.xterm_flag && rmcup != NULL)
+-    {
+-        fprintf (stdout, ESC_STR "[?47l" ESC_STR "8" ESC_STR "[m");
+-        fflush (stdout);
+-    }
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-void
+ show_rxvt_contents (int starty, unsigned char y1, unsigned char y2)
+ {
+     unsigned char *k;
+diff --git a/lib/tty/win.h b/lib/tty/win.h
+index c829f07..4c31607 100644
+--- a/lib/tty/win.h
++++ b/lib/tty/win.h
+@@ -17,9 +17,6 @@
+ 
+ /*** declarations of public functions ************************************************************/
+ 
+-void do_enter_ca_mode (void);
+-void do_exit_ca_mode (void);
+-
+ void show_rxvt_contents (int starty, unsigned char y1, unsigned char y2);
+ gboolean look_for_rxvt_extensions (void);
+ 
+diff --git a/lib/widget/dialog-switch.c b/lib/widget/dialog-switch.c
+index d9a85f2..5dc5963 100644
+--- a/lib/widget/dialog-switch.c
++++ b/lib/widget/dialog-switch.c
+@@ -36,7 +36,6 @@
+ #include "lib/tty/tty.h"        /* LINES, COLS */
+ #include "lib/tty/color.h"      /* tty_set_normal_attrs() */
+ #ifdef HAVE_SLANG
+-#include "lib/tty/win.h"        /* do_enter_ca_mode() */
+ #endif
+ #include "lib/widget.h"
+ #include "lib/event.h"
+@@ -372,7 +371,6 @@ dialog_change_screen_size (void)
+     tty_change_screen_size ();
+ 
+ #ifdef HAVE_SLANG
+-    do_enter_ca_mode ();
+     tty_keypad (TRUE);
+     tty_nodelay (FALSE);
+ #endif
+diff --git a/src/execute.c b/src/execute.c
+index c12d58c..951e572 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -78,7 +78,7 @@ char *execute_get_external_cmd_opts_from_config (const char *command,
+ static void
+ edition_post_exec (void)
+ {
+-    do_enter_ca_mode ();
++    tty_enter_ca_mode ();
+ 
+     /* FIXME: Missing on slang endwin? */
+     tty_reset_prog_mode ();
+@@ -122,7 +122,7 @@ edition_pre_exec (void)
+      * Do not move this before endwin: in some systems rmcup includes
+      * a call to clear screen, so it will end up clearing the shell screen.
+      */
+-    do_exit_ca_mode ();
++    tty_exit_ca_mode ();
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -467,7 +467,7 @@ toggle_panels (void)
+     tty_noecho ();
+     tty_keypad (FALSE);
+     tty_reset_screen ();
+-    do_exit_ca_mode ();
++    tty_exit_ca_mode ();
+     tty_raw_mode ();
+     if (mc_global.tty.console_flag != '\0')
+         handle_console (CONSOLE_RESTORE);
+@@ -497,7 +497,7 @@ toggle_panels (void)
+     if (mc_global.tty.console_flag != '\0')
+         handle_console (CONSOLE_SAVE);
+ 
+-    do_enter_ca_mode ();
++    tty_enter_ca_mode ();
+ 
+     tty_reset_prog_mode ();
+     tty_keypad (TRUE);
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index d384273..b2809ae 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -53,7 +53,6 @@
+ 
+ #include "lib/tty/tty.h"        /* LINES, tty_touch_screen() */
+ #include "lib/tty/key.h"        /* ALT() macro */
+-#include "lib/tty/win.h"        /* do_enter_ca_mode() */
+ #include "lib/mcconfig.h"
+ #include "lib/filehighlight.h"  /* MC_FHL_INI_FILE */
+ #include "lib/vfs/vfs.h"
+diff --git a/src/main.c b/src/main.c
+index 492980b..f36c411 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -383,7 +383,7 @@ main (int argc, char *argv[])
+        w/o Shift button in subshell in the native console */
+     init_mouse ();
+ 
+-    /* Done after do_enter_ca_mode (tty_init) because in VTE bracketed mode is
++    /* Done after tty_enter_ca_mode (tty_init) because in VTE bracketed mode is
+        separate for the normal and alternate screens */
+     enable_bracketed_paste ();
+ 
+-- 
+2.8.2
+

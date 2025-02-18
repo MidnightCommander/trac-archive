@@ -1,0 +1,59 @@
+--- default.ini	2011-03-31 12:05:06.779868001 +0200
++++ mc46.ini	2011-03-31 12:05:20.931868000 +0200
+@@ -1,5 +1,5 @@
+ [skin]
+-    description=Standard skin
++	description=mc-4.6 skin
+ 
+ [Lines]
+     horiz=─
+@@ -31,7 +31,7 @@
+     markselect=yellow;cyan
+     gauge=white;black
+     input=black;cyan
+-    inputunchanged=gray;cyan
++	inputunchanged=black;cyan
+     inputmark=cyan;black
+     disabled=gray;lightgray
+     reverse=black;lightgray
+@@ -59,28 +59,19 @@
+     directory=white;
+     executable=brightgreen;
+     symlink=lightgray;
+-    hardlink=
+     stalelink=brightred;
+     device=brightmagenta;
+     special=black;
+-    core=red;
+-    temp=gray;
+-    archive=brightmagenta;
+-    doc=brown;
+-    source=cyan;
+-    media=green;
+-    graph=brightcyan;
+-    database=brightred;
+ 
+ [menu]
+-    _default_=white;cyan
++	_default_=black;cyan
+     menuhot=yellow;cyan
+     menusel=white;black
+     menuhotsel=yellow;black
+-    menuinactive=black;cyan
++	menuinactive=gray;cyan
+ 
+ [buttonbar]
+-    hotkey=white;black
++	hotkey=lightgray;black
+     button=black;cyan
+ 
+ [statusbar]
+@@ -96,7 +87,7 @@
+ 
+ [editor]
+     _default_=lightgray;blue
+-    editbold=yellow;brightgreen
++	editbold=yellow;
+     editmarked=black;cyan
+     editwhitespace=brightblue;blue
+     editlinestate=white;cyan

@@ -1,0 +1,11 @@
+--- mc/lib/strutil/strutil.c.orig	2011-02-09 08:37:40.000000000 +0300
++++ mc/lib/strutil/strutil.c	2011-02-09 08:38:17.000000000 +0300
+@@ -319,7 +319,7 @@
+ const char *
+ str_detect_termencoding (void)
+ {
+-    return (nl_langinfo (CODESET));
++    return "UTF-8";
+ }
+ 
+ static int

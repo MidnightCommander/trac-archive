@@ -1,0 +1,1151 @@
+From 2f1721bb45082dc5fd4211275208dc7f1715e072 Mon Sep 17 00:00:00 2001
+From: Georgii Iesaulov <esauloff@gmail.com>
+Date: Fri, 8 Dec 2017 00:42:56 -0500
+Subject: [PATCH 1/7] Add support of '|' delimiter to exclude files for shell
+ patterns
+
+Signed-off-by: Georgii Iesaulov <esauloff@gmail.com>
+---
+ lib/search.h        | 10 ++++++
+ lib/search/regex.c  | 62 +++++++++++++++++++++++++++++----
+ lib/search/search.c | 98 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 164 insertions(+), 6 deletions(-)
+
+diff --git a/lib/search.h b/lib/search.h
+index 6e79609bc..bc6f09b02 100644
+--- a/lib/search.h
++++ b/lib/search.h
+@@ -110,9 +110,17 @@ typedef struct mc_search_struct
+     /* prepared conditions */
+     GPtrArray *conditions;
+ 
++    /* prepared conditions: to exclude patterns for MC_SEARCH_T_GLOB type */
++    GPtrArray *conditions_exclude;
++
+     /* original search string */
+     gchar *original;
+     gsize original_len;
++
++    /* original search string: to exclude patterns for MC_SEARCH_T_GLOB type */
++    gchar *original_exclude;
++    gsize original_exclude_len;
++
+ #ifdef HAVE_CHARSET
+     gchar *original_charset;
+ #endif
+@@ -146,6 +154,8 @@ mc_search_t *mc_search_new_len (const gchar * original, gsize original_len,
+ void mc_search_free (mc_search_t * lc_mc_search);
+ 
+ gboolean mc_search_prepare (mc_search_t * mc_search);
++gboolean mc_search_prepare_include (mc_search_t * mc_search);
++gboolean mc_search_prepare_exclude (mc_search_t * mc_search);
+ 
+ gboolean mc_search_run (mc_search_t * mc_search, const void *user_data, gsize start_search,
+                         gsize end_search, gsize * found_len);
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index a577ea3d5..f082b1577 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -320,7 +320,7 @@ mc_search__g_regex_match_full_safe (const GRegex * regex,
+ 
+ static mc_search__found_cond_t
+ mc_search__regex_found_cond_one (mc_search_t * lc_mc_search, mc_search_regex_t * regex,
+-                                 GString * search_str)
++                                 GString * search_str, gboolean do_not_cleanup)
+ {
+ #ifdef SEARCH_TYPE_GLIB
+     GError *mcerror = NULL;
+@@ -329,8 +329,12 @@ mc_search__regex_found_cond_one (mc_search_t * lc_mc_search, mc_search_regex_t *
+         (regex, search_str->str, search_str->len, 0, G_REGEX_MATCH_NEWLINE_ANY,
+          &lc_mc_search->regex_match_info, &mcerror))
+     {
+-        g_match_info_free (lc_mc_search->regex_match_info);
+-        lc_mc_search->regex_match_info = NULL;
++        if (!do_not_cleanup)
++        {
++            g_match_info_free (lc_mc_search->regex_match_info);
++            lc_mc_search->regex_match_info = NULL;
++        }
++
+         if (mcerror != NULL)
+         {
+             lc_mc_search->error = MC_SEARCH_E_REGEX;
+@@ -359,7 +363,7 @@ mc_search__regex_found_cond_one (mc_search_t * lc_mc_search, mc_search_regex_t *
+ /* --------------------------------------------------------------------------------------------- */
+ 
+ static mc_search__found_cond_t
+-mc_search__regex_found_cond (mc_search_t * lc_mc_search, GString * search_str)
++mc_search__regex_found_cond_include (mc_search_t * lc_mc_search, GString * search_str)
+ {
+     gsize loop1;
+ 
+@@ -375,10 +379,42 @@ mc_search__regex_found_cond (mc_search_t * lc_mc_search, GString * search_str)
+ 
+         ret =
+             mc_search__regex_found_cond_one (lc_mc_search, mc_search_cond->regex_handle,
+-                                             search_str);
++                                             search_str, FALSE);
++        if (ret != COND__NOT_FOUND)
++            return ret;
++    }
++    return COND__NOT_ALL_FOUND;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++static mc_search__found_cond_t
++mc_search__regex_found_cond_exclude (mc_search_t * lc_mc_search, GString * search_str)
++{
++    gsize loop1;
++
++    for (loop1 = 0; loop1 < lc_mc_search->conditions_exclude->len; loop1++)
++    {
++        mc_search_cond_t *mc_search_cond;
++        mc_search__found_cond_t ret;
++
++        mc_search_cond =
++            (mc_search_cond_t *) g_ptr_array_index (lc_mc_search->conditions_exclude, loop1);
++
++        if (!mc_search_cond->regex_handle)
++        {
++            continue;
++        }
++
++        ret =
++            mc_search__regex_found_cond_one (lc_mc_search, mc_search_cond->regex_handle,
++                                             search_str, TRUE);
+         if (ret != COND__NOT_FOUND)
++        {
+             return ret;
++        }
+     }
++
+     return COND__NOT_ALL_FOUND;
+ }
+ 
+@@ -889,6 +925,8 @@ mc_search__run_regex (mc_search_t * lc_mc_search, const void *user_data,
+     gint start_pos;
+     gint end_pos;
+ 
++    mc_search__found_cond_t ret_combined;
++
+     if (lc_mc_search->regex_buffer != NULL)
+         g_string_set_size (lc_mc_search->regex_buffer, 0);
+     else
+@@ -952,7 +990,19 @@ mc_search__run_regex (mc_search_t * lc_mc_search, const void *user_data,
+             virtual_pos = current_pos;
+         }
+ 
+-        switch (mc_search__regex_found_cond (lc_mc_search, lc_mc_search->regex_buffer))
++        ret_combined =
++            mc_search__regex_found_cond_include (lc_mc_search, lc_mc_search->regex_buffer);
++        if (ret_combined == COND__FOUND_OK)
++        {
++            if (lc_mc_search->search_type == MC_SEARCH_T_GLOB &&
++                mc_search__regex_found_cond_exclude (lc_mc_search,
++                                                     lc_mc_search->regex_buffer) == COND__FOUND_OK)
++            {
++                ret_combined = COND__NOT_ALL_FOUND;
++            }
++        }
++
++        switch (ret_combined)
+         {
+         case COND__FOUND_OK:
+ #ifdef SEARCH_TYPE_GLIB
+diff --git a/lib/search/search.c b/lib/search/search.c
+index e9e160a09..72c786a30 100644
+--- a/lib/search/search.c
++++ b/lib/search/search.c
+@@ -191,6 +191,11 @@ mc_search_free (mc_search_t * lc_mc_search)
+     if (lc_mc_search->conditions != NULL)
+         mc_search__conditions_free (lc_mc_search->conditions);
+ 
++    if (lc_mc_search->conditions_exclude != NULL)
++    {
++        mc_search__conditions_free (lc_mc_search->conditions_exclude);
++    }
++
+ #ifdef SEARCH_TYPE_GLIB
+     if (lc_mc_search->regex_match_info != NULL)
+         g_match_info_free (lc_mc_search->regex_match_info);
+@@ -208,6 +213,40 @@ mc_search_free (mc_search_t * lc_mc_search)
+ 
+ gboolean
+ mc_search_prepare (mc_search_t * lc_mc_search)
++{
++    gboolean ret;
++
++    const gchar *exclusion_delim = "|";
++    gchar **tokens;
++
++    ret = TRUE;
++
++    if (lc_mc_search != NULL && lc_mc_search->search_type == MC_SEARCH_T_GLOB)
++    {
++        tokens = g_strsplit (lc_mc_search->original, exclusion_delim, 0);
++        if (g_strv_length (tokens) == 2)
++        {
++            g_free (lc_mc_search->original);
++
++            lc_mc_search->original_len = strlen (tokens[0]);
++            lc_mc_search->original = g_strndup (tokens[0], lc_mc_search->original_len);
++
++            lc_mc_search->original_exclude_len = strlen (tokens[1]);
++            lc_mc_search->original_exclude =
++                g_strndup (tokens[1], lc_mc_search->original_exclude_len);
++        }
++        g_strfreev (tokens);
++
++        ret = mc_search_prepare_exclude (lc_mc_search);
++    }
++
++    return (ret && mc_search_prepare_include (lc_mc_search));
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++gboolean
++mc_search_prepare_include (mc_search_t * lc_mc_search)
+ {
+     GPtrArray *ret;
+ 
+@@ -263,6 +302,65 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++gboolean
++mc_search_prepare_exclude (mc_search_t * lc_mc_search)
++{
++    GPtrArray *ret;
++
++    ret = g_ptr_array_new ();
++#ifdef HAVE_CHARSET
++    if (lc_mc_search->is_all_charsets)
++    {
++        gsize loop1;
++
++        for (loop1 = 0; loop1 < codepages->len; loop1++)
++        {
++            const char *id;
++            gsize recoded_str_len;
++            gchar *buffer;
++
++            id = ((codepage_desc *) g_ptr_array_index (codepages, loop1))->id;
++            if (g_ascii_strcasecmp (id, lc_mc_search->original_charset) == 0)
++            {
++                g_ptr_array_add (ret,
++                                 mc_search__cond_struct_new (lc_mc_search,
++                                                             lc_mc_search->original_exclude,
++                                                             lc_mc_search->original_exclude_len,
++                                                             lc_mc_search->original_charset));
++                continue;
++            }
++
++            buffer =
++                mc_search__recode_str (lc_mc_search->original_exclude,
++                                       lc_mc_search->original_exclude_len,
++                                       lc_mc_search->original_charset, id, &recoded_str_len);
++
++            g_ptr_array_add (ret,
++                             mc_search__cond_struct_new (lc_mc_search, buffer,
++                                                         recoded_str_len, id));
++            g_free (buffer);
++        }
++    }
++    else
++    {
++        g_ptr_array_add (ret,
++                         mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original_exclude,
++                                                     lc_mc_search->original_exclude_len,
++                                                     lc_mc_search->original_charset));
++    }
++#else
++    g_ptr_array_add (ret,
++                     mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original_exclude,
++                                                 lc_mc_search->original_exclude_len,
++                                                 str_detect_termencoding ()));
++#endif
++    lc_mc_search->conditions_exclude = ret;
++
++    return (lc_mc_search->error == MC_SEARCH_E_OK);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ /**
+  * Carries out the search.
+  *
+-- 
+2.14.3
+
+
+From d530c43ea2289ddc9b740b53ef494bdc43c5d19e Mon Sep 17 00:00:00 2001
+From: Georgii Iesaulov <esauloff@gmail.com>
+Date: Fri, 8 Dec 2017 00:44:53 -0500
+Subject: [PATCH 2/7] Comment changed pieces for file search exclusion
+
+Signed-off-by: Georgii Iesaulov <esauloff@gmail.com>
+---
+ lib/search/regex.c  | 26 ++++++++++++++++++++++++++
+ lib/search/search.c | 19 +++++++++++++++++++
+ 2 files changed, 45 insertions(+)
+
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index f082b1577..82753027f 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -318,6 +318,12 @@ mc_search__g_regex_match_full_safe (const GRegex * regex,
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/*
++ * Argument do_not_cleanup is used to distinguish *_include() vs *_exclude() calls to avoid
++ * clean-up of lc_mc_search->regex_match_info structure: if file does not match *_include() call,
++ * it is not considered anymore, but if file does not match *_exclude() call, it still can be 
++ * considered and regex_match_info is used later in mc_search__run_regex().
++ */
+ static mc_search__found_cond_t
+ mc_search__regex_found_cond_one (mc_search_t * lc_mc_search, mc_search_regex_t * regex,
+                                  GString * search_str, gboolean do_not_cleanup)
+@@ -362,6 +368,11 @@ mc_search__regex_found_cond_one (mc_search_t * lc_mc_search, mc_search_regex_t *
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/*
++ * To distinguish this method and newly added mc_search__regex_found_cond_exclude() - method was
++ * renamed, original name is mc_search__regex_found_cond(). No changes done to method internal
++ * logic except for added argument in mc_search__regex_found_cond_one() call.
++ */
+ static mc_search__found_cond_t
+ mc_search__regex_found_cond_include (mc_search_t * lc_mc_search, GString * search_str)
+ {
+@@ -388,6 +399,13 @@ mc_search__regex_found_cond_include (mc_search_t * lc_mc_search, GString * searc
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/*
++ * This method logic reflects mc_search__regex_found_cond_include() internals except for using
++ * exclusion array lc_mc_search->conditions_exclude to check if considered file matches exclusion
++ * pattern and should not be included in search result.
++ * TRUE is passed to mc_search__regex_found_cond_one() call to not clean-up
++ * lc_mc_search->regex_match_info structure if file does not match exclusion pattern.
++ */
+ static mc_search__found_cond_t
+ mc_search__regex_found_cond_exclude (mc_search_t * lc_mc_search, GString * search_str)
+ {
+@@ -925,6 +943,7 @@ mc_search__run_regex (mc_search_t * lc_mc_search, const void *user_data,
+     gint start_pos;
+     gint end_pos;
+ 
++    /* Variable will contain result of *_include() method and then *_exclude() if needed */
+     mc_search__found_cond_t ret_combined;
+ 
+     if (lc_mc_search->regex_buffer != NULL)
+@@ -990,6 +1009,13 @@ mc_search__run_regex (mc_search_t * lc_mc_search, const void *user_data,
+             virtual_pos = current_pos;
+         }
+ 
++        /*
++         * Check file exclusion for MC_SEARCH_T_GLOB search type.
++         * Each considered file is checked to match inclusion pattern first.
++         * If file matches and COND__FOUND_OK is returned from *_include() method, then exclusion
++         * is checked with *_exclude(). If file matches for exclusion, found status COND__FOUND_OK
++         * is changed to COND__NOT_ALL_FOUND to avoid file from search results.
++         */
+         ret_combined =
+             mc_search__regex_found_cond_include (lc_mc_search, lc_mc_search->regex_buffer);
+         if (ret_combined == COND__FOUND_OK)
+diff --git a/lib/search/search.c b/lib/search/search.c
+index 72c786a30..fe1887d73 100644
+--- a/lib/search/search.c
++++ b/lib/search/search.c
+@@ -211,11 +211,16 @@ mc_search_free (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/*
++ * Wrapper method to cover both mc_search_prepare_include() and mc_search_prepare_exclude() calls.
++ * Exclude portion works only for MC_SEARCH_T_GLOB search type.
++ */
+ gboolean
+ mc_search_prepare (mc_search_t * lc_mc_search)
+ {
+     gboolean ret;
+ 
++    /* Hardcoded delimiter to split lc_mc_search->original to inclusion and exclusion patterns */
+     const gchar *exclusion_delim = "|";
+     gchar **tokens;
+ 
+@@ -224,6 +229,12 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+     if (lc_mc_search != NULL && lc_mc_search->search_type == MC_SEARCH_T_GLOB)
+     {
+         tokens = g_strsplit (lc_mc_search->original, exclusion_delim, 0);
++
++        /*
++         * Only if two tokens (only one delimiter '|' was specified) are found,
++         * lc_mc_search->original string is splitted, freed, and then initialized again.
++         * lc_mc_search->original_exclude is initialized afterwards.
++         */
+         if (g_strv_length (tokens) == 2)
+         {
+             g_free (lc_mc_search->original);
+@@ -245,6 +256,10 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/*
++ * To distinguish this method and newly added mc_search_prepare_exclude() - method was renamed,
++ * original name is mc_search_prepare(). No changes done to method internal logic.
++ */
+ gboolean
+ mc_search_prepare_include (mc_search_t * lc_mc_search)
+ {
+@@ -302,6 +317,10 @@ mc_search_prepare_include (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/*
++ * This method logic reflects mc_search_prepare_include() internals except for using
++ * exclusion pattern lc_mc_search->original_exclude to fill array lc_mc_search->conditions_exclude.
++ */
+ gboolean
+ mc_search_prepare_exclude (mc_search_t * lc_mc_search)
+ {
+-- 
+2.14.3
+
+
+From 91a8fbd04abf7c50c9e40f018c62a721a379f14f Mon Sep 17 00:00:00 2001
+From: Georgii Iesaulov <esauloff@gmail.com>
+Date: Mon, 11 Dec 2017 03:44:58 -0500
+Subject: [PATCH 3/7] Check if exclusion delimiter is escaped properly
+
+Signed-off-by: Georgii Iesaulov <esauloff@gmail.com>
+---
+ lib/search/search.c | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/lib/search/search.c b/lib/search/search.c
+index fe1887d73..8cfed53ba 100644
+--- a/lib/search/search.c
++++ b/lib/search/search.c
+@@ -122,6 +122,19 @@ mc_search__conditions_free (GPtrArray * array)
+     g_ptr_array_free (array, TRUE);
+ }
+ 
++/* --------------------------------------------------------------------------------------------- */
++
++static gboolean
++mc_search_is_character_escaped (gchar * string, gchar ** string_start)
++{
++    if (string == NULL || &string == string_start || *(string - 1) != '\\')
++    {
++        return FALSE;
++    }
++
++    return !mc_search_is_character_escaped (string - 1, string_start);
++}
++
+ /* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+@@ -222,12 +235,19 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+ 
+     /* Hardcoded delimiter to split lc_mc_search->original to inclusion and exclusion patterns */
+     const gchar *exclusion_delim = "|";
++    gboolean is_exclusion_escaped;
+     gchar **tokens;
+ 
+     ret = TRUE;
+ 
+     if (lc_mc_search != NULL && lc_mc_search->search_type == MC_SEARCH_T_GLOB)
+     {
++        is_exclusion_escaped =
++            mc_search_is_character_escaped (g_strstr_len (lc_mc_search->original,
++                                                          lc_mc_search->original_len,
++                                                          exclusion_delim),
++                                            &lc_mc_search->original);
++
+         tokens = g_strsplit (lc_mc_search->original, exclusion_delim, 0);
+ 
+         /*
+@@ -235,7 +255,7 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+          * lc_mc_search->original string is splitted, freed, and then initialized again.
+          * lc_mc_search->original_exclude is initialized afterwards.
+          */
+-        if (g_strv_length (tokens) == 2)
++        if ((g_strv_length (tokens) == 2) && !is_exclusion_escaped)
+         {
+             g_free (lc_mc_search->original);
+ 
+-- 
+2.14.3
+
+
+From 23815836e9eb3e8e962fefa020ff8e3d2a47eb53 Mon Sep 17 00:00:00 2001
+From: Georgii Iesaulov <esauloff@gmail.com>
+Date: Tue, 12 Dec 2017 16:18:34 -0500
+Subject: [PATCH 4/7] Apply doxygen format for comments
+
+Signed-off-by: Georgii Iesaulov <esauloff@gmail.com>
+---
+ lib/search/regex.c  | 46 ++++++++++++++++++++++++++++++++--------------
+ lib/search/search.c | 51 ++++++++++++++++++++++++++++++++++++++++-----------
+ 2 files changed, 72 insertions(+), 25 deletions(-)
+
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index 82753027f..c6ad7174b 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -318,11 +318,23 @@ mc_search__g_regex_match_full_safe (const GRegex * regex,
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/*
+- * Argument do_not_cleanup is used to distinguish *_include() vs *_exclude() calls to avoid
+- * clean-up of lc_mc_search->regex_match_info structure: if file does not match *_include() call,
+- * it is not considered anymore, but if file does not match *_exclude() call, it still can be 
+- * considered and regex_match_info is used later in mc_search__run_regex().
++/**
++ * Checks if object #search_str matches one particular search criteria represented with #regex.
++ * Param #do_not_cleanup is used to avoid clean-up of lc_mc_search->regex_match_info structure:
++ * if file does not match *_include() call, it is not considered anymore, but if file
++ * does not match *_exclude() call, it still can be considered and regex_match_info
++ * is used later in mc_search__run_regex().
++ * 
++ * @note lc_mc_search->regex_match_info is freed and initialized with NULL
++ *       if #search_str does not match #regex
++ * 
++ * @param lc_mc_search search criteria
++ * @param regex regular expression representing search criteria
++ * @param search_str object to check criteria on
++ * @param do_not_cleanup TRUE if lc_mc_search->regex_match_info should be freed and initialized
++ *                       with NULL in case #search_str does not match #regex, FALSE otherwise
++ * 
++ * @return search results
+  */
+ static mc_search__found_cond_t
+ mc_search__regex_found_cond_one (mc_search_t * lc_mc_search, mc_search_regex_t * regex,
+@@ -368,10 +380,13 @@ mc_search__regex_found_cond_one (mc_search_t * lc_mc_search, mc_search_regex_t *
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/*
+- * To distinguish this method and newly added mc_search__regex_found_cond_exclude() - method was
+- * renamed, original name is mc_search__regex_found_cond(). No changes done to method internal
+- * logic except for added argument in mc_search__regex_found_cond_one() call.
++/**
++ * Checks if object #search_str matches any inclusion search criterias.
++ * 
++ * @param lc_mc_search search criteria
++ * @param search_str object to check criteria on
++ * 
++ * @return search results
+  */
+ static mc_search__found_cond_t
+ mc_search__regex_found_cond_include (mc_search_t * lc_mc_search, GString * search_str)
+@@ -399,12 +414,15 @@ mc_search__regex_found_cond_include (mc_search_t * lc_mc_search, GString * searc
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/*
+- * This method logic reflects mc_search__regex_found_cond_include() internals except for using
+- * exclusion array lc_mc_search->conditions_exclude to check if considered file matches exclusion
+- * pattern and should not be included in search result.
++/**
++ * Checks if object #search_str matches any exclusion search criterias.
+  * TRUE is passed to mc_search__regex_found_cond_one() call to not clean-up
+  * lc_mc_search->regex_match_info structure if file does not match exclusion pattern.
++ * 
++ * @param lc_mc_search search criteria
++ * @param search_str object to check criteria on
++ * 
++ * @return search results
+  */
+ static mc_search__found_cond_t
+ mc_search__regex_found_cond_exclude (mc_search_t * lc_mc_search, GString * search_str)
+@@ -1012,7 +1030,7 @@ mc_search__run_regex (mc_search_t * lc_mc_search, const void *user_data,
+         /*
+          * Check file exclusion for MC_SEARCH_T_GLOB search type.
+          * Each considered file is checked to match inclusion pattern first.
+-         * If file matches and COND__FOUND_OK is returned from *_include() method, then exclusion
++         * If file matches and COND__FOUND_OK is returned with *_include() method, then exclusion
+          * is checked with *_exclude(). If file matches for exclusion, found status COND__FOUND_OK
+          * is changed to COND__NOT_ALL_FOUND to avoid file from search results.
+          */
+diff --git a/lib/search/search.c b/lib/search/search.c
+index 8cfed53ba..ad21b007a 100644
+--- a/lib/search/search.c
++++ b/lib/search/search.c
+@@ -124,6 +124,18 @@ mc_search__conditions_free (GPtrArray * array)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Checks whether specified character with #string parameter is escaped properly with '\' symbol.
++ * 
++ * @example for string "abc\|def" where character '|' is escaped with single '\', TRUE is returned;
++ *          for string "abc\\|def" - character '|' is not escaped while preceding '\' is,
++ *          FALSE is returned.
++ * 
++ * @param string fisrt character in string which is checked for preceding escape chars
++ * @param string_start start address of full string containing #string
++ * 
++ * @return TRUE if character in #string is escaped properly, FALSE otherwise
++ */
+ static gboolean
+ mc_search_is_character_escaped (gchar * string, gchar ** string_start)
+ {
+@@ -224,16 +236,23 @@ mc_search_free (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/*
+- * Wrapper method to cover both mc_search_prepare_include() and mc_search_prepare_exclude() calls.
+- * Exclude portion works only for MC_SEARCH_T_GLOB search type.
++/**
++ * Covers mc_search_prepare_include() and mc_search_prepare_exclude() calls.
++ * Wrapper method which covers *_include() and *_exclude() calls, and exclude logic works
++ * for MC_SEARCH_T_GLOB only.
++ * Splits original search criteria only in case single delimiter character exists in
++ * criteria string and character is not escaped.
++ * 
++ * @param lc_mc_search search criteria
++ * 
++ * @return TRUE if inclusion and exclusion criterias are initialized successfully, FALSE otherwise
+  */
+ gboolean
+ mc_search_prepare (mc_search_t * lc_mc_search)
+ {
+     gboolean ret;
+ 
+-    /* Hardcoded delimiter to split lc_mc_search->original to inclusion and exclusion patterns */
++    /* Hardcoded delimiter to split lc_mc_search->original into inclusion and exclusion parts */
+     const gchar *exclusion_delim = "|";
+     gboolean is_exclusion_escaped;
+     gchar **tokens;
+@@ -242,6 +261,7 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+ 
+     if (lc_mc_search != NULL && lc_mc_search->search_type == MC_SEARCH_T_GLOB)
+     {
++        /* Check if #exclusion_delim is escaped with '\' symbol */
+         is_exclusion_escaped =
+             mc_search_is_character_escaped (g_strstr_len (lc_mc_search->original,
+                                                           lc_mc_search->original_len,
+@@ -251,7 +271,7 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+         tokens = g_strsplit (lc_mc_search->original, exclusion_delim, 0);
+ 
+         /*
+-         * Only if two tokens (only one delimiter '|' was specified) are found,
++         * If two tokens (one delimiter '|' is specified) are found and delimiter is not escaped,
+          * lc_mc_search->original string is splitted, freed, and then initialized again.
+          * lc_mc_search->original_exclude is initialized afterwards.
+          */
+@@ -276,9 +296,13 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/*
+- * To distinguish this method and newly added mc_search_prepare_exclude() - method was renamed,
+- * original name is mc_search_prepare(). No changes done to method internal logic.
++/**
++ * Initializes inclusion search criteria.
++ * Parses inclusion search criteria to regular expression and adds it to lc_mc_search->conditions.
++ * 
++ * @param lc_mc_search search criteria
++ * 
++ * @return TRUE if inclusion search criteria is initialized successfully, FALSE otherwise
+  */
+ gboolean
+ mc_search_prepare_include (mc_search_t * lc_mc_search)
+@@ -337,9 +361,14 @@ mc_search_prepare_include (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/*
+- * This method logic reflects mc_search_prepare_include() internals except for using
+- * exclusion pattern lc_mc_search->original_exclude to fill array lc_mc_search->conditions_exclude.
++/**
++ * Initializes exclusion search criteria.
++ * Parses exclusion search criteria to regular expression and adds it
++ * to lc_mc_search->conditions_exclude.
++ * 
++ * @param lc_mc_search search criteria
++ * 
++ * @return TRUE if exclusion search criteria is initialized successfully, FALSE otherwise
+  */
+ gboolean
+ mc_search_prepare_exclude (mc_search_t * lc_mc_search)
+-- 
+2.14.3
+
+
+From 1f2c243a52e6210d3881136a0bbeac6873487d60 Mon Sep 17 00:00:00 2001
+From: Georgii Iesaulov <esauloff@gmail.com>
+Date: Tue, 12 Dec 2017 16:19:56 -0500
+Subject: [PATCH 5/7] Reflect changes in Find Files and Select Files dialogs in
+ hlp/man documents
+
+Signed-off-by: Georgii Iesaulov <esauloff@gmail.com>
+---
+ doc/man/mc.1.in    | 14 +++++++++++---
+ doc/man/ru/mc.1.in | 16 ++++++++++++++--
+ 2 files changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index aace39942..761866e81 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -1418,7 +1418,11 @@ figure.
+ The "File name" input field contains a filename pattern to be searched
+ for. It is interpreted as a shell pattern or as a regular expression
+ depending on the state of the "Using shell patterns" checkbox. An empty
+-value is valid and matches any file name.
++value is valid and matches any file name. To exclude some files or
++filename patterns from search results when using shell patterns,
++delimiter '|' (pipe symbol) can be used to split "File name" string
++into inclusion and exclusion parts. If more than one '|' symbol is found,
++exclusion logic does not apply.
+ .PP
+ The "Content" input field contains a string to search for within the
+ files. Leave this field empty to disable searching file contents.
+@@ -2754,7 +2758,7 @@ inside inodes and thus don't waste much disk space).
+ 
+ .\"NODE "Select/Unselect Files"
+ .SH "Select/Unselect Files"
+-The dialog of group of files and directories selection or uselection.
++The dialog of group of files and directories selection or unselection.
+ The
+ .\"LINK2"
+ input line
+@@ -2779,7 +2783,11 @@ expressions (see ed (1)). When
+ checkbox is on, the selection will be case sensitive characters.
+ If
+ .I Case sensitive
+-is off, the case will be ignored.
++is off, the case will be ignored. To exclude some files or
++filename patterns from selection/unselection results when using
++Shell patterns, delimiter '|' (pipe symbol) can be used to split
++search string into inclusion and exclusion parts. If more than
++one '|' symbol is found, exclusion logic does not apply.
+ .\"NODE "Diff Viewer"
+ .SH "Internal Diff Viewer"
+ The mcdiff is a visual diff tool. You can compare two files and edit them
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index 4a1ab012d..7f1de18fe 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -536,7 +536,13 @@ Midnight Commander\-а. Для возврата к вашему приложен
+ то пометка файлов и каталогов будет производиться с учетом регистра символов имён.
+ Если опция
+ .I С учётом регистра
+-отключена, то регистр символов учитываться не будет.
++отключена, то регистр символов учитываться не будет. Для того, чтобы исключить
++некоторые файлы или маски имён файлов из результатов выборки при использовании
++"Образцы в стиле shell", разделяющий символ '|' (вертикальная черта) может быть
++использован. Символ '|' разделяет строку поиска на две части,
++первая часть используется для включения файлов в результаты выборки,
++вторая часть - для исключения файлов. Логика исключения не работает
++если в строке найдено больше одного символа '|'.
+ .PP
+ .B \\\\ (backslash)
+ Клавиша "\\" снимает отметку с группы файлов, то есть производит
+@@ -1503,7 +1509,13 @@ Midnight Commander создает дерево путем просмотра т
+ Поле "Шаблон имени" содержит маску имени файла, по которой происходит поиск.
+ В зависимости от опции "Метасимволы shell" маска интерпретируется либо по тем же
+ правилам, что и в командной оболочке, либо как регулярное выражение. Пустое
+-поле также допустимо и соответствует любому имени.
++поле также допустимо и соответствует любому имени. Для того, чтобы исключить
++некоторые файлы или маски имён файлов из результатов поиска при использовании
++"Метасимволов shell", разделяющий символ '|' (вертикальная черта) может быть
++использован. Символ '|' разделяет строку "Шаблон имени" на две части,
++первая часть используется для включения файлов в результаты поиска,
++вторая часть - для исключения файлов. Логика исключения не работает
++если в строке найдено больше одного символа '|'.
+ .PP
+ Поле "Содержимое" позволяет задать текст, который надо найти. Если это поле
+ пусто, то поиск по содержимому файлов производиться не будет.
+-- 
+2.14.3
+
+
+From 6a388462e0044d75b7c4fe17bb3c5db500c7d8fd Mon Sep 17 00:00:00 2001
+From: Georgii Iesaulov <esauloff@gmail.com>
+Date: Tue, 12 Dec 2017 23:03:30 -0500
+Subject: [PATCH 6/7] Mention how to escape '|' delimiter in hlp/man documents
+
+Signed-off-by: Georgii Iesaulov <esauloff@gmail.com>
+---
+ doc/man/mc.1.in    | 8 ++++++--
+ doc/man/ru/mc.1.in | 8 ++++++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 761866e81..56de34912 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -1422,7 +1422,9 @@ value is valid and matches any file name. To exclude some files or
+ filename patterns from search results when using shell patterns,
+ delimiter '|' (pipe symbol) can be used to split "File name" string
+ into inclusion and exclusion parts. If more than one '|' symbol is found,
+-exclusion logic does not apply.
++exclusion logic does not apply. To screen delimiter sign and search for
++'|' symbol literally, escape it with single '\\' (backslash symbol)
++like so "\\|".
+ .PP
+ The "Content" input field contains a string to search for within the
+ files. Leave this field empty to disable searching file contents.
+@@ -2787,7 +2789,9 @@ is off, the case will be ignored. To exclude some files or
+ filename patterns from selection/unselection results when using
+ Shell patterns, delimiter '|' (pipe symbol) can be used to split
+ search string into inclusion and exclusion parts. If more than
+-one '|' symbol is found, exclusion logic does not apply.
++one '|' symbol is found, exclusion logic does not apply. To screen
++delimiter sign and search for '|' symbol literally, escape it
++with single '\\' (backslash symbol) like so "\\|".
+ .\"NODE "Diff Viewer"
+ .SH "Internal Diff Viewer"
+ The mcdiff is a visual diff tool. You can compare two files and edit them
+diff --git a/doc/man/ru/mc.1.in b/doc/man/ru/mc.1.in
+index 7f1de18fe..7a93e6393 100644
+--- a/doc/man/ru/mc.1.in
++++ b/doc/man/ru/mc.1.in
+@@ -542,7 +542,9 @@ Midnight Commander\-а. Для возврата к вашему приложен
+ использован. Символ '|' разделяет строку поиска на две части,
+ первая часть используется для включения файлов в результаты выборки,
+ вторая часть - для исключения файлов. Логика исключения не работает
+-если в строке найдено больше одного символа '|'.
++если в строке найдено больше одного символа '|'. Для того, чтобы экранировать
++разделяющий символ и начать поиск с символом '|', необходимо использовать
++одиночный символ '\\' (обратная косая черта): "\\|".
+ .PP
+ .B \\\\ (backslash)
+ Клавиша "\\" снимает отметку с группы файлов, то есть производит
+@@ -1515,7 +1517,9 @@ Midnight Commander создает дерево путем просмотра т
+ использован. Символ '|' разделяет строку "Шаблон имени" на две части,
+ первая часть используется для включения файлов в результаты поиска,
+ вторая часть - для исключения файлов. Логика исключения не работает
+-если в строке найдено больше одного символа '|'.
++если в строке найдено больше одного символа '|'. Для того, чтобы
++экранировать разделяющий символ и начать поиск с символом '|', необходимо
++использовать одиночный символ '\\' (обратная косая черта): "\\|".
+ .PP
+ Поле "Содержимое" позволяет задать текст, который надо найти. Если это поле
+ пусто, то поиск по содержимому файлов производиться не будет.
+-- 
+2.14.3
+
+
+From 380031265594cb929a262914be32b57eeda8dee3 Mon Sep 17 00:00:00 2001
+From: Georgii Iesaulov <esauloff@gmail.com>
+Date: Tue, 12 Dec 2017 23:06:39 -0500
+Subject: [PATCH 7/7] Hide mc_search_prepare_include() and *_exclude() methods
+ in file static section
+
+Signed-off-by: Georgii Iesaulov <esauloff@gmail.com>
+---
+ lib/search.h        |   2 -
+ lib/search/search.c | 266 ++++++++++++++++++++++++++--------------------------
+ 2 files changed, 133 insertions(+), 135 deletions(-)
+
+diff --git a/lib/search.h b/lib/search.h
+index bc6f09b02..752eea835 100644
+--- a/lib/search.h
++++ b/lib/search.h
+@@ -154,8 +154,6 @@ mc_search_t *mc_search_new_len (const gchar * original, gsize original_len,
+ void mc_search_free (mc_search_t * lc_mc_search);
+ 
+ gboolean mc_search_prepare (mc_search_t * mc_search);
+-gboolean mc_search_prepare_include (mc_search_t * mc_search);
+-gboolean mc_search_prepare_exclude (mc_search_t * mc_search);
+ 
+ gboolean mc_search_run (mc_search_t * mc_search, const void *user_data, gsize start_search,
+                         gsize end_search, gsize * found_len);
+diff --git a/lib/search/search.c b/lib/search/search.c
+index ad21b007a..4dfd2ae6d 100644
+--- a/lib/search/search.c
++++ b/lib/search/search.c
+@@ -115,6 +115,139 @@ mc_search__cond_struct_free (mc_search_cond_t * mc_search_cond)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
++/**
++ * Initializes inclusion search criteria.
++ * Parses inclusion search criteria to regular expression and adds it to lc_mc_search->conditions.
++ * 
++ * @param lc_mc_search search criteria
++ * 
++ * @return TRUE if inclusion search criteria is initialized successfully, FALSE otherwise
++ */
++static gboolean
++mc_search_prepare_include (mc_search_t * lc_mc_search)
++{
++    GPtrArray *ret;
++
++    ret = g_ptr_array_new ();
++#ifdef HAVE_CHARSET
++    if (lc_mc_search->is_all_charsets)
++    {
++        gsize loop1;
++
++        for (loop1 = 0; loop1 < codepages->len; loop1++)
++        {
++            const char *id;
++            gsize recoded_str_len;
++            gchar *buffer;
++
++            id = ((codepage_desc *) g_ptr_array_index (codepages, loop1))->id;
++            if (g_ascii_strcasecmp (id, lc_mc_search->original_charset) == 0)
++            {
++                g_ptr_array_add (ret,
++                                 mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original,
++                                                             lc_mc_search->original_len,
++                                                             lc_mc_search->original_charset));
++                continue;
++            }
++
++            buffer =
++                mc_search__recode_str (lc_mc_search->original, lc_mc_search->original_len,
++                                       lc_mc_search->original_charset, id, &recoded_str_len);
++
++            g_ptr_array_add (ret,
++                             mc_search__cond_struct_new (lc_mc_search, buffer,
++                                                         recoded_str_len, id));
++            g_free (buffer);
++        }
++    }
++    else
++    {
++        g_ptr_array_add (ret,
++                         mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original,
++                                                     lc_mc_search->original_len,
++                                                     lc_mc_search->original_charset));
++    }
++#else
++    g_ptr_array_add (ret,
++                     mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original,
++                                                 lc_mc_search->original_len,
++                                                 str_detect_termencoding ()));
++#endif
++    lc_mc_search->conditions = ret;
++
++    return (lc_mc_search->error == MC_SEARCH_E_OK);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
++/**
++ * Initializes exclusion search criteria.
++ * Parses exclusion search criteria to regular expression and adds it
++ * to lc_mc_search->conditions_exclude.
++ * 
++ * @param lc_mc_search search criteria
++ * 
++ * @return TRUE if exclusion search criteria is initialized successfully, FALSE otherwise
++ */
++static gboolean
++mc_search_prepare_exclude (mc_search_t * lc_mc_search)
++{
++    GPtrArray *ret;
++
++    ret = g_ptr_array_new ();
++#ifdef HAVE_CHARSET
++    if (lc_mc_search->is_all_charsets)
++    {
++        gsize loop1;
++
++        for (loop1 = 0; loop1 < codepages->len; loop1++)
++        {
++            const char *id;
++            gsize recoded_str_len;
++            gchar *buffer;
++
++            id = ((codepage_desc *) g_ptr_array_index (codepages, loop1))->id;
++            if (g_ascii_strcasecmp (id, lc_mc_search->original_charset) == 0)
++            {
++                g_ptr_array_add (ret,
++                                 mc_search__cond_struct_new (lc_mc_search,
++                                                             lc_mc_search->original_exclude,
++                                                             lc_mc_search->original_exclude_len,
++                                                             lc_mc_search->original_charset));
++                continue;
++            }
++
++            buffer =
++                mc_search__recode_str (lc_mc_search->original_exclude,
++                                       lc_mc_search->original_exclude_len,
++                                       lc_mc_search->original_charset, id, &recoded_str_len);
++
++            g_ptr_array_add (ret,
++                             mc_search__cond_struct_new (lc_mc_search, buffer,
++                                                         recoded_str_len, id));
++            g_free (buffer);
++        }
++    }
++    else
++    {
++        g_ptr_array_add (ret,
++                         mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original_exclude,
++                                                     lc_mc_search->original_exclude_len,
++                                                     lc_mc_search->original_charset));
++    }
++#else
++    g_ptr_array_add (ret,
++                     mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original_exclude,
++                                                 lc_mc_search->original_exclude_len,
++                                                 str_detect_termencoding ()));
++#endif
++    lc_mc_search->conditions_exclude = ret;
++
++    return (lc_mc_search->error == MC_SEARCH_E_OK);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++
+ static void
+ mc_search__conditions_free (GPtrArray * array)
+ {
+@@ -296,139 +429,6 @@ mc_search_prepare (mc_search_t * lc_mc_search)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/**
+- * Initializes inclusion search criteria.
+- * Parses inclusion search criteria to regular expression and adds it to lc_mc_search->conditions.
+- * 
+- * @param lc_mc_search search criteria
+- * 
+- * @return TRUE if inclusion search criteria is initialized successfully, FALSE otherwise
+- */
+-gboolean
+-mc_search_prepare_include (mc_search_t * lc_mc_search)
+-{
+-    GPtrArray *ret;
+-
+-    ret = g_ptr_array_new ();
+-#ifdef HAVE_CHARSET
+-    if (lc_mc_search->is_all_charsets)
+-    {
+-        gsize loop1;
+-
+-        for (loop1 = 0; loop1 < codepages->len; loop1++)
+-        {
+-            const char *id;
+-            gsize recoded_str_len;
+-            gchar *buffer;
+-
+-            id = ((codepage_desc *) g_ptr_array_index (codepages, loop1))->id;
+-            if (g_ascii_strcasecmp (id, lc_mc_search->original_charset) == 0)
+-            {
+-                g_ptr_array_add (ret,
+-                                 mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original,
+-                                                             lc_mc_search->original_len,
+-                                                             lc_mc_search->original_charset));
+-                continue;
+-            }
+-
+-            buffer =
+-                mc_search__recode_str (lc_mc_search->original, lc_mc_search->original_len,
+-                                       lc_mc_search->original_charset, id, &recoded_str_len);
+-
+-            g_ptr_array_add (ret,
+-                             mc_search__cond_struct_new (lc_mc_search, buffer,
+-                                                         recoded_str_len, id));
+-            g_free (buffer);
+-        }
+-    }
+-    else
+-    {
+-        g_ptr_array_add (ret,
+-                         mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original,
+-                                                     lc_mc_search->original_len,
+-                                                     lc_mc_search->original_charset));
+-    }
+-#else
+-    g_ptr_array_add (ret,
+-                     mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original,
+-                                                 lc_mc_search->original_len,
+-                                                 str_detect_termencoding ()));
+-#endif
+-    lc_mc_search->conditions = ret;
+-
+-    return (lc_mc_search->error == MC_SEARCH_E_OK);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+-/**
+- * Initializes exclusion search criteria.
+- * Parses exclusion search criteria to regular expression and adds it
+- * to lc_mc_search->conditions_exclude.
+- * 
+- * @param lc_mc_search search criteria
+- * 
+- * @return TRUE if exclusion search criteria is initialized successfully, FALSE otherwise
+- */
+-gboolean
+-mc_search_prepare_exclude (mc_search_t * lc_mc_search)
+-{
+-    GPtrArray *ret;
+-
+-    ret = g_ptr_array_new ();
+-#ifdef HAVE_CHARSET
+-    if (lc_mc_search->is_all_charsets)
+-    {
+-        gsize loop1;
+-
+-        for (loop1 = 0; loop1 < codepages->len; loop1++)
+-        {
+-            const char *id;
+-            gsize recoded_str_len;
+-            gchar *buffer;
+-
+-            id = ((codepage_desc *) g_ptr_array_index (codepages, loop1))->id;
+-            if (g_ascii_strcasecmp (id, lc_mc_search->original_charset) == 0)
+-            {
+-                g_ptr_array_add (ret,
+-                                 mc_search__cond_struct_new (lc_mc_search,
+-                                                             lc_mc_search->original_exclude,
+-                                                             lc_mc_search->original_exclude_len,
+-                                                             lc_mc_search->original_charset));
+-                continue;
+-            }
+-
+-            buffer =
+-                mc_search__recode_str (lc_mc_search->original_exclude,
+-                                       lc_mc_search->original_exclude_len,
+-                                       lc_mc_search->original_charset, id, &recoded_str_len);
+-
+-            g_ptr_array_add (ret,
+-                             mc_search__cond_struct_new (lc_mc_search, buffer,
+-                                                         recoded_str_len, id));
+-            g_free (buffer);
+-        }
+-    }
+-    else
+-    {
+-        g_ptr_array_add (ret,
+-                         mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original_exclude,
+-                                                     lc_mc_search->original_exclude_len,
+-                                                     lc_mc_search->original_charset));
+-    }
+-#else
+-    g_ptr_array_add (ret,
+-                     mc_search__cond_struct_new (lc_mc_search, lc_mc_search->original_exclude,
+-                                                 lc_mc_search->original_exclude_len,
+-                                                 str_detect_termencoding ()));
+-#endif
+-    lc_mc_search->conditions_exclude = ret;
+-
+-    return (lc_mc_search->error == MC_SEARCH_E_OK);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-
+ /**
+  * Carries out the search.
+  *
+-- 
+2.14.3
+

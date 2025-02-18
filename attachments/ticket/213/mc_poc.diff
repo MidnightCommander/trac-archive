@@ -1,0 +1,237 @@
+diff --git a/src/command.c b/src/command.c
+index e608bf0..81cbc5c 100644
+--- a/src/command.c
++++ b/src/command.c
+@@ -229,7 +229,8 @@ enter (WInput *cmdline)
+ #ifdef HAVE_SUBSHELL_SUPPORT
+ 	/* Check this early before we clean command line
+ 	 * (will be checked again by shell_execute) */
+-	if (use_subshell && subshell_state != INACTIVE) {
++	if (use_subshell && subshell_state != INACTIVE
++            && subshell_state != ACTIVE2) {
+ 	    message (1, MSG_ERROR,
+ 		     _(" The shell is already running a command "));
+ 	    return MSG_NOT_HANDLED;
+diff --git a/src/execute.c b/src/execute.c
+index eb31cac..07e5f34 100644
+--- a/src/execute.c
++++ b/src/execute.c
+@@ -131,6 +131,7 @@ do_execute (const char *shell, const char *command, int flags)
+ 		 && !console_flag)) && !quit
+ #ifdef HAVE_SUBSHELL_SUPPORT
+ 	    && subshell_state != RUNNING_COMMAND
++            && subshell_state != RUNNING_COMMAND2  
+ #endif				/* HAVE_SUBSHELL_SUPPORT */
+ 	    ) {
+ 	    printf (_("Press any key to continue..."));
+@@ -186,7 +187,7 @@ shell_execute (const char *command, int flags)
+ 
+ #ifdef HAVE_SUBSHELL_SUPPORT
+     if (use_subshell)
+-	if (subshell_state == INACTIVE)
++	if (subshell_state == INACTIVE || subshell_state == ACTIVE2)
+ 	    do_execute (shell, cmd ? cmd : command, flags | EXECUTE_AS_SHELL);
+ 	else
+ 	    message (1, MSG_ERROR,
+diff --git a/src/main.c b/src/main.c
+index db26945..9f68881 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -436,7 +436,9 @@ void
+ do_update_prompt (void)
+ {
+     if (update_prompt) {
+-	printf ("%s", subshell_prompt);
++        /* FIXME: quick hack to eliminate 'stacked prompts bug'.
++        Actually should be done with ncurses. */
++	printf ("\033[1K\033[1G%s", subshell_prompt);
+ 	fflush (stdout);
+ 	update_prompt = 0;
+     }
+diff --git a/src/subshell.c b/src/subshell.c
+index 8d98da5..e84527e 100644
+--- a/src/subshell.c
++++ b/src/subshell.c
+@@ -123,11 +123,12 @@ enum {READ=0, WRITE=1};
+ static char *pty_buffer;	/* For reading/writing on the subshell's pty */
+ static int pty_buffer_size;	/* The buffer grows as needed */
+ static int subshell_pipe[2];	/* To pass CWD info from the subshell to MC */
++static int subshell_pipe2[2];   /* To indicate subshell command run */
+ static pid_t subshell_pid = 1;	/* The subshell's process ID */
+ static char subshell_cwd[MC_MAXPATHLEN+1];  /* One extra char for final '\n' */
+ 
+ /* Subshell type (gleaned from the SHELL environment variable, if available) */
+-static enum {BASH, TCSH, ZSH} subshell_type;
++enum subshell_type_enum subshell_type;
+ 
+ /* Flag to indicate whether the subshell is ready for next command */
+ static int subshell_ready;
+@@ -282,6 +283,7 @@ init_subshell_child (const char *pty_name)
+ 
+     switch (subshell_type) {
+     case BASH:
++        close (subshell_pipe[READ]);
+ 	execl (shell, "bash", "-rcfile", init_file, (char *) NULL);
+ 	break;
+ 
+@@ -439,11 +441,13 @@ init_subshell (void)
+ 		use_subshell = FALSE;
+ 		return;
+ 	    }
+-	} else /* subshell_type is BASH or ZSH */ if (pipe (subshell_pipe)) {
+-	    perror (__FILE__": couldn't create pipe");
+-	    use_subshell = FALSE;
+-	    return;
+-	}
++	} else /* subshell_type is BASH or ZSH */ {
++            if (pipe (subshell_pipe) || pipe (subshell_pipe2)) {
++                perror (__FILE__": couldn't create pipe");
++                use_subshell = FALSE;
++                return;
++            }
++        }
+     }
+ 
+     /* Fork the subshell */
+@@ -469,8 +473,10 @@ init_subshell (void)
+     switch (subshell_type) {
+     case BASH:
+ 	g_snprintf (precmd, sizeof (precmd),
+-		    " PROMPT_COMMAND='pwd>&%d;kill -STOP $$'\n",
+-		    subshell_pipe[WRITE]);
++		    " PROMPT_COMMAND='pwd>&%d;kill -STOP $$';"
++                    "trap '[ \"$BASH_COMMAND\" != \"kill -STOP \\$\\$\" ] && echo $BASH_COMMAND>&%d' DEBUG\n",
++		    subshell_pipe[WRITE],
++                    subshell_pipe2[WRITE]);
+ 	break;
+ 
+     case ZSH:
+@@ -548,13 +554,20 @@ int invoke_subshell (const char *command, int how, char **new_dir)
+     }
+     else  /* MC has passed us a user command */
+     {
++        if (subshell_state == ACTIVE2) {
++            /* Send Ctrl-C if something was typed on subshell prompt */
++            subshell_state = RUNNING_COMMAND;
++            write_all (subshell_pty, "\x3", 1);
++            feed_subshell (how, FALSE);
++        }
++
+ 	if (how == QUIETLY)
+ 	    write_all (subshell_pty, " ", 1);
+ 	/* FIXME: if command is long (>8KB ?) we go comma */
+ 	write_all (subshell_pty, command, strlen (command));
+ 	write_all (subshell_pty, "\n", 1);
+-	subshell_state = RUNNING_COMMAND;
+-	subshell_ready = FALSE;
++        subshell_state = RUNNING_COMMAND;
++        subshell_ready = FALSE;
+     }
+ 
+     feed_subshell (how, FALSE);
+@@ -743,7 +756,13 @@ subshell_name_quote (const char *s)
+ void
+ do_subshell_chdir (const char *directory, int do_update, int reset_prompt)
+ {
+-    if (!
++    if (subshell_state == ACTIVE2) {
++        /* Send Ctrl-C if something was typed on subshell prompt */
++        subshell_state = RUNNING_COMMAND;
++        write_all (subshell_pty, "\x3", 1);
++        /* FIXME: command prompt with old typed characters should be visible */
++        feed_subshell (VISIBLY, FALSE);
++    } else if (!
+ 	(subshell_state == INACTIVE
+ 	 && strcmp (subshell_cwd, current_panel->cwd))) {
+ 	/* We have to repaint the subshell prompt if we read it from
+@@ -803,7 +822,7 @@ do_subshell_chdir (const char *directory, int do_update, int reset_prompt)
+     }
+ 
+     if (reset_prompt)
+-	prompt_pos = 0;
++        prompt_pos = 0;
+     update_prompt = FALSE;
+     /* Make sure that MC never stores the CWD in a silly format */
+     /* like /usr////lib/../bin, or the strcmp() above will fail */
+@@ -902,7 +921,8 @@ feed_subshell (int how, int fail_on_error)
+ 	FD_ZERO (&read_set);
+ 	FD_SET (subshell_pty, &read_set);
+ 	FD_SET (subshell_pipe[READ], &read_set);
+-	maxfdp = max (subshell_pty, subshell_pipe[READ]);
++        FD_SET (subshell_pipe2[READ], &read_set);
++	maxfdp = max(max (subshell_pty, subshell_pipe[READ]), subshell_pipe2[READ]);
+ 	if (how == VISIBLY) {
+ 	    FD_SET (STDIN_FILENO, &read_set);
+ 	    maxfdp = max (maxfdp, STDIN_FILENO);
+@@ -918,8 +938,25 @@ feed_subshell (int how, int fail_on_error)
+ 		     unix_error_string (errno));
+ 	    exit (1);
+ 	}
+-
+-	if (FD_ISSET (subshell_pty, &read_set))
++        
++        if (subshell_type == BASH
++            && FD_ISSET (subshell_pipe2[READ], &read_set)) {
++            char buf[255];
++            int s = read (subshell_pipe2[READ], buf, 255);
++            if (0 >= s) {
++                tcsetattr (STDOUT_FILENO, TCSANOW, &shell_mode);
++                fprintf (stderr,
++                         "read (subshell_pipe2[READ], buf...): %s\r\n",
++                         unix_error_string (errno));
++                exit (1);
++            }
++            if (subshell_state == ACTIVE) {
++                subshell_state = RUNNING_COMMAND2;
++                subshell_ready = FALSE;
++            }
++        }
++
++        else if (FD_ISSET (subshell_pty, &read_set))
+ 	    /* Read from the subshell, write to stdout */
+ 
+ 	    /* This loop improves performance by reducing context switches
+@@ -965,8 +1002,13 @@ feed_subshell (int how, int fail_on_error)
+ 	    subshell_ready = TRUE;
+ 	    if (subshell_state == RUNNING_COMMAND) {
+ 		subshell_state = INACTIVE;
+-		return 1;
++		return TRUE;
+ 	    }
++            if (subshell_state == RUNNING_COMMAND2 ||
++                subshell_state == ACTIVE2)
++            {
++                subshell_state = INACTIVE;
++            }
+ 	}
+ 
+ 	else if (FD_ISSET (STDIN_FILENO, &read_set))
+@@ -990,7 +1032,9 @@ feed_subshell (int how, int fail_on_error)
+ 		}
+ 
+ 	    write_all (subshell_pty, pty_buffer, bytes);
+-	    subshell_ready = FALSE;
++            subshell_ready = FALSE;
++            if (subshell_type == BASH)
++                subshell_state = ACTIVE2;
+ 	} else {
+ 	    return FALSE;
+ 	}
+diff --git a/src/subshell.h b/src/subshell.h
+index 072871d..9c874e2 100644
+--- a/src/subshell.h
++++ b/src/subshell.h
+@@ -14,9 +14,12 @@ extern int use_subshell;
+ extern int subshell_pty;
+ 
+ /* State of the subshell; see subshell.c for an explanation */
+-enum subshell_state_enum {INACTIVE, ACTIVE, RUNNING_COMMAND};
++enum subshell_state_enum {INACTIVE, ACTIVE, RUNNING_COMMAND, ACTIVE2, RUNNING_COMMAND2};
+ extern enum subshell_state_enum subshell_state;
+ 
++enum subshell_type_enum {BASH, TCSH, ZSH};
++extern enum subshell_type_enum subshell_type;
++
+ /* Holds the latest prompt captured from the subshell */
+ extern char *subshell_prompt;
+ 

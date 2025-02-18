@@ -1,0 +1,119 @@
+From 3828bc83a176a780542f62d30303aeb9ac4f7476 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 17 Jan 2016 16:09:56 +0000
+Subject: [PATCH] cleanup: args.c recude function scope for mcedit_arg_*
+
+reduce to scope for
+    mcedit_arg_new (const char *file_name, long line_number)
+    mcedit_arg_vpath_new (vfs_path_t * file_vpath, long line_number)
+and move to file scope section
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/args.c | 72 +++++++++++++++++++++++++++++++-------------------------------
+ src/args.h |  2 --
+ 2 files changed, 36 insertions(+), 38 deletions(-)
+
+diff --git a/src/args.c b/src/args.c
+index 0ee7de6..a93defc 100644
+--- a/src/args.c
++++ b/src/args.c
+@@ -471,6 +471,42 @@ parse_mc_v_argument (const gchar * option_name, const gchar * value, gpointer da
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /**
++ * Create mcedit_arg_t object from vfs_path_t object and the line number.
++ *
++ * @param file_vpath  file path object
++ * @param line_number line number. If value is 0, try to restore saved position.
++ * @return mcedit_arg_t object
++ */
++
++static mcedit_arg_t *
++mcedit_arg_vpath_new (vfs_path_t * file_vpath, long line_number)
++{
++    mcedit_arg_t *arg;
++
++    arg = g_new (mcedit_arg_t, 1);
++    arg->file_vpath = file_vpath;
++    arg->line_number = line_number;
++
++    return arg;
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
++ * Create mcedit_arg_t object from file name and the line number.
++ *
++ * @param file_name   file name
++ * @param line_number line number. If value is 0, try to restore saved position.
++ * @return mcedit_arg_t object
++ */
++
++static mcedit_arg_t *
++mcedit_arg_new (const char *file_name, long line_number)
++{
++    return mcedit_arg_vpath_new (vfs_path_from_str (file_name), line_number);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
+  * Get list of filenames (and line numbers) from command line, when mc called as editor
+  *
+  * @param argc count of all arguments
+@@ -795,42 +831,6 @@ mc_setup_by_args (int argc, char **argv, GError ** mcerror)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ /**
+- * Create mcedit_arg_t object from file name and the line number.
+- *
+- * @param file_name   file name
+- * @param line_number line number. If value is 0, try to restore saved position.
+- * @return mcedit_arg_t object
+- */
+-
+-mcedit_arg_t *
+-mcedit_arg_new (const char *file_name, long line_number)
+-{
+-    return mcedit_arg_vpath_new (vfs_path_from_str (file_name), line_number);
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-/**
+- * Create mcedit_arg_t object from vfs_path_t object and the line number.
+- *
+- * @param file_vpath  file path object
+- * @param line_number line number. If value is 0, try to restore saved position.
+- * @return mcedit_arg_t object
+- */
+-
+-mcedit_arg_t *
+-mcedit_arg_vpath_new (vfs_path_t * file_vpath, long line_number)
+-{
+-    mcedit_arg_t *arg;
+-
+-    arg = g_new (mcedit_arg_t, 1);
+-    arg->file_vpath = file_vpath;
+-    arg->line_number = line_number;
+-
+-    return arg;
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+-/**
+  * Free the mcedit_arg_t object.
+  *
+  * @param arg mcedit_arg_t object
+diff --git a/src/args.h b/src/args.h
+index f33c07c..53ff9ea 100644
+--- a/src/args.h
++++ b/src/args.h
+@@ -50,8 +50,6 @@ gboolean mc_args_parse (int *argc, char ***argv, const char *translation_domain,
+ gboolean mc_args_show_info (void);
+ gboolean mc_setup_by_args (int argc, char **argv, GError ** mcerror);
+ 
+-mcedit_arg_t *mcedit_arg_new (const char *file_name, long line_number);
+-mcedit_arg_t *mcedit_arg_vpath_new (vfs_path_t * file_vpath, long line_number);
+ void mcedit_arg_free (mcedit_arg_t * arg);
+ 
+ /*** inline functions ****************************************************************************/

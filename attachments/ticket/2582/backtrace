@@ -1,0 +1,31 @@
+Program received signal SIGSEGV, Segmentation fault.─────────────────────────────────────────────┘                    │       │            │
+0x0806272f in fish_command (me=0x81208a0, super=0x81ff5c8, wait_reply=1, fmt=0x810cdbe "%s") at fish.c:239            │       │            │
+239         FILE *logfile = MEDATA->logfile;    │       │            ││                                               │       │            │
+(gdb) bt                                        │       │            ││                                               │       │            │
+#0  0x0806272f in fish_command (me=0x81208a0, super=0x81ff5c8, wait_reply=1, fmt=0x810cdbe "%s") at fish.c:239        │       │            │
+#1  0x08064954 in fish_send_command (me=0x81208a0, super=0x81ff5c8,  ││                                               │       │            │
+    cmd=0xbfff903c "FISH_HAVE_HEAD=1 export FISH_HAVE_HEAD; FISH_HAVE_SED=1 export FISH_HAVE_SED; FISH_HAVE_AWK=1 export FISH_HAVE_AWK; FISH_HAVE_LSQ=1 export FISH_HAVE_LSQ; FISH_HAVE_DATE_MDYT=1 export FISH_HAVE_DATE_MD"..., flags=1) at fish.c:1138         │       │            │
+#2  0x08064ef2 in fish_symlink (vpath1=0x8219340, vpath2=0x81e2168) at fish.c:1241                                    │       │            │
+#3  0x080947d7 in mc_symlink (name1=0xbfff952c "libQtWebKit.so.4.8.1",                                                │       │            │
+    path=0x821c198 "/sh://root@10.65.10.180/usr/local/lib/libQtWebKit.so") at interface.c:277                         │       │            │
+#4  0x080b0ab2 in make_symlink (ctx=0x8210908,  │       │            ││                                               │       │            │
+    src_path=0x8219230 "/usr/local/qt/core/sdk7105-qt-4.7.3/app-sml7105/ktokarev/webkit-O2/build-2.1.1-4.7.3/Release/lib/libQtWebKit.so",  │
+    dst_path=0x821c198 "/sh://root@10.65.10.180/usr/local/lib/libQtWebKit.so") at file.c:421                          │       │            │
+#5  0x080b28a6 in copy_file_file (tctx=0x81fdd60, ctx=0x8210908,     ││                                               │       │            │
+    src_path=0x8219230 "/usr/local/qt/core/sdk7105-qt-4.7.3/app-sml7105/ktokarev/webkit-O2/build-2.1.1-4.7.3/Release/lib/libQtWebKit.so", ─┤
+    dst_path=0x821c198 "/sh://root@10.65.10.180/usr/local/lib/libQtWebKit.so") at file.c:13691                                             │
+#6  0x080b5534 in panel_operate (source_panel=0x81f2050, operation=OP_COPY, force_single=0) at file.c:2592────────────── 585G/1834G (31%) ─┘
+#7  0x080aa60b in copy_cmd () at cmd.c:846 помощью переменной оболочки EDITOR.
+#8  0x080c5cef in midnight_execute_cmd (sender=0x81e8f98, command=21) at midnight.c:1170/build-2.1.1-4.7.3/Release/lib$                  [^]
+#9  0x080c6577 in midnight_callback (h=0x81eb778, sender=0x81e8f98, msg=DLG_ACTION, parm=21, data=0x0) at midnight.c:1593     10Выход       
+#10 0x0808e152 in buttonbar_call (bb=0x81e8f98, i=4) at buttonbar.c:150                                                                     
+#11 0x0808e1d3 in buttonbar_callback (w=0x81e8f98, msg=WIDGET_HOTKEY, parm=1005) at buttonbar.c:172                                         
+#12 0x08091a22 in send_message (w=0x81e8f98, msg=WIDGET_HOTKEY, parm=1005) at ../../lib/widget/widget-common.h:132                          
+#13 0x0809238c in dlg_try_hotkey (h=0x81eb778, d_key=1005) at dialog.c:451                                                                  
+#14 0x080924b1 in dlg_key_event (h=0x81eb778, d_key=1005) at dialog.c:500                                                                   
+#15 0x08093720 in dlg_process_event (h=0x81eb778, key=1005, event=0xbfffcc8c) at dialog.c:1145                                              
+#16 0x080926dd in frontend_run_dlg (h=0x81eb778) at dialog.c:559                                                                            
+#17 0x080937dc in run_dlg (h=0x81eb778) at dialog.c:1177                                                                                    
+#18 0x080c5797 in create_panels_and_run_mc () at midnight.c:984                                                                             
+#19 0x080c6bdb in do_nc () at midnight.c:1736                                                                                               
+#20 0x080584f1 in main (argc=1, argv=0xbfffce44) at main.c:501                                                                              

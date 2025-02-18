@@ -1,0 +1,126 @@
+commit 9627c69d75a1e01b4fb9ce69dc65e577018380ae
+Author: ilia maslakov <il.smind@gmail.com>
+Date:   Tue Oct 13 01:26:36 2020 +0300
+
+    Add PAK Archive support for extfs
+    
+    Signed-off-by: ilia maslakov <il.smind@gmail.com>
+
+diff --git a/misc/mc.ext.in b/misc/mc.ext.in
+index 0311baae1..af5f11358 100644
+--- a/misc/mc.ext.in
++++ b/misc/mc.ext.in
+@@ -176,6 +176,11 @@ type/^LHa\ .*archive
+ 	Open=%cd %p/ulha://
+ 	View=%view{ascii} @EXTHELPERSDIR@/archive.sh view lha
+ 
++# PAK
++type/^PAK\ .*archive
++	Open=%cd %p/unar://
++	View=%view{ascii} /usr/lib/mc/ext.d/archive.sh view pak
++
+ # arj
+ regex/i/\.a(rj|[0-9][0-9])$
+ 	Open=%cd %p/uarj://
+diff --git a/src/vfs/extfs/helpers/Makefile.am b/src/vfs/extfs/helpers/Makefile.am
+index ff8116d80..eda97c5d3 100644
+--- a/src/vfs/extfs/helpers/Makefile.am
++++ b/src/vfs/extfs/helpers/Makefile.am
+@@ -32,6 +32,7 @@ EXTFS_IN    = 			\
+ 	ulha.in			\
+ 	ulib.in			\
+ 	urar.in			\
++	unar.in			\
+ 	uzip.in			\
+ 	uzoo.in
+ 
+@@ -61,6 +62,7 @@ EXTFS_OUT = 			\
+ 	ulha			\
+ 	ulib			\
+ 	urar			\
++	unar			\
+ 	uzip			\
+ 	uzoo
+ 
+diff --git a/src/vfs/extfs/helpers/README.extfs b/src/vfs/extfs/helpers/README.extfs
+index 22ac8dfbb..04d5fcb02 100644
+--- a/src/vfs/extfs/helpers/README.extfs
++++ b/src/vfs/extfs/helpers/README.extfs
+@@ -73,3 +73,6 @@ patchsetfs - list of patches of current file
+ 
+ # Gputils lib archives.
+ ulib
++
++# PAK Archive
++unar
+\ No newline at end of file
+diff --git a/src/vfs/extfs/helpers/unar.in b/src/vfs/extfs/helpers/unar.in
+new file mode 100644
+index 000000000..ccd9b5ce2
+--- /dev/null
++++ b/src/vfs/extfs/helpers/unar.in
+@@ -0,0 +1,64 @@
++#! /bin/sh
++
++# Written by Ilia Maslakov <il.smind@gmail.com>
++#
++# (C) 2020 The Free Software Foundation.
++
++# Define awk
++AWK=@AWK@
++
++# Define which archiver you are using with appropriate options
++UNAR_LIST="lsar "
++UNAR_GET="unar "
++
++# The 'list' command executive
++
++mc_unar_fs_list()
++{
++   # List the contents of the archive and sort it out
++	$UNAR_LIST -l "$1" | $AWK -v uid=`id -nu` -v gid=`id -ng` '
++	BEGIN { flag=0 }
++	/^\(Flags/ {next}
++	/^\(Mode/ {next}
++	{
++	    flag++;
++	    if (flag < 4) next
++		pr="-r--r--r--"
++	    if (index($2, "D") != 0)
++		    pr="dr-xr-xr-x"
++		split($6, a, "-")
++		split($7, b, ":")
++
++		printf "%s 1 %s %s %d %02d/%02d/%02d %02d:%02d  %s\n", pr, uid, gid, $3, a[3], a[2], a[1], b[1], b[2], $8
++
++	}'
++}
++
++
++
++# The 'copyout' command executive to copy displayed files to a destination
++
++mc_unar_fs_copyout ()
++{
++    TMPDIR=`mktemp -d "${MC_TMPDIR:-/tmp}/mctmpdir-uha.XXXXXX"` || exit 1
++
++    $UNAR_GET  "$1" "$2" -o "$TMPDIR" >/dev/null
++    we=`basename "$1" | sed -r 's|^(.*?)\.\w+$|\1|'`
++    cat "$TMPDIR/$we/$2" > "$3"
++    cd /
++    rm -rf "$TMPDIR"
++}
++
++# The main routine
++umask 077
++
++cmd="$1"
++shift
++
++case "$cmd" in
++   list)    mc_unar_fs_list    "$@" ;;
++   copyout) mc_unar_fs_copyout "$@" ;;
++   *)       exit 1 ;;
++esac
++
++exit 0

@@ -1,0 +1,77 @@
+From 0529184996f36819d860c9692d516930ce932102 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sat, 16 Jul 2016 13:24:25 +0000
+Subject: [PATCH] (background.c) Cleanup some compile warnings
+
+background.c:273:34: warning: implicit conversion changes signedness: 'int' to 'gsize' (aka 'unsigned long') [-Wsign-conversion]
+        data[i] = g_malloc (size + 1);
+                  ~~~~~~~~  ~~~~~^~~
+background.c:274:32: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+        if (read (fd, data[i], size) != size)
+            ~~~~               ^~~~
+background.c:382:51: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+                ret = write (to_child_fd, resstr, len);
+                      ~~~~~                       ^~~
+background.c:379:19: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+            len = strlen (resstr);
+                ~ ^~~~~~~~~~~~~~~
+background.c:446:40: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+        ret = write (parent_fd, value, len);
+              ~~~~~                    ^~~
+background.c:474:39: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+            (write (parent_fd, value, len) != len))
+             ~~~~~                    ^~~
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ src/background.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/background.c b/src/background.c
+index 54b6e7d..d341a28 100644
+--- a/src/background.c
++++ b/src/background.c
+@@ -264,7 +264,7 @@ background_attention (int fd, void *closure)
+ 
+     for (i = 0; i < argc; i++)
+     {
+-        int size;
++        unsigned int size;
+ 
+         if (read (fd, &size, sizeof (size)) != sizeof (size))
+         {
+@@ -348,7 +348,7 @@ background_attention (int fd, void *closure)
+     }
+     else if (type == Return_String)
+     {
+-        int len;
++        size_t len;
+         char *resstr = NULL;
+ 
+         /* FIXME: string routines should also use the Foreground/Background
+@@ -437,10 +437,10 @@ parent_va_call (void *routine, gpointer data, int argc, va_list ap)
+     parent_call_header (routine, argc, Return_Integer, ctx);
+     for (i = 0; i < argc; i++)
+     {
+-        int len;
++        size_t len;
+         void *value;
+ 
+-        len = va_arg (ap, int);
++        len = va_arg (ap, size_t);
+         value = va_arg (ap, void *);
+         ret = write (parent_fd, &len, sizeof (len));
+         ret = write (parent_fd, value, len);
+@@ -465,10 +465,10 @@ parent_va_call_string (void *routine, int argc, va_list ap)
+     parent_call_header (routine, argc, Return_String, NULL);
+     for (i = 0; i < argc; i++)
+     {
+-        int len;
++        unsigned int len;
+         void *value;
+ 
+-        len = va_arg (ap, int);
++        len = va_arg (ap, unsigned int);
+         value = va_arg (ap, void *);
+         if ((write (parent_fd, &len, sizeof (len)) != sizeof (len)) ||
+             (write (parent_fd, value, len) != len))

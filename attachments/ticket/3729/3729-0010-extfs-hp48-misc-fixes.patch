@@ -1,0 +1,37 @@
+From 3b87f2b6a2778796ad94d83637e39cf6a21e14f2 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 13 Dec 2016 01:02:20 +0200
+Subject: [PATCH 10/13] extfs: hp48: misc fixes.
+
+Two bugs fixed:
+
+* "printf -rw-r--r--" made printf complain about invalid option (although
+  changing it to "printf -- -rw-r--r-" is possible, we don't know how portble
+  this is).
+
+* Quotes around $INPUT defeat the purpose of the function calls (botched in
+  commit 61b4642af4).
+---
+ src/vfs/extfs/helpers/hp48+.in | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/vfs/extfs/helpers/hp48+.in b/src/vfs/extfs/helpers/hp48+.in
+index ef136ec..7c28494 100644
+--- a/src/vfs/extfs/helpers/hp48+.in
++++ b/src/vfs/extfs/helpers/hp48+.in
+@@ -77,9 +77,9 @@ read -r INPUT
+ while [ "x$INPUT" != "xEOF" ]
+ do
+     case `echo "$INPUT" | $AWK '{if (int($2)) if ($3 == "Directory") print "dir";else print "file"}'` in
+-    dir) HP48_DIRS="$HP48_DIRS `hp48_retdir \"$INPUT\"`"
+-    printf "drwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 0 0 `hp48_retsize "$INPUT"` "`date +\"%b %d %Y %k:%M\"`" "$HP48_CDIR/`hp48_retdir \"$INPUT\"`";;
+-    file) printf "-rw-r--r--   1 %-8d %-8d %8d %s %s\n" 0 0 `hp48_retsize "$INPUT"` "`date +\"%b %d %Y %k:%M\"`" "$HP48_CDIR/`hp48_retdir \"$INPUT\"`";;
++    dir) HP48_DIRS="$HP48_DIRS `hp48_retdir $INPUT`"
++    printf "drwxr-xr-x   1 %-8d %-8d %8d %s %s\n" 0 0 `hp48_retsize $INPUT` "`date +\"%b %d %Y %k:%M\"`" "$HP48_CDIR/`hp48_retdir $INPUT`";;
++    file) printf "%crw-r--r--   1 %-8d %-8d %8d %s %s\n" '-' 0 0 `hp48_retsize $INPUT` "`date +\"%b %d %Y %k:%M\"`" "$HP48_CDIR/`hp48_retdir $INPUT`";;
+     esac
+     read -r INPUT
+ done
+-- 
+2.9.3
+

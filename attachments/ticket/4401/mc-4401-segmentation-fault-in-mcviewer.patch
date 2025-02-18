@@ -1,0 +1,59 @@
+From 3b1a1c108de13071c03438b1c3494e1c45da6935 Mon Sep 17 00:00:00 2001
+From: Michael Schuster <michael@schuster.ms>
+Date: Fri, 19 Aug 2022 13:35:20 +0200
+Subject: [PATCH] Ticket #4401: Segmentation fault in mcviewer (growbuf.c)
+
+src/viewer/growbuf.c:
+  The previous call to mcview_show_error invalidates sp by freeing view->ds_stdio_pipe
+
+  Reintroduce the check that was removed by ticket #4103 but take sp's invalidity into account.
+
+lib/utilunix.c:
+  Add a NULL pointer check to mc_pclose to play safe.
+
+Signed-off-by: Michael Schuster <michael@schuster.ms>
+---
+ lib/utilunix.c       |  7 +++++++
+ src/viewer/growbuf.c | 10 ++++++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/lib/utilunix.c b/lib/utilunix.c
+index ec81d0754..f580591e4 100644
+--- a/lib/utilunix.c
++++ b/lib/utilunix.c
+@@ -675,6 +675,13 @@ mc_pclose (mc_pipe_t * p, GError ** error)
+ {
+     int res;
+ 
++    if (p == NULL)
++    {
++        mc_replace_error (error, MC_PIPE_ERROR_READ, "%s",
++                          _("Cannot close pipe descriptor (p == NULL)"));
++        return;
++    }
++
+     if (p->out.fd >= 0)
+         res = close (p->out.fd);
+     if (p->err.fd >= 0)
+diff --git a/src/viewer/growbuf.c b/src/viewer/growbuf.c
+index c4ada83a2..9b9753694 100644
+--- a/src/viewer/growbuf.c
++++ b/src/viewer/growbuf.c
+@@ -186,6 +186,16 @@ mcview_growbuf_read_until (WView * view, off_t ofs)
+                 view->pipe_first_err_msg = FALSE;
+ 
+                 mcview_show_error (view, sp->err.buf);
++
++                /* when switch from parse to raw mode and back,
++                 * do not close the already closed pipe (see call to mcview_growbuf_done below).
++                 * return from here since (sp == view->ds_stdio_pipe) would now be invalid.
++                 * NOTE: this check was removed by ticket #4103 but the above call to
++                 *       mcview_show_error triggers the stdio pipe handle to be closed:
++                 *       mcview_close_datasource -> mcview_growbuf_done
++                 */
++                if (view->ds_stdio_pipe == NULL)
++                    return;
+             }
+ 
+             if (sp->out.len > 0)
+-- 

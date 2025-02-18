@@ -1,0 +1,286 @@
+From 830c99bb4361aa6e9be81e5cdf8756d513fbb3c5 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Tue, 8 Mar 2016 22:45:17 +0200
+Subject: [PATCH] Fix menu handling.
+
+We now send mouse events to widgets in reverse stacking order: from topmost
+widget to bottomost. Then, by pushing menus to the bottom of the stack, we
+make "invisible" menus work correctly.
+---
+ lib/widget/dialog.c        | 52 ++++++++++++++++++++++++++++++++--------------
+ lib/widget/dialog.h        |  1 +
+ lib/widget/menu.c          | 30 ++++++++++++++++++++------
+ lib/widget/menu.h          |  1 +
+ src/editor/editmenu.c      |  5 +----
+ src/filemanager/midnight.c | 34 ++++--------------------------
+ 6 files changed, 67 insertions(+), 56 deletions(-)
+
+diff --git a/lib/widget/dialog.c b/lib/widget/dialog.c
+index ddf78f7..af4625f 100644
+--- a/lib/widget/dialog.c
++++ b/lib/widget/dialog.c
+@@ -379,8 +379,7 @@ static cb_ret_t
+ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+ {
+     Widget *wh = WIDGET (h);
+-
+-    GList *p, *first;
++    GList *p;
+ 
+     /* close the dialog by mouse left click out of dialog area */
+     if (mouse_close_dialog && !h->fullscreen && ((event->buttons & GPM_B_LEFT) != 0)
+@@ -400,15 +399,12 @@ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+             return mou;
+     }
+ 
+-    first = h->current;
+-    p = first;
+-
++    /* Send the event to widgets in reverse stacking order: from the topmost to the bottomost. */
++    p = g_list_last (h->widgets);
+     do
+     {
+         Widget *w = WIDGET (p->data);
+ 
+-        p = dlg_widget_prev (h, p);
+-
+         if ((w->options & W_DISABLED) == 0 && w->mouse_callback != NULL)
+         {
+             /* put global cursor position to the widget */
+@@ -418,8 +414,10 @@ dlg_mouse_event (WDialog * h, Gpm_Event * event)
+             if (ret != MSG_NOT_HANDLED)
+                 return ret;
+         }
++
++        p = g_list_previous (p);
+     }
+-    while (p != first);
++    while (p != NULL);
+ 
+     return MSG_NOT_HANDLED;
+ }
+@@ -1090,12 +1088,8 @@ dlg_select_widget (void *w)
+ 
+ /* --------------------------------------------------------------------------------------------- */
+ 
+-/**
+- * Set widget at top of widget list and make it current.
+- */
+-
+-void
+-dlg_set_top_widget (void *w)
++static void
++dlg_set_top_or_bottom_widget (void *w, gboolean set_top)
+ {
+     Widget *widget = WIDGET (w);
+     WDialog *h = widget->owner;
+@@ -1111,8 +1105,34 @@ dlg_set_top_widget (void *w)
+ 
+     /* widget reordering */
+     h->widgets = g_list_remove_link (h->widgets, l);
+-    h->widgets = g_list_concat (h->widgets, l);
+-    h->current = l;
++    if (set_top)
++        h->widgets = g_list_concat (h->widgets, l);
++    else
++        h->widgets = g_list_concat (l, h->widgets);
++    h->current = l;             /* @FIXME: this is probably not needed. */
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
++ * Set widget at top of widget list and make it current.
++ */
++
++void
++dlg_set_top_widget (void *w)
++{
++    dlg_set_top_or_bottom_widget (w, TRUE);
++}
++
++/* --------------------------------------------------------------------------------------------- */
++/**
++ * Set widget at bottom of widget list (and make it current, albeit
++ * typically you'd want to switch to some other widget right after).
++ */
++
++void
++dlg_set_bottom_widget (void *w)
++{
++    dlg_set_top_or_bottom_widget (w, FALSE);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/dialog.h b/lib/widget/dialog.h
+index 1b7fd23..2d75a0a 100644
+--- a/lib/widget/dialog.h
++++ b/lib/widget/dialog.h
+@@ -170,6 +170,7 @@ void dlg_stop (WDialog * h);
+ /* Widget selection */
+ void dlg_select_widget (void *w);
+ void dlg_set_top_widget (void *w);
++void dlg_set_bottom_widget (void *w);
+ void dlg_one_up (WDialog * h);
+ void dlg_one_down (WDialog * h);
+ gboolean dlg_focus (WDialog * h);
+diff --git a/lib/widget/menu.c b/lib/widget/menu.c
+index 6c5b052..27ba923 100644
+--- a/lib/widget/menu.c
++++ b/lib/widget/menu.c
+@@ -309,6 +309,12 @@ menubar_finish (WMenuBar * menubar)
+     w->lines = 1;
+     widget_want_hotkey (w, 0);
+ 
++    /* If the menubar is "invisible", moving it to the bottom of the stack
++     * makes it receive mouse events (and thereby activated) only if the
++     * widgets shown in its space ignore them. In other words, we make
++     * visible widgets take precedence over an invisible menubar. */
++    dlg_set_bottom_widget (menubar);
++
+     dlg_select_by_id (w->owner, menubar->previous_widget);
+     do_refresh ();
+ }
+@@ -580,7 +586,7 @@ menubar_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+         if (!menubar->is_active)
+             return MSG_NOT_HANDLED;
+ 
+-        /* Trick to get all the mouse events */
++        /* Trick to get mouse events from the whole screen. */
+         w->lines = LINES;
+ 
+         /* Trick to get all of the hotkeys */
+@@ -718,12 +724,8 @@ menubar_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+             selected = menubar_get_menu_by_x_coord (menubar, event->x);
+ 
+             if (!menubar->is_active)
+-            {
+                 /* menu bar is not active -- activate it */
+-                menubar->previous_widget = dlg_get_current_widget_id (w->owner);
+-                menubar->is_active = TRUE;
+-                dlg_select_widget (w);
+-            }
++                menubar_activate (menubar);
+ 
+             menubar_remove (menubar);   /* if already shown */
+             menubar_drop (menubar, selected);
+@@ -999,3 +1001,19 @@ find_menubar (const WDialog * h)
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
++/**
++ * Activate the menu.
++ */
++
++void
++menubar_activate (WMenuBar * menubar)
++{
++    menubar->previous_widget = dlg_get_current_widget_id (WIDGET (menubar)->owner);
++    menubar->is_active = TRUE;
++
++    /* Make the menubar receive all mouse events before any other widget.
++     * See also comment in menubar_finish(). */
++    dlg_set_top_widget (menubar);
++}
++
++/* --------------------------------------------------------------------------------------------- */
+diff --git a/lib/widget/menu.h b/lib/widget/menu.h
+index d61560c..0797543 100644
+--- a/lib/widget/menu.h
++++ b/lib/widget/menu.h
+@@ -55,6 +55,7 @@ void menubar_add_menu (WMenuBar * menubar, menu_t * menu);
+ void menubar_arrange (WMenuBar * menubar);
+ 
+ WMenuBar *find_menubar (const WDialog * h);
++void menubar_activate (WMenuBar * menubar);
+ 
+ /*** inline functions ****************************************************************************/
+ 
+diff --git a/src/editor/editmenu.c b/src/editor/editmenu.c
+index 51a9f35..09c935d 100644
+--- a/src/editor/editmenu.c
++++ b/src/editor/editmenu.c
+@@ -271,13 +271,10 @@ edit_drop_menu_cmd (WDialog * h, int which)
+ 
+     if (!menubar->is_active)
+     {
+-        menubar->is_active = TRUE;
+         menubar->is_dropped = (drop_menus != 0);
+         if (which >= 0)
+             menubar->selected = (guint) which;
+-
+-        menubar->previous_widget = dlg_get_current_widget_id (h);
+-        dlg_select_widget (menubar);
++        menubar_activate (menubar);
+     }
+ }
+ 
+diff --git a/src/filemanager/midnight.c b/src/filemanager/midnight.c
+index 73dfff5..5378811 100644
+--- a/src/filemanager/midnight.c
++++ b/src/filemanager/midnight.c
+@@ -367,10 +367,8 @@ init_menu (void)
+ static void
+ menu_last_selected_cmd (void)
+ {
+-    the_menubar->is_active = TRUE;
+     the_menubar->is_dropped = (drop_menus != 0);
+-    the_menubar->previous_widget = dlg_get_current_widget_id (midnight_dlg);
+-    dlg_select_widget (the_menubar);
++    menubar_activate (the_menubar);
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+@@ -937,6 +935,8 @@ create_panels_and_run_mc (void)
+ 
+     create_panels ();
+ 
++    /* Note: the menu is the first widget we add to the dialog because
++     * an "invisible" menu has to be at the bottom of the stack. */
+     add_widget (midnight_dlg, the_menubar);
+     init_menu ();
+ 
+@@ -1590,32 +1590,6 @@ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
+-
+-/**
+- * Handle mouse events of file manager screen.
+- *
+- * @param w Widget object (the file manager)
+- * @param msg mouse event message
+- * @param event mouse event data
+- */
+-static cb_ret_t
+-midnight_mouse_callback (Widget * w, mouse_msg_t msg, mouse_event_t * event)
+-{
+-    (void) w;
+-    (void) msg;
+-
+-    if (msg == MSG_MOUSE_DOWN && event->y == 0)
+-    {
+-        /* menubar */
+-        if (!the_menubar->is_active)
+-            dlg_select_widget (WIDGET (the_menubar));
+-    }
+-
+-    /* allow handle menu events */
+-    return MSG_NOT_HANDLED;
+-}
+-
+-/* --------------------------------------------------------------------------------------------- */
+ /*** public functions ****************************************************************************/
+ /* --------------------------------------------------------------------------------------------- */
+ 
+@@ -1798,7 +1772,7 @@ do_nc (void)
+ #endif
+ 
+     midnight_dlg = dlg_create (FALSE, 0, 0, LINES, COLS, dialog_colors, midnight_callback,
+-                               midnight_mouse_callback, "[main]", NULL, DLG_NONE);
++                               NULL, "[main]", NULL, DLG_NONE);
+ 
+     /* Check if we were invoked as an editor or file viewer */
+     if (mc_global.mc_run_mode != MC_RUN_FULL)
+-- 
+2.5.0
+

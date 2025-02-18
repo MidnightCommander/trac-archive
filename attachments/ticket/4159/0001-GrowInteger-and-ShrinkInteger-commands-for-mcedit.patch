@@ -1,0 +1,222 @@
+From 0f8b97ab2e0f121366403f635d203e8733b1e23c Mon Sep 17 00:00:00 2001
+From: Sebastian Gniazdowski <sgniazdowski@gmail.com>
+Date: Thu, 17 Dec 2020 14:37:21 -0600
+Subject: [PATCH] GrowInteger and ShrinkInteger commands for mcedit.
+
+---
+ lib/keybind.c          |   2 +
+ lib/keybind.h          |   2 +
+ src/editor/edit-impl.h |   3 +
+ src/editor/edit.c      |   8 +++
+ src/editor/format.c    | 124 +++++++++++++++++++++++++++++++++++++++++
+ src/keybind-defaults.c |   2 +
+ 6 files changed, 141 insertions(+)
+
+diff --git a/lib/keybind.c b/lib/keybind.c
+index abd44d3e2..231487954 100644
+--- a/lib/keybind.c
++++ b/lib/keybind.c
+@@ -288,6 +288,8 @@ static name_keymap_t command_names[] = {
+     ADD_KEYMAP_NAME (Date),
+     ADD_KEYMAP_NAME (DeleteLine),
+     ADD_KEYMAP_NAME (EditMail),
++    ADD_KEYMAP_NAME (GrowInteger),
++    ADD_KEYMAP_NAME (ShrinkInteger),
+     ADD_KEYMAP_NAME (ParagraphFormat),
+     ADD_KEYMAP_NAME (MatchBracket),
+     ADD_KEYMAP_NAME (ExternalCommand),
+diff --git a/lib/keybind.h b/lib/keybind.h
+index 9638bd651..f56a2df07 100644
+--- a/lib/keybind.h
++++ b/lib/keybind.h
+@@ -304,6 +304,8 @@ enum
+     CK_SpellCheck,
+     CK_SpellCheckCurrentWord,
+     CK_SpellCheckSelectLang,
++    CK_GrowInteger,
++    CK_ShrinkInteger,
+     CK_InsertOverwrite,
+     CK_ParagraphFormat,
+     CK_MatchBracket,
+diff --git a/src/editor/edit-impl.h b/src/editor/edit-impl.h
+index 3ad04dbea..7fff19222 100644
+--- a/src/editor/edit-impl.h
++++ b/src/editor/edit-impl.h
+@@ -276,6 +276,9 @@ gboolean is_break_char (char c);
+ void edit_options_dialog (WDialog * h);
+ void edit_syntax_dialog (WEdit * edit);
+ void edit_mail_dialog (WEdit * edit);
++char *format_get_current_or_next_number(WEdit *edit, off_t *pos_return);
++long long int format_grow_int(WEdit *edit);
++long long int format_shrink_int(WEdit *edit);
+ void format_paragraph (WEdit * edit, gboolean force);
+ 
+ /* either command or char_for_insertion must be passed as -1 */
+diff --git a/src/editor/edit.c b/src/editor/edit.c
+index e13be389a..b145e1363 100644
+--- a/src/editor/edit.c
++++ b/src/editor/edit.c
+@@ -3891,6 +3891,14 @@ edit_execute_cmd (WEdit * edit, long command, int char_for_insertion)
+     case CK_Goto:
+         edit_goto_cmd (edit);
+         break;
++
++    case CK_GrowInteger:
++        format_grow_int(edit);
++        break;
++    case CK_ShrinkInteger:
++        format_shrink_int(edit);
++        break;
++
+     case CK_ParagraphFormat:
+         format_paragraph (edit, TRUE);
+         edit->force |= REDRAW_PAGE;
+diff --git a/src/editor/format.c b/src/editor/format.c
+index e5cfcb29f..fb7fbf133 100644
+--- a/src/editor/format.c
++++ b/src/editor/format.c
+@@ -536,4 +536,128 @@ format_paragraph (WEdit * edit, gboolean force)
+     edit_scroll_left (edit, -edit->start_col);
+ }
+ 
++char *format_get_current_or_next_number(WEdit *edit, off_t *pos_return) {
++    off_t pos, bol_offset, eol_offset, start_digit_offset;
++    GString *t;
++    char *out_str;
++    int found, start_digit_seen;
++
++    t = g_string_sized_new (128);
++
++    bol_offset = edit_buffer_get_current_bol (&edit->buffer);
++    eol_offset = edit_buffer_get_current_eol (&edit->buffer);
++
++    // Find the start of the number (a word, actually).
++    for (pos = edit->buffer.curs1; pos >= bol_offset; pos--)
++    {
++        int c1, c2;
++
++        c1 = edit_buffer_get_byte (&edit->buffer, pos);
++        c2 = edit_buffer_get_byte (&edit->buffer, pos - 1);
++
++        if (!isdigit(c1))
++            break;
++        if (!isspace (c1) && isspace (c2))
++            break;
++
++    }
++
++    // Find the end of the number (a word, actually).
++    found=0;
++    start_digit_offset=0;
++    start_digit_seen=0;
++    for (; pos <= eol_offset; pos++)
++    {
++        int c1, c2;
++
++        c1 = edit_buffer_get_byte (&edit->buffer, pos);
++        c2 = edit_buffer_get_byte (&edit->buffer, pos + 1);
++
++        // Append the byte to the string.
++        if (isdigit (c1)) {
++            if (!start_digit_seen) {
++                start_digit_seen=1;
++                start_digit_offset=pos;
++            }
++            found = 1;
++            g_string_append_c (t, c1);
++        }
++        
++        if (isdigit (c1) && !isdigit (c2)) {
++            found += 1;
++            break;
++        }
++    }
++    
++
++    // Any number found?
++    if (found == 2) {
++        int c;
++        // Include any minus sign.
++        c = edit_buffer_get_byte (&edit->buffer, start_digit_offset-1);
++        if (c == '-')
++             g_string_prepend_c(t, c);
++
++        // Get the internal buffer ownership.
++        out_str = t->str;
++        g_string_free(t,0);
++
++        // Save the position of the digits.
++        *pos_return = pos;
++    } else {
++        // Return an empty (NULL) string and minus one position.
++        g_string_free(t,1);
++        out_str = NULL;
++        *pos_return = -1;
++    }
++    return out_str;
++}
++
++// A backend function for the two next public functions.
++static
++long long int edit_increment_int(WEdit *edit, int direction) {
++    off_t pos, cpos;
++    long long int number = 0;
++    char *number_str, *endptr, new_number_buf[32] = {0};
++    int number_len = 0, new_number_len = 0, idx;
++    
++    number_str = format_get_current_or_next_number(edit, &pos);
++    // Has been a number found?
++    if (number_str) {
++        number_len = strlen(number_str);
++        // Convert the string into integer to increment it.
++        number = strtoll(number_str, &endptr, 10);
++        number += (direction > 0) ? 1 : -1;
++        new_number_len = snprintf(new_number_buf, 32, "%lld", number);
++        new_number_len = (new_number_len > 31) ? 31 : new_number_len;
++        // Move the cursor to the found number.
++        cpos = edit->buffer.curs1;
++        edit_cursor_move (edit, pos-cpos);
++        edit->search_start = edit->buffer.curs1;
++        edit->prev_col=cpos;
++        // Delete the existing number.
++        edit_delete(edit, 1);
++        for (idx = 0; idx < number_len-1; idx ++)
++            edit_backspace(edit, 1);
++        // Insert updated number.
++        for (idx = 0; idx < new_number_len; idx ++)
++            edit_insert_ahead(edit,new_number_buf[new_number_len-idx-1]);
++        // Release the string.
++        g_free(number_str);
++    }
++
++    edit->force |= REDRAW_AFTER_CURSOR;
++        
++    // Return the updated number. Just for fun :) Maybe it'll find some 
++    // use one day.
++    return number;
++}
++
++long long int format_grow_int(WEdit *edit) {
++    return edit_increment_int(edit,1);
++}
++
++long long int format_shrink_int(WEdit *edit) {
++    return edit_increment_int(edit,-1);
++}
+ /* --------------------------------------------------------------------------------------------- */
+diff --git a/src/keybind-defaults.c b/src/keybind-defaults.c
+index c423e6be4..61a639654 100644
+--- a/src/keybind-defaults.c
++++ b/src/keybind-defaults.c
+@@ -455,6 +455,8 @@ static const global_keymap_ini_t default_editor_keymap[] = {
+     {"InsertLiteral", "ctrl-q"},
+     {"Complete", "alt-tab"},
+     {"MatchBracket", "alt-b"},
++    {"GrowInteger", "alt-a"},
++    {"ShrinkInteger", "alt-x"},
+     {"ParagraphFormat", "alt-p"},
+     {"Bookmark", "alt-k"},
+     {"BookmarkFlush", "alt-o"},
+-- 
+2.28.0
+

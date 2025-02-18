@@ -1,0 +1,47 @@
+From 52fab474337f1511373d259e4a8ad75aa608937f Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 15 Dec 2024 09:00:00 +0000
+Subject: [PATCH] Cleanup cppcheck warnings
+
+Make cppcheck happy.
+
+lib/search/regex.c:888:85: error: Uninitialized variable: *error [uninitvar]
+        if (pcre2_jit_compile (mc_search_cond->regex_handle, PCRE2_JIT_COMPLETE) && *error != '\0')
+                                                                                    ^
+src/vfs/sftpfs/dir.c:95:26: warning: Uninitialized variable: handle [uninitvar]
+    sftpfs_dir->handle = handle;
+                         ^
+Found by cppcheck-2.16.0
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/search/regex.c   | 2 +-
+ src/vfs/sftpfs/dir.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/search/regex.c b/lib/search/regex.c
+index 465c3d344..13e3c2650 100644
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -839,7 +839,7 @@ mc_search__cond_struct_new_init_regex (const char *charset, mc_search_t *lc_mc_s
+ 
+ #ifdef HAVE_PCRE2
+         int errcode;
+-        char error[BUF_SMALL];
++        char error[BUF_SMALL] = "";
+         size_t erroffset;
+         int pcre_options = PCRE2_MULTILINE;
+ #else
+diff --git a/src/vfs/sftpfs/dir.c b/src/vfs/sftpfs/dir.c
+index 34461e28d..a019e8be6 100644
+--- a/src/vfs/sftpfs/dir.c
++++ b/src/vfs/sftpfs/dir.c
+@@ -68,7 +68,7 @@ sftpfs_opendir (const vfs_path_t *vpath, GError **mcerror)
+     sftpfs_dir_data_t *sftpfs_dir;
+     sftpfs_super_t *sftpfs_super;
+     const vfs_path_element_t *path_element;
+-    LIBSSH2_SFTP_HANDLE *handle;
++    LIBSSH2_SFTP_HANDLE *handle = NULL;
+     const GString *fixfname;
+ 
+     if (!sftpfs_op_init (&sftpfs_super, &path_element, vpath, mcerror))

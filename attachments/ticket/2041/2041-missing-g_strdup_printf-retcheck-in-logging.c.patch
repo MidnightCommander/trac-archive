@@ -1,0 +1,29 @@
+From 150965ec40a7b35b2459ccd5af0c8eacb59dd0c3 Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Fri, 19 Feb 2010 15:06:50 +0000
+Subject: [PATCH] missing retcheck of g_strdup_printf in logging.c
+
+---
+ lib/logging.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/lib/logging.c b/lib/logging.c
+index c9de5d3..5223a05 100644
+--- a/lib/logging.c
++++ b/lib/logging.c
+@@ -65,8 +65,11 @@ mc_log(const char *fmt, ...)
+ 	char *logfilename;
+ 
+ 	if (is_logging_enabled()) {
+-		va_start(args, fmt);
+ 		logfilename = g_strdup_printf("%s/%s/log", home_dir, MC_USERCONF_DIR);
++                if (logfilename == NULL)
++                    return;
++
++		va_start(args, fmt);
+ 		if ((f = fopen(logfilename, "a")) != NULL) {
+ 			(void)vfprintf(f, fmt, args);
+ 			(void)fclose(f);
+-- 
+1.6.4
+

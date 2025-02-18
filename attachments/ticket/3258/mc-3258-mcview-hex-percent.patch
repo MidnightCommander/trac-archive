@@ -1,0 +1,18 @@
+diff --git a/src/viewer/lib.c b/src/viewer/lib.c
+index 46b12c9..bbac08e 100644
+--- a/src/viewer/lib.c
++++ b/src/viewer/lib.c
+@@ -430,8 +430,12 @@ mcview_calc_percent (mcview_t * view, off_t p)
+         return (-1);
+ 
+     filesize = mcview_get_filesize (view);
++    if (view->hex_mode && filesize > 0) {
++        /* p can't be beyond the last char, only over that. Compensate for this. */
++        filesize--;
++    }
+ 
+-    if (filesize == 0 || view->dpy_end == filesize)
++    if (filesize == 0 || p >= filesize)
+         percent = 100;
+     else if (p > (INT_MAX / 100))
+         percent = p / (filesize / 100);

@@ -1,0 +1,63 @@
+From c70b8c27dc47986f0bf42a19448cbd738a50fb9c Mon Sep 17 00:00:00 2001
+From: Vit Rosin <vit_r@list.ru>
+Date: Tue, 16 Feb 2010 15:18:39 +0000
+Subject: [PATCH]  lib/search/hex.c in mc_search__hex_translate_to_regex ():
+                    missing checks of g_str...() return
+                    and missing g_free (tmp_str);
+
+---
+ lib/search/hex.c |   20 ++++++++++++++++++--
+ 1 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/lib/search/hex.c b/lib/search/hex.c
+index 2ecdafb..8dd3bb5 100644
+--- a/lib/search/hex.c
++++ b/lib/search/hex.c
+@@ -51,12 +51,22 @@
+ static GString *
+ mc_search__hex_translate_to_regex (gchar * str, gsize * len)
+ {
+-    GString *buff = g_string_new ("");
+-    gchar *tmp_str = g_strndup (str, *len);
++    GString *buff;
++    gchar *tmp_str;
+     gchar *tmp_str2;
+     gsize loop = 0;
+     int val, ptr;
+ 
++    buff = g_string_new ("");
++    if (buff == NULL)
++        return NULL;
++
++    tmp_str = g_strndup (str, *len);
++    if (tmp_str == NULL) {
++        g_free (buff);
++        return NULL;    
++    }
++
+     g_strchug (tmp_str);        /* trim leadind whitespaces */
+ 
+     while (loop < *len) {
+@@ -66,6 +76,11 @@ mc_search__hex_translate_to_regex (gchar * str, gsize * len)
+                 continue;
+             }
+             tmp_str2 = g_strdup_printf ("\\x%02X", (unsigned char) val);
++            if (tmp_str2 == NULL) {
++                g_free (buff);
++                g_free (tmp_str);
++                return NULL;        
++            }
+             g_string_append (buff, tmp_str2);
+             g_free (tmp_str2);
+             loop += ptr;
+@@ -88,6 +103,7 @@ mc_search__hex_translate_to_regex (gchar * str, gsize * len)
+         loop++;
+     }
+     *len = buff->len;
++    g_free (tmp_str);
+     return buff;
+ }
+ 
+-- 
+1.6.4
+

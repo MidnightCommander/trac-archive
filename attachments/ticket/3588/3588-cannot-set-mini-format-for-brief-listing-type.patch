@@ -1,0 +1,26 @@
+From 0c45ec7cb78ca558b909eb956774a952da780382 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sun, 24 Jan 2016 16:49:43 +0200
+Subject: [PATCH] Cannot set mini-format for "brief" listing type.
+
+---
+ src/filemanager/cmd.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/filemanager/cmd.c b/src/filemanager/cmd.c
+index 000af6f..1110d0c 100644
+--- a/src/filemanager/cmd.c
++++ b/src/filemanager/cmd.c
+@@ -476,7 +476,8 @@ configure_panel_listing (WPanel * p, int list_type, int brief_cols, int use_msfo
+ 
+     if (list_type == list_brief)
+         p->brief_cols = brief_cols;
+-    else if (list_type == list_user || use_msformat)
++
++    if (list_type == list_user || use_msformat)
+     {
+         g_free (p->user_format);
+         p->user_format = *user;
+-- 
+2.5.0
+

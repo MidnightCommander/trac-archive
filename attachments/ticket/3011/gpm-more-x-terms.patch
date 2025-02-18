@@ -1,0 +1,17 @@
+--- src/lib/liblow.c.orig	2012-10-26 19:21:38.000000000 -0200
++++ src/lib/liblow.c	2013-05-23 20:38:02.665933137 -0300
+@@ -201,7 +201,13 @@
+ 
+    /*....................................... First of all, check xterm */
+ 
+-   if ((term=(char *)getenv("TERM")) && !strncmp(term,"xterm",5)) {
++   if ((term = (char *) getenv ("TERM")) != NULL &&
++       (! strncmp (term, "xterm", 5) || ! strncmp (term, "rxvt", 4) ||
++        (! strncmp (term, "screen", 6) &&
++         (term = (char *) getenv ("DISPLAY")) != NULL && *term != '\0'
++        )
++       )
++      ) {
+       if(gpm_tried) return gpm_fd; /* no stack */
+       gpm_fd=-2;
+       GPM_XTERM_ON;

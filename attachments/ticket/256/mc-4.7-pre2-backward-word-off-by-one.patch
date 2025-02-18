@@ -1,0 +1,26 @@
+diff -urpN mc-4.7.0-pre2.orig/src/widget.c mc-4.7.0-pre2/src/widget.c
+--- mc-4.7.0-pre2.orig/src/widget.c	2009-08-25 20:51:56.000000000 +0200
++++ mc-4.7.0-pre2/src/widget.c	2009-09-20 00:34:17.000000000 +0200
+@@ -1395,12 +1395,20 @@ backward_word (WInput *in)
+         in->point--;
+     }
+     
+-    while ((p != in->buffer) && (str_isspace (p) || str_ispunct (p))) {
++    while (p != in->buffer) {
+         str_cprev_char (&p);
++        if (!str_isspace (p) && !str_ispunct (p)) {
++            str_cnext_char (&p);
++            break;
++        }
+         in->point--;
+     }
+-    while ((p != in->buffer) && !str_isspace (p) && !str_ispunct (p)) {
++    while (p != in->buffer) {
+         str_cprev_char (&p);
++        if (str_isspace (p) || str_ispunct (p)) {
++            str_cnext_char (&p);
++            break;
++        }
+         in->point--;
+     }
+ }

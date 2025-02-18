@@ -1,0 +1,25 @@
+--- mc.git/src/learn.c	2012-11-29 10:12:51.542091194 +0100
++++ mc.src/src/learn.c	2012-12-01 13:24:15.966862941 +0100
+@@ -261,6 +261,9 @@
+     int x, y, i;
+     const key_code_name_t *key;
+ 
++    char *label;
++    int padding;
++
+ #ifdef ENABLE_NLS
+     static gboolean i18n_flag = FALSE;
+     if (!i18n_flag)
+@@ -299,7 +302,11 @@
+ 
+         learnkeys[i].ok = FALSE;
+         learnkeys[i].sequence = NULL;
+-        g_snprintf (buffer, sizeof (buffer), "%-16s", _(key_name_conv_tab[i].longname));
++
++        label = _(key_name_conv_tab[i].longname);
++        padding = max (0, 16 - str_term_width1 (label));
++        g_snprintf (buffer, sizeof (buffer), "%s%*s", label, padding, "");
++
+         learnkeys[i].button =
+             WIDGET (button_new (y, x, B_USER + i, NARROW_BUTTON, buffer, learn_button));
+         learnkeys[i].label = WIDGET (label_new (y, x + 19, ""));

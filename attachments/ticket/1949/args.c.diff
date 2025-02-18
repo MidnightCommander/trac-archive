@@ -1,0 +1,37 @@
+--- a/src/args.c
++++ b/src/args.c
+@@ -169,8 +169,10 @@ static const GOptionEntry argument_main_table[] = {
+      N_("Edits one file"),
+      "<file>"
+     },
+-
+-    {NULL}
++    
++    {
++     NULL, '\0', 0, 0, NULL, NULL, NULL /* Complete struct initialization */
++    }
+ };
+ 
+ GOptionGroup *terminal_group;
+@@ -229,7 +231,9 @@ static const GOptionEntry argument_terminal_table[] = {
+      "<file>"
+     },
+ 
+-    {NULL}
++    {
++     NULL, '\0', 0, 0, NULL, NULL, NULL /* Complete struct initialization */
++    }
+ };
+ #undef ARGS_TERM_OPTIONS
+ 
+@@ -266,7 +270,9 @@ static const GOptionEntry argument_color_table[] = {
+      "<string>"
+     },
+ 
+-    {NULL}
++    {
++     NULL, '\0', 0, 0, NULL, NULL, NULL /* Complete struct initialization */
++    }
+ };
+ #undef ARGS_COLOR_OPTIONS
+ 

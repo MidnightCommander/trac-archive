@@ -1,0 +1,39 @@
+diff --git a/lib/strutil/strutil.c b/lib/strutil/strutil.c
+index e887a3f..90faa37 100644
+--- a/lib/strutil/strutil.c
++++ b/lib/strutil/strutil.c
+@@ -70,6 +70,16 @@ GIConv str_cnv_to_term;
+ GIConv str_cnv_from_term;
+ GIConv str_cnv_not_convert = INVALID_CONV;
+ 
++static void
++str_iconv_init (GIConv coder)
++{
++    gchar *obuf = NULL;
++    gsize oleft = 0;
++
++    /* Some systems (it seems Solaris 11.1) don't allow NULL outbuf */
++    g_iconv (coder, NULL, NULL, &obuf, &oleft);
++}
++
+ /* if enc is same encoding like on terminal */
+ static int
+ str_test_not_convert (const char *enc)
+@@ -129,7 +139,7 @@ _str_convert (GIConv coder, const char *string, int size, GString * buffer)
+     }
+ 
+     left = size;
+-    g_iconv (coder, NULL, NULL, NULL, NULL);
++    str_iconv_init (coder);
+ 
+     while (left != 0)
+     {
+@@ -290,7 +300,7 @@ str_translate_char (GIConv conv, const char *keys, size_t ch_size, char *output,
+     size_t left;
+     size_t cnv;
+ 
+-    g_iconv (conv, NULL, NULL, NULL, NULL);
++    str_iconv_init (conv);
+ 
+     left = (ch_size == (size_t) (-1)) ? strlen (keys) : ch_size;
+ 

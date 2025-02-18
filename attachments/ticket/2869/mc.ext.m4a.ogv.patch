@@ -1,0 +1,30 @@
+--- mc.ext.in.default	2012-08-28 19:08:37.000000000 +0600
++++ mc.ext.in	2012-08-28 19:11:13.541531851 +0600
+@@ -426,7 +426,7 @@
+ 
+ ### Sound files ###
+ 
+-regex/i/\.(wav|snd|voc|au|smp|aiff|snd)$
++regex/i/\.(wav|snd|voc|au|smp|aiff|snd|m4a)$
+ 	Open=@EXTHELPERSDIR@/sound.sh open common
+ 
+ regex/i/\.(mod|s3m|xm|it|mtm|669|stm|ult|far)$
+@@ -439,7 +439,7 @@
+ 	Open=@EXTHELPERSDIR@/sound.sh open mp3
+ 	View=%view{ascii} @EXTHELPERSDIR@/sound.sh view mp3
+ 
+-regex/i/\.og[gavx]$
++regex/i/\.og[gax]$
+ 	Open=@EXTHELPERSDIR@/sound.sh open ogg
+ 	View=%view{ascii} @EXTHELPERSDIR@/sound.sh view ogg
+ 
+@@ -502,6 +502,9 @@
+ regex/i/\.ra?m$
+ 	Open=@EXTHELPERSDIR@/video.sh open ram
+ 
++shell/i/.ogv
++	Include=video
++
+ # WebM
+ shell/i/.webm
+     Include=video

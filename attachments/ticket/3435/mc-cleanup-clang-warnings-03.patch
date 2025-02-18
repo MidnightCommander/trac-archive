@@ -1,0 +1,26 @@
+
+fix clang 3.6 compiler warnings
+
+patch 01: -Wundef
+patch 02: -Wunused-function
+patch 03: -Wnon-literal-null-conversion
+patch 04: -Wmissing-field-initializers
+patch 05: -Wabsolute-value
+patch 06: -Wtautological-pointer-compare
+patch 07: -Wformat
+
+timefmt.c:123:33: error: expression which evaluates to zero treated as a null pointer constant of type 'time_t *' (aka 'long *') [-Wnon-literal-null-conversion]
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+
+--- a/lib/timefmt.c
++++ b/lib/timefmt.c
+@@ -120,7 +120,7 @@
+ file_date (time_t when)
+ {
+     static char timebuf[MB_LEN_MAX * MAX_I18NTIMELENGTH + 1];
+-    time_t current_time = time ((time_t) 0);
++    time_t current_time = time (NULL);
+     const char *fmt;
+ 
+     if (current_time > when + 6L * 30L * 24L * 60L * 60L        /* Old. */

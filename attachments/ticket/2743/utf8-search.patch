@@ -1,0 +1,17 @@
+--- a/lib/search/regex.c
++++ b/lib/search/regex.c
+@@ -722,8 +722,13 @@
+         mc_search_cond->str = mc_search__cond_struct_new_regex_ci_str (charset, tmp);
+         g_string_free (tmp, TRUE);
+     }
++
++    GRegexCompileFlags g_regex_options = G_REGEX_OPTIMIZE | G_REGEX_DOTALL;
++    if (!(str_isutf8 (charset) && mc_global.utf8_display))
++        g_regex_options |= G_REGEX_RAW;
++
+     mc_search_cond->regex_handle =
+-        g_regex_new (mc_search_cond->str->str, G_REGEX_OPTIMIZE | G_REGEX_RAW | G_REGEX_DOTALL,
++        g_regex_new (mc_search_cond->str->str, g_regex_options,
+                      0, &mcerror);
+ 
+     if (mcerror != NULL)

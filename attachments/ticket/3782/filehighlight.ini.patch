@@ -1,0 +1,12 @@
+diff -Naupr mc-4.8.19-orig/misc/filehighlight.ini mc-4.8.19/misc/filehighlight.ini
+--- mc-4.8.19-orig/misc/filehighlight.ini	2017-03-06 18:04:32.639460327 +0100
++++ mc-4.8.19/misc/filehighlight.ini	2017-03-06 18:05:04.872057364 +0100
+@@ -28,7 +28,7 @@
+     regexp=(^#.*|.*~$)
+ 
+ [archive]
+-    extensions=7z;Z;ace;arc;arj;ark;bz2;cab;gz;lha;lz;lz4;lzh;lzma;rar;rpm;tar;tbz;tbz2;tgz;tlz;xz;zip;zoo
++    extensions=7z;Z;ace;arc;arj;ark;bz2;cab;gz;lha;lz;lz4;lzh;lzma;rar;rpm;tar;tbz;tbz2;tgz;tlz;txz;xz;zip;zoo
+ 
+ [doc]
+     extensions=chm;css;ctl;diz;doc;docm;docx;dtd;htm;html;letter;lsm;mail;man;me;msg;nroff;odp;ods;odt;pdf;po;ppt;pptm;pptx;ps;rtf;sgml;shtml;tex;text;txt;xls;xlsm;xlsx;xml;xsd;xslt

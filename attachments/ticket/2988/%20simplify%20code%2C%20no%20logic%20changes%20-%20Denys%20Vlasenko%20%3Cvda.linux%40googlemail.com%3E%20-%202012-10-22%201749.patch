@@ -1,0 +1,180 @@
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Date: Mon, 22 Oct 2012 16:49:41 +0200
+Subject: [PATCH 1/5] keyboard input: simplify code, no logic changes
+
+This change slightly simplifies and rearranges the code
+in get_key_code(), reduces indentation levels there,
+adds a few comments. The logic remains the same.
+
+This is a preparatory patch for subsequent changes.
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+---
+ lib/tty/key.c |  126 ++++++++++++++++++++++++++++----------------------------
+ 1 files changed, 63 insertions(+), 63 deletions(-)
+
+diff --git a/lib/tty/key.c b/lib/tty/key.c
+index f050202..d2142fa 100644
+--- a/lib/tty/key.c
++++ b/lib/tty/key.c
+@@ -1847,7 +1847,7 @@ get_key_code (int no_delay)
+                 pending_keys = NULL;
+                 seq_append = NULL;
+             }
+-            if ((d == ESC_CHAR) && (pending_keys != NULL))
++            else if (d == ESC_CHAR)
+             {
+                 d = ALT (*pending_keys++);
+                 goto check_pend;
+@@ -1928,49 +1928,12 @@ get_key_code (int no_delay)
+             this = keys->child;
+         }
+     }
++
+     while (this != NULL)
+     {
+         if (c == this->ch)
+         {
+-            if (this->child)
+-            {
+-                if (!push_char (c))
+-                {
+-                    pending_keys = seq_buffer;
+-                    goto pend_send;
+-                }
+-                parent = this;
+-                this = this->child;
+-                if (parent->action == MCKEY_ESCAPE && old_esc_mode)
+-                {
+-                    if (no_delay)
+-                    {
+-                        GET_TIME (esctime);
+-                        if (this == NULL)
+-                        {
+-                            /* Shouldn't happen */
+-                            fputs ("Internal error\n", stderr);
+-                            exit (EXIT_FAILURE);
+-                        }
+-                        goto nodelay_try_again;
+-                    }
+-                    esctime.tv_sec = -1;
+-                    c = xgetch_second ();
+-                    if (c == -1)
+-                    {
+-                        pending_keys = seq_append = NULL;
+-                        this = NULL;
+-                        return ESC_CHAR;
+-                    }
+-                }
+-                else
+-                {
+-                    if (no_delay)
+-                        goto nodelay_try_again;
+-                    c = tty_lowlevel_getch ();
+-                }
+-            }
+-            else
++            if (!this->child)
+             {
+                 /* We got a complete match, return and reset search */
+                 int code;
+@@ -1980,36 +1943,73 @@ get_key_code (int no_delay)
+                 this = NULL;
+                 return correct_key_code (code);
+             }
+-        }
+-        else
+-        {
+-            if (this->next != NULL)
+-                this = this->next;
+-            else
++            /* No match yet, but it may be a prefix for a valid seq */
++
++            if (!push_char (c))
+             {
+-                if ((parent != NULL) && (parent->action == MCKEY_ESCAPE))
++                pending_keys = seq_buffer;
++                goto pend_send;
++            }
++            parent = this;
++            this = this->child;
++            if (parent->action == MCKEY_ESCAPE && old_esc_mode)
++            {
++                if (no_delay)
++                {
++                    GET_TIME (esctime);
++                    if (this == NULL)
++                    {
++                        /* Shouldn't happen */
++                        fputs ("Internal error\n", stderr);
++                        exit (EXIT_FAILURE);
++                    }
++                    goto nodelay_try_again;
++                }
++                esctime.tv_sec = -1;
++                c = xgetch_second ();
++                if (c == -1)
+                 {
+-                    /* Convert escape-digits to F-keys */
+-                    if (g_ascii_isdigit (c))
+-                        c = KEY_F (c - '0');
+-                    else if (c == ' ')
+-                        c = ESC_CHAR;
+-                    else
+-                        c = ALT (c);
+-
+                     pending_keys = seq_append = NULL;
+                     this = NULL;
+-                    return correct_key_code (c);
++                    return ESC_CHAR;
+                 }
+-                /* Did not find a match or {c} was changed in the if above,
+-                   so we have to return everything we had skipped
+-                 */
+-                push_char (c);
+-                pending_keys = seq_buffer;
+-                goto pend_send;
++                continue;
+             }
++            if (no_delay)
++                goto nodelay_try_again;
++            c = tty_lowlevel_getch ();
++            continue;
+         }
+-    }
++
++        /* c != this->ch. Try other keys with this prefix */
++        if (this->next != NULL) {
++            this = this->next;
++            continue;
++        }
++
++        /* No match found. Is it one of our ESC <key> specials? */
++        if ((parent != NULL) && (parent->action == MCKEY_ESCAPE))
++        {
++            /* Convert escape-digits to F-keys */
++            if (g_ascii_isdigit (c))
++                c = KEY_F (c - '0');
++            else if (c == ' ')
++                c = ESC_CHAR;
++            else
++                c = ALT (c);
++
++            pending_keys = seq_append = NULL;
++            this = NULL;
++            return correct_key_code (c);
++        }
++
++        /* Unknown sequence. Maybe a prefix of a longer one. Save it. */
++        push_char (c);
++        pending_keys = seq_buffer;
++        goto pend_send;
++
++    } /* while (this != NULL) */
++
+     this = NULL;
+     return correct_key_code (c);
+ }
+-- 
+1.7.7.6
+

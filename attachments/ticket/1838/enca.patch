@@ -1,0 +1,235 @@
+diff -c -r mc-4.7.0-pre4/misc/mc.ext.in mc-4.7.0-pre4_cp_asm/misc/mc.ext.in
+*** mc-4.7.0-pre4/misc/mc.ext.in	2009-10-29 19:02:37.000000000 +0000
+--- mc-4.7.0-pre4_cp_asm/misc/mc.ext.in	2009-11-20 09:21:03.000000000 +0000
+***************
+*** 103,108 ****
+--- 103,112 ----
+  #
+  # Maybe:	Open/XOpen/GOpen/KOpen/... for Console/X/GNOME/KDE/etc.
+  
++ ### Set encoding ###
++ 
++ type/text
++   Codepage=enca -L none -r %f
+  
+  ### Archives ###
+  
+diff -c -r mc-4.7.0-pre4/src/charsets.c mc-4.7.0-pre4_cp_asm/src/charsets.c
+*** mc-4.7.0-pre4/src/charsets.c	2009-10-28 20:54:51.000000000 +0000
+--- mc-4.7.0-pre4_cp_asm/src/charsets.c	2009-11-20 10:37:17.000000000 +0000
+***************
+*** 36,42 ****
+--- 36,46 ----
+  #include "util.h"		/* concat_dir_and_file() */
+  #include "fileloc.h"
+  
++ // Add extnumber encoding.
++ #define EXT_COUNT 10
++ 
+  int n_codepages = 0;
++ int max_codepages = 0;
+  
+  struct codepage_desc *codepages;
+  
+***************
+*** 81,87 ****
+  	    ++n_codepages;
+      rewind (f);
+  
+!     codepages = g_new0 (struct codepage_desc, n_codepages + 1);
+  
+      for (n_codepages = 0; fgets (buf, sizeof buf, f);) {
+  	/* split string into id and cpname */
+--- 85,92 ----
+  	    ++n_codepages;
+      rewind (f);
+  
+!     max_codepages = n_codepages + 1 + EXT_COUNT;
+!     codepages = g_new0 (struct codepage_desc, max_codepages );
+  
+      for (n_codepages = 0; fgets (buf, sizeof buf, f);) {
+  	/* split string into id and cpname */
+***************
+*** 155,162 ****
+      if (codepages == NULL)
+  	return -1;
+      for (i = 0; codepages[i].id; ++i)
+! 	if (strcmp (id, codepages[i].id) == 0)
+  	    return i;
+      return -1;
+  }
+  
+--- 160,186 ----
+      if (codepages == NULL)
+  	return -1;
+      for (i = 0; codepages[i].id; ++i)
+! 	if (strcmp (id, codepages[i].id) == 0) 
+  	    return i;
++ 
++   //if(n_codepages == max_codepages ) // Dynamic variant
++   //{
++     // FIXME glib don't include function g_renew0.
++     // max_codepages += EXT_COUNT;
++     // struct codepage_desc* c = g_renew0(struct codepage_desc, codepages, max_codepages);
++     // if(c)
++     // {
++     //  codepage_desc = c;
++     //  ....
++   
++   if(n_codepages < max_codepages ) // Static variant
++   {
++     codepages[n_codepages].id = g_strdup (id);
++     codepages[n_codepages].name = g_strdup (_("External"));
++     n_codepages++;
++     return n_codepages-1;
++   }
++ 
+      return -1;
+  }
+  
+diff -c -r mc-4.7.0-pre4/src/ext.c mc-4.7.0-pre4_cp_asm/src/ext.c
+*** mc-4.7.0-pre4/src/ext.c	2009-10-30 18:44:39.000000000 +0000
+--- mc-4.7.0-pre4_cp_asm/src/ext.c	2009-11-20 10:40:38.000000000 +0000
+***************
+*** 63,71 ****
+  
+  typedef char *(*quote_func_t) (const char *name, int quote_percent);
+  
+  static void
+! exec_extension (const char *filename, const char *lc_data, int *move_dir,
+! 		int start_line)
+  {
+      char *fn;
+      char *file_name;
+--- 63,86 ----
+  
+  typedef char *(*quote_func_t) (const char *name, int quote_percent);
+  
++ 
++ #ifdef HAVE_CHARSET
++ static void
++ exec_extension_full (const char *filename, const char *lc_data, int *move_dir,
++ 		int start_line, char *get_result);
++ static void
++ 
++ exec_extension (const char *filename, const char *lc_data, int *move_dir, int start_line)
++ {
++   exec_extension_full (filename, lc_data, move_dir, start_line, 0);
++ }
++ 
+  static void
+! exec_extension_full (const char *filename, const char *lc_data, int *move_dir,
+! 		int start_line, char *get_result )
+! #else
+! exec_extension (const char *filename, const char *lc_data, int *move_dir, int start_line)
+! #endif /* HAVE_CHARSET */
+  {
+      char *fn;
+      char *file_name;
+***************
+*** 270,276 ****
+  	q[1] = 0;
+  	do_cd (p, cd_parse_command);
+      } else {
+! 	shell_execute (cmd, EXECUTE_INTERNAL);
+  	if (console_flag) {
+  	    handle_console (CONSOLE_SAVE);
+  	    if (output_lines && keybar_visible) {
+--- 285,313 ----
+  	q[1] = 0;
+  	do_cd (p, cd_parse_command);
+      } else {
+! 	
+! #ifdef HAVE_CHARSET
+!   #define MAX_CODEPAGE_TEXT_LEN 10
+!   if( get_result != 0){ // get_result != 0 -- need get result from stdout.
+!       FILE *f = popen (cmd, "r");
+!       if(f) {
+! #ifdef __QNXNTO__
+!         if (setvbuf (f, NULL, _IOFBF, 0) != 0) {
+!             (void)pclose (f);
+!         }else{
+! #endif
+!         fgets(get_result, sizeof(get_result) * MAX_CODEPAGE_TEXT_LEN, f);
+!         get_result[strlen(get_result)-1]='\0';
+!         pclose(f);
+! #ifdef __QNXNTO__
+!         }
+! #endif
+!       }
+!   } else {
+! #endif /* HAVE_CHARSET */ 
+! 
+!       
+!   shell_execute (cmd, EXECUTE_INTERNAL);
+  	if (console_flag) {
+  	    handle_console (CONSOLE_SAVE);
+  	    if (output_lines && keybar_visible) {
+***************
+*** 281,286 ****
+--- 318,324 ----
+  
+  	    }
+  	}
++   }
+      }
+  
+      g_free (file_name);
+***************
+*** 590,599 ****
+  			    break;
+  			continue;
+  		    }
+! 		    if (!strcmp (action, p)) {
+! 			*r = c;
+! 			for (p = r + 1; *p == ' ' || *p == '\t'; p++);
+! 
+  			/* Empty commands just stop searching
+  			 * through, they don't do anything
+  			 *
+--- 628,655 ----
+  			    break;
+  			continue;
+  		    }
+!       
+! #ifdef HAVE_CHARSET
+!       if (strcmp (p, "Codepage") == 0)
+!       {
+!         char cmd[MAX_CODEPAGE_TEXT_LEN + 1]="\0";
+!         
+!         char *filename_copy = g_strdup (filename);
+!         exec_extension_full (filename_copy, r + 1, move_dir,
+! 					    view_at_line_number, cmd);
+!         g_free (filename_copy);
+! 
+!         source_codepage = get_codepage_index( cmd );
+! 
+!         *r = c;
+!         continue;
+!       }
+! #endif
+!       
+!       if (!strcmp (action, p)) {
+!         *r = c;
+! 			  for (p = r + 1; *p == ' ' || *p == '\t'; p++);
+! 			
+  			/* Empty commands just stop searching
+  			 * through, they don't do anything
+  			 *
+***************
+*** 602,608 ****
+  			 * filename parameter invalid (ie, most of the time,
+  			 * we get filename as a pointer from current_panel->dir).
+  			 */
+! 			if (p < q) {
+  			    char *filename_copy = g_strdup (filename);
+  
+  			    exec_extension (filename_copy, r + 1, move_dir,
+--- 658,664 ----
+  			 * filename parameter invalid (ie, most of the time,
+  			 * we get filename as a pointer from current_panel->dir).
+  			 */
+!       if (p < q) {
+  			    char *filename_copy = g_strdup (filename);
+  
+  			    exec_extension (filename_copy, r + 1, move_dir,

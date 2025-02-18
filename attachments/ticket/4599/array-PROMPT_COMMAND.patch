@@ -1,0 +1,39 @@
+From 16e52b28668a60ab6e76f825badb379190483378 Mon Sep 17 00:00:00 2001
+From: Viorel Munteanu <ceamac@gentoo.org>
+Date: Sun, 13 Oct 2024 12:15:36 +0300
+Subject: [PATCH] Add support for bash PROMPT_COMMAND being an array
+
+Starting with bash 5.1, PROMPT_COMMAND can be an array.  Detect this
+case and append and entry to the array instead of appending to a string.
+
+Testing for bash >= 5 is sufficient, because the @a operator exists in
+5.0.  We need eval on the "then" branch because bash 1.x cannot even
+parse that line (it does not support arrays).
+
+Bug: https://bugs.gentoo.org/930401
+Suggested-by: kfm@plushkava.net
+Signed-off-by: Viorel Munteanu <ceamac@gentoo.org>
+---
+ src/subshell/common.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/subshell/common.c b/src/subshell/common.c
+index 72f0015690..f4fba69dd6 100644
+--- a/src/subshell/common.c
++++ b/src/subshell/common.c
+@@ -1090,9 +1090,13 @@ init_subshell_precmd (char *precmd, size_t buff_size)
+                     " bind -x '\"\\e" SHELL_BUFFER_KEYBINDING "\":\"mc_print_command_buffer\"'\n"
+                     " bind -x '\"\\e" SHELL_CURSOR_KEYBINDING
+                     "\":\"echo $BASH_VERSINFO:$READLINE_POINT >&%d\"'\n"
+-                    " PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND\n}'pwd>&%d;kill -STOP $$'\n"
++                    " if test ${BASH_VERSION%%%%.*} -ge 5 && [[ ${PROMPT_COMMAND@a} == *a* ]] 2> /dev/null; then\n"
++                    "   eval \"PROMPT_COMMAND+=( 'pwd>&%d;kill -STOP $$' )\"\n"
++                    " else\n"
++                    "   PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND\n}'pwd>&%d;kill -STOP $$'\n"
++                    " fi\n"
+                     "PS1='\\u@\\h:\\w\\$ '\n", command_buffer_pipe[WRITE],
+-                    command_buffer_pipe[WRITE], subshell_pipe[WRITE]);
++                    command_buffer_pipe[WRITE], subshell_pipe[WRITE], subshell_pipe[WRITE]);
+         break;
+ 
+     case SHELL_ASH_BUSYBOX:

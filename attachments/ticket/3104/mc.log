@@ -1,0 +1,35 @@
+# LC_MESSAGES=C mc -V
+GNU Midnight Commander 4.8.10-91-gf5f177e                                                                                                                                              
+Built with GLib 2.38.0                                                                                                                                                                 
+Using the S-Lang library with terminfo database                                                                                                                                        
+With builtin Editor                                                                                                                                                                    
+With subshell support as default                                                                                                                                                       
+With support for background operations                                                                                                                                                 
+With mouse support on xterm and Linux console                                                                                                                                          
+With support for X11 events                                                                                                                                                            
+With internationalization support                                                                                                                                                      
+With multiple codepages support                                                                                                                                                        
+Virtual File Systems: cpiofs, tarfs, sfs, extfs, ftpfs, sftpfs, fish                                                                                                                   
+Data types: char: 8; int: 32; long: 64; void *: 64; size_t: 64; off_t: 64;                                                                                                             
+# LC_MESSAGES=C mc -F                                                                                                                                                   
+Root directory: /root                                                                                                                                                                  
+[System data]
+    Config directory: /etc/mc/
+    Data directory:   /usr/share/mc/
+    File extension handlers: /usr/lib/mc/ext.d/
+    VFS plugins and scripts: /usr/lib/mc/
+        extfs.d:        /usr/lib/mc/extfs.d/
+        fish:           /usr/lib/mc/fish/
+
+[User data]
+    Config directory: /root/.config/mc/
+    Data directory:   /root/.local/share/mc/
+        skins:          /root/.local/share/mc/skins/
+        extfs.d:        /root/.local/share/mc/extfs.d/
+        fish:           /root/.local/share/mc/fish/
+        mcedit macros:  /root/.local/share/mc/mc.macros
+        mcedit external macros: /root/.local/share/mc/mcedit/macros.d/macro.*
+    Cache directory:  /root/.cache/mc/
+
+mc --configure-options
+ '--build=x86_64-linux-gnu' '--prefix=/usr' '--includedir=${prefix}/include' '--mandir=${prefix}/share/man' '--infodir=${prefix}/share/info' '--sysconfdir=/etc' '--localstatedir=/var' '--libexecdir=/usr/lib' '--srcdir=.' '--disable-maintainer-mode' '--disable-dependency-tracking' '--disable-silent-rules' '--with-x' '--with-screen=slang' '--enable-aspell' '--disable-rpath' '--disable-static' 'build_alias=x86_64-linux-gnu' 'CFLAGS=-g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wall' 'LDFLAGS=-Wl,-Bsymbolic-functions -Wl,-z,relro' 'CPPFLAGS=-D_FORTIFY_SOURCE=2'

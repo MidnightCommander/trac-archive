@@ -1,0 +1,44 @@
+From 756e3c96dff4f70ae673fa4ea40e772e47d8b6c2 Mon Sep 17 00:00:00 2001
+From: Andreas Mohr <and@gmx.li>
+Date: Sun, 24 Apr 2016 17:30:37 +0000
+Subject: [PATCH] Cleanup cppcheck warning at direntry.c
+
+Cleanup following cppcheck warnings:
+
+[lib/vfs/direntry.c:121]: (style) Clarify calculation precedence for '&' and '?'.
+[lib/vfs/direntry.c:386]: (style) Clarify calculation precedence for '&' and '?'.
+[lib/vfs/direntry.c:391]: (style) Clarify calculation precedence for '&' and '?'.
+
+Signed-off-by: Andreas Mohr <and@gmx.li>
+---
+ lib/vfs/direntry.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/vfs/direntry.c b/lib/vfs/direntry.c
+index 66742b5..72a291c 100644
+--- a/lib/vfs/direntry.c
++++ b/lib/vfs/direntry.c
+@@ -118,7 +118,7 @@ vfs_s_automake (struct vfs_class *me, struct vfs_s_inode *dir, char *path, int f
+     if (sep != NULL)
+         *sep = '\0';
+ 
+-    res = vfs_s_generate_entry (me, path, dir, flags & FL_MKDIR ? (0777 | S_IFDIR) : 0777);
++    res = vfs_s_generate_entry (me, path, dir, (flags & FL_MKDIR) ? (0777 | S_IFDIR) : 0777);
+     vfs_s_insert_entry (me, dir, res);
+ 
+     if (sep != NULL)
+@@ -383,12 +383,12 @@ vfs_s_inode_from_path (const vfs_path_t * vpath, int flags)
+ 
+     ino =
+         vfs_s_find_inode (path_element->class, super, q,
+-                          flags & FL_FOLLOW ? LINK_FOLLOW : LINK_NO_FOLLOW, flags & ~FL_FOLLOW);
++                          (flags & FL_FOLLOW) ? LINK_FOLLOW : LINK_NO_FOLLOW, flags & ~FL_FOLLOW);
+     if ((!ino) && (!*q))
+         /* We are asking about / directory of ftp server: assume it exists */
+         ino =
+             vfs_s_find_inode (path_element->class, super, q,
+-                              flags & FL_FOLLOW ? LINK_FOLLOW :
++                              (flags & FL_FOLLOW) ? LINK_FOLLOW :
+                               LINK_NO_FOLLOW, FL_DIR | (flags & ~FL_FOLLOW));
+     return ino;
+ }

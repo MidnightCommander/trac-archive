@@ -1,0 +1,18 @@
+COND__FOUND_CHAR_LAST	./lib/search/internal.h	/^    COND__FOUND_CHAR_LAST,$/;"	enumerator
+GPM_HARD	./lib/tty/mouse.h	/^    GPM_HARD = 256              \/* if set in the defaultMask, force an already$/;"	enumerator
+GPM_MFLAG	./lib/tty/mouse.h	/^    GPM_MFLAG = 128,            \/* motion during click? *\/$/;"	enumerator
+GPM_TRIPLE	./lib/tty/mouse.h	/^    GPM_TRIPLE = 64,$/;"	enumerator
+J_CENTER_FIT	./lib/strutil.h	/^    J_CENTER_FIT	= 0x13,$/;"	enumerator
+J_CENTER_LEFT_FIT	./lib/strutil.h	/^    J_CENTER_LEFT_FIT	= 0x14$/;"	enumerator
+J_RIGHT_FIT	./lib/strutil.h	/^    J_RIGHT_FIT		= 0x12,$/;"	enumerator
+MC_GETUPDIR	./lib/vfs/mc-vfs/mcfs.h	/^    MC_GETUPDIR,$/;"	enumerator
+TAR_V7	./lib/vfs/mc-vfs/tar.c	/^    TAR_V7,$/;"	enumerator
+compare_quick	./src/cmd.c	/^    compare_quick, compare_size_only, compare_thourough$/;"	enumerator
+compare_size_only	./src/cmd.c	/^    compare_quick, compare_size_only, compare_thourough$/;"	enumerator
+compare_thourough	./src/cmd.c	/^    compare_quick, compare_size_only, compare_thourough$/;"	enumerator
+match_file	./lib/util.h	/^    match_file,			\/* match a filename, use easy_patterns *\/$/;"	enumerator
+match_normal	./lib/util.h	/^    match_normal,		\/* match pattern, use easy_patterns *\/$/;"	enumerator
+match_regex	./lib/util.h	/^    match_regex			\/* match pattern, force using regex *\/$/;"	enumerator
+pause_always	./src/main.h	/^enum { pause_never, pause_on_dumb_terminals, pause_always };$/;"	enumerator
+pause_never	./src/main.h	/^enum { pause_never, pause_on_dumb_terminals, pause_always };$/;"	enumerator
+pause_on_dumb_terminals	./src/main.h	/^enum { pause_never, pause_on_dumb_terminals, pause_always };$/;"	enumerator

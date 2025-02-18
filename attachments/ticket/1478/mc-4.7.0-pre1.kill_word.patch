@@ -1,0 +1,12 @@
+diff -Naur mc-4.7.0-pre1~/edit/editkeys.c mc-4.7.0-pre1/edit/editkeys.c
+--- mc-4.7.0-pre1~/edit/editkeys.c	2009-07-28 09:43:41.000000000 +0300
++++ mc-4.7.0-pre1/edit/editkeys.c	2009-08-05 02:32:41.000000000 +0300
+@@ -116,6 +116,7 @@
+     { ALT ('>'), CK_End_Of_Text },
+     { ALT ('-'), CK_Load_Prev_File },
+     { ALT ('='), CK_Load_Next_File },
++    { ALT ('d'), CK_Delete_Word_Right },
+     { ALT (KEY_BACKSPACE), CK_Delete_Word_Left },
+     { ALT ('n'), CK_Toggle_Line_State },
+     { ALT ('_'), CK_Toggle_Tab_TWS },
+diff -Naur mc-4.7.0-pre1~/src/filegui.c mc-4.7.0-pre1/src/filegui.c

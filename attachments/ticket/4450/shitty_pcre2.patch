@@ -1,0 +1,253 @@
+Index: config.h.in
+===================================================================
+--- config.h.in	(revision 52004)
++++ config.h.in	(working copy)
+@@ -6,9 +6,6 @@
+ /* Define to enable showing configure arguments in help */
+ #undef ENABLE_CONFIGURE_ARGS
+ 
+-/* Define to enable support for ext2fs attributes */
+-#undef ENABLE_EXT2FS_ATTR
+-
+ /* Define to 1 if translation of program messages to the user's native
+    language is requested. */
+ #undef ENABLE_NLS
+@@ -208,6 +205,9 @@
+ /* Define to 1 if you have the <OS.h> header file. */
+ #undef HAVE_OS_H
+ 
++/* Define to 1 if PCRE2 is found */
++#undef HAVE_PCRE2
++
+ /* Define to 1 if you have the `pmap_getmaps' function. */
+ #undef HAVE_PMAP_GETMAPS
+ 
+Index: lib/search/internal.h
+===================================================================
+--- lib/search/internal.h	(revision 52004)
++++ lib/search/internal.h	(working copy)
+@@ -6,8 +6,12 @@
+ #ifdef SEARCH_TYPE_GLIB
+ #define mc_search_regex_t GRegex
+ #else
++#ifdef HAVE_PCRE2
++#define mc_search_regex_t pcre2_code
++#else
+ #define mc_search_regex_t pcre
+ #endif
++#endif
+ 
+ /*** enums ***************************************************************************************/
+ 
+Index: lib/search/regex.c
+===================================================================
+--- lib/search/regex.c	(revision 52004)
++++ lib/search/regex.c	(working copy)
+@@ -342,9 +342,15 @@
+     }
+     lc_mc_search->num_results = g_match_info_get_match_count (lc_mc_search->regex_match_info);
+ #else /* SEARCH_TYPE_GLIB */
++#ifdef HAVE_PCRE2
++    lc_mc_search->num_results = pcre2_match (regex, 
++                                            (unsigned char *) search_str->str, search_str->len, 0, 0,
++                                           lc_mc_search->regex_match_info, NULL);
++#else
+     lc_mc_search->num_results = pcre_exec (regex, lc_mc_search->regex_match_info,
+                                            search_str->str, search_str->len, 0, 0,
+-                                           lc_mc_search->iovector, MC_SEARCH__NUM_REPLACE_ARGS);
++                                           lc_mc_search->iovector, mc_search__num_replace_args);
++#endif
+     if (lc_mc_search->num_results < 0)
+     {
+         return COND__NOT_FOUND;
+@@ -832,15 +838,36 @@
+             return;
+         }
+ #else /* SEARCH_TYPE_GLIB */
++#ifdef HAVE_PCRE2
++        int errcode;
++        char *error = calloc(128, sizeof(char));
++        size_t erroffset;
++#else
+         const char *error;
+         int erroffset;
+-        int pcre_options = PCRE_EXTRA | PCRE_MULTILINE;
++#endif
+ 
++        int pcre_options = 
++#ifdef HAVE_PCRE2
++                PCRE2_MULTILINE;
++#else           
++                PCRE_EXTRA | PCRE_MULTILINE;
++#endif
+         if (str_isutf8 (charset) && mc_global.utf8_display)
+         {
+-            pcre_options |= PCRE_UTF8;
++            pcre_options |= 
++#ifdef HAVE_PCRE2
++                    PCRE2_UTF;
++#else
++                    PCRE_UTF8;
++#endif
+             if (!lc_mc_search->is_case_sensitive)
+-                pcre_options |= PCRE_CASELESS;
++                pcre_options |= 
++#ifdef HAVE_PCRE2
++                        PCRE2_CASELESS;
++#else
++                        PCRE_CASELESS;
++#endif
+         }
+         else if (!lc_mc_search->is_case_sensitive)
+         {
+@@ -851,18 +878,33 @@
+             g_string_free (tmp, TRUE);
+         }
+ 
++#ifdef HAVE_PCRE2
+         mc_search_cond->regex_handle =
++            pcre2_compile ((unsigned char *) mc_search_cond->str->str, PCRE2_ZERO_TERMINATED, pcre_options, &errcode, &erroffset, NULL);
++#else
++        mc_search_cond->regex_handle =
+             pcre_compile (mc_search_cond->str->str, pcre_options, &error, &erroffset, NULL);
++#endif
+         if (mc_search_cond->regex_handle == NULL)
+         {
++#ifdef HAVE_PCRE2
++            pcre2_get_error_message(errcode, (unsigned char *) error,128);
++#endif
+             mc_search_set_error (lc_mc_search, MC_SEARCH_E_REGEX_COMPILE, "%s", error);
+             return;
+         }
++#ifdef HAVE_PCRE2
++        if(pcre2_jit_compile(mc_search_cond->regex_handle, PCRE2_JIT_COMPLETE) && strlen(error))
++#else
+         lc_mc_search->regex_match_info = pcre_study (mc_search_cond->regex_handle, 0, &error);
+         if (lc_mc_search->regex_match_info == NULL && error != NULL)
++#endif
+         {
+             mc_search_set_error (lc_mc_search, MC_SEARCH_E_REGEX_COMPILE, "%s", error);
+             MC_PTR_FREE (mc_search_cond->regex_handle);
++#ifdef HAVE_PCRE2
++            MC_PTR_FREE (error);
++#endif
+             return;
+         }
+ #endif /* SEARCH_TYPE_GLIB */
+Index: lib/search/search.c
+===================================================================
+--- lib/search/search.c	(revision 52004)
++++ lib/search/search.c	(working copy)
+@@ -67,7 +67,10 @@
+     mc_search_cond = g_malloc0 (sizeof (mc_search_cond_t));
+     mc_search_cond->str = mc_g_string_dup (str);
+     mc_search_cond->charset = g_strdup (charset);
+-
++#ifdef HAVE_PCRE2
++    lc_mc_search->regex_match_info= pcre2_match_data_create(MC_SEARCH__NUM_REPLACE_ARGS, NULL);
++    lc_mc_search->iovector = pcre2_get_ovector_pointer(lc_mc_search->regex_match_info);
++#endif
+     switch (lc_mc_search->search_type)
+     {
+     case MC_SEARCH_T_GLOB:
+Index: lib/search.h
+===================================================================
+--- lib/search.h	(revision 52004)
++++ lib/search.h	(working copy)
+@@ -8,9 +8,13 @@
+ #include <sys/types.h>
+ 
+ #ifdef SEARCH_TYPE_PCRE
++#ifdef HAVE_PCRE2
++#define PCRE2_CODE_UNIT_WIDTH 8
++#include <pcre2.h>
++#else
+ #include <pcre.h>
+ #endif
+-
++#endif
+ /*** typedefs(not structures) and defined constants **********************************************/
+ 
+ typedef enum mc_search_cbret_t mc_search_cbret_t;
+@@ -24,8 +28,15 @@
+ #ifdef SEARCH_TYPE_GLIB
+ #define mc_search_matchinfo_t GMatchInfo
+ #else
++#ifdef HAVE_PCRE2 
++/* no pcre_extra in PCRE2. pcre2_jit_compile (equivalent of pcre_study) handles 
++ * all of this internally. but we can use this to hold the pcre2_matches data
++ * until the search is complete */
++#define mc_search_matchinfo_t pcre2_match_data
++#else
+ #define mc_search_matchinfo_t pcre_extra
+ #endif
++#endif
+ 
+ /*** enums ***************************************************************************************/
+ 
+@@ -102,7 +113,12 @@
+     mc_search_matchinfo_t *regex_match_info;
+     GString *regex_buffer;
+ #ifdef SEARCH_TYPE_PCRE
++#ifdef HAVE_PCRE2
++    /* pcre2 will provide a pointer to a match_data structure that can be manipulated like an iovector*/
++    size_t *iovector;
++#else
+     int iovector[MC_SEARCH__NUM_REPLACE_ARGS * 2];
++#endif
+ #endif                          /* SEARCH_TYPE_PCRE */
+ 
+     /* private data */
+Index: m4.include/ax_path_lib_pcre.m4
+===================================================================
+--- m4.include/ax_path_lib_pcre.m4	(revision 52004)
++++ m4.include/ax_path_lib_pcre.m4	(working copy)
+@@ -37,24 +37,40 @@
+ 
+      OLDLDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS $test_PCRE_LIBS"
+      OLDCPPFLAGS="$CPPFLAGS" ; CPPFLAGS="$CPPFLAGS $test_PCRE_CPPFLAGS"
++     
++     AC_CHECK_LIB(pcre2-8, pcre2_compile_8, [#define PCRE2_CODE_UNIT_WIDTH 8])
+ 
+-     AC_CHECK_LIB(pcre, pcre_compile)
++     if test x"$ac_cv_lib_pcre2_8_pcre2_compile_8" = x"yes" ; then
++        AC_MSG_RESULT(setting PCRE_LIBS -L$with_pcre/lib -lpcre2-8)
+ 
+-     if test x"$ac_cv_lib_pcre_pcre_compile" = x"yes" ; then
+-        AC_MSG_RESULT(setting PCRE_LIBS -L$with_pcre/lib -lpcre)
+-
+         PCRE_LIBS=$test_PCRE_LIBS
+         PCRE_CPPFLAGS=$test_PCRE_CPPFLAGS
+ 
+-        AC_MSG_CHECKING([lib pcre])
++        AC_MSG_CHECKING([lib pcre2-8])
+         AC_MSG_RESULT([$PCRE_LIBS])
++        AC_DEFINE(HAVE_PCRE2, 1, [Define to 1 if PCRE2 is found])
+         m4_ifval($1,$1)
+      else
+-        AC_MSG_CHECKING([lib pcre])
++        AC_MSG_CHECKING([lib pcre2-8])
+         AC_MSG_RESULT([no, (WARNING)])
+-        m4_ifval($2,$2)
+-     fi
+ 
++        AC_CHECK_LIB(pcre, pcre_compile)
++
++        if test x"$ac_cv_lib_pcre_pcre_compile" = x"yes" ; then
++            AC_MSG_RESULT(setting PCRE_LIBS -L$with_pcre/lib -lpcre)
++
++            PCRE_LIBS=$test_PCRE_LIBS
++            PCRE_CPPFLAGS=$test_PCRE_CPPFLAGS
++
++            AC_MSG_CHECKING([lib pcre])
++            AC_MSG_RESULT([$PCRE_LIBS])
++            m4_ifval($1,$1)
++        else
++            AC_MSG_CHECKING([lib pcre])
++            AC_MSG_RESULT([no, (WARNING)])
++            m4_ifval($2,$2)
++        fi
++    fi
+      CPPFLAGS="$OLDCFPPLAGS"
+      LDFLAGS="$OLDLDFLAGS"
+ 

@@ -1,0 +1,16 @@
+Comment: use mailcap entry to choose the images viewer
+bug: #544058
+Author: Andreas Tille <tillea@rki.de>
+Index: mc-4.7.0-pre1/misc/mc.ext.in
+===================================================================
+--- mc-4.7.0-pre1.orig/misc/mc.ext.in	2009-08-28 18:06:16.000000000 +0200
++++ mc-4.7.0-pre1/misc/mc.ext.in	2009-08-28 18:07:34.000000000 +0200
+@@ -379,7 +379,7 @@
+ 	View=sxpm %f
+ 
+ include/image
+-	Open=if [ "$DISPLAY" = "" ]; then zgv %f; else (gqview %f &); fi
++	Open=(see %f &)
+ 	View=%view{ascii} identify %f
+ 	#View=%view{ascii} asciiview %f
+ 

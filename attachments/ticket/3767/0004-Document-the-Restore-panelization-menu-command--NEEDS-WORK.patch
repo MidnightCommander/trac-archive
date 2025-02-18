@@ -1,0 +1,37 @@
+From b54c07bb6146c78573e18876da9ac85303844596 Mon Sep 17 00:00:00 2001
+From: Mooffie <mooffie@gmail.com>
+Date: Sat, 18 Feb 2017 22:48:07 +0200
+Subject: [PATCH 4/4] Document the "Restore panelization" menu command. [NEEDS
+ WORK]
+
+Signed-off-by: Mooffie <mooffie@gmail.com>
+---
+ doc/man/mc.1.in | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/doc/man/mc.1.in b/doc/man/mc.1.in
+index 2944b69..c45368b 100644
+--- a/doc/man/mc.1.in
++++ b/doc/man/mc.1.in
+@@ -1000,6 +1000,18 @@ are always shown in the directory panel.
+ .SH "    Reread"
+ The reread command reload the list of files in the directory. It is
+ useful if other processes have created or removed files.
++.\"NODE "    Restore panelization"
++.SH "    Restore panelization"
++
++DRAFT DRAFT DRAFT (and deliberately invalid nroff syntax)
++
++After using 'Find file' or 'External panelize' the panel gets populated
++with a list of files. If you then switch to some other directory you lose
++this list. The 'Restore panelization' command lets you go back to that
++list.
++
++(@FIXME: 'Find file' doesn't necessarily do panelization.)
++
+ .\"NODE "  File Menu"
+ .SH "  File Menu"
+ Midnight Commander uses the F1 \- F10 keys as keyboard shortcuts
+-- 
+2.9.3
+
