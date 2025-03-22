@@ -2,6 +2,10 @@
 
 Archive of Trac related content, mainly attachments.
 
+## Wiki
+
+See [repository wiki](../../wiki) for archived Trac wiki content. 
+
 ## Provenance
 
 ### Sync from Trac server
